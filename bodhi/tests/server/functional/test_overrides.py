@@ -13,11 +13,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from datetime import datetime, timedelta
+import copy
 
 import mock
+from webtest import TestApp
 
 from bodhi.server.models import RpmBuild, RpmPackage, Release, User
 import bodhi.tests.server.functional.base
+from bodhi.server import main
 
 
 class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
@@ -504,3 +507,63 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(o['expiration_date'],
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(o['expired_date'], None)
+
+
+class TestOverridesWebViews(bodhi.tests.server.functional.base.BaseWSGICase):
+    def test_override_view_not_loggedin(self):
+        """
+        Test a non logged in User can't see the edit overrides form
+        """
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
+        resp = app.get('/overrides/bodhi-2.0-1.fc17',
+                       status=200, headers={'Accept': 'text/html'})
+        self.assertNotIn('<span>New Buildroot Override Form Requires JavaScript</span>', resp)
+        self.assertIn('<h2>Buildroot Override for <code>bodhi-2.0-1.fc17</code></h2>', resp)
+
+    def test_override_view_loggedin(self):
+        """
+        Test a logged in User can see the edit overrides form, and the correct
+        override is shown
+        """
+        resp = self.app.get('/overrides/bodhi-2.0-1.fc17',
+                            status=200, headers={'Accept': 'text/html'})
+        self.assertIn('<span>New Buildroot Override Form Requires JavaScript</span>', resp)
+        self.assertIn('<h2>Buildroot Override for <code>bodhi-2.0-1.fc17</code></h2>', resp)
+
+    def test_override_new_not_loggedin(self):
+        """
+        Test a non logged in User is forbidden from viewing the new overrides page
+        """
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
+        resp = app.get('/overrides/new',
+                       status=403, headers={'Accept': 'text/html'})
+        self.assertIn('<h1>403 <small>Forbidden</small></h1>', resp)
+        self.assertIn('<p class="lead">Access was denied to this resource.</p>', resp)
+
+    def test_override_new_loggedin(self):
+        """
+        Test a logged in User can see the new overrides form
+        """
+        resp = self.app.get('/overrides/new',
+                            status=200, headers={'Accept': 'text/html'})
+        self.assertIn('<h2 class="pull-left m-t-3">New Override</h2>', resp)
+
+    def test_overrides_list(self):
+        """
+        Test that the overrides list page shows, and contains the one overrides
+        in the test data.
+        """
+        resp = self.app.get('/overrides/',
+                            status=200, headers={'Accept': 'text/html'})
+        self.assertIn('<h3>Overrides <small>page #1 of 1 pages', resp)
+        self.assertIn('<a href="http://localhost/overrides/bodhi-2.0-1.fc17">', resp)
