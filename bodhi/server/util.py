@@ -36,15 +36,11 @@ import colander
 import libravatar
 import markdown
 import requests
+import rpm
 
 from bodhi.server import log, buildsys, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
-
-try:
-    import rpm
-except ImportError:
-    log.warning("Could not import 'rpm'")
 
 
 _ = TranslationStringFactory('bodhi')
