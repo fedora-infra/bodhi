@@ -7,5 +7,6 @@ Man pages
 
    bodhi
    bodhi-approve-testing
+   bodhi-babysit-ci
    bodhi-push
    initialize_bodhi_db
