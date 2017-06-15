@@ -88,7 +88,6 @@ setup(
         'nose-cov',
         'webtest',
         'mock',
-        'diff-cover'
     ],
     test_suite="nose.collector")
 
