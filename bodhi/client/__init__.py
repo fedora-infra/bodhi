@@ -125,14 +125,26 @@ def _save_override(url, user, password, staging, edit=False, **kwargs):
 @click.group()
 @click.version_option(message='%(version)s')
 def cli():
+    # Docs that show in the --help
     """
-    Create the main CLI group.
+    Command line tool for interacting with Bodhi
+    """
+
+    # Developer Docs
+    """
+    Create the main CLI group
     """
     pass
 
 
 @cli.group()
 def updates():
+    # Docs that show in the --help
+    """
+    Interact with updates on Bodhi.
+    """
+
+    # Developer Docs
     """
     Create the updates group.
     """
@@ -145,9 +157,16 @@ def updates():
 @click.option('--file', help='A text file containing all the update details')
 @url_option
 def new(user, password, url, **kwargs):
+    # User Docs that show in the --help
     """
     Create a new update.
 
+    BUILDS: a comma separated list of Builds to be added to the update
+    (e.g. 0ad-0.0.21-4.fc26, 2ping-3.2.1-4.fc26)
+    """
+
+    # Developer Docs
+    """
     Args:
         user (unicode): The username to authenticate as.
         password (unicode): The user's password.
@@ -155,6 +174,7 @@ def new(user, password, url, **kwargs):
                        True.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
+
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
 
@@ -193,8 +213,15 @@ def _validate_edit_update(ctx, param, value):
 @click.argument('update', callback=_validate_edit_update)
 @url_option
 def edit(user, password, url, **kwargs):
+    # User Docs that show in the --help
     """
     Edit an existing update.
+
+    UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
+    """
+
+    # Developer Docs
+    """
     The update argument can be an update id or the update title.
 
     Args:
@@ -260,6 +287,12 @@ def edit(user, password, url, **kwargs):
               is_flag=True, default=False)
 @url_option
 def query(url, **kwargs):
+    # User Docs that show in the --help
+    """
+    Query updates on Bodhi
+    """
+
+    # Developer Docs
     """
     Query updates based on flags.
 
@@ -282,6 +315,17 @@ def query(url, **kwargs):
               is_flag=True, default=False)
 @url_option
 def request(update, state, user, password, url, **kwargs):
+    # User Docs that show in the --help
+    """
+    Change an update's request status.
+
+    UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
+
+    STATE: The state you wish to change the update\'s request to. Valid options are
+    testing, stable, obsolete, unpush, and revoke.
+    """
+
+    # Developer Docs
     """
     Change an update's request to the given state.
 
@@ -317,6 +361,16 @@ def request(update, state, user, password, url, **kwargs):
               is_flag=True, default=False)
 @url_option
 def comment(update, text, karma, user, password, url, **kwargs):
+    # User Docs that show in the --help
+    """
+    Comment on an update.
+
+    UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
+
+    TEXT: the comment to be added to the update
+    """
+
+    # Developer Docs
     """
     Comment on an update.
 
@@ -331,6 +385,7 @@ def comment(update, text, karma, user, password, url, **kwargs):
                        True.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
+
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
     resp = client.comment(update, text, karma)
@@ -345,6 +400,12 @@ def comment(update, text, karma, user, password, url, **kwargs):
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
 @url_option
 def download(url, **kwargs):
+    # User Docs that show in the --help
+    """
+    Download the builds in one or more updates
+    """
+
+    # Developer Docs
     """
     Download the builds for an update.
 
@@ -414,6 +475,12 @@ def _get_notes(**kwargs):
 
 @cli.group()
 def overrides():
+    # Docs that show in the --help
+    """
+    Interact with overrides on Bodhi.
+    """
+
+    # Developer Docs
     """
     Create the overrides CLI group.
     """
@@ -427,6 +494,12 @@ def overrides():
               is_flag=True, default=False)
 @url_option
 def query_buildroot_overrides(url, user=None, **kwargs):
+    # Docs that show in the --help
+    """
+    Query the buildroot overrides.
+    """
+
+    # Developer Docs
     """
     Query the buildroot overrides.
 
@@ -445,6 +518,14 @@ def query_buildroot_overrides(url, user=None, **kwargs):
 @overrides.command('save')
 @add_options(save_edit_options)
 def save_buildroot_overrides(user, password, url, staging, **kwargs):
+    # Docs that show in the --help
+    """
+    Create a buildroot override.
+
+    NVR: the NVR (name-version-release) of the buildroot override to create
+    """
+
+    # Developer Docs
     """
     Create a buildroot override.
 
@@ -463,6 +544,14 @@ def save_buildroot_overrides(user, password, url, staging, **kwargs):
 @add_options(save_edit_options)
 @click.option('--expire', help='Expire the override', is_flag=True, default=False)
 def edit_buildroot_overrides(user, password, url, staging, **kwargs):
+    # Docs that show in the --help
+    """
+    Edit a buildroot override.
+
+    NVR: the NVR (name-version-release) of the buildroot override to edit
+    """
+
+    # Developer Docs
     """
     Edit a buildroot override.
 
