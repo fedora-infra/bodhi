@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat, Inc. and others
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Define the admin view."""
 
 from cornice import Service
 
@@ -24,6 +30,17 @@ admin_service = Service(name='admin', path='/admin/',
 
 @admin_service.get(permission='admin')
 def admin(request):
+    """
+    Return a dictionary with keys "user" and "principals".
+
+    "user" indexes the current user's name, and "principals" indexes the user's effective
+    principals.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary as described above.
+    """
     user = request.user
     log.info('%s logged into admin panel' % user.name)
     principals = request.effective_principals

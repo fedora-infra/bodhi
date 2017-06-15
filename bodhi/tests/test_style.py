@@ -52,6 +52,7 @@ class TestStyle(unittest.TestCase):
             'bodhi/server/consumers/updates.py',
             'bodhi/server/scripts/',
             'bodhi/server/views/__init__.py',
+            'bodhi/server/views/admin.py',
             'bodhi/server/views/generic.py',
             'bodhi/server/views/search.py']
 
