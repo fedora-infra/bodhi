@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""This module contains tests for the bodhi.server.scripts.babysit_ci_status module."""
+"""This module contains tests for the bodhi.server.scripts.babysit_ci module."""
 
 from click import testing
 
 from bodhi.server import models
-from bodhi.server.scripts import babysit_ci_status
+from bodhi.server.scripts import babysit_ci
 from bodhi.tests.server.base import BaseTestCase
 
 
@@ -36,7 +36,7 @@ class TestBabysit(BaseTestCase):
         b.scm_url = u'some_url_that_isnt_from_devbuildsys'
         self.db.commit()
 
-        result = runner.invoke(babysit_ci_status.babysit, [])
+        result = runner.invoke(babysit_ci.babysit, [])
 
         self.assertEqual(result.exit_code, 0)
         # The Build from the test case setup should not have the scm_url from the
@@ -52,7 +52,7 @@ class TestBabysit(BaseTestCase):
         b.ci_status = models.CiStatus.running
         self.db.commit()
 
-        result = runner.invoke(babysit_ci_status.babysit, [])
+        result = runner.invoke(babysit_ci.babysit, [])
 
         self.assertEqual(result.exit_code, 0)
         # The Build from the test case setup should have the scm_url from the
