@@ -118,16 +118,17 @@ class TestAddUpdate(base.BaseTestCase):
 
 class TestExtendedMetadata(unittest.TestCase):
 
-    def __init__(self, *args, **kw):
-        super(TestExtendedMetadata, self).__init__(*args, **kw)
-        repo_path = os.path.join(config.get('mash_dir'), 'f17-updates-testing')
-        if not os.path.exists(repo_path):
-            os.makedirs(repo_path)
-
     def setUp(self):
+        self._new_mash_stage_dir = tempfile.mkdtemp()
+        self._mash_stage_dir = config['mash_stage_dir']
+        self._mash_dir = config['mash_dir']
+        config['mash_stage_dir'] = self._new_mash_stage_dir
+        config['mash_dir'] = os.path.join(config['mash_stage_dir'], 'mash')
+        os.makedirs(os.path.join(config['mash_dir'], 'f17-updates-testing'))
+
         setup_buildsystem({'buildsystem': 'dev'})
-        config = {'sqlalchemy.url': DB_PATH}
-        engine = initialize_db(config)
+        app_config = {'sqlalchemy.url': DB_PATH}
+        engine = initialize_db(app_config)
         log.debug('Creating all models for %s' % engine)
         Base.metadata.bind = engine
         Base.metadata.create_all(engine)
@@ -160,6 +161,9 @@ class TestExtendedMetadata(unittest.TestCase):
         get_session().clear()
         shutil.rmtree(self.tempdir)
         teardown_buildsystem()
+        config['mash_stage_dir'] = self._mash_stage_dir
+        config['mash_dir'] = self._mash_dir
+        shutil.rmtree(self._new_mash_stage_dir)
 
     def _verify_updateinfo(self, repodata):
         updateinfos = glob.glob(join(repodata, "*-updateinfo.xml*"))

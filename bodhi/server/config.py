@@ -435,11 +435,11 @@ class BodhiConfig(dict):
             'value': '/etc/mash/mash.conf',
             'validator': unicode},
         'mash_dir': {
-            'value': os.path.join(os.path.dirname(__file__), '..', '..', 'masher', 'mash'),
-            'validator': _validate_path},
+            'value': None,
+            'validator': _validate_none_or(_validate_path)},
         'mash_stage_dir': {
-            'value': os.path.join(os.path.dirname(__file__), '..', '..', 'masher'),
-            'validator': _validate_path},
+            'value': None,
+            'validator': _validate_none_or(_validate_path)},
         'max_update_length_for_ui': {
             'value': 30,
             'validator': int},
