@@ -67,7 +67,8 @@ badge_ids = binary-star|both-bull-and-self-transcended-tester-viii|catching-the-
 # URL of the resultsdb for integrating checks and stuff
 # resultsdb_api_url = https://taskotron.fedoraproject.org/resultsdb_api/
 
-# Set this to True to enable gating based on Continuous Integration test results.
+# Set this to True to enable gating based on Continuous Integration test results. If you set this to
+# True, be sure to add a cron job to run the bodhi-babysit-ci-status CLI periodically.
 # ci.required = False
 
 # If this is set to a URL, a "More information about CI" link will appear on update pages for users

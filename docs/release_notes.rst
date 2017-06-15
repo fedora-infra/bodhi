@@ -1,13 +1,27 @@
 Release notes
 =============
 
-NEXT
-----
+2.8.0
+-----
+
+Special instructions
+^^^^^^^^^^^^^^^^^^^^
+
+* There is a new setting, ``ci.required`` that defaults to False. If you wish to use CI, you must
+  add a cron task to call the new ``bodhi-babysit-ci`` CLI periodically.
+
 
 Deprecation
 ^^^^^^^^^^^
 
 The ``/search/packages`` API call has been deprecated.
+
+
+New Dependencies
+^^^^^^^^^^^^^^^^
+
+* Bodhi now uses Bleach to sanitize markdown input from the user.
+  python-bleach 1.x is a new dependency in this release of Bodhi.
 
 
 Features
@@ -17,13 +31,110 @@ Features
   `#1325 <https://github.com/fedora-infra/bodhi/issues/1325>`_,
   `#1326 <https://github.com/fedora-infra/bodhi/issues/1326>`_,
   `#1327 <https://github.com/fedora-infra/bodhi/issues/1327>`_, and
-  `#1328 <https://github.com/fedora-infra/bodhi/issues/1328>`_)
+  `#1328 <https://github.com/fedora-infra/bodhi/issues/1328>`_).
+  Bodhi now knows about Fedora's new module format, and is able to handle everything they need
+  except publishing (which will appear in a later release). This release is also the first Bodhi
+  release that is able to handle multiple content types.
+* Improved OpenQA support in the web UI
+  (`#1471 <https://github.com/fedora-infra/bodhi/issues/1471>`_).
+* The type icons are now aligned in the web UI
+  (`4b6b7597 <https://github.com/fedora-infra/bodhi/commit/4b6b7597>`_ and
+  `d0940323 <https://github.com/fedora-infra/bodhi/commit/d0940323>`_).
+* There is now a man page for ``bodhi-approve-testing``
+  (`cf8d897f <https://github.com/fedora-infra/bodhi/commit/cf8d897f>`_).
+* Bodhi can now automatically detect whether to use DDL table locks if BDR is present during
+  migrations (`059b5ab7 <https://github.com/fedora-infra/bodhi/commit/059b5ab7>`_).
+* Locked updates now grey out the edit buttons with a tooltip to make the lock more obvious to the
+  user (`#1492 <https://github.com/fedora-infra/bodhi/issues/1492>`_).
+* Users can now do multi-line literal code blocks in comments
+  (`#1509 <https://github.com/fedora-infra/bodhi/issues/1509>`_).
+* The web UI now has more descriptive placeholder text
+  (`1a7122cd <https://github.com/fedora-infra/bodhi/commit/1a7122cd>`_).
+* All icons now have consistent width in the web UI
+  (`6dfe6ff3 <https://github.com/fedora-infra/bodhi/commit/6dfe6ff3>`_).
+* The front page has a new layout
+  (`6afb6b07 <https://github.com/fedora-infra/bodhi/commit/6afb6b07>`_).
+* Bodhi is now able to use Pagure and PDC as sources for ACL and package information
+  (`59551861 <https://github.com/fedora-infra/bodhi/commit/59551861>`_).
+* Bodhi's configuration loader now validates all values and centralizes defaults. Thus, it is now
+  possible to comment most of Bodhi's settings file and achieve sane defaults. Some settings are
+  still required, see the default ``production.ini`` file for documentation of all settings and
+  their defaults. A few unused settings were removed
+  (`#1488 <https://github.com/fedora-infra/bodhi/issues/1488>`_,
+  `#1489 <https://github.com/fedora-infra/bodhi/issues/1489>`_, and
+  `263b7b7f <https://github.com/fedora-infra/bodhi/commit/263b7b7f>`_).
+* The web UI now displays the content type of the update
+  (`#1329 <https://github.com/fedora-infra/bodhi/issues/1329>`_).
+* Bodhi now has a new ``ci.required`` setting that defaults to False. If enabled. updates will gate
+  based on Continuous Integration test results and will not proceed to updates-testing unless the
+  tests pass
+  (`0fcb73f8 <https://github.com/fedora-infra/bodhi/commit/0fcb73f8>`_).
+* Update builds are now sorted by NVR
+  (`#1441 <https://github.com/fedora-infra/bodhi/issues/1441>`_).
+* The backend code is reworked to allow gating on resultsdb data and requirement validation
+  performance is improved
+  (`#1550 <https://github.com/fedora-infra/bodhi/issues/1550>`_).
+* Bodhi is now able to map distgit commits to Builds, which helps map CI results to Builds. There is
+  a new ``bodhi-babysit-ci`` CLI that must be run periodically in cron if ``ci.required`` is
+  ``True``
+  (`ae01e5d1 <https://github.com/fedora-infra/bodhi/commit/ae01e5d1>`_).
 
-New Dependencies
-^^^^^^^^^^^^^^^^
 
-* Bodhi now uses Bleach to sanitize markdown input from the user.
-  python-bleach 1.x is a new dependency in this release of Bodhi.
+Bugs
+^^^^
+
+* A half-hidden button is now fully visible on mobile devices
+  (`#1467 <https://github.com/fedora-infra/bodhi/issues/1467>`_).
+* The signing status is again visible on the update page
+  (`#1469 <https://github.com/fedora-infra/bodhi/issues/1469>`_).
+* The edit update form will not be presented to users who are not auth'd
+  (`#1521 <https://github.com/fedora-infra/bodhi/issues/1521>`_).
+* The CLI ``--autokarma`` flag now works correctly
+  (`#1378 <https://github.com/fedora-infra/bodhi/issues/1378>`_).
+* E-mail subjects are now shortened like the web UI titles
+  (`#882 <https://github.com/fedora-infra/bodhi/issues/882>`_).
+* The override editing form is no longer displayed unless the user is logged in
+  (`#1541 <https://github.com/fedora-infra/bodhi/issues/1541>`_).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Several more modules now pass pydocstyle PEP-257 tests.
+* The development environment has a new ``bshell`` alias that sets up a usable Python shell,
+  initialized for Bodhi.
+* Lots of warnings from the unit tests have been fixed.
+* The dev environment cds to the source folder upon ``vagrant ssh``.
+* There is now a ``bfedmsg`` development alias to see fedmsgs.
+* A new ``bresetdb`` development alias will reset the database to the same state as when
+  ``vagrant up`` completed.
+* Some unused code was removed
+  (`afe5bd8c <https://github.com/fedora-infra/bodhi/commit/afe5bd8c>`_).
+* Test coverage was raised significantly, from 85% to 88%.
+* The development environment now has httpie by default.
+* The default Vagrant memory was raised
+  (`#1588 <https://github.com/fedora-infra/bodhi/issues/1588>`_).
+* Bodhi now has a Jenkins Job Builder template for use with CentOS CI.
+* A new ``bdiff-cover`` development alias helps compare test coverage in current branch to the
+  ``develop`` branch, and will alert the developer if there are any lines missing coverage.
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 2.8.0:
+
+* Ryan Lerch
+* Ralph Bean
+* Pierre-Yves Chibon
+* Matt Prahl
+* Martin Curlej
+* Adam Williamson
+* Kamil Páral
+* Clement Verna
+* Jeremy Cline
+* Matthew Miller
+* Randy Barlow
 
 
 2.7.0
