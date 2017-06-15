@@ -310,6 +310,44 @@ class TestSaveBuilrootOverrides(unittest.TestCase):
                 'csrf_token': 'a_csrf_token'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_existing_override_error_message(self, send_request):
+        """
+        Assert that the error message is provided if we try to save an existing override
+        """
+        exception_message = "Buildroot override for js-tag-it-2.0-1.fc25 already exists"
+        send_request.side_effect = bindings.BodhiClientException(exception_message)
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.save_buildroot_overrides,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn("The `overrides save` command is used for creating a new override",
+                      result.output)
+        self.assertIn("Use `overrides edit` to edit an existing override",
+                      result.output)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_other_client_exception(self, send_request):
+        """
+        Assert that any other BodhiClientExceptions are raised as expected
+        """
+        send_request.side_effect = bindings.BodhiClientException("Pants Exception")
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.save_buildroot_overrides,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
+
+        self.assertEqual(result.exit_code, -1)
+        self.assertEqual(str(result.exception), "Pants Exception", result.output)
+
 
 class TestWarnIfUrlAndStagingSet(unittest.TestCase):
     """
