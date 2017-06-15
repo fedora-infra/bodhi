@@ -96,6 +96,13 @@ def makemsg(body=None):
 class TestMasher(unittest.TestCase):
 
     def setUp(self):
+        self._new_mash_stage_dir = tempfile.mkdtemp()
+        self._mash_stage_dir = config['mash_stage_dir']
+        self._mash_dir = config['mash_dir']
+        config['mash_stage_dir'] = self._new_mash_stage_dir
+        config['mash_dir'] = os.path.join(config['mash_stage_dir'], 'mash')
+        os.makedirs(config['mash_dir'])
+
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
 
         fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
@@ -138,6 +145,9 @@ class TestMasher(unittest.TestCase):
         except:
             pass
         buildsys.teardown_buildsystem()
+        config['mash_stage_dir'] = self._mash_stage_dir
+        config['mash_dir'] = self._mash_dir
+        shutil.rmtree(self._new_mash_stage_dir)
 
     def set_stable_request(self, title):
         with self.db_factory() as session:
