@@ -1,0 +1,6 @@
+This file is here to fix #1611:
+
+https://github.com/fedora-infra/bodhi/issues/1611
+
+It will ensure that the masher/mash folder exists for git checkouts, so tests will pass on the first
+run.
