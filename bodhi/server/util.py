@@ -687,7 +687,7 @@ def taskotron_results(settings, entity='results/latest', max_queries=10, **kwarg
     try:
         while data and url:
             log.debug("Grabbing %r" % url)
-            response = requests.get(url)
+            response = requests.get(url, timeout=60)
             if response.status_code != 200:
                 raise IOError("status code was %r" % response.status_code)
             json = response.json()
