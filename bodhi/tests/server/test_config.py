@@ -202,6 +202,33 @@ class BodhiConfigValidate(unittest.TestCase):
         self.assertEqual(str(exc.exception), ('Invalid config values were set: \n\tcomps_url: This '
                                               'setting must be a URL starting with https://.'))
 
+    def test_koji_settings_are_strs(self):
+        """
+        Ensure that the koji related settings are strings.
+
+        This test ensures that #1624[0] stays fixed.
+
+        [0] https://github.com/fedora-infra/bodhi/issues/1624
+        """
+        c = config.BodhiConfig()
+        c.load_config()
+        # Let's set all of these to unicodes, and we'll assert that they get turned into strs.
+        c['koji_hub'] = u'http://example.com/kojihub'
+        c['krb_ccache'] = u'/tmp/krb5cc_%{uid}'
+        c['krb_keytab'] = u'/etc/krb5.bodhi.keytab'
+        c['krb_principal'] = u'bodhi/bodhi@FEDORAPROJECT.ORG'
+
+        # This should not raise an Exception, but it should convert the above to strs.
+        c._validate()
+
+        for k in ('koji_hub', 'krb_ccache', 'krb_keytab', 'krb_principal'):
+            self.assertEqual(type(c[k]), str)
+        # And the values should match what we did above.
+        self.assertEqual(c['koji_hub'], 'http://example.com/kojihub')
+        self.assertEqual(c['krb_ccache'], '/tmp/krb5cc_%{uid}')
+        self.assertEqual(c['krb_keytab'], '/etc/krb5.bodhi.keytab')
+        self.assertEqual(c['krb_principal'], 'bodhi/bodhi@FEDORAPROJECT.ORG')
+
     def test_valid_config(self):
         """A valid config should not raise Exceptions."""
         c = config.BodhiConfig()

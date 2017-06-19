@@ -409,16 +409,16 @@ class BodhiConfig(dict):
             'validator': unicode},
         'koji_hub': {
             'value': 'https://koji.stg.fedoraproject.org/kojihub',
-            'validator': unicode},
+            'validator': str},
         'krb_ccache': {
             'value': None,
-            'validator': _validate_none_or(unicode)},
+            'validator': _validate_none_or(str)},
         'krb_keytab': {
             'value': None,
-            'validator': _validate_none_or(unicode)},
+            'validator': _validate_none_or(str)},
         'krb_principal': {
             'value': None,
-            'validator': _validate_none_or(unicode)},
+            'validator': _validate_none_or(str)},
         'libravatar_dns': {
             'value': False,
             'validator': _validate_bool},
