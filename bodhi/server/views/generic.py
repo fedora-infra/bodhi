@@ -208,7 +208,7 @@ def home(request):
         critpath_updates = get_latest_updates(request, True, False)
         security_updates = get_latest_updates(request, False, True)
         release_updates_counts = {}
-        for release in request.releases['current']:
+        for release in request.releases['current'] + request.releases['pending']:
             release_updates_counts[release["name"]] = get_update_counts(request, release["name"])
 
         return {

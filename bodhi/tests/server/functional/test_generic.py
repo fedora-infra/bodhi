@@ -19,7 +19,8 @@ from pyramid.testing import DummyRequest
 from webtest import TestApp
 
 from bodhi.server import main, util
-from bodhi.server.models import (Group, User, Update, Release, UpdateStatus, UpdateType)
+from bodhi.server.models import (
+    Group, User, Update, Release, ReleaseState, UpdateStatus, UpdateType)
 from bodhi.server.security import remember_me
 from bodhi.tests.server import base
 
@@ -105,84 +106,6 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/', status=200)
         self.assertIn('Log out', res)
         self.assertIn('Fedora Update System', res)
-
-    def test_home_counts(self):
-        """Test the frontpage update counts"""
-        user2 = User(name=u'dudemcpants')
-        self.db.flush()
-        self.db.add(user2)
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        addedupdates = [[UpdateStatus.pending,
-                         [[UpdateType.security, 5],
-                          [UpdateType.bugfix, 4],
-                          [UpdateType.enhancement, 3],
-                          [UpdateType.newpackage, 2]]],
-                        [UpdateStatus.testing,
-                         [[UpdateType.security, 15],
-                          [UpdateType.bugfix, 14],
-                          [UpdateType.enhancement, 13],
-                          [UpdateType.newpackage, 12]]],
-                        [UpdateStatus.stable,
-                         [[UpdateType.security, 25],
-                          [UpdateType.bugfix, 24],
-                          [UpdateType.enhancement, 23],
-                          [UpdateType.newpackage, 22]]]]
-        count = 0
-        for i in addedupdates:
-            for j in i[1]:
-                for k in range(0, j[1]):
-                    update = Update(
-                        title=u'bodhi-2.0-1%s.fc17' % (str(count)),
-                        user=user2,
-                        status=i[0],
-                        type=j[0],
-                        notes=u'Useful details!',
-                        release=release,
-                        date_submitted=datetime(1984, 11, 02),
-                        requirements=u'rpmlint',
-                        stable_karma=3,
-                        unstable_karma=-3,
-                    )
-                    self.db.add(update)
-                    self.db.flush()
-                    count = count + 1
-
-        res = self.app.get('/', status=200)
-        self.assertIn(
-            '<a href=\"http://localhost/updates/?releases=F17&amp;status=pending\">\n'
-            '          15\n'
-            '          </a>',
-            res
-        )
-        self.assertIn('<h4>updates pending</h4>', res)
-        self.assertIn('<span class="fa fa-shield"></span> 5', res)
-        # this bug update count is one more than what we generate here
-        # because there is already a single update in the test data.
-        self.assertIn('<span class="fa fa-bug"></span> 5', res)
-        self.assertIn('<span class="fa fa-bolt text-success"></span> 3', res)
-        self.assertIn('<span class="fa fa-archive"></span> 2', res)
-        self.assertIn(
-            '<a href=\"http://localhost/updates/?releases=F17&amp;status=testing\">\n'
-            '          54\n'
-            '          </a>',
-            res
-        )
-        self.assertIn('<h4>updates in testing</h4>', res)
-        self.assertIn('<span class="fa fa-shield"></span> 15', res)
-        self.assertIn('<span class="fa fa-bug"></span> 14', res)
-        self.assertIn('<span class="fa fa-bolt"></span> 13', res)
-        self.assertIn('<span class="fa fa-archive"></span> 12', res)
-        self.assertIn(
-            '<a href=\"http://localhost/updates/?releases=F17&amp;status=stable\">\n'
-            '          94\n'
-            '          </a>',
-            res
-        )
-        self.assertIn('<h4>updates in stable</h4>', res)
-        self.assertIn('<span class="fa fa-shield"></span> 25', res)
-        self.assertIn('<span class="fa fa-bug"></span> 24', res)
-        self.assertIn('<span class="fa fa-bolt"></span> 23', res)
-        self.assertIn('<span class="fa fa-archive"></span> 22', res)
 
     def test_markdown(self):
         res = self.app.get('/markdown', {'text': 'wat'}, status=200)
@@ -407,3 +330,245 @@ class TestGenericViews(base.BaseTestCase):
         """Test the API Version JSON call"""
         res = self.app.get('/api_version')
         self.assertIn(str(util.version()), res)
+
+
+class TestFrontpageView(base.BaseTestCase):
+    def setUp(self, *args, **kwargs):
+        super(TestFrontpageView, self).setUp(*args, **kwargs)
+
+        def _add_updates(updateslist, user, release, packagesuffix):
+            """Private method that adds updates to the database for testing
+
+            """
+            count = 0
+            for i in updateslist:
+                for j in i[1]:
+                    for k in range(0, j[1]):
+                        update = Update(
+                            title=u'bodhi-2.0-1%s.%s' % (str(count), packagesuffix),
+                            user=user,
+                            status=i[0],
+                            type=j[0],
+                            notes=u'Useful details!',
+                            release=release,
+                            date_submitted=datetime(1984, 11, 02),
+                            requirements=u'rpmlint',
+                            stable_karma=3,
+                            unstable_karma=-3,
+                        )
+                        self.db.add(update)
+                        self.db.flush()
+                        count = count + 1
+
+        user2 = User(name=u'dudemcpants')
+        self.db.flush()
+        self.db.add(user2)
+
+        release = Release(
+            name=u'F18', long_name=u'Fedora 18',
+            id_prefix=u'FEDORA', version=u'18',
+            dist_tag=u'f18', stable_tag=u'f18-updates',
+            testing_tag=u'f18-updates-testing',
+            candidate_tag=u'f18-updates-candidate',
+            pending_signing_tag=u'f18-updates-testing-signing',
+            pending_testing_tag=u'f18-updates-testing-pending',
+            pending_stable_tag=u'f18-updates-pending',
+            override_tag=u'f18-override',
+            branch=u'f18', state=ReleaseState.pending)
+        self.db.add(release)
+
+        currentrelease = self.db.query(Release).filter_by(name=u'F17').one()
+        addedupdates = [[UpdateStatus.pending,
+                         [[UpdateType.security, 5],
+                          [UpdateType.bugfix, 4],
+                          [UpdateType.enhancement, 3],
+                          [UpdateType.newpackage, 2]]],
+                        [UpdateStatus.testing,
+                         [[UpdateType.security, 15],
+                          [UpdateType.bugfix, 14],
+                          [UpdateType.enhancement, 13],
+                          [UpdateType.newpackage, 12]]],
+                        [UpdateStatus.stable,
+                         [[UpdateType.security, 25],
+                          [UpdateType.bugfix, 24],
+                          [UpdateType.enhancement, 23],
+                          [UpdateType.newpackage, 22]]]]
+        _add_updates(addedupdates, user2, currentrelease, "fc17")
+
+        pendingrelease = self.db.query(Release).filter_by(name=u'F18').one()
+        addedupdates2 = [[UpdateStatus.pending,
+                         [[UpdateType.security, 2],
+                          [UpdateType.bugfix, 2],
+                          [UpdateType.enhancement, 2],
+                          [UpdateType.newpackage, 2]]],
+                         [UpdateStatus.testing,
+                          [[UpdateType.security, 3],
+                           [UpdateType.bugfix, 3],
+                           [UpdateType.enhancement, 3],
+                           [UpdateType.newpackage, 3]]],
+                         [UpdateStatus.stable,
+                          [[UpdateType.security, 4],
+                           [UpdateType.bugfix, 4],
+                           [UpdateType.enhancement, 4],
+                           [UpdateType.newpackage, 4]]]]
+        _add_updates(addedupdates2, user2, pendingrelease, "fc18")
+        self.db.flush()
+        Release._tag_cache = None
+
+    def test_home_counts(self):
+        """Test the frontpage update counts"""
+        res = self.app.get('/', status=200)
+
+        # Assert that pending updates counts in a current release are displayed properly
+        # Note the bug update count here is one more than what we generate above
+        # because there is already a single update in the test data.
+        self.assertIn("""<div class="front-count-total">
+          <a href="http://localhost/updates/?releases=F17&amp;status=pending">
+          15
+          </a>
+        </div>
+        <h4>updates pending</h4>
+          <a class="text-danger" href=\
+"http://localhost/updates/?releases=F17&amp;status=pending&amp;type=security">
+            <span class="fa fa-shield"></span> 5
+          </a>
+          <a class="text-warning" href=\
+"http://localhost/updates/?releases=F17&amp;status=pending&amp;type=bugfix">
+            <span class="fa fa-bug"></span> 5
+          </a>
+          <a class="text-success" href=\
+"http://localhost/updates/?releases=F17&amp;status=pending&amp;type=enhancement">
+            <span class="fa fa-bolt text-success"></span> 3
+          </a>
+          <a class="text-primary" href=\
+"http://localhost/updates/?releases=F17&amp;status=pending&amp;type=newpackage">
+            <span class="fa fa-archive"></span> 2
+          </a>""", res)
+
+        # Assert that testing updates counts in a current release are displayed properly
+        self.assertIn("""<div class="front-count-total">
+          <a href="http://localhost/updates/?releases=F17&amp;status=testing">
+          54
+          </a>
+          </div>
+        <h4>updates in testing</h4>
+        <a class="text-danger" title="Security updates" data-toggle="tooltip" \
+href="http://localhost/updates/?releases=F17&amp;status=testing&amp;type=security">
+          <span class="fa fa-shield"></span> 15
+        </a>
+        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" \
+href="http://localhost/updates/?releases=F17&amp;status=testing&amp;type=bugfix">
+          <span class="fa fa-bug"></span> 14
+        </a>
+        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" \
+href="http://localhost/updates/?releases=F17&amp;status=testing&amp;type=enhancement">
+          <span class="fa fa-bolt"></span> 13
+        </a>
+        <a class="text-primary" title="New Package updates" data-toggle="tooltip" \
+href="http://localhost/updates/?releases=F17&amp;status=testing&amp;type=newpackage">
+          <span class="fa fa-archive"></span> 12
+        </a>""", res)
+
+        # Assert that stable updates counts in a current release are displayed properly
+        self.assertIn("""<div class="front-count-total">
+          <a href="http://localhost/updates/?releases=F17&amp;status=stable">
+          94
+          </a>
+        </div>
+        <h4>updates in stable</h4>
+        <a class="text-danger" href="\
+http://localhost/updates/?releases=F17&amp;status=stable&amp;type=security">
+        <span class="fa fa-shield"></span> 25
+        </a>
+        <a class="text-warning" href="\
+http://localhost/updates/?releases=F17&amp;status=stable&amp;type=bugfix">
+        <span class="fa fa-bug"></span> 24
+        </a>
+        <a class="text-success" href="\
+http://localhost/updates/?releases=F17&amp;status=stable&amp;type=enhancement">
+        <span class="fa fa-bolt"></span> 23
+        </a>
+        <a class="text-primary" href="\
+http://localhost/updates/?releases=F17&amp;status=stable&amp;type=newpackage">
+        <span class="fa fa-archive"></span> 22
+        </a>""", res)
+
+        # Assert that pending updates counts in a pending release are displayed properly
+        self.assertIn("""<div class="front-count-total">
+          <a href="http://localhost/updates/?releases=F18&amp;status=pending">
+          8
+          </a>
+        </div>
+        <h4>updates pending</h4>
+          <a class="text-danger" href="\
+http://localhost/updates/?releases=F18&amp;status=pending&amp;type=security">
+            <span class="fa fa-shield"></span> 2
+          </a>
+          <a class="text-warning" href="\
+http://localhost/updates/?releases=F18&amp;status=pending&amp;type=bugfix">
+            <span class="fa fa-bug"></span> 2
+          </a>
+          <a class="text-success" href="\
+http://localhost/updates/?releases=F18&amp;status=pending&amp;type=enhancement">
+            <span class="fa fa-bolt text-success"></span> 2
+          </a>
+          <a class="text-primary" href="\
+http://localhost/updates/?releases=F18&amp;status=pending&amp;type=newpackage">
+            <span class="fa fa-archive"></span> 2
+          </a>""", res)
+
+        # Assert that testing updates counts in a pending release are displayed properly
+        self.assertIn("""<div class="front-count-total">
+          <a href="http://localhost/updates/?releases=F18&amp;status=testing">
+          12
+          </a>
+          </div>
+        <h4>updates in testing</h4>
+        <a class="text-danger" title="Security updates" data-toggle="tooltip" \
+href="http://localhost/updates/?releases=F18&amp;status=testing&amp;type=security">
+          <span class="fa fa-shield"></span> 3
+        </a>
+        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" \
+href="http://localhost/updates/?releases=F18&amp;status=testing&amp;type=bugfix">
+          <span class="fa fa-bug"></span> 3
+        </a>
+        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" \
+href="http://localhost/updates/?releases=F18&amp;status=testing&amp;type=enhancement">
+          <span class="fa fa-bolt"></span> 3
+        </a>
+        <a class="text-primary" title="New Package updates" data-toggle="tooltip" \
+href="http://localhost/updates/?releases=F18&amp;status=testing&amp;type=newpackage">
+          <span class="fa fa-archive"></span> 3
+        </a>""", res)
+
+        # Assert that stable updates counts in a pending release are displayed properly
+        self.assertIn("""<div class="front-count-total">
+          <a href="http://localhost/updates/?releases=F18&amp;status=stable">
+          16
+          </a>
+        </div>
+        <h4>updates in stable</h4>
+        <a class="text-danger" href="\
+http://localhost/updates/?releases=F18&amp;status=stable&amp;type=security">
+        <span class="fa fa-shield"></span> 4
+        </a>
+        <a class="text-warning" href="\
+http://localhost/updates/?releases=F18&amp;status=stable&amp;type=bugfix">
+        <span class="fa fa-bug"></span> 4
+        </a>
+        <a class="text-success" href="\
+http://localhost/updates/?releases=F18&amp;status=stable&amp;type=enhancement">
+        <span class="fa fa-bolt"></span> 4
+        </a>
+        <a class="text-primary" href="\
+http://localhost/updates/?releases=F18&amp;status=stable&amp;type=newpackage">
+        <span class="fa fa-archive"></span> 4
+        </a>""", res)
+
+        # Assert that the title for a pending release has the "prerelease" label
+        self.assertIn("""      <h3>
+        <a class="notblue" href="http://localhost/releases/F18">
+  Fedora 18
+        </a>
+          <span class="label label-default">prerelease</span>
+      </h3>""", res)
