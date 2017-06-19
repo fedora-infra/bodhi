@@ -17,10 +17,18 @@
     </script>
   </div>-->
 
-  % for r in request.releases['current']:
+  % for r in request.releases['pending'] + request.releases['current']:
   <div class="row front-release">
-    <h3><a class="notblue" href="${request.route_url('releases')}${r['name']}">
-${r['long_name']}</a></h3>
+    <div class="col-md-12">
+      <h3>
+        <a class="notblue" href="${request.route_url('releases')}${r['name']}">
+  ${r['long_name']}
+        </a>
+        %if r['state'] == 'pending':
+          <span class="label label-default">prerelease</span>
+        %endif
+      </h3>
+    </div>
       <div class="col-md-4">
         <div class="front-count">
         <div class="front-count-total">
