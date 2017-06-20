@@ -83,13 +83,14 @@
             else
                 if [[ $rtn_code -eq 124 ]]; then
                    echo "BUILD TIMEOUT";
-                   cico node done $CICO_ssid
+                   cico node done $CICO_ssid;
+                   exit 1;
                 else
                     # fail mode gives us 12 hrs to debug the machine
-                    curl "http://admin.ci.centos.org:8080/Node/fail?key=$CICO_API_KEY&ssid=$CICO_ssid"
+                    curl "http://admin.ci.centos.org:8080/Node/fail?key=$CICO_API_KEY&ssid=$CICO_ssid";
+                    exit 1
                 fi
             fi
-            exit $rtn_code
 
 - project:
     name: bodhi
