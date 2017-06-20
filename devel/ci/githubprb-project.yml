@@ -96,6 +96,7 @@
     name: bodhi
     jobs:
         - '{ci_project}-{git_repo}':
+            git_organization: fedora-infra
             git_username: fedora-infra
             git_repo: bodhi
             ci_project: '{name}'
