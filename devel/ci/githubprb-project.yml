@@ -44,6 +44,7 @@
     builders:
         - shell: |
             set +e
+            set -x
             export CICO_API_KEY=$(cat ~/duffy.key )
             # get node
             n=1
