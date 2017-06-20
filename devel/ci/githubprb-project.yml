@@ -85,7 +85,7 @@
                     curl "http://admin.ci.centos.org:8080/Node/fail?key=$CICO_API_KEY&ssid=$CICO_ssid"
                 fi
             fi
-            exit $rtn_codek
+            exit $rtn_code
 
 - project:
     name: bodhi
