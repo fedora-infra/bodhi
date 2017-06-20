@@ -38,6 +38,9 @@
             git_url: https://github.com/{git_username}/{git_repo}.git
     triggers:
         - githubprb
+    publishers:
+        - junit:
+            results: nosetests.xml
     builders:
         - shell: |
             set +e
