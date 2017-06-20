@@ -1030,7 +1030,7 @@ class TestBodhiClient_parse_file(unittest.TestCase):
 
         client = bindings.BodhiClient()
         updates = client.parse_file("sad")
-        
+
         self.assertEqual(len(updates), 1)
         self.assertEqual(len(updates[0]), 12)
         self.assertEqual(updates[0]['close_bugs'], True)
