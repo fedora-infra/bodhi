@@ -483,7 +483,7 @@ class BodhiConfig(dict):
             'value': 'https://admin.fedoraproject.org/pkgdb',
             'validator': unicode},
         'pkgtags_url': {
-            'value': 'https://apps.fedoraproject.org/tagger/api/v1/tag/sqlitebuildtags/',
+            'value': '',
             'validator': unicode},
         'query_wiki_test_cases': {
             'value': False,
