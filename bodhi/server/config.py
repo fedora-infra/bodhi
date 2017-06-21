@@ -348,7 +348,7 @@ class BodhiConfig(dict):
             'value': 'https://bodhi.fedoraproject.org',
             'validator': unicode},
         'critpath_pkgs': {
-            'value': ['kernel'],
+            'value': [],
             'validator': _generate_list_validator()},
         'critpath.min_karma': {
             'value': 2,
