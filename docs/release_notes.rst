@@ -1,6 +1,27 @@
 Release notes
 =============
 
+2.8.1
+-----
+
+Bugs
+----
+
+* Restore defaults for three settings back to the values they had in Bodhi 2.7.0 (
+  `#1633 <https://github.com/fedora-infra/bodhi/pull/1633>`_,
+  `#1640 <https://github.com/fedora-infra/bodhi/pull/1640>`_, and
+  `#1641 <https://github.com/fedora-infra/bodhi/pull/1641>`_).
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following contributors submitted patches for Bodhi 2.8.1:
+
+* Patrick Uiterwijk (the true 2.8.1 hero)
+* Randy Barlow
+
+
 2.8.0
 -----
 
