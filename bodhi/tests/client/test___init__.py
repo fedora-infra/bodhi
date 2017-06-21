@@ -122,7 +122,7 @@ class TestNew(unittest.TestCase):
             data={
                 'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                 'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                'suggest': None, 'notes': None, 'request': None, 'bugs': u'',
+                'suggest': None, 'notes': None, 'request': None, 'bugs': u'', 'requirements': None,
                 'unstable_karma': None, 'file': None, 'notes_file': None, 'type': 'bugfix'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
@@ -429,7 +429,7 @@ class TestEdit(unittest.TestCase):
                 'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                 'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'autokarma': False,
                 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'suggest': None,
-                'notes': u'this is an edited note', 'notes_file': None,
+                'notes': u'this is an edited note', 'notes_file': None, 'requirements': None,
                 'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
@@ -467,7 +467,7 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'suggest': None, 'notes': 'This is a --notes-file note!',
                     'notes_file': 'notefile.txt', 'request': None, 'bugs': u'',
-                    'unstable_karma': None, 'type': 'bugfix'})
+                    'requirements': None, 'unstable_karma': None, 'type': 'bugfix'})
             self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     def test_notes_and_notes_file(self):
@@ -510,7 +510,7 @@ class TestEdit(unittest.TestCase):
             data={
                 'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                 'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26', 'autokarma': False,
-                'edited': u'drupal7-i18n-1.17-1.fc26', 'suggest': None,
+                'edited': u'drupal7-i18n-1.17-1.fc26', 'suggest': None, 'requirements': None,
                 'notes': u'this is an edited note', 'notes_file': None,
                 'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})
 
@@ -549,6 +549,41 @@ class TestEdit(unittest.TestCase):
                    u'Please provide an Update ID or an Update Title\n'
 
         self.assertEqual(result.output, expected)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_required_tasks(self, send_request, query):
+        """
+        Assert that valid required Taskotron Tasks are properly handled in a successful updates
+        edit request.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--notes', 'testing required tasks',
+                          '--requirements', 'dist.depcheck dist.rpmdeplint', '--url',
+                          'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_with(
+            bindings_client, 'updates/', auth=True, verb='POST',
+            data={
+                'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                'suggest': None, 'notes': u'testing required tasks', 'notes_file': None,
+                'requirements': u'dist.depcheck dist.rpmdeplint', 'request': None,
+                'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
 
 class TestEditBuilrootOverrides(unittest.TestCase):

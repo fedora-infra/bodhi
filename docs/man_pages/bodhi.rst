@@ -179,6 +179,11 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         A path to a file containing all the update details.
 
+    ``--requirements <Taskotron tasks>``
+
+        A comma or space-separated list of required Taskotron tasks that must pass for this update
+        to reach stable.
+
 ``bodhi updates edit [options] <update>``
 
     Edit an existing bodhi update, given an update id or an update title. The
@@ -225,6 +230,11 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Suggest that the user logout or reboot upon applying the update.
 
+    ``--requirements <Taskotron tasks>``
+
+        A comma or space-separated list of required Taskotron tasks that must pass for this update
+        to reach stable.
+        
 ``bodhi updates query [options]``
 
     Query the bodhi server for updates. The ``query`` subcommand supports the following options:
