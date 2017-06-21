@@ -2290,8 +2290,8 @@ class Update(Base):
             since = self.last_modified.isoformat().rsplit('.', 1)[0]
         except Exception as e:
             log.exception("Failed to determine last_modified from %r : %r",
-                          self.last_modified, e.message)
-            return False, "Failed to determine last_modified: %r" % e.message
+                          self.last_modified, str(e))
+            return False, "Failed to determine last_modified: %r" % str(e)
 
         try:
             # query results for this update
@@ -2325,8 +2325,8 @@ class Update(Base):
                 results.extend(build_results)
 
         except Exception as e:
-            log.exception("Failed retrieving requirements results: %r", e.message)
-            return False, "Failed retrieving requirements results: %r" % e.message
+            log.exception("Failed retrieving requirements results: %r", str(e))
+            return False, "Failed retrieving requirements results: %r" % str(e)
 
         for testcase in requirements:
             relevant = [result for result in results

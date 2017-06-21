@@ -654,7 +654,7 @@ def taskotron_results(settings, entity='results/latest', max_queries=10, **kwarg
                 log.debug('Too many result pages, aborting at: %r' % url)
                 break
     except Exception as e:
-        log.exception("Problem talking to %r : %r" % (url, e.message))
+        log.exception("Problem talking to %r : %r" % (url, str(e)))
 
 
 class TransactionalSessionMaker(object):
