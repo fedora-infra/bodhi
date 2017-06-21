@@ -178,3 +178,9 @@
       name: fedmsg-tail
       state: started
       enabled: yes
+
+- name: Link the bodhi bash completion script
+  file:
+    src: /home/vagrant/bodhi/bodhi-complete.sh
+    dest: /etc/bash_completion.d/bodhi-complete.sh
+    state: link
