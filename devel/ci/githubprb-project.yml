@@ -80,6 +80,8 @@
             && rsync -e "ssh $sshopts" -Ha $(pwd)/ $CICO_hostname:payload \
             && /usr/bin/timeout {timeout} $ssh_cmd -t "cd payload && {ci_cmd}"
             rtn_code=$?
+            # Copy the archive results back to the master
+            rsync -e "ssh $sshopts" -Ha $CICO_hostname:payload/\*.xml $(pwd)/
             if [ $rtn_code -eq 0 ]; then
                 cico node done $CICO_ssid
             else
