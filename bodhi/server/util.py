@@ -214,6 +214,7 @@ def age(context, date, nuke_ago=False):
     else:
         return humanized
 
+
 hardcoded_avatars = {
     'bodhi': 'https://apps.fedoraproject.org/img/icons/bodhi-{size}.png',
     # Taskotron may have a new logo at some point.  Check this out:

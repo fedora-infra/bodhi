@@ -119,6 +119,7 @@ def exception_filter(response, request):
         log.exception('Unhandled exception raised:  %r' % response)
     return response
 
+
 DEFAULT_FILTERS.insert(0, exception_filter)
 
 
