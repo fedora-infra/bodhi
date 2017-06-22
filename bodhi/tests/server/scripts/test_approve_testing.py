@@ -38,8 +38,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
-        update.date_testing = datetime.now() - timedelta(days=7)
-        self.db.flush()
+        update.date_testing = datetime.utcnow() - timedelta(days=7)
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
@@ -67,7 +66,7 @@ class TestMain(BaseTestCase):
         update.autokarma = True
         update.request = None
         update.status = models.UpdateStatus.testing
-        update.date_testing = datetime.now() - timedelta(days=7)
+        update.date_testing = datetime.utcnow() - timedelta(days=7)
         # Let's delete all the comments to make our assertion at the end of this simpler.
         for c in update.comments:
             self.db.delete(c)
@@ -91,7 +90,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.status = models.UpdateStatus.testing
         # 6 days isn't enough time to meet the testing requirements.
-        update.date_testing = datetime.now() - timedelta(days=6)
+        update.date_testing = datetime.utcnow() - timedelta(days=6)
         # Let's delete all the comments to make our assertion at the end of this simpler.
         for c in update.comments:
             self.db.delete(c)
@@ -122,7 +121,7 @@ class TestMain(BaseTestCase):
         # code path.
         update.critpath = True
         # It's been in testing long enough to get the comment from bodhi that it can be pushed.
-        update.date_testing = datetime.now() - timedelta(days=15)
+        update.date_testing = datetime.utcnow() - timedelta(days=15)
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
@@ -291,7 +290,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
-        update.date_testing = datetime.now() - timedelta(days=7)
+        update.date_testing = datetime.utcnow() - timedelta(days=7)
         update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -345,7 +344,7 @@ class TestMain(BaseTestCase):
         update = self.db.query(models.Update).all()[0]
         update.request = None
         update.status = models.UpdateStatus.testing
-        update.date_testing = datetime.now() - timedelta(days=14)
+        update.date_testing = datetime.utcnow() - timedelta(days=14)
         self.db.flush()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
