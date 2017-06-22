@@ -39,6 +39,8 @@
     triggers:
         - githubprb
     publishers:
+        - archive:
+            artifacts: '*.xml'
         - junit:
             results: nosetests.xml
     builders:
