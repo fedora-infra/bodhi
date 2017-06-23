@@ -5,7 +5,7 @@ Release notes
 -----
 
 Bugs
-----
+^^^^
 
 * Restore defaults for three settings back to the values they had in Bodhi 2.7.0 (
   `#1633 <https://github.com/fedora-infra/bodhi/pull/1633>`_,
