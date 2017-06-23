@@ -1078,15 +1078,21 @@ class TestUpdate(ModelTest):
         update = self.get_update()
         rpm_build = update.builds[0]
         eq_(update.beautify_title(), u'TurboGears')
+        eq_(update.beautify_title(nvr=True), u'TurboGears-1.0.8-3.fc11')
 
         update.builds.append(rpm_build)
         eq_(update.beautify_title(), u'TurboGears and TurboGears')
+        eq_(update.beautify_title(nvr=True), u'TurboGears-1.0.8-3.fc11 and TurboGears-1.0.8-3.fc11')
 
         update.builds.append(rpm_build)
         eq_(update.beautify_title(), u'TurboGears, TurboGears, and 1 more')
+        eq_(update.beautify_title(nvr=True),
+            u'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, and 1 more')
 
         p = HTMLParser()
         eq_(p.unescape(update.beautify_title(amp=True)), u'TurboGears, TurboGears, & 1 more')
+        eq_(p.unescape(update.beautify_title(amp=True, nvr=True)),
+            u'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, & 1 more')
 
     def test_pkg_str(self):
         """ Ensure str(pkg) is correct """
