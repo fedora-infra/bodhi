@@ -1640,7 +1640,7 @@ class Update(Base):
                         bad += 1
         return bad * -1, good
 
-    def beautify_title(self, amp=False):
+    def beautify_title(self, amp=False, nvr=False):
         """Will shorten the title according to its length.
 
         This is used mostly in subject of a update notification email and
@@ -1651,9 +1651,16 @@ class Update(Base):
 
         If the "amp" parameter is specified it will replace the and with and
         &amp; html entity
+
+        If the "nvr" parameter is specified it will include name, version and
+        release information in package labels.
         """
+        def build_label():
+            return build.nvr if nvr else packagename_from_nvr(self, build.nvr)
+
         if len(self.builds) > 2:
-            title = ", ".join([packagename_from_nvr(self, build.nvr) for build in self.builds[:2]])
+            title = ", ".join([build_label() for build in self.builds[:2]])
+
             if amp:
                 title += ", &amp; "
             else:
@@ -1662,7 +1669,7 @@ class Update(Base):
             title += " more"
             return title
         else:
-            return " and ".join([packagename_from_nvr(self, build.nvr) for build in self.builds])
+            return " and ".join([build_label() for build in self.builds])
 
     def assign_alias(self):
         """Return a randomly-suffixed update ID.
