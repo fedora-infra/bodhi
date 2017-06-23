@@ -1640,7 +1640,7 @@ class Update(Base):
                         bad += 1
         return bad * -1, good
 
-    def beautify_title(self, amp=False):
+    def beautify_title(self, amp=False, nvr=False):
         """Will shorten the title according to its length.
 
         This is used mostly in subject of a update notification email and
@@ -1653,7 +1653,11 @@ class Update(Base):
         &amp; html entity
         """
         if len(self.builds) > 2:
-            title = ", ".join([packagename_from_nvr(self, build.nvr) for build in self.builds[:2]])
+            if nvr:
+                title = ", ".join([build.nvr for build in self.builds[:2]])
+            else:
+                title = ", ".join([packagename_from_nvr(self, build.nvr)
+                                  for build in self.builds[:2]])
             if amp:
                 title += ", &amp; "
             else:
@@ -1662,7 +1666,11 @@ class Update(Base):
             title += " more"
             return title
         else:
-            return " and ".join([packagename_from_nvr(self, build.nvr) for build in self.builds])
+            if nvr:
+                return " and ".join([build.nvr for build in self.builds])
+            else:
+                return " and ".join([packagename_from_nvr(self, build.nvr)
+                                    for build in self.builds])
 
     def assign_alias(self):
         """Return a randomly-suffixed update ID.
