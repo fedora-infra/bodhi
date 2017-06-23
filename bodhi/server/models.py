@@ -1651,6 +1651,9 @@ class Update(Base):
 
         If the "amp" parameter is specified it will replace the and with and
         &amp; html entity
+
+        If the "nvr" parameter is specified it will include name, version and
+        release information in package labels.
         """
         def build_label():
             return build.nvr if nvr else packagename_from_nvr(self, build.nvr)
