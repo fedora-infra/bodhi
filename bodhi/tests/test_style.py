@@ -51,10 +51,7 @@ class TestStyle(unittest.TestCase):
             'bodhi/server/consumers/signed.py',
             'bodhi/server/consumers/updates.py',
             'bodhi/server/scripts/',
-            'bodhi/server/views/__init__.py',
-            'bodhi/server/views/admin.py',
-            'bodhi/server/views/generic.py',
-            'bodhi/server/views/search.py']
+            'bodhi/server/views/']
 
         enforced_paths = [os.path.join(REPO_PATH, p) for p in enforced_paths]
         pydocstyle_command = ['pydocstyle', '--add-ignore=D413']
