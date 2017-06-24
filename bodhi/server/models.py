@@ -400,10 +400,11 @@ class UpdateType(DeclEnum):
 
 class UpdateRequest(DeclEnum):
     testing = 'testing', 'testing'
-    stable = 'stable', 'stable'
+    batched = 'batched', 'batched'
     obsolete = 'obsolete', 'obsolete'
     unpush = 'unpush', 'unpush'
     revoke = 'revoke', 'revoke'
+    stable = 'stable', 'stable'
 
 
 class UpdateSeverity(DeclEnum):

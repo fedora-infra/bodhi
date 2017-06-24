@@ -1758,8 +1758,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(len(body.get('updates', [])), 0)
         self.assertEquals(res.json_body['errors'][0]['name'], 'request')
         self.assertEquals(res.json_body['errors'][0]['description'],
-                          '"impossible" is not one of unpush, testing, revoke,'
-                          ' obsolete, stable')
+                          u'"impossible" is not one of revoke, testing,'
+                          ' obsolete, batched, stable, unpush')
 
     def test_list_updates_by_severity(self):
         res = self.app.get('/updates/', {"severity": "unspecified"})
@@ -2399,7 +2399,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         resp = resp.json_body
         eq_(resp['status'], 'error')
         eq_(resp['errors'][0]['description'],
-            u'"foo" is not one of unpush, testing, revoke, obsolete, stable')
+            u'"foo" is not one of revoke, testing, obsolete, batched, stable, unpush')
 
         # Now try with None
         resp = self.app.post_json(
@@ -3791,3 +3791,22 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(up.status, UpdateStatus.testing)
         self.assertEquals(len(up.builds), 1)
         self.assertEquals(up.builds[0].nvr, nvr1)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_batched_update(self, publish, *args):
+        """
+        Ensure that 'batched' is an acceptable type of update request.
+        """
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        resp = self.app.post_json('/updates/', args)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.builds[0].ci_status = CiStatus.passed
+        self.db.flush()
+        resp = self.app.post_json(
+            '/updates/%s/request' % args['builds'],
+            {'request': 'batched', 'csrf_token': self.get_csrf_token()})
+        eq_(resp.json['update']['request'], 'batched')
+        publish.assert_called_with(
+            topic='update.request.batched', msg=mock.ANY)
