@@ -3,7 +3,10 @@
     triggers:
       - github-pull-request:
           admin-list:
+              - AdamWill
               - bowlofeggs
+              - crungehottman
+              - kparal
               - mcurlej
               - ralphbean
           org-list:
