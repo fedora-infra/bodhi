@@ -2261,6 +2261,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         self.assertEquals(up.karma, 2)
         self.assertEquals(up.status, UpdateStatus.pending)
+        self.assertEquals(up.request, UpdateRequest.testing)
 
         text = unicode(config.get('testing_approval_msg_based_on_karma'))
         up.comment(self.db, text, author=u'bodhi')
