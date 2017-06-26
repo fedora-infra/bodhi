@@ -4,8 +4,8 @@
       - github-pull-request:
           admin-list:
               - bowlofeggs
-              - ralphbean
               - mcurlej
+              - ralphbean
           org-list:
               - fedora-infra
           cron: '* * * * *'
