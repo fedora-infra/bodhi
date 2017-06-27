@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Define web services that pertain to Stacks."""
 
 import math
 
@@ -50,7 +56,14 @@ stacks = Service(name='stacks', path='/stacks/',
 @stack.get(accept=('application/javascript'), renderer='jsonp',
            error_handler=bodhi.server.services.errors.jsonp_handler)
 def get_stack(request):
-    """Return a single Stack from its name"""
+    """
+    Return a single Stack from its name.
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        dict: A dictionary with key "stack" that indexes the matched Stack.
+    """
     return dict(stack=request.validated['stack'])
 
 
@@ -63,7 +76,17 @@ def get_stack(request):
             schema=bodhi.server.schemas.ListStackSchema,
             validators=(validate_packages,), renderer='json')
 def query_stacks(request):
-    """Return a paginated list of stacks"""
+    """
+    Return a paginated list of filtered stacks.
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        dict: A dictionary with the following keys: "stacks" indexing a list of Stacks that match
+            the query, "page" indexing the current page, "pages" indexing the total number of pages,
+            "rows_per_page" indexing how many rows are in a page, and "total" indexing the total
+            number of matched Stacks.
+    """
     data = request.validated
     query = request.db.query(Stack).order_by(Stack.name.desc())
 
@@ -106,7 +129,14 @@ def query_stacks(request):
              validators=(validate_requirements,), renderer='json',
              error_handler=bodhi.server.services.errors.json_handler)
 def save_stack(request):
-    """Save a stack"""
+    """
+    Save a stack.
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        dict: A dictionary with key "stack" that indexes the newly created Stack.
+    """
     data = request.validated
     db = request.db
     user = User.get(request.user.name, db)
@@ -176,7 +206,14 @@ def save_stack(request):
 @stack.delete(permission='edit', renderer='json',
               error_handler=bodhi.server.services.errors.json_handler)
 def delete_stack(request):
-    """Delete a stack"""
+    """
+    Delete a stack.
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        dict: The dictionary {'status': 'success'}.
+    """
     stack = request.validated['stack']
     notifications.publish(topic='stack.delete', msg=dict(
         stack=stack, agent=request.user.name))
@@ -187,7 +224,16 @@ def delete_stack(request):
 
 @view_config(route_name='new_stack', renderer='new_stack.html')
 def new_stack(request):
-    """ Returns the new stack form """
+    """
+    Return the new stack form.
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        dict: An empty dictionary.
+    Raises:
+        pyramid.exceptions.HTTPForbidden: If the user is not logged in.
+    """
     user = request.authenticated_userid
     if not user:
         raise HTTPForbidden("You must be logged in.")
