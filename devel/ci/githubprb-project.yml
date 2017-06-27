@@ -15,7 +15,7 @@
           cron: '* * * * *'
           github-hooks: true
           permit-all: false
-          trigger-phrase: '.*test.*'
+          trigger-phrase: 'jenkies test'
           allow-whitelist-orgs-as-admins: true
 
 - scm:
