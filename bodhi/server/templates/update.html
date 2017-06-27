@@ -104,9 +104,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       $.each(data.data, function(i, result) {
 
         var name = result.testcase.name;
-        // we want to stash results by scenario when there is one, use name
-        // when there isn't
-        var scenario = result.testcase.name;
+        var scenario = 'no_scenario';
         if (result.data.scenario) {
             scenario = result.data.scenario[0];
         }
@@ -119,10 +117,12 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
         if (latest[item] === undefined)
           latest[item] = {};
-        if (latest[item][arch] === undefined)
-          latest[item][arch] = {};
-        if (latest[item][arch][scenario] === undefined) {
-          latest[item][arch][scenario] = result;
+        if (latest[item][name] === undefined)
+          latest[item][name] = {};
+        if (latest[item][name][arch] === undefined)
+          latest[item][name][arch] = {};
+        if (latest[item][name][arch][scenario] === undefined) {
+          latest[item][name][arch][scenario] = result;
 
           // the latest/ api endpoint doesn't take into account 'scenarios'
           // like "same testcase different arch" (depcheck) or "same testcase
@@ -154,8 +154,8 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             request_results(theurl);
           }
         }
-        if (new Date(latest[item][arch][scenario].submit_time) < submit_time) {
-          latest[item][arch][scenario] = result;
+        if (new Date(latest[item][name][arch][scenario].submit_time) < submit_time) {
+          latest[item][name][arch][scenario] = result;
         }
       });
 
@@ -168,25 +168,27 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         $("#resultsdb").append("<h4 class='p-t-1'>"+buildname+
         "</h4><table class='table table-hover' id='buildresults"+count+
         "'></table>")
-        $.each(obj1, function(arch, obj2) {
-          $.each(obj2, function(scenario, result) {
-            var flavor;
-            if (scenario.includes("updates-server")) {
-              flavor = "server";
-            }
-            else if (scenario.includes("updates-workstation")) {
-              flavor = "workstation";
-            }
-            $('#buildresults'+count).append(make_row(
-                result.outcome,
-                result.testcase.name,
-                result.note,
-                // note: this is a single-item array
-                result.data.arch,
-                result.submit_time,
-                result.ref_url,
-                flavor
-            ));
+        $.each(obj1, function(name, obj2) {
+          $.each(obj2, function(arch, obj3) {
+            $.each(obj3, function(scenario, result) {
+              var flavor;
+              if (scenario.includes("updates-server")) {
+                flavor = "server";
+              }
+              else if (scenario.includes("updates-workstation")) {
+                flavor = "workstation";
+              }
+              $('#buildresults'+count).append(make_row(
+                  result.outcome,
+                  result.testcase.name,
+                  result.note,
+                  // note: this is a single-item array
+                  result.data.arch,
+                  result.submit_time,
+                  result.ref_url,
+                  flavor
+              ));
+            });
           });
         });
       });
