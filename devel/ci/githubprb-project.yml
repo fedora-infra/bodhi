@@ -1,6 +1,7 @@
 - trigger:
     name: githubprb
     triggers:
+      # https://docs.openstack.org/infra/jenkins-job-builder/triggers.html#triggers.github-pull-request
       - github-pull-request:
           admin-list:
               - AdamWill
