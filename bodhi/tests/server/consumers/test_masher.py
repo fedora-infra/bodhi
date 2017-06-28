@@ -97,11 +97,17 @@ class TestMasher(unittest.TestCase):
 
     def setUp(self):
         self._new_mash_stage_dir = tempfile.mkdtemp()
-        self._mash_stage_dir = config['mash_stage_dir']
-        self._mash_dir = config['mash_dir']
-        config['mash_stage_dir'] = self._new_mash_stage_dir
-        config['mash_dir'] = os.path.join(config['mash_stage_dir'], 'mash')
-        os.makedirs(config['mash_dir'])
+
+        test_config = base.original_config.copy()
+        test_config['mash_stage_dir'] = self._new_mash_stage_dir
+        test_config['mash_dir'] = os.path.join(self._new_mash_stage_dir, 'mash')
+
+        mock_config = mock.patch.dict(
+            'bodhi.server.consumers.masher.config', test_config)
+        mock_config.start()
+        self.addCleanup(mock_config.stop)
+
+        os.makedirs(os.path.join(self._new_mash_stage_dir, 'mash'))
 
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
 
@@ -145,8 +151,6 @@ class TestMasher(unittest.TestCase):
         except:
             pass
         buildsys.teardown_buildsystem()
-        config['mash_stage_dir'] = self._mash_stage_dir
-        config['mash_dir'] = self._mash_dir
         shutil.rmtree(self._new_mash_stage_dir)
 
     def set_stable_request(self, title):
@@ -692,6 +696,8 @@ References:
                           force=True, topic='mashtask.mashing'))
 
     @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.server.notifications.init')
+    @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')

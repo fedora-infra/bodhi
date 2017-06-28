@@ -21,7 +21,6 @@ import time
 import urlparse
 
 from mock import ANY
-from nose.tools import eq_
 from webtest import TestApp
 import mock
 
@@ -338,7 +337,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
         args = self.get_update(u'bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
 
-        eq_(resp.json['title'], 'bodhi-2.0.0-3.fc17')
+        self.assertEqual(resp.json['title'], 'bodhi-2.0.0-3.fc17')
 
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_package(self, *args):
@@ -350,7 +349,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
 
         resp = self.app.post_json('/updates/', args)
 
-        eq_(resp.json['title'], 'existing-package-2.4.1-5.fc17')
+        self.assertEqual(resp.json['title'], 'existing-package-2.4.1-5.fc17')
         package = self.db.query(RpmPackage).filter_by(name=u'existing-package').one()
         self.assertEqual(package.name, 'existing-package')
 
@@ -361,7 +360,7 @@ class TestNewUpdate(bodhi.tests.server.functional.base.BaseWSGICase):
 
         resp = self.app.post_json('/updates/', args)
 
-        eq_(resp.json['title'], 'missing-package-2.4.1-5.fc17')
+        self.assertEqual(resp.json['title'], 'missing-package-2.4.1-5.fc17')
         package = self.db.query(RpmPackage).filter_by(name=u'missing-package').one()
         self.assertEqual(package.name, 'missing-package')
 
@@ -616,7 +615,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         build.ci_status = CiStatus.passed
-        eq_(build.update.request, UpdateRequest.testing)
+        self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a non-provenpackager
         app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
@@ -625,13 +624,14 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure we can't push it until it meets the requirements
-        eq_(res.json_body['status'], 'error')
-        eq_(res.json_body['errors'][0]['description'], config.get('not_yet_tested_msg'))
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(
+            res.json_body['errors'][0]['description'], config.get('not_yet_tested_msg'))
 
         update = self.db.query(Update).filter_by(title=nvr).one()
-        eq_(update.stable_karma, 3)
-        eq_(update.locked, False)
-        eq_(update.request, UpdateRequest.testing)
+        self.assertEqual(update.stable_karma, 3)
+        self.assertEqual(update.locked, False)
+        self.assertEqual(update.request, UpdateRequest.testing)
 
         # Pretend it was pushed to testing
         update.request = None
@@ -639,19 +639,19 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         update.pushed = True
         self.db.flush()
 
-        eq_(update.karma, 0)
+        self.assertEqual(update.karma, 0)
         update.comment(self.db, u"foo", 1, u'foo')
         update = self.db.query(Update).filter_by(title=nvr).one()
-        eq_(update.karma, 1)
-        eq_(update.request, None)
+        self.assertEqual(update.karma, 1)
+        self.assertEqual(update.request, None)
         update.comment(self.db, u"foo", 1, u'bar')
         update = self.db.query(Update).filter_by(title=nvr).one()
-        eq_(update.karma, 2)
-        eq_(update.request, None)
+        self.assertEqual(update.karma, 2)
+        self.assertEqual(update.request, None)
         update.comment(self.db, u"foo", 1, u'biz')
         update = self.db.query(Update).filter_by(title=nvr).one()
-        eq_(update.karma, 3)
-        eq_(update.request, UpdateRequest.stable)
+        self.assertEqual(update.karma, 3)
+        self.assertEqual(update.request, UpdateRequest.stable)
 
         # Set it back to testing
         update.request = UpdateRequest.testing
@@ -663,7 +663,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
                                  csrf_token=app.get('/csrf').json_body['csrf_token']),
                             status=200)
 
-        eq_(res.json_body['update']['request'], 'stable')
+        self.assertEqual(res.json_body['update']['request'], 'stable')
 
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         res = app.post_json('/updates/%s/request' % str(nvr),
@@ -671,28 +671,28 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
                                  csrf_token=app.get('/csrf').json_body['csrf_token']),
                             status=200)
 
-        eq_(res.json_body['update']['request'], None)
+        self.assertEqual(res.json_body['update']['request'], None)
         # We need to re-fetch the update from the database since the post calls committed the
         # transaction.
         update = self.db.query(Update).filter_by(title=nvr).one()
-        eq_(update.request, None)
-        eq_(update.status, UpdateStatus.obsolete)
+        self.assertEqual(update.request, None)
+        self.assertEqual(update.status, UpdateStatus.obsolete)
 
         # Test that bob has can_edit True, provenpackager
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         res = app.get('/updates/%s' % str(nvr), status=200)
-        eq_(res.json_body['can_edit'], True)
+        self.assertEqual(res.json_body['can_edit'], True)
 
         # Test that ralph has can_edit True, they submitted it.
         app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         res = app.get('/updates/%s' % str(nvr), status=200)
-        eq_(res.json_body['can_edit'], True)
+        self.assertEqual(res.json_body['can_edit'], True)
 
         # Test that someuser has can_edit False, they are unrelated
         # This check *failed* with the old acls code.
         app = TestApp(main({}, testing=u'someuser', session=self.db, **self.app_settings))
         res = app.get('/updates/%s' % str(nvr), status=200)
-        eq_(res.json_body['can_edit'], False)
+        self.assertEqual(res.json_body['can_edit'], False)
 
         # Test that an anonymous user has can_edit False, obv.
         # This check *crashed* with the code on 2015-09-24.
@@ -704,7 +704,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         app = TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.get('/updates/%s' % str(nvr), status=200)
-        eq_(res.json_body['can_edit'], False)
+        self.assertEqual(res.json_body['can_edit'], False)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -728,7 +728,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         build.ci_status = CiStatus.queued
-        eq_(build.update.request, UpdateRequest.testing)
+        self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
@@ -736,8 +736,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure we can't push it until it passed CI
-        eq_(res.json_body['status'], 'error')
-        eq_(res.json_body['errors'][0]['description'],
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(
+            res.json_body['errors'][0]['description'],
             'Requirement not met CI did not pass on this update')
 
     @mock.patch(**mock_taskotron_results)
@@ -762,7 +763,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         build.ci_status = CiStatus.running
-        eq_(build.update.request, UpdateRequest.testing)
+        self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
@@ -770,8 +771,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure we can't push it until it passed CI
-        eq_(res.json_body['status'], 'error')
-        eq_(res.json_body['errors'][0]['description'],
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(
+            res.json_body['errors'][0]['description'],
             'Requirement not met CI did not pass on this update')
 
     @mock.patch(**mock_taskotron_results)
@@ -796,7 +798,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         build.ci_status = CiStatus.failed
-        eq_(build.update.request, UpdateRequest.testing)
+        self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
@@ -804,8 +806,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure we can't push it until it passed CI
-        eq_(res.json_body['status'], 'error')
-        eq_(res.json_body['errors'][0]['description'],
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(
+            res.json_body['errors'][0]['description'],
             'Requirement not met CI did not pass on this update')
 
     @mock.patch(**mock_taskotron_results)
@@ -831,7 +834,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         build.ci_status = CiStatus.ignored
-        eq_(build.update.request, UpdateRequest.testing)
+        self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
@@ -839,8 +842,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure the reason we cannot push isn't CI this time
-        eq_(res.json_body['status'], 'error')
-        eq_(res.json_body['errors'][0]['description'],
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(
+            res.json_body['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
     @mock.patch(**mock_taskotron_results)
@@ -865,7 +869,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         build.ci_status = CiStatus.waiting
-        eq_(build.update.request, UpdateRequest.testing)
+        self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
@@ -873,8 +877,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure we can't push it until it passed CI
-        eq_(res.json_body['status'], 'error')
-        eq_(res.json_body['errors'][0]['description'],
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(
+            res.json_body['errors'][0]['description'],
             'Requirement not met CI did not pass on this update')
 
     @mock.patch(**mock_taskotron_results)
@@ -899,7 +904,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         build.ci_status = None
-        eq_(build.update.request, UpdateRequest.testing)
+        self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
@@ -907,8 +912,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure the reason we can't push is not CI
-        eq_(res.json_body['status'], 'error')
-        eq_(res.json_body['errors'][0]['description'],
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(
+            res.json_body['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
     @mock.patch(**mock_valid_requirements)
@@ -2398,8 +2404,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
             '/updates/%s/request' % args['builds'],
             {'request': 'foo', 'csrf_token': self.get_csrf_token()}, status=400)
         resp = resp.json_body
-        eq_(resp['status'], 'error')
-        eq_(resp['errors'][0]['description'],
+        self.assertEqual(resp['status'], 'error')
+        self.assertEqual(
+            resp['errors'][0]['description'],
             u'"foo" is not one of revoke, testing, obsolete, batched, stable, unpush')
 
         # Now try with None
@@ -2407,9 +2414,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
             '/updates/%s/request' % args['builds'],
             {'request': None, 'csrf_token': self.get_csrf_token()}, status=400)
         resp = resp.json_body
-        eq_(resp['status'], 'error')
-        eq_(resp['errors'][0]['name'], 'request')
-        eq_(resp['errors'][0]['description'], 'Required')
+        self.assertEqual(resp['status'], 'error')
+        self.assertEqual(resp['errors'][0]['name'], 'request')
+        self.assertEqual(resp['errors'][0]['description'], 'Required')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -2423,7 +2430,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'testing', 'csrf_token': self.get_csrf_token()})
-        eq_(resp.json['update']['request'], 'testing')
+        self.assertEqual(resp.json['update']['request'], 'testing')
         self.assertEquals(publish.call_args_list, [])
 
     @mock.patch(**mock_taskotron_results)
@@ -2444,8 +2451,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'revoke', 'csrf_token': self.get_csrf_token()})
-        eq_(resp.json['update']['request'], None)
-        eq_(resp.json['update']['status'], 'testing')
+        self.assertEqual(resp.json['update']['request'], None)
+        self.assertEqual(resp.json['update']['status'], 'testing')
         publish.assert_called_with(topic='update.request.revoke', msg=mock.ANY)
 
     @mock.patch(**mock_taskotron_results)
@@ -2466,8 +2473,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'revoke', 'csrf_token': self.get_csrf_token()})
-        eq_(resp.json['update']['request'], None)
-        eq_(resp.json['update']['status'], 'unpushed')
+        self.assertEqual(resp.json['update']['request'], None)
+        self.assertEqual(resp.json['update']['status'], 'unpushed')
         publish.assert_called_with(topic='update.request.revoke', msg=mock.ANY)
 
     @mock.patch(**mock_valid_requirements)
@@ -2599,8 +2606,8 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'unpush', 'csrf_token': self.get_csrf_token()})
-        eq_(resp.json['update']['request'], None)
-        eq_(resp.json['update']['status'], 'unpushed')
+        self.assertEqual(resp.json['update']['request'], None)
+        self.assertEqual(resp.json['update']['status'], 'unpushed')
         publish.assert_called_with(topic='update.request.unpush', msg=mock.ANY)
 
     @mock.patch(**mock_taskotron_results)
@@ -2616,8 +2623,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
             '/updates/%s/request' % args['builds'],
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
             status=400)
-        eq_(resp.json['status'], 'error')
-        eq_(resp.json['errors'][0]['description'],
+        self.assertEqual(resp.json['status'], 'error')
+        self.assertEqual(
+            resp.json['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
     @mock.patch(**mock_taskotron_results)
@@ -2640,7 +2648,7 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up = Update.get(nvr, self.db)
         up.status = UpdateStatus.testing
         up.request = None
-        eq_(len(up.builds), 1)
+        self.assertEqual(len(up.builds), 1)
         up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
 
@@ -2679,15 +2687,15 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.request = None
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
-        eq_(len(up.builds), 1)
+        self.assertEqual(len(up.builds), 1)
         up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
-        eq_(up.days_in_testing, 7)
-        eq_(up.meets_testing_requirements, True)
+        self.assertEqual(up.days_in_testing, 7)
+        self.assertEqual(up.meets_testing_requirements, True)
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'stable', 'csrf_token': self.get_csrf_token()})
-        eq_(resp.json['update']['request'], 'stable')
+        self.assertEqual(resp.json['update']['request'], 'stable')
         publish.assert_called_with(
             topic='update.request.stable', msg=mock.ANY)
 
@@ -2704,15 +2712,16 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.status = UpdateStatus.pending
         up.request = None
         up.release.state = ReleaseState.archived
-        eq_(len(up.builds), 1)
+        self.assertEqual(len(up.builds), 1)
         up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'testing', 'csrf_token': self.get_csrf_token()},
             status=400)
-        eq_(resp.json['status'], 'error')
-        eq_(resp.json['errors'][0]['description'],
+        self.assertEqual(resp.json['status'], 'error')
+        self.assertEqual(
+            resp.json['errors'][0]['description'],
             "Can't change request for an archived release")
 
     @mock.patch(**mock_failed_taskotron_results)
@@ -2727,11 +2736,11 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.request = None
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
-        eq_(len(up.builds), 1)
+        self.assertEqual(len(up.builds), 1)
         up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
-        eq_(up.days_in_testing, 7)
-        eq_(up.meets_testing_requirements, True)
+        self.assertEqual(up.days_in_testing, 7)
+        self.assertEqual(up.meets_testing_requirements, True)
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
@@ -2751,11 +2760,11 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.request = None
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
-        eq_(len(up.builds), 1)
+        self.assertEqual(len(up.builds), 1)
         up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
-        eq_(up.days_in_testing, 7)
-        eq_(up.meets_testing_requirements, True)
+        self.assertEqual(up.days_in_testing, 7)
+        self.assertEqual(up.meets_testing_requirements, True)
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
@@ -2777,16 +2786,16 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
         up.comment(self.db, u'This update has been pushed to stable', author=u'bodhi')
-        eq_(len(up.builds), 1)
+        self.assertEqual(len(up.builds), 1)
         up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
-        eq_(up.days_in_testing, 14)
-        eq_(up.meets_testing_requirements, True)
+        self.assertEqual(up.days_in_testing, 14)
+        self.assertEqual(up.meets_testing_requirements, True)
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'stable', 'csrf_token': self.get_csrf_token()})
-        eq_(resp.json['update']['status'], 'stable')
-        eq_(resp.json['update']['request'], None)
+        self.assertEqual(resp.json['update']['status'], 'stable')
+        self.assertEqual(resp.json['update']['request'], None)
         try:
             publish.assert_called_with(
                 topic='update.request.stable', msg=mock.ANY)
@@ -2807,16 +2816,16 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         up.request = None
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
-        eq_(len(up.builds), 1)
+        self.assertEqual(len(up.builds), 1)
         up.builds[0].ci_status = CiStatus.passed
         self.db.flush()
-        eq_(up.days_in_testing, 14)
-        eq_(up.meets_testing_requirements, True)
+        self.assertEqual(up.days_in_testing, 14)
+        self.assertEqual(up.meets_testing_requirements, True)
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'testing', 'csrf_token': self.get_csrf_token()})
-        eq_(resp.json['update']['status'], 'testing')
-        eq_(resp.json['update']['request'], None)
+        self.assertEqual(resp.json['update']['status'], 'testing')
+        self.assertEqual(resp.json['update']['request'], None)
         try:
             publish.assert_called_with(
                 topic='update.request.testing', msg=mock.ANY)
@@ -3738,8 +3747,9 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
             '/updates/%s/request' % str(oldbuild),
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
             status=400)
-        eq_(resp.json['status'], 'error')
-        eq_(resp.json['errors'][0]['description'],
+        self.assertEqual(resp.json['status'], 'error')
+        self.assertEqual(
+            resp.json['errors'][0]['description'],
             ("Cannot submit bodhi ('0', '1.0', '1.fc17') to stable since it is older than "
              "('0', '2.0', '1.fc17')"))
 
@@ -3808,6 +3818,6 @@ class TestUpdatesService(bodhi.tests.server.functional.base.BaseWSGICase):
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'batched', 'csrf_token': self.get_csrf_token()})
-        eq_(resp.json['update']['request'], 'batched')
+        self.assertEqual(resp.json['update']['request'], 'batched')
         publish.assert_called_with(
             topic='update.request.batched', msg=mock.ANY)

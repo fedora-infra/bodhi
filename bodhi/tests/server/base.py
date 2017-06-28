@@ -22,9 +22,11 @@ import unittest
 from sqlalchemy import event
 import requests
 
-from bodhi.server import bugs, buildsys, log, models, initialize_db, Session
+from bodhi.server import bugs, buildsys, log, models, initialize_db, Session, config
 from bodhi.tests.server import create_update, populate
 
+
+original_config = config.config.copy()
 
 DB_PATH = 'sqlite://'
 DB_NAME = None
@@ -49,6 +51,11 @@ class BaseTestCase(unittest.TestCase):
     _populate_db = True
 
     def setUp(self):
+
+        # Ensure "cached" objects are cleared before each test.
+        models.Release._all_releases = None
+        models.Release._tag_cache = None
+
         bugs.set_bugtracker()
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
         self.config = {'sqlalchemy.url': DB_PATH}

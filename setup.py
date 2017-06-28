@@ -84,12 +84,12 @@ setup(
     install_requires=[],
     tests_require=[
         'flake8',
-        'nose',
-        'nose-cov',
+        'pytest',
+        'pytest-cov',
         'webtest',
         'mock',
     ],
-    test_suite="nose.collector")
+)
 
 
 setuptools.command.egg_info.manifest_maker.template = 'CLIENT_MANIFEST.in'

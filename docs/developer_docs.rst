@@ -177,7 +177,7 @@ Copy ``development.ini.example`` to ``development.ini``:
     
 Run the test suite
 ^^^^^^^^^^^^^^^^^^
-``python setup.py nosetests``
+``py.test``
 
 Import the bodhi2 database
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
