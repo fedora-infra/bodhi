@@ -103,7 +103,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       // the latest ones for each arch.  So, prune like this:
       $.each(data.data, function(i, result) {
 
-        var name = result.testcase.name;
+        var testcase = result.testcase.name;
         var scenario = 'no_scenario';
         if (result.data.scenario) {
             scenario = result.data.scenario[0];
@@ -117,18 +117,18 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
         if (latest[item] === undefined)
           latest[item] = {};
-        if (latest[item][name] === undefined)
-          latest[item][name] = {};
-        if (latest[item][name][arch] === undefined)
-          latest[item][name][arch] = {};
-        if (latest[item][name][arch][scenario] === undefined) {
-          latest[item][name][arch][scenario] = result;
+        if (latest[item][testcase] === undefined)
+          latest[item][testcase] = {};
+        if (latest[item][testcase][arch] === undefined)
+          latest[item][testcase][arch] = {};
+        if (latest[item][testcase][arch][scenario] === undefined) {
+          latest[item][testcase][arch][scenario] = result;
 
           // the latest/ api endpoint doesn't take into account 'scenarios'
           // like "same testcase different arch" (depcheck) or "same testcase
           // different flavor" (openQA). So we have to know about these and
           // on the first hit, query the other 'scenario'.
-          if (name == 'dist.depcheck'){
+          if (testcase == 'dist.depcheck'){
             var theurl = base_url+"results?testcases=dist.depcheck&item="+item+"&type=koji_build&limit=1";
             if (arch == 'x86_64'){
               theurl = theurl +"&arch=i386"
@@ -137,13 +137,13 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             }
             request_results(theurl);
           }
-          else if (name.startsWith('update.base')) {
+          else if (testcase.startsWith('update.base')) {
             // unfortunately we don't report the flavor to rdb, so we have to
             // do this in a silly way involving knowledge about 'scenario'
             // and the flavors that exist for update tests. this all sucks and
             // we need a better 'scenario' implementation.
             var otherscen;
-            var theurl = base_url+"results?testcases="+name+"&item="+item+"&type=bodhi_update&limit=1";
+            var theurl = base_url+"results?testcases="+testcase+"&item="+item+"&type=bodhi_update&limit=1";
             if (scenario.includes("updates-server")) {
               otherscen = scenario.replace("updates-server", "updates-workstation");
             }
@@ -154,8 +154,8 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             request_results(theurl);
           }
         }
-        if (new Date(latest[item][name][arch][scenario].submit_time) < submit_time) {
-          latest[item][name][arch][scenario] = result;
+        if (new Date(latest[item][testcase][arch][scenario].submit_time) < submit_time) {
+          latest[item][testcase][arch][scenario] = result;
         }
       });
 
@@ -168,7 +168,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         $("#resultsdb").append("<h4 class='p-t-1'>"+buildname+
         "</h4><table class='table table-hover' id='buildresults"+count+
         "'></table>")
-        $.each(obj1, function(name, obj2) {
+        $.each(obj1, function(testcase, obj2) {
           $.each(obj2, function(arch, obj3) {
             $.each(obj3, function(scenario, result) {
               var flavor;
