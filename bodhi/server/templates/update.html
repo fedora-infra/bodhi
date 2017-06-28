@@ -203,12 +203,17 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       // add the count of tests to the automated tests tab
 
       var successcount = $('.row-automatedtests.table-success').length;
+      var infocount = $('.row-automatedtests.table-info').length;
       var warningcount = $('.row-automatedtests.table-warning').length;
       var failedcount = $('.row-automatedtests.table-danger').length;
 
 
       if (successcount > 0){
       $("#tab-automatedtests").append(" <span class='label label-success'><span class='fa fa-check-circle'></span> "+successcount+"</span>");
+      }
+
+      if (infocount > 0){
+      $("#tab-automatedtests").append(" <span class='label label-info'><span class='fa fa-info-circle'></span> "+infocount+"</span>");
       }
 
       if (warningcount > 0 ){
