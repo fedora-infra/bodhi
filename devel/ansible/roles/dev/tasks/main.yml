@@ -39,7 +39,6 @@
       - python-kitchen
       - python-librepo
       - python-mock
-      - python-nose
       - python-openid
       - python-pillow
       - python-progressbar
@@ -63,11 +62,12 @@
       - python2-fedmsg-commands
       - python2-fedmsg-consumers
       - python2-flake8
-      - python2-nose-cov
       - python2-markdown
+      - python2-pytest-cov
       - python2-sphinx
       - python2-sqlalchemy_schemadisplay
       - python2-waitress
+      - python3-tox
       - redhat-rpm-config
       - vim-enhanced
       - zlib-devel

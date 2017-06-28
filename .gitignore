@@ -8,6 +8,7 @@
 .vagrant.d
 cover/
 coverage.xml
+htmlcov/
 devel/ansible/playbook.retry
 development.ini
 dist
@@ -27,3 +28,5 @@ masher/
 Vagrantfile
 .dnf-cache/
 .idea
+.tox/
+.cache/

@@ -2,8 +2,11 @@
 source = bodhi
 omit =
     bodhi/scripts/*
+    bodhi/tests/*
 
 [report]
+precision = 2
+fail_under = 88
 exclude_lines =
     pragma: no cover
     def __repr__

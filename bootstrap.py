@@ -184,7 +184,7 @@ def install_test_deps():
     workon = '.'
     if VENVWRAPPER:
         workon = os.getenv("WORKON_HOME")
-    cmd = '{workon}/{env}/bin/pip install nose-cov webtest mock'.format(
+    cmd = '{workon}/{env}/bin/pip install pytest-cov webtest mock'.format(
         envs=ENVS, env=VENV, workon=workon)
     print(cmd)
     subprocess.call(cmd.split())

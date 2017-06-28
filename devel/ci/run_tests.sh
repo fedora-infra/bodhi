@@ -13,7 +13,7 @@ sudo yum install -y gcc git python-devel python2-pip
 
 # We want a newer version of flake8 than EL 7 has, because the EL 7 version fails and we only really
 # care about it for devs, who use Fedora.
-sudo pip install diff_cover flake8
+sudo pip install diff_cover flake8 pytest-cov tox
 
 sudo yum install -y\
     createrepo_c\
@@ -37,7 +37,6 @@ sudo yum install -y\
     python-librepo\
     python-markdown\
     python-mock\
-    python-nose\
     python-openid\
     python-pillow\
     python-progressbar\
@@ -49,6 +48,7 @@ sudo yum install -y\
     python-pyramid\
     python-simplemediawiki\
     python-sqlalchemy\
+    python-sqlalchemy_schemadisplay\
     python-waitress\
     python-webhelpers\
     python-webob1.4\
@@ -59,6 +59,7 @@ mv development.ini.example development.ini
 
 sudo /usr/bin/python setup.py develop
 
-/usr/bin/python setup.py nosetests
+/usr/bin/pytest
+/usr/bin/tox -e pydocstyle,flake8
 
 diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100

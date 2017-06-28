@@ -20,7 +20,6 @@ import json
 import time
 import unittest
 
-from nose.tools import assert_equals, eq_, raises
 from pyramid.testing import DummyRequest
 from sqlalchemy.exc import IntegrityError
 import cornice
@@ -74,7 +73,7 @@ class ModelTest(BaseTestCase):
 
     def test_query_obj(self):
         for key, value in self.attrs.iteritems():
-            assert_equals(getattr(self.obj, key), value)
+            self.assertEqual(getattr(self.obj, key), value)
 
     def test_json(self):
         """ Ensure our models can return valid JSON """
@@ -84,7 +83,7 @@ class ModelTest(BaseTestCase):
     def test_get(self):
         if type(self) != ModelTest:
             for col in self.obj.__get_by__:
-                eq_(self.klass.get(getattr(self.obj, col), self.db), self.obj)
+                self.assertEqual(self.klass.get(getattr(self.obj, col), self.db), self.obj)
 
 
 class TestQueryProperty(BaseTestCase):
@@ -99,25 +98,25 @@ class TestPolymorphicDiscovery(BaseTestCase):
 
     def test_find_child_for_rpm(self):
         subclass = model.Package.find_polymorphic_child(model.ContentType.rpm)
-        eq_(subclass, model.RpmPackage)
+        self.assertEqual(subclass, model.RpmPackage)
         subclass = model.Build.find_polymorphic_child(model.ContentType.rpm)
-        eq_(subclass, model.RpmBuild)
+        self.assertEqual(subclass, model.RpmBuild)
         subclass = model.Package.find_polymorphic_child(model.ContentType.module)
-        eq_(subclass, model.ModulePackage)
+        self.assertEqual(subclass, model.ModulePackage)
         subclass = model.Build.find_polymorphic_child(model.ContentType.module)
-        eq_(subclass, model.ModuleBuild)
+        self.assertEqual(subclass, model.ModuleBuild)
 
-    @raises(NameError)
     def test_find_child_with_bad_identity(self):
-        model.Package.find_polymorphic_child(model.UpdateType.security)
+        with self.assertRaises(NameError):
+            model.Package.find_polymorphic_child(model.UpdateType.security)
 
-    @raises(KeyError)
     def test_find_child_with_bad_base_class(self):
-        model.Update.find_polymorphic_child(model.ContentType.rpm)
+        with self.assertRaises(KeyError):
+            model.Update.find_polymorphic_child(model.ContentType.rpm)
 
-    @raises(TypeError)
     def test_find_child_with_badly_typed_argument(self):
-        model.Update.find_polymorphic_child("whatever")
+        with self.assertRaises(TypeError):
+            model.Update.find_polymorphic_child("whatever")
 
 
 class TestComment(BaseTestCase):
@@ -148,9 +147,9 @@ class TestComment(BaseTestCase):
         feedback_titles_expected = [u"Test 1", u"Test 2"]
         feedback_karma_sum = sum([f.karma for f in feedback])
 
-        eq_(len(feedback), 2)
-        eq_(sorted(feedback_titles), sorted(feedback_titles_expected))
-        eq_(feedback_karma_sum, 2)
+        self.assertEqual(len(feedback), 2)
+        self.assertEqual(sorted(feedback_titles), sorted(feedback_titles_expected))
+        self.assertEqual(feedback_karma_sum, 2)
 
 
 class TestRelease(ModelTest):
@@ -173,7 +172,7 @@ class TestRelease(ModelTest):
         state=model.ReleaseState.current)
 
     def test_version_int(self):
-        eq_(self.obj.version_int, 11)
+        self.assertEqual(self.obj.version_int, 11)
 
     def test_all_releases(self):
         releases = model.Release.all_releases(self.db)
@@ -504,21 +503,21 @@ class TestRpmBuild(ModelTest):
                     package=model.RpmPackage(**TestRpmPackage.attrs))
 
     def test_release_relation(self):
-        eq_(self.obj.release.name, u"F11")
-        eq_(len(self.obj.release.builds), 1)
-        eq_(self.obj.release.builds[0], self.obj)
+        self.assertEqual(self.obj.release.name, u"F11")
+        self.assertEqual(len(self.obj.release.builds), 1)
+        self.assertEqual(self.obj.release.builds[0], self.obj)
 
     def test_package_relation(self):
-        eq_(self.obj.package.name, u"TurboGears")
-        eq_(len(self.obj.package.builds), 1)
-        eq_(self.obj.package.builds[0], self.obj)
+        self.assertEqual(self.obj.package.name, u"TurboGears")
+        self.assertEqual(len(self.obj.package.builds), 1)
+        self.assertEqual(self.obj.package.builds[0], self.obj)
 
     def test_epoch(self):
         self.obj.epoch = '1'
-        eq_(self.obj.evr, ("1", "1.0.8", "3.fc11"))
+        self.assertEqual(self.obj.evr, ("1", "1.0.8", "3.fc11"))
 
     def test_url(self):
-        eq_(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
+        self.assertEqual(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
 
 
 class TestUpdateValidateBuilds(BaseTestCase):
@@ -662,7 +661,7 @@ class TestUpdate(ModelTest):
         """Test the __json__() method when there are no Builds."""
         self.obj.builds = []
 
-        eq_(self.obj.__json__()['content_type'], None)
+        self.assertEqual(self.obj.__json__()['content_type'], None)
 
     def test_autokarma_not_nullable(self):
         """Assert that the autokarma column does not allow NULL values.
@@ -670,13 +669,13 @@ class TestUpdate(ModelTest):
         For history about why this is important, see
         https://github.com/fedora-infra/bodhi/issues/1048
         """
-        eq_(model.Update.__table__.columns['autokarma'].nullable, False)
+        self.assertEqual(model.Update.__table__.columns['autokarma'].nullable, False)
 
     def test_builds(self):
-        eq_(len(self.obj.builds), 1)
-        eq_(self.obj.builds[0].nvr, u'TurboGears-1.0.8-3.fc11')
-        eq_(self.obj.builds[0].release.name, u'F11')
-        eq_(self.obj.builds[0].package.name, u'TurboGears')
+        self.assertEqual(len(self.obj.builds), 1)
+        self.assertEqual(self.obj.builds[0].nvr, u'TurboGears-1.0.8-3.fc11')
+        self.assertEqual(self.obj.builds[0].release.name, u'F11')
+        self.assertEqual(self.obj.builds[0].package.name, u'TurboGears')
 
     def test_ci_status_ignored(self):
         """Test the ci_status property when all Builds have their ci_status set to ignored."""
@@ -735,7 +734,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.ci_status, CiStatus.waiting)
 
     def test_content_type(self):
-        eq_(self.obj.content_type, model.ContentType.rpm)
+        self.assertEqual(self.obj.content_type, model.ContentType.rpm)
 
     def test_mandatory_days_in_testing_critpath(self):
         """
@@ -748,7 +747,7 @@ class TestUpdate(ModelTest):
         # Configured value.
         expected = int(config.get('critpath.stable_after_days_without_negative_karma'))
 
-        eq_(update.mandatory_days_in_testing, expected)
+        self.assertEqual(update.mandatory_days_in_testing, expected)
 
     def test_mandatory_days_in_testing(self):
         """
@@ -757,7 +756,7 @@ class TestUpdate(ModelTest):
         """
         update = self.obj
 
-        eq_(update.mandatory_days_in_testing, 7)
+        self.assertEqual(update.mandatory_days_in_testing, 7)
 
     @mock.patch.dict('bodhi.server.models.config', {'fedora.mandatory_days_in_testing': '0'})
     def test_mandatory_days_in_testing_false(self):
@@ -767,7 +766,7 @@ class TestUpdate(ModelTest):
         """
         update = self.obj
 
-        eq_(update.mandatory_days_in_testing, 0)
+        self.assertEqual(update.mandatory_days_in_testing, 0)
 
     def test_days_to_stable_critpath(self):
         """
@@ -781,7 +780,7 @@ class TestUpdate(ModelTest):
         criptath_days_to_stable = int(
             config.get('critpath.stable_after_days_without_negative_karma'))
 
-        eq_(update.days_to_stable, criptath_days_to_stable - 4)
+        self.assertEqual(update.days_to_stable, criptath_days_to_stable - 4)
 
     def test_days_to_stable_meets_testing_requirements(self):
         """
@@ -794,9 +793,9 @@ class TestUpdate(ModelTest):
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
-        eq_(update.meets_testing_requirements, True)
+        self.assertEqual(update.meets_testing_requirements, True)
 
-        eq_(update.days_to_stable, 0)
+        self.assertEqual(update.days_to_stable, 0)
 
     def test_days_to_stable_not_meets_testing_requirements_no_date_testing(self):
         """
@@ -805,10 +804,10 @@ class TestUpdate(ModelTest):
         """
         update = self.get_update()
         # Assert that our preconditions from the docblock are correct.
-        eq_(update.meets_testing_requirements, False)
-        eq_(update.date_testing, None)
+        self.assertEqual(update.meets_testing_requirements, False)
+        self.assertEqual(update.date_testing, None)
 
-        eq_(update.days_to_stable, 0)
+        self.assertEqual(update.days_to_stable, 0)
 
     def test_days_to_stable_not_meets_testing_requirements_with_date_testing(self):
         """
@@ -819,9 +818,9 @@ class TestUpdate(ModelTest):
         update = self.get_update()
         update.date_testing = datetime.utcnow() + timedelta(days=-4)
         # Assert that our preconditions from the docblock are correct.
-        eq_(update.meets_testing_requirements, False)
+        self.assertEqual(update.meets_testing_requirements, False)
 
-        eq_(update.days_to_stable, 3)
+        self.assertEqual(update.days_to_stable, 3)
 
     @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_ci_failed_no_testing_requirements(self):
@@ -836,7 +835,7 @@ class TestUpdate(ModelTest):
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
-        eq_(update.meets_testing_requirements, False)
+        self.assertEqual(update.meets_testing_requirements, False)
 
     @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_ci_queued_no_testing_requirements(self):
@@ -851,7 +850,7 @@ class TestUpdate(ModelTest):
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
-        eq_(update.meets_testing_requirements, False)
+        self.assertEqual(update.meets_testing_requirements, False)
 
     @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_ci_running_no_testing_requirements(self):
@@ -867,7 +866,7 @@ class TestUpdate(ModelTest):
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
-        eq_(update.meets_testing_requirements, False)
+        self.assertEqual(update.meets_testing_requirements, False)
 
     @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_ci_missing_testing_requirements(self):
@@ -882,7 +881,7 @@ class TestUpdate(ModelTest):
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
-        eq_(update.meets_testing_requirements, True)
+        self.assertEqual(update.meets_testing_requirements, True)
 
     @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_ci_waiting_testing_requirements(self):
@@ -897,7 +896,7 @@ class TestUpdate(ModelTest):
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
-        eq_(update.meets_testing_requirements, False)
+        self.assertEqual(update.meets_testing_requirements, False)
 
     @mock.patch.dict('bodhi.server.config.config', {'ci.required': False})
     def test_ci_ci_required_off(self):
@@ -912,7 +911,7 @@ class TestUpdate(ModelTest):
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
-        eq_(update.meets_testing_requirements, True)
+        self.assertEqual(update.meets_testing_requirements, True)
 
     @mock.patch('bodhi.server.models.bugs.bugtracker.close')
     @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
@@ -930,13 +929,13 @@ class TestUpdate(ModelTest):
 
         # The comment call shouldn't have been made, since the comment should be included with the
         # call to close().
-        eq_(comment.call_count, 0)
+        self.assertEqual(comment.call_count, 0)
         # Make sure close() was called correctly.
-        eq_([c[1][0] for c in close.mock_calls], [1, 2])
-        eq_(all(
+        self.assertEqual([c[1][0] for c in close.mock_calls], [1, 2])
+        self.assertEqual(all(
             ['to the Fedora 11 stable repository' in c[2]['comment'] for c in close.mock_calls]),
             True)
-        eq_(all(
+        self.assertEqual(all(
             [c[2]['versions']['TurboGears'] == 'TurboGears-1.0.8-3.fc11'
                 for c in close.mock_calls]),
             True)
@@ -956,12 +955,12 @@ class TestUpdate(ModelTest):
         update.modify_bugs()
 
         # Make sure bugs number 1 and 2 were commented on correctly.
-        eq_([c[1][0] for c in comment.mock_calls], [1, 2])
-        eq_(all(
+        self.assertEqual([c[1][0] for c in comment.mock_calls], [1, 2])
+        self.assertEqual(all(
             ['pushed to the Fedora 11 stable repository' in c[1][1] for c in comment.mock_calls]),
             True)
         # No bugs should have been closed
-        eq_(close.call_count, 0)
+        self.assertEqual(close.call_count, 0)
 
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch.dict(util.config, {
@@ -1055,7 +1054,7 @@ class TestUpdate(ModelTest):
             update.builds, update.release.name))
 
     def test_unpush_build(self):
-        eq_(len(self.obj.builds), 1)
+        self.assertEqual(len(self.obj.builds), 1)
         b = self.obj.builds[0]
         release = self.obj.release
         koji = buildsys.get_session()
@@ -1066,46 +1065,51 @@ class TestUpdate(ModelTest):
                                   # Add an unknown tag that we shouldn't touch
                                   release.dist_tag + '-compose']
         self.obj.builds[0].unpush(koji)
-        eq_(koji.__moved__, [(u'dist-f11-updates-testing', u'dist-f11-updates-candidate',
-                              u'TurboGears-1.0.8-3.fc11')])
-        eq_(koji.__untag__, [(u'dist-f11-updates-testing-signing', u'TurboGears-1.0.8-3.fc11'),
-                             (u'dist-f11-updates-testing-pending', u'TurboGears-1.0.8-3.fc11')])
+        self.assertEqual(koji.__moved__, [(u'dist-f11-updates-testing',
+                         u'dist-f11-updates-candidate', u'TurboGears-1.0.8-3.fc11')])
+        self.assertEqual(koji.__untag__, [(u'dist-f11-updates-testing-signing',
+                         u'TurboGears-1.0.8-3.fc11'), (u'dist-f11-updates-testing-pending',
+                                                       u'TurboGears-1.0.8-3.fc11')])
 
     def test_title(self):
-        eq_(self.obj.title, u'TurboGears-1.0.8-3.fc11')
+        self.assertEqual(self.obj.title, u'TurboGears-1.0.8-3.fc11')
 
     def test_beautify_title(self):
         update = self.get_update()
         rpm_build = update.builds[0]
-        eq_(update.beautify_title(), u'TurboGears')
-        eq_(update.beautify_title(nvr=True), u'TurboGears-1.0.8-3.fc11')
+        self.assertEqual(update.beautify_title(), u'TurboGears')
+        self.assertEqual(update.beautify_title(nvr=True), u'TurboGears-1.0.8-3.fc11')
 
         update.builds.append(rpm_build)
-        eq_(update.beautify_title(), u'TurboGears and TurboGears')
-        eq_(update.beautify_title(nvr=True), u'TurboGears-1.0.8-3.fc11 and TurboGears-1.0.8-3.fc11')
+        self.assertEqual(update.beautify_title(), u'TurboGears and TurboGears')
+        self.assertEqual(
+            update.beautify_title(nvr=True),
+            u'TurboGears-1.0.8-3.fc11 and TurboGears-1.0.8-3.fc11')
 
         update.builds.append(rpm_build)
-        eq_(update.beautify_title(), u'TurboGears, TurboGears, and 1 more')
-        eq_(update.beautify_title(nvr=True),
-            u'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, and 1 more')
+        self.assertEqual(update.beautify_title(), u'TurboGears, TurboGears, and 1 more')
+        self.assertEqual(update.beautify_title(nvr=True),
+                         u'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, and 1 more')
 
         p = HTMLParser()
-        eq_(p.unescape(update.beautify_title(amp=True)), u'TurboGears, TurboGears, & 1 more')
-        eq_(p.unescape(update.beautify_title(amp=True, nvr=True)),
-            u'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, & 1 more')
+        self.assertEqual(
+            p.unescape(update.beautify_title(amp=True)), u'TurboGears, TurboGears, & 1 more')
+        self.assertEqual(p.unescape(update.beautify_title(amp=True, nvr=True)),
+                         u'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, & 1 more')
 
     def test_pkg_str(self):
         """ Ensure str(pkg) is correct """
-        eq_(str(self.obj.builds[0].package),
+        self.assertEqual(
+            str(self.obj.builds[0].package),
             ('================================================================================\n   '
              '  TurboGears\n======================================================================='
              '=========\n\n Pending Updates (1)\n    o TurboGears-1.0.8-3.fc11\n'))
 
     def test_bugstring(self):
-        eq_(self.obj.get_bugstring(), u'1 2')
+        self.assertEqual(self.obj.get_bugstring(), u'1 2')
 
     def test_cvestring(self):
-        eq_(self.obj.get_cvestring(), u'CVE-2009-0001')
+        self.assertEqual(self.obj.get_cvestring(), u'CVE-2009-0001')
 
     def test_assign_alias(self):
         update = self.obj
@@ -1113,13 +1117,13 @@ class TestUpdate(ModelTest):
             update.assign_alias()
         year = time.localtime()[0]
         idx = 'a3bbe1a8f2'
-        eq_(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
+        self.assertEqual(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
 
         update = self.get_update(name=u'TurboGears-0.4.4-8.fc11')
         with mock.patch(target='uuid.uuid4', return_value='wat2'):
             update.assign_alias()
         idx = '016462d41f'
-        eq_(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
+        self.assertEqual(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
 
         # Create another update for another release that has the same
         # Release.id_prefix.  This used to trigger a bug that would cause
@@ -1139,13 +1143,13 @@ class TestUpdate(ModelTest):
         with mock.patch(target='uuid.uuid4', return_value='wat3'):
             update.assign_alias()
         idx = '0efffa96f7'
-        eq_(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
+        self.assertEqual(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
 
         newest = self.get_update(name=u'nethack-2.5.8-1.fc10')
         with mock.patch(target='uuid.uuid4', return_value='wat4'):
             newest.assign_alias()
         idx = '0efffa96f7'
-        eq_(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
+        self.assertEqual(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
 
     def test_epel_id(self):
         """ Make sure we can handle id_prefixes that contain dashes.
@@ -1156,7 +1160,7 @@ class TestUpdate(ModelTest):
         with mock.patch(target='uuid.uuid4', return_value='wat'):
             update.assign_alias()
         idx = 'a3bbe1a8f2'
-        eq_(update.alias, u'FEDORA-%s-%s' % (time.localtime()[0], idx))
+        self.assertEqual(update.alias, u'FEDORA-%s-%s' % (time.localtime()[0], idx))
 
         update = self.get_update(name=u'TurboGears-2.1-1.el5')
         release = model.Release(
@@ -1171,25 +1175,25 @@ class TestUpdate(ModelTest):
         idx = 'a3bbe1a8f2'
         with mock.patch(target='uuid.uuid4', return_value='wat'):
             update.assign_alias()
-        eq_(update.alias, u'FEDORA-EPEL-%s-%s' % (time.localtime()[0], idx))
+        self.assertEqual(update.alias, u'FEDORA-EPEL-%s-%s' % (time.localtime()[0], idx))
 
         update = self.get_update(name=u'TurboGears-2.2-1.el5')
         update.release = release
         idx = '016462d41f'
         with mock.patch(target='uuid.uuid4', return_value='wat2'):
             update.assign_alias()
-        eq_(update.alias, u'%s-%s-%s' % (
+        self.assertEqual(update.alias, u'%s-%s-%s' % (
             release.id_prefix, time.localtime()[0], idx))
 
-    @raises(IntegrityError)
     def test_dupe(self):
-        self.get_update()
-        self.get_update()
+        with self.assertRaises(IntegrityError):
+            self.get_update()
+            self.get_update()
 
     def test_karma_no_comments(self):
         """Check that karma returns the correct value with one negative and two positive comments.
         """
-        eq_(self.obj.karma, 0)
+        self.assertEqual(self.obj.karma, 0)
 
     def test_karma_one_negative_two_positive(self):
         """Check that karma returns the correct value with one negative and two positive comments.
@@ -1198,7 +1202,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u"foo", -1, u'bar')
         self.obj.comment(self.db, u"foo", 1, u'biz')
 
-        eq_(self.obj.karma, 1)
+        self.assertEqual(self.obj.karma, 1)
 
     def test_karma_two_negative_one_positive(self):
         """Check that karma returns the correct value with two negative and one positive comments.
@@ -1207,7 +1211,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u"foo", -1, u'bar')
         self.obj.comment(self.db, u"foo", 1, u'biz')
 
-        eq_(self.obj.karma, -1)
+        self.assertEqual(self.obj.karma, -1)
 
     def test__composite_karma_ignores_anonymous_karma(self):
         """Assert that _composite_karma ignores anonymous karma."""
@@ -1216,7 +1220,7 @@ class TestUpdate(ModelTest):
         # This one shouldn't get counted
         self.obj.comment(self.db, u"foo", 1, u'biz', anonymous=True)
 
-        eq_(self.obj._composite_karma, (0, -2))
+        self.assertEqual(self.obj._composite_karma, (0, -2))
 
     def test__composite_karma_ignores_comments_before_new_build(self):
         """Assert that _composite_karma ignores karma from before a new build karma reset event."""
@@ -1226,7 +1230,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u"New build", 0, u'bodhi')
         self.obj.comment(self.db, u"foo", 1, u'biz')
 
-        eq_(self.obj._composite_karma, (1, 0))
+        self.assertEqual(self.obj._composite_karma, (1, 0))
 
     def test__composite_karma_ignores_comments_before_removed_build(self):
         """Assert that _composite_karma ignores karma from before a removed build karma reset event.
@@ -1237,7 +1241,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u"Removed build", 0, u'bodhi')
         self.obj.comment(self.db, u"foo", -1, u'biz')
 
-        eq_(self.obj._composite_karma, (0, -1))
+        self.assertEqual(self.obj._composite_karma, (0, -1))
 
     def test__composite_karma_ignores_comments_without_karma(self):
         """
@@ -1252,7 +1256,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u"plz no don't… my ostreeeeee!", 0, u'dusty')
 
         # The composite karma should be 1, -1 since dusty's earlier vote should still count.
-        eq_(self.obj._composite_karma, (1, -1))
+        self.assertEqual(self.obj._composite_karma, (1, -1))
 
     def test__composite_karma_ignores_old_comments(self):
         """Assert that _composite_karma ignores karma from a user's previous responses."""
@@ -1264,7 +1268,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u"mind", 1, u'foo')
         self.obj.comment(self.db, u".", -37, u'foo')
 
-        eq_(self.obj._composite_karma, (0, -37))
+        self.assertEqual(self.obj._composite_karma, (0, -37))
 
     def test__composite_karma_mixed_case(self):
         """Assert _composite_karma with mixed responses that hits a lot of the method."""
@@ -1277,11 +1281,11 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u"LGTM", 1, u'foo2')
         self.obj.comment(self.db, u"Don't ignore me", -1, u'foo1')
 
-        eq_(self.obj._composite_karma, (2, -1))
+        self.assertEqual(self.obj._composite_karma, (2, -1))
 
     def test__composite_karma_no_comments(self):
         """Assert _composite_karma with no comments is (0, 0)."""
-        eq_(self.obj._composite_karma, (0, 0))
+        self.assertEqual(self.obj._composite_karma, (0, 0))
 
     def test__composite_karma_one_negative_two_positive(self):
         """Assert that _composite_karma returns (2, -1) with one negative and two positive comments.
@@ -1290,60 +1294,59 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u"foo", -1, u'bar')
         self.obj.comment(self.db, u"foo", 1, u'biz')
 
-        eq_(self.obj._composite_karma, (2, -1))
+        self.assertEqual(self.obj._composite_karma, (2, -1))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_stable_karma(self, publish):
         update = self.obj
         update.request = None
         update.status = UpdateStatus.testing
-        eq_(update.karma, 0)
-        eq_(update.request, None)
+        self.assertEqual(update.karma, 0)
+        self.assertEqual(update.request, None)
         update.comment(self.db, u"foo", 1, u'foo')
-        eq_(update.karma, 1)
-        eq_(update.request, None)
+        self.assertEqual(update.karma, 1)
+        self.assertEqual(update.request, None)
         update.comment(self.db, u"foo", 1, u'bar')
-        eq_(update.karma, 2)
-        eq_(update.request, None)
+        self.assertEqual(update.karma, 2)
+        self.assertEqual(update.request, None)
         update.comment(self.db, u"foo", 1, u'biz')
-        eq_(update.karma, 3)
-        eq_(update.request, UpdateRequest.stable)
+        self.assertEqual(update.karma, 3)
+        self.assertEqual(update.request, UpdateRequest.stable)
         publish.assert_called_with(topic='update.comment', msg=mock.ANY)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_unstable_karma(self, publish):
         update = self.obj
         update.status = UpdateStatus.testing
-        eq_(update.karma, 0)
-        eq_(update.status, UpdateStatus.testing)
+        self.assertEqual(update.karma, 0)
+        self.assertEqual(update.status, UpdateStatus.testing)
         update.comment(self.db, u"foo", -1, u'foo')
-        eq_(update.status, UpdateStatus.testing)
-        eq_(update.karma, -1)
+        self.assertEqual(update.status, UpdateStatus.testing)
+        self.assertEqual(update.karma, -1)
         update.comment(self.db, u"bar", -1, u'bar')
-        eq_(update.status, UpdateStatus.testing)
-        eq_(update.karma, -2)
+        self.assertEqual(update.status, UpdateStatus.testing)
+        self.assertEqual(update.karma, -2)
         update.comment(self.db, u"biz", -1, u'biz')
-        eq_(update.karma, -3)
-        eq_(update.status, UpdateStatus.obsolete)
+        self.assertEqual(update.karma, -3)
+        self.assertEqual(update.status, UpdateStatus.obsolete)
         publish.assert_called_with(topic='update.comment', msg=mock.ANY)
 
     def test_update_bugs(self):
         update = self.obj
-        eq_(len(update.bugs), 2)
+        self.assertEqual(len(update.bugs), 2)
         session = self.db
 
         # try just adding bugs
         bugs = ['1234']
         update.update_bugs(bugs, session)
-        eq_(len(update.bugs), 1)
-        eq_(update.bugs[0].bug_id, 1234)
+        self.assertEqual(len(update.bugs), 1)
+        self.assertEqual(update.bugs[0].bug_id, 1234)
 
         # try just removing
         bugs = []
         update.update_bugs(bugs, session)
-        eq_(len(update.bugs), 0)
-        eq_(self.db.query(model.Bug)
-                .filter_by(bug_id=1234).first(), None)
+        self.assertEqual(len(update.bugs), 0)
+        self.assertEqual(self.db.query(model.Bug).filter_by(bug_id=1234).first(), None)
 
         # Test new duplicate bugs
         bugs = ['1234', '1234']
@@ -1355,8 +1358,7 @@ class TestUpdate(ModelTest):
         update.update_bugs(bugs, session)
         assert len(update.bugs) == 1
         assert update.bugs[0].bug_id == 4321
-        eq_(self.db.query(model.Bug)
-                .filter_by(bug_id=1234).first(), None)
+        self.assertEqual(self.db.query(model.Bug).filter_by(bug_id=1234).first(), None)
 
         # Try removing a bug when it already has BugKarma
         karma = BugKarma(bug_id=4321, karma=1)
@@ -1366,15 +1368,15 @@ class TestUpdate(ModelTest):
         update.update_bugs(bugs, session)
         assert len(update.bugs) == 1
         assert update.bugs[0].bug_id == 5678
-        eq_(self.db.query(model.Bug)
-                .filter_by(bug_id=4321).count(), 1)
+        self.assertEqual(self.db.query(model.Bug).filter_by(bug_id=4321).count(), 1)
 
     def test_unicode_bug_title(self):
         bug = self.obj.bugs[0]
         bug.title = u'foo\xe9bar'
         from bodhi.server.util import bug_link
         link = bug_link(None, bug)
-        eq_(link, (u"<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a>"
+        self.assertEqual(
+            link, (u"<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a>"
                    u" foo\xe9bar"))
 
     def test_set_request_untested_stable(self):
@@ -1385,15 +1387,15 @@ class TestUpdate(ModelTest):
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
-        eq_(self.obj.status, UpdateStatus.pending)
+        self.assertEqual(self.obj.status, UpdateStatus.pending)
         try:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             assert False
         except BodhiException, e:
             pass
-        eq_(self.obj.request, UpdateRequest.testing)
-        eq_(self.obj.status, UpdateStatus.pending)
-        eq_(str(e), config.get('not_yet_tested_msg'))
+        self.assertEqual(self.obj.request, UpdateRequest.testing)
+        self.assertEqual(self.obj.status, UpdateStatus.pending)
+        self.assertEqual(str(e), config.get('not_yet_tested_msg'))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_set_request_stable_after_week_in_testing(self, publish):
@@ -1409,12 +1411,12 @@ class TestUpdate(ModelTest):
         self.obj.comment(
             self.db, u'This update has been pushed to testing.', author=u'bodhi')
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
-        eq_(self.obj.days_in_testing, 7)
-        eq_(self.obj.meets_testing_requirements, True)
+        self.assertEqual(self.obj.days_in_testing, 7)
+        self.assertEqual(self.obj.meets_testing_requirements, True)
 
         self.obj.set_request(self.db, UpdateRequest.stable, req)
-        eq_(self.obj.request, UpdateRequest.stable)
-        eq_(len(req.errors), 0)
+        self.assertEqual(self.obj.request, UpdateRequest.stable)
+        self.assertEqual(len(req.errors), 0)
         publish.assert_called_once_with(
             topic='update.request.stable', msg=mock.ANY)
 
@@ -1429,16 +1431,16 @@ class TestUpdate(ModelTest):
         self.obj.comment(
             self.db, u'This update has been pushed to testing.', author=u'bodhi')
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
-        eq_(self.obj.days_in_testing, 7)
+        self.assertEqual(self.obj.days_in_testing, 7)
         # The update should be eligible to receive the testing_approval_msg now.
-        eq_(self.obj.meets_testing_requirements, True)
+        self.assertEqual(self.obj.meets_testing_requirements, True)
         # Add the testing_approval_message
         text = unicode(config.get('testing_approval_msg') % self.obj.days_in_testing)
         self.obj.comment(self.db, text, author=u'bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
         # say that it can now be pushed to stable.
-        eq_(self.obj.met_testing_requirements, True)
+        self.assertEqual(self.obj.met_testing_requirements, True)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_met_testing_requirements_at_7_days_before_bodhi_comment(self, publish):
@@ -1451,12 +1453,12 @@ class TestUpdate(ModelTest):
         self.obj.comment(
             self.db, u'This update has been pushed to testing.', author=u'bodhi')
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
-        eq_(self.obj.days_in_testing, 7)
+        self.assertEqual(self.obj.days_in_testing, 7)
         # The update should be eligible to receive the testing_approval_msg now.
-        eq_(self.obj.meets_testing_requirements, True)
+        self.assertEqual(self.obj.meets_testing_requirements, True)
 
         # Since bodhi hasn't added the testing_approval_message yet, this should be False.
-        eq_(self.obj.met_testing_requirements, False)
+        self.assertEqual(self.obj.met_testing_requirements, False)
 
     def test_meets_testing_requirements_with_non_autokarma_update_below_stable_karma(self):
         """
@@ -1469,7 +1471,7 @@ class TestUpdate(ModelTest):
 
         # meets_testing_requirement() should return False since the karma threshold has not been
         # reached (note that this Update does not have any karma).
-        eq_(self.obj.meets_testing_requirements, False)
+        self.assertEqual(self.obj.meets_testing_requirements, False)
 
     def test_meets_testing_requirements_with_non_autokarma_update_reaching_stable_karma(self):
         """
@@ -1483,7 +1485,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         # meets_testing_requirement() should return True since the karma threshold has been reached
-        eq_(self.obj.meets_testing_requirements, True)
+        self.assertEqual(self.obj.meets_testing_requirements, True)
 
     def test_meets_testing_requirements_with_non_autokarma_update_with_stable_karma_0(self):
         """
@@ -1499,7 +1501,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         # meets_testing_requirement() should return False since the stable_karma threshold is 0.
-        eq_(self.obj.meets_testing_requirements, False)
+        self.assertEqual(self.obj.meets_testing_requirements, False)
 
     def test_meets_testing_requirements_with_non_autokarma_update_with_stable_karma_None(self):
         """
@@ -1515,7 +1517,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
 
         # meets_testing_requirement() should return False since the stable_karma threshold is None.
-        eq_(self.obj.meets_testing_requirements, False)
+        self.assertEqual(self.obj.meets_testing_requirements, False)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_met_testing_requirements_with_karma_after_bodhi_comment(self, publish):
@@ -1530,7 +1532,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(
             self.db, u'This update has been pushed to testing.', author=u'bodhi')
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=1)
-        eq_(self.obj.days_in_testing, 1)
+        self.assertEqual(self.obj.days_in_testing, 1)
         # Now let's add some karma to get it to the required threshold
         self.obj.comment(self.db, u'testing', author=u'hunter1', anonymous=False, karma=1)
         self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
@@ -1541,7 +1543,7 @@ class TestUpdate(ModelTest):
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
         # say that it can now be pushed to stable.
-        eq_(self.obj.met_testing_requirements, True)
+        self.assertEqual(self.obj.met_testing_requirements, True)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_met_testing_requirements_with_karma_before_bodhi_comment(self, publish):
@@ -1556,7 +1558,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(
             self.db, u'This update has been pushed to testing.', author=u'bodhi')
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=1)
-        eq_(self.obj.days_in_testing, 1)
+        self.assertEqual(self.obj.days_in_testing, 1)
         # Now let's add some karma to get it to the required threshold
         self.obj.comment(self.db, u'testing', author=u'hunter1', anonymous=False, karma=1)
         self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
@@ -1564,67 +1566,64 @@ class TestUpdate(ModelTest):
 
         # met_testing_requirement() should return False since Bodhi has not yet commented on the
         # Update to say that it can now be pushed to stable.
-        eq_(self.obj.met_testing_requirements, False)
+        self.assertEqual(self.obj.met_testing_requirements, False)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_set_request_obsolete(self, publish):
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
-        eq_(self.obj.status, UpdateStatus.pending)
+        self.assertEqual(self.obj.status, UpdateStatus.pending)
         self.obj.set_request(self.db, UpdateRequest.obsolete, req.user.name)
-        eq_(self.obj.status, UpdateStatus.obsolete)
-        eq_(len(req.errors), 0)
+        self.assertEqual(self.obj.status, UpdateStatus.obsolete)
+        self.assertEqual(len(req.errors), 0)
         publish.assert_called_once_with(
             topic='update.request.obsolete', msg=mock.ANY)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_request_complete(self, publish):
         self.obj.request = None
-        eq_(self.obj.date_pushed, None)
+        self.assertEqual(self.obj.date_pushed, None)
         self.obj.request = UpdateRequest.testing
         self.obj.request_complete()
         assert self.obj.date_pushed
-        eq_(self.obj.status, UpdateStatus.testing)
+        self.assertEqual(self.obj.status, UpdateStatus.testing)
 
     def test_status_comment(self):
         self.obj.status = UpdateStatus.testing
         self.obj.status_comment(self.db)
-        eq_(len(self.obj.comments), 1)
-        eq_(self.obj.comments[0].user.name, u'bodhi')
-        eq_(self.obj.comments[0].text,
-            u'This update has been pushed to testing.')
+        self.assertEqual(len(self.obj.comments), 1)
+        self.assertEqual(self.obj.comments[0].user.name, u'bodhi')
+        self.assertEqual(self.obj.comments[0].text, u'This update has been pushed to testing.')
         self.obj.status = UpdateStatus.stable
         self.obj.status_comment(self.db)
-        eq_(len(self.obj.comments), 2)
-        eq_(self.obj.comments[1].user.name, u'bodhi')
-        eq_(self.obj.comments[1].text,
-            u'This update has been pushed to stable.')
-        assert str(self.obj.comments[1]).endswith(
-            'This update has been pushed to stable.')
+        self.assertEqual(len(self.obj.comments), 2)
+        self.assertEqual(self.obj.comments[1].user.name, u'bodhi')
+        self.assertEqual(self.obj.comments[1].text, u'This update has been pushed to stable.')
+        assert str(self.obj.comments[1]).endswith('This update has been pushed to stable.')
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_anonymous_comment(self, publish):
         self.obj.comment(self.db, u'testing', author='me', anonymous=True, karma=1)
         c = self.obj.comments[-1]
         assert str(c).endswith('testing')
-        eq_(c.anonymous, True)
-        eq_(c.text, 'testing')
+        self.assertEqual(c.anonymous, True)
+        self.assertEqual(c.text, 'testing')
         publish.assert_called_once_with(
             topic='update.comment', msg=mock.ANY)
         args, kwargs = publish.call_args
-        eq_(kwargs['msg']['comment']['author'], 'anonymous')
+        self.assertEqual(kwargs['msg']['comment']['author'], 'anonymous')
 
     def test_get_url(self):
-        eq_(self.obj.get_url(), u'updates/TurboGears-1.0.8-3.fc11')
+        self.assertEqual(self.obj.get_url(), u'updates/TurboGears-1.0.8-3.fc11')
         idx = 'a3bbe1a8f2'
         with mock.patch(target='uuid.uuid4', return_value='wat'):
             self.obj.assign_alias()
         expected = u'updates/FEDORA-%s-%s' % (time.localtime()[0], idx)
-        eq_(self.obj.get_url(), expected)
+        self.assertEqual(self.obj.get_url(), expected)
 
     def test_bug(self):
         bug = self.obj.bugs[0]
-        eq_(bug.url, 'https://bugzilla.redhat.com/show_bug.cgi?id=1')
+        self.assertEqual(bug.url, 'https://bugzilla.redhat.com/show_bug.cgi?id=1')
         bug.testing(self.obj)
         bug.add_comment(self.obj)
         bug.add_comment(self.obj, comment='testing')
@@ -1634,7 +1633,7 @@ class TestUpdate(ModelTest):
 
     def test_cve(self):
         cve = self.obj.cves[0]
-        eq_(cve.url, 'http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-0001')
+        self.assertEqual(cve.url, 'http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-0001')
 
     def test_expand_messages(self):
         """Ensure all messages can be expanded properly"""
@@ -1812,11 +1811,11 @@ class TestUpdate(ModelTest):
         expected = [test1, test2]
         expected_names = [u"Test 1", u"Test 2"]
 
-        eq_(len(tests), len(expected))
-        eq_(sorted(tests), sorted(expected))
+        self.assertEqual(len(tests), len(expected))
+        self.assertEqual(sorted(tests), sorted(expected))
 
-        eq_(len(test_names), len(expected_names))
-        eq_(sorted(test_names), sorted(expected_names))
+        self.assertEqual(len(test_names), len(expected_names))
+        self.assertEqual(sorted(test_names), sorted(expected_names))
 
 
 class TestUser(ModelTest):
