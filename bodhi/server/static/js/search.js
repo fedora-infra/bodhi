@@ -50,7 +50,7 @@ $(document).ready(function() {
       } else if (data.title != undefined ) {
           return '/updates/' + data.title;
       } else if (data.hasOwnProperty('stack')) {
-          return'/updates/?packages=' + data.name;
+          return'/updates/?packages=' + encodeURIComponent(data.name);
       } else if (data.name != undefined) {
           return '/users/' + data.name;
       } else if (data.nvr != undefined) {
