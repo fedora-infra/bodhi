@@ -55,7 +55,14 @@ $(document).ready(function() {
         source: packages.ttAdapter(),
         templates: {
             header: '<h3 class="search"><small>Packages</small></h3>',
+            pending: [
+                '<h3 class="search"><small>Packages</small></h3>',
+                '<div>',
+                '<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>',
+                '</div>'
+            ].join('\n'),
             empty: [
+                '<h3 class="search"><small>Packages</small></h3>',
                 '<div class="empty-message text-muted">',
                 'no matching packages',
                 '</div>'
@@ -68,7 +75,14 @@ $(document).ready(function() {
         source: updates.ttAdapter(),
         templates: {
             header: '<h3 class="search"><small>Updates</small></h3>',
+            pending: [
+                '<h3 class="search"><small>Updates</small></h3>',
+                '<div>',
+                '<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>',
+                '</div>'
+            ].join('\n'),
             empty: [
+                '<h3 class="search"><small>Updates</small></h3>',
                 '<div class="empty-message text-muted">',
                 'no matching updates',
                 '</div>'
@@ -81,7 +95,14 @@ $(document).ready(function() {
         source: users.ttAdapter(),
         templates: {
             header: '<h3 class="search"><small>Users</small></h3>',
+            pending: [
+                '<h3 class="search"><small>Users</small></h3>',
+                '<div>',
+                '<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>',
+                '</div>'
+            ].join('\n'),
             empty: [
+                '<h3 class="search"><small>Users</small></h3>',
                 '<div class="empty-message text-muted">',
                 'no matching users',
                 '</div>'
@@ -97,7 +118,14 @@ $(document).ready(function() {
         source: overrides.ttAdapter(),
         templates: {
             header: '<h3 class="search"><small>Buildroot Overrides</small></h3>',
+            pending: [
+                '<h3 class="search"><small>Buildroot Overrides</small></h3>',
+                '<div>',
+                '<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>',
+                '</div>'
+            ].join('\n'),
             empty: [
+                '<h3 class="search"><small>Buildroot Overrides</small></h3>',
                 '<div class="empty-message text-muted">',
                 'no matching overrides',
                 '</div>'
