@@ -44,6 +44,24 @@ $(document).ready(function() {
     users.initialize();
     overrides.initialize();
 
+    function resultUrl(data){
+      if (data.alias != undefined) {
+          return '/updates/' + data.alias;
+      } else if (data.title != undefined ) {
+          return '/updates/' + data.title;
+      } else if (data.hasOwnProperty('stack')) {
+          return'/updates/?packages=' + data.name;
+      } else if (data.name != undefined) {
+          return '/users/' + data.name;
+      } else if (data.nvr != undefined) {
+          return '/overrides/' + data.nvr;
+      } else {
+          console.log("unhandled search result");
+          console.log(data);
+          return '#';
+      }
+    }
+
     $('#bloodhound .typeahead').typeahead({
         hint: true,
         highlight: true,
@@ -67,11 +85,14 @@ $(document).ready(function() {
                 'no matching packages',
                 '</div>'
             ].join('\n'),
+            suggestion: function(datum) {
+                return '<p><a href="'+ resultUrl(datum)+'">'+datum.name+'</a></p>';
+            },
         },
     },
     {
         name: 'updates',
-        displayKey: 'title',
+        display: 'title',
         source: updates.ttAdapter(),
         templates: {
             header: '<h3 class="search"><small>Updates</small></h3>',
@@ -87,11 +108,14 @@ $(document).ready(function() {
                 'no matching updates',
                 '</div>'
             ].join('\n'),
+            suggestion: function(datum) {
+                return '<p><a href="'+ resultUrl(datum)+'">'+datum.title+'</a></p>';
+            },
         },
     },
     {
         name: 'users',
-        displayKey: 'name',
+        display: 'name',
         source: users.ttAdapter(),
         templates: {
             header: '<h3 class="search"><small>Users</small></h3>',
@@ -108,13 +132,13 @@ $(document).ready(function() {
                 '</div>'
             ].join('\n'),
             suggestion: function(datum) {
-                return '<p><img class="img-circle" src="' + datum.avatar + '">' + datum.name + '</p>';
+                return '<p><a href="'+ resultUrl(datum)+'"><img class="img-circle" src="' + datum.avatar + '">' + datum.name + '</a></p>';
             },
         },
     },
     {
         name: 'overrides',
-        displayKey: 'nvr',
+        display: 'nvr',
         source: overrides.ttAdapter(),
         templates: {
             header: '<h3 class="search"><small>Buildroot Overrides</small></h3>',
@@ -130,24 +154,14 @@ $(document).ready(function() {
                 'no matching overrides',
                 '</div>'
             ].join('\n'),
+            suggestion: function(datum) {
+                return '<p><a href="'+ resultUrl(datum)+'">'+datum.nvr+'</a></p>';
+            },
         },
     });
 
     $('#bloodhound input.typeahead').on('typeahead:selected', function (e, datum) {
-        if (datum.alias != undefined) {
-            window.location.href = '/updates/' + datum.alias;
-        } else if (datum.title != undefined ) {
-            window.location.href = '/updates/' + datum.title;
-        } else if (datum.hasOwnProperty('stack')) {
-            window.location.href = '/updates/?packages=' + datum.name;
-        } else if (datum.name != undefined) {
-            window.location.href = '/users/' + datum.name;
-        } else if (datum.nvr != undefined) {
-            window.location.href = '/overrides/' + datum.nvr;
-        } else {
-            console.log("unhandled search result");
-            console.log(datum);
-        }
+        window.location.href = resultUrl(datum);
     });
 
     // Our ajaxy search is hidden by default.  Only show it if this is running
