@@ -1,35 +1,41 @@
 
 $(document).ready(function() {
     var packages = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+      datumTokenizer: function (datum) {
+          return Bloodhound.tokenizers.whitespace(datum.value);
+      },
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
+            wildcard: '%QUERY',
             url: 'packages/?like=%QUERY',
-            filter: function(response) { return response.packages; },
+            transform: function(response) { return response.packages; },
         }
     });
     var updates = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
+            wildcard: '%QUERY',
             url: 'updates/?like=%QUERY',
-            filter: function(response) { return response.updates; },
+            transform: function(response) { return response.updates; },
         }
     });
     var users = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
+            wildcard: '%QUERY',
             url: 'users/?like=%QUERY',
-            filter: function(response) { return response.users; },
+            transform: function(response) { return response.users; },
         }
     });
     var overrides = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
+            wildcard: '%QUERY',
             url: 'overrides/?like=%QUERY',
-            filter: function(response) { return response.overrides; },
+            transform: function(response) { return response.overrides; },
         }
     });
 

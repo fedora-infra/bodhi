@@ -1,6 +1,14 @@
 Release notes
 =============
 
+develop
+-------
+
+* The typeahead javacript library is rebased to version 1.1.1 from the maintained
+  fork at https://github.com/corejavascript/typeahead.js . The main typeahead repo
+  appears to be unmaintained and contained a bug that we were hitting:
+  https://github.com/twitter/typeahead.js/issues/1381
+
 2.8.1
 -----
 
