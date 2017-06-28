@@ -154,6 +154,15 @@ form#search, form#search input, .twitter-typeahead {
   cursor: pointer;
 }
 
+.tt-suggestion.tt-cursor a, .tt-suggestion:hover a{
+  color:#fff;
+}
+
+.tt-suggestion a{
+  color:black;
+  display:block;
+}
+
 .tt-suggestion p {
   margin: 0;
 }
