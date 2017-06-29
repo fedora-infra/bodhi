@@ -2,7 +2,6 @@
 
 <script src="${request.static_url('bodhi:server/static/js/newsfeed.js')}"></script>
 <div class="container p-t-2">
-<div class="row">
 
   <!--<div id="newsfeed" class="col-md-6">
     <img src="${request.static_url('bodhi:server/static/img/spinner.gif')}"
@@ -19,10 +18,9 @@
   </div>-->
 
   % for r in request.releases['current']:
-  <div class="col-md-12 front-release">
+  <div class="row front-release">
     <h3><a class="notblue" href="${request.route_url('releases')}${r['name']}">
 ${r['long_name']}</a></h3>
-    <div class="row">
       <div class="col-md-4">
         <div class="front-count">
         <div class="front-count-total">
@@ -89,12 +87,11 @@ ${r['long_name']}</a></h3>
         </a>
       </div>
       </div>
-    </div>
   </div>
   % endfor
 
-
-  <div class="col-md-12">
+  <div class="row">
+    <div class="col-md-12">
           <div class="card">
             <div class="card-header">
               <span><strong>This week's top testers</strong></span>
@@ -112,8 +109,12 @@ ${r['long_name']}</a></h3>
                 % endfor
             </div>
       </div>
+    </div>
+  </div>
 
       % if critpath_updates:
+      <div class="row">
+        <div class="col-md-12">
           <div class="card">
             <div class="card-header clearfix">
               <span><strong><a href="${request.route_url('updates')}?status=testing" title="View All">Latest Critical Path Updates in Need of Testing</a></strong></span>
@@ -127,9 +128,13 @@ ${r['long_name']}</a></h3>
               ${self.tables.updates(critpath_updates)}
             </div>
           </div>
+        </div>
+      </div>
       % endif
 
       % if security_updates:
+      <div class="row">
+        <div class="col-md-12">
           <div class="card">
             <div class="card-header clearfix">
               <span><strong><a href="${request.route_url('updates')}?type=security&status=testing">Latest Security Updates in Need of Testing</a></strong></span>
@@ -143,7 +148,8 @@ ${r['long_name']}</a></h3>
               ${self.tables.updates(security_updates)}
             </div>
           </div>
+        </div>
+      </div>
       %endif
   </div>
-</div>
 </div>
