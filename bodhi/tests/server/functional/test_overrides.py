@@ -19,11 +19,11 @@ import mock
 from webtest import TestApp
 
 from bodhi.server.models import RpmBuild, RpmPackage, Release, User
-import bodhi.tests.server.functional.base
 from bodhi.server import main
+from bodhi.tests.server import base
 
 
-class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestOverridesService(base.BaseTestCase):
     def test_404(self):
         self.app.get('/overrides/watwatwat', status=404)
 
@@ -509,7 +509,7 @@ class TestOverridesService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertEquals(o['expired_date'], None)
 
 
-class TestOverridesWebViews(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestOverridesWebViews(base.BaseTestCase):
     def test_override_view_not_loggedin(self):
         """
         Test a non logged in User can't see the edit overrides form

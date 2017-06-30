@@ -15,10 +15,10 @@ import webtest
 
 from bodhi import server
 from bodhi.server.models import Release, ReleaseState, Update
-import bodhi.tests.server.functional.base
+from bodhi.tests.server import base
 
 
-class TestReleasesService(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestReleasesService(base.BaseTestCase):
 
     def setUp(self):
         super(TestReleasesService, self).setUp()

@@ -16,10 +16,10 @@ import mock
 
 from bodhi.server.config import config
 from bodhi.server.models import Update, User
-import bodhi.tests.server.functional.base
+from bodhi.tests.server import base
 
 
-class TestUsersService(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestUsersService(base.BaseTestCase):
 
     def setUp(self):
         super(TestUsersService, self).setUp()
@@ -97,8 +97,6 @@ class TestUsersService(bodhi.tests.server.functional.base.BaseWSGICase):
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('bodhi', res)
         self.assertIn('guest', res)
-        # check to catch performance regressions
-        self.assertEquals(len(self.sql_statements), 3)
 
     def test_search_users(self):
         res = self.app.get('/users/', {'like': 'odh'})

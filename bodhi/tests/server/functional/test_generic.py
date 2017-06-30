@@ -18,13 +18,13 @@ import copy
 from pyramid.testing import DummyRequest
 from webtest import TestApp
 
-from bodhi.server import main
+from bodhi.server import main, util
 from bodhi.server.models import (Group, User, Update, Release, UpdateStatus, UpdateType)
 from bodhi.server.security import remember_me
-import bodhi.tests.server.functional.base
+from bodhi.tests.server import base
 
 
-class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestGenericViews(base.BaseTestCase):
 
     def test_login(self):
         """Test the login redirect"""
@@ -406,4 +406,4 @@ class TestGenericViews(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_api_version(self):
         """Test the API Version JSON call"""
         res = self.app.get('/api_version')
-        self.assertIn(str(bodhi.server.util.version()), res)
+        self.assertIn(str(util.version()), res)

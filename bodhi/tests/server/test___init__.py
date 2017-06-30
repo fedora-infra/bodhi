@@ -21,10 +21,10 @@ import mock
 
 from bodhi import server
 from bodhi.server.config import config
-from bodhi.tests.server.functional import base
+from bodhi.tests.server import base
 
 
-class TestMain(base.BaseWSGICase):
+class TestMain(base.BaseTestCase):
     """
     Assert correct behavior from the main() function.
     """

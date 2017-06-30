@@ -67,7 +67,6 @@ def populate(db):
     db.add(provenpackager)
     packager = Group(name=u'packager')
     db.add(packager)
-    db.flush()
     user.groups.append(packager)
     release = Release(
         name=u'F17', long_name=u'Fedora 17',
@@ -81,6 +80,7 @@ def populate(db):
         override_tag=u'f17-override',
         branch=u'f17', state=ReleaseState.current)
     db.add(release)
+    db.flush()
     update = create_update(db, [u'bodhi-2.0-1.fc17'])
     update.type = UpdateType.bugfix
     bug = Bug(bug_id=12345)
@@ -106,4 +106,4 @@ def populate(db):
 
     update.locked = True
 
-    db.flush()
+    db.commit()
