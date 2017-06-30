@@ -25,7 +25,7 @@ from sqlalchemy.exc import IntegrityError
 import cornice
 import mock
 
-from bodhi.server import models as model, buildsys, mail, util
+from bodhi.server import models as model, buildsys, mail, util, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
@@ -858,7 +858,6 @@ class TestUpdate(ModelTest):
         The Update.meets_testing_requirements() should return False if the
         builds of an update did not pass CI.
         """
-        self.config['ci.required'] = True
         update = self.obj
         update.autokarma = False
         update.stable_karma = 1
@@ -1187,8 +1186,11 @@ class TestUpdate(ModelTest):
 
     def test_dupe(self):
         with self.assertRaises(IntegrityError):
-            self.get_update()
-            self.get_update()
+            session = Session()
+            session.add(self.get_update())
+            session.commit()
+            session.add(self.get_update())
+            session.commit()
 
     def test_karma_no_comments(self):
         """Check that karma returns the correct value with one negative and two positive comments.

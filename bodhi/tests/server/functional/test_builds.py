@@ -13,10 +13,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from bodhi.server.models import RpmBuild
-import bodhi.tests.server.functional.base
+from bodhi.tests.server import base
 
 
-class TestBuildsService(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestBuildsService(base.BaseTestCase):
 
     def test_404(self):
         self.app.get('/builds/a', status=404)

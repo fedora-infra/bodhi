@@ -15,7 +15,7 @@
 import mock
 
 from bodhi.server.models import Group, RpmPackage, Stack, User
-import bodhi.tests.server.functional.base
+from bodhi.tests.server import base
 
 
 mock_valid_requirements = {
@@ -24,16 +24,16 @@ mock_valid_requirements = {
 }
 
 
-class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestStacksService(base.BaseTestCase):
 
     def setUp(self):
         super(TestStacksService, self).setUp()
         package = RpmPackage(name=u'gnome-shell')
         self.db.add(package)
-        self.db.flush()
+        self.db.commit()
         self.stack = stack = Stack(name=u'GNOME', packages=[package])
         self.db.add(stack)
-        self.db.flush()
+        self.db.commit()
 
     def test_404(self):
         self.app.get('/stacks/watwatwat', status=404)
@@ -54,11 +54,8 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
         # Create a second stack
         pkg1 = RpmPackage(name=u'firefox')
         pkg2 = RpmPackage(name=u'xulrunner')
-        self.db.add(pkg1)
-        self.db.add(pkg2)
-        self.db.flush()
-        Stack(name=u'Firefox', packages=[pkg1, pkg2])
-        self.db.flush()
+        self.db.add(Stack(name=u'Firefox', packages=[pkg1, pkg2]))
+        self.db.commit()
 
         res = self.app.get('/stacks/')
         body = res.json_body
@@ -106,6 +103,9 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack(self, *args):
+        self.db.add(RpmPackage(name=u'kde-filesystem'))
+        self.db.add(RpmPackage(name=u'kdegames'))
+        self.db.commit()
         attrs = {'name': u'KDE', 'packages': 'kde-filesystem kdegames',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
@@ -135,6 +135,8 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_valid_requirement(self, *args):
+        self.db.add(RpmPackage(name=u'nethack'))
+        self.db.commit()
         attrs = {"name": u"Hackey", "packages": "nethack",
                  "requirements": u"rpmlint",
                  "csrf_token": self.get_csrf_token()}
@@ -148,6 +150,8 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack(self, *args):
+        self.db.add(RpmPackage(name=u'gnome-music'))
+        self.db.commit()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'description': 'foo', 'requirements': 'upgradepath',
                  'csrf_token': self.get_csrf_token()}
@@ -174,6 +178,8 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_remove_package(self, *args):
+        self.db.add(RpmPackage(name=u'gnome-music'))
+        self.db.commit()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
@@ -186,10 +192,10 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_edit_stack_with_no_group_privs(self, *args):
         self.stack.users = []
         group = Group(name=u'gnome-team')
+        self.db.add(RpmPackage(name=u'gnome-music'))
         self.db.add(group)
-        self.db.flush()
         self.stack.groups.append(group)
-        self.db.flush()
+        self.db.commit()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=403)
@@ -202,9 +208,10 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_edit_stack_with_no_user_privs(self, *args):
         user = User(name=u'bob')
         self.db.add(user)
-        self.db.flush()
+        self.db.add(RpmPackage(name=u'gnome-music'))
+        self.db.commit()
         self.stack.users.append(user)
-        self.db.flush()
+        self.db.commit()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=403)
@@ -217,7 +224,8 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_edit_stack_with_user_privs(self, *args):
         user = self.db.query(User).filter_by(name=u'guest').one()
         self.stack.users.append(user)
-        self.db.flush()
+        self.db.add(RpmPackage(name=u'gnome-music'))
+        self.db.commit()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
@@ -230,12 +238,12 @@ class TestStacksService(bodhi.tests.server.functional.base.BaseWSGICase):
     def test_edit_stack_with_group_privs(self, *args):
         self.stack.users = []
         user = self.db.query(User).filter_by(name=u'guest').one()
+        self.db.add(RpmPackage(name=u'gnome-music'))
         group = Group(name=u'gnome-team')
         self.db.add(group)
-        self.db.flush()
         self.stack.groups.append(group)
         user.groups.append(group)
-        self.db.flush()
+        self.db.commit()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)

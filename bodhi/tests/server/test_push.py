@@ -62,6 +62,7 @@ class TestFilterReleases(base.BaseTestCase):
             date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(self.archived_release_update)
+        self.db.commit()
 
     def test_defaults_to_filtering_correct_releases(self):
         """
@@ -115,6 +116,8 @@ class TestFilterReleases(base.BaseTestCase):
             unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(disabled_release_update)
         self.db.add(pending_release_update)
+        self.db.commit()
+
         query = self.db.query(models.Update)
 
         query = push._filter_releases(self.db, query)
@@ -289,7 +292,7 @@ class TestPush(base.BaseTestCase):
         # Make it so we have two builds to push out
         python_nose.builds[0].signed = True
         python_paste_deploy.builds[0].signed = True
-        self.db.flush()
+        self.db.commit()
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     def test_abort_push(self, publish):
@@ -544,6 +547,7 @@ class TestPush(base.BaseTestCase):
             branch=u'f26', state=models.ReleaseState.current)
         self.db.add(f25)
         self.db.add(f26)
+        self.db.commit()
         # Let's make an update for each release
         python_nose = self.create_update([u'python-nose-1.3.7-11.fc25'], u'F25')
         python_paste_deploy = self.create_update([u'python-paste-deploy-1.5.2-8.fc26'], u'F26')

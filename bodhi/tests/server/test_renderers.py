@@ -24,10 +24,10 @@ from webtest import TestApp
 import PIL.Image
 
 from bodhi.server import main
-import bodhi.tests.server.functional.base
+from bodhi.tests.server import base
 
 
-class TestRenderers(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestRenderers(base.BaseTestCase):
 
     def test_renderer_jpeg(self):
         """

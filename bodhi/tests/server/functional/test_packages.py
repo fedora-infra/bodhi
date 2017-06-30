@@ -14,18 +14,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-
-import bodhi.tests.server.functional.base
-
 from bodhi.server.models import (
     RpmPackage,
 )
+from bodhi.tests.server import base
 
 
-class TestRpmPackagesService(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestRpmPackagesService(base.BaseTestCase):
     def test_basic_json(self):
         """ Test querying with no arguments... """
         self.db.add(RpmPackage(name=u'a_second_package'))
+        self.db.commit()
         resp = self.app.get('/packages/')
         body = resp.json_body
         self.assertEquals(len(body['packages']), 2)
@@ -34,6 +33,7 @@ class TestRpmPackagesService(bodhi.tests.server.functional.base.BaseWSGICase):
         """ Test that filtering by name returns one package and not the other.
         """
         self.db.add(RpmPackage(name=u'a_second_package'))
+        self.db.commit()
         resp = self.app.get('/packages/', dict(name='bodhi'))
         body = resp.json_body
         self.assertEquals(len(body['packages']), 1)
@@ -42,6 +42,7 @@ class TestRpmPackagesService(bodhi.tests.server.functional.base.BaseWSGICase):
         """ Test that filtering by like returns one package and not the other.
         """
         self.db.add(RpmPackage(name=u'a_second_package'))
+        self.db.commit()
         resp = self.app.get('/packages/', dict(like='odh'))
         body = resp.json_body
         self.assertEquals(len(body['packages']), 1)

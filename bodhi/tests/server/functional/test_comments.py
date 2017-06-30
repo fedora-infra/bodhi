@@ -18,13 +18,13 @@ import mock
 
 from bodhi.server.models import (Comment, Release, Update, UpdateRequest, UpdateStatus, UpdateType,
                                  User)
-import bodhi.tests.server.functional.base
+from bodhi.tests.server import base
 
 
 someone_elses_update = up2 = u'bodhi-2.0-200.fc17'
 
 
-class TestCommentsService(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestCommentsService(base.BaseTestCase):
     def setUp(self, *args, **kwargs):
         super(TestCommentsService, self).setUp(*args, **kwargs)
 

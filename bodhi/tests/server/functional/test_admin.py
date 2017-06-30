@@ -21,10 +21,10 @@ import copy
 from webtest import TestApp
 
 from bodhi.server import main
-import bodhi.tests.server.functional.base
+from bodhi.tests.server import base
 
 
-class TestAdminView(bodhi.tests.server.functional.base.BaseWSGICase):
+class TestAdminView(base.BaseTestCase):
 
     def test_admin(self):
         """Test that authticated user can see the Admin panel"""

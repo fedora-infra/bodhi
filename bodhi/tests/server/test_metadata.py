@@ -19,20 +19,17 @@ import glob
 import os
 import shutil
 import tempfile
-import unittest
 
 import createrepo_c
 
-from bodhi.server import log, Session, initialize_db
 from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
-                                   get_session, DevBuildsys)
+                                   DevBuildsys)
 from bodhi.server.config import config
-from bodhi.server.models import (RpmPackage, Update, Base, RpmBuild, UpdateRequest, UpdateStatus,
+from bodhi.server.models import (RpmPackage, Update, RpmBuild, UpdateRequest, UpdateStatus,
                                  UpdateType)
 from bodhi.server.metadata import ExtendedMetadata
 from bodhi.server.util import mkmetadatadir
-from bodhi.tests.server import base, populate
-from bodhi.tests.server.functional.base import DB_PATH
+from bodhi.tests.server import base
 
 
 class TestAddUpdate(base.BaseTestCase):
@@ -116,24 +113,17 @@ class TestAddUpdate(base.BaseTestCase):
         self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.noarch.rpm')
 
 
-class TestExtendedMetadata(unittest.TestCase):
+class TestExtendedMetadata(base.BaseTestCase):
 
     def setUp(self):
+        super(TestExtendedMetadata, self).setUp()
+
         self._new_mash_stage_dir = tempfile.mkdtemp()
         self._mash_stage_dir = config['mash_stage_dir']
         self._mash_dir = config['mash_dir']
         config['mash_stage_dir'] = self._new_mash_stage_dir
         config['mash_dir'] = os.path.join(config['mash_stage_dir'], 'mash')
         os.makedirs(os.path.join(config['mash_dir'], 'f17-updates-testing'))
-
-        setup_buildsystem({'buildsystem': 'dev'})
-        app_config = {'sqlalchemy.url': DB_PATH}
-        engine = initialize_db(app_config)
-        log.debug('Creating all models for %s' % engine)
-        Base.metadata.bind = engine
-        Base.metadata.create_all(engine)
-        self.db = Session()
-        populate(self.db)
 
         # Initialize our temporary repo
         self.tempdir = tempfile.mkdtemp('bodhi')
@@ -157,13 +147,11 @@ class TestExtendedMetadata(unittest.TestCase):
         }]
 
     def tearDown(self):
-        self.db.close()
-        get_session().clear()
         shutil.rmtree(self.tempdir)
-        teardown_buildsystem()
         config['mash_stage_dir'] = self._mash_stage_dir
         config['mash_dir'] = self._mash_dir
         shutil.rmtree(self._new_mash_stage_dir)
+        super(TestExtendedMetadata, self).setUp()
 
     def _verify_updateinfo(self, repodata):
         updateinfos = glob.glob(join(repodata, "*-updateinfo.xml*"))

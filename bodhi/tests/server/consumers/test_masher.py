@@ -144,6 +144,10 @@ class TestMasher(unittest.TestCase):
         self.tempdir = tempfile.mkdtemp('bodhi')
         self.masher = Masher(FakeHub(), db_factory=self.db_factory, mash_dir=self.tempdir)
 
+        # Reset "cached" objects before each test.
+        Release._all_releases = None
+        Release._tag_cache = None
+
     def tearDown(self):
         shutil.rmtree(self.tempdir)
         try:
@@ -926,6 +930,7 @@ References:
             u.type = UpdateType.security
             u.status = UpdateStatus.testing
             u.request = None
+            session.commit()
             release = session.query(Release).one()
             updates = t.get_security_updates(release.long_name)
             self.assertEquals(len(updates), 1)
