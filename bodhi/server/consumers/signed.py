@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2016-2017 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -33,7 +38,8 @@ log = logging.getLogger('bodhi')
 
 
 class SignedHandler(fedmsg.consumers.FedmsgConsumer):
-    """The Bodhi Signed Handler.
+    """
+    The Bodhi Signed Handler.
 
     A fedmsg listener waiting for messages from koji about builds being tagged.
     """
