@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Define the service endpoints that handle Comments."""
 
 import math
 
@@ -62,7 +68,14 @@ comments_rss = Service(name='comments_rss', path='/rss/comments/',
 @comment.get(accept="text/html", renderer="comment.html",
              error_handler=bodhi.server.services.errors.html_handler)
 def get_comment(request):
-    """ Return a single comment from an id """
+    """
+    Return a single comment from an id.
+
+    Args:
+        request (pyramid.request): The current request.
+    Return:
+        dict: A dictionary with key "comment" indexing the requested comment.
+    """
     return dict(comment=request.validated['comment'])
 
 
@@ -89,6 +102,20 @@ validators = (
     schema=bodhi.server.schemas.ListCommentSchema, accept=('text/html'), renderer='comments.html',
     error_handler=bodhi.server.services.errors.html_handler, validators=validators)
 def query_comments(request):
+    """
+    Search for comments matching given search parameters.
+
+    Args:
+        request (pyramid.request): The current request.
+    Return:
+        dict: A dictionary with the following key-value pairs:
+            comments: An iterable with the current page of matched comments.
+            page: The current page number.
+            pages: The total number of pages.
+            rows_per_page: The number of rows per page.
+            total: The number of items matching the search terms.
+            chrome: A boolean indicating whether to paginate or not.
+    """
     db = request.db
     data = request.validated
     query = db.query(Comment)
@@ -166,7 +193,15 @@ def query_comments(request):
                    validate_captcha,
                ))
 def new_comment(request):
-    """ Add a new comment to an update. """
+    """
+    Add a new comment to an update.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary with two keys. "comment" indexes the new comment, and "caveats" indexes
+            an iterable of messages to display to the user.
+    """
     data = request.validated
 
     # This has already been validated at this point, but we need to ditch
