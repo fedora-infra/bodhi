@@ -176,7 +176,7 @@ $(document).ready(function() {
         if (e.which == 13) {
             cabbage.spin();
             var value = $("form#search .tt-input").val();
-            window.location.href = '/updates/?packages=' + value;
+            window.location.href = '/updates/?packages=' + encodeURIComponent(value);
         }
     });
 });
