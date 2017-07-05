@@ -468,6 +468,7 @@ def request2html(context, request):
         'obsolete': 'default',
         'testing': 'warning',
         'stable': 'success',
+        'batched': 'success',
     }.get(request)
 
     return "<span class='label label-%s'>%s</span>" % (cls, request)

@@ -59,7 +59,7 @@ new_edit_options = [
     click.option('--bugs', help='Comma-separated list of bug numbers', default=''),
     click.option('--close-bugs', default=True, is_flag=True, help='Automatically close bugs'),
     click.option('--request', help='Requested repository',
-                 type=click.Choice(['testing', 'stable', 'unpush'])),
+                 type=click.Choice(['testing', 'stable', 'unpush', 'batched'])),
     click.option('--autokarma', is_flag=True, help='Enable karma automatism'),
     click.option('--stable-karma', type=click.INT, help='Stable karma threshold'),
     click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold'),
@@ -274,7 +274,7 @@ def edit(user, password, url, **kwargs):
 @click.option('--releases', help='Updates for specific releases')
 @click.option('--locked', help='Updates that are in a locked state')
 @click.option('--request', help='Updates with a specific request',
-              type=click.Choice(['testing', 'stable', 'unpush']))
+              type=click.Choice(['testing', 'stable', 'unpush', 'batched']))
 @click.option('--submitted-since',
               help='Updates that have been submitted since a certain time')
 @click.option('--status', help='Filter by update status',
@@ -324,7 +324,7 @@ def request(update, state, user, password, url, **kwargs):
     UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
 
     STATE: The state you wish to change the update\'s request to. Valid options are
-    testing, stable, obsolete, unpush, and revoke.
+    testing, stable, obsolete, unpush, batched, and revoke.
     """
 
     # Developer Docs

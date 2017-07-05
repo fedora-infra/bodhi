@@ -1731,8 +1731,8 @@ class Update(Base):
 
         # If status is testing going to stable request and action is revoke,
         # keep the status at testing
-        elif self.status is UpdateStatus.testing and self.request is UpdateRequest.stable \
-                and action is UpdateRequest.revoke:
+        elif self.request in (UpdateRequest.stable, UpdateRequest.batched) and \
+                self.status is UpdateStatus.testing and action is UpdateRequest.revoke:
             self.status = UpdateStatus.testing
             self.revoke()
             flash_log("%s has been revoked." % self.title)
@@ -1748,7 +1748,7 @@ class Update(Base):
             return
 
         # Disable pushing critical path updates for pending releases directly to stable
-        if action is UpdateRequest.stable and self.critpath:
+        if action in (UpdateRequest.stable, UpdateRequest.batched) and self.critpath:
             if config.get('critpath.num_admin_approvals') is not None:
                 if not self.critpath_approved:
                     stern_note = (
@@ -1774,7 +1774,7 @@ class Update(Base):
 
         # Ensure this update meets the minimum testing requirements
         flash_notes = ''
-        if action is UpdateRequest.stable and not self.critpath:
+        if action in (UpdateRequest.stable, UpdateRequest.batched) and not self.critpath:
             # Check if we've met the karma requirements
             if (self.stable_karma not in (None, 0) and self.karma >=
                     self.stable_karma) or self.critpath_approved:
@@ -2373,9 +2373,14 @@ class Update(Base):
             self.comment(db, text, author=u'bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:
             if self.autokarma:
-                log.info("Automatically marking %s as stable" % self.title)
-                self.set_request(db, UpdateRequest.stable, agent)
-                self.request = UpdateRequest.stable
+                if self.severity is UpdateSeverity.urgent or self.type is UpdateType.newpackage:
+                    log.info("Automatically marking %s as stable" % self.title)
+                    self.set_request(db, UpdateRequest.stable, agent)
+                else:
+                    log.info("Automatically adding %s to batch of updates that will be pushed to"
+                             " stable at a later date" % self.title)
+                    self.set_request(db, UpdateRequest.batched, agent)
+
                 self.date_pushed = None
                 notifications.publish(
                     topic='update.karma.threshold.reach',
@@ -2571,7 +2576,7 @@ class Update(Base):
             # release to the Release.dist-tag
             if self.release.state is ReleaseState.pending:
                 tag = self.release.dist_tag
-        elif self.request is UpdateRequest.testing:
+        elif self.request in (UpdateRequest.testing, UpdateRequest.batched):
             tag = self.release.testing_tag
         elif self.request is UpdateRequest.obsolete:
             tag = self.release.candidate_tag

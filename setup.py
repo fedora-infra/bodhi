@@ -154,6 +154,7 @@ setup(
     initialize_bodhi_db = bodhi.server.scripts.initializedb:main
     bodhi-babysit-ci = bodhi.server.scripts.babysit_ci:babysit
     bodhi-clean-old-mashes = bodhi.server.scripts.clean_old_mashes:clean_up
+    bodhi-dequeue-stable = bodhi.server.scripts.dequeue_stable:dequeue_stable
     bodhi-push = bodhi.server.push:push
     bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
     bodhi-untag-branched = bodhi.server.scripts.untag_branched:main

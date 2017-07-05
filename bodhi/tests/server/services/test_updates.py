@@ -29,7 +29,7 @@ from bodhi.server.config import config
 from bodhi.server.models import (
     BuildrootOverride, Group, RpmPackage, Release,
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
-    User, CiStatus)
+    UpdateSeverity, User, CiStatus)
 from bodhi.tests.server import base
 
 
@@ -660,7 +660,7 @@ class TestUpdatesService(base.BaseTestCase):
         update.comment(self.db, u"foo", 1, u'biz')
         update = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(update.karma, 3)
-        self.assertEqual(update.request, UpdateRequest.stable)
+        self.assertEqual(update.request, UpdateRequest.batched)
 
         # Set it back to testing
         update.request = UpdateRequest.testing
@@ -2234,7 +2234,7 @@ class TestUpdatesService(base.BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
 
         self.assertEquals(up.karma, 2)
-        self.assertEquals(up.request, UpdateRequest.stable)
+        self.assertEquals(up.request, UpdateRequest.batched)
         self.assertEquals(up.status, UpdateStatus.pending)
 
     @mock.patch(**mock_valid_requirements)
@@ -3455,7 +3455,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up.autokarma, True)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEquals(up.request, UpdateRequest.stable)
+        self.assertEquals(up.request, UpdateRequest.batched)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3614,7 +3614,7 @@ class TestUpdatesService(base.BaseTestCase):
         """
         Make sure autopush doesn't get disabled for Non Critical update if it
         does not receive any negative karma. Test update gets automatically
-        marked as stable.
+        marked as batched.
         """
         user = User(name=u'bob')
         self.db.add(user)
@@ -3644,7 +3644,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up.autokarma, True)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEquals(up.request, UpdateRequest.stable)
+        self.assertEquals(up.request, UpdateRequest.batched)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3831,10 +3831,74 @@ class TestUpdatesService(base.BaseTestCase):
         resp = self.app.post_json('/updates/', args)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         up.builds[0].ci_status = CiStatus.passed
+        up.comment(self.db, u"foo1", 1, u'foo1')
+        up.comment(self.db, u"foo2", 1, u'foo2')
         self.db.commit()
+
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
             {'request': 'batched', 'csrf_token': self.get_csrf_token()})
+
         self.assertEqual(resp.json['update']['request'], 'batched')
         publish.assert_called_with(
             topic='update.request.batched', msg=mock.ANY)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_newpackage_update_bypass_batched(self, publish, *args):
+        """
+        Make sure a security update skips the 'batched' request and immediately enters stable
+        upon getting the sufficient number of karma.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 2
+
+        resp = self.app.post_json('/updates/', args)
+        self.assertEquals(resp.json['request'], 'testing')
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        up.type = UpdateType.newpackage
+        self.db.commit()
+
+        up.comment(self.db, u'cool beans', author=u'mrgroovy', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'lgtm', author=u'caleigh', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        self.assertEquals(up.request, UpdateRequest.stable)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_urgent_update_bypass_batched(self, publish, *args):
+        """
+        Make sure an urgent update skips the 'batched' request and immediately enters stable
+        upon getting the sufficient number of karma.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 2
+
+        resp = self.app.post_json('/updates/', args)
+        self.assertEquals(resp.json['request'], 'testing')
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        up.severity = UpdateSeverity.urgent
+        self.db.commit()
+
+        up.comment(self.db, u'cool beans', author=u'mrgroovy', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up.comment(self.db, u'lgtm', author=u'caleigh', karma=1)
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+
+        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        self.assertEquals(up.request, UpdateRequest.stable)

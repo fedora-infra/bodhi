@@ -1313,7 +1313,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.request, None)
         update.comment(self.db, u"foo", 1, u'biz')
         self.assertEqual(update.karma, 3)
-        self.assertEqual(update.request, UpdateRequest.stable)
+        self.assertEqual(update.request, UpdateRequest.batched)
         publish.assert_called_with(topic='update.comment', msg=mock.ANY)
 
     @mock.patch('bodhi.server.notifications.publish')
