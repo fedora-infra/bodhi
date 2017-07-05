@@ -169,7 +169,7 @@ def set_request(request):
                            "Can't change request for an archived release")
         return
 
-    if action is UpdateRequest.stable:
+    if action in (UpdateRequest.stable, UpdateRequest.batched):
         settings = request.registry.settings
         result, reason = update.check_requirements(request.db, settings)
         if not result:

@@ -507,6 +507,9 @@ class BodhiConfig(dict):
             'value': ('%s has been pushed to the %s repository. If problems still persist, please '
                       'make note of it in this bug report.'),
             'validator': unicode},
+        'stable_from_batched_msg': {
+            'value': ('This update has been dequeued from batched and is now entering stable.'),
+            'validator': unicode},
         'stacks_enabled': {
             'value': False,
             'validator': _validate_bool},

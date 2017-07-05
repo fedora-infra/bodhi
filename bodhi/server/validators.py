@@ -1034,7 +1034,7 @@ def validate_request(request):
     if 'request' not in request.validated:
         # Invalid request. Let the colander error from our schemas.py bubble up.
         return
-    if request.validated['request'] is UpdateRequest.stable:
+    if request.validated['request'] in (UpdateRequest.stable, UpdateRequest.batched):
         target = UpdateStatus.stable
     elif request.validated['request'] is UpdateRequest.testing:
         target = UpdateStatus.testing

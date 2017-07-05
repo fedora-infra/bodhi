@@ -1053,7 +1053,7 @@ References:
 
             # Ensure the masher set the autokarma once the push is done
             self.assertEquals(up.locked, False)
-            self.assertEquals(up.request, UpdateRequest.stable)
+            self.assertEquals(up.request, UpdateRequest.batched)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
