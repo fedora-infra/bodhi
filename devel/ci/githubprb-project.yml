@@ -15,6 +15,7 @@
           org-list:
               - fedora-infra
           cron: '* * * * *'
+          failure-comment: This pull request fails CI testing. Please review the Jenkins job.
           github-hooks: true
           permit-all: false
           trigger-phrase: 'jenkies test'
