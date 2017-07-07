@@ -123,9 +123,9 @@ badge_ids = binary-star|both-bull-and-self-transcended-tester-viii|catching-the-
 #     request. The masher will verify that the checksum of repomd.xml at the master URL matches the
 #     expected value, and will poll the URL until this test passes. Substitute release and request
 #     for each release id (replacing -'s with _'s) and request (stable, testing). Used for the
-#     arches listed in {release}_{version}_secondary_arches if it is defined. You must put two %s's
-#     in this setting - the first will be replaced with the release version and the second will be
-#     replaced with the architecture.
+#     arches not listed in {release}_{version}_primary_arches if it is defined. You must put two
+#     %s's in this setting - the first will be replaced with the release version and the second will
+#     be replaced with the architecture.
 # fedora_stable_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/%s/%s/repodata/repomd.xml
 # fedora_testing_alt_master_repomd = http://download01.phx2.fedoraproject.org/pub/fedora-secondary/updates/testing/%s/%s/repodata/repomd.xml
 
