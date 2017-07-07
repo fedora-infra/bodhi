@@ -407,6 +407,9 @@ class BodhiConfig(dict):
         'initial_bug_msg': {
             'value': '%s has been submitted as an update to %s. %s',
             'validator': unicode},
+        'greenwave_api_url': {
+            'value': 'https://greenwave.fedoraproject.org/api/v1.0',
+            'validator': unicode},
         'koji_hub': {
             'value': 'https://koji.stg.fedoraproject.org/kojihub',
             'validator': str},

@@ -391,6 +391,25 @@ class CiStatus(DeclEnum):
     failed = 'failed', 'Failed'
 
 
+class TestGatingStatus(DeclEnum):
+    """ This class lists the different status the test_gating_status flag can have. """
+    # None: Updates created while bodhi has not enabled Greenwave integration
+    # waiting: Updates created while bodhi has enabled Greenwave integration
+    waiting = 'waiting', 'Waiting'
+    # ignored: a decision from Greenwave said that this update does not require any tests
+    ignored = 'ignored', 'Ignored'
+    # queued: a decision from Greenwave said that the required tests for this update have been
+    # queued
+    queued = 'queued', 'Queued'
+    # running: a decision from Greenwave said that the required tests for this update are running
+    running = 'running', 'Running'
+    # passed: a decision from Greenwave said that the required tests for this update have passed
+    passed = 'passed', 'Passed'
+    # failed: a decision from the Greenwave said that the required tests for this update have
+    # been failed
+    failed = 'failed', 'Failed'
+
+
 class UpdateType(DeclEnum):
     bugfix = 'bugfix', 'bugfix'
     security = 'security', 'security'
@@ -1084,6 +1103,11 @@ class Update(Base):
         cves (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`CVE` objects
             associated with this update.
         user_id (int): A foreign key to the :class:`User` that created this update.
+        test_gating_status (EnumSymbol): The test gating status of the update. This must be one
+            of the values defined in :class:`TestGatingStatus` or ``None``. None indicates that
+            Greenwave integration was not enabled when the update was created.
+        greenwave_summary_string (unicode): A short summary of the outcome from Greenwave
+            (e.g. 2 of 32 required tests failed).
     """
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id', 'cves')
@@ -1148,6 +1172,10 @@ class Update(Base):
     cves = relationship('CVE', secondary=update_cve_table, backref='updates')
 
     user_id = Column(Integer, ForeignKey('users.id'))
+
+    # Greenwave
+    test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
+    greenwave_summary_string = Column(Unicode(255))
 
     @validates('builds')
     def validate_builds(self, key, build):
@@ -2271,6 +2299,10 @@ class Update(Base):
                 for committer in build.package.committers:
                     people.add(committer)
         return list(people)
+
+    @property
+    def product_version(self):
+        return self.release.long_name.lower().replace(' ', '-')
 
     def check_requirements(self, session, settings):
         """ Check that an update meets its self-prescribed policy to be pushed
