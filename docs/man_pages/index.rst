@@ -10,3 +10,4 @@ Man pages
    bodhi-babysit-ci
    bodhi-push
    initialize_bodhi_db
+   bodhi-check-policies

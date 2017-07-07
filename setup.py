@@ -159,6 +159,7 @@ setup(
     bodhi-untag-branched = bodhi.server.scripts.untag_branched:main
     bodhi-approve-testing = bodhi.server.scripts.approve_testing:main
     bodhi-manage-releases = bodhi.server.scripts.manage_releases:main
+    bodhi-check-policies = bodhi.server.scripts.check_policies:check
     [moksha.consumer]
     masher = bodhi.server.consumers.masher:Masher
     updates = bodhi.server.consumers.updates:UpdatesHandler
