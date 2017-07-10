@@ -1,13 +1,90 @@
 Release notes
 =============
 
-develop
--------
+2.9.0
+-----
 
-* The typeahead javacript library is rebased to version 1.1.1 from the maintained
+Features
+^^^^^^^^
+
+* It is now possible to set required Taskotron tests with the ``--requirements`` CLI flag
+  (`#1319 <https://github.com/fedora-infra/bodhi/issues/1319>`_).
+* The CLI now has tab completion in bash
+  (`#1188 <https://github.com/fedora-infra/bodhi/issues/1188>`_).
+* Updates that are pending testing now go straight to stable if they reach required karma
+  (`#632 <https://github.com/fedora-infra/bodhi/issues/632>`_).
+* The automated tests tab now shows a count on info results
+  (`1de12f6a <https://github.com/fedora-infra/bodhi/commit/1de12f6a>`_).
+* The UI now displays a spinner while a search is in progress
+  (`#436 <https://github.com/fedora-infra/bodhi/issues/436>`_).
+* It is now possible to middle click on search results in the web UI
+  (`#461 <https://github.com/fedora-infra/bodhi/issues/461>`_).
+* Pending releases are now displayed on the home page
+  (`#1619 <https://github.com/fedora-infra/bodhi/issues/1619>`_).
+
+
+Bugs
+^^^^
+
+* Wiki test cases are no longer duplicated
+  (`#780 <https://github.com/fedora-infra/bodhi/issues/780>`_).
+* The server bodhi-manage-releases script now uses the new Bodhi bindings
+  (`#1338 <https://github.com/fedora-infra/bodhi/issues/1338>`_).
+* The server bodhi-manage-releases script now supports the ``--url`` flag
+  (`0181a344 <https://github.com/fedora-infra/bodhi/commit/0181a344>`_).
+* The ``--help`` output from the Bodhi CLI is cleaner and more informative
+  (`#1457 <https://github.com/fedora-infra/bodhi/issues/1457>`_).
+* The CLI now provides more informative error messages when creating duplicate overrides
+  (`#1377 <https://github.com/fedora-infra/bodhi/issues/1377>`_).
+* E-mail subjects now include build versions again
+  (`#1635 <https://github.com/fedora-infra/bodhi/issues/1635>`_).
+* Taskotron results with the same scenario key are now all displayed
+  (`d5b0bfa3 <https://github.com/fedora-infra/bodhi/commit/d5b0bfa3>`_).
+* The front page UI elements now line up
+  (`#1659 <https://github.com/fedora-infra/bodhi/issues/1659>`_).
+* The UI now properly urlencodes search URLs to properly escape characters such as "+"
+  (`#1015 <https://github.com/fedora-infra/bodhi/issues/1015>`_).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The bundled typeahead JavaScript library is rebased to version 1.1.1 from the maintained
   fork at https://github.com/corejavascript/typeahead.js . The main typeahead repo
   appears to be unmaintained and contained a bug that we were hitting:
   https://github.com/twitter/typeahead.js/issues/1381
+* Docblocks were written for several more modules.
+* Bodhi now hard depends on rpm instead of conditionally importing it
+  (`#1166 <https://github.com/fedora-infra/bodhi/issues/1166>`_).
+* Bodhi now has CI provided by CentOS that is able to test pull requests. Thanks to Brian Stinson
+  and CentOS for providing this service to the Bodhi project!
+* Some ground work has been done in order to enable batched updates, so that medium and low priority
+  updates can be pushed on a less frequent interval than high priority (security or urgent) updates.
+* Bodhi now uses py.test as the test runner instead of nose.
+* Tox is now used to run the style tests.
+* There is now a unified test base class that creates a single TestApp for the tests to use. The
+  TestApp was the source of a significant memory leak in Bodhi's tests. As a result of this
+  refactor, Bodhi's tests now consume about 450 MB instead of about 4.5 GB. As a result, the example
+  Vagrantfile now uses 2 GB of RAM instead of 5 GB. It is likely possible to squeeze it down to 1 GB
+  or so, if desired.
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 2.9.0:
+
+* Ryan Lerch
+* Jeremy Cline
+* Clement Verna
+* Caleigh Runge-Hottman
+* Kamil Páral
+* Brian Stinson
+* Martin Curlej
+* Trishna Guha
+* Brandon Gray
+* Randy Barlow
+
 
 2.8.1
 -----
