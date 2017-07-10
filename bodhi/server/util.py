@@ -37,6 +37,7 @@ import libravatar
 import markdown
 import requests
 import rpm
+import json
 
 from bodhi.server import log, buildsys, Session
 from bodhi.server.config import config
@@ -730,21 +731,32 @@ def get_critpath_components_from_pdc(branch, component_type='rpm'):
     return list(critpath_pkgs_set)
 
 
-def api_get(api_url, service_name, error_key=None):
+def call_api(api_url, service_name, error_key=None, method='GET', data={}):
     """
-    A wrapper to get API resources with some error handling.
-    :param api_url: a string of the URL to query
+    A wrapper to send HTTP request with some error handling.
+    :param api_url: a string of the API URL.
     :param service_name: a string of the service name to use in error messages
     :param error_key: a string of the key that holds the error message in the
     JSON body. If this is set to None, the whole JSON will be used as the
     error message.
+    :param error_key: a string of the HTTP method to use to request. The defaut
+    value is ``GET``.
+    :param data: a dict of data will be sent to the API server.
     :return: dictionary of the returned JSON or a RuntimeError
     """
-    base_error_msg = (
-        'Bodhi failed to get a resource from {0} at the following URL '
-        '"{1}". The status code was "{2}".')
-    rv = requests.get(api_url, timeout=60)
-
+    if method == 'POST':
+        base_error_msg = (
+            'Bodhi failed to send POST request to {0} at the following URL '
+            '"{1}". The status code was "{2}".')
+        rv = requests.post(api_url,
+                           headers={'Content-Type': 'application/json'},
+                           data=json.dumps(data),
+                           timeout=60)
+    else:
+        base_error_msg = (
+            'Bodhi failed to get a resource from {0} at the following URL '
+            '"{1}". The status code was "{2}".')
+        rv = requests.get(api_url, timeout=60)
     if rv.status_code == 200:
         return rv.json()
     elif rv.status_code == 500:
@@ -775,7 +787,7 @@ def pagure_api_get(pagure_api_url):
     :param pagure_api_url: a string of the URL to query
     :return: JSON of the API resource(s) or a RuntimeError
     """
-    return api_get(pagure_api_url, service_name='Pagure', error_key='error')
+    return call_api(pagure_api_url, service_name='Pagure', error_key='error')
 
 
 def pdc_api_get(pdc_api_url):
@@ -786,4 +798,17 @@ def pdc_api_get(pdc_api_url):
     """
     # There is no error_key specified because the error key is not consistent
     # based on the error message
-    return api_get(pdc_api_url, service_name='PDC')
+    return call_api(pdc_api_url, service_name='PDC')
+
+
+def greenwave_api_post(greenwave_api_url, data):
+    """
+    A wrapper to post request to Greenwave.
+    :param greenwave_api_url: a string of the URL to query
+    :param data: A dictionary of data to send along the request
+    :return: JSON of the API response or a RuntimeError
+    """
+    # There is no error_key specified because the error key is not consistent
+    # based on the error message
+    return call_api(greenwave_api_url, service_name='Greenwave', method='POST',
+                    data=data)

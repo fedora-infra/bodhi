@@ -357,6 +357,102 @@ class TestUtils(unittest.TestCase):
         for element in result:
             assert isinstance(element, unicode)
 
+    @mock.patch('bodhi.server.util.requests.post')
+    def test_greenwave_api_post(self, mock_post):
+        """ Ensure that a POST request to Greenwave works as expected.
+        """
+        mock_post.return_value.status_code = 200
+        expected_json = {
+            'policies_satisified': True,
+            'summary': 'All tests passed',
+            'applicable_policies': ['taskotron_release_critical_tasks'],
+            'unsatisfied_requirements': []
+        }
+        mock_post.return_value.json.return_value = expected_json
+        data = {
+            'product_version': 'fedora-26',
+            'decision_context': 'bodhi_push_update_stable',
+            'subjects': ['foo-1.0.0-1.f26']
+        }
+        decision = util.greenwave_api_post('http://domain.local/api/v1.0/decision',
+                                           data)
+        assert decision == expected_json, decision
+
+    @mock.patch('bodhi.server.util.requests.post')
+    def test_greenwave_api_post_500_error(self, mock_post):
+        """ Ensure that a POST request to Greenwave that triggers a 500 error
+        raises the expected error message.
+        """
+        mock_post.return_value.status_code = 500
+        try:
+            data = {
+                'product_version': 'fedora-26',
+                'decision_context': 'bodhi_push_update_stable',
+                'subjects': ['foo-1.0.0-1.f26']
+            }
+            util.greenwave_api_post('http://domain.local/api/v1.0/decision',
+                                    data)
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to send POST request to Greenwave at the following URL '
+            '"http://domain.local/api/v1.0/decision". The status code was "500".')
+        assert actual_error == expected_error, actual_error
+
+    @mock.patch('bodhi.server.util.requests.post')
+    def test_greenwave_api_post_non_500_error(self, mock_post):
+        """ Ensure that a POST request to Greenwave that raises an error that is
+        not a 500 error returns the returned JSON.
+        """
+        mock_post.return_value.status_code = 404
+        mock_post.return_value.json.return_value = {
+            "message": "Not found."
+        }
+        try:
+            data = {
+                'product_version': 'fedora-26',
+                'decision_context': 'bodhi_push_update_stable',
+                'subjects': ['foo-1.0.0-1.f26']
+            }
+            util.greenwave_api_post('http://domain.local/api/v1.0/decision',
+                                    data)
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to send POST request to Greenwave at the following URL '
+            '"http://domain.local/api/v1.0/decision". The status code was "404". '
+            'The error was "{\'message\': \'Not found.\'}".')
+        assert actual_error == expected_error, actual_error
+
+    @mock.patch('bodhi.server.util.requests.post')
+    def test_greenwave_api_post_non_500_error_no_json(self, mock_post):
+        """ Ensure that a POST request to Greenwave that raises an error that is
+        not a 500 error and has no JSON returns an error.
+        """
+        mock_post.return_value.status_code = 404
+        mock_post.return_value.json.side_effect = ValueError('Not JSON')
+        try:
+            data = {
+                'product_version': 'fedora-26',
+                'decision_context': 'bodhi_push_update_stable',
+                'subjects': ['foo-1.0.0-1.f26']
+            }
+            util.greenwave_api_post('http://domain.local/api/v1.0/decision',
+                                    data)
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to send POST request to Greenwave at the following URL '
+            '"http://domain.local/api/v1.0/decision". The status code was "404". '
+            'The error was "".')
+        assert actual_error == expected_error, actual_error
+
     def test_markup(self):
         """Ensure we escape HTML"""
         text = '<b>bold</b>'
