@@ -332,9 +332,11 @@ class MasherThread(threading.Thread):
                 uinfo.insert_updateinfo()
                 uinfo.cache_repodata()
 
-            # Compose OSTrees from our freshly mashed repos
-            if config.get('compose_atomic_trees'):
-                self.compose_atomic_trees()
+            # Do the following if we are not using pungi
+            if not config.get('use_pungi_in_bodhi'):
+                # Compose OSTrees from our freshly mashed repos
+                if config.get('compose_atomic_trees'):
+                    self.compose_atomic_trees()
 
             if not self.skip_mash:
                 self.sanity_check_repo()
@@ -1026,12 +1028,21 @@ class MashThread(threading.Thread):
         self.tag = tag
         self.log = log
         self.success = False
-        mash_cmd = 'mash -o {outputdir} -c {config} -f {compsfile} {tag}'
-        mash_conf = config.get('mash_conf')
-        if os.path.exists(previous):
-            mash_cmd += ' -p {}'.format(previous)
-        self.mash_cmd = mash_cmd.format(outputdir=outputdir, config=mash_conf,
-                                        compsfile=comps, tag=self.tag).split()
+        if not config.get('use_pungi_in_bodhi'):
+
+            mash_cmd = 'mash -o {outputdir} -c {config} -f {compsfile} {tag}'
+            mash_conf = config.get('mash_conf')
+            if os.path.exists(previous):
+                mash_cmd += ' -p {}'.format(previous)
+            self.mash_cmd = mash_cmd.format(outputdir=outputdir, config=mash_conf,
+                                            compsfile=comps, tag=self.tag).split()
+
+        else:  # We are going to use pungi in this run
+            pungi_cmd = "pungi-koji  --config={config} --old-composes={outputdir}"
+            pungi_cmd += " --target-dir={outputdir}"
+            pungi_conf = config.get('pungi_conf')
+            # We are using the same name so that no new changes required in th code
+            self.mash_cmd = pungi_cmd.format(config=pungi_conf, outputdir=outputdir)
         # Set our thread's "name" so it shows up nicely in the logs.
         # https://docs.python.org/2/library/threading.html#thread-objects
         self.name = tag
