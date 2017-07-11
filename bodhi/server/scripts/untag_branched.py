@@ -14,7 +14,7 @@
 """
 Used to remove the pending and testing tags from updates in a branched release.
 
-Since a seperate task mashes the branched stable repos, this will leave
+Since a separate task mashes the branched stable repos, this will leave
 those stable updates with the testing tags for 1 day before untagging.
 
 https://github.com/fedora-infra/bodhi/issues/576

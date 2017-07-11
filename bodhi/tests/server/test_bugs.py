@@ -129,7 +129,7 @@ class TestBugzilla(unittest.TestCase):
         # Five exceptions should have been logged
         self.assertEqual(
             [c[1] for c in exception.mock_calls],
-            [(('\nA fault has occured \nFault code: 42 \nFault string: Someone turned the '
+            [(('\nA fault has occurred \nFault code: 42 \nFault string: Someone turned the '
                'microwave on and now the WiFi is down.'),) for i in range(5)])
 
     @mock.patch('bodhi.server.bugs.log.exception')

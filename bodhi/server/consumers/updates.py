@@ -199,4 +199,4 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
                 log.info("Modifying %r" % bug.bug_id)
                 bug.modified(update)
             except Exception:
-                log.warning('Error occured during updating single bug', exc_info=True)
+                log.warning('Error occurred during updating single bug', exc_info=True)

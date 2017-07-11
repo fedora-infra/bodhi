@@ -311,3 +311,27 @@ class TestUpdatesHandlerInit(unittest.TestCase):
             ['topic_prefix.environment.bodhi.update.request.testing',
              'topic_prefix.environment.bodhi.update.edit'])
         set_bugtracker.assert_called_once_with()
+
+
+class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
+    """This test class contains tests for the UpdatesHandler.work_on_bugs() method."""
+    @mock.patch('bodhi.server.consumers.updates.log.warning')
+    def test_work_on_bugs_exception(self, warning):
+        """
+        Assert that work_on_bugs logs a warning when an exception is raised.
+        """
+        hub = mock.MagicMock()
+        hub.config = {'environment': 'environment',
+                      'topic_prefix': 'topic_prefix'}
+        h = updates.UpdatesHandler(hub)
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+
+        update = self.db.query(models.Update).filter(
+            models.Build.nvr == u'bodhi-2.0-1.fc17').one()
+        bugs = self.db.query(models.Bug).all()
+
+        with mock.patch('bodhi.server.consumers.updates.bug_module.bugtracker.getbug',
+                        side_effect=RuntimeError("oh no!")):
+            h.work_on_bugs(h.db_factory, update, bugs)
+
+        warning.assert_called_once_with('Error occurred during updating single bug', exc_info=True)

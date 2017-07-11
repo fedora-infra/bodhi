@@ -95,7 +95,7 @@ class Bugzilla(BugTracker):
                 except xmlrpclib.Fault as e:
                     attempts += 1
                     log.exception(
-                        "\nA fault has occured \nFault code: %d \nFault string: %s" %
+                        "\nA fault has occurred \nFault code: %d \nFault string: %s" %
                         (e.faultCode, e.faultString))
         except InvalidComment:
             log.exception(
