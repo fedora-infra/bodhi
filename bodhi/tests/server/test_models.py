@@ -30,7 +30,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
     BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
-    UpdateSuggestion, UpdateType, CiStatus)
+    UpdateSuggestion, UpdateType, CiStatus, TestGatingStatus)
 from bodhi.tests.server.base import BaseTestCase
 
 
@@ -851,7 +851,7 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(update.days_to_stable, 3)
 
-    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_days_to_stable_zero(self):
         """
         The Update.days_to_stable() method should only return a positive integer or zero.
@@ -862,7 +862,7 @@ class TestUpdate(ModelTest):
         """
         update = self.obj
         update.autokarma = False
-        update.builds[0].ci_status = CiStatus.failed
+        update.test_gating_status = TestGatingStatus.failed
 
         update.date_testing = datetime.utcnow() + timedelta(days=-8)
         self.assertEqual(update.meets_testing_requirements, False)
@@ -870,7 +870,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.mandatory_days_in_testing <= update.days_in_testing, True)
         self.assertEqual(update.days_to_stable, 0)
 
-    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_days_to_stable_positive(self):
         """
         The Update.days_to_stable() method should only return a positive integer or zero.
@@ -881,7 +881,7 @@ class TestUpdate(ModelTest):
         """
         update = self.obj
         update.autokarma = False
-        update.builds[0].ci_status = CiStatus.failed
+        update.test_gating_status = TestGatingStatus.failed
 
         update.date_testing = datetime.utcnow() + timedelta(days=-3)
         self.assertEqual(update.meets_testing_requirements, False)
@@ -889,91 +889,91 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.mandatory_days_in_testing > update.days_in_testing, True)
         self.assertEqual(update.days_to_stable, 4)
 
-    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
-    def test_ci_failed_no_testing_requirements(self):
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_test_gating_faild_no_testing_requirements(self):
         """
-        The Update.meets_testing_requirements() should return False if the
-        builds of an update did not pass CI.
+        The Update.meets_testing_requirements() should return False, if the test gating
+        status of an update is failed.
         """
         update = self.obj
         update.autokarma = False
         update.stable_karma = 1
-        update.builds[0].ci_status = CiStatus.failed
+        update.test_gating_status = TestGatingStatus.failed
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
         self.assertEqual(update.meets_testing_requirements, False)
 
-    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
-    def test_ci_queued_no_testing_requirements(self):
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_test_gating_queued_no_testing_requirements(self):
         """
-        The Update.meets_testing_requirements() should return False if the
-        builds of an update did not pass CI.
+        The Update.meets_testing_requirements() should return False, if the test gating
+        status of an update is queued.
         """
         update = self.obj
         update.autokarma = False
         update.stable_karma = 1
-        update.builds[0].ci_status = CiStatus.queued
+        update.test_gating_status = TestGatingStatus.queued
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
         self.assertEqual(update.meets_testing_requirements, False)
 
-    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
-    def test_ci_running_no_testing_requirements(self):
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_test_gating_running_no_testing_requirements(self):
         """
-        The Update.meets_testing_requirements() should return False if the
-        builds of an update did not pass CI.
+        The Update.meets_testing_requirements() should return False, if the test gating
+        status of an update is running.
         """
         update = self.obj
         update.autokarma = False
         update.stable_karma = 1
-        update.builds[0].ci_status = CiStatus.running
+        update.test_gating_status = TestGatingStatus.running
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
         self.assertEqual(update.meets_testing_requirements, False)
 
-    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
-    def test_ci_missing_testing_requirements(self):
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_test_gating_missing_testing_requirements(self):
         """
-        The Update.meets_testing_requirements() should return False if the
-        builds of an update did not pass CI.
+        The Update.meets_testing_requirements() should return True, if the test gating
+        status of an update is missing.
         """
         update = self.obj
         update.autokarma = False
         update.stable_karma = 1
-        update.builds[0].ci_status = None
+        update.test_gating_status = None
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
         self.assertEqual(update.meets_testing_requirements, True)
 
-    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
-    def test_ci_waiting_testing_requirements(self):
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_test_gating_waiting_testing_requirements(self):
         """
-        The Update.meets_testing_requirements() should return False if the
-        builds of an update did not pass CI.
+        The Update.meets_testing_requirements() should return False, if the test gating
+        status of an update is waiting.
         """
         update = self.obj
         update.autokarma = False
         update.stable_karma = 1
-        update.builds[0].ci_status = CiStatus.waiting
+        update.test_gating_status = TestGatingStatus.waiting
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
         self.assertEqual(update.meets_testing_requirements, False)
 
-    @mock.patch.dict('bodhi.server.config.config', {'ci.required': False})
-    def test_ci_ci_required_off(self):
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
+    def test_test_gating_off(self):
         """
-        The Update.meets_testing_requirements() should return False if the
-        builds of an update did not pass CI.
+        The Update.meets_testing_requirements() should return True if the
+        testing gating is not required, regardless of its test gating status.
         """
         update = self.obj
         update.autokarma = False
         update.stable_karma = 1
-        update.builds[0].ci_status = CiStatus.running
+        update.test_gating_status = TestGatingStatus.running
         update.comment(self.db, u'I found $100 after applying this update.', karma=1,
                        author=u'bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
@@ -1488,6 +1488,41 @@ class TestUpdate(ModelTest):
         self.assertEqual(len(req.errors), 0)
         publish.assert_called_once_with(
             topic='update.request.stable', msg=mock.ANY)
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_set_request_stable_for_critpath_update_when_test_gating_enabled(self):
+        """
+        Ensure that we can't submit a critpath update for stable if it hasn't passed the
+        test gating and return the error message as expected.
+        """
+        req = DummyRequest()
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        req.user = model.User(name='bob')
+
+        self.obj.status = UpdateStatus.testing
+        self.obj.request = None
+        self.obj.critpath = True
+        self.obj.test_gating_satus = TestGatingStatus.failed
+        try:
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+            assert False
+        except BodhiException, e:
+            pass
+        expected_msg = (
+            'This critical path update has not yet been approved for pushing to the '
+            'stable repository.  It must first reach a karma of %s, consisting of %s '
+            'positive karma from proventesters, along with %d additional karma from '
+            'the community. Or, it must spend %s days in testing without any negative '
+            'feedback')
+        expected_msg = expected_msg % (
+            config.get('critpath.min_karma'),
+            config.get('critpath.num_admin_approvals'),
+            (config.get('critpath.min_karma') -
+                config.get('critpath.num_admin_approvals')),
+            config.get('critpath.stable_after_days_without_negative_karma'))
+        expected_msg += ' Additionally, it must pass automated tests.'
+        self.assertEqual(str(e), expected_msg)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_met_testing_requirements_at_7_days_after_bodhi_comment(self, publish):
