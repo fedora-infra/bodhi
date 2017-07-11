@@ -547,6 +547,12 @@ class BodhiConfig(dict):
         'top_testers_timeframe': {
             'value': 7,
             'validator': int},
+        'test_gating.required': {
+            'value': False,
+            'validator': _validate_bool},
+        'test_gating.url': {
+            'value': '',
+            'validator': unicode},
         'updateinfo_rights': {
             'value': 'Copyright (C) {} Red Hat, Inc. and others.'.format(datetime.now().year),
             'validator': unicode},
