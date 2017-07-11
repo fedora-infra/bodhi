@@ -172,7 +172,7 @@ Once mash is done:
     def work(self, msg):
         """Begin the push process.
 
-        Here we organize & prioritize the updates, and fire off seperate
+        Here we organize & prioritize the updates, and fire off separate
         threads for each reop tag being mashed.
 
         If there are any security updates in the push, then those repositories
