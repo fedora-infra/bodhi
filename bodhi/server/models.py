@@ -1341,11 +1341,10 @@ class Update(Base):
         log.debug("Triggering db flush for new update.")
         db.flush()
 
-        if config.get('ci.required'):
+        if config.get('test_gating.required'):
             log.debug(
-                'CI required is enforced, marking the build as waiting on CI')
-            for build in up.builds:
-                build.ci_status = CiStatus.waiting
+                'Test gating required is enforced, marking the update as waiting on test gating')
+            up.test_gating_status = TestGatingStatus.waiting
 
         log.debug("Done with Update.new(...)")
         return up, caveats
@@ -1492,6 +1491,20 @@ class Update(Base):
         """
         if self.builds:
             return self.builds[0].type
+
+    @property
+    def test_gating_passed(self):
+        """
+        Returns a boolean representing if this update has passed the test gating.
+
+        Returns:
+            bool: Returns True if the Update's test_gating_status property is None, ignored,
+                or passed. Otherwise it returns False.
+        """
+        if self.test_gating_status in (
+                None, TestGatingStatus.ignored, TestGatingStatus.passed):
+            return True
+        return False
 
     @property
     def ci_passed(self):
@@ -2378,8 +2391,8 @@ class Update(Base):
                     return False, "Required task %s returned %s" % (
                         latest['testcase']['name'], latest['outcome'])
 
-        if config.get('ci.required') and not self.ci_passed:
-            return False, "CI did not pass on this update"
+        if config.get('test_gating.required') and not self.test_gating_passed:
+            return (False, "Required tests did not pass on this update")
 
         # TODO - check require_bugs and require_testcases also?
 
@@ -2484,7 +2497,7 @@ class Update(Base):
         """
         num_days = self.mandatory_days_in_testing
 
-        if config.get('ci.required') and not self.ci_passed:
+        if config.get('test_gating.required') and not self.test_gating_passed:
             return False
 
         if self.critpath:
