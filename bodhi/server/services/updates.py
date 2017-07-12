@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Defines service endpoints pertaining to Updates."""
 
 import copy
 import math
@@ -86,8 +92,16 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
 @update.get(accept="text/html", renderer="update.html",
             error_handler=bodhi.server.services.errors.html_handler)
 def get_update(request):
-    """Return a single update from an id, title, or alias"""
+    """
+    Return a single update from an id, title, or alias.
 
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary with the following key mappings:
+            update: The update that was requested.
+            can_edit: A boolean indicating whether the update can be edited.
+    """
     proxy_request = bodhi.server.security.ProtectedRequest(request)
     validate_acls(proxy_request)
     # If validate_acls produced 0 errors, then we can edit this update.
@@ -103,7 +117,18 @@ def get_update(request):
                      validate_acls,
                  ))
 def get_update_for_editing(request):
-    """Return a single update from an id, title, or alias for the edit form"""
+    """
+    Return a single update from an id, title, or alias for the edit form.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary with the following key mappings:
+            update: The update to be edited.
+            types: The possible values for update types.
+            severities: The possible values for update severity.
+            suggestions: The possible values for update suggestion.
+    """
     return dict(
         update=request.validated['update'], types=reversed(bodhi.server.models.UpdateType.values()),
         severities=sorted(
@@ -123,7 +148,14 @@ def get_update_for_editing(request):
                      permission='edit', renderer='json',
                      error_handler=bodhi.server.services.errors.json_handler)
 def set_request(request):
-    """Sets a specific :class:`bodhi.server.models.UpdateRequest` on a given update"""
+    """
+    Set a specific :class:`bodhi.server.models.UpdateRequest` on a given update.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary mapping the key "update" to the update that was modified.
+    """
     update = request.validated['update']
     action = request.validated['request']
 
@@ -182,6 +214,20 @@ validators = (
              error_handler=bodhi.server.services.errors.html_handler,
              validators=validators)
 def query_updates(request):
+    """
+    Search updates by given criteria.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary with at least the following key mappings:
+            updates: An iterable of the updates that match the query.
+            page: The current page.
+            pages: The total number of pages.
+            rows_per_page: How many results on on the page.
+            total: The total number of updates matching the query.
+            package: The package corresponding to the first update found in the search.
+    """
     db = request.db
     data = request.validated
     query = db.query(Update)
@@ -347,11 +393,15 @@ def query_updates(request):
                   validate_bugs,
               ))
 def new_update(request):
-    """ Save an update.
+    """
+    Save an update.
 
     This entails either creating a new update, or editing an existing one. To
     edit an existing update, the update's original title must be specified in
     the ``edited`` parameter.
+
+    Args:
+        request (pyramid.request): The current request.
     """
     data = request.validated
     log.debug('validated = %s' % data)
