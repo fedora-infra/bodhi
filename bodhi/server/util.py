@@ -318,30 +318,38 @@ def status2html(context, status):
     return "<span class='label label-%s'>%s</span>" % (cls, status)
 
 
-def ci_status2html(context, status):
+def test_gating_status2html(context, status, reason=None):
     """ Convert the specified status into a html string used to present the
-    CI status in a human friendly way.
+    test gating status in a human friendly way.
 
     Args:
         context (mako.runtime.Context): Unused.
-        status (unicode): The description of the CI status
+        status (unicode): The test gating status
+        reason (unicode): A short text explains why the test gating is not passed.
 
     Returns:
-        unicode: A human friendly HTML label of the CI status
+        unicode: A human friendly HTML label of the test gating status
 
     """
-    cls = {
-        'Ignored': 'success',
-        'Running': 'warning',
-        'Passed': 'success',
-        'Failed': 'danger',
-        'Queued': 'info',
-        'Waiting': 'info',
-        'None': 'primary',
-    }[str(status)]
-    if status is None:
-        status = 'not running'
-    return u"<span class='label label-%s'>Tests %s</span>" % (cls, status)
+    if status:
+        label_class = {
+            'Ignored': 'success',
+            'Running': 'warning',
+            'Passed': 'success',
+            'Failed': 'danger',
+            'Queued': 'info',
+            'Waiting': 'info'
+        }[status.description]
+        description = status.description
+    else:
+        # status could be None when test_gating.required was not set to True
+        description = 'not running'
+        label_class = 'primary'
+    html = u'<span class="label label-%s">Tests %s</span>' % (label_class, description)
+    from bodhi.server.models import TestGatingStatus
+    if status not in [None, TestGatingStatus.ignored, TestGatingStatus.passed] and reason:
+        html += u'<p><a class="gating-summary" href="#automatedtests">%s</a></p>' % reason
+    return html
 
 
 def state2class(context, state):

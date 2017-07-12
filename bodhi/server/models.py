@@ -1804,6 +1804,8 @@ class Update(Base):
                         (config.get('critpath.min_karma') -
                             config.get('critpath.num_admin_approvals')),
                         config.get('critpath.stable_after_days_without_negative_karma'))
+                    if config.get('test_gating.required'):
+                        stern_note += ' Additionally, it must pass automated tests.'
                     notes.append(stern_note)
 
                     if self.status is UpdateStatus.testing:
