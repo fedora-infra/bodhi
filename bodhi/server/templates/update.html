@@ -25,7 +25,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       NEEDS_INSPECTION: 'warning',
       ABORTED: 'warning',
       CRASHED: 'warning',
-      ABSENT: 'warning',
+      ABSENT: 'danger',
     }
     var icons = {
       PASSED: 'check-circle',
@@ -48,6 +48,51 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
     // These are the required taskotron tests
     var requirements = ${update.requirements_json | n};
+    // show the Greenwave decision
+    var greenwave_api_url = '${request.registry.settings["greenwave_api_url"]}';
+    var missing_tests = {};
+    // handle Greenwave decision
+    var handle_unsatisfied_reqs = function(data){
+        $.each(data['unsatisfied_requirements'], function(i, req) {
+            if (req.type == 'test-result-missing') {
+                if (missing_tests[req.item] === undefined)
+                    missing_tests[req.item]= [];
+                missing_tests[req.item].push(req);
+            }
+            // the user may have already specified this in the required taskotron tests
+            if ($.inArray(req.testcase, requirements) == -1) {
+                requirements.push(req.testcase);
+            }
+        });
+    };
+    var get_unsatisfied_reqs = function(data) {
+        $.ajax({
+            url: greenwave_api_url + '/decision',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(data) {
+                handle_unsatisfied_reqs(data);
+            },
+            error: function (jqxhr, status, error) {
+               $('#resultsdb h3').after(
+                  '<h4 class="text-danger">Failed to talk to Greenwave.</h4>');
+            },
+        });
+    };
+
+    var test_gating_passed = '${update.test_gating_passed}';
+    var test_gating_required = '${request.registry.settings.get("test_gating.required")}';
+    if (test_gating_required == 'True' && test_gating_passed == 'False') {
+        var summary = '${update.greenwave_summary_string}';
+        $('#resultsdb h3').after(
+           '<div class="alert alert-danger">The update can not be pushed: ' + summary + '</div>');
+        get_unsatisfied_reqs({
+            'product_version': '${update.product_version}',
+            'decision_context': 'bodhi_update_push_stable',
+            'subject': builds
+        });
+    }
 
     var make_row = function(outcome, testcase, note, arch, time, url, flavor) {
       var icon = '<span data-toggle="tooltip" data-placement="top" ' +
@@ -82,15 +127,20 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       if (note == null){
         note = '';
       }
-      return '<tr class="row-automatedtests table-' + classes[outcome] + '" ' +
-        'style="cursor: pointer;"' +
-        'data-href="' + url + '">' +
+      html = '<tr class="row-automatedtests table-' + classes[outcome];
+      if (outcome == 'ABSENT') {
+          html += ' absent-automatedtest"';
+      } else {
+          html += '" style="cursor: pointer;" data-href="' + url + '"';
+      }
+      html += '>' +
         '<td>' + required + '</td>' +
         '<td>' + icon + '</td>' +
         '<td class="nowrap">' + testcase + '</td>' +
         '<td class="stretch-table-column text-xs-right">' + note + '</td>' +
         '<td class="nowrap">' + age + '</td>' +
         '</tr>';
+      return html;
     };
 
     var latest = {};
@@ -163,36 +213,72 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       if (activeResultsAjaxCalls == 0){
       var data = [];
       var count = 0;
-      $.each(latest, function(buildname, obj1) {
-        count = count +1;
-        $("#resultsdb").append("<h4 class='p-t-1'>"+buildname+
-        "</h4><table class='table table-hover' id='buildresults"+count+
-        "'></table>")
-        $.each(obj1, function(testcase, obj2) {
-          $.each(obj2, function(arch, obj3) {
-            $.each(obj3, function(scenario, result) {
-              var flavor;
-              if (scenario.includes("updates-server")) {
-                flavor = "server";
+      // if there are no results in ResultsDB yet and we have already got the Greenwave decision
+      // to say that some tests are missing, let's just show them.
+      if (Object.keys(latest).length == 0) {
+          $.each(builds, function(i, buildname) {
+              count = count +1;
+              if (buildname in missing_tests) {
+                  $("#resultsdb").append("<h4 class='p-t-1'>"+buildname+
+                  "</h4><table class='table table-hover' id='buildresults"+count+
+                  "'></table>");
+                  $.each(missing_tests[buildname], function(i, result) {
+                      $('#buildresults'+count).append(make_row(
+                          'ABSENT',
+                          result.testcase,
+                          '',
+                          '',
+                          ''
+                      ));
+                  });
+              } else {
+                  $("#resultsdb").append("<h4 class='p-t-1'>"+buildname+
+                  "</h4><p>No results reported for this build.</p>");
               }
-              else if (scenario.includes("updates-workstation")) {
-                flavor = "workstation";
-              }
-              $('#buildresults'+count).append(make_row(
-                  result.outcome,
-                  result.testcase.name,
-                  result.note,
-                  // note: this is a single-item array
-                  result.data.arch,
-                  result.submit_time,
-                  result.ref_url,
-                  flavor
-              ));
+          });
+      } else {
+          $.each(latest, function(buildname, obj1) {
+            count = count +1;
+            $("#resultsdb").append("<h4 class='p-t-1'>"+buildname+
+            "</h4><table class='table table-hover' id='buildresults"+count+
+            "'></table>")
+            // We show missing tests first
+            if (buildname in missing_tests) {
+                $.each(missing_tests[buildname], function(i, result) {
+                    $('#buildresults'+count).append(make_row(
+                        'ABSENT',
+                        result.testcase,
+                        '',
+                        '',
+                        ''
+                    ));
+                });
+            }
+            $.each(obj1, function(testcase, obj2) {
+              $.each(obj2, function(arch, obj3) {
+                $.each(obj3, function(scenario, result) {
+                  var flavor;
+                  if (scenario.includes("updates-server")) {
+                    flavor = "server";
+                  }
+                  else if (scenario.includes("updates-workstation")) {
+                    flavor = "workstation";
+                  }
+                  $('#buildresults'+count).append(make_row(
+                      result.outcome,
+                      result.testcase.name,
+                      result.note,
+                      // note: this is a single-item array
+                      result.data.arch,
+                      result.submit_time,
+                      result.ref_url,
+                      flavor
+                  ));
+                });
+              });
             });
           });
-        });
-      });
-
+      }
       finish();
     };
     };
@@ -226,16 +312,14 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         $("#tab-automatedtests").append(" <span class='label label-danger'><span class='fa fa-minus-circle'></span> "+failedcount+"</span>");
       }
 
-      // Make each cell clickable and awesome
-      $('#resultsdb tr').off().click(function(event, row) {
+      // Make each cell clickable and awesome except the missing tests
+      $('#resultsdb tr').not('.absent-automatedtest').off().click(function(event, row) {
         window.open($(this).attr('data-href'));
       });
 
       // And, re-do tooltips for newly created spans.
       $('#resultsdb span').tooltip();
     }
-
-
 
     var request_results = function(url) {
       $.ajax(url, {
@@ -369,6 +453,12 @@ $(document).ready(function(){
       $("#comment-textarea").hide();
     }
      $(this).button('toggle');
+  });
+
+  /*open the automated tests tab*/
+  $('.gating-summary').click(function(e){
+    e.preventDefault();
+    $('.nav-tabs a[href="' + this.getAttribute('href') + '"]').tab('show');
   });
 
 });
@@ -685,19 +775,20 @@ $(document).ready(function(){
                 </div>
               </div>
 
-              % if request.registry.settings.get('ci.required'):
+              % if request.registry.settings.get('test_gating.required'):
               <div class="p-b-1">
                 <div>
-                  % if request.registry.settings.get('ci.url'):
-                    <a href="${request.registry.settings.get('ci.url')}" title="More information about CI">
-                      <strong>CI Status</strong>
+                  % if request.registry.settings.get('test_gating.url'):
+                    <a href="${request.registry.settings.get('test_gating.url')}" title="More information about test gating">
+                      <strong>Test Gating Status</strong>
                     </a>
                   % else:
-                    <strong>CI Status</strong>
+                    <strong>Test Gating Status</strong>
                   % endif
                 </div>
                 <div>
-                  ${self.util.ci_status2html(update.ci_status.description) | n}
+                  ${self.util.test_gating_status2html(update.test_gating_status,
+                    update.greenwave_summary_string) | n}
                 </div>
               </div>
               % endif
@@ -879,15 +970,6 @@ $(document).ready(function(){
             <a href="https://koji.fedoraproject.org/koji/search?terms=${build.nvr}&type=build&match=glob" target="_blank">
                 ${build.nvr}</a>
           </td>
-          % if request.registry.settings.get('ci.required'):
-            <td>
-              % if build.ci_url:
-                <a href="${build.ci_url}">${self.util.ci_status2html(build.ci_status.description) | n}</a>
-              % else:
-                ${self.util.ci_status2html(build.ci_status.description) | n}
-              % endif
-            </td>
-          % endif
           <td class="pull-right">
             % if build.signed:
               <span class="fa fa-key text-muted" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="Build signed"></span>
