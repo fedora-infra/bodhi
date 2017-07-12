@@ -30,3 +30,4 @@ Vagrantfile
 .idea
 .tox/
 .cache/
+*.sqlite
