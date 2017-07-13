@@ -326,3 +326,38 @@ class ExtendedMetadata(object):
             shutil.rmtree(cache)
         shutil.copytree(repodata, cache)
         log.info('%s cached to %s' % (repodata, cache))
+
+
+class PungiMetadata(ExtendedMetadata):
+    """ Class which represents updateinfo metadata for pungi. """
+
+    def __init__(self, release, request, db, path, compose_dir):
+        """ 
+        Same as its parent class only with the addition of compose_dir arg.
+        
+        Args:
+            compose_dir - path to the pungi compose
+        """
+        super(PungiMetadata, self).__init__(release, request, db, path)
+        self.compose_dir = compose_dir
+
+    def modifyrepo(self, filename):
+        """Inject a file into the repodata for each architecture"""
+        dir_blacklist = ['source']
+        arches = [d for d in os.listdir(self.compose_dir) if d not in dir_blacklist]
+
+        for arch in arches:
+            repodata = os.path.join(self.compose_dir, arch, 'os', 'repodata')
+            log.info('Inserting %s into %s', filename, repodata)
+            uinfo_xml = os.path.join(repodata, 'updateinfo.xml')
+            shutil.copyfile(filename, uinfo_xml)
+            repomd_xml = os.path.join(repodata, 'repomd.xml')
+            repomd = cr.Repomd(repomd_xml)
+            uinfo_rec = cr.RepomdRecord('updateinfo', uinfo_xml)
+            uinfo_rec_comp = uinfo_rec.compress_and_fill(self.hash_type, self.comp_type)
+            uinfo_rec_comp.rename_file()
+            uinfo_rec_comp.type = 'updateinfo'
+            repomd.set_record(uinfo_rec_comp)
+            with file(repomd_xml, 'w') as repomd_file:
+                repomd_file.write(repomd.xml_dump())
+            os.unlink(uinfo_xml)

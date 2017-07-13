@@ -72,6 +72,7 @@
       - redhat-rpm-config
       - vim-enhanced
       - zlib-devel
+      - pungi
 
 # This isn't packaged in Fedora yet, but it's only a development tool (we should still add it)
 - name: pip install debugtoolbar

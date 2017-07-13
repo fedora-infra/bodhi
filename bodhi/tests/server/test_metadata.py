@@ -24,15 +24,17 @@ import glob
 import os
 import shutil
 import tempfile
+import mock
 
 import createrepo_c
+import pytest
 
 from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
                                    DevBuildsys)
 from bodhi.server.config import config
 from bodhi.server.models import (Release, RpmPackage, Update, RpmBuild, UpdateRequest, UpdateStatus,
                                  UpdateType)
-from bodhi.server.metadata import ExtendedMetadata
+from bodhi.server.metadata import ExtendedMetadata, PungiMetadata
 from bodhi.server.util import mkmetadatadir
 from bodhi.tests.server import base
 
@@ -552,3 +554,49 @@ class TestExtendedMetadata(base.BaseTestCase):
         self.assertIsNone(notice)
         notice = self.get_notice(uinfo, 'bodhi-2.0-2.fc17')
         self.assertIsNotNone(notice)
+
+
+@pytest.mark.usefixture("get_all_builds_metadata")
+class TestPungiMetadata(object):
+
+    @mock.patch("bodhi.server.metadata.ExtendedMetadata._fetch_updates")
+    @mock.patch("createrepo_c.Repomd")
+    @mock.patch("createrepo_c.RepomdRecord")
+    def test_modify_repo(self, rmrecord, repomd, fetch_updates, tmpdir):
+        path = str(tmpdir.mkdir("f27-modular-updates"))
+        tmpfile = tmpdir.join("tmpfile")
+        tmpfile.write("")
+        tmpfile_path = str(tmpfile)
+        os.mkdir(os.path.join(path, "compose"))
+        compose_dir = os.path.join(path, "compose", "Server")
+        os.mkdir(compose_dir)
+
+        arches = ["source", "x86_64", "i386"]
+        repodata_paths = {}
+        for arch in arches:
+            os.mkdir(os.path.join(compose_dir, arch))
+            os.mkdir(os.path.join(compose_dir, arch, "os"))
+            repodata_path = os.path.join(compose_dir, arch, "os", "repodata")
+            os.mkdir(repodata_path)
+            repodata_paths[arch] = repodata_path
+
+        release = mock.Mock()
+        release.stable_tag = "f27-modular"
+        release.testing_tag = "f27-modular-testing"
+        request = "stable"
+        db = mock.Mock()
+        rmd = repomd()
+        rmd.xml_dump.return_value = "test"
+
+        uinfo = PungiMetadata(release, request, db, path, compose_dir)
+        uinfo.modifyrepo(tmpfile_path)
+
+        assert uinfo.compose_dir == compose_dir
+        fetch_updates.assert_called_once
+        assert repomd.call_count == 3
+        assert rmrecord.call_count == 2
+        for arch in arches:
+            if arch != "source":
+                assert os.listdir(repodata_paths[arch])[0] == "repomd.xml"
+            else:
+                assert len(os.listdir(repodata_paths[arch])) == 0

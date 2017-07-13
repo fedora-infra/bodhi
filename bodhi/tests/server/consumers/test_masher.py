@@ -26,15 +26,16 @@ import time
 import unittest
 import urllib2
 import urlparse
+import pytest
 
 import mock
 
 from bodhi.server import buildsys, log, initialize_db
 from bodhi.server.config import config
-from bodhi.server.consumers.masher import Masher, MasherThread
+from bodhi.server.consumers.masher import Masher, MasherThread, PungiMashThread, PungiMasherThread
 from bodhi.server.models import (
     Base, Build, BuildrootOverride, Release, ReleaseState, RpmBuild, TestGatingStatus, Update,
-    UpdateRequest, UpdateStatus, UpdateType, User)
+    UpdateRequest, UpdateStatus, UpdateType, User, ModuleBuild, ModulePackage)
 from bodhi.server.util import mkmetadatadir, transactional_session_maker
 from bodhi.tests.server import base, populate
 
@@ -1147,6 +1148,166 @@ References:
             self.assertEquals(up.status, UpdateStatus.testing)
             self.assertEquals(up.request, None)
 
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.server.consumers.masher.PungiMashThread.run')
+    @mock.patch('bodhi.server.consumers.masher.PungiMasherThread.wait_for_mash')
+    @mock.patch('bodhi.server.consumers.masher.PungiMasherThread.sanity_check_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiMasherThread.stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiMasherThread.generate_updateinfo')
+    @mock.patch('bodhi.server.consumers.masher.PungiMasherThread.wait_for_sync')
+    @mock.patch('bodhi.server.buildsys.DevBuildsys.listTagged')
+    @mock.patch('bodhi.server.buildsys.DevBuildsys.listBuildRPMs')
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_mash_modules(self, publish, listbuildrpms, listtagged, *args):
+        with self.db_factory() as db:
+            user = db.query(User).first()
+
+            # Create test data needed to test mashing modules
+            # This release is here only as a placeholder, as for now the modules
+            # cant be found under a release tag in koji.
+            release = Release(
+                name=u'F27-modular', long_name=u'Fedora 27 modular',
+                id_prefix=u'FEDORA', version=u'27',
+                dist_tag=u'f27-modular', stable_tag=u'f27-modular-updates',
+                testing_tag=u'f27-modular-updates-testing',
+                candidate_tag=u'f27-modular-updates-candidate',
+                pending_signing_tag=u'f27-modular-updates-testing-signing',
+                pending_testing_tag=u'f27-modular-updates-testing-pending',
+                pending_stable_tag=u'f27-modular-updates-pending',
+                override_tag=u'f27-modular-override',
+                branch=u'f27-modular')
+            db.add(release)
+            package1 = ModulePackage(name=u"platform")
+            package2 = ModulePackage(name=u"host")
+            package3 = ModulePackage(name=u"shim")
+            package4 = ModulePackage(name=u"installer")
+            db.add(package1)
+            db.add(package2)
+            db.add(package3)
+            db.add(package4)
+            build1 = ModuleBuild(
+                nvr=u'platform-master-20170818100407', release=release, package=package1)
+            db.add(build1)
+            build2 = ModuleBuild(
+                nvr=u'host-master-20170830200108', release=release, package=package2)
+            db.add(build2)
+            build3 = ModuleBuild(
+                nvr=u'shim-master-20170502110601', release=release, package=package3)
+            db.add(build3)
+            build4 = ModuleBuild(
+                nvr=u'installer-master-20170822180922', release=release, package=package4)
+            db.add(build4)
+            update1 = Update(
+                title=u'platform-master-20170818100407',
+                builds=[build1], user=user,
+                status=UpdateStatus.testing,
+                request=UpdateRequest.stable,
+                notes=u'Useful details!', release=release)
+            update1.type = UpdateType.enhancement
+            update1.assign_alias()
+            db.add(update1)
+            update2 = Update(
+                title=u'host-master-20170830200108',
+                builds=[build2], user=user,
+                status=UpdateStatus.testing,
+                request=UpdateRequest.stable,
+                notes=u'Useful details!', release=release)
+            update2.type = UpdateType.enhancement
+            update2.assign_alias()
+            db.add(update2)
+            # Wipe out the tag cache so it picks up our new release
+            Release._tag_cache = None
+
+        msg = makemsg(
+            body={'updates': [
+                u'platform-master-20170818100407',
+                u'host-master-20170830200108'], 'agent': u'mcurlej'}
+        )
+
+        template_build = {
+            'build_id': 16058,
+            'completion_time': '2007-08-24 23:26:10.890319',
+            'completion_ts': 1187997970,
+            'creation_event_id': 151517,
+            'creation_time': '2007-08-24 19:38:29.422344',
+            'epoch': None,
+            'extra': None,
+            'id': 16058,
+            'name': 'TurboGears',
+            'nvr': 'TurboGears-1.0.2.2-2.fc17',
+            'owner_id': 388,
+            'owner_name': 'lmacken',
+            'package_id': 8,
+            'package_name': 'TurboGears',
+            'release': '2.fc17',
+            'state': 1,
+            'tag_id': 19,
+            'tag_name': 'f17-updates-candidate',
+            'task_id': 127621,
+            'version': '1.0.2.2'
+        }
+
+        rpms = [
+            {
+                'arch': 'src',
+                'build_id': 6475,
+                'buildroot_id': 1883,
+                'buildtime': 1178868422,
+                'epoch': 1,
+                'id': 62330,
+                'name': 'TurboGears',
+                'nvr': 'TurboGears-1.0.2.2-2.fc17',
+                'payloadhash': '6787febe92434a9be2a8f309d0e2014e',
+                'release': '2.fc17',
+                'size': 761742,
+                'version': '1.0.2.2'
+            },
+            {
+                'arch': 'noarch',
+                'build_id': 6475,
+                'buildroot_id': 1883,
+                'buildtime': 1178868537,
+                'epoch': 1,
+                'id': 62331,
+                'name': 'TurboGears',
+                'nvr': 'TurboGears-1.0.2.2-2.fc17',
+                'payloadhash': 'f3ec9bdce453816f94283a15a47cb952',
+                'release': '2.fc17',
+                'size': 1993385,
+                'version': '1.0.2.2'
+            }
+        ]
+
+        builds_md = []
+        for i, build in enumerate(msg["body"]["msg"]["updates"]):
+            nsv_list = build.split("-")
+            build_name = nsv_list[0]
+            build_version = nsv_list[2]
+            prot_build = template_build.copy()
+            prot_build["build_id"] += i
+            prot_build["creation_event_id"] += i
+            prot_build["nvr"] = build
+            prot_build["id"] += i
+            prot_build["name"] = build_name
+            prot_build["package_id"] += i
+            prot_build["package_name"] = build_name
+            prot_build["release"] = "f27"
+            prot_build["tag_name"] = "f27-modular-updates"
+            prot_build["task_id"] += i
+            prot_build["version"] = build_version
+            builds_md.append(prot_build)
+
+        listtagged.return_value = builds_md
+        listbuildrpms.return_value = rpms
+
+        self.masher.consume(msg)
+
+        publish.assert_called_with(topic="mashtask.complete",
+                                   force=True,
+                                   msg=dict(success=True,
+                                            repo='f27-modular-updates',
+                                            agent='mcurlej'))
+
 
 class MasherThreadBaseTestCase(base.BaseTestCase):
     """
@@ -1602,3 +1763,181 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         urlopen.assert_has_calls(expected_calls)
         t.log.exception.assert_called_once_with('Error fetching repomd.xml')
         sleep.assert_called_once_with(200)
+
+
+class TestPungiMashThread(object):
+
+    @mock.patch("bodhi.server.consumers.masher.Compose")
+    @mock.patch("pungi.notifier.PungiNotifier")
+    @mock.patch("bodhi.server.consumers.masher.PungiWrapper")
+    def test_run(self, pungi_wrapper, *args):
+        compose_id = "f27-modular-updates"
+        pungi_conf = mock.Mock()
+        target_dir = "/tmp"
+        variants_conf = mock.Mock()
+        logger = mock.Mock()
+        pungi_wrapper.init_compose_dir = mock.Mock()
+        mash = PungiMashThread(compose_id, target_dir, pungi_conf, variants_conf, logger)
+
+        assert not mash.success
+        mash.run()
+        pungi_wrapper().compose_repo.assert_called_once()
+        assert mash.success
+
+    @mock.patch("bodhi.server.consumers.masher.Compose")
+    @mock.patch("pungi.notifier.PungiNotifier")
+    @mock.patch("bodhi.server.consumers.masher.PungiWrapper")
+    def test_run_exception(self, pungi_wrapper, *args):
+        compose_id = "f27-modular-updates"
+        pungi_conf = mock.Mock()
+        target_dir = "/tmp"
+        variants_conf = mock.Mock()
+        logger = mock.Mock()
+        pungi_wrapper.init_compose_dir = mock.Mock()
+        mash = PungiMashThread(compose_id, target_dir, pungi_conf, variants_conf, logger)
+
+        assert not mash.success
+        pungi_wrapper().compose_repo.side_effect = Exception("Mash exception!")
+
+        with pytest.raises(Exception):
+            mash.run()
+            pungi_wrapper().compose_repo.assert_called_once()
+
+        assert not mash.success
+
+
+class TestPungiMasherThread(object):
+
+    def setup_method(self, method):
+        release = "f27-modular-updates"
+        request = "stable"
+        updates = []
+        agent = "mcurlej"
+        logger = mock.Mock()
+        db = mock.Mock()
+        mash_dir = "/tmp"
+        self.wrapper = PungiMasherThread(release, request, updates, agent, logger, db, mash_dir)
+        self.wrapper.id = release
+        self.wrapper.path = os.path.join(mash_dir, self.wrapper.id)
+        self.wrapper.db = mock.Mock()
+
+    @mock.patch("bodhi.server.consumers.masher.config")
+    def test_get_pungi_conf_path(self, config):
+        config.get.return_value = "/tmp/bodhi/pungi"
+        pungi_conf_path = self.wrapper._get_pungi_conf_path()
+        assert pungi_conf_path == "/tmp/bodhi/pungi/fedora-modular-example.conf"
+
+    def test_get_compose_dir(self):
+        compose_dir = self.wrapper._get_compose_dir("/tmp")
+        assert compose_dir == "/tmp/compose/Server"
+
+    @mock.patch("bodhi.server.consumers.masher.PungiMasherThread._get_compose_dir")
+    @mock.patch("bodhi.server.consumers.masher.sanity_check_repodata")
+    @mock.patch("os.listdir")
+    def test_sanity_check_repo(self, list_dir, sanity_check_repodata, get_compose_dir):
+        list_dir.return_value = ["x86_64"]
+        result = self.wrapper.sanity_check_repo()
+        sanity_check_repodata.assert_called_once()
+        get_compose_dir.assert_called_once()
+        assert result
+
+    @mock.patch("bodhi.server.consumers.masher.PungiMasherThread._get_compose_dir")
+    @mock.patch("bodhi.server.consumers.masher.sanity_check_repodata")
+    @mock.patch("os.listdir")
+    @mock.patch("os.path.islink")
+    def test_sanity_check_repo_symlink_exception(self, islink, list_dir,
+                                                 sanity_check_repodata, get_compose_dir):
+        list_dir.return_value = ["package.rpm"]
+        islink.return_value = True
+        with pytest.raises(Exception):
+            self.wrapper.sanity_check_repo()
+            sanity_check_repodata.assert_called_once()
+            get_compose_dir.assert_called_once()
+            self.log.error.assert_called_once()
+
+    @mock.patch("bodhi.server.consumers.masher.PungiMasherThread._get_compose_dir")
+    @mock.patch("bodhi.server.consumers.masher.sanity_check_repodata")
+    @mock.patch("os.listdir")
+    def test_sanity_check_repo_repodata_exception(self, list_dir, sanity_check_repodata,
+                                                  get_compose_dir):
+        list_dir.return_value = ["x86_64"]
+        sanity_check_repodata.side_effect = Exception("Repodata validation failure!")
+        with pytest.raises(Exception):
+            self.wrapper.sanity_check_repo()
+            sanity_check_repodata.assert_called_once()
+            get_compose_dir.assert_called_once()
+            self.log.error.assert_called_once()
+
+    @mock.patch("bodhi.server.consumers.masher.PungiMasherThread._get_compose_dir")
+    @mock.patch("bodhi.server.consumers.masher.PungiMetadata")
+    def test_generate_update_info(self, pungi_metadata, get_compose_dir):
+        self.wrapper.release = mock.Mock()
+        self.wrapper.release.return_value = "f27-modular-updates"
+        self.wrapper.generate_updateinfo()
+
+        pungi_metadata.assert_called_once()
+        get_compose_dir.assert_called_once()
+
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_skip_mash(self, *args):
+        masher_mock = mock.create_autospec(self.wrapper)
+        masher_mock.work = lambda: PungiMasherThread.work(masher_mock)
+        masher_mock.request = UpdateRequest.from_string('stable')
+        release = mock.Mock()
+        release.state = ReleaseState.pending
+        masher_mock.db = mock.Mock()
+        masher_mock.db.query.return_value.filter_by.return_value.one.return_value = release
+        masher_mock.log = mock.Mock()
+        masher_mock.work()
+
+        assert masher_mock.skip_mash is True
+
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_work_exception(self, *args):
+        masher_mock = mock.create_autospec(self.wrapper)
+        masher_mock.work = lambda: PungiMasherThread.work(masher_mock)
+        masher_mock.request = UpdateRequest.from_string('stable')
+        release = mock.Mock()
+        release.state = ReleaseState.current
+        masher_mock.db = mock.Mock()
+        masher_mock.db.query.return_value.filter_by.return_value.one.return_value = release
+        masher_mock.log = mock.Mock()
+        masher_mock.load_updates.side_effect = Exception("Just fail!")
+
+        with pytest.raises(Exception):
+            masher_mock.work()
+
+        masher_mock.log.exception.assert_called_once()
+        masher_mock.save_state.assert_called_once()
+
+    @mock.patch('bodhi.server.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.config')
+    def test_work_compose_atomic_trees(self, config, *args):
+        masher_mock = mock.create_autospec(self.wrapper)
+        masher_mock.work = lambda: PungiMasherThread.work(masher_mock)
+        masher_mock.request = UpdateRequest.from_string('stable')
+        release = mock.Mock()
+        release.state = ReleaseState.current
+        masher_mock.db = mock.Mock()
+        masher_mock.db.query.return_value.filter_by.return_value.one.return_value = release
+        masher_mock.log = mock.Mock()
+        config.get.return_value = True
+        masher_mock.work()
+
+        masher_mock.compose_atomic_trees.assert_called_once()
+
+    def test_skipping_completed_repo(self, *args):
+        masher_mock = mock.create_autospec(self.wrapper)
+        masher_mock.mash = lambda: PungiMasherThread.mash(masher_mock)
+        masher_mock.request = UpdateRequest.from_string('stable')
+        release = mock.Mock()
+        release.state = ReleaseState.current
+        masher_mock.db = mock.Mock()
+        masher_mock.db.query.return_value.filter_by.return_value.one.return_value = release
+        masher_mock.log = mock.Mock()
+        masher_mock.state = {"completed_repos": ["/tmp/mashed_repo"]}
+        masher_mock.path = "/tmp/mashed_repo"
+
+        masher_mock.mash()
+
+        masher_mock.log.info.assert_called_once()
