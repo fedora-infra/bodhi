@@ -98,7 +98,7 @@ class TestUsersService(base.BaseTestCase):
         self.assertIn('bodhi', res)
         self.assertIn('guest', res)
 
-    def test_search_users(self):
+    def test_like_users(self):
         res = self.app.get('/users/', {'like': 'odh'})
         body = res.json_body
         self.assertEquals(len(body['users']), 1)
@@ -107,6 +107,30 @@ class TestUsersService(base.BaseTestCase):
         self.assertEquals(user['name'], u'bodhi')
 
         res = self.app.get('/users/', {'like': 'wat'})
+        body = res.json_body
+        self.assertEquals(len(body['users']), 0)
+
+    def test_search_users(self):
+        """
+        Test that the overrides/?search= endpoint works as expected
+        """
+
+        # test that search works
+        res = self.app.get('/users/', {'search': 'bodh'})
+        body = res.json_body
+        self.assertEquals(len(body['users']), 1)
+        user = body['users'][0]
+        self.assertEquals(user['name'], u'bodhi')
+
+        # test that the search is case insensitive
+        res = self.app.get('/users/', {'search': 'Bodh'})
+        body = res.json_body
+        self.assertEquals(len(body['users']), 1)
+        user = body['users'][0]
+        self.assertEquals(user['name'], u'bodhi')
+
+        # test a search that yields nothing
+        res = self.app.get('/users/', {'search': 'wat'})
         body = res.json_body
         self.assertEquals(len(body['users']), 0)
 

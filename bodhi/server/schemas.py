@@ -235,6 +235,12 @@ class SearchableSchema(colander.MappingSchema):
         missing=None,
     )
 
+    search = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+    )
+
 
 class ListReleaseSchema(PaginatedSchema):
     name = colander.SchemaNode(

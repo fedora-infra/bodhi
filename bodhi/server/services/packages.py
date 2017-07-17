@@ -16,7 +16,7 @@ import math
 from cornice import Service
 from sqlalchemy import func, distinct
 
-from bodhi.server.models import RpmPackage
+from bodhi.server.models import RpmPackage, Package
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -44,6 +44,10 @@ def query_packages(request):
     like = data.get('like')
     if like is not None:
         query = query.filter(RpmPackage.name.like('%%%s%%' % like))
+
+    search = data.get('search')
+    if search is not None:
+        query = query.filter(Package.name.ilike('%%%s%%' % search))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.

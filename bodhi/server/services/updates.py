@@ -260,6 +260,10 @@ def query_updates(request):
             Update.title.like('%%%s%%' % like)
         ]))
 
+    search = data.get('search')
+    if search is not None:
+        query = query.filter(Update.title.ilike('%%%s%%' % search))
+
     locked = data.get('locked')
     if locked is not None:
         query = query.filter(Update.locked == locked)

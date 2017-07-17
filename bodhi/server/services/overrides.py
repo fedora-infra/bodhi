@@ -126,6 +126,11 @@ def query_overrides(request):
             RpmBuild.nvr.like('%%%s%%' % like)
         ]))
 
+    search = data.get('search')
+    if search is not None:
+        query = query.join(BuildrootOverride.build)
+        query = query.filter(Build.nvr.ilike('%%%s%%' % search))
+
     submitter = data.get('user')
     if submitter is not None:
         query = query.filter(BuildrootOverride.submitter == submitter)
