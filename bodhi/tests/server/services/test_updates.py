@@ -1067,6 +1067,13 @@ class TestUpdatesService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
+        # test a search for an alias
+        res = self.app.get('/updates/', {'search': 'FEDORA-2017-a3bbe1a8f2'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+
     @mock.patch(**mock_valid_requirements)
     def test_list_updates_pagination(self, *args):
 

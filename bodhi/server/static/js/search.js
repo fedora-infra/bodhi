@@ -109,7 +109,7 @@ $(document).ready(function() {
                 '</div>'
             ].join('\n'),
             suggestion: function(datum) {
-                return '<p><a href="'+ resultUrl(datum)+'">'+datum.title+'</a></p>';
+                return '<p><a href="'+ resultUrl(datum)+'">'+datum.title+' <span class="text-muted">'+datum.alias+'</span></a></p>';
             },
         },
     },
