@@ -46,3 +46,24 @@ class TestRpmPackagesService(base.BaseTestCase):
         resp = self.app.get('/packages/', dict(like='odh'))
         body = resp.json_body
         self.assertEquals(len(body['packages']), 1)
+
+    def test_filter_by_search(self):
+        """ Test filtering by search
+        """
+        self.db.add(RpmPackage(name=u'a_second_package'))
+        self.db.commit()
+
+        # test search
+        resp = self.app.get('/packages/', dict(search='bodh'))
+        body = resp.json_body
+        self.assertEquals(len(body['packages']), 1)
+
+        # test the search is case-insensitive
+        resp = self.app.get('/packages/', dict(search='Bodh'))
+        body = resp.json_body
+        self.assertEquals(len(body['packages']), 1)
+
+        # test a search that yields nothing
+        resp = self.app.get('/packages/', dict(search='corebird'))
+        body = resp.json_body
+        self.assertEquals(len(body['packages']), 0)

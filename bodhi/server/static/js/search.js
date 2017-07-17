@@ -7,7 +7,7 @@ $(document).ready(function() {
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
             wildcard: '%QUERY',
-            url: 'packages/?like=%QUERY',
+            url: 'packages/?search=%QUERY',
             transform: function(response) { return response.packages; },
         }
     });
@@ -16,7 +16,7 @@ $(document).ready(function() {
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
             wildcard: '%QUERY',
-            url: 'updates/?like=%QUERY',
+            url: 'updates/?search=%QUERY',
             transform: function(response) { return response.updates; },
         }
     });
@@ -25,7 +25,7 @@ $(document).ready(function() {
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
             wildcard: '%QUERY',
-            url: 'users/?like=%QUERY',
+            url: 'users/?search=%QUERY',
             transform: function(response) { return response.users; },
         }
     });
@@ -34,7 +34,7 @@ $(document).ready(function() {
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
             wildcard: '%QUERY',
-            url: 'overrides/?like=%QUERY',
+            url: 'overrides/?search=%QUERY',
             transform: function(response) { return response.overrides; },
         }
     });

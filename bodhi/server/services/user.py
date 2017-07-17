@@ -102,6 +102,10 @@ def query_users(request):
             User.name.like('%%%s%%' % like)
         ]))
 
+    search = data.get('search')
+    if search is not None:
+        query = query.filter(User.name.ilike('%%%s%%' % search))
+
     name = data.get('name')
     if name is not None:
         query = query.filter(User.name.like(name))

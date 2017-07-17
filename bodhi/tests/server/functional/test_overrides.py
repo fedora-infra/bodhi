@@ -180,6 +180,46 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(errors[0]['description'],
                           "Invalid user specified: santa")
 
+    def test_list_overrides_by_like(self):
+        """
+        Test that the overrides/?like= endpoint works as expected
+        """
+
+        # test that like works
+        res = self.app.get('/overrides/', {"like": "bodh"})
+        body = res.json_body
+        self.assertEquals(len(body['overrides']), 1)
+        override = body['overrides'][0]
+        self.assertEquals(override['build']['nvr'], "bodhi-2.0-1.fc17")
+
+        # test a like that yields nothing
+        res = self.app.get('/overrides/', {"like": "corebird"})
+        body = res.json_body
+        self.assertEquals(len(body['overrides']), 0)
+
+    def test_list_overrides_by_search(self):
+        """
+        Test that the overrides/?search= endpoint works as expected
+        """
+
+        # test that search works
+        res = self.app.get('/overrides/', {"search": "bodh"})
+        body = res.json_body
+        self.assertEquals(len(body['overrides']), 1)
+        override = body['overrides'][0]
+        self.assertEquals(override['build']['nvr'], "bodhi-2.0-1.fc17")
+
+        # test a search that is case-insensitive
+        res = self.app.get('/overrides/', {"search": "Bodh"})
+        self.assertEquals(len(body['overrides']), 1)
+        override = body['overrides'][0]
+        self.assertEquals(override['build']['nvr'], "bodhi-2.0-1.fc17")
+
+        # test a search that yields nothing
+        res = self.app.get('/overrides/', {"search": "corebird"})
+        body = res.json_body
+        self.assertEquals(len(body['overrides']), 0)
+
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override(self, publish):
         release = Release.get(u'F17', self.db)

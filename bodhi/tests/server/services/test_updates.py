@@ -1031,7 +1031,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertIn('bodhi-2.0-1.fc17', res)
         self.assertIn('&copy;', res)
 
-    def test_search_updates(self):
+    def test_updates_like(self):
         res = self.app.get('/updates/', {'like': 'odh'})
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
@@ -1040,6 +1040,30 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
 
         res = self.app.get('/updates/', {'like': 'wat'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
+    def test_updates_search(self):
+        """
+        Test that the updates/?search= endpoint works as expected
+        """
+
+        # test that the search works
+        res = self.app.get('/updates/', {'search': 'bodh'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+
+        # test that the search is case insensitive
+        res = self.app.get('/updates/', {'search': 'Bodh'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+
+        # test a search that yields nothing
+        res = self.app.get('/updates/', {'search': 'wat'})
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
