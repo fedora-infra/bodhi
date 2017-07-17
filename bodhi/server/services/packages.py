@@ -15,6 +15,7 @@ import math
 
 from cornice import Service
 from sqlalchemy import func, distinct
+from sqlalchemy.sql.expression import case
 
 from bodhi.server.models import RpmPackage, Package
 import bodhi.server.schemas
@@ -48,6 +49,7 @@ def query_packages(request):
     search = data.get('search')
     if search is not None:
         query = query.filter(Package.name.ilike('%%%s%%' % search))
+        query = query.order_by(case([(Package.name == search, Package.name)]))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
