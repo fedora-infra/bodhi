@@ -158,6 +158,10 @@ form#search, form#search input, .twitter-typeahead {
   color:#fff;
 }
 
+.tt-suggestion.tt-cursor span.text-muted, .tt-suggestion:hover span.text-muted{
+  color: rgba(255,255,255,0.6);
+}
+
 .tt-suggestion a{
   color:black;
   display:block;
