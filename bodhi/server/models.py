@@ -30,7 +30,7 @@ from pkgdb2client import PkgDB
 from simplemediawiki import MediaWiki
 from six.moves.urllib.parse import quote
 from sqlalchemy import (and_, Boolean, Column, DateTime, ForeignKey, Integer, or_, Table, Unicode,
-                        UnicodeText, UniqueConstraint)
+                        UnicodeText, UniqueConstraint, PrimaryKeyConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
 from sqlalchemy.orm.exc import NoResultFound
@@ -435,22 +435,26 @@ class ReleaseState(DeclEnum):
 update_bug_table = Table(
     'update_bug_table', metadata,
     Column('update_id', Integer, ForeignKey('updates.id')),
-    Column('bug_id', Integer, ForeignKey('bugs.id')))
+    Column('bug_id', Integer, ForeignKey('bugs.id')),
+    PrimaryKeyConstraint('update_id', 'bug_id'))
 
 update_cve_table = Table(
     'update_cve_table', metadata,
     Column('update_id', Integer, ForeignKey('updates.id')),
-    Column('cve_id', Integer, ForeignKey('cves.id')))
+    Column('cve_id', Integer, ForeignKey('cves.id')),
+    PrimaryKeyConstraint('update_id', 'cve_id'))
 
 bug_cve_table = Table(
     'bug_cve_table', metadata,
     Column('bug_id', Integer, ForeignKey('bugs.id')),
-    Column('cve_id', Integer, ForeignKey('cves.id')))
+    Column('cve_id', Integer, ForeignKey('cves.id')),
+    PrimaryKeyConstraint('bug_id', 'cve_id'))
 
 user_package_table = Table(
     'user_package_table', metadata,
     Column('user_id', Integer, ForeignKey('users.id')),
-    Column('package_id', Integer, ForeignKey('packages.id')))
+    Column('package_id', Integer, ForeignKey('packages.id')),
+    PrimaryKeyConstraint('user_id', 'package_id'))
 
 
 class Release(Base):
@@ -2805,15 +2809,18 @@ class Bug(Base):
 
 user_group_table = Table('user_group_table', Base.metadata,
                          Column('user_id', Integer, ForeignKey('users.id')),
-                         Column('group_id', Integer, ForeignKey('groups.id')))
+                         Column('group_id', Integer, ForeignKey('groups.id')),
+                         PrimaryKeyConstraint('user_id', 'group_id'))
 
 stack_group_table = Table('stack_group_table', Base.metadata,
                           Column('stack_id', Integer, ForeignKey('stacks.id')),
-                          Column('group_id', Integer, ForeignKey('groups.id')))
+                          Column('group_id', Integer, ForeignKey('groups.id')),
+                          PrimaryKeyConstraint('stack_id', 'group_id'))
 
 stack_user_table = Table('stack_user_table', Base.metadata,
                          Column('stack_id', Integer, ForeignKey('stacks.id')),
-                         Column('user_id', Integer, ForeignKey('users.id')))
+                         Column('user_id', Integer, ForeignKey('users.id')),
+                         PrimaryKeyConstraint('stack_id', 'user_id'))
 
 
 class User(Base):
