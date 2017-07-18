@@ -88,8 +88,8 @@ class TestBodhiClient_comment(unittest.TestCase):
                   'email': True, 'csrf_token': 'a token'})
 
 
-class TestBodhiClient__init_username(unittest.TestCase):
-    """Test the BodhiClient._init_username() method."""
+class TestBodhiClient_init_username(unittest.TestCase):
+    """Test the BodhiClient.init_username() method."""
     TEST_EMPTY_OBJECT_SESSION_CACHE = '{}'
     TEST_FAILED_SESSION_CACHE = '{"https://bodhi.fedoraproject.org/:bowlofeggs": []}'
     TEST_HOT_SESSION_CACHE = '{"https://bodhi.fedoraproject.org/:bowlofeggs": [["stuff", "login"]]}'
@@ -109,7 +109,7 @@ class TestBodhiClient__init_username(unittest.TestCase):
         mock_raw_input.return_value = 'pongou'
         client = bindings.BodhiClient()
 
-        client._init_username()
+        client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
@@ -131,7 +131,7 @@ class TestBodhiClient__init_username(unittest.TestCase):
         mock_raw_input.return_value = 'pongou'
         client = bindings.BodhiClient()
 
-        client._init_username()
+        client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
@@ -153,7 +153,7 @@ class TestBodhiClient__init_username(unittest.TestCase):
         mock_raw_input.return_value = 'pongou'
         client = bindings.BodhiClient()
 
-        client._init_username()
+        client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
@@ -174,7 +174,7 @@ class TestBodhiClient__init_username(unittest.TestCase):
         mock_open.side_effect = mock.mock_open(read_data=self.TEST_HOT_SESSION_CACHE)
         client = bindings.BodhiClient()
 
-        client._init_username()
+        client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
@@ -203,7 +203,7 @@ class TestBodhiClient__init_username(unittest.TestCase):
         mock_open.side_effect = mock.mock_open(read_data=self.TEST_HOT_SESSION_CACHE)
         client = bindings.BodhiClient()
 
-        client._init_username()
+        client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         loads.assert_called_once_with(self.TEST_HOT_SESSION_CACHE)
@@ -224,7 +224,7 @@ class TestBodhiClient__init_username(unittest.TestCase):
         mock_raw_input.return_value = 'pongou'
         client = bindings.BodhiClient()
 
-        client._init_username()
+        client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
@@ -246,7 +246,7 @@ class TestBodhiClient__init_username(unittest.TestCase):
         mock_raw_input.return_value = 'pongou'
         client = bindings.BodhiClient()
 
-        client._init_username()
+        client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
@@ -264,7 +264,7 @@ class TestBodhiClient__init_username(unittest.TestCase):
         """
         client = bindings.BodhiClient(username='coolbeans')
 
-        client._init_username()
+        client.init_username()
 
         self.assertEqual(exists.call_count, 0)
         self.assertEqual(_load_cookies.mock_calls, [mock.call()])
@@ -277,8 +277,8 @@ class TestBodhiClient_csrf(unittest.TestCase):
     """
     Test the BodhiClient.csrf() method.
     """
-    @mock.patch('bodhi.client.bindings.BodhiClient._init_username')
-    def test_with_csrf_token(self, _init_username):
+    @mock.patch('bodhi.client.bindings.BodhiClient.init_username')
+    def test_with_csrf_token(self, init_username):
         """
         Test the method when csrf_token is set.
         """
@@ -291,7 +291,7 @@ class TestBodhiClient_csrf(unittest.TestCase):
         self.assertEqual(csrf, 'a token')
         self.assertEqual(client.send_request.call_count, 0)
         # No need to init the username since we already have a token.
-        self.assertEqual(_init_username.call_count, 0)
+        self.assertEqual(init_username.call_count, 0)
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('__builtin__.raw_input', create=True)
@@ -304,7 +304,7 @@ class TestBodhiClient_csrf(unittest.TestCase):
         """
         exists.return_value = True
         mock_open.side_effect = mock.mock_open(
-            read_data=TestBodhiClient__init_username.TEST_HOT_SESSION_CACHE)
+            read_data=TestBodhiClient_init_username.TEST_HOT_SESSION_CACHE)
         client = bindings.BodhiClient()
         client.has_cookies = mock.MagicMock(return_value=True)
         client.login = mock.MagicMock(return_value='login successful')
@@ -317,7 +317,7 @@ class TestBodhiClient_csrf(unittest.TestCase):
         client.has_cookies.assert_called_once_with()
         self.assertEqual(client.login.call_count, 0)
         client.send_request.assert_called_once_with('csrf', verb='GET', auth=True)
-        # Ensure that _init_username() was called and did its thing.
+        # Ensure that init_username() was called and did its thing.
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
         self.assertEqual(mock_raw_input.call_count, 0)
@@ -345,7 +345,7 @@ class TestBodhiClient_csrf(unittest.TestCase):
         client.has_cookies.assert_called_once_with()
         client.login.assert_called_once_with('pongou', 'illnevertell')
         client.send_request.assert_called_once_with('csrf', verb='GET', auth=True)
-        # Ensure that _init_username() didn't do anything since a username was given.
+        # Ensure that init_username() didn't do anything since a username was given.
         self.assertEqual(exists.call_count, 0)
         self.assertEqual(_load_cookies.mock_calls, [mock.call()])
         self.assertEqual(mock_raw_input.call_count, 0)

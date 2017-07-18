@@ -333,7 +333,7 @@ class BodhiClient(OpenIdBaseClient):
             params['user'] = user
         return self.send_request('overrides/', verb='GET', params=params)
 
-    def _init_username(self):
+    def init_username(self):
         """
         Check to see if the username attribute on self is set, and set if if it is not.
 
@@ -374,7 +374,7 @@ class BodhiClient(OpenIdBaseClient):
         logged in aquires and caches a CSRF token, and returns it.
         """
         if not self.csrf_token:
-            self._init_username()
+            self.init_username()
             if not self.has_cookies():
                 self.login(self.username, self.password)
             self.csrf_token = self.send_request(
