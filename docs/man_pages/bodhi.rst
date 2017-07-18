@@ -75,7 +75,16 @@ The ``overrides`` command allows users to manage build overrides.
 ``bodhi overrides query [options]``
 
     The ``query`` subcommand provides an interface for users to query the bodhi server for existing
-    overrides.
+    overrides.  The ``query`` subcommand supports the following options:
+
+    ``--mine``
+
+        Show only your overrides.
+
+    ``--user <username>``
+
+        Filter for overrides by the given username.
+
 
 ``bodhi overrides save [options] <nvr>``
 
@@ -234,7 +243,7 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         A comma or space-separated list of required Taskotron tasks that must pass for this update
         to reach stable.
-        
+
 ``bodhi updates query [options]``
 
     Query the bodhi server for updates. The ``query`` subcommand supports the following options:
@@ -270,6 +279,10 @@ The ``updates`` command allows users to interact with bodhi updates.
     ``--cves <cves>``
 
         Query for updates related to the given CVEs, given as a comma-separated list.
+
+    ``--mine``
+
+        Show only your updates.
 
     ``--packages <packages>``
 

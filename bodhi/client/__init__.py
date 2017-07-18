@@ -285,10 +285,11 @@ def edit(user, password, url, **kwargs):
 @click.option('--type', default=None, help='Filter by update type',
               type=click.Choice(['newpackage', 'security', 'bugfix', 'enhancement']))
 @click.option('--user', help='Updates submitted by a specific user')
+@click.option('--mine', is_flag=True, help='Show only your updates')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @url_option
-def query(url, **kwargs):
+def query(url, mine=False, **kwargs):
     # User Docs that show in the --help
     """
     Query updates on Bodhi
@@ -301,9 +302,16 @@ def query(url, **kwargs):
     Args:
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
+        mine (Boolean): If the --mine flag was set
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
+    if mine:
+        if 'USERNAME' in os.environ:
+            kwargs['user'] = os.environ['USERNAME']
+        else:
+            client.init_username()
+            kwargs['user'] = client.username
     resp = client.query(**kwargs)
     print_resp(resp, client)
 
@@ -494,8 +502,10 @@ def overrides():
               help='Updates submitted by a specific user')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
+@click.option('--mine', is_flag=True,
+              help='Show only your overrides.')
 @url_option
-def query_buildroot_overrides(url, user=None, **kwargs):
+def query_buildroot_overrides(url, user=None, mine=False, **kwargs):
     # Docs that show in the --help
     """
     Query the buildroot overrides.
@@ -508,11 +518,18 @@ def query_buildroot_overrides(url, user=None, **kwargs):
     Args:
         user (unicode): If supplied, overrides for this user will be queried.
         staging (bool): Whether to use the staging server or not.
+        mine (bool): Whether to use the --mine flag was given.
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
+    if mine:
+        if 'USERNAME' in os.environ:
+            user = os.environ['USERNAME']
+        else:
+            client.init_username()
+            user = client.username
     resp = client.list_overrides(user=user)
     print_resp(resp, client)
 
