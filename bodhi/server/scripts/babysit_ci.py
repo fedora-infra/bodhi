@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright ® 2017 Red Hat, Inc.
+# Copyright © 2017 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
