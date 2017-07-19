@@ -231,7 +231,7 @@ ${update.notes}
                   <dt data-toggle="tooltip" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough positive karma has been given.">
                   Auto-request stable?</dt>
                   <dd> <input type="checkbox" name="autokarma" data-singleton="true"
-                      % if update and update.stable_karma != None and update.unstable_karma != None:
+                      % if update and update.autokarma:
                       checked
                       % elif not update:
                       checked
