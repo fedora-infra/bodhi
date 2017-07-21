@@ -27,7 +27,7 @@ import mock
 from bodhi.server import main
 from bodhi.server.config import config
 from bodhi.server.models import (
-    BuildrootOverride, Group, RpmPackage, Release,
+    BuildrootOverride, Group, RpmPackage, ModulePackage, Release,
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
     User, CiStatus)
 from bodhi.tests.server import base
@@ -260,6 +260,10 @@ class TestNewUpdate(base.BaseTestCase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_module_update(self, publish, *args):
+        # Ensure there are no module packages in the DB to begin with.
+        self.assertEquals(self.db.query(ModulePackage).count(), 0)
+
+        # Then, create an update for one.
         data = self.get_update('nginx-master-20170523')
         r = self.app.post_json('/updates/', data)
         up = r.json_body
@@ -284,6 +288,9 @@ class TestNewUpdate(base.BaseTestCase):
         self.assertEquals(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
+
+        # At the end, ensure that the right kind of package was created.
+        self.assertEquals(self.db.query(ModulePackage).count(), 1)
 
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
