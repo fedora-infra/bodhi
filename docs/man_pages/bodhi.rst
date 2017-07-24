@@ -81,6 +81,23 @@ The ``overrides`` command allows users to manage build overrides.
 
         Show only your overrides.
 
+    ``--active``
+
+        Filter for only active overrides
+
+    ``--expired``
+
+        Filter for only expired overrides
+
+    ``--packages <packagename>``
+
+        Query for overrides related to the given packages, given as a comma-separated list.
+
+    ``--releases <releases>``
+
+        Query for overrides related to a list of releases, given as a comma-separated list.
+        <releases> is the release shortname, for example: F26 or F26,F25
+
     ``--user <username>``
 
         Filter for overrides by the given username.

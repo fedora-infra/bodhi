@@ -387,9 +387,9 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'user': 'bowlofeggs'})
 
-    def test_without_user(self):
+    def test_without_parameters(self):
         """
-        Test without the user parameter.
+        Test without the parameters.
         """
         client = bindings.BodhiClient()
         client.send_request = mock.MagicMock(return_value='response')
@@ -398,6 +398,58 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
 
         self.assertEqual(response, 'response')
         client.send_request.assert_called_once_with('overrides/', verb='GET', params={})
+
+    def test_with_package(self):
+        """
+        Test with the package parameter.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='response')
+
+        response = client.list_overrides(packages='bodhi')
+
+        self.assertEqual(response, 'response')
+        client.send_request.assert_called_once_with('overrides/', verb='GET',
+                                                    params={'packages': 'bodhi'})
+
+    def test_with_expired(self):
+        """
+        Test --expired with the expired/active click boolean parameter.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='response')
+
+        response = client.list_overrides(expired=True)
+
+        self.assertEqual(response, 'response')
+        client.send_request.assert_called_once_with('overrides/', verb='GET',
+                                                    params={'expired': True})
+
+    def test_with_active(self):
+        """
+        Test --active with the expired/active click boolean parameter.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='response')
+
+        response = client.list_overrides(expired=False)
+
+        self.assertEqual(response, 'response')
+        client.send_request.assert_called_once_with('overrides/', verb='GET',
+                                                    params={'expired': False})
+
+    def test_with_releases(self):
+        """
+        Test with the releases parameter.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='response')
+
+        response = client.list_overrides(releases='F24')
+
+        self.assertEqual(response, 'response')
+        client.send_request.assert_called_once_with('overrides/', verb='GET',
+                                                    params={'releases': 'F24'})
 
 
 class TestBodhiClient_override_str(unittest.TestCase):
