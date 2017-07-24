@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright 2014-2017 Red Hat, Inc. and others
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Defines API services that pertain to users."""
 import math
 
 from cornice import Service
@@ -47,6 +53,16 @@ users_rss = Service(name='users_rss', path='/rss/users/', description='Bodhi use
 @user.get(accept="text/html", renderer="user.html",
           error_handler=bodhi.server.services.errors.html_handler)
 def get_user(request):
+    """
+    Return a user given by username.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary with two keys. "user" maps to a dictionary representation of the User
+            object. "urls" maps to various URLs that describe various other objects related to the
+            user.
+    """
     id = request.matchdict.get('name')
     user = User.get(id, request.db)
 
@@ -92,6 +108,19 @@ validators = (
                error_handler=bodhi.server.services.errors.html_handler,
                validators=validators)
 def query_users(request):
+    """
+    Search for users by various criteria.
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        dict: A dictionary with the follow key mappings:
+            users: A list of users matching the search criteria.
+            page: The current page of results.
+            pages: The total number of pages available.
+            rows_per_page: The number of users on the page.
+            total: The total number of users matching the search criteria.
+    """
     db = request.db
     data = request.validated
     query = db.query(User)
