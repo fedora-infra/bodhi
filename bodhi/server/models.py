@@ -626,12 +626,11 @@ class Package(Base):
 
     def get_pkg_committers_from_pagure(self):
         """
-        Pull users who can commit and are watching a package in Pagure.
+        Pull users and groups who can commit on a package in Pagure.
 
-        Return two two-tuples of lists:
-        * The first tuple is for usernames.  The second tuple is for groups.
-        * The first list of the tuple is for committers. The second is for
-          watchers.
+        Returns two lists:
+        * The first list is for usernames that have commit access.
+        * The second list is for FAS groups that have commit access.
         """
         pagure_url = config.get('pagure_url')
         # Pagure uses plural names for its namespaces such as "rpms"
