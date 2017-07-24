@@ -411,11 +411,10 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
 
     @mock.patch('bodhi.server.util.requests.get')
     def test_get_pkg_committers_from_pagure(self, mock_get):
-        """ Ensure that the package commiters can be found using the Pagure
+        """ Ensure that the package committers can be found using the Pagure
         API.
         """
-        mock_get.return_value.status_code = 200
-        json_one = {
+        json_output = {
             "access_groups": {
                 "admin": [],
                 "commit": ['factory2'],
@@ -446,24 +445,10 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
                 "name": "mprahl"
             }
         }
-        json_two = {
-            "creator": {
-                "fullname": "Ralph Bean",
-                "name": "ralph"
-            },
-            "date_created": "1495035052",
-            "description": "Factory 2.0 Developers",
-            "display_name": "factory2",
-            "group_type": "user",
-            "members": [
-                "ralph",
-                "mikeb"
-            ],
-            "name": "factory2"
-        }
-        mock_get.return_value.json.side_effect = [json_one, json_two]
+        mock_get.return_value.json.return_value = json_output
+        mock_get.return_value.status_code = 200
         rv = self.package.get_pkg_committers_from_pagure()
-        assert rv == (['ralph', 'mikeb', 'mprahl'], []), rv
+        assert rv == (['mprahl'], ['factory2']), rv
 
 
 class TestBuild(ModelTest):
