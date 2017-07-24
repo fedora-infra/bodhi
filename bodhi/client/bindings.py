@@ -322,15 +322,24 @@ class BodhiClient(OpenIdBaseClient):
             'overrides/', verb='POST', auth=True, data=data)
 
     @errorhandled
-    def list_overrides(self, user=None):
+    def list_overrides(self, user=None, packages=None, expired=None, releases=None):
         """ List buildroot overrides.
 
         :kwarg user: A username whose buildroot overrides you want returned.
+        :kwarg package: package name to filter buildroot overrides by.
+        :kwarg expired: True to return only expired overrides, False for only Active.
+        :kwarg releases: release shortnames to filter buildroot overrides by.
 
         """
         params = {}
         if user:
             params['user'] = user
+        if packages:
+            params['packages'] = packages
+        if expired is not None:
+            params['expired'] = expired
+        if releases:
+            params['releases'] = releases
         return self.send_request('overrides/', verb='GET', params=params)
 
     def init_username(self):

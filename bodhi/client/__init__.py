@@ -499,13 +499,20 @@ def overrides():
 
 @overrides.command('query')
 @click.option('--user', default=None,
-              help='Updates submitted by a specific user')
+              help='Overrides submitted by a specific user')
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @click.option('--mine', is_flag=True,
               help='Show only your overrides.')
+@click.option('--packages', default=None,
+              help='Query by comma-separated package name(s)')
+@click.option('--expired/--active', default=None,
+              help='show only expired or active overrides')
+@click.option('--releases', default=None,
+              help='Query by release shortname(s). e.g. F26')
 @url_option
-def query_buildroot_overrides(url, user=None, mine=False, **kwargs):
+def query_buildroot_overrides(url, user=None, mine=False, packages=None,
+                              expired=None, releases=None, **kwargs):
     # Docs that show in the --help
     """
     Query the buildroot overrides.
@@ -521,6 +528,9 @@ def query_buildroot_overrides(url, user=None, mine=False, **kwargs):
         mine (bool): Whether to use the --mine flag was given.
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
+        packages (unicode): If supplied, the overrides for these package are queried
+        expired (bool): If supplied, True returns only expired overrides, False only active.
+        releases (unicode): If supplied, the overrides for these releases are queried.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
@@ -530,7 +540,7 @@ def query_buildroot_overrides(url, user=None, mine=False, **kwargs):
         else:
             client.init_username()
             user = client.username
-    resp = client.list_overrides(user=user)
+    resp = client.list_overrides(user=user, packages=packages, expired=expired, releases=releases)
     print_resp(resp, client)
 
 
