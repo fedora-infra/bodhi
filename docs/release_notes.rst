@@ -1,6 +1,16 @@
 Release notes
 =============
 
+develop
+-------
+
+Dependency
+^^^^^^^^^^
+
+Bodhi now explicitly requires urlgrabber. It has long been a dependency, but it seems that it was
+pulled in automatically by another dependency of Bodhi in the past and now it is not pulled in.
+
+
 2.9.0
 -----
 
