@@ -510,9 +510,11 @@ def overrides():
               help='show only expired or active overrides')
 @click.option('--releases', default=None,
               help='Query by release shortname(s). e.g. F26')
+@click.option('--builds', default=None,
+              help='Query by comma-separated build id(s)')
 @url_option
 def query_buildroot_overrides(url, user=None, mine=False, packages=None,
-                              expired=None, releases=None, **kwargs):
+                              expired=None, releases=None, builds=None, **kwargs):
     # Docs that show in the --help
     """
     Query the buildroot overrides.
@@ -531,6 +533,7 @@ def query_buildroot_overrides(url, user=None, mine=False, packages=None,
         packages (unicode): If supplied, the overrides for these package are queried
         expired (bool): If supplied, True returns only expired overrides, False only active.
         releases (unicode): If supplied, the overrides for these releases are queried.
+        builds (unicode): If supplied, the overrides for these builds are queried.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
@@ -540,7 +543,8 @@ def query_buildroot_overrides(url, user=None, mine=False, packages=None,
         else:
             client.init_username()
             user = client.username
-    resp = client.list_overrides(user=user, packages=packages, expired=expired, releases=releases)
+    resp = client.list_overrides(user=user, packages=packages,
+                                 expired=expired, releases=releases, builds=builds)
     print_resp(resp, client)
 
 

@@ -109,6 +109,11 @@ def query_overrides(request):
         else:
             query = query.filter(BuildrootOverride.expired_date.is_(None))
 
+    builds = data.get('builds')
+    if builds is not None:
+        query = query.join(BuildrootOverride.build)
+        query = query.filter(or_(*[Build.nvr == bld for bld in builds]))
+
     packages = data.get('packages')
     if packages is not None:
         query = query.join(BuildrootOverride.build).join(Build.package)

@@ -451,6 +451,19 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'releases': 'F24'})
 
+    def test_with_builds(self):
+        """
+        Test with the builds parameter.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='response')
+
+        response = client.list_overrides(builds='python-1.5.6-3.fc26')
+
+        self.assertEqual(response, 'response')
+        client.send_request.assert_called_once_with('overrides/', verb='GET',
+                                                    params={'builds': 'python-1.5.6-3.fc26'})
+
 
 class TestBodhiClient_override_str(unittest.TestCase):
     """
