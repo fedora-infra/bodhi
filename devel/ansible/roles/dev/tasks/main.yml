@@ -52,6 +52,7 @@
       - python-rpdb
       - python-simplemediawiki
       - python-sqlalchemy
+      - python-urlgrabber
       - python-webhelpers
       - python-webtest
       - python-zmq

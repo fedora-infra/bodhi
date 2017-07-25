@@ -25,5 +25,6 @@ python-fedora
 python-openid
 simplemediawiki
 sqlalchemy
+urlgrabber
 waitress
 webhelpers
