@@ -24,7 +24,7 @@ import fedora.client
 import mock
 
 from bodhi import client
-from bodhi.client import bindings
+from bodhi.client import bindings, AuthError
 from bodhi.tests import client as client_test_data
 
 
@@ -416,23 +416,6 @@ class TestSaveBuilrootOverrides(unittest.TestCase):
         self.assertIn("Use `overrides edit` to edit an existing override",
                       result.output)
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
-    def test_other_client_exception(self, send_request):
-        """
-        Assert that any other BodhiClientExceptions are raised as expected
-        """
-        send_request.side_effect = bindings.BodhiClientException("Pants Exception")
-        runner = testing.CliRunner()
-
-        result = runner.invoke(
-            client.save_buildroot_overrides,
-            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
-
-        self.assertEqual(result.exit_code, -1)
-        self.assertEqual(str(result.exception), "Pants Exception", result.output)
-
 
 class TestWarnIfUrlAndStagingSet(unittest.TestCase):
     """
@@ -705,3 +688,44 @@ class TestEditBuilrootOverrides(unittest.TestCase):
                 'nvr': u'js-tag-it-2.0-1.fc25', 'edited': u'js-tag-it-2.0-1.fc25',
                 'csrf_token': 'a_csrf_token', 'expired': True})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+
+class TestHandleErrors(unittest.TestCase):
+    """
+    Test the handle_errors decorator
+    """
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_bodhi_client_exception(self, send_request):
+        """
+        Assert that BodhiClientExceptions are presented as expected
+        """
+        send_request.side_effect = bindings.BodhiClientException("Pants Exception")
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.save_buildroot_overrides,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
+
+        self.assertEqual(result.exit_code, 2)
+        self.assertEqual("Pants Exception\n", result.output)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_other_client_exception(self, send_request):
+        """
+        Assert that AuthErrors are presented as expected
+        """
+        send_request.side_effect = AuthError("Authentication failed")
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.save_buildroot_overrides,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual("Authentication failed: Check your FAS username & password\n",
+                         result.output)

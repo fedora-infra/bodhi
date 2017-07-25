@@ -18,10 +18,12 @@ import subprocess
 import sys
 import traceback
 import re
+import functools
 
 import click
 
 from bodhi.client import bindings
+from fedora.client import AuthError
 
 
 def _warn_if_url_and_staging_set(ctx, param, value):
@@ -101,6 +103,21 @@ def add_options(options):
     return _add_options
 
 
+def handle_errors(method):
+    """ A decorator that echoes neat error messages on AuthError or BodhiClientException. """
+    @functools.wraps(method)
+    def wrapper(*args, **kwargs):
+        try:
+            method(*args, **kwargs)
+        except AuthError as e:
+            click.echo("%s: Check your FAS username & password" % (e))
+            sys.exit(1)
+        except bindings.BodhiClientException as e:
+            click.echo(str(e))
+            sys.exit(2)
+    return wrapper
+
+
 def _save_override(url, user, password, staging, edit=False, **kwargs):
     """
     Helper function to create or edit a buildroot override.
@@ -157,6 +174,7 @@ def updates():
 @add_options(new_edit_options)
 @click.argument('builds')
 @click.option('--file', help='A text file containing all the update details')
+@handle_errors
 @url_option
 def new(user, password, url, **kwargs):
     # User Docs that show in the --help
@@ -214,6 +232,7 @@ def _validate_edit_update(ctx, param, value):
 @add_options(new_edit_options)
 @click.argument('update', callback=_validate_edit_update)
 @url_option
+@handle_errors
 def edit(user, password, url, **kwargs):
     # User Docs that show in the --help
     """
@@ -289,6 +308,7 @@ def edit(user, password, url, **kwargs):
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @url_option
+@handle_errors
 def query(url, mine=False, **kwargs):
     # User Docs that show in the --help
     """
@@ -324,6 +344,7 @@ def query(url, mine=False, **kwargs):
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @url_option
+@handle_errors
 def request(update, state, user, password, url, **kwargs):
     # User Docs that show in the --help
     """
@@ -370,6 +391,7 @@ def request(update, state, user, password, url, **kwargs):
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
 @url_option
+@handle_errors
 def comment(update, text, karma, user, password, url, **kwargs):
     # User Docs that show in the --help
     """
@@ -409,6 +431,7 @@ def comment(update, text, karma, user, password, url, **kwargs):
 @click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
 @url_option
+@handle_errors
 def download(url, **kwargs):
     # User Docs that show in the --help
     """
@@ -513,6 +536,7 @@ def overrides():
 @click.option('--builds', default=None,
               help='Query by comma-separated build id(s)')
 @url_option
+@handle_errors
 def query_buildroot_overrides(url, user=None, mine=False, packages=None,
                               expired=None, releases=None, builds=None, **kwargs):
     # Docs that show in the --help
@@ -550,6 +574,7 @@ def query_buildroot_overrides(url, user=None, mine=False, packages=None,
 
 @overrides.command('save')
 @add_options(save_edit_options)
+@handle_errors
 def save_buildroot_overrides(user, password, url, staging, **kwargs):
     # Docs that show in the --help
     """
@@ -585,6 +610,7 @@ def save_buildroot_overrides(user, password, url, staging, **kwargs):
 @overrides.command('edit')
 @add_options(save_edit_options)
 @click.option('--expire', help='Expire the override', is_flag=True, default=False)
+@handle_errors
 def edit_buildroot_overrides(user, password, url, staging, **kwargs):
     # Docs that show in the --help
     """
