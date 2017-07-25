@@ -649,6 +649,13 @@ class ListCommentSchema(PaginatedSchema, SearchableSchema):
 
 
 class ListOverrideSchema(PaginatedSchema, SearchableSchema, Cosmetics):
+    builds = Builds(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[util.splitter],
+    )
+
     expired = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",

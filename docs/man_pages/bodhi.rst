@@ -98,6 +98,11 @@ The ``overrides`` command allows users to manage build overrides.
         Query for overrides related to a list of releases, given as a comma-separated list.
         <releases> is the release shortname, for example: F26 or F26,F25
 
+    ``--builds <builds>``
+
+        Query for overrides for a list of builds, given as a comma-separated list.
+        <builds> is the build NVR, for example: corebird-1.3-0.fc24
+
     ``--user <username>``
 
         Filter for overrides by the given username.

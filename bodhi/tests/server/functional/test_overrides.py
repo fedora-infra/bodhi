@@ -122,6 +122,17 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['submitter']['name'], 'guest')
         self.assertEquals(override['notes'], 'blah blah blah')
 
+    def test_list_overrides_by_builds(self):
+        res = self.app.get('/overrides/', {'builds': 'bodhi-2.0-1.fc17'})
+
+        body = res.json_body
+        self.assertEquals(len(body['overrides']), 1)
+
+        override = body['overrides'][0]
+        self.assertEquals(override['build']['nvr'], "bodhi-2.0-1.fc17")
+        self.assertEquals(override['submitter']['name'], 'guest')
+        self.assertEquals(override['notes'], 'blah blah blah')
+
     def test_list_overrides_by_releases_without_override(self):
         self.db.add(Release(name=u'F42', long_name=u'Fedora 42',
                             id_prefix=u'FEDORA', version=u'42',
