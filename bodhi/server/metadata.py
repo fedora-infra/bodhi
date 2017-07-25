@@ -60,14 +60,9 @@ class ExtendedMetadata(object):
         self.comp_type = cr.XZ
 
         if release.id_prefix == u'FEDORA-EPEL':
-            # yum on py2.4 doesn't support sha256 (#1080373)
-            if 'el5' in self.repo or '5E' in self.repo:
-                self.hash_type = cr.SHA1
-                self.comp_type = cr.GZ
-            else:
-                # FIXME: I'm not sure which versions of RHEL support xz metadata
-                # compression, so use the lowest common denominator for now.
-                self.comp_type = cr.BZ2
+            # FIXME: I'm not sure which versions of RHEL support xz metadata
+            # compression, so use the lowest common denominator for now.
+            self.comp_type = cr.BZ2
 
         # Load from the cache if it exists
         self.cached_repodata = os.path.join(self.repo, '..', self.tag +
