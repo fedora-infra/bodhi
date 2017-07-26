@@ -528,3 +528,76 @@ EXPECTED_EXPIRED_OVERRIDES_OUTPUT = u"""========================================
   Notes: This is an expired override
   Expired: True
 """
+
+EXAMPLE_RELEASES_MUNCH = Munch({
+    u'rows_per_page': 20, u'total': 9, u'pages': 1, u'releases': [
+        Munch({
+            u'dist_tag': u'f22', u'name': u'F22', u'testing_tag': u'f22-updates-testing',
+            u'pending_stable_tag': u'f22-updates-pending', u'pending_signing_tag': u'',
+            u'long_name': u'Fedora 22', u'state': u'archived', u'version': u'22',
+            u'override_tag': u'f22-override', u'branch': u'f22', u'id_prefix': u'FEDORA',
+            u'pending_testing_tag': u'f22-updates-testing-pending',
+            u'stable_tag': u'f22-updates', u'candidate_tag': u'f22-updates-candidate'}),
+        Munch({
+            u'dist_tag': u'dist-6E-epel', u'name': u'EL-6',
+            u'testing_tag': u'dist-6E-epel-testing', u'pending_stable_tag': u'',
+            u'pending_signing_tag': u'', u'long_name': u'Fedora EPEL 6', u'state': u'current',
+            u'version': u'6', u'override_tag': u'dist-6E-epel-override', u'branch': u'el6',
+            u'id_prefix': u'FEDORA-EPEL', u'pending_testing_tag': u'',
+            u'stable_tag': u'dist-6E-epel',
+            u'candidate_tag': u'dist-6E-epel-testing-candidate'}),
+        Munch({
+            u'dist_tag': u'f21', u'name': u'F21', u'testing_tag': u'f21-updates-testing',
+            u'pending_stable_tag': u'f21-updates-pending', u'pending_signing_tag': u'',
+            u'long_name': u'Fedora 21', u'state': u'archived', u'version': u'21',
+            u'override_tag': u'f21-override', u'branch': u'f21', u'id_prefix': u'FEDORA',
+            u'pending_testing_tag': u'f21-updates-testing-pending', u'stable_tag': u'f21-updates',
+            u'candidate_tag': u'f21-updates-candidate'}),
+        Munch({
+            u'dist_tag': u'f24', u'name': u'F24', u'testing_tag': u'f24-updates-testing',
+            u'pending_stable_tag': u'f24-updates-pending',
+            u'pending_signing_tag': u'f24-signing-pending', u'long_name': u'Fedora 24',
+            u'state': u'current', u'version': u'24', u'override_tag': u'f24-override',
+            u'branch': u'f24', u'id_prefix': u'FEDORA',
+            u'pending_testing_tag': u'f24-updates-testing-pending', u'stable_tag': u'f24-updates',
+            u'candidate_tag': u'f24-updates-candidate'}),
+        Munch({
+            u'dist_tag': u'epel7', u'name': u'EPEL-7', u'testing_tag': u'epel7-testing',
+            u'pending_stable_tag': u'epel7-pending',
+            u'pending_signing_tag': u'epel7-signing-pending', u'long_name': u'Fedora EPEL 7',
+            u'state': u'current', u'version': u'7', u'override_tag': u'epel7-override',
+            u'branch': u'epel7', u'id_prefix': u'FEDORA-EPEL',
+            u'pending_testing_tag': u'epel7-testing-pending', u'stable_tag': u'epel7',
+            u'candidate_tag': u'epel7-testing-candidate'}),
+        Munch({
+            u'dist_tag': u'f25', u'name': u'F25', u'testing_tag': u'f25-updates-testing',
+            u'pending_stable_tag': u'f25-updates-pending',
+            u'pending_signing_tag': u'f25-signing-pending', u'long_name': u'Fedora 25',
+            u'state': u'current', u'version': u'25', u'override_tag': u'f25-override',
+            u'branch': u'f25', u'id_prefix': u'FEDORA',
+            u'pending_testing_tag': u'f25-updates-testing-pending', u'stable_tag': u'f25-updates',
+            u'candidate_tag': u'f25-updates-candidate'}),
+        Munch({
+            u'dist_tag': u'dist-5E-epel', u'name': u'EL-5',
+            u'testing_tag': u'dist-5E-epel-testing', u'pending_stable_tag': u'',
+            u'pending_signing_tag': u'', u'long_name': u'Fedora EPEL 5', u'state': u'archived',
+            u'version': u'5', u'override_tag': u'dist-5E-epel-override', u'branch': u'el5',
+            u'id_prefix': u'FEDORA-EPEL', u'pending_testing_tag': u'',
+            u'stable_tag': u'dist-5E-epel', u'candidate_tag': u'dist-5E-epel-testing-candidate'}),
+        Munch({
+            u'dist_tag': u'f23', u'name': u'F23', u'testing_tag': u'f23-updates-testing',
+            u'pending_stable_tag': u'f23-updates-pending',
+            u'pending_signing_tag': u'f23-signing-pending', u'long_name': u'Fedora 23',
+            u'state': u'archived', u'version': u'23', u'override_tag': u'f23-override',
+            u'branch': u'f23', u'id_prefix': u'FEDORA',
+            u'pending_testing_tag': u'f23-updates-testing-pending',
+            u'stable_tag': u'f23-updates', u'candidate_tag': u'f23-updates-candidate'}),
+        Munch({
+            u'dist_tag': u'f26', u'name': u'F26', u'testing_tag': u'f26-updates-testing',
+            u'pending_stable_tag': u'f26-updates-pending',
+            u'pending_signing_tag': u'f26-signing-pending', u'long_name': u'Fedora 26',
+            u'state': u'current', u'version': u'26', u'override_tag': u'f26-override',
+            u'branch': u'f26', u'id_prefix': u'FEDORA',
+            u'pending_testing_tag': u'f26-updates-testing-pending',
+            u'stable_tag': u'f26-updates', u'candidate_tag': u'f26-updates-candidate'})],
+    u'page': 1})

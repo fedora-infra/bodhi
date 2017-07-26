@@ -1109,3 +1109,20 @@ class TestBodhiClient_parse_file(unittest.TestCase):
 
         self.assertEqual(unicode(exc.exception),
                          'No such file or directory: /tmp/bodhi-test-parsefile2')
+
+
+class TestBodhiClient_get_releases(unittest.TestCase):
+    """
+    Test the BodhiClient.get_releases() method.
+    """
+    def test_get_releases(self):
+        """
+        Test get_releases().
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value=client_test_data.EXAMPLE_RELEASES_MUNCH)
+
+        latest_builds = client.get_releases()
+
+        self.assertEqual(latest_builds, client_test_data.EXAMPLE_RELEASES_MUNCH)
+        client.send_request.assert_called_once()
