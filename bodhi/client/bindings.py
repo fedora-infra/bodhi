@@ -577,7 +577,7 @@ class BodhiClient(OpenIdBaseClient):
                 {"dist_tag": "dist-f12", "id_prefix": "FEDORA",
                  "locked": false, "name": "F12", "long_name": "Fedora 12"}]}
         """
-        return self.send_request('releases/', params=kwargs)
+        return self.send_request('releases/', verb='GET', params=kwargs)
 
     def get_koji_session(self, login=True):
         """ Return an authenticated koji session """
