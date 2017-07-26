@@ -35,6 +35,7 @@ import os
 import re
 import textwrap
 
+from six.moves import configparser
 import six
 
 from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError
@@ -402,8 +403,6 @@ class BodhiClient(OpenIdBaseClient):
         can be directly passed to the ``save`` method.
 
         """
-        from six.moves import configparser
-
         if not os.path.exists(input_file):
             raise ValueError("No such file or directory: %s" % input_file)
 
