@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+# Copyright 2008-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -1058,6 +1061,23 @@ class TestBodhiClient_parse_file(unittest.TestCase):
     """
     Test the BodhiClient.parse_file() method.
     """
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.configparser.SafeConfigParser.read')
+    @mock.patch('bodhi.client.bindings.os.path.exists')
+    def test_parsing_invalid_file(self, exists, read, _load_cookies):
+        """
+        Test parsing an invalid update template file.
+        """
+        exists.return_value = True
+        # This happens when we don't have permission to read the file.
+        read.return_value = []
+        client = bindings.BodhiClient()
+
+        with self.assertRaises(ValueError) as exc:
+            client.parse_file("sad")
+
+        self.assertEqual(unicode(exc.exception), 'Invalid input file: sad')
+
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
