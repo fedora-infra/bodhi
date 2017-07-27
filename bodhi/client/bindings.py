@@ -35,8 +35,10 @@ import os
 import re
 import textwrap
 
+from iniparse.compat import ConfigParser
 from six.moves import configparser
 import dnf
+import koji
 import six
 
 from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError
@@ -455,8 +457,7 @@ class BodhiClient(OpenIdBaseClient):
         with open('/etc/fedora-release', 'r') as f:
             fedora = f.readlines()[0].split()[2]
         tag = 'f%s-updates-testing' % fedora
-        builds = self.get_koji_session(
-            login=False).listTagged(tag, latest=True)
+        builds = self.get_koji_session().listTagged(tag, latest=True)
         for build in builds:
             pkgs = installed.filter(name=build['name'], version=build['version'],
                                     release=build['release']).run()
@@ -581,21 +582,14 @@ class BodhiClient(OpenIdBaseClient):
         """
         return self.send_request('releases/', params=kwargs)
 
-    def get_koji_session(self, login=True):
+    def get_koji_session(self):
         """ Return an authenticated koji session """
-        import koji
-        from iniparse.compat import ConfigParser
         config = ConfigParser()
         if os.path.exists(os.path.join(os.path.expanduser('~'), '.koji', 'config')):
             config.readfp(open(os.path.join(os.path.expanduser('~'), '.koji', 'config')))
         else:
             config.readfp(open('/etc/koji.conf'))
-        cert = os.path.expanduser(config.get('koji', 'cert'))
-        ca = os.path.expanduser(config.get('koji', 'ca'))
-        serverca = os.path.expanduser(config.get('koji', 'serverca'))
         session = koji.ClientSession(config.get('koji', 'server'))
-        if login:
-            session.ssl_login(cert=cert, ca=ca, serverca=serverca)
         return session
 
     koji_session = property(fget=get_koji_session)
@@ -610,7 +604,7 @@ class BodhiClient(OpenIdBaseClient):
             raise BodhiClientException('You must specify a username')
         builds = []
         data = self.get_releases()
-        koji = self.get_koji_session(login=False)
+        koji = self.get_koji_session()
         for release in data['releases']:
             try:
                 for build in koji.listTagged(release['candidate_tag'], latest=True):
