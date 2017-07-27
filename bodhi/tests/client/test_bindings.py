@@ -1057,6 +1057,77 @@ class TestUpdateNotFound(unittest.TestCase):
         self.assertEqual(unicode(exc), 'Update not found: bodhi-2.2.4-1.el7')
 
 
+class TestBodhiClient_candidates(unittest.TestCase):
+    """
+    Test the BodhiClient.candidates() method.
+    """
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
+    @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')
+    @mock.patch('bodhi.client.bindings.log.exception')
+    def test_failure(self, exception, get_koji_session, mock_raw_input):
+        """Ensure correct handling when talking to Koji raises an Exception."""
+        get_koji_session.return_value.listTagged.side_effect = [
+            [{'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc25', 'nvr': 'bodhi-2.9.0-1.fc25',
+              'owner_name': 'bowlofeggs'},
+             {'name': 'ipsilon', 'version': '2.0.2', 'release': '1.fc25',
+              'nvr': 'ipsilon-2.0.2-1.fc25', 'owner_name': 'puiterwijk'}],
+            IOError("Bet you didn't expect this.")]
+        mock_raw_input.return_value = 'bowlofeggs'
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(
+            return_value={'releases': [{'candidate_tag': 'f25-updates-testing'},
+                                       {'candidate_tag': 'f26-updates-testing'}]})
+
+        results = client.candidates()
+
+        self.assertEqual(
+            results,
+            [{'release': '1.fc25', 'version': '2.9.0', 'name': 'bodhi', 'owner_name': 'bowlofeggs',
+              'nvr': 'bodhi-2.9.0-1.fc25'}])
+        get_koji_session.assert_called_once_with()
+        self.assertEqual(
+            get_koji_session.return_value.listTagged.mock_calls,
+            [mock.call('f25-updates-testing', latest=True),
+             mock.call('f26-updates-testing', latest=True)])
+        client.send_request.assert_called_once_with('releases/', params={}, verb='GET')
+        exception.assert_called_once_with(
+            "Unable to query candidate builds for {'candidate_tag': 'f26-updates-testing'}")
+
+    @mock.patch('__builtin__.raw_input', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
+    @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')
+    def test_success(self, get_koji_session, mock_raw_input):
+        """Ensure correct behavior when there are no errors talking to Koji."""
+        get_koji_session.return_value.listTagged.side_effect = [
+            [{'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc25', 'nvr': 'bodhi-2.9.0-1.fc25',
+              'owner_name': 'bowlofeggs'},
+             {'name': 'ipsilon', 'version': '2.0.2', 'release': '1.fc25',
+              'nvr': 'ipsilon-2.0.2-1.fc25', 'owner_name': 'puiterwijk'}],
+            [{'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc26', 'nvr': 'bodhi-2.9.0-1.fc26',
+              'owner_name': 'bowlofeggs'}]]
+        mock_raw_input.return_value = 'bowlofeggs'
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(
+            return_value={'releases': [{'candidate_tag': 'f25-updates-testing'},
+                                       {'candidate_tag': 'f26-updates-testing'}]})
+
+        results = client.candidates()
+
+        self.assertEqual(
+            results,
+            [{'release': '1.fc25', 'version': '2.9.0', 'name': 'bodhi', 'owner_name': 'bowlofeggs',
+              'nvr': 'bodhi-2.9.0-1.fc25'},
+             {'release': '1.fc26', 'version': '2.9.0', 'name': 'bodhi', 'owner_name': 'bowlofeggs',
+              'nvr': 'bodhi-2.9.0-1.fc26'}])
+        get_koji_session.assert_called_once_with()
+        self.assertEqual(
+            get_koji_session.return_value.listTagged.mock_calls,
+            [mock.call('f25-updates-testing', latest=True),
+             mock.call('f26-updates-testing', latest=True)])
+        client.send_request.assert_called_once_with('releases/', params={}, verb='GET')
+
+
 class TestBodhiClient_get_releases(unittest.TestCase):
     """
     Test the BodhiClient.get_releases() method.

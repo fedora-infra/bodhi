@@ -600,8 +600,7 @@ class BodhiClient(OpenIdBaseClient):
         This method is a generator that returns a list of koji builds that
         could potentially be pushed as updates.
         """
-        if not self.username:
-            raise BodhiClientException('You must specify a username')
+        self.init_username()
         builds = []
         data = self.get_releases()
         koji = self.get_koji_session()
