@@ -1057,6 +1057,29 @@ class TestUpdateNotFound(unittest.TestCase):
         self.assertEqual(unicode(exc), 'Update not found: bodhi-2.2.4-1.el7')
 
 
+class TestBodhiClient_get_releases(unittest.TestCase):
+    """
+    Test the BodhiClient.get_releases() method.
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
+    def test_get_releases(self):
+        """Assert correct behavior from the get_releases() method."""
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(
+            return_value={'releases': [{'candidate_tag': 'f25-updates-testing'},
+                                       {'candidate_tag': 'f26-updates-testing'}]})
+
+        results = client.get_releases(some_param='some_value')
+
+        self.assertEqual(
+            results,
+            {'releases': [
+                {'candidate_tag': 'f25-updates-testing'},
+                {'candidate_tag': 'f26-updates-testing'}]})
+        client.send_request.assert_called_once_with(
+            'releases/', params={'some_param': 'some_value'}, verb='GET')
+
+
 class TestBodhiClient_parse_file(unittest.TestCase):
     """
     Test the BodhiClient.parse_file() method.
