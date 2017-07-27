@@ -31,6 +31,7 @@ sudo yum install -y\
     python-cornice\
     python-createrepo_c\
     python-cryptography\
+    python-dnf\
     python-dogpile-cache\
     python-fedora\
     python-kitchen\

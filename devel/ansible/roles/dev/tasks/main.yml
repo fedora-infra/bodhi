@@ -58,6 +58,7 @@
       - python2-colander
       - python2-createrepo_c
       - python2-cryptography
+      - python2-dnf
       - python2-fedmsg-atomic-composer
       - python2-fedmsg-commands
       - python2-fedmsg-consumers

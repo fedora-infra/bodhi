@@ -1,6 +1,18 @@
 Release notes
 =============
 
+develop
+-------
+
+Dependency changes
+------------------
+
+dnf is now a required dependency for the Python bindings. Technically, it was needed before for some
+of the functionality, and it would traceback if that functionality was used without dnf being
+present. With this change, the module will fail to import without dnf, and dnf is a formal
+dependency.
+
+
 2.9.0
 -----
 
