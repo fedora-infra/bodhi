@@ -1142,3 +1142,39 @@ class TestBodhiClient_parse_file(unittest.TestCase):
 
         self.assertEqual(unicode(exc.exception),
                          'No such file or directory: /tmp/bodhi-test-parsefile2')
+
+
+class TestBodhiClient_testable(unittest.TestCase):
+    """
+    Test the BodhiClient.testable() method.
+    """
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
+    @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')
+    @mock.patch('bodhi.client.bindings.dnf.Base.fill_sack')
+    def test_testable(self, fill_sack, get_koji_session, mock_open):
+        """Assert correct behavior from the testable() method."""
+        get_koji_session.return_value.listTagged.return_value = [
+            {'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc26', 'nvr': 'bodhi-2.9.0-1.fc26'}]
+        fill_sack.return_value.query.return_value.installed.return_value.filter.return_value.run.\
+            return_value = ['bodhi-2.8.1-1.fc26']
+        mock_open.return_value.__enter__.return_value.readlines.return_value = [
+            'Fedora release 26 (Twenty Six)']
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(
+            return_value={'updates': [{'nvr': 'bodhi-2.9.0-1.fc26'}]})
+
+        updates = client.testable()
+
+        self.assertEqual(list(updates), [{'nvr': 'bodhi-2.9.0-1.fc26'}])
+        fill_sack.assert_called_once_with(load_system_repo=True)
+        fill_sack.return_value.query.assert_called_once_with()
+        fill_sack.return_value.query.return_value.installed.assert_called_once_with()
+        fill_sack.return_value.query.return_value.installed.return_value.filter.\
+            assert_called_once_with(name='bodhi', version='2.9.0', release='1.fc26')
+        fill_sack.return_value.query.return_value.installed.return_value.filter.return_value.run.\
+            assert_called_once_with()
+        get_koji_session.return_value.listTagged.assert_called_once_with('f26-updates-testing',
+                                                                         latest=True)
+        client.send_request.assert_called_once_with(
+            'updates/', params={'builds': 'bodhi-2.9.0-1.fc26'}, verb='GET')

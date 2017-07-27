@@ -36,6 +36,7 @@ import re
 import textwrap
 
 from six.moves import configparser
+import dnf
 import six
 
 from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError
@@ -447,7 +448,6 @@ class BodhiClient(OpenIdBaseClient):
 
         Only works on systems with dnf.
         """
-        import dnf
         base = dnf.Base()
         sack = base.fill_sack(load_system_repo=True)
         query = sack.query()
