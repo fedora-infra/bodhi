@@ -450,6 +450,50 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         rv = self.package.get_pkg_committers_from_pagure()
         assert rv == (['mprahl'], ['factory2']), rv
 
+    @mock.patch('bodhi.server.util.requests.get')
+    def test_get_pkg_committers_container_from_pagure(self, mock_get):
+        """ Ensure that the container committers can be found using the Pagure
+        API.
+        """
+        json_output = {
+            "access_groups": {
+                "admin": ["factory2"],
+                "commit": [],
+                "ticket": []
+            },
+            "access_users": {
+                "admin": [],
+                "commit": ["tbrady"],
+                "owner": ["mprahl"],
+                "ticket": ["jsmith"]
+            },
+            "close_status": [],
+            "custom_keys": [],
+            "date_created": "1494947106",
+            "description": "Python",
+            "fullname": "container/python",
+            "id": 2,
+            "milestones": {},
+            "name": "python",
+            "namespace": "container",
+            "parent": None,
+            "priorities": {},
+            "tags": [],
+            "user": {
+                "fullname": "Matt Prahl",
+                "name": "mprahl"
+            }
+        }
+        mock_get.return_value.json.return_value = json_output
+        mock_get.return_value.status_code = 200
+        # Even though Bodhi doesn't support containers yet, let's mock this
+        # package to have the type set to `container` to make sure the code in
+        # get_pkg_committers_from_pagure works with containers in the future.
+        self.package.type = mock.Mock()
+        self.package.type.name = 'container'
+        rv = self.package.get_pkg_committers_from_pagure()
+        assert rv == (['tbrady', 'mprahl'], ['factory2']), rv
+
 
 class TestBuild(ModelTest):
     """Test class for the ``Build`` model."""

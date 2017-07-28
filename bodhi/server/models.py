@@ -633,8 +633,12 @@ class Package(Base):
         * The second list contains FAS group names that have commit access.
         """
         pagure_url = config.get('pagure_url')
-        # Pagure uses plural names for its namespaces such as "rpms"
-        namespace = self.type.name + 's'
+        # Pagure uses plural names for its namespaces such as "rpms" except for
+        # container
+        if self.type.name == 'container':
+            namespace = self.type.name
+        else:
+            namespace = self.type.name + 's'
         package_pagure_url = '{0}/api/0/{1}/{2}'.format(
             pagure_url.rstrip('/'), namespace, self.name)
         package_json = pagure_api_get(package_pagure_url)
