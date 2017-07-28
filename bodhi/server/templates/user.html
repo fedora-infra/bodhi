@@ -21,15 +21,29 @@
               },
           });
       $.ajax(
-          "${urls['recent_updates']}" + "&chrome=False&rows_per_page=12&display_user=False",
+          'releases/',
           {
-              dataType: 'html',
-              success: function(html) {
-                  $('#recent_updates').parent().append(html);
-                  $('#recent_updates').remove();
-              },
+              dataType: 'json',
+              success: function(e) {
+                  var releases_string = ""
+                  for (var i = 0; i < e.releases.length; i++) {
+                      if (e.releases[i].state == 'current'){
+                        releases_string = releases_string + ","+e.releases[i].name;
+                      }
+                  }
+                  $.ajax(
+                      "${urls['recent_updates']}" + "&chrome=False&rows_per_page=12&display_user=False&releases="+releases_string,
+                      {
+                          dataType: 'html',
+                          success: function(html) {
+                              $('#recent_updates').parent().append(html);
+                              $('#recent_updates').remove();
+                          },
 
+                      });
+              },
           });
+
       $.ajax(
           "${urls['recent_overrides']}" + "&chrome=False&rows_per_page=6&display_user=False",
           {
