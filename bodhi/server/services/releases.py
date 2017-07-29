@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat Inc., and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Defines API endpoints related to Release objects."""
 
 import math
 
@@ -55,6 +61,14 @@ releases = Service(name='releases', path='/releases/',
 @release.get(accept="text/html", renderer="release.html",
              error_handler=bodhi.server.services.errors.html_handler)
 def get_release_html(request):
+    """
+    Render a release given by id as HTML.
+
+    Args:
+        request (pyramid.Request): The current request.
+    Returns:
+        basestring: An HTML representation of the reqeusted Release.
+    """
     id = request.matchdict.get('name')
     release = Release.get(id, request.db)
     if not release:
@@ -154,6 +168,14 @@ def get_release_html(request):
 @release.get(accept=('application/javascript'), renderer='jsonp',
              error_handler=bodhi.server.services.errors.jsonp_handler)
 def get_release_json(request):
+    """
+    Return JSON for a release given by name.
+
+    Args:
+        request (pyramid.json): The current request.
+    Returns:
+        bodhi.server.models.Release: The matched Release.
+    """
     id = request.matchdict.get('name')
     release = Release.get(id, request.db)
     if not release:
@@ -168,6 +190,15 @@ def get_release_json(request):
               validators=(validate_release, validate_updates,
                           validate_packages))
 def query_releases_html(request):
+    """
+    Return all releases, collated by state, rendered as HTML.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary with a single key, releases, mapping another dictionary that maps release
+            states to a list of Release objects that are in that state.
+    """
     def collect_releases(releases):
         x = {}
         for r in releases:
@@ -188,6 +219,19 @@ def query_releases_html(request):
               validators=(validate_release, validate_updates,
                           validate_packages))
 def query_releases_json(request):
+    """
+    Search releases by given criteria, returning the results as JSON.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary with the following keys:
+            releases: An iterable of the Releases that match the query.
+            page: The current page.
+            pages: The total number of pages.
+            rows_per_page: The number of rown on a page.
+            total: The number of matching results.
+    """
     db = request.db
     data = request.validated
     query = db.query(Release)
@@ -236,11 +280,17 @@ def query_releases_json(request):
                validators=(validate_tags, validate_enums)
                )
 def save_release(request):
-    """Save a release
+    """
+    Save a release.
 
     This entails either creating a new release, or editing an existing one. To
     edit an existing release, the release's original name must be specified in
     the ``edited`` parameter.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        bodhi.server.models.Request: The created or edited Request.
     """
     data = request.validated
 
