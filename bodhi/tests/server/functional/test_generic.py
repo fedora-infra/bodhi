@@ -111,18 +111,49 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {'text': 'wat'}, status=200)
         self.assertEquals(
             res.json_body['html'],
-            "<div class='markdown'>"
-            "<p>wat</p>"
-            "</div>"
+            '<div class="markdown">'
+            '<p>wat</p>'
+            '</div>'
         )
 
-    def test_markdown_with_html(self):
-        res = self.app.get('/markdown', {'text': '<b>bold</b>'}, status=200)
+    def test_markdown_with_html_blocked_tag(self):
+        res = self.app.get('/markdown', {'text': '<script>bold</script>'}, status=200)
         self.assertEquals(
             res.json_body['html'],
-            "<div class='markdown'>"
-            '<p>&lt;b&gt;bold&lt;/b&gt;</p>'
-            "</div>"
+            '<div class="markdown">'
+            '&lt;script&gt;bold&lt;/script&gt;\n'
+            '</div>'
+        )
+
+    def test_markdown_with_html_whitelisted_tag(self):
+        res = self.app.get('/markdown', {'text': '<pre>sudo dnf install pants</pre>'}, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<pre>sudo dnf install pants</pre>\n'
+            '</div>'
+        )
+
+    def test_markdown_with_html_blocked_attribute(self):
+        res = self.app.get('/markdown',
+                           {'text': '<b onclick="alert(\'pants\')">bold</b>'},
+                           status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p><b>bold</b></p>'
+            '</div>'
+        )
+
+    def test_markdown_with_html_whitelisted_attribute(self):
+        res = self.app.get('/markdown',
+                           {'text': '<img src="pants.png">'},
+                           status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p><img src="pants.png"></p>'
+            '</div>'
         )
 
     def test_markdown_with_mention(self):
@@ -131,10 +162,10 @@ class TestGenericViews(base.BaseTestCase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
-            "<div class='markdown'>"
+            '<div class="markdown">'
             '<p>my <a href="http://localhost/users/colleague">@colleague</a>'
             ' is distinguished</p>'
-            "</div>"
+            '</div>'
         )
 
     def test_markdown_with_mention_at_start(self):
@@ -143,7 +174,7 @@ class TestGenericViews(base.BaseTestCase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
-            "<div class='markdown'>"
+            '<div class="markdown">'
             '<p><a href="http://localhost/users/pingou">@pingou</a>'
             ' is on it</p>'
             "</div>"
@@ -155,7 +186,7 @@ class TestGenericViews(base.BaseTestCase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
-            "<div class='markdown'>"
+            '<div class="markdown">'
             '<p><a href="http://localhost/users/kevin">@kevin</a>'
             ', thanks for that</p>'
             "</div>"
@@ -167,7 +198,7 @@ class TestGenericViews(base.BaseTestCase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
-            "<div class='markdown'>"
+            '<div class="markdown">'
             '<p>I vote for '
             '<a href="http://localhost/users/number80">@number80</a></p>'
             "</div>"
@@ -179,7 +210,7 @@ class TestGenericViews(base.BaseTestCase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
-            "<div class='markdown'>"
+            '<div class="markdown">'
             '<p>Crazy.  #12345 is still busted.</p>'
             "</div>"
         )
@@ -190,7 +221,7 @@ class TestGenericViews(base.BaseTestCase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
-            "<div class='markdown'>"
+            '<div class="markdown">'
             '<p>Crazy.  '
             '<a href="https://bugzilla.redhat.com/show_bug.cgi?id=12345">'
             '#12345</a> is still busted.</p>'
@@ -203,7 +234,7 @@ class TestGenericViews(base.BaseTestCase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
-            "<div class='markdown'>"
+            '<div class="markdown">'
             '<p>Crazy.  upstream#12345 is still busted.</p>'
             "</div>"
         )
@@ -214,8 +245,52 @@ class TestGenericViews(base.BaseTestCase):
         }, status=200)
         self.assertEquals(
             res.json_body['html'],
-            "<div class='markdown'>"
+            '<div class="markdown">'
             '<pre><code>sudo dnf install bodhi\n</code></pre>\n'
+            "</div>"
+        )
+
+    def test_markdown_with_email_autolink(self):
+        res = self.app.get('/markdown', {
+            'text': 'email me at dude@mcpants.org',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p>email me at <a href="mailto:dude@mcpants.org">dude@mcpants.org</a></p>'
+            "</div>"
+        )
+
+    def test_markdown_with_email_in_lt_gt(self):
+        res = self.app.get('/markdown', {
+            'text': 'email me at <dude@mcpants.org>',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p>email me at <a href="mailto:dude@mcpants.org">dude@mcpants.org</a></p>'
+            "</div>"
+        )
+
+    def test_markdown_with_autolink(self):
+        res = self.app.get('/markdown', {
+            'text': 'http://getfedora.org',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p><a href="http://getfedora.org">http://getfedora.org</a></p>'
+            "</div>"
+        )
+
+    def test_markdown_with_autolink_without_http(self):
+        res = self.app.get('/markdown', {
+            'text': 'getfedora.org',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p><a href="http://getfedora.org">getfedora.org</a></p>'
             "</div>"
         )
 

@@ -295,13 +295,30 @@ def markup(context, text):
     Return:
         basestring: HTML representation of the markdown text
     """
+    markdown_tags = [
+        "h1", "h2", "h3", "h4", "h5", "h6",
+        "b", "i", "strong", "em", "tt",
+        "p", "br",
+        "span", "div", "blockquote", "code", "hr", "pre",
+        "ul", "ol", "li", "dd", "dt",
+        "img",
+        "a",
+    ]
+
+    markdown_attrs = [
+        "src", "href", "alt", "title", "class"
+    ]
+
+    markdown_text = markdown.markdown(text, extensions=['markdown.extensions.fenced_code'])
+
+    # previously, we linkified text in ffmarkdown.py, but this was causing issues like #1721
+    # so now we use the bleach linkifier to do this for us.
+    markdown_text = bleach.linkify(markdown_text, parse_email=True)
 
     # previously, we used the Safe Mode in python-markdown to strip all HTML
     # tags. Safe Mode is deprecated, so we now use Bleach to sanitize all HTML
-    # tags before running it through the markdown parser
-    sanitized_text = bleach.clean(text, tags=[])
-
-    return markdown.markdown(sanitized_text, extensions=['markdown.extensions.fenced_code'])
+    # tags after running it through the markdown parser
+    return bleach.clean(markdown_text, tags=markdown_tags, attributes=markdown_attrs)
 
 
 def status2html(context, status):
