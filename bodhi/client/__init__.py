@@ -110,10 +110,10 @@ def handle_errors(method):
         try:
             method(*args, **kwargs)
         except AuthError as e:
-            click.echo("%s: Check your FAS username & password" % (e))
+            click.secho("%s: Check your FAS username & password" % (e), fg='red', bold=True)
             sys.exit(1)
         except bindings.BodhiClientException as e:
-            click.echo(str(e))
+            click.secho(str(e), fg='red', bold=True)
             sys.exit(2)
     return wrapper
 
