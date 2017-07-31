@@ -21,6 +21,8 @@ Features
   (`#461 <https://github.com/fedora-infra/bodhi/issues/461>`_).
 * Pending releases are now displayed on the home page
   (`#1619 <https://github.com/fedora-infra/bodhi/issues/1619>`_).
+* Links without an explicit scheme can now be detected as links
+  (`#1721 <https://github.com/fedora-infra/bodhi/issues/1721>`_).
 
 
 Bugs
@@ -44,6 +46,8 @@ Bugs
   (`#1659 <https://github.com/fedora-infra/bodhi/issues/1659>`_).
 * The UI now properly urlencodes search URLs to properly escape characters such as "+"
   (`#1015 <https://github.com/fedora-infra/bodhi/issues/1015>`_).
+* e-mail addresses are now properly processed by the markdown system
+  (`#1656 <https://github.com/fedora-infra/bodhi/issues/1656>`_).
 
 
 Development improvements
@@ -67,6 +71,8 @@ Development improvements
   refactor, Bodhi's tests now consume about 450 MB instead of about 4.5 GB. As a result, the example
   Vagrantfile now uses 2 GB of RAM instead of 5 GB. It is likely possible to squeeze it down to 1 GB
   or so, if desired.
+* Bodhi now supports both the bleach 1 and bleach 2 APIs
+  (`#1718 <https://github.com/fedora-infra/bodhi/issues/1718>`_).
 
 
 Release contributors
