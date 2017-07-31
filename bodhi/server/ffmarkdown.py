@@ -50,15 +50,7 @@ def bug_url(tracker, idx):
 def inject():
     """ Hack out python-markdown to do the autolinking that we want. """
 
-    # First, make it so that bare links get automatically linkified.
-    markdown.inlinepatterns.AUTOLINK_RE = '(%s)' % '|'.join([
-        r'<(?:f|ht)tps?://[^>]*>',
-        r'\b(?:f|ht)tps?://[^)<>\s]+[^.,)<>\s]',
-        r'\bwww\.[^)<>\s]+[^.,)<>\s]',
-        r'[^(<\s]+\.(?:com|net|org)\b',
-    ])
-
-    # Second, build some Pattern objects for @mentions, #bugs, etc...
+    # build some Pattern objects for @mentions, #bugs, etc...
     class MentionPattern(markdown.inlinepatterns.Pattern):
         def handleMatch(self, m):
             el = markdown.util.etree.Element("a")
@@ -81,14 +73,14 @@ def inject():
             el.text = idx
             return el
 
-    MENTION_RE = r'(@\w+)'
+    MENTION_RE = r'(?<!\S)(@\w+)'
     BUGZILLA_RE = r'([\S]+)(#[0-9]{5,})'
 
     class SurroundProcessor(markdown.postprocessors.Postprocessor):
         def run(self, text):
             return "<div class='markdown'>" + text + "</div>"
 
-    # Lastly, monkey-patch the build_inlinepatterns func to insert our patterns
+    # monkey-patch the build_inlinepatterns func to insert our patterns
     original_pattern_builder = markdown.build_inlinepatterns
 
     def extended_pattern_builder(md_instance, **kwargs):
