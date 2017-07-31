@@ -1,6 +1,6 @@
 arrow
 bunch
-bleach<2
+bleach
 click
 colander
 cornice<2
