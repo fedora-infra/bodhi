@@ -358,13 +358,17 @@ class TestUtils(unittest.TestCase):
             assert isinstance(element, unicode)
 
     def test_markup(self):
-        """Ensure we escape HTML"""
-        text = '<b>bold</b>'
+        """Ensure we correctly parse markdown & escape HTML"""
+        text = (
+            '# this is a header\n'
+            'this is some **text**\n'
+            '<script>alert("pants")</script>'
+        )
         html = util.markup(None, text)
         assert html == (
-            "<div class='markdown'>"
-            '<p>&lt;b&gt;bold&lt;/b&gt;</p>'
-            "</div>"
+            '<div class="markdown"><h1>this is a header</h1>\n'
+            '<p>this is some <strong>text</strong>\n'
+            '&lt;script&gt;alert("pants")&lt;/script&gt;</p></div>'
         ), html
 
     def test_rpm_header(self):
