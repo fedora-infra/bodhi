@@ -20,6 +20,7 @@ import pkgdb2client
 from bodhi.server import util
 from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
+from bodhi.server.models import TestGatingStatus
 
 
 class TestUtils(unittest.TestCase):
@@ -357,6 +358,102 @@ class TestUtils(unittest.TestCase):
         for element in result:
             assert isinstance(element, unicode)
 
+    @mock.patch('bodhi.server.util.requests.post')
+    def test_greenwave_api_post(self, mock_post):
+        """ Ensure that a POST request to Greenwave works as expected.
+        """
+        mock_post.return_value.status_code = 200
+        expected_json = {
+            'policies_satisified': True,
+            'summary': 'All tests passed',
+            'applicable_policies': ['taskotron_release_critical_tasks'],
+            'unsatisfied_requirements': []
+        }
+        mock_post.return_value.json.return_value = expected_json
+        data = {
+            'product_version': 'fedora-26',
+            'decision_context': 'bodhi_push_update_stable',
+            'subjects': ['foo-1.0.0-1.f26']
+        }
+        decision = util.greenwave_api_post('http://domain.local/api/v1.0/decision',
+                                           data)
+        assert decision == expected_json, decision
+
+    @mock.patch('bodhi.server.util.requests.post')
+    def test_greenwave_api_post_500_error(self, mock_post):
+        """ Ensure that a POST request to Greenwave that triggers a 500 error
+        raises the expected error message.
+        """
+        mock_post.return_value.status_code = 500
+        try:
+            data = {
+                'product_version': 'fedora-26',
+                'decision_context': 'bodhi_push_update_stable',
+                'subjects': ['foo-1.0.0-1.f26']
+            }
+            util.greenwave_api_post('http://domain.local/api/v1.0/decision',
+                                    data)
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to send POST request to Greenwave at the following URL '
+            '"http://domain.local/api/v1.0/decision". The status code was "500".')
+        assert actual_error == expected_error, actual_error
+
+    @mock.patch('bodhi.server.util.requests.post')
+    def test_greenwave_api_post_non_500_error(self, mock_post):
+        """ Ensure that a POST request to Greenwave that raises an error that is
+        not a 500 error returns the returned JSON.
+        """
+        mock_post.return_value.status_code = 404
+        mock_post.return_value.json.return_value = {
+            "message": "Not found."
+        }
+        try:
+            data = {
+                'product_version': 'fedora-26',
+                'decision_context': 'bodhi_push_update_stable',
+                'subjects': ['foo-1.0.0-1.f26']
+            }
+            util.greenwave_api_post('http://domain.local/api/v1.0/decision',
+                                    data)
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to send POST request to Greenwave at the following URL '
+            '"http://domain.local/api/v1.0/decision". The status code was "404". '
+            'The error was "{\'message\': \'Not found.\'}".')
+        assert actual_error == expected_error, actual_error
+
+    @mock.patch('bodhi.server.util.requests.post')
+    def test_greenwave_api_post_non_500_error_no_json(self, mock_post):
+        """ Ensure that a POST request to Greenwave that raises an error that is
+        not a 500 error and has no JSON returns an error.
+        """
+        mock_post.return_value.status_code = 404
+        mock_post.return_value.json.side_effect = ValueError('Not JSON')
+        try:
+            data = {
+                'product_version': 'fedora-26',
+                'decision_context': 'bodhi_push_update_stable',
+                'subjects': ['foo-1.0.0-1.f26']
+            }
+            util.greenwave_api_post('http://domain.local/api/v1.0/decision',
+                                    data)
+            assert False, 'Did not raise a RuntimeError'
+        except RuntimeError as error:
+            actual_error = unicode(error)
+
+        expected_error = (
+            'Bodhi failed to send POST request to Greenwave at the following URL '
+            '"http://domain.local/api/v1.0/decision". The status code was "404". '
+            'The error was "".')
+        assert actual_error == expected_error, actual_error
+
     def test_markup(self):
         """Ensure we escape HTML"""
         text = '<b>bold</b>'
@@ -409,40 +506,43 @@ class TestUtils(unittest.TestCase):
         splitspacestring = util.splitter("build-0.1 build-0.2")
         self.assertEqual(splitspacestring, ['build-0.1', 'build-0.2'])
 
-    def test_ci_status2html_ignored(self):
-        """ Test the ci_status2html method with a status: Ignored. """
-        output = util.ci_status2html(None, 'Ignored')
-        assert output == "<span class='label label-success'>Tests Ignored</span>"
+    def test_test_gating_status2html_ignored(self):
+        """ Test the test_gating_status2html method with a status: Ignored. """
+        output = util.test_gating_status2html(None, TestGatingStatus.ignored)
+        assert output == '<span class="label label-success">Tests Ignored</span>'
 
-    def test_ci_status2html_running(self):
-        """ Test the ci_status2html method with a status: Running. """
-        output = util.ci_status2html(None, 'Running')
-        assert output == "<span class='label label-warning'>Tests Running</span>"
+    def test_test_gating_status2html_running(self):
+        """ Test the test_gating_status2html method with a status: Running. """
+        output = util.test_gating_status2html(None, TestGatingStatus.running)
+        assert output == '<span class="label label-warning">Tests Running</span>'
 
-    def test_ci_status2html_passed(self):
-        """ Test the ci_status2html method with a status: Passed. """
-        output = util.ci_status2html(None, 'Passed')
-        assert output == "<span class='label label-success'>Tests Passed</span>"
+    def test_test_gating_status2html_passed(self):
+        """ Test the test_gating_status2html method with a status: Passed. """
+        output = util.test_gating_status2html(None, TestGatingStatus.passed)
+        assert output == '<span class="label label-success">Tests Passed</span>'
 
-    def test_ci_status2html_failed(self):
-        """ Test the ci_status2html method with a status: Failed. """
-        output = util.ci_status2html(None, 'Failed')
-        assert output == "<span class='label label-danger'>Tests Failed</span>"
+    def test_test_gating_status2html_failed(self):
+        """ Test the test_gating_status2html method with a status: Failed. """
+        output = util.test_gating_status2html(None, TestGatingStatus.failed, '1 of 3 tests failed')
+        expected = ('<span class="label label-danger">Tests Failed</span>'
+                    '<p><a class="gating-summary" href="#automatedtests">'
+                    '1 of 3 tests failed</a></p>')
+        assert output == expected
 
-    def test_ci_status2html_queued(self):
-        """ Test the ci_status2html method with a status: Queued. """
-        output = util.ci_status2html(None, 'Queued')
-        assert output == "<span class='label label-info'>Tests Queued</span>"
+    def test_test_gating_status2html_queued(self):
+        """ Test the test_gating_status2html method with a status: Queued. """
+        output = util.test_gating_status2html(None, TestGatingStatus.queued)
+        assert output == '<span class="label label-info">Tests Queued</span>'
 
-    def test_ci_status2html_waiting(self):
-        """ Test the ci_status2html method with a status: Waiting. """
-        output = util.ci_status2html(None, 'Waiting')
-        assert output == "<span class='label label-info'>Tests Waiting</span>"
+    def test_test_gating_status2html_waiting(self):
+        """ Test the test_gating_status2html method with a status: Waiting. """
+        output = util.test_gating_status2html(None, TestGatingStatus.waiting)
+        assert output == '<span class="label label-info">Tests Waiting</span>'
 
-    def test_ci_status2html_missing(self):
-        """ Test the ci_status2html method with a status: None. """
-        output = util.ci_status2html(None, None)
-        assert output == "<span class='label label-primary'>Tests not running</span>"
+    def test_test_gating_status2html_missing(self):
+        """ Test the test_gating_status2html method with a status: None. """
+        output = util.test_gating_status2html(None, None)
+        assert output == '<span class="label label-primary">Tests not running</span>'
 
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch('bodhi.server.util.log.exception')

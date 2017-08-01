@@ -407,6 +407,9 @@ class BodhiConfig(dict):
         'initial_bug_msg': {
             'value': '%s has been submitted as an update to %s. %s',
             'validator': unicode},
+        'greenwave_api_url': {
+            'value': 'https://greenwave.fedoraproject.org/api/v1.0',
+            'validator': unicode},
         'koji_hub': {
             'value': 'https://koji.stg.fedoraproject.org/kojihub',
             'validator': str},
@@ -544,6 +547,12 @@ class BodhiConfig(dict):
         'top_testers_timeframe': {
             'value': 7,
             'validator': int},
+        'test_gating.required': {
+            'value': False,
+            'validator': _validate_bool},
+        'test_gating.url': {
+            'value': '',
+            'validator': unicode},
         'updateinfo_rights': {
             'value': 'Copyright (C) {} Red Hat, Inc. and others.'.format(datetime.now().year),
             'validator': unicode},

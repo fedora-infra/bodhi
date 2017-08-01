@@ -391,6 +391,25 @@ class CiStatus(DeclEnum):
     failed = 'failed', 'Failed'
 
 
+class TestGatingStatus(DeclEnum):
+    """ This class lists the different status the test_gating_status flag can have. """
+    # None: Updates created while bodhi has not enabled Greenwave integration
+    # waiting: Updates created while bodhi has enabled Greenwave integration
+    waiting = 'waiting', 'Waiting'
+    # ignored: a decision from Greenwave said that this update does not require any tests
+    ignored = 'ignored', 'Ignored'
+    # queued: a decision from Greenwave said that the required tests for this update have been
+    # queued
+    queued = 'queued', 'Queued'
+    # running: a decision from Greenwave said that the required tests for this update are running
+    running = 'running', 'Running'
+    # passed: a decision from Greenwave said that the required tests for this update have passed
+    passed = 'passed', 'Passed'
+    # failed: a decision from the Greenwave said that the required tests for this update have
+    # been failed
+    failed = 'failed', 'Failed'
+
+
 class UpdateType(DeclEnum):
     bugfix = 'bugfix', 'bugfix'
     security = 'security', 'security'
@@ -1084,6 +1103,11 @@ class Update(Base):
         cves (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`CVE` objects
             associated with this update.
         user_id (int): A foreign key to the :class:`User` that created this update.
+        test_gating_status (EnumSymbol): The test gating status of the update. This must be one
+            of the values defined in :class:`TestGatingStatus` or ``None``. None indicates that
+            Greenwave integration was not enabled when the update was created.
+        greenwave_summary_string (unicode): A short summary of the outcome from Greenwave
+            (e.g. 2 of 32 required tests failed).
     """
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id', 'cves')
@@ -1148,6 +1172,10 @@ class Update(Base):
     cves = relationship('CVE', secondary=update_cve_table, backref='updates')
 
     user_id = Column(Integer, ForeignKey('users.id'))
+
+    # Greenwave
+    test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
+    greenwave_summary_string = Column(Unicode(255))
 
     @validates('builds')
     def validate_builds(self, key, build):
@@ -1313,11 +1341,10 @@ class Update(Base):
         log.debug("Triggering db flush for new update.")
         db.flush()
 
-        if config.get('ci.required'):
+        if config.get('test_gating.required'):
             log.debug(
-                'CI required is enforced, marking the build as waiting on CI')
-            for build in up.builds:
-                build.ci_status = CiStatus.waiting
+                'Test gating required is enforced, marking the update as waiting on test gating')
+            up.test_gating_status = TestGatingStatus.waiting
 
         log.debug("Done with Update.new(...)")
         return up, caveats
@@ -1464,6 +1491,20 @@ class Update(Base):
         """
         if self.builds:
             return self.builds[0].type
+
+    @property
+    def test_gating_passed(self):
+        """
+        Returns a boolean representing if this update has passed the test gating.
+
+        Returns:
+            bool: Returns True if the Update's test_gating_status property is None, ignored,
+                or passed. Otherwise it returns False.
+        """
+        if self.test_gating_status in (
+                None, TestGatingStatus.ignored, TestGatingStatus.passed):
+            return True
+        return False
 
     @property
     def ci_passed(self):
@@ -1763,6 +1804,8 @@ class Update(Base):
                         (config.get('critpath.min_karma') -
                             config.get('critpath.num_admin_approvals')),
                         config.get('critpath.stable_after_days_without_negative_karma'))
+                    if config.get('test_gating.required'):
+                        stern_note += ' Additionally, it must pass automated tests.'
                     notes.append(stern_note)
 
                     if self.status is UpdateStatus.testing:
@@ -2272,6 +2315,10 @@ class Update(Base):
                     people.add(committer)
         return list(people)
 
+    @property
+    def product_version(self):
+        return self.release.long_name.lower().replace(' ', '-')
+
     def check_requirements(self, session, settings):
         """ Check that an update meets its self-prescribed policy to be pushed
 
@@ -2346,8 +2393,8 @@ class Update(Base):
                     return False, "Required task %s returned %s" % (
                         latest['testcase']['name'], latest['outcome'])
 
-        if config.get('ci.required') and not self.ci_passed:
-            return False, "CI did not pass on this update"
+        if config.get('test_gating.required') and not self.test_gating_passed:
+            return (False, "Required tests did not pass on this update")
 
         # TODO - check require_bugs and require_testcases also?
 
@@ -2452,7 +2499,7 @@ class Update(Base):
         """
         num_days = self.mandatory_days_in_testing
 
-        if config.get('ci.required') and not self.ci_passed:
+        if config.get('test_gating.required') and not self.test_gating_passed:
             return False
 
         if self.critpath:

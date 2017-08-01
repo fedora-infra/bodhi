@@ -29,7 +29,7 @@ from bodhi.server.config import config
 from bodhi.server.models import (
     BuildrootOverride, Group, RpmPackage, ModulePackage, Release,
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
-    User, CiStatus)
+    User, CiStatus, TestGatingStatus)
 from bodhi.tests.server import base
 
 
@@ -630,7 +630,7 @@ class TestUpdatesService(base.BaseTestCase):
             topic='update.request.testing', msg=mock.ANY)
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.ci_status = CiStatus.passed
+        build.update.test_gating_status = TestGatingStatus.passed
         self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a non-provenpackager
@@ -725,15 +725,15 @@ class TestUpdatesService(base.BaseTestCase):
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_queued_in_ci(self, publish, *args):
+    def test_provenpackager_request_update_queued_in_test_gating(self, publish, *args):
         """Ensure provenpackagers cannot request changes for any update which
-        CI status is `queued`"""
+        test gating status is `queued`"""
         nvr = u'bodhi-2.1-1.fc17'
         user = User(name=u'bob')
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['ci.required'] = True
+        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
@@ -744,7 +744,7 @@ class TestUpdatesService(base.BaseTestCase):
             topic='update.request.testing', msg=mock.ANY)
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.ci_status = CiStatus.queued
+        build.update.test_gating_status = CiStatus.queued
         self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
@@ -752,24 +752,24 @@ class TestUpdatesService(base.BaseTestCase):
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
-        # Ensure we can't push it until it passed CI
+        # Ensure we can't push it until it passed test gating
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
-            'Requirement not met CI did not pass on this update')
+            'Requirement not met Required tests did not pass on this update')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_running_in_ci(self, publish, *args):
+    def test_provenpackager_request_update_running_in_test_gating(self, publish, *args):
         """Ensure provenpackagers cannot request changes for any update which
-        CI status is `running`"""
+        test gating status is `running`"""
         nvr = u'bodhi-2.1-1.fc17'
         user = User(name=u'bob')
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['ci.required'] = True
+        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
@@ -780,7 +780,7 @@ class TestUpdatesService(base.BaseTestCase):
             topic='update.request.testing', msg=mock.ANY)
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.ci_status = CiStatus.running
+        build.update.test_gating_status = TestGatingStatus.running
         self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
@@ -788,24 +788,24 @@ class TestUpdatesService(base.BaseTestCase):
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
-        # Ensure we can't push it until it passed CI
+        # Ensure we can't push it until it passed test gating
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
-            'Requirement not met CI did not pass on this update')
+            'Requirement not met Required tests did not pass on this update')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_failed_ci(self, publish, *args):
+    def test_provenpackager_request_update_failed_test_gating(self, publish, *args):
         """Ensure provenpackagers cannot request changes for any update which
-        CI status is `failed`"""
+        test gating status is `failed`"""
         nvr = u'bodhi-2.1-1.fc17'
         user = User(name=u'bob')
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['ci.required'] = True
+        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
@@ -816,7 +816,7 @@ class TestUpdatesService(base.BaseTestCase):
             topic='update.request.testing', msg=mock.ANY)
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.ci_status = CiStatus.failed
+        build.update.test_gating_status = TestGatingStatus.failed
         self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
@@ -824,24 +824,24 @@ class TestUpdatesService(base.BaseTestCase):
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
-        # Ensure we can't push it until it passed CI
+        # Ensure we can't push it until it passed test gating
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
-            'Requirement not met CI did not pass on this update')
+            'Requirement not met Required tests did not pass on this update')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_ignored_by_ci(self, publish, *args):
+    def test_provenpackager_request_update_ignored_by_test_gating(self, publish, *args):
         """Ensure provenpackagers can request changes for any update which
-        CI status is `ignored`"""
+        test gating status is `ignored`"""
         nvr = u'bodhi-2.1-1.fc17'
         user = User(name=u'bob')
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['ci.required'] = True
+        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
@@ -853,7 +853,7 @@ class TestUpdatesService(base.BaseTestCase):
             topic='update.request.testing', msg=mock.ANY)
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.ci_status = CiStatus.ignored
+        build.update.test_gating_status = TestGatingStatus.ignored
         self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
@@ -861,7 +861,7 @@ class TestUpdatesService(base.BaseTestCase):
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
-        # Ensure the reason we cannot push isn't CI this time
+        # Ensure the reason we cannot push isn't test gating this time
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
@@ -870,15 +870,15 @@ class TestUpdatesService(base.BaseTestCase):
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_waiting_on_ci(self, publish, *args):
+    def test_provenpackager_request_update_waiting_on_test_gating(self, publish, *args):
         """Ensure provenpackagers cannot request changes for any update which
-        CI status is `waiting`"""
+        test gating status is `waiting`"""
         nvr = u'bodhi-2.1-1.fc17'
         user = User(name=u'bob')
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['ci.required'] = True
+        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
@@ -889,7 +889,7 @@ class TestUpdatesService(base.BaseTestCase):
             topic='update.request.testing', msg=mock.ANY)
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.ci_status = CiStatus.waiting
+        build.update.test_gating_status = TestGatingStatus.waiting
         self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
@@ -897,24 +897,24 @@ class TestUpdatesService(base.BaseTestCase):
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
-        # Ensure we can't push it until it passed CI
+        # Ensure we can't push it until it passed test gating
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
-            'Requirement not met CI did not pass on this update')
+            'Requirement not met Required tests did not pass on this update')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_with_none_ci(self, publish, *args):
-        """Ensure provenpackagers can request changes for any update which
-        CI status is `None`"""
+    def test_provenpackager_request_update_with_none_test_gating(self, publish, *args):
+        """Ensure provenpackagers cannot request changes for any update which
+        test gating status is `None`"""
         nvr = u'bodhi-2.1-1.fc17'
         user = User(name=u'bob')
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['ci.required'] = True
+        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
         app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
@@ -925,7 +925,7 @@ class TestUpdatesService(base.BaseTestCase):
             topic='update.request.testing', msg=mock.ANY)
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.ci_status = None
+        build.update.test_gating_status = None
         self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager
@@ -933,7 +933,7 @@ class TestUpdatesService(base.BaseTestCase):
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
-        # Ensure the reason we can't push is not CI
+        # Ensure the reason we can't push is not test gating
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
@@ -2703,7 +2703,7 @@ class TestUpdatesService(base.BaseTestCase):
         up.status = UpdateStatus.testing
         up.request = None
         self.assertEqual(len(up.builds), 1)
-        up.builds[0].ci_status = CiStatus.passed
+        up.test_gating_status = TestGatingStatus.passed
         self.db.commit()
 
         # Checks failure for requesting to stable push before the update reaches stable karma
@@ -2742,7 +2742,7 @@ class TestUpdatesService(base.BaseTestCase):
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         self.assertEqual(len(up.builds), 1)
-        up.builds[0].ci_status = CiStatus.passed
+        up.test_gating_status = TestGatingStatus.passed
         self.db.commit()
         self.assertEqual(up.days_in_testing, 7)
         self.assertEqual(up.meets_testing_requirements, True)
@@ -2767,7 +2767,7 @@ class TestUpdatesService(base.BaseTestCase):
         up.request = None
         up.release.state = ReleaseState.archived
         self.assertEqual(len(up.builds), 1)
-        up.builds[0].ci_status = CiStatus.passed
+        up.test_gating_status = TestGatingStatus.passed
         self.db.commit()
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
@@ -2791,7 +2791,7 @@ class TestUpdatesService(base.BaseTestCase):
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         self.assertEqual(len(up.builds), 1)
-        up.builds[0].ci_status = CiStatus.passed
+        up.test_gating_status = TestGatingStatus.passed
         self.db.commit()
         self.assertEqual(up.days_in_testing, 7)
         self.assertEqual(up.meets_testing_requirements, True)
@@ -2815,7 +2815,7 @@ class TestUpdatesService(base.BaseTestCase):
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         self.assertEqual(len(up.builds), 1)
-        up.builds[0].ci_status = CiStatus.passed
+        up.test_gating_status = TestGatingStatus.passed
         self.db.commit()
         self.assertEqual(up.days_in_testing, 7)
         self.assertEqual(up.meets_testing_requirements, True)
@@ -2841,7 +2841,7 @@ class TestUpdatesService(base.BaseTestCase):
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
         up.comment(self.db, u'This update has been pushed to stable', author=u'bodhi')
         self.assertEqual(len(up.builds), 1)
-        up.builds[0].ci_status = CiStatus.passed
+        up.test_gating_status = TestGatingStatus.passed
         self.db.commit()
         self.assertEqual(up.days_in_testing, 14)
         self.assertEqual(up.meets_testing_requirements, True)
@@ -2871,7 +2871,7 @@ class TestUpdatesService(base.BaseTestCase):
         up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
         self.assertEqual(len(up.builds), 1)
-        up.builds[0].ci_status = CiStatus.passed
+        up.test_gating_status = TestGatingStatus.passed
         self.db.commit()
         self.assertEqual(up.days_in_testing, 14)
         self.assertEqual(up.meets_testing_requirements, True)
@@ -3868,7 +3868,7 @@ class TestUpdatesService(base.BaseTestCase):
         args = self.get_update('bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        up.builds[0].ci_status = CiStatus.passed
+        up.test_gating_status = TestGatingStatus.passed
         self.db.commit()
         resp = self.app.post_json(
             '/updates/%s/request' % args['builds'],
