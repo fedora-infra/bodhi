@@ -13,6 +13,27 @@
 
 <script type="text/javascript">
   $(document).ready(function(){
+      $("<div id='tooltip'></div>").css({
+        position: "absolute",
+        display: "none",
+        border: "1px solid #ddd",
+        padding: "2px",
+        "background-color": "#eee",
+        opacity: 0.80
+      }).appendTo("body");
+
+      function render_plothovers(event, pos, item) {
+          if (item) {
+            var numberofupdates = item.datapoint[1]-item.datapoint[2];
+
+            $("#tooltip").html(numberofupdates+" "+item.series.label + " ")
+              .css({top: item.pageY-30, left: item.pageX})
+              .fadeIn(200);
+          } else {
+            $("#tooltip").hide();
+          }
+      }
+
       var stack = 0,
           bars = true,
           lines = false,
@@ -29,18 +50,23 @@
               lines: {
                   show: lines,
                   fill: true,
-                  steps: steps
+                  steps: steps,
               },
               bars: {
                   show: bars,
                   barWidth: 0.6,
                   align: "center"
-              }
+              },
           },
           legend: {
               position: 'nw'
+          },
+          grid: {
+            hoverable: true,
           }
       });
+
+      $("#placeholder").bind("plothover", render_plothovers);
 
       var stack = 0,
           bars = true,
@@ -68,7 +94,13 @@
           },
           legend: {
               position: 'nw'
+          },
+          grid: {
+            hoverable: true,
           }
       });
+
+      $("#placeholder_epel").bind("plothover", render_plothovers);
+
   });
 </script>
