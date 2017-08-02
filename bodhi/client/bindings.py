@@ -289,7 +289,8 @@ class BodhiClient(OpenIdBaseClient):
         :arg update: The title of the update comment on.
         :arg comment: The text of the comment.
         :kwarg karma: The karma of this comment (-1, 0, 1)
-        :kwarg email: Whether or not to trigger email notifications
+        :kwarg email: Email address for an anonymous user. if an email address is
+            supplied here, the comment is added as anonymous (i.e. not a logged in user)
 
         """
         return self.send_request(
