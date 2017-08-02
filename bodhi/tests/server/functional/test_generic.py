@@ -228,6 +228,23 @@ class TestGenericViews(base.BaseTestCase):
             "</div>"
         )
 
+    def test_markdown_with_prefixed_bugzilla_in_braces(self):
+        """
+        Assert that bug tracker prefixes wrapped in chars other than letters
+        get matched. E.g. (RHBZ#12345)
+        """
+        res = self.app.get('/markdown', {
+            'text': 'Crazy.  (RHBZ#12345) is still busted.',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p>Crazy.  '
+            '(<a href="https://bugzilla.redhat.com/show_bug.cgi?id=12345">'
+            '#12345</a>) is still busted.</p>'
+            "</div>"
+        )
+
     def test_markdown_with_unknown_prefixed_bugzilla(self):
         res = self.app.get('/markdown', {
             'text': 'Crazy.  upstream#12345 is still busted.',
@@ -236,6 +253,22 @@ class TestGenericViews(base.BaseTestCase):
             res.json_body['html'],
             '<div class="markdown">'
             '<p>Crazy.  upstream#12345 is still busted.</p>'
+            "</div>"
+        )
+
+    def test_markdown_with_unknown_prefix_known_substring(self):
+        """
+        Assert that bugtracker prefixes that contain a valid prefix
+        as a substring but contain other alpha characters are not
+        matched
+        """
+        res = self.app.get('/markdown', {
+            'text': 'Crazy.  aRHBZa#12345 is still busted.',
+        }, status=200)
+        self.assertEquals(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p>Crazy.  aRHBZa#12345 is still busted.</p>'
             "</div>"
         )
 

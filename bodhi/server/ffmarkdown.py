@@ -74,7 +74,7 @@ def inject():
             return el
 
     MENTION_RE = r'(?<!\S)(@\w+)'
-    BUGZILLA_RE = r'([\S]+)(#[0-9]{5,})'
+    BUGZILLA_RE = r'([a-zA-Z]+)(#[0-9]{5,})'
 
     class SurroundProcessor(markdown.postprocessors.Postprocessor):
         def run(self, text):
