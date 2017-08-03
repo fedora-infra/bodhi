@@ -482,9 +482,6 @@ class BodhiConfig(dict):
         'pkgdb_url': {
             'value': 'https://admin.fedoraproject.org/pkgdb',
             'validator': unicode},
-        'pkgtags_url': {
-            'value': '',
-            'validator': unicode},
         'query_wiki_test_cases': {
             'value': False,
             'validator': _validate_bool},

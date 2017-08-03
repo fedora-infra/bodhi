@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright 2007-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -25,7 +30,7 @@ import createrepo_c
 from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
                                    DevBuildsys)
 from bodhi.server.config import config
-from bodhi.server.models import (RpmPackage, Update, RpmBuild, UpdateRequest, UpdateStatus,
+from bodhi.server.models import (Release, RpmPackage, Update, RpmBuild, UpdateRequest, UpdateStatus,
                                  UpdateType)
 from bodhi.server.metadata import ExtendedMetadata
 from bodhi.server.util import mkmetadatadir
@@ -210,6 +215,22 @@ class TestExtendedMetadata(base.BaseTestCase):
         notice = self.get_notice(uinfo, update.title)
         # Since 'x' made it into the xml, we know it didn't use the cache.
         self.assertEquals(notice.description, u'x')  # not u'Useful details!'
+
+    def test___init___uses_bz2_for_epel(self):
+        """Assert that the __init__() method sets the comp_type attribute to cr.BZ2 for EPEL."""
+        epel_7 = Release(id_prefix="FEDORA-EPEL", stable_tag='epel7')
+
+        md = ExtendedMetadata(epel_7, UpdateRequest.stable, self.db, '/some/path')
+
+        self.assertEqual(md.comp_type, createrepo_c.BZ2)
+
+    def test___init___uses_xz_for_fedore(self):
+        """Assert that the __init__() method sets the comp_type attribute to cr.XZ for Fedora."""
+        fedora = Release.query.one()
+
+        md = ExtendedMetadata(fedora, UpdateRequest.stable, self.db, '/some/path')
+
+        self.assertEqual(md.comp_type, createrepo_c.XZ)
 
     def test_extended_metadata(self):
         update = self.db.query(Update).one()

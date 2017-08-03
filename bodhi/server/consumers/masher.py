@@ -330,7 +330,6 @@ class MasherThread(threading.Thread):
                 self.wait_for_mash(mash_thread)
 
                 uinfo.insert_updateinfo()
-                uinfo.insert_pkgtags()
                 uinfo.cache_repodata()
 
             # Compose OSTrees from our freshly mashed repos

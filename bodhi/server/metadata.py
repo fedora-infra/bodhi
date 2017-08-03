@@ -17,7 +17,6 @@ import shutil
 import tempfile
 
 from kitchen.text.converters import to_bytes
-from urlgrabber.grabber import urlgrab
 import createrepo_c as cr
 
 from bodhi.server.buildsys import get_session
@@ -60,14 +59,9 @@ class ExtendedMetadata(object):
         self.comp_type = cr.XZ
 
         if release.id_prefix == u'FEDORA-EPEL':
-            # yum on py2.4 doesn't support sha256 (#1080373)
-            if 'el5' in self.repo or '5E' in self.repo:
-                self.hash_type = cr.SHA1
-                self.comp_type = cr.GZ
-            else:
-                # FIXME: I'm not sure which versions of RHEL support xz metadata
-                # compression, so use the lowest common denominator for now.
-                self.comp_type = cr.BZ2
+            # FIXME: I'm not sure which versions of RHEL support xz metadata
+            # compression, so use the lowest common denominator for now.
+            self.comp_type = cr.BZ2
 
         # Load from the cache if it exists
         self.cached_repodata = os.path.join(self.repo, '..', self.tag +
@@ -300,21 +294,6 @@ class ExtendedMetadata(object):
             with file(repomd_xml, 'w') as repomd_file:
                 repomd_file.write(repomd.xml_dump())
             os.unlink(uinfo_xml)
-
-    def insert_pkgtags(self):
-        """Download and inject the pkgtags sqlite from fedora-tagger"""
-        if config.get('pkgtags_url'):
-            try:
-                tags_url = config.get('pkgtags_url')
-                tempdir = tempfile.mkdtemp('bodhi')
-                local_tags = os.path.join(tempdir, 'pkgtags.sqlite')
-                log.info('Downloading %s' % tags_url)
-                urlgrab(tags_url, filename=local_tags)
-                self.modifyrepo(local_tags)
-            except:
-                log.exception("There was a problem injecting pkgtags")
-            finally:
-                shutil.rmtree(tempdir)
 
     def cache_repodata(self):
         arch = os.listdir(self.repo_path)[0]  # Take the first arch
