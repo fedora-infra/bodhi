@@ -722,7 +722,8 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
-    def test_mash(self, cmd, publish, *args):
+    @mock.patch('bodhi.server.scripts.clean_old_mashes.clean_up')
+    def test_mash(self, clean_up, cmd, publish, *args):
         cmd.return_value = '', '', 0
 
         # Set the request to stable right out the gate so we can test gating
@@ -748,6 +749,8 @@ References:
 
         self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
         self.assertEquals(len(t.state['completed_repos']), 1)
+        # Make sure that we called clean_up function after we are done
+        clean_up.assert_called_with()
 
     @mock.patch(**mock_failed_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')

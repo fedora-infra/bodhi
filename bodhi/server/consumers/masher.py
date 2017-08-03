@@ -43,6 +43,7 @@ from bodhi.server.metadata import ExtendedMetadata
 from bodhi.server.models import (Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, Base)
 from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
+from bodhi.server.scripts.clean_old_mashes import clean_up
 
 
 def checkpoint(method):
@@ -210,6 +211,7 @@ Once mash is done:
         self.log.info('Push complete!  Summary follows:')
         for result in results:
             self.log.info(result)
+        clean_up()
 
     def organize_updates(self, session, body):
         # {Release: {UpdateRequest: [Update,]}}
