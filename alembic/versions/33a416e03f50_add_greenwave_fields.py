@@ -14,6 +14,9 @@ down_revision = '2a10629168e4'
 
 
 def upgrade():
+    """
+    Add two columns and an enum that are needed for Greenwave integration.
+    """
     op.execute(
         "CREATE TYPE ck_test_gating_status AS ENUM "
         "('ignored', 'queued', 'running', 'passed', 'failed', 'waiting')")
@@ -31,6 +34,9 @@ def upgrade():
 
 
 def downgrade():
+    """
+    Remove two columns and an enum that were needed for Greenwave integration.
+    """
     op.drop_column('updates', 'test_gating_status')
     op.execute("DROP TYPE ck_test_gating_status")
     op.drop_column('updates', 'greenwave_summary_string')
