@@ -5,7 +5,7 @@ Revises: 2a10629168e4
 Create Date: 2017-07-06 13:52:50.892504
 """
 from alembic import op
-from sqlalchemy import Column, Enum, Unicode, UnicodeText
+from sqlalchemy import Column, Enum, Unicode
 
 
 # revision identifiers, used by Alembic.
@@ -28,14 +28,9 @@ def upgrade():
         )
     )
     op.add_column('updates', Column('greenwave_summary_string', Unicode(255)))
-    op.add_column(
-        'updates',
-        Column('test_gating_url', UnicodeText, nullable=True)
-    )
 
 
 def downgrade():
     op.drop_column('updates', 'test_gating_status')
     op.execute("DROP TYPE ck_test_gating_status")
     op.drop_column('updates', 'greenwave_summary_string')
-    op.drop_column('updates', 'test_gating_url')
