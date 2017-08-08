@@ -30,7 +30,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import (
     BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
-    UpdateSuggestion, UpdateType, CiStatus, TestGatingStatus)
+    UpdateSuggestion, UpdateType, TestGatingStatus)
 from bodhi.tests.server.base import BaseTestCase
 
 
@@ -500,27 +500,6 @@ class TestBuild(ModelTest):
     klass = model.Build
     attrs = dict(nvr=u"TurboGears-1.0.8-3.fc11")
 
-    @mock.patch('bodhi.server.buildsys.DevBuildsys.getTaskRequest', side_effect=IOError("oh no"))
-    @mock.patch('bodhi.server.models.log.exception')
-    def test_get_scm_url_failure(self, exception, getTaskRequest):
-        """Test the get_scm_url method when we are unable to communicate with Koji."""
-        url = self.obj.get_scm_url()
-
-        # Since we received an IOError, the url should be None.
-        self.assertEqual(url, None)
-        exception.assert_called_once_with(
-            'Error retrieving the scm_url from Koji for Build TurboGears-1.0.8-3.fc11.')
-        getTaskRequest.assert_called_once_with(127621)
-
-    def test_get_scm_url_success(self):
-        """Test the get_scm_url method when we are able to communicate with Koji."""
-        url = self.obj.get_scm_url()
-
-        # We should just get the URL that the DevBuildsys gives us from getTaskRequest().
-        self.assertEqual(
-            url,
-            'git://pkgs.fedoraproject.org/rpms/bodhi?#2e994ca8b3296e62e8b0aadee1c5c0649559625a')
-
 
 class TestRpmBuild(ModelTest):
     """Unit test case for the ``RpmBuild`` model."""
@@ -662,14 +641,15 @@ class TestUpdate(ModelTest):
         stable_karma=3,
         unstable_karma=-3,
         close_bugs=True,
-        notes=u'foobar')
+        notes=u'foobar',
+        test_gating_status=TestGatingStatus.passed)
 
     def do_get_dependencies(self):
         release = model.Release(**TestRelease.attrs)
         return dict(
             builds=[model.RpmBuild(
                 nvr=u'TurboGears-1.0.8-3.fc11', package=model.RpmPackage(**TestRpmPackage.attrs),
-                release=release, ci_status=CiStatus.passed)],
+                release=release)],
             bugs=[model.Bug(bug_id=1), model.Bug(bug_id=2)],
             cves=[model.CVE(cve_id=u'CVE-2009-0001')],
             release=release,
@@ -692,6 +672,14 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(self.obj.__json__()['content_type'], None)
 
+    @mock.patch('bodhi.server.models.log.warn')
+    def test_add_tag_null(self, warn):
+        """Test the add_tag() method with a falsey tag, such as None."""
+        result = self.obj.add_tag(tag=None)
+
+        self.assertEqual(result, [])
+        warn.assert_called_once_with('Not adding builds of TurboGears-1.0.8-3.fc11 to empty tag')
+
     def test_autokarma_not_nullable(self):
         """Assert that the autokarma column does not allow NULL values.
 
@@ -705,62 +693,6 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.builds[0].nvr, u'TurboGears-1.0.8-3.fc11')
         self.assertEqual(self.obj.builds[0].release.name, u'F11')
         self.assertEqual(self.obj.builds[0].package.name, u'TurboGears')
-
-    def test_ci_status_ignored(self):
-        """Test the ci_status property when all Builds have their ci_status set to ignored."""
-        self.obj.builds[0].ci_status = CiStatus.ignored
-        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.ignored)
-        self.obj.builds.append(second_build)
-
-        self.assertEqual(self.obj.ci_status, CiStatus.ignored)
-
-    def test_ci_status_none(self):
-        """Test the ci_status property when all Builds have their ci_status set to None."""
-        self.obj.builds[0].ci_status = None
-        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=None)
-        self.obj.builds.append(second_build)
-
-        self.assertEqual(self.obj.ci_status, None)
-
-    def test_ci_status_one_failed(self):
-        """Test the ci_status property when one Build passed and the other failed."""
-        self.obj.builds[0].ci_status = CiStatus.passed
-        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.failed)
-        self.obj.builds.append(second_build)
-
-        self.assertEqual(self.obj.ci_status, CiStatus.failed)
-
-    def test_ci_status_one_queued(self):
-        """Test the ci_status property when one Build passed and the other is queued."""
-        self.obj.builds[0].ci_status = CiStatus.passed
-        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.queued)
-        self.obj.builds.append(second_build)
-
-        self.assertEqual(self.obj.ci_status, CiStatus.queued)
-
-    def test_ci_status_one_running(self):
-        """Test the ci_status property when one Build passed and the other is running."""
-        self.obj.builds[0].ci_status = CiStatus.passed
-        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.running)
-        self.obj.builds.append(second_build)
-
-        self.assertEqual(self.obj.ci_status, CiStatus.running)
-
-    def test_ci_status_passed(self):
-        """Test the ci_status property when all Builds have their ci_status set to passed."""
-        self.obj.builds[0].ci_status = CiStatus.passed
-        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.passed)
-        self.obj.builds.append(second_build)
-
-        self.assertEqual(self.obj.ci_status, CiStatus.passed)
-
-    def test_ci_status_waiting(self):
-        """Test the ci_status property when all Builds have their ci_status set to waiting."""
-        self.obj.builds[0].ci_status = CiStatus.waiting
-        second_build = model.RpmBuild(nvr='bodhi-2.7.0-1.fc26', ci_status=CiStatus.waiting)
-        self.obj.builds.append(second_build)
-
-        self.assertEqual(self.obj.ci_status, CiStatus.waiting)
 
     def test_content_type(self):
         self.assertEqual(self.obj.content_type, model.ContentType.rpm)

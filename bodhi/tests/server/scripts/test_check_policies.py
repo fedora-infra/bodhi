@@ -78,19 +78,25 @@ class TestCheckPolicies(BaseTestCase):
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_no_policies_enforced(self):
-        """Assert correct behavior when policies are not enforced"""
+        """
+        Assert correct behavior when policies are not enforced.
+
+        When test gating is disabled, each Update's test_gating_status will be None.
+        """
         runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
+        update.test_gating_status = None
         self.db.commit()
-        self.assertFalse(update.test_gating_status)
         with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
             mock_greenwave.return_value = RuntimeError('The error was blablabla')
+
             result = runner.invoke(check_policies.check, [])
-            self.assertEqual(result.exit_code, 0)
-            update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
-            # The test_gating_status should still be None.
-            self.assertFalse(update.test_gating_status)
+
+        self.assertEqual(result.exit_code, 0)
+        update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
+        # The test_gating_status should still be None.
+        self.assertTrue(update.test_gating_status is None)
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_unrestricted_policy(self):
