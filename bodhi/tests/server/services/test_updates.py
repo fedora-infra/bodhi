@@ -29,7 +29,7 @@ from bodhi.server.config import config
 from bodhi.server.models import (
     BuildrootOverride, Group, RpmPackage, ModulePackage, Release,
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
-    User, CiStatus, TestGatingStatus)
+    User, TestGatingStatus)
 from bodhi.tests.server import base
 
 
@@ -744,7 +744,7 @@ class TestUpdatesService(base.BaseTestCase):
             topic='update.request.testing', msg=mock.ANY)
 
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        build.update.test_gating_status = CiStatus.queued
+        build.update.test_gating_status = TestGatingStatus.queued
         self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a provenpackager

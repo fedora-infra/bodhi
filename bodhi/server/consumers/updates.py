@@ -122,11 +122,6 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
             if not update:
                 raise BodhiException("Couldn't find alias %r in DB" % alias)
 
-            for b in update.builds:
-                # Let's ask Koji for the scm_urls for these builds, if we don't already know them.
-                if not b.scm_url:
-                    b.scm_url = b.get_scm_url()
-
             if topic.endswith('update.edit'):
                 bugs = [Bug.get(idx, session) for idx in msg['new_bugs']]
                 # Sanity check

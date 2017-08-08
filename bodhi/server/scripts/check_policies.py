@@ -36,6 +36,7 @@ def check():
     """Check the enforced policies by Greenwave for each open update."""
     initialize_db(config.config)
     session = Session()
+
     updates = models.Update.query.filter(models.Update.pushed == false())\
         .filter(models.Update.status.in_(
                 [models.UpdateStatus.pending, models.UpdateStatus.testing]))
