@@ -374,23 +374,6 @@ class UpdateStatus(DeclEnum):
     processing = 'processing', 'processing'
 
 
-class CiStatus(DeclEnum):
-    """ This class lists the different status the ci_status flag can have. """
-    # None: Updates created while bodhi has the configuration key `ci.required` not set to True
-    # waiting: Updates created while bodhi has the configuration key `ci.required` set to True
-    waiting = 'waiting', 'Waiting'
-    # ignored: a message from the CI system said that this build is ignored
-    ignored = 'ignored', 'Ignored'
-    # queued: a message from the CI system said that the tests for this build have been queued
-    queued = 'queued', 'Queued'
-    # running: a message from the CI system said that the tests for this build are running
-    running = 'running', 'Running'
-    # passed: a message from the CI system said that the tests for this build have passed
-    passed = 'passed', 'Passed'
-    # failed: a message from the CI system said that the tests for this build have been failed
-    failed = 'failed', 'Failed'
-
-
 class TestGatingStatus(DeclEnum):
     """ This class lists the different status the test_gating_status flag can have. """
     # None: Updates created while bodhi has not enabled Greenwave integration
@@ -793,9 +776,6 @@ class Build(Base):
             time of this writing, it was not practical to rename nvr since it is used in the REST
             API to reference builds. Thus, it should be thought of as a Koji build identifier rather
             than strictly as an RPM's name, version, and release.
-        scm_url (unicode): An SCM URL to a commit of the spec file that this build was generated
-            from. For example,
-            git://pkgs.fedoraproject.org/rpms/bodhi?#34e14931464563b7d549816d1a2324c9af444d8e
         package_id (int): A foreign key to the Package that this Build is part of.
         release_id (int): A foreign key to the Release that this Build is part of.
         signed (bool): If True, this package has been signed by robosignatory. If False, it has not
@@ -805,9 +785,6 @@ class Build(Base):
             of.
         type (int): The polymorphic identify of the row. This is used by sqlalchemy to identify
             which subclass of Build to use.
-        ci_status (EnumSymbol): The CI status of the update. This must be one of the values
-            defined in :class:`CiStatus` or ``None``. None indicates that CI was not enabled when
-            the update was created.
     """
     __tablename__ = 'builds'
     __exclude_columns__ = ('id', 'package', 'package_id', 'release',
@@ -815,12 +792,10 @@ class Build(Base):
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
-    scm_url = Column(Unicode(256), unique=True, nullable=True)
     package_id = Column(Integer, ForeignKey('packages.id'))
     release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
     update_id = Column(Integer, ForeignKey('updates.id'))
-    ci_status = Column(CiStatus.db_type(), default=None, nullable=True)
     ci_url = Column(UnicodeText, default=None, nullable=True)
 
     release = relationship('Release', backref='builds', lazy=False)
@@ -841,22 +816,6 @@ class Build(Base):
             str: A URL for this build.
         """
         return '/' + self.nvr
-
-    def get_scm_url(self):
-        """
-        Return the SCM commit URL for this build from koji.
-
-        Returns:
-            basestring or None: The URL of the commit for this build, or None if there was an error
-                communicating with Koji.
-        """
-        try:
-            koji = buildsys.get_session()
-            build = koji.getBuild(self.nvr)
-            return koji.getTaskRequest(build['task_id'])[0]
-        except Exception:
-            log.exception('Error retrieving the scm_url from Koji for Build {}.'.format(self.nvr))
-            return None
 
     def get_tags(self, koji=None):
         """
@@ -1500,52 +1459,6 @@ class Update(Base):
                 None, TestGatingStatus.ignored, TestGatingStatus.passed):
             return True
         return False
-
-    @property
-    def ci_passed(self):
-        """
-        Returns a boolean representing if all the builds associated with
-        this update are ignored or have passed their CI testing.
-
-        Returns:
-            bool: Returns True if the Update's ci_status property is None, ignored, or passed.
-                Otherwise it returns False.
-        """
-        if self.ci_status in (
-                None, CiStatus.ignored, CiStatus.passed):
-            return True
-        return False
-
-    @property
-    def ci_status(self):
-        """
-        Returns a label representing if all the builds associated with
-        this update are ignored or have passed their CI testing.
-
-        This will return None when bodhi is configured with the configuration
-        key `ci.required` not set to True (ie: when CI support is not enabled).
-
-        Returns:
-            bodhi.server.models.CiStatus or None: The overall status of this update.
-        """
-        ci_status = set([
-            build.ci_status for build in self.builds
-            if build.ci_status is not None
-        ])
-        if ci_status == set():
-            return None
-        if ci_status == set([CiStatus.ignored]):
-            return CiStatus.ignored
-        if ci_status == set([CiStatus.passed]):
-            return CiStatus.passed
-        if ci_status == set([CiStatus.waiting]):
-            return CiStatus.waiting
-        if CiStatus.failed in ci_status:
-            return CiStatus.failed
-        if CiStatus.running in ci_status:
-            return CiStatus.running
-        if CiStatus.queued in ci_status:
-            return CiStatus.queued
 
     def obsolete_older_updates(self, db):
         """Obsolete any older pending/testing updates.

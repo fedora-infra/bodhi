@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2007-2017 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -27,9 +32,9 @@ import mock
 from bodhi.server import buildsys, log, initialize_db
 from bodhi.server.config import config
 from bodhi.server.consumers.masher import Masher, MasherThread
-from bodhi.server.models import (Base, Build, BuildrootOverride, Release, ReleaseState, RpmBuild,
-                                 Update, CiStatus, UpdateRequest, UpdateStatus, UpdateType,
-                                 User)
+from bodhi.server.models import (
+    Base, Build, BuildrootOverride, Release, ReleaseState, RpmBuild, TestGatingStatus, Update,
+    UpdateRequest, UpdateStatus, UpdateType, User)
 from bodhi.server.util import mkmetadatadir, transactional_session_maker
 from bodhi.tests.server import base, populate
 
@@ -500,16 +505,15 @@ References:
                 override_tag=u'f18-override',
                 branch=u'f18')
             db.add(release)
-            build = RpmBuild(
-                nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
-                ci_status=CiStatus.passed)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
                 builds=[build], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
-                notes=u'Useful details!', release=release)
+                notes=u'Useful details!', release=release,
+                test_gating_status=TestGatingStatus.passed)
             update.type = UpdateType.security
             db.add(update)
 
@@ -583,16 +587,15 @@ References:
                 override_tag=u'f18-override',
                 branch=u'f18')
             db.add(release)
-            build = RpmBuild(
-                nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
-                ci_status=CiStatus.passed)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
                 builds=[build], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
-                notes=u'Useful details!', release=release)
+                notes=u'Useful details!', release=release,
+                test_gating_status=TestGatingStatus.passed)
             update.type = UpdateType.enhancement
             db.add(update)
 
@@ -658,16 +661,15 @@ References:
                 override_tag=u'f18-override',
                 branch=u'f18')
             db.add(release)
-            build = RpmBuild(
-                nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
-                ci_status=CiStatus.passed)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
                 builds=[build], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
-                notes=u'Useful details!', release=release)
+                notes=u'Useful details!', release=release,
+                test_gating_status=TestGatingStatus.passed)
             update.type = UpdateType.security
             db.add(update)
 

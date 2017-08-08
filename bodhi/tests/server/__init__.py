@@ -5,7 +5,7 @@ import sqlalchemy
 
 from bodhi.server.models import (
     Bug, BuildrootOverride, Comment, CVE, Group, RpmPackage, Release, ReleaseState, RpmBuild,
-    Update, CiStatus, UpdateRequest, UpdateType, User, TestCase)
+    Update, TestGatingStatus, UpdateRequest, UpdateType, User, TestCase)
 
 
 def create_update(session, build_nvrs, release_name=u'F17'):
@@ -35,9 +35,7 @@ def create_update(session, build_nvrs, release_name=u'F17'):
             session.add(testcase)
             package.test_cases.append(testcase)
 
-        builds.append(RpmBuild(
-            nvr=nvr, release=release, package=package,
-            ci_status=CiStatus.passed))
+        builds.append(RpmBuild(nvr=nvr, release=release, package=package,))
         session.add(builds[-1])
 
         # Add a buildroot override for this build
@@ -52,7 +50,7 @@ def create_update(session, build_nvrs, release_name=u'F17'):
         title=', '.join(build_nvrs), builds=builds, user=user, request=UpdateRequest.testing,
         notes=u'Useful details!', release=release, date_submitted=datetime(1984, 11, 02),
         requirements=u'rpmlint', stable_karma=3, unstable_karma=-3,
-        type=UpdateType.bugfix)
+        type=UpdateType.bugfix, test_gating_status=TestGatingStatus.passed)
     session.add(update)
 
     return update
