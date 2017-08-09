@@ -3666,6 +3666,53 @@ class TestUpdatesService(base.BaseTestCase):
         resp = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
+        # Marks it as batched
+        upd = Update.get(nvr, self.db)
+        upd.status = UpdateStatus.testing
+        upd.request = UpdateRequest.batched
+        upd.date_testing = datetime.now() - timedelta(days=1)
+        self.db.commit()
+
+        # Checks karma threshold is reached
+        # Makes sure stable karma is not None
+        # Ensures Request doesn't get set to stable automatically since autokarma is disabled
+        upd.comment(self.db, u'LGTM', author=u'ralph', karma=1)
+        upd = Update.get(nvr, self.db)
+        self.assertEquals(upd.karma, 1)
+        self.assertEquals(upd.stable_karma, 1)
+        self.assertEquals(upd.status, UpdateStatus.testing)
+        self.assertEquals(upd.request, UpdateRequest.batched)
+        self.assertEquals(upd.autokarma, False)
+
+        text = unicode(config.get('testing_approval_msg_based_on_karma'))
+        upd.comment(self.db, text, author=u'bodhi')
+
+        # Checks Push to Stable text in the html page for this update
+        id = 'bodhi-2.0.0-2.fc17'
+        resp = self.app.get('/updates/%s' % id,
+                            headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(id, resp)
+        self.assertIn('Push to Stable', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_manually_push_to_batched_based_on_karma(self, publish, *args):
+        """
+        Test manually push to batched when autokarma is disabled
+        and karma threshold is reached. Ensure that the option/button to push to
+        stable is not present prior to entering the batched request state.
+        """
+
+        # Disabled
+        # Sets stable karma to 1
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = False
+        args['stable_karma'] = 1
+        resp = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
         # Marks it as testing
         upd = Update.get(nvr, self.db)
         upd.status = UpdateStatus.testing
@@ -3687,13 +3734,14 @@ class TestUpdatesService(base.BaseTestCase):
         text = unicode(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author=u'bodhi')
 
-        # Checks Push to Stable text in the html page for this update
+        # Checks Push to Batched text in the html page for this update
         id = 'bodhi-2.0.0-2.fc17'
         resp = self.app.get('/updates/%s' % id,
                             headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(id, resp)
-        self.assertIn('Push to Stable', resp)
+        self.assertIn('Push to Batched', resp)
+        self.assertNotIn('Push to Stable', resp)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')

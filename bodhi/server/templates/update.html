@@ -273,7 +273,7 @@ $(document).ready(function() {
     $("#updatebuttons #edit").attr('href',
         '${request.route_url("update_edit", id=update.alias)}');
 
-    $.each(['testing', 'stable', 'unpush', 'revoke'], function(i, action) {
+    $.each(['testing', 'stable', 'batched', 'unpush', 'revoke'], function(i, action) {
       $("#updatebuttons #" + action).click(function() {
           $("#updatebuttons a").addClass('disabled');
           cabbage.spin(); // for real!
@@ -411,8 +411,10 @@ $(document).ready(function(){
               <a id='testing' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Testing</a>
               % endif
               % if update.status.description not in ['stable', 'obsolete']:
-                <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Stable</a>
+		<a id='batched' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Batched</a>
               % endif
+	    % elif update.request.description == 'batched':
+                <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Stable</a>
             % else:
               <a id='revoke' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Revoke</a>
             % endif
