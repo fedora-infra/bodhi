@@ -2225,6 +2225,15 @@ class Update(Base):
 
     @property
     def product_version(self):
+        """
+        Return a string of the product version that this update's release is associated with.
+
+        The product version is a string, such as "fedora-26", and is used when querying Greenwave
+        for test gating decisions.
+
+        Returns:
+            basestring: The product version associated with this Update's Release.
+        """
         return self.release.long_name.lower().replace(' ', '-')
 
     def check_requirements(self, session, settings):
