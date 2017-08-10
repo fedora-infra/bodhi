@@ -50,6 +50,13 @@ class TestCheckPolicies(BaseTestCase):
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.passed)
             self.assertEqual(update.greenwave_summary_string, 'All tests passed')
 
+        expected_query = {
+            'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
+            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                        {'item': u'FEDORA-2017-a3bbe1a8f2', 'type': 'bodhi_update'}]}
+        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
+                                               expected_query)
+
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_policies_unsatisfied(self):
         """Assert correct behavior when the policies enforced by Greenwave are unsatisfied"""
@@ -76,6 +83,13 @@ class TestCheckPolicies(BaseTestCase):
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
             self.assertEqual(update.greenwave_summary_string, '1 of 2 tests are failed')
 
+        expected_query = {
+            'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
+            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                        {'item': u'FEDORA-2017-a3bbe1a8f2', 'type': 'bodhi_update'}]}
+        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
+                                               expected_query)
+
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_no_policies_enforced(self):
         """
@@ -97,6 +111,12 @@ class TestCheckPolicies(BaseTestCase):
         update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
         # The test_gating_status should still be None.
         self.assertTrue(update.test_gating_status is None)
+        expected_query = {
+            'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
+            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                        {'item': u'FEDORA-2017-a3bbe1a8f2', 'type': 'bodhi_update'}]}
+        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
+                                               expected_query)
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_unrestricted_policy(self):
@@ -117,3 +137,10 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.ignored)
             self.assertEqual(update.greenwave_summary_string, 'no tests are required')
+
+        expected_query = {
+            'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
+            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                        {'item': u'FEDORA-2017-a3bbe1a8f2', 'type': 'bodhi_update'}]}
+        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
+                                               expected_query)
