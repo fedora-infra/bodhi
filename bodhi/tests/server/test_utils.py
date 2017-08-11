@@ -521,6 +521,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(mock_get.return_value.json.call_count, 2)
         self.assertEqual(mock_get.call_count, 2)
         self.assertEqual(mock_get.call_args[0][0], 'url2')
+        self.assertEqual(mock_get.call_args[1]['timeout'], 60)
 
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch('bodhi.server.util.log.debug')
