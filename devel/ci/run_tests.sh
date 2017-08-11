@@ -29,6 +29,7 @@ sudo yum install -y\
     python-click\
     python-colander\
     python-cornice\
+    python-cornice-spinx\
     python-createrepo_c\
     python-cryptography\
     python-dnf\
@@ -55,12 +56,14 @@ sudo yum install -y\
     python-webob1.4\
     python-webtest\
     python2-fedmsg-atomic-composer\
+    python2-sphinx-theme-alabaster\
+    python2-sqlalchemy_schemadisplay\
 
 mv development.ini.example development.ini
 
 sudo /usr/bin/python setup.py develop
 
 /usr/bin/pytest
-/usr/bin/tox -e pydocstyle,flake8
+/usr/bin/tox -e pydocstyle,flake8,docs
 
 diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100
