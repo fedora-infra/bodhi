@@ -1,16 +1,115 @@
 Release notes
 =============
 
-develop
--------
+2.10.0
+------
 
-Dependency changes
-------------------
+Compatibility changes
+^^^^^^^^^^^^^^^^^^^^^
 
-dnf is now a required dependency for the Python bindings. Technically, it was needed before for some
-of the functionality, and it would traceback if that functionality was used without dnf being
-present. With this change, the module will fail to import without dnf, and dnf is a formal
-dependency.
+This release of Bodhi has a few changes that are technically backward incompatible in some senses,
+but it was determined that each of these changes are justified without raising Bodhi's major
+version, often due to features not working at all or being unused. Justifications for each are given
+inline.
+
+* dnf and iniparse are now required dependencies for the Python bindings. Justification:
+  Technically, these were needed before for some of the functionality, and the bindings would
+  traceback if that functionality was used without these dependencies being present. With this
+  change, the module will fail to import without them, and they are now formal dependencies.
+* Support for EL 5 has been removed in this release. Justification: EL 5 has become end of life.
+* The pkgtags feature has been removed. Justification: It did not work correctly and enabling it was
+  devastating
+  (`#1634 <https://github.com/fedora-infra/bodhi/issues/1634>`_).
+* Some bindings code that could log into Koji with TLS certificates was removed. Justification: It
+  was unused
+  (`b4474676 <https://github.com/fedora-infra/bodhi/commit/b4474676>`_).
+* Bodhi's short-lived ``ci_gating`` feature has been removed, in favor of the new
+  Greenwave integration feature. Thus, the ``ci.required`` and ``ci.url`` settings no longer
+  function in Bodhi. The ``bodhi-babysit-ci`` utility has also been removed. Justification: The
+  feature was never completed and thus no functionality is lost
+  (`#1733 <https://github.com/fedora-infra/bodhi/pull/1733>`_).
+
+
+Features
+^^^^^^^^
+
+* There are new search endpoints in the REST API that perform ilike queries to support case
+  insensitive searching. Bodhi's web interface now uses these endpoints
+  (`#997 <https://github.com/fedora-infra/bodhi/issues/997>`_).
+* It is now possible to search by update alias in the web interface
+  (`#1258 <https://github.com/fedora-infra/bodhi/issues/1258>`_).
+* Exact matches are now sorted first in search results
+  (`#692 <https://github.com/fedora-infra/bodhi/issues/692>`_).
+* The CLI now has a ``--mine`` flag when searching for updates or overrides
+  (`#811 <https://github.com/fedora-infra/bodhi/issues/811>`_,
+  `#1382 <https://github.com/fedora-infra/bodhi/issues/1382>`_).
+* The CLI now has more search parameters when querying overrides
+  (`#1679 <https://github.com/fedora-infra/bodhi/issues/1679>`_).
+* The new case insensitive search is also used when hitting enter in the search box in the web UI
+  (`#870 <https://github.com/fedora-infra/bodhi/issues/870>`_).
+* Bodhi is now able to query Pagure for FAS groups for ACL info
+  (`f9414601 <https://github.com/fedora-infra/bodhi/commit/f9414601>`_).
+* The Python bindings' ``candidates()`` method now automatically intiializes the username
+  (`6e8679b6 <https://github.com/fedora-infra/bodhi/commit/6e8679b6>`_).
+* CLI errors are now printed in red text
+  (`431b9078 <https://github.com/fedora-infra/bodhi/commit/431b9078>`_).
+* The graphs on the metrics page now have mouse hovers to indicate numerical values
+  (`#209 <https://github.com/fedora-infra/bodhi/issues/209>`_).
+* Bodhi now has support for using `Greenwave <https://pagure.io/greenwave/>`_ to gate updates based
+  on test results. See the new ``test_gating.required``, ``test_gating.url``, and
+  ``greenwave_api_url`` settings in ``production.ini`` for details on how to enable it. Note also
+  that this feature introduces a new server CLI tool, ``bodhi-check-policies``, which is intended to
+  be run via cron on a regular interval. This CLI tool communicates with Greenwave to determine if
+  updates are passing required tests or not
+  (`#1733 <https://github.com/fedora-infra/bodhi/pull/1733>`_).
+
+
+Bug fixes
+^^^^^^^^^
+
+* The autokarma check box's value now persists when editing updates
+  (`#1692 <https://github.com/fedora-infra/bodhi/issues/1692>`_,
+  `#1482 <https://github.com/fedora-infra/bodhi/issues/1482>`_, and
+  `#1308 <https://github.com/fedora-infra/bodhi/issues/1308>`_).
+* The CLI now catches a variety of Exceptions and prints user readable errors instead of tracebacks
+  (`#1126 <https://github.com/fedora-infra/bodhi/issues/1126>`_,
+  `#1626 <https://github.com/fedora-infra/bodhi/issues/1626>`_).
+* The Python bindings' ``get_releases()`` method now uses a GET request
+  (`#784 <https://github.com/fedora-infra/bodhi/issues/784>`_).
+* The HTML sanitization code has been refactored, which fixed a couple of issues where Bodhi didn't
+  correctly escape things like e-mail addresses
+  (`#1656 <https://github.com/fedora-infra/bodhi/issues/1656>`_,
+  `#1721 <https://github.com/fedora-infra/bodhi/issues/1721>`_).
+* The bindings' docstring for the ``comment()`` method was corrected to state that the ``email``
+  parameter is used to make anonymous comments, rather than to enable or disable sending of e-mails
+  (`#289 <https://github.com/fedora-infra/bodhi/issues/289>`_).
+* The web interface now links directly to libravatar's login page instead of POSTing to it
+  (`#1674 <https://github.com/fedora-infra/bodhi/issues/1674>`_).
+* The new/edit update form in the web interface now works with the new typeahead library
+  (`#1731 <https://github.com/fedora-infra/bodhi/issues/1731>`_).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Several more modules have been documented with PEP-257 compliant docblocks.
+* Several new tests have been added to cover various portions of the code base, and Bodhi now has
+  89% line test coverage. The goal is to reach 100% line coverage within the next 12 months, and
+  then begin to work towards 100% branch coverage.
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 2.10.0:
+
+* Ryan Lerch
+* Matt Jia
+* Matt Prahl
+* Jeremy Cline
+* Ralph Bean
+* Caleigh Runge-Hottman
+* Randy Barlow
 
 
 2.9.0
