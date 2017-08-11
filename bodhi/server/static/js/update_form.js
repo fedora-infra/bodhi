@@ -41,8 +41,9 @@ $(document).ready(function() {
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
+            wildcard: '%QUERY',
             url: base + prefix + '%QUERY' + suffix,
-            filter: function (response) {
+            transform: function (response) {
                 return $.map(response.rows, function(row) {
                     return {'name': $('<p>' + row.name + '</p>').text()}
                 });
