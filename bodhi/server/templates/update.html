@@ -699,7 +699,8 @@ $(document).ready(function(){
                   % endif
                 </div>
                 <div>
-                  ${self.util.ci_status2html(update.ci_status.description) | n}
+                  ${self.util.ci_status2html(update.ci_status.description
+                    if update.ci_status else None) | n}
                 </div>
               </div>
               % endif
@@ -886,7 +887,8 @@ $(document).ready(function(){
               % if build.ci_url:
                 <a href="${build.ci_url}">${self.util.ci_status2html(build.ci_status.description) | n}</a>
               % else:
-                ${self.util.ci_status2html(build.ci_status.description) | n}
+                ${self.util.ci_status2html(build.ci_status.description
+                  if build.ci_status else None) | n}
               % endif
             </td>
           % endif
