@@ -3929,6 +3929,49 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(len(up.builds), 1)
         self.assertEquals(up.builds[0].nvr, nvr1)
 
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_meets_testing_requirements_since_karma_reset_critpath(self, publish, *args):
+        """
+        Ensure a critpath update still meets testing requirements after receiving negative karma
+        and after a karma reset event.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        update = Update.get(nvr, self.db)
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.critpath = True
+        update.autokarma = True
+        update.date_testing = datetime.utcnow() + timedelta(days=-20)
+        update.comment(self.db, u'lgtm', author=u'friend', karma=1)
+        update.comment(self.db, u'lgtm', author=u'friend2', karma=1)
+        update.comment(self.db, u'bad', author=u'enemy', karma=-1)
+        self.db.commit()
+
+        self.assertEqual(update.meets_testing_requirements, False)
+
+        args['edited'] = args['builds']
+        args['builds'] = 'bodhi-2.0.0-3.fc17'
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+
+        self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
+        self.assertEquals(up['karma'], 0)
+
+        update = Update.get(u'bodhi-2.0.0-3.fc17', self.db)
+        update.status = UpdateStatus.testing
+        self.date_testing = update.date_testing + timedelta(days=7)
+        update.comment(self.db, u'lgtm', author='friend3', karma=1)
+        update.comment(self.db, u'lgtm2', author='friend4', karma=1)
+        self.db.commit()
+
+        self.assertEquals(update.days_to_stable, 0)
+        self.assertEqual(update.meets_testing_requirements, True)
+
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
