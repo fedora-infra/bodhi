@@ -2454,13 +2454,8 @@ class Update(Base):
             # Ensure there is no negative karma. We're looking at the sum of
             # each users karma for this update, which takes into account
             # changed votes.
-            feedback = defaultdict(int)
-            for comment in self.comments:
-                if not comment.anonymous:
-                    feedback[comment.user.name] += comment.karma
-            for karma in feedback.values():
-                if karma < 0:
-                    return False
+            if self._composite_karma[1] < 0:
+                return False
             return self.days_in_testing >= num_days
 
         if not num_days:
@@ -2510,9 +2505,9 @@ class Update(Base):
         "truthy" date_testing attribute, or if it's been in testing for the release's
         mandatory_days_in_testing or longer."""
         if not self.meets_testing_requirements and self.date_testing:
-            return (
-                self.mandatory_days_in_testing -
-                (datetime.utcnow() - self.date_testing).days)
+            num_days = (self.mandatory_days_in_testing - self.days_in_testing)
+            if num_days > 0:
+                return num_days
         return 0
 
     @property

@@ -852,6 +852,44 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.days_to_stable, 3)
 
     @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
+    def test_days_to_stable_zero(self):
+        """
+        The Update.days_to_stable() method should only return a positive integer or zero.
+        In the past, days_to_stable() could return negative integers when the mandatory days in
+        testing was less than the number of days in testing. If the mandatory days in testing is
+        less than or equal to the number of days in testing, days_to_stable() should return zero.
+        See issue #1708.
+        """
+        update = self.obj
+        update.autokarma = False
+        update.builds[0].ci_status = CiStatus.failed
+
+        update.date_testing = datetime.utcnow() + timedelta(days=-8)
+        self.assertEqual(update.meets_testing_requirements, False)
+
+        self.assertEqual(update.mandatory_days_in_testing <= update.days_in_testing, True)
+        self.assertEqual(update.days_to_stable, 0)
+
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
+    def test_days_to_stable_positive(self):
+        """
+        The Update.days_to_stable() method should only return a positive integer or zero.
+        In the past, days_to_stable() could return negative integers when the mandatory days in
+        testing was less than the number of days in testing. If the mandatory days in testing is
+        greater than the number of days in testing, return the positive number of days until
+        stable. See issue #1708.
+        """
+        update = self.obj
+        update.autokarma = False
+        update.builds[0].ci_status = CiStatus.failed
+
+        update.date_testing = datetime.utcnow() + timedelta(days=-3)
+        self.assertEqual(update.meets_testing_requirements, False)
+
+        self.assertEqual(update.mandatory_days_in_testing > update.days_in_testing, True)
+        self.assertEqual(update.days_to_stable, 4)
+
+    @mock.patch.dict('bodhi.server.config.config', {'ci.required': True})
     def test_ci_failed_no_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return False if the
@@ -1549,6 +1587,16 @@ class TestUpdate(ModelTest):
 
         # meets_testing_requirement() should return False since the stable_karma threshold is None.
         self.assertEqual(self.obj.meets_testing_requirements, False)
+
+    def test_meets_testing_requirements_critpath_negative_karma(self):
+        """
+        Assert that meets_testing_requirements() correctly returns False for critpath updates
+        with negative karma.
+        """
+        update = self.obj
+        update.critpath = True
+        update.comment(self.db, u'testing', author=u'enemy', anonymous=False, karma=-1)
+        self.assertEqual(update.meets_testing_requirements, False)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_met_testing_requirements_with_karma_after_bodhi_comment(self, publish):
