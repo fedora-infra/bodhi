@@ -2361,7 +2361,8 @@ class Update(Base):
         if self.status not in (UpdateStatus.testing, UpdateStatus.pending):
             return
         # If an update receives negative karma disable autopush
-        if self.autokarma and self._composite_karma[1] != 0 and self.status is UpdateStatus.testing:
+        if self.autokarma and self._composite_karma[1] != 0 and self.status is \
+                UpdateStatus.testing and self.request is not UpdateRequest.stable:
             log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
             text = config.get('disable_automatic_push_to_stable')

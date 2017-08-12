@@ -2614,7 +2614,7 @@ class TestUpdatesService(base.BaseTestCase):
         """
         Send update to obsolete state if it reaches unstable karma threshold on
         testing state where request is stable when Autopush is enabled. Make sure that the
-        autopush is disabled and the update does not go to stable state.
+        autopush remains enabled and the update does not go to stable state.
         """
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -2641,7 +2641,7 @@ class TestUpdatesService(base.BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
 
         self.assertEquals(up.karma, -2)
-        self.assertEquals(up.autokarma, False)
+        self.assertEquals(up.autokarma, True)
         self.assertEquals(up.status, UpdateStatus.obsolete)
         self.assertEquals(up.request, None)
 
