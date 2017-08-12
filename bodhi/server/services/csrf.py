@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2007-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Define the /csrf services."""
 
 from cornice import Service
 
@@ -29,10 +35,22 @@ csrf = Service(name='csrf', path='/csrf', description='CSRF Token',
 @csrf.get(accept="text/html", renderer="string",
           error_handler=bodhi.server.services.errors.html_handler)
 def get_csrf_token_html(request):
+    """
+    Return a plain string CSRF token.
+
+    Returns:
+        basestring: A CSRF token.
+    """
     return request.session.get_csrf_token()
 
 
 @csrf.get(accept=("application/json", "text/json"), renderer="json",
           error_handler=bodhi.server.services.errors.json_handler)
 def get_csrf_token_json(request):
+    """
+    Return a JSON string containing a CSRF token, in a key called csrf_token.
+
+    Returns:
+        basestring: A JSON string with a key csrf_token that references a CSRF token.
+    """
     return dict(csrf_token=request.session.get_csrf_token())
