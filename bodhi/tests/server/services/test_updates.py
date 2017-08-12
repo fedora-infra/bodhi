@@ -3686,6 +3686,29 @@ class TestUpdatesService(base.BaseTestCase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
+    def test_manually_push_to_stable_from_batched(self, publish, *args):
+        """
+        Test manually push to stable from batched when autokarma is disabled
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+
+        update = Update.get(nvr, self.db)
+        update.status = UpdateStatus.testing
+        update.request = UpdateRequest.batched
+        self.db.commit()
+
+        # Checks Push to Stable text in the html page for this update
+        id = 'bodhi-2.0.0-2.fc17'
+        resp = self.app.get('/updates/%s' % id,
+                            headers={'Accept': 'text/html'})
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(id, resp)
+        self.assertIn('Push to Stable', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
     def test_manually_push_to_stable_based_on_karma(self, publish, *args):
         """
         Test manually push to stable when autokarma is disabled
