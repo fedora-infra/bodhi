@@ -3956,7 +3956,7 @@ class TestUpdatesService(base.BaseTestCase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_newpackage_update_bypass_batched(self, publish, *args):
         """
-        Make sure a security update skips the 'batched' request and immediately enters stable
+        Make sure a newpackage update skips the 'batched' request and immediately enters stable
         upon getting the sufficient number of karma.
         """
         nvr = u'bodhi-2.0.0-2.fc17'
