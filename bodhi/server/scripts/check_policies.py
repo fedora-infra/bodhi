@@ -64,8 +64,7 @@ def check():
             else:
                 update.test_gating_status = models.TestGatingStatus.failed
             update.greenwave_summary_string = decision['summary']
-            if session.is_modified(update):
-                session.commit()
+            session.commit()
         except Exception as e:
             # If there is a problem talking to Greenwave server, print the error.
             click.echo(str(e))
