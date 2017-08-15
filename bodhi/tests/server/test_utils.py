@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2007-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -20,6 +25,48 @@ import pkgdb2client
 from bodhi.server import util
 from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
+
+
+class TestBugLink(unittest.TestCase):
+    """Tests for the bug_link() function."""
+    def test_short_false_with_title(self):
+        """Test a call to bug_link() with short=False on a Bug that has a title."""
+        bug = mock.MagicMock()
+        bug.bug_id = 1234567
+        bug.title = "Lucky bug number"
+
+        link = util.bug_link(None, bug)
+
+        self.assertEqual(
+            link,
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
+             "#1234567</a> Lucky bug number"))
+
+    def test_short_false_without_title(self):
+        """Test a call to bug_link() with short=False on a Bug that has no title."""
+        bug = mock.MagicMock()
+        bug.bug_id = 1234567
+        bug.title = None
+
+        link = util.bug_link(None, bug)
+
+        self.assertEqual(
+            link,
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
+             "#1234567</a> <img class='spinner' src='static/img/spinner.gif'>"))
+
+    def test_short_true(self):
+        """Test a call to bug_link() with short=True."""
+        bug = mock.MagicMock()
+        bug.bug_id = 1234567
+        bug.title = "Lucky bug number"
+
+        link = util.bug_link(None, bug, True)
+
+        self.assertEqual(
+            link,
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
+             "#1234567</a>"))
 
 
 class TestUtils(unittest.TestCase):
