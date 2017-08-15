@@ -563,8 +563,9 @@ def bug_link(context, bug, short=False):
     link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
     if not short:
         if bug.title:
-            # We're good...
-            link = link + " " + bug.title
+            # We're good, but we do need to clean the bug title in case it contains malicious
+            # tags. See CVE-2017-1002152: https://github.com/fedora-infra/bodhi/issues/1740
+            link = link + " " + bleach.clean(bug.title, tags=[], attributes=[])
         else:
             # Otherwise, the backend is async grabbing the title from rhbz, so
             link = link + " <img class='spinner' src='static/img/spinner.gif'>"
