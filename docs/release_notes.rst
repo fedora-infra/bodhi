@@ -112,6 +112,18 @@ The following developers contributed to Bodhi 2.10.0:
 * Randy Barlow
 
 
+2.9.1
+-----
+
+2.9.1 is a security release for
+`CVE-2017-1002152 <https://github.com/fedora-infra/bodhi/issues/1740>`_.
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+Thanks to Marcel for reporting the issue. Randy Barlow wrote the fix.
+
+
 2.9.0
 -----
 
