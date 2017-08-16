@@ -90,7 +90,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         get_unsatisfied_reqs({
             'product_version': '${update.product_version}',
             'decision_context': 'bodhi_update_push_stable',
-            'subject': builds
+            'subject': ${ update.greenwave_subject_json | n }
         });
     }
 

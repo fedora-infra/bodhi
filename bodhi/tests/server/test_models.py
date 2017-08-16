@@ -697,6 +697,27 @@ class TestUpdate(ModelTest):
     def test_content_type(self):
         self.assertEqual(self.obj.content_type, model.ContentType.rpm)
 
+    def test_greenwave_subject(self):
+        """Ensure that the greenwave_subject property returns the correct value."""
+        self.obj.assign_alias()
+
+        self.assertEqual(
+            self.obj.greenwave_subject,
+            [{'item': u'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
+             {'item': self.obj.alias, 'type': 'bodhi_update'}])
+
+    def test_greenwave_subject_json(self):
+        """Ensure that the greenwave_subject_json property returns the correct value."""
+        self.obj.assign_alias()
+
+        subject = self.obj.greenwave_subject_json
+
+        self.assertTrue(isinstance(subject, basestring))
+        self.assertEqual(
+            json.loads(subject),
+            [{'item': u'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
+             {'item': self.obj.alias, 'type': 'bodhi_update'}])
+
     def test_mandatory_days_in_testing_critpath(self):
         """
         The Update.mandatory_days_in_testing method should be the configured value

@@ -1,5 +1,8 @@
-# encoding: utf-8
-
+# -*- coding: utf-8 -*-
+# Copyright © 2011-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -1239,6 +1242,31 @@ class Update(Base):
                 return True
 
         return False
+
+    @property
+    def greenwave_subject(self):
+        """
+        Form and return the proper Greenwave API subject field for this Update.
+
+        Returns:
+            list: A list of dictionaries that are appropriate to be passed to the Greenwave API
+                subject field for a decision about this Update.
+        """
+        # See discussion on https://pagure.io/greenwave/issue/34 for why we use these subjects.
+        subject = [{'item': build.nvr, 'type': 'koji_build'} for build in self.builds]
+        subject.append({'item': self.alias, 'type': 'bodhi_update'})
+        return subject
+
+    @property
+    def greenwave_subject_json(self):
+        """
+        Form and return the proper Greenwave API subject field for this Update as JSON.
+
+        Returns:
+            basestring: A JSON list of objects that are appropriate to be passed to the Greenwave
+                API subject field for a decision about this Update.
+        """
+        return json.dumps(self.greenwave_subject)
 
     @classmethod
     def new(cls, request, data):
