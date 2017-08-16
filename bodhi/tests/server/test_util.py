@@ -54,10 +54,10 @@ class TestBugLink(unittest.TestCase):
 
         link = util.bug_link(None, bug)
 
-        self.assertEqual(
-            link,
-            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
-             "#1234567</a> Check &lt;b&gt;this&lt;/b&gt; out"))
+        self.assertTrue(
+            link.startswith(
+                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
+                 "#1234567</a> Check &lt;b&gt;this&lt;/b&gt; out")))
 
     def test_short_false_with_title_sanitizes_unsafe_tags(self):
         """
@@ -70,10 +70,10 @@ class TestBugLink(unittest.TestCase):
 
         link = util.bug_link(None, bug)
 
-        self.assertEqual(
-            link,
-            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091'>"
-             "#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should be optional"))
+        self.assertTrue(
+            link.startswith(
+                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091'>"
+                 "#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should be optional")))
 
     def test_short_false_without_title(self):
         """Test a call to bug_link() with short=False on a Bug that has no title."""
