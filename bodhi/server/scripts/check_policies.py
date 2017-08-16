@@ -41,13 +41,10 @@ def check():
         .filter(models.Update.status.in_(
                 [models.UpdateStatus.pending, models.UpdateStatus.testing]))
     for update in updates:
-        # See discussion on https://pagure.io/greenwave/issue/34 for why we use these subjects.
-        subjects = [{'item': build.nvr, 'type': 'koji_build'} for build in update.builds]
-        subjects.append({'item': update.alias, 'type': 'bodhi_update'})
         data = {
             'product_version': update.product_version,
             'decision_context': u'bodhi_update_push_stable',
-            'subject': subjects
+            'subject': update.greenwave_subject
         }
         api_url = '{}/decision'.format(
             config.config.get('greenwave_api_url').rstrip('/'))
