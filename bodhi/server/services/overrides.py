@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Define API endpoints for managing and searching buildroot overrides."""
 
 import math
 
@@ -56,6 +62,15 @@ overrides_rss = Service(name='overrides_rss', path='/rss/overrides/',
 @override.get(accept=("text/html"), renderer="override.html",
               error_handler=bodhi.server.services.errors.html_handler)
 def get_override(request):
+    """
+    Return a dictionary with key "override" indexing the override that matches the given nvr.
+
+    Args:
+        request (pyramid.request): The current request, which should have a query parameter "nvr",
+            providing the nvr of the requested override.
+    Returns:
+        dict: A dictionary with key "override" that indexes the override matching the given nvr.
+    """
     db = request.db
     nvr = request.matchdict.get('nvr')
 
@@ -102,6 +117,29 @@ validators = (
                error_handler=bodhi.server.services.errors.html_handler,
                validators=validators)
 def query_overrides(request):
+    """
+    Search for overrides by various criteria.
+
+    The following optional parameters may be used when searching for overrides:
+        builds (list): A list of NVRs to search overrides by.
+        expired (bool): If True, limit search to expired overrides. If False, limit search to active
+            overrides.
+        like (basestring): Perform an SQL "like" query against build NVRs with the given string.
+        packages (list): A list of package names to search overrides by.
+        releases (list): A list of release names to limit the overrides search by.
+        search (basestring): Perform an SQL "ilike" query against build NVRs with the given string.
+        submitter (basestring): Search for overrides submitted by the given username.
+
+    Returns:
+        dict: A dictionary with the following keys:
+            overrides: An iterable containing the matched overrides.
+            page: The current page number in the results.
+            pages: The number of pages of results that match the query.
+            rows_per_page: The number of rows on the page.
+            total: The total number of overrides that match the criteria.
+            chrome: The caller supplied chrome.
+            display_user: The current username.
+    """
     db = request.db
     data = request.validated
     query = db.query(BuildrootOverride)
@@ -186,11 +224,17 @@ def query_overrides(request):
                     validate_expiration_date,
                 ))
 def save_override(request):
-    """Save a buildroot override
+    """
+    Create or edit a buildroot override.
 
     This entails either creating a new buildroot override, or editing an
     existing one. To edit an existing buildroot override, the buildroot
     override's original id needs to be specified in the ``edited`` parameter.
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        dict: The new or edited override.
     """
     data = request.validated
 
