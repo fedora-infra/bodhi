@@ -805,44 +805,6 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.days_to_stable, 3)
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
-    def test_days_to_stable_zero(self):
-        """
-        The Update.days_to_stable() method should only return a positive integer or zero.
-        In the past, days_to_stable() could return negative integers when the mandatory days in
-        testing was less than the number of days in testing. If the mandatory days in testing is
-        less than or equal to the number of days in testing, days_to_stable() should return zero.
-        See issue #1708.
-        """
-        update = self.obj
-        update.autokarma = False
-        update.test_gating_status = TestGatingStatus.failed
-
-        update.date_testing = datetime.utcnow() + timedelta(days=-8)
-        self.assertEqual(update.meets_testing_requirements, False)
-
-        self.assertEqual(update.mandatory_days_in_testing <= update.days_in_testing, True)
-        self.assertEqual(update.days_to_stable, 0)
-
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
-    def test_days_to_stable_positive(self):
-        """
-        The Update.days_to_stable() method should only return a positive integer or zero.
-        In the past, days_to_stable() could return negative integers when the mandatory days in
-        testing was less than the number of days in testing. If the mandatory days in testing is
-        greater than the number of days in testing, return the positive number of days until
-        stable. See issue #1708.
-        """
-        update = self.obj
-        update.autokarma = False
-        update.test_gating_status = TestGatingStatus.failed
-
-        update.date_testing = datetime.utcnow() + timedelta(days=-3)
-        self.assertEqual(update.meets_testing_requirements, False)
-
-        self.assertEqual(update.mandatory_days_in_testing > update.days_in_testing, True)
-        self.assertEqual(update.days_to_stable, 4)
-
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_test_gating_faild_no_testing_requirements(self):
         """
         The Update.meets_testing_requirements() should return False, if the test gating
