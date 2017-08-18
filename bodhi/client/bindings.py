@@ -441,6 +441,13 @@ class BodhiClient(OpenIdBaseClient):
 
     @errorhandled
     def latest_builds(self, package):
+        """ Get the latest builds for a package.
+
+        :arg package: The package name, for example "kernel".
+
+        Returns a Munch (dict-like) object of the release dist tag to the
+        latest build.
+        """
         return self.send_request('latest_builds', params={'package': package})
 
     def testable(self):
