@@ -704,6 +704,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(
             self.obj.greenwave_subject,
             [{'item': u'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
+             {'original_spec_nvr': u'TurboGears-1.0.8-3.fc11'},
              {'item': self.obj.alias, 'type': 'bodhi_update'}])
 
     def test_greenwave_subject_json(self):
@@ -716,6 +717,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(
             json.loads(subject),
             [{'item': u'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
+             {'original_spec_nvr': u'TurboGears-1.0.8-3.fc11'},
              {'item': self.obj.alias, 'type': 'bodhi_update'}])
 
     def test_mandatory_days_in_testing_critpath(self):
