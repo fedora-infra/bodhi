@@ -1,6 +1,24 @@
 Release notes
 =============
 
+2.10.1
+------
+
+Bug fixes
+^^^^^^^^^
+
+* Adjust the Greenwave subject query to include the original NVR of the builds
+  (`#1765 <https://github.com/fedora-infra/bodhi/pull/1765>`_).
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 2.10.1:
+
+* Ralph Bean
+
+
 2.10.0
 ------
 
