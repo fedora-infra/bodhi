@@ -1254,6 +1254,9 @@ class Update(Base):
         """
         # See discussion on https://pagure.io/greenwave/issue/34 for why we use these subjects.
         subject = [{'item': build.nvr, 'type': 'koji_build'} for build in self.builds]
+        # Additionally add some subject entries for "CI"
+        # https://pagure.io/greenwave/issue/61
+        subject.extend([{'original_spec_nvr': build.nvr} for build in self.builds])
         subject.append({'item': self.alias, 'type': 'bodhi_update'})
         return subject
 
