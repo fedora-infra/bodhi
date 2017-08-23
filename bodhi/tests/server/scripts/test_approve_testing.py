@@ -206,6 +206,45 @@ class TestMain(BaseTestCase):
         self.assertEqual(comment_q.count(), 1)
         self.assertEqual(comment_q[0].text, config.get('testing_approval_msg_based_on_karma'))
 
+    def test_non_autokarma_critpath_update_meeting_time_requirements_gets_one_comment(self):
+        """
+        Ensure that a critpath update that meets the required time in testing (14 days) gets a
+        comment from Bodhi indicating that the update has met the required time in testing.
+        There was an issue[0] where Bodhi was indicating that the update had been in testing for
+        only 7 days, when the update had been in testing for 14 days.
+
+        [0] https://github.com/fedora-infra/bodhi/issues/1361
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.autokarma = False
+        update.request = None
+        update.stable_karma = 10
+        update.critpath = True
+        update.status = models.UpdateStatus.testing
+        update.date_testing = datetime.utcnow() - timedelta(days=14)
+        self.db.commit()
+
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini'])
+
+                # Now we will run main() again, but this time we expect Bodhi not to add any
+                # further comments.
+                approve_testing.main(['nosetests', 'some_config.ini'])
+
+        update = self.db.query(models.Update).all()[0]
+        self.assertEqual(update.critpath, True)
+        self.assertEqual(update.mandatory_days_in_testing, 14)
+
+        bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
+        comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
+        self.assertEqual(comment_q.count(), 1)
+        self.assertEqual(
+            comment_q[0].text,
+            config.get('testing_approval_msg') % update.mandatory_days_in_testing)
+        self.assertEqual(update.release.mandatory_days_in_testing, 7)
+        self.assertEqual(update.mandatory_days_in_testing, 14)
+
     def test_non_autokarma_update_with_stable_karma_0(self):
         """
         A non-autokarma update with a stable_karma set to 0 should not get comments from Bodhi.
