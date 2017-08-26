@@ -41,9 +41,17 @@ def check():
         .filter(models.Update.status.in_(
                 [models.UpdateStatus.pending, models.UpdateStatus.testing]))
     for update in updates:
+        # We retrieve updates going to testing (status=pending) and updates
+        # (status=testing) going to stable.
+        # If the update is pending, we want to know if it can go to testing
+        decision_context = u'bodhi_update_push_testing'
+        if update.status == models.UpdateStatus.testing:
+            # Update is already in testing, let's ask if it can go to stable
+            decision_context = u'bodhi_update_push_stable'
+
         data = {
             'product_version': update.product_version,
-            'decision_context': u'bodhi_update_push_stable',
+            'decision_context': decision_context,
             'subject': update.greenwave_subject
         }
         api_url = '{}/decision'.format(

@@ -59,6 +59,36 @@ class TestCheckPolicies(BaseTestCase):
                                                expected_query)
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
+    def test_policies_pending_satisfied(self):
+        """Assert that Updates whose status is pending are checked against
+        greenwave with the ``bodhi_update_push_testing`` decision context. """
+        runner = testing.CliRunner()
+        update = self.db.query(models.Update).all()[0]
+        update.status = models.UpdateStatus.pending
+        self.db.commit()
+        with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
+            greenwave_response = {
+                'policies_satisified': True,
+                'summary': 'All tests passed',
+                'applicable_policies': ['taskotron_release_critical_tasks'],
+                'unsatisfied_requirements': []
+            }
+            mock_greenwave.return_value = greenwave_response
+            result = runner.invoke(check_policies.check, [])
+            self.assertEqual(result.exit_code, 0)
+            update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
+            self.assertEqual(update.test_gating_status, models.TestGatingStatus.passed)
+            self.assertEqual(update.greenwave_summary_string, 'All tests passed')
+
+        expected_query = {
+            'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_testing',
+            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                        {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                        {'item': u'FEDORA-2017-a3bbe1a8f2', 'type': 'bodhi_update'}]}
+        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
+                                               expected_query)
+
+    @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_policies_unsatisfied(self):
         """Assert correct behavior when the policies enforced by Greenwave are unsatisfied"""
         runner = testing.CliRunner()
