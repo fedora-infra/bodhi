@@ -17,14 +17,13 @@ import os
 import re
 
 import cornice.util
-
 import mako.exceptions
 import mako.lookup
-
 import pyramid.httpexceptions
 import pyramid.response
 
 from bodhi.server.config import config
+
 
 log = logging.getLogger('bodhi')
 
