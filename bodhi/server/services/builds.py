@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Define service endpoint for retrieving Builds."""
 import math
 
 from cornice import Service
@@ -35,6 +41,15 @@ builds = Service(name='builds', path='/builds/',
 @build.get(renderer='json',
            error_handler=bodhi.server.services.errors.json_handler)
 def get_build(request):
+    """
+    Retrieve a Build by name-version-release, specified via an "nvr" query string parameter.
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        bodhi.server.models.Build or None: The Build matching the search, or None if there is no
+            Build with the given NVR.
+    """
     nvr = request.matchdict.get('nvr')
     build = RpmBuild.get(nvr, request.db)
     if not build:
@@ -49,6 +64,28 @@ def get_build(request):
             validators=(validate_releases, validate_updates,
                         validate_packages))
 def query_builds(request):
+    """
+    Search for Builds by given criteria.
+
+    The following criteria can be provided via query string parameters to search for Builds:
+        nvr: The dash-separated name-version-release of a Build.
+        updates: A space or comma separated list of updates to limit the search by.
+        packages: A space or comma separated list of packages to search for builds by.
+        releases: A space or comma separated list of release ids to limit builds by.
+        page: Which page of search results are desired.
+        rows_per_pags: How many results per page are desired.
+
+    Args:
+        request (pyramid.request): The current request, containing the search criteria documented
+            above.
+    Returns:
+        dict: A dictionary with the following key value mappings:
+            builds: An iterable of builds that match the search criteria.
+            page: The current page.
+            pages: The total number of pages.
+            rows_per_page: The number of rows per page.
+            total: The number of builds that match the search criteria.
+    """
     db = request.db
     data = request.validated
     query = db.query(RpmBuild)
