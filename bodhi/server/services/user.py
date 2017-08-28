@@ -104,6 +104,10 @@ validators = (
            accept=("application/javascript"), renderer="jsonp",
            error_handler=bodhi.server.services.errors.jsonp_handler,
            validators=validators)
+@users.get(schema=bodhi.server.schemas.ListUserSchema, renderer="rss",
+           accept=('application/atom+xml',),
+           error_handler=bodhi.server.services.errors.html_handler,
+           validators=validators)
 @users_rss.get(schema=bodhi.server.schemas.ListUserSchema, renderer="rss",
                error_handler=bodhi.server.services.errors.html_handler,
                validators=validators)

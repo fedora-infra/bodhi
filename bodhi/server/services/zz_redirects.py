@@ -27,40 +27,7 @@ get defined in the other service modules.
 from cornice import Service
 from pyramid.httpexceptions import HTTPFound
 
-from bodhi.server.services.comments import comments
-from bodhi.server.services.overrides import overrides
-from bodhi.server.services.updates import updates
-from bodhi.server.services.user import users
 import bodhi.server.security
-
-
-def redirect_maker(target):
-    def redirector(request):
-        url = request.route_url('updates_rss')
-        if request.query_string:
-            url = url + '?' + request.query_string
-        raise HTTPFound(url)
-    return redirector
-
-
-@comments.get(accept=('application/atom+xml',))
-def comments_rss_redirect(request):
-    return redirect_maker('comments_rss')(request)
-
-
-@overrides.get(accept=('application/atom+xml',))
-def overrides_rss_redirect(request):
-    return redirect_maker('overrides_rss')(request)
-
-
-@updates.get(accept=('application/atom+xml',))
-def updates_rss_redirect(request):
-    return redirect_maker('updates_rss')(request)
-
-
-@users.get(accept=('application/atom+xml',))
-def users_rss_redirect(request):
-    return redirect_maker('users_rss')(request)
 
 
 zz_bodhi1_update_redirect = Service(

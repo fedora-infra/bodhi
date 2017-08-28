@@ -85,6 +85,10 @@ validators = (
 @overrides_rss.get(schema=bodhi.server.schemas.ListOverrideSchema, renderer='rss',
                    error_handler=bodhi.server.services.errors.html_handler,
                    validators=validators)
+@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema, renderer='rss',
+               accept=('application/atom+xml',),
+               error_handler=bodhi.server.services.errors.html_handler,
+               validators=validators)
 @overrides.get(schema=bodhi.server.schemas.ListOverrideSchema,
                accept=("application/json", "text/json"), renderer="json",
                error_handler=bodhi.server.services.errors.json_handler,

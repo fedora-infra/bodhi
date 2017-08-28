@@ -201,6 +201,10 @@ validators = (
 @updates_rss.get(schema=bodhi.server.schemas.ListUpdateSchema, renderer='rss',
                  error_handler=bodhi.server.services.errors.html_handler,
                  validators=validators)
+@updates.get(schema=bodhi.server.schemas.ListUpdateSchema, renderer='rss',
+             accept=('application/atom+xml',),
+             error_handler=bodhi.server.services.errors.html_handler,
+             validators=validators)
 @updates.get(schema=bodhi.server.schemas.ListUpdateSchema,
              accept=('application/json', 'text/json'), renderer='json',
              error_handler=bodhi.server.services.errors.json_handler,
