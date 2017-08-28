@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2015-2017 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Define a service endpoint for searching for packages."""
 import math
 
 from cornice import Service
@@ -34,6 +40,26 @@ packages = Service(name='packages', path='/packages/',
                   # None yet...
               ))
 def query_packages(request):
+    """
+    Search for packages via query string parameters.
+
+    The following query string parameters may be used to limit the packages returned by the service:
+        name: The name of the Packages you wish to retrieve.
+        like: Search for Packages with names like the given string.
+        search: Search for Packages with names like the given string, with case insensitivity.
+        page: Retrieve the specified page of search results.
+        rows_per_page: Specify how many rows per page are desired.
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        dict: A dictionary with the following key value mappings:
+            packages: An iterable of packages that match the search criteria.
+            page: The current page of results.
+            pages: The number of pages of results.
+            rows_per_page: The number of results per page.
+            total: The total number of packages that match the search criteria.
+    """
     db = request.db
     data = request.validated
     query = db.query(RpmPackage)
