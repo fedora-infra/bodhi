@@ -776,7 +776,7 @@ def get_critpath_components_from_pdc(branch, component_type='rpm'):
     return list(critpath_pkgs_set)
 
 
-def call_api(api_url, service_name, error_key=None, method='GET', data={}):
+def call_api(api_url, service_name, error_key=None, method='GET', data=None):
     """
     A wrapper to send HTTP request with some error handling.
     :param api_url: a string of the API URL.
@@ -789,6 +789,9 @@ def call_api(api_url, service_name, error_key=None, method='GET', data={}):
     :param data: a dict of data will be sent to the API server.
     :return: dictionary of the returned JSON or a RuntimeError
     """
+    if data is None:
+        data = dict()
+
     if method == 'POST':
         base_error_msg = (
             'Bodhi failed to send POST request to {0} at the following URL '
