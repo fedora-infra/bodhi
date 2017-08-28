@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2007-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,10 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
-"""
-Random functions that don't fit elsewhere
-"""
+"""Random functions that don't fit elsewhere."""
 
 from collections import defaultdict
 from contextlib import contextmanager
@@ -53,8 +55,16 @@ def header(x):
 
 
 def get_rpm_header(nvr, tries=0):
-    """ Get the rpm header for a given build """
+    """
+    Get the rpm header for a given build.
 
+    Args:
+        nvr (basestring): The name-version-release string of the build you want headers for.
+        tries (int): The number of attempts that have been made to retrieve the nvr so far. Defaults
+            to 0.
+    Returns:
+        dict: A dictionary mapping RPM header names to their values, as returned by the Koji client.
+    """
     tries += 1
     headers = [
         'name', 'summary', 'version', 'release', 'url', 'description',
@@ -81,20 +91,40 @@ def get_rpm_header(nvr, tries=0):
 
 
 def get_nvr(nvr):
-    """ Return the [ name, version, release ] a given name-ver-rel. """
+    """
+    Return the (name, version, release) from a given name-ver-rel string.
+
+    Args:
+        nvr (basestring): The name-version-release string that you wish to know the split nvr from.
+    Returns:
+        tuple: A 3-tuple representing the name, version, and release from the given nvr string.
+    """
     x = map(unicode, nvr.split('-'))
     return ('-'.join(x[:-2]), x[-2], x[-1])
 
 
 def packagename_from_nvr(context, nvr):
+    """
+    Extract and return the package name from the given nvr string.
+
+    Args:
+        context (mako.runtime.Context): The current template rendering context. Unused.
+        nvr (basestring): The name-version-release string that you wish to know the name from.
+    Returns:
+        basestring: The name from the nvr string.
+    """
     x = map(unicode, nvr.split('-'))
     return '-'.join(x[:-2])
 
 
 def mkmetadatadir(path):
     """
-    Generate package metadata for a given directory; if it doesn't exist, then
-    create it.
+    Generate package metadata for a given directory.
+
+    If the metadata doesn't exist, then create it.
+
+    Args:
+        path (basestring): The directory to generate metadata for.
     """
     if not os.path.isdir(path):
         os.makedirs(path)
@@ -102,32 +132,78 @@ def mkmetadatadir(path):
 
 
 def flash_log(msg):
-    """ Flash and log a given message """
+    """
+    Log the given message at debug level.
+
+    Args:
+        msg (basestring): The message to log.
+    """
     log.debug(msg)
 
 
 def build_evr(build):
+    """
+    Return a tuple of strings of the given build's epoch, version, and release.
+
+    Args:
+        build (dict): A dictionary representing a Koji build with keys 'epoch', 'version', and
+            'release'.
+    Returns:
+        tuple: A 3-tuple of strings representing the given build's epoch, version, and release,
+            respectively.
+    """
     if not build['epoch']:
         build['epoch'] = 0
     return tuple(map(str, (build['epoch'], build['version'], build['release'])))
 
 
 def link(href, text):
+    """
+    Return an HTML anchor tag for the given href using the given text.
+
+    Args:
+        href (basestring): The URL to link.
+        text (basestring): The text to render for the link.
+    Returns:
+        basestring: The requested anchor tag.
+    """
     return '<a href="%s">%s</a>' % (href, text)
 
 
 class memoized(object):
-    '''Decorator. Caches a function's return value each time it is called.  If
-    called later with the same arguments, the cached value is returned (not
+    """Decorator that permanently caches a function's return value each time it is called.
+
+    If the function is called later with the same arguments, the cached value is returned (not
     reevaluated).
 
     http://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
-    '''
+
+    Attributes:
+        func (callable): The wrapped function.
+        cache (dict): The cache, mapping arguments to the cached response.
+    """
+
     def __init__(self, func):
+        """
+        Initialize the memoized object.
+
+        Args:
+            func: The function the memoized object is wrapping.
+        """
         self.func = func
         self.cache = {}
 
     def __call__(self, *args):
+        """
+        If the args are cached, return the cached value. If not, call the wrapped function.
+
+        If the wrapped function is called, it's response is only cached if the args are hashable.
+
+        Args:
+            args (list): The list of arguments passed to the wrapped function.
+        Returns:
+            object: The reponse from the wrapped function, or the cached response, if available.
+        """
         if not isinstance(args, collections.Hashable):
             # uncacheable. a list, for instance.
             # better to not cache than blow up.
@@ -140,22 +216,38 @@ class memoized(object):
             return value
 
     def __repr__(self):
-        '''Return the function's docstring.'''
+        """
+        Return the function's docstring.
+
+        Returns:
+            basestring: The wrapped function's docstring.
+        """
         return self.func.__doc__
 
     def __get__(self, obj, objtype):
-        '''Support instance methods.'''
+        """
+        Support instance methods.
+
+        Args:
+            obj (object): The instance of the object the wrapped method is bound to.
+            objtype (type): The type of the instance of the object the wrapped method is bound to.
+        Returns:
+            callable: A functools.partial response with the wrapped method's instance passed to it.
+        """
         return functools.partial(self.__call__, obj)
 
 
 @memoized
 def get_critpath_components(collection='master', component_type='rpm'):
-    """ Return a list of critical path packages for a given collection.
-    :param collection: a string representing the collection/branch to search.
-    for
-    :param component_type: a string representing the component type to search
-    for. This only affects PDC queries.
-    :return: a list of critpath components
+    """
+    Return a list of critical path packages for a given collection.
+
+    Args:
+    collection (basestring): The collection/branch to search. Defaults to 'master'.
+    component_type (basestring): The component type to search for. This only affects PDC queries.
+        Defaults to 'rpm'.
+    Returns:
+        list: The critpath components for the given collection and type.
     """
     critpath_components = []
     critpath_type = config.get('critpath.type')
@@ -180,8 +272,12 @@ def get_critpath_components(collection='master', component_type='rpm'):
 def sanity_check_repodata(myurl):
     """
     Sanity check the repodata for a given repository.
-    """
 
+    Args:
+        myurl (basestring): A path to a repodata directory.
+    Raises:
+        bodhi.server.exceptions.RepodataException: If the repodata is not valid or does not exist.
+    """
     import librepo
     h = librepo.Handle()
     h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
@@ -209,6 +305,16 @@ def sanity_check_repodata(myurl):
 
 
 def age(context, date, nuke_ago=False):
+    """
+    Return a human readable age since the given date.
+
+    Args:
+        context (mako.runtime.Context): The current template rendering context.
+        date (datetime.datetime): A date you wish a human readable age since.
+        nuke_ago (bool): If True, remove " ago" from the age. Defaults to False.
+    Returns:
+        basestring: A human readable age since the given date.
+    """
     humanized = arrow.get(date).humanize()
     if nuke_ago:
         return humanized.replace(' ago', '')
@@ -228,7 +334,16 @@ hardcoded_avatars = {
 
 
 def avatar(context, username, size):
+    """
+    Return a URL of an avatar for the given username of the given size.
 
+    Args:
+        context (mako.runtime.Context): The current template rendering context.
+        username (basestring): The username to return an avatar URL for.
+        size (int): The size of the avatar you wish to retrieve, in unknown libravatar units.
+    Returns:
+        basestring: A URL to an avatar for the given username.
+    """
     # Handle some system users
     # https://github.com/fedora-infra/bodhi/issues/308
     if username in hardcoded_avatars:
@@ -261,7 +376,20 @@ def avatar(context, username, size):
 
 
 def splitter(value):
-    """Parse a string or list of comma or space delimited builds"""
+    """
+    Parse a string or list of comma or space delimited builds, returning a list of the values.
+
+    Examples:
+        >>> util.splitter('one,two,,three,')
+        ['one', 'two', 'three']
+        >>> util.splitter(['one,two,,three,,', 'four'])
+        ['one', 'two', 'three', 'four']
+
+    Args:
+        value (basestring, colander.null, or iterable): The value to interpret as a list.
+    Returns:
+        list: A list of strings.
+    """
     if value == colander.null:
         return
 
@@ -278,25 +406,39 @@ def splitter(value):
 
 
 def version(context=None):
+    """
+    Return the Bodhi server's version.
+
+    Args:
+        context (mako.runtime.Context or None): Unused. Defaults to None.
+    Returns:
+        basestring: The Bodhi server's version.
+    """
     return pkg_resources.get_distribution('bodhi').version
 
 
 def hostname(context=None):
+    """
+    Return the Bodhi server's hostname.
+
+    Args:
+        context (mako.runtime.Context or None): Unused. Defaults to None.
+    Returns:
+        basestring: The Bodhi server's hostname.
+    """
     return socket.gethostname()
 
 
 def markup(context, text):
     """
-    Return HTML from a markdown string
+    Return HTML from a markdown string.
 
     Args:
-        context (mako.runtime.Context)
-        text (basestring): markdown text to be converted to HTML
-
-    Return:
-        basestring: HTML representation of the markdown text
+        context (mako.runtime.Context): Unused.
+        text (basestring): Markdown text to be converted to HTML.
+    Returns:
+        basestring: HTML representation of the markdown text.
     """
-
     # determine the major component of the bleach version installed.
     # this is similar to the approach that Pagure uses to determine the bleach version
     # https://pagure.io/pagure/pull-request/2269#request_diff
@@ -341,6 +483,16 @@ def markup(context, text):
 
 
 def status2html(context, status):
+    """
+    Render the given UpdateStatus as a span containing text.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        severity (bodhi.server.models.UpdateStatus): The UpdateStatus to render as a span
+            tag.
+    Returns:
+        basestring: An HTML span tag representing the UpdateStatus.
+    """
     status = unicode(status)
     cls = {
         'pending': 'primary',
@@ -354,12 +506,15 @@ def status2html(context, status):
 
 
 def test_gating_status2html(context, status, reason=None):
-    """ Convert the specified status into a html string used to present the
+    """
+    Render the given TestGatingStatus as a span, with an optional p tag with a reason.
+
+    Convert the specified status into a html string used to present the
     test gating status in a human friendly way.
 
     Args:
         context (mako.runtime.Context): Unused.
-        status (unicode): The test gating status
+        status (bodhi.server.models.TestGatingStatus): The test gating status
         reason (unicode): A short text explains why the test gating is not passed.
 
     Returns:
@@ -388,6 +543,16 @@ def test_gating_status2html(context, status, reason=None):
 
 
 def state2class(context, state):
+    """
+    Classify the given ReleaseState value.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        state (bodhi.server.models.ReleaseState): The ReleaseState value you wish to classify.
+    Returns:
+        basestring: A string representing the classification of the given ReleaseState. Can return
+            'danger', 'warning', 'success', or 'default active'.
+    """
     state = unicode(state)
     cls = {
         'disabled': 'default active',
@@ -399,6 +564,16 @@ def state2class(context, state):
 
 
 def type2color(context, t):
+    """
+    Return a color to render the given UpdateType with.
+
+    Args:
+        context (mako.runtime.Context): The current template rendering context.
+        t (bodhi.server.models.UpdateType): The UpdateType you wish to choose a color for.
+    Returns:
+        basestring: A string in the format rgba(RED, GREEN, BLUE, ALPHA), where RED, GREEN, BLUE,
+            and ALPHA are replaced with numerical values to represent a color.
+    """
     t = unicode(t)
     cls = {
         'bugfix': 'rgba(150,180,205,0.5)',
@@ -410,11 +585,31 @@ def type2color(context, t):
 
 
 def state2html(context, state):
+    """
+    Render the given ReleaseState as an HTML span tag.
+
+    Args:
+        context (mako.runtime.Context): The current template rendering context.
+        state (bodhi.server.models.ReleaseState): The ReleaseState you wish to render as HTML.
+    Returns:
+        basestring: An HTML rendering of the given ReleaseState.
+    """
     state_class = state2class(context, state)
     return "<span class='label label-%s'>%s</span>" % (state_class, state)
 
 
 def karma2class(context, karma, default='default'):
+    """
+    Classify the given karma value if possible, or return the default value.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        karma (int): The karma value you wish to classify.
+        default (basestring): The default value if karma is not within the range -2 <= karma <= 2.
+    Returns:
+        basestring: A string representing the classification of the given karma. Can return
+            'danger', 'info', 'success', or the default value.
+    """
     if karma and karma >= -2 and karma <= 2:
         return {
             -2: 'danger',
@@ -427,7 +622,16 @@ def karma2class(context, karma, default='default'):
 
 
 def karma2html(context, karma):
+    """
+    Render the given karma as a span labeled for rendering, or as a list of td tags of the same.
 
+    Args:
+        context (mako.runtime.Context): The current template rendering context.
+        karma (int or tuple): The karma value or values you wish to render a span tag or td tags
+            for.
+    Returns:
+        basestring: An HTML span tag or a list of td tags representing the karma or karma tuple.
+    """
     # Recurse if we are handle multiple karma values
     if isinstance(karma, tuple):
         return '</td><td>'.join([karma2html(context, item) for item in karma])
@@ -451,6 +655,16 @@ def karma2html(context, karma):
 
 
 def type2html(context, kind):
+    """
+    Render the given UpdateType as a span containing text.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        severity (bodhi.server.models.UpdateType): The UpdateType to render as a span
+            tag.
+    Returns:
+        basestring: An HTML span tag representing the UpdateType.
+    """
     kind = unicode(kind)
     cls = {
         'security': 'danger',
@@ -463,6 +677,16 @@ def type2html(context, kind):
 
 
 def type2icon(context, kind):
+    """
+    Render the given UpdateType as a span containing an icon.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        severity (bodhi.server.models.UpdateType): The UpdateType to render as a span
+            tag.
+    Returns:
+        basestring: An HTML span tag representing the UpdateType.
+    """
     kind = unicode(kind)
     cls = {
         'security': 'danger',
@@ -484,6 +708,16 @@ def type2icon(context, kind):
 
 
 def severity2html(context, severity):
+    """
+    Render the given UpdateSeverity as an HTML span tag.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        severity (bodhi.server.models.UpdateSeverity): The UpdateSeverity to render as a span
+            tag.
+    Returns:
+        basestring: An HTML span tag representing the UpdateSeverity.
+    """
     severity = unicode(severity)
     cls = {
         'urgent': 'danger',
@@ -496,6 +730,16 @@ def severity2html(context, severity):
 
 
 def suggestion2html(context, suggestion):
+    """
+    Render the given UpdateSuggestion as an HTML span tag.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        suggestion (bodhi.server.models.UpdateSuggestion): The UpdateSuggestion to render as a span
+            tag.
+    Returns:
+        basestring: An HTML span tag representing the UpdateSuggestion.
+    """
     suggestion = unicode(suggestion)
     cls = {
         'reboot': 'danger',
@@ -506,6 +750,15 @@ def suggestion2html(context, suggestion):
 
 
 def request2html(context, request):
+    """
+    Render the given UpdateRequest as an HTML span tag.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        request (bodhi.server.models.UpdateRequest): The UpdateRequest to render as a span tag.
+    Returns:
+        basestring: An HTML span tag representing the UpdateRequest.
+    """
     request = unicode(request)
     cls = {
         'unpush': 'danger',
@@ -519,6 +772,16 @@ def request2html(context, request):
 
 
 def update2html(context, update):
+    """
+    Return an HTML anchor tag for the given update.
+
+    Args:
+        context (mako.runtime.Context): The current template rendering context.
+        update (bodhi.server.models.Update or dict): The Update or dictionary serialization of an
+            Update that you wish to receive an HTML anchor tag for.
+    Returns:
+        basestring: An HTML anchor tag linking the Update.
+    """
     request = context.get('request')
 
     if hasattr(update, 'title'):
@@ -540,6 +803,16 @@ def update2html(context, update):
 
 
 def pages_list(context, page, pages):
+    """
+    Return a list of page numbers to display in pagination lists.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        page (int): The current page number.
+        pages (int): The total number of pages.
+    Returns:
+        list: A list of page numbers that should be displayed to the user.
+    """
     margin = 4
     num_pages = (2 * margin) + 1
 
@@ -561,6 +834,16 @@ def pages_list(context, page, pages):
 
 
 def page_url(context, page):
+    """
+    Return a paginated version of the request URL with the given page.
+
+    Args:
+        context (mako.runtime.Context): The current template context, used to get the current path
+            URL.
+        page (basestring): The requested page number.
+    Returns:
+        basestring: The current path appended with a GET query for the requested page.
+    """
     request = context.get('request')
     params = dict(request.params)
     params['page'] = page
@@ -568,6 +851,16 @@ def page_url(context, page):
 
 
 def bug_link(context, bug, short=False):
+    """
+    Form a URL to a given bugzilla bug.
+
+    Args:
+        context: Unused.
+        short (bool): If False, includes the title of the bug in the response, or a spinner if the
+            title is unknown. If True, only returns the anchor tag. Defaults to False.
+    Returns:
+        basestring: The requested link.
+    """
     url = "https://bugzilla.redhat.com/show_bug.cgi?id=" + str(bug.bug_id)
     display = "#%i" % bug.bug_id
     link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
@@ -584,6 +877,17 @@ def bug_link(context, bug, short=False):
 
 
 def testcase_link(context, test, short=False):
+    """
+    Form a URL to a given test description.
+
+    Args:
+        context: Unused.
+        test (bodhi.server.models.TestCase): The test case you wish to have a link to.
+        short (bool): If False, returns "Test Case " then the HTML anchor tag with the link. If
+            True, only returns the anchor tag. Defaults to False.
+    Returns:
+        basestring: The requested link.
+    """
     url = config.get('test_case_base_url') + test.name
     display = test.name.replace('QA:Testcase ', '')
     link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
@@ -593,6 +897,14 @@ def testcase_link(context, test, short=False):
 
 
 def sorted_builds(builds):
+    """
+    Sort the given builds by their NVRs.
+
+    Args:
+        builds (iterable): The builds you wish to sort by NVR.
+    Returns:
+        list: A list of Builds sorted by NVR.
+    """
     return sorted(builds,
                   cmp=lambda x, y: rpm.labelCompare(get_nvr(x), get_nvr(y)),
                   reverse=True)
@@ -600,12 +912,17 @@ def sorted_builds(builds):
 
 def sorted_updates(updates):
     """
+    Sort the given iterable of Updates so the highest version appears last.
+
     Order our updates so that the highest version gets tagged last so that
     it appears as the 'latest' in koji.
 
-    Returns 2 lists, the first being builds that should be tagged synchronously
-    in a specific order, where as the second batch can be done asynchronously
-    in koji with a multicall.
+    Args:
+        updates (iterable): An iterable of bodhi.server.models.Update objects to be sorted.
+    Returns:
+        tuple: A 2-tuple of lists. The first list contains builds that should be tagged
+            synchronously in a specific order. The second list can be tagged asynchronously in koji
+            with a multicall.
     """
     builds = defaultdict(set)
     build_to_update = {}
@@ -635,6 +952,19 @@ def sorted_updates(updates):
 
 
 def cmd(cmd, cwd=None):
+    """
+    Run the given command in a subprocess.
+
+    Args:
+        cmd (list or basestring): The command to be run. This may be expressed as a list to be
+            passed directly to subprocess.Popen(), or as a basestring which will be processed with
+            basestring.split() to form the list to pass to Popen().
+        cwd (basestring or None): The current working directory to use when launching the
+            subprocess.
+    Returns:
+        tuple: A 3-tuple of the standard output (basestring), standard error (basestring), and the
+            process's return code (int).
+    """
     log.info('Running %r', cmd)
     if isinstance(cmd, basestring):
         cmd = cmd.split()
@@ -655,8 +985,17 @@ def cmd(cmd, cwd=None):
 
 
 def tokenize(string):
-    """ Given something like "a b, c d" return ['a', 'b', 'c', 'd']. """
+    """
+    Interpret the given string as a space or comma separated ordered iterable of strings.
 
+    For example, Given something like "a b, c d" return a generator equivalent of
+    ['a', 'b', 'c', 'd'].
+
+    Args:
+        string (basestring): The string to be interpreted as an iterable.
+    Yields:
+        basestring: The individual tokens found in the comma or space separated string.
+    """
     for substring in string.split(','):
         substring = substring.strip()
         if substring:
@@ -667,16 +1006,19 @@ def tokenize(string):
 
 
 def taskotron_results(settings, entity='results/latest', max_queries=10, **kwargs):
-    """ Yield resultsdb results using query arguments.
+    """
+    Yield resultsdb results using query arguments.
 
-    :param str entity: The API endpoint to use, see resultsdb documentation.
-    :param int max_queries: The maximum number of queries to perform (pages
-        to retrieve). So ``1`` means just a single page. ``None`` or ``0``
-        means no limit. Please note some tests might have thousands of results
-        in the database and it's very reasonable to limit queries (thus the
-        default value).
-    :param kwargs: Any args that will be passed to resultsdb to specify what
-        results to retrieve.
+    Args:
+        entity (basestring): The API endpoint to use (see resultsdb documentation).
+        max_queries (int): The maximum number of queries to perform (pages to retrieve). ``1`` means
+            just a single page. ``None`` or ``0`` means no limit. Please note some tests might have
+            thousands of results in the database and it's very reasonable to limit queries (thus the
+            default value).
+        kwargs (dict): Args that will be passed to resultsdb to specify what results to retrieve.
+    Returns:
+        generator or None: Yields Python objects loaded from ResultsDB's "data" field in its JSON
+            response, or None if there was an Exception while performing the query.
     """
     max_queries = max_queries or 0
     url = settings['resultsdb_api_url'] + "/api/v2.0/" + entity
@@ -705,9 +1047,17 @@ def taskotron_results(settings, entity='results/latest', max_queries=10, **kwarg
 
 
 class TransactionalSessionMaker(object):
-    """Provide a transactional scope around a series of operations."""
+    """Provide a transactional database scope around a series of operations."""
+
     @contextmanager
     def __call__(self):
+        """
+        Manage a database Session object for the life of the context.
+
+        Yields a database Session object, then either commits the tranaction if there were no
+        Exceptions or rolls back the transaction. In either case, it also will close and remove the
+        Session.
+        """
         session = Session()
         try:
             yield session
@@ -730,7 +1080,17 @@ transactional_session_maker = TransactionalSessionMaker
 
 
 def sort_severity(value):
-    """ Sorts UpdateSeverity by severity importance"""
+    """
+    Map a given UpdateSeverity string representation to a numerical severity value.
+
+    This is used to sort severities from low to high.
+
+    Args:
+        value (basestring): The human readable UpdateSeverity string.
+    Returns:
+        int: A number representing the sorting order of the given UpdateSeverity string, or 99 if an
+            unknown value is given.
+    """
     value_map = {
         'unspecified': 1,
         'low': 2,
@@ -744,11 +1104,13 @@ def sort_severity(value):
 
 def get_critpath_components_from_pdc(branch, component_type='rpm'):
     """
-    Searches PDC for critical path packages based on the specified branch.
-    :param branch: string representing the branch
-    :param component_type: string representing the component type to get
-    critpath packages for. This only affects queries to PDC.
-    :return: a list of critical path packages
+    Search PDC for critical path packages based on the specified branch.
+
+    Args:
+        branch (basestring): The branch name to search by.
+        component_type (basestring): The component type to search by. Defaults to ``rpm``.
+    Returns:
+        list: Critical path package names.
     """
     pdc_api_url = '{}/rest_api/v1/component-branches/'.format(
         config.get('pdc_url').rstrip('/'))
@@ -778,16 +1140,20 @@ def get_critpath_components_from_pdc(branch, component_type='rpm'):
 
 def call_api(api_url, service_name, error_key=None, method='GET', data=None):
     """
-    A wrapper to send HTTP request with some error handling.
-    :param api_url: a string of the API URL.
-    :param service_name: a string of the service name to use in error messages
-    :param error_key: a string of the key that holds the error message in the
-    JSON body. If this is set to None, the whole JSON will be used as the
-    error message.
-    :param error_key: a string of the HTTP method to use to request. The defaut
-    value is ``GET``.
-    :param data: a dict of data will be sent to the API server.
-    :return: dictionary of the returned JSON or a RuntimeError
+    Perform an HTTP request with response type and error handling.
+
+    Args:
+        api_url (basestring): The URL to query.
+        service_name (basestring): The service name being queried (used to form human friendly error
+            messages).
+        error_key (basestring): The key that indexes error messages in the JSON body for the given
+            service. If this is set to None, the JSON response will be used as the error message.
+        method (basestring): The HTTP method to use for the request. Defaults to ``GET``.
+        data (dict): Query string parameters that will be sent along with the request to the server.
+    Returns:
+        dict: A dictionary representing the JSON response from the remote service.
+    Raises:
+        RuntimeError: If the server did not give us a 200 code.
     """
     if data is None:
         data = dict()
@@ -831,18 +1197,28 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None):
 
 def pagure_api_get(pagure_api_url):
     """
-    A wrapper to get API resources from Pagure.
-    :param pagure_api_url: a string of the URL to query
-    :return: JSON of the API resource(s) or a RuntimeError
+    Perform a GET request against Pagure.
+
+    Args:
+        pagure_api_url (basestring): The URL to GET, including query parameters.
+    Returns:
+        dict: A dictionary response representing the API response's JSON.
+    Raises:
+        RuntimeError: If the server did not give us a 200 code.
     """
     return call_api(pagure_api_url, service_name='Pagure', error_key='error')
 
 
 def pdc_api_get(pdc_api_url):
     """
-    A wrapper to get API resources from PDC.
-    :param pdc_api_url: a string of the URL to query
-    :return: JSON of the API resource(s) or a RuntimeError
+    Perform a GET request against PDC.
+
+    Args:
+        pdc_api_url (basestring): The URL to GET, including query parameters.
+    Returns:
+        dict: A dictionary response representing the API response's JSON.
+    Raises:
+        RuntimeError: If the server did not give us a 200 code.
     """
     # There is no error_key specified because the error key is not consistent
     # based on the error message
@@ -851,10 +1227,15 @@ def pdc_api_get(pdc_api_url):
 
 def greenwave_api_post(greenwave_api_url, data):
     """
-    A wrapper to post request to Greenwave.
-    :param greenwave_api_url: a string of the URL to query
-    :param data: A dictionary of data to send along the request
-    :return: JSON of the API response or a RuntimeError
+    Post a request to Greenwave.
+
+    Args:
+        greenwave_api_url (basestring): The URL to query.
+        data (dict): The parameters to send along with the request.
+    Returns:
+        dict: A dictionary response representing the API response's JSON.
+    Raises:
+        RuntimeError: If the server did not give us a 200 code.
     """
     # There is no error_key specified because the error key is not consistent
     # based on the error message
