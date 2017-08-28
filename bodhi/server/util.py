@@ -21,6 +21,7 @@ from contextlib import contextmanager
 import collections
 import functools
 import hashlib
+import json
 import os
 import pkg_resources
 import socket
@@ -37,7 +38,6 @@ import libravatar
 import markdown
 import requests
 import rpm
-import json
 
 from bodhi.server import log, buildsys, Session
 from bodhi.server.config import config
