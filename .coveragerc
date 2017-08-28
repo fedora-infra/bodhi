@@ -2,6 +2,7 @@
 source = bodhi
 omit =
     bodhi/scripts/*
+    bodhi/server/static/__init__.py
     bodhi/tests/*
 
 [report]
