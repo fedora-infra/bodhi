@@ -198,9 +198,12 @@ class TestQuery(unittest.TestCase):
         Assert that we use init_username if USERNAME is not set
         """
         mock_raw_input.return_value = 'dudemcpants'
-        runner = testing.CliRunner()
 
-        runner.invoke(client.query, ['--mine'])
+        with mock.patch.dict('os.environ'):
+            if 'USERNAME' in os.environ:
+                del os.environ['USERNAME']
+            runner = testing.CliRunner()
+            runner.invoke(client.query, ['--mine'])
 
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
