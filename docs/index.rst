@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-
+=====
 Bodhi
 =====
 
@@ -12,8 +12,7 @@ distributions. It provides an interface for developers to propose updates to a d
 interface for testers to leave feedback about updates through a +1/-1 karma system.
 
 
-Features
---------
+Bodhi's main features are:
 
 * Provides an interface for developers and release engineers to manage pushing out
   package updates for multiple distribution versions.
@@ -27,38 +26,58 @@ Features
 
 
 System Requirements
--------------------
+===================
 
 Bodhi is currently only supported on active Fedora releases.
 
 
-Links
-^^^^^
-
-* `Online documentation <https://bodhi.fedoraproject.org/docs/>`_
-*  IRC: #bodhi on Freenode
-* `Mailing list <https://lists.fedoraproject.org/archives/list/bodhi@lists.fedorahosted.org/>`_
-* `Report an issue <https://github.com/fedora-infra/bodhi/issues/new>`_
-* `Source code <https://github.com/fedora-infra/bodhi>`_
-* `Fedora's production instance <https://bodhi.fedoraproject.org/>`_
-* `Fedora's staging instance <https://bodhi.stg.fedoraproject.org/>`_
-
-
-Contents:
+User Guide
+==========
 
 .. toctree::
    :maxdepth: 2
 
    man_pages/index
-   python_bindings
-   developer_docs
-   server_api/index
+
+.. toctree::
+   :maxdepth: 1
+
    release_notes
 
 
-Indices and tables
-==================
+API Guide
+=========
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. toctree::
+   :maxdepth: 2
+
+   server_api/index
+   python_bindings
+
+
+Contributor Guide
+=================
+
+.. toctree::
+   :maxdepth: 2
+
+   developer_docs
+
+
+Community
+=========
+
+Bodhi is maintained by the Fedora Project and its `source code`_ and `issue tracker`_ are on GitHub.
+There is a `mailing list`_ and an IRC channel on `FreeNode`_, ``#bodhi`` for discussion about Bodhi.
+Fedora runs a `production instance`_ and `staging instance`_. `Online documentation`_ is available
+on both production and staging.
+
+
+.. _source code: https://github.com/fedora-infra/bodhi
+.. _issue tracker: https://github.com/fedora-infra/bodhi/issues
+.. _mailing list: https://lists.fedoraproject.org/archives/list/bodhi@lists.fedorahosted.org/
+.. _FreeNode: https://freenode.net/
+.. _production instance: https://bodhi.fedoraproject.org/
+.. _staging instance: https://bodhi.stg.fedoraproject.org/
+.. _Online documentation: https://bodhi.fedoraproject.org/docs/
+
