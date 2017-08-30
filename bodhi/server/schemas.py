@@ -602,6 +602,14 @@ class UpdateRequestSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
 
 
+class RerunTestSchema(CSRFProtectedSchema, colander.MappingSchema):
+    test = colander.SchemaNode(
+        colander.String(),
+    )
+    scenario = colander.SchemaNode(
+        colander.String(),
+    )
+
 class ListCommentSchema(PaginatedSchema, SearchableSchema):
     updates = Updates(
         colander.Sequence(accept_scalar=True),
