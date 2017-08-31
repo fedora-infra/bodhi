@@ -536,19 +536,19 @@ class TestFrontpageView(base.BaseTestCase):
           </a>
         </div>
         <h4>updates pending</h4>
-          <a class="text-danger" href=\
+          <a class="text-danger" title="Security updates" data-toggle="tooltip" href=\
 "http://localhost/updates/?releases=F17&amp;status=pending&amp;type=security">
             <span class="fa fa-shield"></span> 5
           </a>
-          <a class="text-warning" href=\
+          <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href=\
 "http://localhost/updates/?releases=F17&amp;status=pending&amp;type=bugfix">
             <span class="fa fa-bug"></span> 5
           </a>
-          <a class="text-success" href=\
+          <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href=\
 "http://localhost/updates/?releases=F17&amp;status=pending&amp;type=enhancement">
             <span class="fa fa-bolt text-success"></span> 3
           </a>
-          <a class="text-primary" href=\
+          <a class="text-primary" title="New Package updates" data-toggle="tooltip" href=\
 "http://localhost/updates/?releases=F17&amp;status=pending&amp;type=newpackage">
             <span class="fa fa-archive"></span> 2
           </a>""", res)
@@ -584,19 +584,19 @@ href="http://localhost/updates/?releases=F17&amp;status=testing&amp;type=newpack
           </a>
         </div>
         <h4>updates in stable</h4>
-        <a class="text-danger" href="\
+        <a class="text-danger" title="Security updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F17&amp;status=stable&amp;type=security">
         <span class="fa fa-shield"></span> 25
         </a>
-        <a class="text-warning" href="\
+        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F17&amp;status=stable&amp;type=bugfix">
         <span class="fa fa-bug"></span> 24
         </a>
-        <a class="text-success" href="\
+        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F17&amp;status=stable&amp;type=enhancement">
         <span class="fa fa-bolt"></span> 23
         </a>
-        <a class="text-primary" href="\
+        <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F17&amp;status=stable&amp;type=newpackage">
         <span class="fa fa-archive"></span> 22
         </a>""", res)
@@ -608,19 +608,19 @@ http://localhost/updates/?releases=F17&amp;status=stable&amp;type=newpackage">
           </a>
         </div>
         <h4>updates pending</h4>
-          <a class="text-danger" href="\
+          <a class="text-danger" title="Security updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F18&amp;status=pending&amp;type=security">
             <span class="fa fa-shield"></span> 2
           </a>
-          <a class="text-warning" href="\
+          <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F18&amp;status=pending&amp;type=bugfix">
             <span class="fa fa-bug"></span> 2
           </a>
-          <a class="text-success" href="\
+          <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F18&amp;status=pending&amp;type=enhancement">
             <span class="fa fa-bolt text-success"></span> 2
           </a>
-          <a class="text-primary" href="\
+          <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F18&amp;status=pending&amp;type=newpackage">
             <span class="fa fa-archive"></span> 2
           </a>""", res)
@@ -656,19 +656,19 @@ href="http://localhost/updates/?releases=F18&amp;status=testing&amp;type=newpack
           </a>
         </div>
         <h4>updates in stable</h4>
-        <a class="text-danger" href="\
+        <a class="text-danger" title="Security updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F18&amp;status=stable&amp;type=security">
         <span class="fa fa-shield"></span> 4
         </a>
-        <a class="text-warning" href="\
+        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F18&amp;status=stable&amp;type=bugfix">
         <span class="fa fa-bug"></span> 4
         </a>
-        <a class="text-success" href="\
+        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F18&amp;status=stable&amp;type=enhancement">
         <span class="fa fa-bolt"></span> 4
         </a>
-        <a class="text-primary" href="\
+        <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="\
 http://localhost/updates/?releases=F18&amp;status=stable&amp;type=newpackage">
         <span class="fa fa-archive"></span> 4
         </a>""", res)

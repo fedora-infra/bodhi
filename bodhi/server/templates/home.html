@@ -37,16 +37,16 @@
           </a>
         </div>
         <h4>updates pending</h4>
-          <a class="text-danger" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=security">
+          <a class="text-danger" title="Security updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=security">
             <span class="fa fa-shield"></span> ${release_updates_counts[r['name']]['pending_security_total']}
           </a>
-          <a class="text-warning" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=bugfix">
+          <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=bugfix">
             <span class="fa fa-bug"></span> ${release_updates_counts[r['name']]['pending_bugfix_total']}
           </a>
-          <a class="text-success" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=enhancement">
+          <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=enhancement">
             <span class="fa fa-bolt text-success"></span> ${release_updates_counts[r['name']]['pending_enhancement_total']}
           </a>
-          <a class="text-primary" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=newpackage">
+          <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=newpackage">
             <span class="fa fa-archive"></span> ${release_updates_counts[r['name']]['pending_newpackage_total']}
           </a>
       </div>
@@ -81,16 +81,16 @@
           </a>
         </div>
         <h4>updates in stable</h4>
-        <a class="text-danger" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=security">
+        <a class="text-danger" title="Security updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=security">
         <span class="fa fa-shield"></span> ${release_updates_counts[r['name']]['stable_security_total']}
         </a>
-        <a class="text-warning" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=bugfix">
+        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=bugfix">
         <span class="fa fa-bug"></span> ${release_updates_counts[r['name']]['stable_bugfix_total']}
         </a>
-        <a class="text-success" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=enhancement">
+        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=enhancement">
         <span class="fa fa-bolt"></span> ${release_updates_counts[r['name']]['stable_enhancement_total']}
         </a>
-        <a class="text-primary" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=newpackage">
+        <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=newpackage">
         <span class="fa fa-archive"></span> ${release_updates_counts[r['name']]['stable_newpackage_total']}
         </a>
       </div>
