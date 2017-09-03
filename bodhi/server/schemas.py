@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2013-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
+"""A set of API schemas to validate input and generate documentation."""
 import re
 
 import colander
@@ -33,6 +38,8 @@ CVE_REGEX = re.compile(r"CVE-[0-9]{4,4}-[0-9]{4,}")
 
 
 class CSRFProtectedSchema(colander.MappingSchema):
+    """A mixin class to validate csrf tokens."""
+
     csrf_token = colander.SchemaNode(
         colander.String(),
         name="csrf_token",
@@ -41,15 +48,22 @@ class CSRFProtectedSchema(colander.MappingSchema):
 
 
 class Bugs(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Bug objects."""
+
     bug = colander.SchemaNode(colander.String(), missing=None)
 
 
 class Builds(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Build objects."""
+
     build = colander.SchemaNode(colander.String())
 
 
 class CVE(colander.String):
+    """A String schema to validate a CVE."""
+
     def deserialize(self, node, cstruct):
+        """Parse a CVE out of a given API CVE parameter."""
         value = super(CVE, self).deserialize(node, cstruct)
 
         if CVE_REGEX.match(value) is None:
@@ -59,26 +73,38 @@ class CVE(colander.String):
 
 
 class CVEs(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of CVE objects."""
+
     cve = colander.SchemaNode(CVE())
 
 
 class Packages(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Package objects."""
+
     package = colander.SchemaNode(colander.String())
 
 
 class Releases(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Release objects."""
+
     release = colander.SchemaNode(colander.String())
 
 
 class Groups(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Group objects."""
+
     group = colander.SchemaNode(colander.String())
 
 
 class Updates(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Update objects."""
+
     update = colander.SchemaNode(colander.String())
 
 
 class BugFeedback(colander.MappingSchema):
+    """A schema for BugFeedback to be provided via API parameters."""
+
     bug_id = colander.SchemaNode(colander.Integer())
     karma = colander.SchemaNode(
         colander.Integer(),
@@ -88,10 +114,14 @@ class BugFeedback(colander.MappingSchema):
 
 
 class BugFeedbacks(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of BugFeedback objects."""
+
     bug_feedback = BugFeedback()
 
 
 class TestcaseFeedback(colander.MappingSchema):
+    """A schema for TestcaseFeedback to be provided via API parameters."""
+
     testcase_name = colander.SchemaNode(colander.String())
     karma = colander.SchemaNode(
         colander.Integer(),
@@ -101,10 +131,14 @@ class TestcaseFeedback(colander.MappingSchema):
 
 
 class TestcaseFeedbacks(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of TestcaseFeedback objects."""
+
     testcase_feedback = TestcaseFeedback()
 
 
 class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.comments.new_comment()."""
+
     update = colander.SchemaNode(colander.String())
     text = colander.SchemaNode(
         colander.String(),
@@ -134,6 +168,8 @@ class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
 
 
 class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.updates.new_update()."""
+
     builds = Builds(colander.Sequence(accept_scalar=True),
                     preparer=[util.splitter])
 
@@ -199,6 +235,8 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
 
 
 class Cosmetics(colander.MappingSchema):
+    """A mixin class used by schemas to validate the ``display_user`` API parameter."""
+
     display_user = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",
@@ -207,6 +245,8 @@ class Cosmetics(colander.MappingSchema):
 
 
 class PaginatedSchema(colander.MappingSchema):
+    """A mixin class used by schemas to provide pagination support for API endpoints."""
+
     chrome = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",
@@ -229,6 +269,8 @@ class PaginatedSchema(colander.MappingSchema):
 
 
 class SearchableSchema(colander.MappingSchema):
+    """A mixin class used by schemas to provide search support for API endpoints."""
+
     like = colander.SchemaNode(
         colander.String(),
         location="querystring",
@@ -243,6 +285,13 @@ class SearchableSchema(colander.MappingSchema):
 
 
 class ListReleaseSchema(PaginatedSchema):
+    """
+    An API schema for listing releases.
+
+    This schema is used by bodhi.server.services.releases.query_releases_html() and
+    bodhi.server.services.releases.query_releases_json().
+    """
+
     name = colander.SchemaNode(
         colander.String(),
         location="querystring",
@@ -265,6 +314,8 @@ class ListReleaseSchema(PaginatedSchema):
 
 
 class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.releases.save_release()."""
+
     name = colander.SchemaNode(
         colander.String(),
     )
@@ -320,6 +371,8 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
 
 
 class ListStackSchema(PaginatedSchema, SearchableSchema):
+    """An API schema for bodhi.server.services.stacks.query_stacks()."""
+
     name = colander.SchemaNode(
         colander.String(),
         location="querystring",
@@ -335,6 +388,8 @@ class ListStackSchema(PaginatedSchema, SearchableSchema):
 
 
 class SaveStackSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.stacks.save_stack()."""
+
     name = colander.SchemaNode(
         colander.String(),
     )
@@ -357,6 +412,8 @@ class SaveStackSchema(CSRFProtectedSchema, colander.MappingSchema):
 
 
 class ListUserSchema(PaginatedSchema, SearchableSchema):
+    """An API schema for bodhi.server.services.user.query_users()."""
+
     name = colander.SchemaNode(
         colander.String(),
         location="querystring",
@@ -386,6 +443,8 @@ class ListUserSchema(PaginatedSchema, SearchableSchema):
 
 
 class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
+    """An API schema for bodhi.server.services.updates.query_updates()."""
+
     alias = Builds(
         colander.Sequence(accept_scalar=True),
         location="querystring",
@@ -559,6 +618,8 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
 
 
 class ListPackageSchema(PaginatedSchema, SearchableSchema):
+    """An API schema for bodhi.server.services.packages.query_packages()."""
+
     name = colander.SchemaNode(
         colander.String(),
         location="querystring",
@@ -567,6 +628,8 @@ class ListPackageSchema(PaginatedSchema, SearchableSchema):
 
 
 class ListBuildSchema(PaginatedSchema):
+    """An API schema for bodhi.server.services.builds.query_builds()."""
+
     nvr = colander.SchemaNode(
         colander.String(),
         location="querystring",
@@ -596,6 +659,8 @@ class ListBuildSchema(PaginatedSchema):
 
 
 class UpdateRequestSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.updates.set_request()."""
+
     request = colander.SchemaNode(
         colander.String(),
         validator=colander.OneOf(UpdateRequest.values()),
@@ -603,6 +668,8 @@ class UpdateRequestSchema(CSRFProtectedSchema, colander.MappingSchema):
 
 
 class ListCommentSchema(PaginatedSchema, SearchableSchema):
+    """An API schema for bodhi.server.services.comments.query_comments()."""
+
     updates = Updates(
         colander.Sequence(accept_scalar=True),
         location="querystring",
@@ -649,6 +716,8 @@ class ListCommentSchema(PaginatedSchema, SearchableSchema):
 
 
 class ListOverrideSchema(PaginatedSchema, SearchableSchema, Cosmetics):
+    """An API schema for bodhi.server.services.overrides.query_overrides()."""
+
     builds = Builds(
         colander.Sequence(accept_scalar=True),
         location="querystring",
@@ -684,6 +753,8 @@ class ListOverrideSchema(PaginatedSchema, SearchableSchema, Cosmetics):
 
 
 class SaveOverrideSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.overrides.save_override()."""
+
     nvr = colander.SchemaNode(
         colander.String(),
     )
