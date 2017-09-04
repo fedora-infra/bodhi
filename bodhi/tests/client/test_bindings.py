@@ -1001,6 +1001,38 @@ class TestErrorhandled(unittest.TestCase):
         self.assertTrue(a_fake_self.csrf_token is None)
         self.assertEqual(a_fake_self.call_count, 2)
 
+    def test_retry_on_captcha_key_failure(self):
+        """
+        Test the decorator when the wrapped method returns a captch_key error.
+
+        This test ensures that the decorator will retry the wrapped method if it returns a
+        captcha_key error, after clearing cookies and the csrf token.
+
+        This test was written to assert the fix for
+        https://github.com/fedora-infra/bodhi/issues/1787
+        """
+        a_fake_self = mock.MagicMock()
+        a_fake_self.csrf_token = 'some_token'
+        a_fake_self.call_count = 0
+
+        @bindings.errorhandled
+        def captcha_plz(a_fake_self):
+            a_fake_self.call_count = a_fake_self.call_count + 1
+
+            # Fail on the first call with a captcha_key error to simulate unauth'd user on a
+            # comment.
+            if a_fake_self.call_count == 1:
+                return {'errors': [{'name': 'captcha_key'}]}
+
+            return 'here you go'
+
+        # No Exception should be raised.
+        captcha_plz(a_fake_self)
+
+        a_fake_self._session.cookies.clear.assert_called_once_with()
+        self.assertTrue(a_fake_self.csrf_token is None)
+        self.assertEqual(a_fake_self.call_count, 2)
+
     def test_success(self):
         """
         Test the decorator for the success case.
