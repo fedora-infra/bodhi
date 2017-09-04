@@ -73,13 +73,23 @@ def errorhandled(method):
     def wrapper(*args, **kwargs):
         try:
             result = method(*args, **kwargs)
+            # Bodhi allows comments to be written by unauthenticated users if they solve a Captcha.
+            # Due to this, an authentication error is not raised by the server if the client fails
+            # to authenticate for any reason, and instead an error about needing a captcha key is
+            # presented instead. If we see that error, we can just raise an AuthError to trigger the
+            # retry logic in the exception handler below.
+            if 'errors' in result:
+                for error in result['errors']:
+                    if 'name' in error and error['name'] == 'captcha_key':
+                        raise AuthError('Captcha key needed.')
         except AuthError:
-            # An AuthError can be raised for three different reasons:
+            # An AuthError can be raised for four different reasons:
             #
             # 0) The password is wrong.
             # 1) The session cookies are expired. fedora.python does not handle this automatically.
             # 2) The session cookies are not expired, but are no longer valid (for example, this can
             #    happen if the server's auth secret has changed.)
+            # 3) The client received a captcha_key error, as described in the try block above.
             #
             # We don't know the difference between the cases here, but case #1 is fairly common and
             # we can work around it and case #2 by removing the session cookies and csrf token and
