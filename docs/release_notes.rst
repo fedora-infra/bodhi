@@ -1,6 +1,49 @@
 Release notes
 =============
 
+2.11.0
+------
+
+Features
+^^^^^^^^
+
+* Bodhi now batches non-urgent updates together for less frequent churn. There is a new
+  ``bodhi-dequeue-stable`` CLI that is intended be added to cron that looks for batched updates and
+  moves them to stable
+  (`#1157 <https://github.com/fedora-infra/bodhi/issues/1157>`_).
+
+
+Bugs
+^^^^
+
+* Improved bugtracker linking in markdown input
+  (`#1406 <https://github.com/fedora-infra/bodhi/issues/1406>`_).
+* Don't disable autopush when the update is already requested for stable
+  (`#1570 <https://github.com/fedora-infra/bodhi/issues/1570>`_).
+* There is now a timeout on fetching results from ResultsDB in the backend
+  (`#1597 <https://github.com/fedora-infra/bodhi/issues/1597>`_).
+* Critical path updates now have positive days_to_stable and will only comment about pushing to
+  stable when appropriate
+  (`#1708 <https://github.com/fedora-infra/bodhi/issues/1708>`_).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* More docblocks have been written.
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 2.11.0:
+
+* Caleigh Runge-Hottman
+* Ryan Lerch
+* Rimsha Khan
+* Randy Barlow
+
+
 2.10.1
 ------
 
