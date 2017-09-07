@@ -68,6 +68,14 @@ def checkpoint(method):
     return wrapper
 
 
+def get_primary_arches(release):
+    release_num = release.id_prefix.lower().replace('-', '_')
+
+    return config.get(
+        '{release}_{version}_primary_arches'.format(
+            release=release_num, version=release.version))
+
+
 class Masher(fedmsg.consumers.FedmsgConsumer):
     """The Bodhi Masher.
 
@@ -132,6 +140,9 @@ Once mash is done:
         env = hub.config.get('environment')
         self.topic = prefix + '.' + env + '.' + hub.config.get('masher_topic')
         self.valid_signer = hub.config.get('releng_fedmsg_certname')
+        self.arch_is_secondary_list = [False]
+        if get_primary_arches() is not None:
+            self.arch_is_secondary_list.append(True)
         if not self.valid_signer:
             log.warn('No releng_fedmsg_certname defined'
                      'Cert validation disabled')
@@ -194,14 +205,19 @@ Once mash is done:
             for req in ('stable', 'testing'):
                 threads = []
                 for release, request, updates in batch:
-                    if request == req:
-                        self.log.info('Starting thread for %s %s for %d updates',
-                                      release, request, len(updates))
-                        thread = MasherThread(release, request, updates, agent,
-                                              self.log, self.db_factory,
-                                              self.mash_dir, resume)
-                        threads.append(thread)
-                        thread.start()
+                    for secondary in self.arch_is_secondary_list:
+                        if request == req:
+                            if not secondary:
+                                arch_type = "primary"
+                            else:
+                                arch_type = "secondary"
+                            self.log.info('Starting %s arch thread for %s %s for %d updates',
+                                          arch_type, release, request, len(updates))
+                            thread = MasherThread(release, request, updates, agent,
+                                                  self.log, self.db_factory,
+                                                  self.mash_dir, resume, secondary)
+                            threads.append(thread)
+                            thread.start()
                 for thread in threads:
                     thread.join()
                     for result in thread.results():
@@ -232,7 +248,7 @@ Once mash is done:
 class MasherThread(threading.Thread):
 
     def __init__(self, release, request, updates, agent,
-                 log, db_factory, mash_dir, resume=False):
+                 log, db_factory, mash_dir, resume=False, secondary=False):
         super(MasherThread, self).__init__()
         self.db_factory = db_factory
         self.log = log
@@ -241,6 +257,7 @@ class MasherThread(threading.Thread):
         self.request = UpdateRequest.from_string(request)
         self.release = release
         self.resume = resume
+        self.secondary = secondary
         self.updates = set()
         self.add_tags_async = []
         self.move_tags_async = []
@@ -647,7 +664,7 @@ class MasherThread(threading.Thread):
                              self.release.branch)
         previous = os.path.join(config.get('mash_stage_dir'), self.id)
 
-        mash_thread = MashThread(self.id, self.path, comps, previous, self.log)
+        mash_thread = MashThread(self.id, self.path, comps, previous, self.log, self.secondary)
         mash_thread.start()
         return mash_thread
 
@@ -981,9 +998,7 @@ class MasherThread(threading.Thread):
 
         # If the release has primary_arches defined in the config, we need to consider whether to
         # use the release's *alt_master_repomd setting.
-        primary_arches = config.get(
-            '{release}_{version}_primary_arches'.format(
-                release=release, version=self.release.version))
+        primary_arches = get_primary_arches(self.release)
         if primary_arches and arch not in primary_arches.split():
             key = '%s_%s_alt_master_repomd'
         else:
@@ -1011,7 +1026,7 @@ class MashThread(threading.Thread):
         tag (basestring): The tag being mashed.
     """
 
-    def __init__(self, tag, outputdir, comps, previous, log):
+    def __init__(self, tag, outputdir, comps, previous, log, secondary=False):
         """
         Initialize the MashThread.
 
@@ -1030,11 +1045,13 @@ class MashThread(threading.Thread):
         mash_conf = config.get('mash_conf')
         if os.path.exists(previous):
             mash_cmd += ' -p {}'.format(previous)
+        if secondary:
+            self.tag = self.tag + "-secondary"
         self.mash_cmd = mash_cmd.format(outputdir=outputdir, config=mash_conf,
                                         compsfile=comps, tag=self.tag).split()
         # Set our thread's "name" so it shows up nicely in the logs.
         # https://docs.python.org/2/library/threading.html#thread-objects
-        self.name = tag
+        self.name = self.tag
 
     def run(self):
         """Perform the mash in a subprocess."""
