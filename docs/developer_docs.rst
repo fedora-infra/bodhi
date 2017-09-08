@@ -141,7 +141,7 @@ Set PYTHONPATH
 
 Add the following to your `~/.bashrc`
 
-``export PYTHONPATH=$PYTHONPATH:$HOME/.virtualenv``
+``export PYTHONPATH=$PYTHONPATH:$HOME/.virtualenvs``
 
 Then on the terminal ::
 
