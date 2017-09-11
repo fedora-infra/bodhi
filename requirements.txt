@@ -18,7 +18,6 @@ progressbar
 pyDNS
 pylibravatar
 pyramid
-pyramid_debugtoolbar
 pyramid_fas_openid
 pyramid_mako
 pyramid_tm

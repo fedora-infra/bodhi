@@ -165,7 +165,7 @@ Setting up
 ^^^^^^^^^^
 ``python setup.py develop``
 
-``pip install psycopg2``
+``pip install psycopg2 pyramid_debugtoolbar``
 
 Create the `development.ini <https://github.com/fedora-infra/bodhi/blob/develop/development.ini.example>`_ file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
