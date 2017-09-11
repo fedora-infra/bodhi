@@ -48,6 +48,8 @@ from bodhi.server.exceptions import RepodataException
 
 _ = TranslationStringFactory('bodhi')
 
+http_session = requests.Session()
+
 
 def header(x):
     """Display a given message as a heading."""
@@ -1162,15 +1164,15 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None):
         base_error_msg = (
             'Bodhi failed to send POST request to {0} at the following URL '
             '"{1}". The status code was "{2}".')
-        rv = requests.post(api_url,
-                           headers={'Content-Type': 'application/json'},
-                           data=json.dumps(data),
-                           timeout=60)
+        rv = http_session.post(api_url,
+                               headers={'Content-Type': 'application/json'},
+                               data=json.dumps(data),
+                               timeout=60)
     else:
         base_error_msg = (
             'Bodhi failed to get a resource from {0} at the following URL '
             '"{1}". The status code was "{2}".')
-        rv = requests.get(api_url, timeout=60)
+        rv = http_session.get(api_url, timeout=60)
     if rv.status_code == 200:
         return rv.json()
     elif rv.status_code == 500:
