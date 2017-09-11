@@ -4,6 +4,7 @@ omit =
     bodhi/scripts/*
     bodhi/server/static/__init__.py
     bodhi/tests/*
+    bodhi/server/migrations/*
 
 [report]
 precision = 2

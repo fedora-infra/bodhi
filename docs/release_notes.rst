@@ -1,6 +1,23 @@
 Release notes
 =============
 
+develop
+-------
+
+Special instructions
+^^^^^^^^^^^^^^^^^^^^
+
+* The Alembic configuration file has changed to use the Python path of the migrations.
+  In order to run the new migrations, you should ensure your alembic.ini has
+  ``script_location = bodhi:server/migrations``.
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The database migrations are now shipped as part of the Python distribution
+  (`#1777 <https://github.com/fedora-infra/bodhi/pull/1777>`_).
+
+
 2.11.0
 ------
 
