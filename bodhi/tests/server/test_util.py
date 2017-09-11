@@ -144,17 +144,18 @@ class TestUtils(unittest.TestCase):
         pkgs = util.get_critpath_components('f20')
         assert critpath_pkgs == pkgs, pkgs
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch.dict(util.config, {
         'critpath.type': 'pdc',
         'pdc_url': 'http://domain.local'
     })
-    def test_get_critpath_components_pdc_error(self, mock_get):
+    def test_get_critpath_components_pdc_error(self, mock_get, session):
         """ Ensure an error is thrown in Bodhi if there is an error in PDC
         getting the critpath packages.
         """
-        mock_get.return_value.status_code = 500
-        mock_get.return_value.json.return_value = \
+        session.get.return_value.status_code = 500
+        session.get.return_value.json.return_value = \
             {'error': 'some error'}
         try:
             util.get_critpath_components('f25')
@@ -180,19 +181,20 @@ class TestUtils(unittest.TestCase):
                    'for non-RPM components')
         mock_log.warning.assert_called_once_with(warning)
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch.dict(util.config, {
         'critpath.type': 'pdc',
         'pdc_url': 'http://domain.local'
     })
-    def test_get_critpath_components_pdc_success(self, mock_get):
+    def test_get_critpath_components_pdc_success(self, mock_get, session):
         """ Ensure that critpath packages can be found using PDC.
         """
         pdc_url = \
             'http://domain.local/rest_api/v1/component-branches/?page_size=1'
         pdc_next_url = '{0}&page=2'.format(pdc_url)
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.json.side_effect = [
+        session.get.return_value.status_code = 200
+        session.get.return_value.json.side_effect = [
             {
                 'count': 2,
                 'next': pdc_next_url,
@@ -232,17 +234,18 @@ class TestUtils(unittest.TestCase):
         # We can't verify all the calls made because the URL GET parameters
         # in the URL may have different orders based on the system/Python
         # version.
-        mock_get.assert_called_with(pdc_next_url, timeout=60)
+        session.get.assert_called_with(pdc_next_url, timeout=60)
         # Verify there were two GET requests made and two .json() calls
-        assert mock_get.call_count == 2, mock_get.call_count
-        assert mock_get.return_value.json.call_count == 2, \
-            mock_get.return_value.json.call_count
+        assert session.get.call_count == 2, session.get.call_count
+        assert session.get.return_value.json.call_count == 2, \
+            session.get.return_value.json.call_count
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
-    def test_pagure_api_get(self, mock_get):
+    def test_pagure_api_get(self, mock_get, session):
         """ Ensure that an API request to Pagure works as expected.
         """
-        mock_get.return_value.status_code = 200
+        session.get.return_value.status_code = 200
         expected_json = {
             "access_groups": {
                 "admin": [],
@@ -274,17 +277,18 @@ class TestUtils(unittest.TestCase):
                 "name": "mprahl"
             }
         }
-        mock_get.return_value.json.return_value = expected_json
+        session.get.return_value.json.return_value = expected_json
         rv = util.pagure_api_get('http://domain.local/api/0/rpms/python')
         assert rv == expected_json, rv
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
-    def test_pagure_api_get_non_500_error(self, mock_get):
+    def test_pagure_api_get_non_500_error(self, mock_get, session):
         """ Ensure that an API request to Pagure that raises an error that is
         not a 500 error returns the actual error message from the JSON.
         """
-        mock_get.return_value.status_code = 404
-        mock_get.return_value.json.return_value = {
+        session.get.return_value.status_code = 404
+        session.get.return_value.json.return_value = {
             "error": "Project not found",
             "error_code": "ENOPROJECT"
         }
@@ -300,12 +304,13 @@ class TestUtils(unittest.TestCase):
             '"404". The error was "Project not found".')
         assert actual_error == expected_error, actual_error
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
-    def test_pagure_api_get_500_error(self, mock_get):
+    def test_pagure_api_get_500_error(self, mock_get, session):
         """ Ensure that an API request to Pagure that triggers a 500 error
         raises the expected error message.
         """
-        mock_get.return_value.status_code = 500
+        session.get.return_value.status_code = 500
         try:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
             assert False, 'Did not raise a RuntimeError'
@@ -318,13 +323,14 @@ class TestUtils(unittest.TestCase):
             '"500".')
         assert actual_error == expected_error, actual_error
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
-    def test_pagure_api_get_non_500_error_no_json(self, mock_get):
+    def test_pagure_api_get_non_500_error_no_json(self, mock_get, session):
         """ Ensure that an API request to Pagure that raises an error that is
         not a 500 error and has no JSON returns an error.
         """
-        mock_get.return_value.status_code = 404
-        mock_get.return_value.json.side_effect = ValueError('Not JSON')
+        session.get.return_value.status_code = 404
+        session.get.return_value.json.side_effect = ValueError('Not JSON')
         try:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
             assert False, 'Did not raise a RuntimeError'
@@ -337,11 +343,12 @@ class TestUtils(unittest.TestCase):
             '"404". The error was "".')
         assert actual_error == expected_error, actual_error
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
-    def test_pdc_api_get(self, mock_get):
+    def test_pdc_api_get(self, mock_get, session):
         """ Ensure that an API request to PDC works as expected.
         """
-        mock_get.return_value.status_code = 200
+        session.get.return_value.status_code = 200
         expected_json = {
             "count": 1,
             "next": None,
@@ -362,17 +369,18 @@ class TestUtils(unittest.TestCase):
                 }
             ]
         }
-        mock_get.return_value.json.return_value = expected_json
+        session.get.return_value.json.return_value = expected_json
         rv = util.pdc_api_get(
             'http://domain.local/rest_api/v1/component-branch-slas/')
         assert rv == expected_json, rv
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
-    def test_pdc_api_get_500_error(self, mock_get):
+    def test_pdc_api_get_500_error(self, mock_get, session):
         """ Ensure that an API request to PDC that triggers a 500 error
         raises the expected error message.
         """
-        mock_get.return_value.status_code = 500
+        session.get.return_value.status_code = 500
         try:
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/')
@@ -386,13 +394,14 @@ class TestUtils(unittest.TestCase):
             'status code was "500".')
         assert actual_error == expected_error, actual_error
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
-    def test_pdc_api_get_non_500_error(self, mock_get):
+    def test_pdc_api_get_non_500_error(self, mock_get, session):
         """ Ensure that an API request to PDC that raises an error that is
         not a 500 error returns the returned JSON.
         """
-        mock_get.return_value.status_code = 404
-        mock_get.return_value.json.return_value = {
+        session.get.return_value.status_code = 404
+        session.get.return_value.json.return_value = {
             "detail": "Not found."
         }
         try:
@@ -409,13 +418,14 @@ class TestUtils(unittest.TestCase):
             '"{\'detail\': \'Not found.\'}".')
         assert actual_error == expected_error, actual_error
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
-    def test_pdc_api_get_non_500_error_no_json(self, mock_get):
+    def test_pdc_api_get_non_500_error_no_json(self, mock_get, session):
         """ Ensure that an API request to PDC that raises an error that is
         not a 500 error and has no JSON returns an error.
         """
-        mock_get.return_value.status_code = 404
-        mock_get.return_value.json.side_effect = ValueError('Not JSON')
+        session.get.return_value.status_code = 404
+        session.get.return_value.json.side_effect = ValueError('Not JSON')
         try:
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
@@ -437,18 +447,19 @@ class TestUtils(unittest.TestCase):
         for element in result:
             assert isinstance(element, unicode)
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.post')
-    def test_greenwave_api_post(self, mock_post):
+    def test_greenwave_api_post(self, mock_post, session):
         """ Ensure that a POST request to Greenwave works as expected.
         """
-        mock_post.return_value.status_code = 200
+        session.post.return_value.status_code = 200
         expected_json = {
             'policies_satisified': True,
             'summary': 'All tests passed',
             'applicable_policies': ['taskotron_release_critical_tasks'],
             'unsatisfied_requirements': []
         }
-        mock_post.return_value.json.return_value = expected_json
+        session.post.return_value.json.return_value = expected_json
         data = {
             'product_version': 'fedora-26',
             'decision_context': 'bodhi_push_update_stable',
@@ -458,12 +469,13 @@ class TestUtils(unittest.TestCase):
                                            data)
         assert decision == expected_json, decision
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.post')
-    def test_greenwave_api_post_500_error(self, mock_post):
+    def test_greenwave_api_post_500_error(self, mock_post, session):
         """ Ensure that a POST request to Greenwave that triggers a 500 error
         raises the expected error message.
         """
-        mock_post.return_value.status_code = 500
+        session.post.return_value.status_code = 500
         try:
             data = {
                 'product_version': 'fedora-26',
@@ -481,13 +493,14 @@ class TestUtils(unittest.TestCase):
             '"http://domain.local/api/v1.0/decision". The status code was "500".')
         assert actual_error == expected_error, actual_error
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.post')
-    def test_greenwave_api_post_non_500_error(self, mock_post):
+    def test_greenwave_api_post_non_500_error(self, mock_post, session):
         """ Ensure that a POST request to Greenwave that raises an error that is
         not a 500 error returns the returned JSON.
         """
-        mock_post.return_value.status_code = 404
-        mock_post.return_value.json.return_value = {
+        session.post.return_value.status_code = 404
+        session.post.return_value.json.return_value = {
             "message": "Not found."
         }
         try:
@@ -508,13 +521,14 @@ class TestUtils(unittest.TestCase):
             'The error was "{\'message\': \'Not found.\'}".')
         assert actual_error == expected_error, actual_error
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.post')
-    def test_greenwave_api_post_non_500_error_no_json(self, mock_post):
+    def test_greenwave_api_post_non_500_error_no_json(self, mock_post, session):
         """ Ensure that a POST request to Greenwave that raises an error that is
         not a 500 error and has no JSON returns an error.
         """
-        mock_post.return_value.status_code = 404
-        mock_post.return_value.json.side_effect = ValueError('Not JSON')
+        session.post.return_value.status_code = 404
+        session.post.return_value.json.side_effect = ValueError('Not JSON')
         try:
             data = {
                 'product_version': 'fedora-26',

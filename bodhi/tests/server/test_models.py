@@ -409,8 +409,9 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         # This should not raise any Exception.
         self.db.flush()
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
-    def test_get_pkg_committers_from_pagure(self, mock_get):
+    def test_get_pkg_committers_from_pagure(self, mock_get, session):
         """ Ensure that the package committers can be found using the Pagure
         API.
         """
@@ -445,13 +446,14 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
                 "name": "mprahl"
             }
         }
-        mock_get.return_value.json.return_value = json_output
-        mock_get.return_value.status_code = 200
+        session.get.return_value.json.return_value = json_output
+        session.get.return_value.status_code = 200
         rv = self.package.get_pkg_committers_from_pagure()
         assert rv == (['mprahl'], ['factory2']), rv
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
-    def test_get_pkg_committers_container_from_pagure(self, mock_get):
+    def test_get_pkg_committers_container_from_pagure(self, mock_get, session):
         """ Ensure that the container committers can be found using the Pagure
         API.
         """
@@ -484,8 +486,8 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
                 "name": "mprahl"
             }
         }
-        mock_get.return_value.json.return_value = json_output
-        mock_get.return_value.status_code = 200
+        session.get.return_value.json.return_value = json_output
+        session.get.return_value.status_code = 200
         # Even though Bodhi doesn't support containers yet, let's mock this
         # package to have the type set to `container` to make sure the code in
         # get_pkg_committers_from_pagure works with containers in the future.
@@ -983,17 +985,18 @@ class TestUpdate(ModelTest):
         # No bugs should have been closed
         self.assertEqual(close.call_count, 0)
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch.dict(util.config, {
         'critpath.type': 'pdc',
         'pdc_url': 'http://domain.local'
     })
-    def test_contains_critpath_component(self, mock_get):
+    def test_contains_critpath_component(self, mock_get, session):
         """ Verifies that the static function of contains_critpath_component
         determines that one of the builds has a critpath component.
         """
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.json.return_value = {
+        session.get.return_value.status_code = 200
+        session.get.return_value.json.return_value = {
             'count': 2,
             'next': None,
             'previous': None,
@@ -1022,17 +1025,18 @@ class TestUpdate(ModelTest):
         self.assertTrue(update.contains_critpath_component(
             update.builds, update.release.name))
 
+    @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch.dict(util.config, {
         'critpath.type': 'pdc',
         'pdc_url': 'http://domain.local'
     })
-    def test_contains_critpath_component_not_critpath(self, mock_get):
+    def test_contains_critpath_component_not_critpath(self, mock_get, session):
         """ Verifies that the static function of contains_critpath_component
         determines that none of the builds are critpath components.
         """
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.json.return_value = {
+        session.get.return_value.status_code = 200
+        session.get.return_value.json.return_value = {
             'count': 2,
             'next': None,
             'previous': None,
