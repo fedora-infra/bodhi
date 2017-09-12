@@ -33,7 +33,6 @@ from .models import (
     Package,
     Release,
     RpmBuild,
-    RpmPackage,
     ReleaseState,
     Stack,
     TestCase,
@@ -130,7 +129,7 @@ def validate_builds(request):
         return
 
     for nvr in request.validated.get('builds', []):
-        build = request.db.query(RpmBuild).filter_by(nvr=nvr).first()
+        build = request.db.query(Build).filter_by(nvr=nvr).first()
         if build and build.update is not None:
             request.errors.add('body', 'builds',
                                "Update for {} already exists".format(nvr))
@@ -840,7 +839,7 @@ def validate_override_builds(request):
 
 def _validate_override_build(request, nvr, db):
     """ Workhorse function for validate_override_builds """
-    build = RpmBuild.get(nvr, db)
+    build = Build.get(nvr, db)
     if build is not None:
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure
@@ -891,13 +890,18 @@ def _validate_override_build(request, nvr, db):
             return
 
         pkgname, version, rel = get_nvr(nvr)
-        package = RpmPackage.get(pkgname, db)
+        build_info = request.koji.getBuild(nvr)
+        package_class = ContentType.infer_content_class(
+            base=Package, build=build_info)
+        package = package_class.get(pkgname, db)
         if not package:
-            package = RpmPackage(name=pkgname)
+            package = package_class(name=pkgname)
             db.add(package)
             db.flush()
 
-        build = RpmBuild(nvr=nvr, release=release, package=package)
+        build_class = ContentType.infer_content_class(
+            base=Build, build=build_info)
+        build = build_class(nvr=nvr, release=release, package=package)
         db.add(build)
         db.flush()
 

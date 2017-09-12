@@ -24,7 +24,7 @@ import click
 
 from bodhi.server import initialize_db
 from bodhi.server.config import config
-from bodhi.server.models import Release, ReleaseState, RpmBuild, Update, UpdateRequest
+from bodhi.server.models import Release, ReleaseState, Build, Update, UpdateRequest
 from bodhi.server.util import transactional_session_maker
 import bodhi.server.notifications
 
@@ -85,7 +85,7 @@ def push(username, cert_prefix, **kwargs):
             if kwargs.get('builds'):
                 query = query.join(Update.builds)
                 query = query.filter(
-                    or_(*[RpmBuild.nvr == build for build in kwargs['builds'].split(',')]))
+                    or_(*[Build.nvr == build for build in kwargs['builds'].split(',')]))
 
             query = _filter_releases(session, query, kwargs.get('releases'))
 

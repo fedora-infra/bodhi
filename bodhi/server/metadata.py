@@ -21,7 +21,7 @@ import createrepo_c as cr
 
 from bodhi.server.buildsys import get_session
 from bodhi.server.config import config
-from bodhi.server.models import RpmBuild, UpdateStatus, UpdateRequest, UpdateSuggestion
+from bodhi.server.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
 
 
 __version__ = '2.0'
@@ -173,7 +173,7 @@ class ExtendedMetadata(object):
         log.debug("%d builds found" % len(kojiBuilds))
         for build in kojiBuilds:
             self.builds[build['nvr']] = build
-            build_obj = self.db.query(RpmBuild).filter_by(nvr=unicode(build['nvr'])).first()
+            build_obj = self.db.query(Build).filter_by(nvr=unicode(build['nvr'])).first()
             if build_obj:
                 if build_obj.update:
                     self.updates.add(build_obj.update)

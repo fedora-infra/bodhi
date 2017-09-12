@@ -24,7 +24,7 @@ from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-from bodhi.server.models import Update, RpmBuild, RpmPackage, Release
+from bodhi.server.models import Update, Build, Package, Release
 from bodhi.server.validators import validate_updates, validate_packages, validate_releases
 import bodhi.server.schemas
 import bodhi.server.security
@@ -51,7 +51,7 @@ def get_build(request):
             Build with the given NVR.
     """
     nvr = request.matchdict.get('nvr')
-    build = RpmBuild.get(nvr, request.db)
+    build = Build.get(nvr, request.db)
     if not build:
         request.errors.add('body', 'nvr', 'No such build')
         request.errors.status = HTTPNotFound.code
@@ -88,15 +88,15 @@ def query_builds(request):
     """
     db = request.db
     data = request.validated
-    query = db.query(RpmBuild)
+    query = db.query(Build)
 
     nvr = data.get('nvr')
     if nvr is not None:
-        query = query.filter(RpmBuild.nvr == nvr)
+        query = query.filter(Build.nvr == nvr)
 
     updates = data.get('updates')
     if updates is not None:
-        query = query.join(RpmBuild.update)
+        query = query.join(Build.update)
         args = \
             [Update.title == update.title for update in updates] +\
             [Update.alias == update.alias for update in updates]
@@ -104,18 +104,18 @@ def query_builds(request):
 
     packages = data.get('packages')
     if packages is not None:
-        query = query.join(RpmBuild.package)
-        query = query.filter(or_(*[RpmPackage.id == p.id for p in packages]))
+        query = query.join(Build.package)
+        query = query.filter(or_(*[Package.id == p.id for p in packages]))
 
     releases = data.get('releases')
     if releases is not None:
-        query = query.join(RpmBuild.release)
+        query = query.join(Build.release)
         query = query.filter(or_(*[Release.id == r.id for r in releases]))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
     count_query = query.with_labels().statement\
-        .with_only_columns([func.count(distinct(RpmBuild.nvr))])\
+        .with_only_columns([func.count(distinct(Build.nvr))])\
         .order_by(None)
     total = db.execute(count_query).scalar()
 
