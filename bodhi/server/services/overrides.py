@@ -21,7 +21,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi.server import log
-from bodhi.server.models import Build, BuildrootOverride, RpmPackage, Release, RpmBuild, User
+from bodhi.server.models import Build, BuildrootOverride, Package, Release, User
 import bodhi.server.schemas
 import bodhi.server.services.errors
 from bodhi.server.validators import (
@@ -59,7 +59,7 @@ def get_override(request):
     db = request.db
     nvr = request.matchdict.get('nvr')
 
-    build = RpmBuild.get(nvr, db)
+    build = Build.get(nvr, db)
 
     if not build:
         request.errors.add('url', 'nvr', 'No such build')
@@ -117,7 +117,7 @@ def query_overrides(request):
     packages = data.get('packages')
     if packages is not None:
         query = query.join(BuildrootOverride.build).join(Build.package)
-        query = query.filter(or_(*[RpmPackage.name == pkg.name for pkg in packages]))
+        query = query.filter(or_(*[Package.name == pkg.name for pkg in packages]))
 
     releases = data.get('releases')
     if releases is not None:
@@ -128,7 +128,7 @@ def query_overrides(request):
     if like is not None:
         query = query.join(BuildrootOverride.build)
         query = query.filter(or_(*[
-            RpmBuild.nvr.like('%%%s%%' % like)
+            Build.nvr.like('%%%s%%' % like)
         ]))
 
     search = data.get('search')
@@ -226,7 +226,7 @@ def save_override(request):
         else:
             log.info("Editing buildroot override: %s" % edited)
 
-            edited = RpmBuild.get(edited, request.db)
+            edited = Build.get(edited, request.db)
 
             if edited is None:
                 request.errors.add('body', 'edited', 'No such build')

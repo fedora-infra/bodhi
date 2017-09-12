@@ -1359,11 +1359,7 @@ class Update(Base):
                 if not package:
                     package = Package(name=name)
                     db.add(package)
-                b = db.query(RpmBuild).filter_by(nvr=build).first()
-                if not b:
-                    b = RpmBuild(nvr=build, package=package)
-                    b.release = up.release
-                    db.add(b)
+                b = db.query(Build).filter_by(nvr=build).first()
 
                 up.builds.append(b)
 
@@ -1499,8 +1495,8 @@ class Update(Base):
         """
         caveats = []
         for build in self.builds:
-            for oldBuild in db.query(RpmBuild).join(Update).filter(
-                and_(RpmBuild.nvr != build.nvr,
+            for oldBuild in db.query(Build).join(Update).filter(
+                and_(Build.nvr != build.nvr,
                      Build.package == build.package,
                      Update.locked == False,
                      Update.release == self.release,
