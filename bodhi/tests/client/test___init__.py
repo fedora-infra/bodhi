@@ -22,6 +22,7 @@ import unittest
 from click import testing
 import fedora.client
 import mock
+import munch
 
 from bodhi import client
 from bodhi.client import bindings, AuthError
@@ -125,6 +126,44 @@ class TestNew(unittest.TestCase):
                 'suggest': None, 'notes': None, 'request': None, 'bugs': u'', 'requirements': None,
                 'unstable_karma': None, 'file': None, 'notes_file': None, 'type': 'bugfix'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+
+class TestPrintOverrideKojiHint(unittest.TestCase):
+    """
+    Test the _print_override_koji_hint() function.
+    """
+    @mock.patch('bodhi.client.click.echo')
+    def test_with_release_id(self, echo):
+        """Assert that the correct string is printed when the override Munch has a release_id."""
+        override = munch.Munch({
+            'submitter': munch.Munch({'name': 'bowlofeggs'}),
+            'build': munch.Munch({'nvr': 'python-pyramid-1.5.6-3.fc25', 'release_id': 15}),
+            'expiration_date': '2017-02-24'})
+        c = bindings.BodhiClient()
+        c.send_request = mock.MagicMock(
+            return_value=munch.Munch({'releases': [munch.Munch({'dist_tag': 'f25'})]}))
+
+        client._print_override_koji_hint(override, c)
+
+        echo.assert_called_once_with(
+            '\n\nUse the following to ensure the override is active:\n\n\t$ koji '
+            'wait-repo f25-build --build=python-pyramid-1.5.6-3.fc25\n')
+        c.send_request.assert_called_once_with('releases/', verb='GET',
+                                               params={'ids': [15]})
+
+    @mock.patch('bodhi.client.click.echo')
+    def test_without_release_id(self, echo):
+        """Assert that nothing is printed when the override Munch does not have a release_id."""
+        override = munch.Munch({
+            'submitter': {'name': 'bowlofeggs'}, 'build': {'nvr': 'python-pyramid-1.5.6-3.el7'},
+            'expiration_date': '2017-02-24'})
+        c = bindings.BodhiClient()
+        c.send_request = mock.MagicMock(return_value='response')
+
+        client._print_override_koji_hint(override, c)
+
+        self.assertEqual(echo.call_count, 0)
+        self.assertEqual(c.send_request.call_count, 0)
 
 
 class TestQuery(unittest.TestCase):
@@ -278,6 +317,39 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
         send_request.assert_called_once_with(
             bindings_client, 'overrides/', verb='GET', params={'user': 'dudemcpants'})
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_single_override(self, send_request):
+        """Assert that querying a single override provides more detailed output."""
+        runner = testing.CliRunner()
+        responses = [client_test_data.EXAMPLE_QUERY_SINGLE_OVERRIDE_MUNCH,
+                     client_test_data.EXAMPLE_GET_RELEASE_15]
+
+        def _send_request(*args, **kwargs):
+            """Mock the response from send_request()."""
+            return responses.pop(0)
+
+        send_request.side_effect = _send_request
+
+        result = runner.invoke(client.query_buildroot_overrides,
+                               ['--builds', 'bodhi-2.10.1-1.fc25'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            client_test_data.EXPECTED_OVERRIDES_OUTPUT + "1 overrides found (1 shown)\n")
+        bindings_client = send_request.mock_calls[0][1][0]
+        self.assertEqual(send_request.call_count, 2)
+        self.assertEqual(
+            send_request.mock_calls[0],
+            mock.call(bindings_client, 'overrides/', verb='GET',
+                      params={'builds': u'bodhi-2.10.1-1.fc25'}))
+        self.assertEqual(
+            send_request.mock_calls[1],
+            mock.call(bindings_client, 'releases/', verb='GET',
+                      params={'ids': [15]}))
+
 
 class TestRequest(unittest.TestCase):
     """
@@ -370,13 +442,20 @@ class TestSaveBuilrootOverrides(unittest.TestCase):
     """
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_OVERRIDE_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
     def test_url_flag(self, send_request):
         """
         Assert correct behavior with the --url flag.
         """
         runner = testing.CliRunner()
+        responses = [client_test_data.EXAMPLE_OVERRIDE_MUNCH,
+                     client_test_data.EXAMPLE_GET_RELEASE_15]
+
+        def _send_request(*args, **kwargs):
+            """Mock the response from send_request()."""
+            return responses.pop(0)
+
+        send_request.side_effect = _send_request
 
         result = runner.invoke(
             client.save_buildroot_overrides,
@@ -390,12 +469,22 @@ class TestSaveBuilrootOverrides(unittest.TestCase):
         # about a week away.
         expire_time = send_request.mock_calls[0][2]['data']['expiration_date']
         self.assertTrue((datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5))
-        send_request.assert_called_once_with(
-            bindings_client, 'overrides/', verb='POST', auth=True,
-            data={
-                'expiration_date': expire_time,
-                'notes': u'No explanation given...', 'nvr': u'js-tag-it-2.0-1.fc25',
-                'csrf_token': 'a_csrf_token'})
+        # There should be two calls to send_request(). The first to save the override, and the
+        # second to find out the release tags so the koji wait-repo hint can be printed.
+        self.assertEqual(send_request.call_count, 2)
+        self.assertEqual(
+            send_request.mock_calls[0],
+            mock.call(
+                bindings_client, 'overrides/', verb='POST', auth=True,
+                data={
+                    'expiration_date': expire_time,
+                    'notes': u'No explanation given...', 'nvr': u'js-tag-it-2.0-1.fc25',
+                    'csrf_token': 'a_csrf_token'}))
+        self.assertEqual(
+            send_request.mock_calls[1],
+            mock.call(
+                bindings_client, 'releases/', verb='GET',
+                params={'ids': [15]}))
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',

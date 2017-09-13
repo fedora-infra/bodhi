@@ -236,6 +236,10 @@ def query_releases_json(request):
     data = request.validated
     query = db.query(Release)
 
+    ids = data.get('ids')
+    if ids is not None:
+        query = query.filter(or_(*[Release.id == _id for _id in ids]))
+
     name = data.get('name')
     if name is not None:
         query = query.filter(Release.name.like(name))

@@ -791,7 +791,7 @@ class Build(Base):
     """
     __tablename__ = 'builds'
     __exclude_columns__ = ('id', 'package', 'package_id', 'release',
-                           'release_id', 'update_id', 'update', 'override')
+                           'update_id', 'update', 'override')
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
