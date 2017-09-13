@@ -73,7 +73,8 @@ EXAMPLE_OVERRIDE_MUNCH = Munch({
     u'build_id': 108570, u'submission_date': u'2017-02-28 23:05:32', u'caveats': [],
     u'nvr': u'js-tag-it-2.0-1.fc25', u'expiration_date': u'2017-03-07 23:05:31',
     u'notes': u'No explanation given...', u'submitter_id': 2897,
-    u'build': Munch({u'epoch': 0, u'nvr': u'js-tag-it-2.0-1.fc25', u'signed': True}),
+    u'build': Munch(
+        {u'epoch': 0, u'nvr': u'js-tag-it-2.0-1.fc25', u'signed': True, 'release_id': 15}),
     u'expired_date': None, u'submitter': Munch({
         u'openid': None, u'name': u'bowlofeggs', u'show_popups': True, u'id': 2897, u'avatar': None,
         u'groups': [Munch({u'name': u'packager'})], u'email': u'email@example.com'})})
@@ -413,6 +414,36 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
     u'rows_per_page': 20,
     u'total': 11})
 
+
+EXAMPLE_QUERY_SINGLE_OVERRIDE_MUNCH = Munch({
+    u'chrome': True,
+    u'display_user': True,
+    u'overrides': [Munch(
+        {u'build': Munch({
+            u'epoch': 0,
+            u'nvr': u'js-tag-it-2.0-1.fc25',
+            u'release_id': 15,
+            u'signed': True}),
+         u'build_id': 108565,
+         u'expiration_date': u'2017-03-07 23:05:31',
+         u'expired_date': None,
+         u'notes': u'No explanation given...',
+         u'nvr': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+         u'submission_date': u'2017-02-28 14:30:37',
+         u'submitter': {u'avatar': u'AVATAR_URL',
+                        u'email': u'email@example.com',
+                        u'groups': [{u'name': u'packager'}],
+                        u'id': 2897,
+                        u'name': u'bowlofeggs',
+                        u'openid': u'bowlofeggs.id.fedoraproject.org',
+                        u'show_popups': True},
+         u'submitter_id': 2897})],
+    u'page': 1,
+    u'pages': 1,
+    u'rows_per_page': 20,
+    u'total': 1})
+
+
 # Expected output when print_resp renders EXAMPLE_QUERY_OVERRIDES_MUNCH
 EXPECTED_QUERY_OVERRIDES_OUTPUT = """bowlofeggs's nodejs-grunt-wrap-0.3.0-2.fc25 override (expires 2017-03-07 14:30:36)
 bowlofeggs's python-pyramid-1.5.6-3.el7 override (expires 2017-02-17 00:00:00)
@@ -484,6 +515,19 @@ EXAMPLE_UPDATE_MUNCH = Munch({
     u'content_type': u'rpm'})
 
 
+EXAMPLE_GET_RELEASE_15 = Munch(
+    {u'rows_per_page': 20, u'total': 1, u'pages': 1,
+     u'releases': [
+         Munch({u'dist_tag': u'f25', u'name': u'F25', u'testing_tag': u'f25-updates-testing',
+                u'pending_stable_tag': u'f25-updates-pending',
+                u'pending_signing_tag': u'f25-signing-pending', u'long_name': u'Fedora 25',
+                u'state': u'current', u'version': u'25', u'override_tag': u'f25-override',
+                u'branch': u'f25', u'id_prefix': u'FEDORA',
+                u'pending_testing_tag': u'f25-updates-testing-pending',
+                u'stable_tag': u'f25-updates', u'candidate_tag': u'f25-updates-candidate'})],
+     u'page': 1})
+
+
 # EXAMPLE_UPDATE_MUNCH is expected to generate this output in update_str
 EXPECTED_UPDATE_OUTPUT = u"""================================================================================
      bodhi-2.2.4-1.el7
@@ -511,13 +555,22 @@ Content Type: rpm
   http://example.com/tests/updates/FEDORA-EPEL-2016-3081a94111
 """
 
-EXPECTED_OVERRIDES_OUTPUT = u"""============================================================
+EXPECTED_OVERRIDE_STR_OUTPUT = u"""============================================================
      js-tag-it-2.0-1.fc25
 ============================================================
   Submitter: bowlofeggs
   Expiration Date: 2017-03-07 23:05:31
   Notes: No explanation given...
   Expired: False
+"""
+
+
+EXPECTED_OVERRIDES_OUTPUT = EXPECTED_OVERRIDE_STR_OUTPUT + """
+
+Use the following to ensure the override is active:
+
+\t$ koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25
+
 """
 
 EXPECTED_EXPIRED_OVERRIDES_OUTPUT = u"""============================================================

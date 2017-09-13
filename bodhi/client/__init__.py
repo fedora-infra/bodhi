@@ -634,6 +634,28 @@ def edit_buildroot_overrides(user, password, url, staging, **kwargs):
     _save_override(url=url, user=user, password=password, staging=staging, edit=True, **kwargs)
 
 
+def _print_override_koji_hint(override, client):
+    """
+    Print a human readable hint about how to use koji wait-repo to monitor an override, if possible.
+
+    Note: The hint can only be generated if the server provides a 'release_id' on the
+    override.build property. Older versions of the server did not include the release_id on
+    Build objects during serialization, and those server versions also did not allow querying
+    for releases by id. If override.build.release_id is not found, None will be returned.
+
+    Args:
+        override (munch.Munch): A Munch of the Override we want to print a hint about.
+        client (bodhi.client.bindings.BodhiClient): A BodhiClient that we can use to query the
+            server for Releases.
+    """
+    if 'release_id' in override.build:
+        release = client.get_releases(ids=[override.build.release_id])['releases'][0]
+        click.echo(
+            '\n\nUse the following to ensure the override is active:\n\n'
+            '\t$ koji wait-repo {}-build --build={}\n'.format(
+                release.dist_tag, override.build.nvr))
+
+
 def print_resp(resp, client):
     if 'updates' in resp:
         if len(resp.updates) == 1:
@@ -651,6 +673,7 @@ def print_resp(resp, client):
     elif 'overrides' in resp:
         if len(resp.overrides) == 1:
             click.echo(client.override_str(resp.overrides[0], minimal=False))
+            _print_override_koji_hint(resp.overrides[0], client)
         else:
             for override in resp.overrides:
                 click.echo(client.override_str(override).strip())
@@ -658,6 +681,7 @@ def print_resp(resp, client):
             '%s overrides found (%d shown)' % (resp.total, len(resp.overrides)))
     elif 'build' in resp:
         click.echo(client.override_str(resp, minimal=False))
+        _print_override_koji_hint(resp, client)
     elif 'comment' in resp:
         click.echo('The following comment was added to %s' % resp.comment['update'].title)
         click.echo(resp.comment.text)

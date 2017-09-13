@@ -93,6 +93,28 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F22')
 
+    def test_list_releases_by_ids_unknown(self):
+        res = self.app.get('/releases/', {"ids": [9234872348923467]})
+
+        self.assertEquals(len(res.json_body['releases']), 0)
+
+    def test_list_releases_by_ids_plural(self):
+        releases = Release.query.all()
+
+        res = self.app.get('/releases/', {"ids": [release.id for release in releases]})
+
+        self.assertEquals(len(res.json_body['releases']), len(releases))
+        self.assertEquals(set([r['name'] for r in res.json_body['releases']]),
+                          set([release.name for release in releases]))
+
+    def test_list_releases_by_ids_singular(self):
+        release = Release.query.all()[0]
+
+        res = self.app.get('/releases/', {"ids": release.id})
+
+        self.assertEquals(len(res.json_body['releases']), 1)
+        self.assertEquals(res.json_body['releases'][0]['name'], release.name)
+
     def test_list_releases_by_name(self):
         res = self.app.get('/releases/', {"name": 'F22'})
         body = res.json_body

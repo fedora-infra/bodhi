@@ -11,6 +11,18 @@ Special instructions
   In order to run the new migrations, you should ensure your alembic.ini has
   ``script_location = bodhi:server/migrations``.
 
+
+Features
+^^^^^^^^
+
+* It is now possible to query for Releases by a list of primary keys, by using the querystring
+  ``ids`` with the ``releases/`` API.
+* Builds now serialize their ``release_id`` field.
+* The CLI now prints a helpful hint about how to use ``koji wait-repo`` when creating or editing a
+  buildroot override, or when a query for overrides returns exactly one result
+  (`#1376 <https://github.com/fedora-infra/bodhi/pull/1376>`_).
+
+
 Development improvements
 ^^^^^^^^^^^^^^^^^^^^^^^^
 

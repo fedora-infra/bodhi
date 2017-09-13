@@ -90,6 +90,12 @@ class Releases(colander.SequenceSchema):
     release = colander.SchemaNode(colander.String())
 
 
+class ReleaseIds(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Release ID objects."""
+
+    release_id = colander.SchemaNode(colander.Integer())
+
+
 class Groups(colander.SequenceSchema):
     """A SequenceSchema to validate a list of Group objects."""
 
@@ -291,6 +297,13 @@ class ListReleaseSchema(PaginatedSchema):
     This schema is used by bodhi.server.services.releases.query_releases_html() and
     bodhi.server.services.releases.query_releases_json().
     """
+
+    ids = ReleaseIds(
+        colander.Sequence(accept_scalar=True),
+        location="querystring",
+        missing=None,
+        preparer=[util.splitter],
+    )
 
     name = colander.SchemaNode(
         colander.String(),

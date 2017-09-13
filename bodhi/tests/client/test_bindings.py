@@ -496,7 +496,7 @@ class TestBodhiClient_override_str(unittest.TestCase):
 
         override = bindings.BodhiClient.override_str(override, minimal=False)
 
-        self.assertEqual(override, client_test_data.EXPECTED_OVERRIDES_OUTPUT.rstrip())
+        self.assertEqual(override, client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT.rstrip())
 
     def test_with_str(self):
         """
