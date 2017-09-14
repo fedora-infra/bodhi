@@ -1,4 +1,23 @@
-"""Convert type columns in the packages and builds tables to enums.
+# -*- coding: utf-8 -*-
+# Copyright © 2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""
+Convert type columns in the packages and builds tables to enums.
 
 Revision ID: b01a62d98aa4
 Revises: c6a5e2849ca4
@@ -67,9 +86,7 @@ def upgrade():
 
 
 def downgrade():
-    """
-    Convert the type columns in the builds and packages tables from enums to ints.
-    """
+    """Convert the type columns in the builds and packages tables from enums to ints."""
     # Drop the enum-typed columns.
     op.drop_column('builds', 'type')
     op.drop_column('packages', 'type')
