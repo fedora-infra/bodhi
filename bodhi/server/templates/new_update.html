@@ -1,6 +1,5 @@
 <%inherit file="master.html"/>
 <div class="container">
-<div class="row">
   <div id='js-warning' class="col-md-10 col-md-offset-1 m-t-3">
     <div class="alert alert-warning">
         <h3>
@@ -20,7 +19,7 @@
     </div>
   </div>
 
-  <div id="new-update-form" class="col-md-12 hidden m-t-3" style="display:none;">
+  <div id="new-update-form" class="p-t-3" style="display:none;">
     <div class="row">
       <div class="col-md-12">
         % if not update:
@@ -131,7 +130,7 @@
 
     <div class="row">
       <div class="col-md-6">
-        <div class="card card-form">
+        <div class="card card-form m-b-0">
           <div class="card-header clearfix">
             <span class="pull-left" data-toggle="tooltip" title="Tell people what's new and give them a heads up about what to test.  Any gotchas?  Where's the changelog?">
               Update notes</span>
@@ -143,9 +142,9 @@
 ${update.notes}
 % endif
 </textarea>
-            <p class="pull-right">Update notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</p>
           </div>
         </div>
+        <p class="text-xs-right m-b-1"><small>Update notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</small></p>
       </div>
 
       ${self.fragments.markdown_help_modal()}
@@ -227,7 +226,7 @@ ${update.notes}
               </div>
 
               <div class="col-md-5">
-                <dl id='radios' class="dl-horizontal">
+                <dl id='radios'>
                   <dt data-toggle="tooltip" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough positive karma has been given.">
                   Auto-request stable?</dt>
                   <dd> <input type="checkbox" name="autokarma" data-singleton="true"
@@ -312,7 +311,6 @@ ${update.notes}
     </div> <!-- end row -->
 
   </div>
-</div>
 </div>
 <script src="${request.static_url('bodhi:server/static/js/update_form.js')}"></script>
 <script>$("#js-warning").hide();$("#new-update-form").show();</script>
