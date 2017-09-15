@@ -125,11 +125,11 @@ Virtualenv is another option for building a development environment.
 
 Dependencies
 ^^^^^^^^^^^^
-``sudo dnf install libffi-devel postgresql-devel openssl-devel koji pcaro-hermit-fonts freetype-devel libjpeg-turbo-devel python-pillow zeromq-devel liberation-mono-fonts``
+``sudo dnf install libffi-devel postgresql-devel openssl-devel koji pcaro-hermit-fonts freetype-devel libjpeg-turbo-devel python-pillow zeromq-devel liberation-mono-fonts git gcc redhat-rpm-config fedora-cert python2-dnf yum``
 
 Setup virtualenvwrapper
 ^^^^^^^^^^^^^^^^^^^^^^^
-``sudo dnf -y install python-virtualenvwrapper python-createrepo_c``
+``sudo dnf -y install python-virtualenvwrapper python-createrepo_c createrepo_c``
 
 Add the following to your `~/.bashrc`::
 
@@ -141,7 +141,7 @@ Set PYTHONPATH
 
 Add the following to your `~/.bashrc`
 
-``export PYTHONPATH=$PYTHONPATH:$HOME/.virtualenv``
+``export PYTHONPATH=$PYTHONPATH:$HOME/.virtualenvs``
 
 Then on the terminal ::
 
@@ -165,7 +165,7 @@ Setting up
 ^^^^^^^^^^
 ``python setup.py develop``
 
-``pip install psycopg2``
+``pip install psycopg2 pyramid_debugtoolbar``
 
 Create the `development.ini <https://github.com/fedora-infra/bodhi/blob/develop/development.ini.example>`_ file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
