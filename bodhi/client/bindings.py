@@ -37,7 +37,11 @@ import textwrap
 
 from iniparse.compat import ConfigParser
 from six.moves import configparser
-import dnf
+try:
+    import dnf
+except ImportError:  # pragma: no cover
+    # dnf is not available on EL 7.
+    dnf = None  # pragma: no cover
 import koji
 import six
 
@@ -468,6 +472,9 @@ class BodhiClient(OpenIdBaseClient):
 
         Only works on systems with dnf.
         """
+        if dnf is None:
+            raise RuntimeError('dnf is required by this method and is not installed.')
+
         base = dnf.Base()
         sack = base.fill_sack(load_system_repo=True)
         query = sack.query()
