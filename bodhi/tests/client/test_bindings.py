@@ -1277,13 +1277,15 @@ class TestBodhiClient_testable(unittest.TestCase):
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
     @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')
-    @mock.patch('bodhi.client.bindings.dnf.Base.fill_sack')
-    def test_testable(self, fill_sack, get_koji_session, mock_open):
+    @mock.patch('bodhi.client.bindings.dnf')
+    def test_testable(self, dnf, get_koji_session, mock_open):
         """Assert correct behavior from the testable() method."""
+        fill_sack = mock.MagicMock()
+        dnf.Base.return_value.fill_sack = fill_sack
         get_koji_session.return_value.listTagged.return_value = [
             {'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc26', 'nvr': 'bodhi-2.9.0-1.fc26'}]
-        fill_sack.return_value.query.return_value.installed.return_value.filter.return_value.run.\
-            return_value = ['bodhi-2.8.1-1.fc26']
+        fill_sack.return_value.query.return_value.installed.return_value.filter.\
+            return_value.run.return_value = ['bodhi-2.8.1-1.fc26']
         mock_open.return_value.__enter__.return_value.readlines.return_value = [
             'Fedora release 26 (Twenty Six)']
         client = bindings.BodhiClient()
@@ -1304,3 +1306,13 @@ class TestBodhiClient_testable(unittest.TestCase):
                                                                          latest=True)
         client.send_request.assert_called_once_with(
             'updates/', params={'builds': 'bodhi-2.9.0-1.fc26'}, verb='GET')
+
+    @mock.patch('bodhi.client.bindings.dnf', None)
+    def test_testable_no_dnf(self):
+        """Ensure that testable raises a RuntimeError if dnf is None."""
+        client = bindings.BodhiClient()
+
+        with self.assertRaises(RuntimeError) as exc:
+            list(client.testable())
+
+        self.assertEqual(str(exc.exception), 'dnf is required by this method and is not installed.')
