@@ -410,8 +410,7 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         self.db.flush()
 
     @mock.patch('bodhi.server.util.http_session')
-    @mock.patch('bodhi.server.util.requests.get')
-    def test_get_pkg_committers_from_pagure(self, mock_get, session):
+    def test_get_pkg_committers_from_pagure(self, session):
         """ Ensure that the package committers can be found using the Pagure
         API.
         """
@@ -452,8 +451,7 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         assert rv == (['mprahl'], ['factory2']), rv
 
     @mock.patch('bodhi.server.util.http_session')
-    @mock.patch('bodhi.server.util.requests.get')
-    def test_get_pkg_committers_container_from_pagure(self, mock_get, session):
+    def test_get_pkg_committers_container_from_pagure(self, session):
         """ Ensure that the container committers can be found using the Pagure
         API.
         """
@@ -986,12 +984,11 @@ class TestUpdate(ModelTest):
         self.assertEqual(close.call_count, 0)
 
     @mock.patch('bodhi.server.util.http_session')
-    @mock.patch('bodhi.server.util.requests.get')
     @mock.patch.dict(util.config, {
         'critpath.type': 'pdc',
         'pdc_url': 'http://domain.local'
     })
-    def test_contains_critpath_component(self, mock_get, session):
+    def test_contains_critpath_component(self, session):
         """ Verifies that the static function of contains_critpath_component
         determines that one of the builds has a critpath component.
         """
@@ -1026,12 +1023,11 @@ class TestUpdate(ModelTest):
             update.builds, update.release.name))
 
     @mock.patch('bodhi.server.util.http_session')
-    @mock.patch('bodhi.server.util.requests.get')
     @mock.patch.dict(util.config, {
         'critpath.type': 'pdc',
         'pdc_url': 'http://domain.local'
     })
-    def test_contains_critpath_component_not_critpath(self, mock_get, session):
+    def test_contains_critpath_component_not_critpath(self, session):
         """ Verifies that the static function of contains_critpath_component
         determines that none of the builds are critpath components.
         """
