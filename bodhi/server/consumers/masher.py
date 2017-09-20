@@ -704,7 +704,6 @@ class MasherThread(threading.Thread):
     def sanity_check_repo(self):
         """Sanity check our repo.
 
-            - make sure we didn't compose a repo full of symlinks
             - sanity check our repodata
         """
         mash_path = os.path.join(self.path, self.id)
@@ -719,14 +718,6 @@ class MasherThread(threading.Thread):
             except Exception, e:
                 self.log.error("Repodata sanity check failed!\n%s" % str(e))
                 raise
-
-        # make sure that mash didn't symlink our packages
-        for pkg in os.listdir(os.path.join(mash_path, arches[0])):
-            if pkg.endswith('.rpm'):
-                if os.path.islink(os.path.join(mash_path, arches[0], pkg)):
-                    self.log.error("Mashed repository full of symlinks!")
-                    raise Exception
-                break
 
         return True
 
