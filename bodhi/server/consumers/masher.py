@@ -1038,11 +1038,14 @@ class MashThread(threading.Thread):
                                             compsfile=comps, tag=self.tag).split()
 
         else:  # We are going to use pungi in this run
-            pungi_cmd = "pungi-koji  --config={config} --old-composes={outputdir}"
-            pungi_cmd += " --target-dir={outputdir}"
             pungi_conf = config.get('pungi_conf')
-            # We are using the same name so that no new changes required in th code
-            self.mash_cmd = pungi_cmd.format(config=pungi_conf, outputdir=outputdir)
+            pungi_cmd = "pungi-koji  --config={}".format(config)
+            if os.path.exists(previous):
+                pungi_cmd += ' --old-composes={}'.format(previous)
+            pungi_cmd += "--no-label --target-dir={}".format(outputdir)
+            # We are using the same name so that no new changes required in the code
+            self.mash_cmd = pungi_cmd
+
         # Set our thread's "name" so it shows up nicely in the logs.
         # https://docs.python.org/2/library/threading.html#thread-objects
         self.name = tag
