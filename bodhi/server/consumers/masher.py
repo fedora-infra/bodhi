@@ -340,36 +340,36 @@ class MasherThread(threading.Thread):
                 self.stage_repo()
 
                 # Wait for the repo to hit the master mirror
-                self.wait_for_sync()
-
-            # Send fedmsg notifications
-            self.send_notifications()
-
-            # Update bugzillas
-            self.modify_bugs()
-
-            # Add comments to updates
-            self.status_comments()
-
-            # Announce stable updates to the mailing list
-            self.send_stable_announcements()
-
-            # Email updates-testing digest
-            self.send_testing_digest()
-
-            self.success = True
-            self.remove_state()
-            self.unlock_updates()
-
-            self.check_all_karma_thresholds()
-            self.obsolete_older_updates()
+      #          self.wait_for_sync()
+       
+      #      # Send fedmsg notifications
+      #      self.send_notifications()
+       
+      #      # Update bugzillas
+      #      self.modify_bugs()
+       
+      #      # Add comments to updates
+      #      self.status_comments()
+       
+      #      # Announce stable updates to the mailing list
+      #      self.send_stable_announcements()
+       
+      #      # Email updates-testing digest
+      #      self.send_testing_digest()
+       
+      #      self.success = True
+      #      self.remove_state()
+      #      self.unlock_updates()
+       
+      #      self.check_all_karma_thresholds()
+      #      self.obsolete_older_updates()
 
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
             self.save_state()
             raise
-        finally:
-            self.finish(self.success)
+   #    finally:
+   #        self.finish(self.success)
 
     def load_updates(self):
         self.log.debug('Loading updates')
