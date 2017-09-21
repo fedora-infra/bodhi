@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2007-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
+"""Initialize the Bodhi server."""
 from collections import defaultdict
 import logging
 
@@ -43,14 +48,14 @@ ffmarkdown.inject()
 
 def get_db_session_for_request(request=None):
     """
-    This function returns a database session that is meant to be used for the given request.
+    Return a database session that is meant to be used for the given request.
 
     It handles rolling back or committing the session based on whether an exception occurred or
     not. To get a database session that's not tied to the request/response cycle, just use the
     :data:`Session` scoped session in this module.
 
     Args:
-        request (pyramid.request): The request object to create a session for.
+        request (pyramid.request.Request): The request object to create a session for.
 
     Returns:
         sqlalchemy.orm.session.Session: A database session.
@@ -58,7 +63,14 @@ def get_db_session_for_request(request=None):
     session = request.registry.sessionmaker()
 
     def cleanup(request):
-        """A post-request hook that commits the database changes if no exceptions occurred."""
+        """
+        Commit the database changes if no exceptions occurred.
+
+        This is a post-request hook.
+
+        Args:
+            request (pyramid.request.Request): The current web request.
+        """
         if request.exception is not None:
             session.rollback()
         else:
@@ -71,12 +83,32 @@ def get_db_session_for_request(request=None):
 
 
 def get_cacheregion(request):
+    """
+    Return a CacheRegion to be used to cache results.
+
+    Args:
+        request (pyramid.request.Request): The current web request. Unused.
+    Returns:
+        dogpile.cache.region.CacheRegion: A configured CacheRegion.
+    """
     region = make_region()
     region.configure_from_config(bodhi_config, "dogpile.cache.")
     return region
 
 
 def get_user(request):
+    """
+    Return a Munch describing the User or None.
+
+    A Munch is only returned if the request has a truthy value in its unauthenticated_userid
+    attribute.
+
+    Args:
+        request (pyramid.request.Request): The current web request.
+    Returns:
+        munch.Munch or None: A Munch object describing the unauthenticated user, or None if there is
+            no user for the Request.
+    """
     from bodhi.server.models import User
     userid = request.unauthenticated_userid
     if userid is not None:
@@ -86,6 +118,20 @@ def get_user(request):
 
 
 def groupfinder(userid, request):
+    """
+    Return a list of strings describing the groups the request's user is a member of.
+
+    The strings are of the format group:<group_name>, so this might return something like this as
+    an example:
+
+        ['group:packager', 'group:bodhiadmin']
+
+    Args:
+        userid (basestring): The user's id.
+        request (pyramid.request.Request): The current web request.
+    Returns:
+        list or None: A list of the user's groups, or None if the user is not authenticated.
+    """
     from bodhi.server.models import User
     if request.user:
         user = User.get(request.user.name, request.db)
@@ -93,28 +139,54 @@ def groupfinder(userid, request):
 
 
 def get_koji(request):
+    """
+    Return a Koji client, or a duck-type of a Koji client, depending on config.
+
+    Args:
+        request (pyramid.request.Request): The current web request. Unused.
+    Returns:
+        koji.ClientSession or DevBuildSys: A Koji client, or a dev Koji mock.
+    """
     return buildsys.get_session()
 
 
 def get_buildinfo(request):
     """
+    Return a defaultdict, defaulting to dictionary values.
+
     A per-request cache populated by the validators and shared with the views
     to store frequently used package-specific data, like build tags and ACLs.
+
+    Args:
+        request (pyramid.request.Request): The current web request. Unused.
+    Returns:
+        collections.defaultdict: A cache populated by the validators and used by the views.
     """
     return defaultdict(dict)
 
 
 def get_releases(request):
+    """
+    Return a defaultdict describing all Releases keyed by state.
+
+    Args:
+        request (pyramid.request.Request): The current web request.
+    Returns:
+        collections.defaultdict: A dictionary mapping release states to a list of JSON strings
+            that describe the Releases that are in those states.
+    """
     from bodhi.server.models import Release
     return Release.all_releases(request.db)
 
 
-#
-# Cornice filters
-#
-
 def exception_filter(response, request):
-    """Log exceptions that get thrown up to cornice"""
+    """
+    Log exceptions that get thrown up to cornice.
+
+    Args:
+        response (object): The response returned by a request handler.
+        request (pyramid.request.Request): The current web request.
+    """
     if isinstance(response, Exception):
         log.exception('Unhandled exception raised:  %r' % response)
     return response
@@ -161,7 +233,8 @@ def initialize_db(config):
 
 
 def main(global_config, testing=None, session=None, **settings):
-    """ This function returns a WSGI application.
+    """
+    Return a WSGI application.
 
     Args:
         global_config (dict): A dictionary with two keys: __file__, a path to the ini file, and
