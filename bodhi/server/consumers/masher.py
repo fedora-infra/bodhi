@@ -288,8 +288,6 @@ class MasherThread(threading.Thread):
 
         self.log.info('Running MasherThread(%s)' % self.id)
         self.init_state()
-        if not self.resume:
-            self.init_path()
 
         notifications.publish(
             topic="mashtask.mashing",
@@ -467,12 +465,6 @@ class MasherThread(threading.Thread):
             force=True,
         )
 
-    def init_path(self):
-        self.path = os.path.join(self.mash_dir, self.id + '-' +
-                                 time.strftime("%y%m%d.%H%M"))
-        if not os.path.isdir(self.path):
-            os.makedirs(self.path)
-            self.log.info('Creating new mash: %s' % self.path)
 
     def init_state(self):
         if not os.path.exists(self.mash_dir):
@@ -506,7 +498,6 @@ class MasherThread(threading.Thread):
                 self.log.info('Resuming push with completed repo: %s' % self.path)
                 return
         self.log.info('Resuming push without any completed repos')
-        self.init_path()
 
     def remove_state(self):
         self.log.info('Removing state: %s', self.mash_lock)
@@ -641,7 +632,7 @@ class MasherThread(threading.Thread):
         util.cmd(['make'], comps_dir)
 
     def mash(self):
-        if self.path in self.state['completed_repos']:
+        if hasattr(self, 'path') and self.path in self.state['completed_repos']:
             self.log.info('Skipping completed repo: %s', self.path)
             return
 
@@ -649,7 +640,7 @@ class MasherThread(threading.Thread):
                              self.release.branch)
         previous = os.path.join(config.get('mash_stage_dir'), self.id)
 
-        mash_thread = MashThread(self.id, self.path, comps, previous, self.log)
+        mash_thread = MashThread(self.id, self.mash_dir, comps, previous, self.log)
         mash_thread.start()
         return mash_thread
 
@@ -660,6 +651,10 @@ class MasherThread(threading.Thread):
         self.log.debug('Waiting for mash thread to finish')
         mash_thread.join()
         if mash_thread.success:
+            # Find the real name of the directory pungi just created
+            pungi_latest_link_name = 'latest-%s-%s' % (self.id, self.release.version)
+            pungi_latest_real_name = os.readlink(os.path.join(self.mash_dir, pungi_latest_link_name))
+            self.path = os.path.join(self.mash_dir, pungi_latest_real_name)
             self.state['completed_repos'].append(self.path)
             self.save_state()
         else:
@@ -709,14 +704,13 @@ class MasherThread(threading.Thread):
             - make sure we didn't compose a repo full of symlinks
             - sanity check our repodata
         """
-        mash_path = os.path.join(self.path, self.id)
-        self.log.info("Running sanity checks on %s" % mash_path)
+        self.log.info("Running sanity checks on %s" % self.path)
 
         # sanity check our repodata
-        arches = os.listdir(mash_path)
+        arches = os.listdir(self.path)
         for arch in arches:
             try:
-                repodata = os.path.join(mash_path, arch, 'repodata')
+                repodata = os.path.join(self.path, arch, 'repodata')
                 sanity_check_repodata(repodata)
             except Exception, e:
                 self.log.error("Repodata sanity check failed!\n%s" % str(e))
@@ -742,7 +736,7 @@ class MasherThread(threading.Thread):
         if os.path.islink(link):
             os.unlink(link)
         self.log.info("Creating symlink: %s => %s" % (self.path, link))
-        os.symlink(os.path.join(self.path, self.id), link)
+        os.symlink(self.path, link)
 
     def wait_for_sync(self):
         """Block until our repomd.xml hits the master mirror"""
@@ -1019,7 +1013,7 @@ class MashThread(threading.Thread):
 
         Args:
             tag (basestring): The tag to mash.
-            outputdir (basestring): The mash output directory.
+            outputdir (basestring): The toplevel updates directory
             comps (basestring): A path to a compsfile to be used during the mash.
             previous (basestring): The path to the previous mash for this tag.
             log (logging.Logger): A logger for the MashThread to use.
