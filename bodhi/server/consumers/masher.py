@@ -328,7 +328,6 @@ class MasherThread(threading.Thread):
                 self.wait_for_mash(mash_thread)
 
                 uinfo.insert_updateinfo()
-                uinfo.cache_repodata()
 
             # Do the following if we are not using pungi
             if not config.get('use_pungi_in_bodhi'):
@@ -694,7 +693,7 @@ class MasherThread(threading.Thread):
     def generate_updateinfo(self):
         self.log.info('Generating updateinfo for %s' % self.release.name)
         uinfo = ExtendedMetadata(self.release, self.request,
-                                 self.db, self.path)
+                                 self.db, self.mash_dir)
         self.log.info('Updateinfo generation for %s complete' % self.release.name)
         return uinfo
 
