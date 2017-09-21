@@ -735,7 +735,7 @@ class MasherThread(threading.Thread):
         link = os.path.join(stage_dir, self.id)
         if os.path.islink(link):
             os.unlink(link)
-        self.log.info("Creating symlink: %s => %s" % (self.path, link))
+        self.log.info("Creating symlink: %s => %s" % (link, self.path))
         os.symlink(self.path, link)
 
     def wait_for_sync(self):
