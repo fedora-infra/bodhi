@@ -17,7 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import subprocess
-import unittest
 
 import mock
 import pkgdb2client
@@ -26,9 +25,10 @@ from bodhi.server import util
 from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
 from bodhi.server.models import TestGatingStatus
+from bodhi.tests.server import base
 
 
-class TestBugLink(unittest.TestCase):
+class TestBugLink(base.BaseTestCase):
     """Tests for the bug_link() function."""
     def test_short_false_with_title(self):
         """Test a call to bug_link() with short=False on a Bug that has a title."""
@@ -102,7 +102,7 @@ class TestBugLink(unittest.TestCase):
              "#1234567</a>"))
 
 
-class TestUtils(unittest.TestCase):
+class TestUtils(base.BaseTestCase):
 
     def setUp(self):
         setup_buildsystem({'buildsystem': 'dev'})
@@ -720,7 +720,7 @@ class TestUtils(unittest.TestCase):
         self.assertIn('Too many result pages, aborting at', log_debug.call_args[0][0])
 
 
-class TestCMDFunctions(unittest.TestCase):
+class TestCMDFunctions(base.BaseTestCase):
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
     @mock.patch('subprocess.Popen')
@@ -776,7 +776,7 @@ class TestCMDFunctions(unittest.TestCase):
         mock_debug.assert_called_with('error')
 
 
-class TestTransactionalSessionMaker(unittest.TestCase):
+class TestTransactionalSessionMaker(base.BaseTestCase):
     """This class contains tests on the TransactionalSessionMaker class."""
     @mock.patch('bodhi.server.util.log.exception')
     @mock.patch('bodhi.server.util.Session')
