@@ -327,7 +327,7 @@ class MasherThread(threading.Thread):
 
                 self.wait_for_mash(mash_thread)
 
-                uinfo.insert_updateinfo()
+                uinfo.insert_updateinfo(self.path)
 
             # Do the following if we are not using pungi
             if not config.get('use_pungi_in_bodhi'):

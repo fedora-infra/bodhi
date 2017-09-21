@@ -270,14 +270,14 @@ class ExtendedMetadata(object):
 
         self.uinfo.append(rec)
 
-    def insert_updateinfo(self):
+    def insert_updateinfo(self, repo):
         fd, name = tempfile.mkstemp()
         os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
         os.close(fd)
-        self.modifyrepo(name)
+        self.modifyrepo(name, repo)
         os.unlink(name)
 
-    def modifyrepo(self, filename):
+    def modifyrepo(self, filename, repo):
         """Inject a file into the repodata for each architecture"""
         for arch in os.listdir(self.repo_path):
             repodata = os.path.join(self.repo_path, arch, 'repodata')
