@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2017 Red Hat, Inc. and others.
+# Copyright © 2017 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -16,3 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Contains Bodhi's database migrations and related configurations."""

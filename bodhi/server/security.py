@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2013-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
+"""A collection of authentication and authorization functions and classes."""
 from cornice.errors import Errors
 
 from pyramid.security import (Allow, ALL_PERMISSIONS, DENY_ALL)
@@ -28,14 +33,29 @@ from .models import User, Group
 #
 
 def admin_only_acl(request):
-    """Generate our admin-only ACL"""
+    """
+    Generate our admin-only ACL.
+
+    Args:
+        request (pyramid.request.Request): The current web request.
+    Returns:
+        list: A list of ACLs that allow all permissions for the admin_groups defined in settings.
+    """
     return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
             request.registry.settings['admin_groups']] + \
            [DENY_ALL]
 
 
 def packagers_allowed_acl(request):
-    """Generate an ACL for update submission"""
+    """
+    Generate an ACL for update submission.
+
+    Args:
+        request (pyramid.request.Request): The current web request.
+    Returns:
+        list: A list of ACLs that allow all permissions for the mandatory_packager_groups defined
+            in settings.
+    """
     groups = request.registry.settings['mandatory_packager_groups']
     return [
         (Allow, 'group:' + group, ALL_PERMISSIONS) for group in groups
@@ -47,6 +67,14 @@ def packagers_allowed_acl(request):
 #
 
 def login(request):
+    """
+    Redirect the user to the OpenID provider to perform a login.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+    Returns:
+        pyramid.httpexceptions.HTTPFound: A 302 redirect to the OpenID provider.
+    """
     login_url = request.route_url('login')
     referrer = request.url
     if referrer == login_url:
@@ -59,16 +87,38 @@ def login(request):
 
 
 def logout(request):
+    """
+    Log out the user.
+
+    Args:
+        request (pyramid.request.Request): The current request, which is used to remove the user's
+            authentication cookies.
+    Returns:
+        pyramid.httpexceptions.HTTPFound: A 302 redirect to the home page.
+    """
     headers = forget(request)
     return HTTPFound(location=request.route_url('home'), headers=headers)
 
 
-#
-# openid.success_callback
-#
-
 def remember_me(context, request, info, *args, **kw):
-    """ Called upon successful login """
+    """
+    Remember information about a newly logged in user given by the OpenID provider.
+
+    This is configured via the openid.success_callback configuration, and is called upon successful
+    login.
+
+    Args:
+        context (mako.runtime.Context): The current template rendering context. Unused.
+        request (pyramid.request.Request): The current request.
+        info (dict): The information passed to Bodhi from the OpenID provider about the
+            authenticated user. This includes things like the user's username, e-mail address and
+            groups.
+        args (list): A list of additional positional parameters. Unused.
+        kw (dict): A dictionary of additional keyword parameterd. Unused.
+    Returns:
+        pyramid.httpexceptions.HTTPFound: A 302 redirect to the URL the user was visiting before
+            they clicked login, or home if they have not used a valid OpenID provider.
+    """
     log.debug('remember_me(%s)' % locals())
     log.debug('remember_me: request.params = %r' % request.params)
     endpoint = request.params['openid.op_endpoint']
@@ -131,7 +181,8 @@ def remember_me(context, request, info, *args, **kw):
 
 
 class CorsOrigins(object):
-    """ Proxy-list class to load CORS config after scan-time.
+    """
+    Proxy-list class to load CORS config after scan-time.
 
     This should appear to behave just like a list, but it loads values from the
     pyramid configuration for its values.  AFAIK, we have to do things this way
@@ -146,33 +197,68 @@ class CorsOrigins(object):
         >>> cors_origins_rw = CorsOrigins('cors_origins_rw')
         >>> cors_origins_rw[0]
         ['bodhi.fedoraproject.org']
-
     """
+
     def __init__(self, name):
+        """
+        Intialize the CorsOrigins object.
+
+        Args:
+            name (basestring): The name of the setting for the CORS config.
+        """
         self.name = name
         self.origins = None
 
     def initialize(self):
+        """Initialize the self.origins list."""
         if self.origins is None:
             settings = get_current_registry().settings
             self.origins = settings.get(self.name, 'localhost').split(',')
 
     def __len__(self):
+        """
+        Return the number of items in the CORS list.
+
+        Returns:
+            int: The number of items in the CORS list.
+        """
         if self.origins is None:
             self.initialize()
         return len(self.origins)
 
     def __getitem__(self, key):
+        """
+        Define the [] operator.
+
+        Args:
+            key (object): The key of the object being accessed.
+        Returns:
+            object: The value referenced by the key.
+        """
         if self.origins is None:
             self.initialize()
         return self.origins[key]
 
     def __iter__(self):
+        """
+        Iterate the CORS config.
+
+        Returns:
+            iterator: An iterator over the list of items.
+        """
         if self.origins is None:
             self.initialize()
         return iter(self.originals)
 
     def __contains__(self, item):
+        """
+        Define the 'in' operator.
+
+        Args:
+            item (object): The item to look for in the list.
+        Returns:
+            bool: True if item is in the CORS config, False if not.
+        """
         if self.origins is None:
             self.initialize()
         return item in self.originals
@@ -183,13 +269,22 @@ cors_origins_rw = CorsOrigins('cors_origins_rw')
 
 
 class ProtectedRequest(object):
-    """ A proxy to the request object.
+    """
+    A proxy to the request object.
 
     The point here is that you can set 'errors' on this request, but they
     will be sent to /dev/null and hidden from cornice.  Otherwise, this
     object behaves just like a normal request object.
     """
+
     def __init__(self, real_request):
+        """
+        Initialize the object to look a lot like the real_request, but hiding the errors.
+
+        Args:
+            real_request (pyramid.request.Request): The request we are trying to mimic, while hiding
+                its errors.
+        """
         # Hide errors added to this from the real request
         self.errors = Errors()
         # But proxy other attributes to the real request
