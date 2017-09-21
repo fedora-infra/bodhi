@@ -236,7 +236,7 @@ class ExtendedMetadata(object):
 
                 # Build the URL
                 if rpm['arch'] == 'src':
-                    arch = 'SRPMS'
+                    arch = 'source'
                 elif rpm['arch'] in ('noarch', 'i686'):
                     arch = 'i386'
                 else:
@@ -279,8 +279,12 @@ class ExtendedMetadata(object):
 
     def modifyrepo(self, filename, repo):
         """Inject a file into the repodata for each architecture"""
-        for arch in os.listdir(self.repo_path):
-            repodata = os.path.join(self.repo_path, arch, 'repodata')
+        repo_path = os.path.join(repo, 'compose', 'Everything')
+        for arch in os.listdir(repo_path):
+            if arch == 'source':
+                repodata = os.path.join(repo_path, arch, 'tree', 'repodata')
+            else:
+                repodata = os.path.join(repo_path, arch, 'os', 'repodata')
             log.info('Inserting %s into %s', filename, repodata)
             uinfo_xml = os.path.join(repodata, 'updateinfo.xml')
             shutil.copyfile(filename, uinfo_xml)

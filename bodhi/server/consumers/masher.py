@@ -706,10 +706,15 @@ class MasherThread(threading.Thread):
         self.log.info("Running sanity checks on %s" % self.path)
 
         # sanity check our repodata
-        arches = os.listdir(self.path)
+        arches = os.listdir(os.path.join(self.path, 'compose', 'Everything'))
         for arch in arches:
             try:
-                repodata = os.path.join(self.path, arch, 'repodata')
+                if arch == 'source':
+                    repodata = os.path.join(self.path, 'compose',
+                                            'Everything', arch, 'tree', 'repodata')
+                else:
+                    repodata = os.path.join(self.path, 'compose',
+                                            'Everything', arch, 'os', 'repodata')
                 sanity_check_repodata(repodata)
             except Exception, e:
                 self.log.error("Repodata sanity check failed!\n%s" % str(e))
@@ -745,10 +750,10 @@ class MasherThread(threading.Thread):
             msg=dict(repo=self.id, agent=self.agent),
             force=True,
         )
-        mash_path = os.path.join(self.path, self.id)
-        arch = os.listdir(mash_path)[0]
+        arch = os.listdir(os.path.join(self.path, 'compose', 'Everything'))[0]
 
-        repomd = os.path.join(mash_path, arch, 'repodata', 'repomd.xml')
+        repomd = os.path.join(self.path, 'compose', 'Everything',
+                              arch, 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
             self.log.error('Cannot find local repomd: %s', repomd)
             return
