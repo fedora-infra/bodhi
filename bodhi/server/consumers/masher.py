@@ -288,8 +288,6 @@ class MasherThread(threading.Thread):
 
         self.log.info('Running MasherThread(%s)' % self.id)
         self.init_state()
-        if not self.resume:
-            self.init_path()
 
         notifications.publish(
             topic="mashtask.mashing",
@@ -329,48 +327,49 @@ class MasherThread(threading.Thread):
 
                 self.wait_for_mash(mash_thread)
 
-                uinfo.insert_updateinfo()
-                uinfo.cache_repodata()
+                uinfo.insert_updateinfo(self.path)
 
-            # Compose OSTrees from our freshly mashed repos
-            if config.get('compose_atomic_trees'):
-                self.compose_atomic_trees()
+            # Do the following if we are not using pungi
+            if not config.get('use_pungi_in_bodhi'):
+                # Compose OSTrees from our freshly mashed repos
+                if config.get('compose_atomic_trees'):
+                    self.compose_atomic_trees()
 
             if not self.skip_mash:
                 self.sanity_check_repo()
                 self.stage_repo()
 
                 # Wait for the repo to hit the master mirror
-                self.wait_for_sync()
-
-            # Send fedmsg notifications
-            self.send_notifications()
-
-            # Update bugzillas
-            self.modify_bugs()
-
-            # Add comments to updates
-            self.status_comments()
-
-            # Announce stable updates to the mailing list
-            self.send_stable_announcements()
-
-            # Email updates-testing digest
-            self.send_testing_digest()
-
-            self.success = True
-            self.remove_state()
-            self.unlock_updates()
-
-            self.check_all_karma_thresholds()
-            self.obsolete_older_updates()
+      #          self.wait_for_sync()
+       
+      #      # Send fedmsg notifications
+      #      self.send_notifications()
+       
+      #      # Update bugzillas
+      #      self.modify_bugs()
+       
+      #      # Add comments to updates
+      #      self.status_comments()
+       
+      #      # Announce stable updates to the mailing list
+      #      self.send_stable_announcements()
+       
+      #      # Email updates-testing digest
+      #      self.send_testing_digest()
+       
+      #      self.success = True
+      #      self.remove_state()
+      #      self.unlock_updates()
+       
+      #      self.check_all_karma_thresholds()
+      #      self.obsolete_older_updates()
 
         except:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
             self.save_state()
             raise
-        finally:
-            self.finish(self.success)
+   #    finally:
+   #        self.finish(self.success)
 
     def load_updates(self):
         self.log.debug('Loading updates')
@@ -465,12 +464,6 @@ class MasherThread(threading.Thread):
             force=True,
         )
 
-    def init_path(self):
-        self.path = os.path.join(self.mash_dir, self.id + '-' +
-                                 time.strftime("%y%m%d.%H%M"))
-        if not os.path.isdir(self.path):
-            os.makedirs(self.path)
-            self.log.info('Creating new mash: %s' % self.path)
 
     def init_state(self):
         if not os.path.exists(self.mash_dir):
@@ -504,7 +497,6 @@ class MasherThread(threading.Thread):
                 self.log.info('Resuming push with completed repo: %s' % self.path)
                 return
         self.log.info('Resuming push without any completed repos')
-        self.init_path()
 
     def remove_state(self):
         self.log.info('Removing state: %s', self.mash_lock)
@@ -639,7 +631,7 @@ class MasherThread(threading.Thread):
         util.cmd(['make'], comps_dir)
 
     def mash(self):
-        if self.path in self.state['completed_repos']:
+        if hasattr(self, 'path') and self.path in self.state['completed_repos']:
             self.log.info('Skipping completed repo: %s', self.path)
             return
 
@@ -647,7 +639,7 @@ class MasherThread(threading.Thread):
                              self.release.branch)
         previous = os.path.join(config.get('mash_stage_dir'), self.id)
 
-        mash_thread = MashThread(self.id, self.path, comps, previous, self.log)
+        mash_thread = MashThread(self.id, self.mash_dir, comps, previous, self.log)
         mash_thread.start()
         return mash_thread
 
@@ -658,6 +650,10 @@ class MasherThread(threading.Thread):
         self.log.debug('Waiting for mash thread to finish')
         mash_thread.join()
         if mash_thread.success:
+            # Find the real name of the directory pungi just created
+            pungi_latest_link_name = 'latest-%s-%s' % (self.id, self.release.version)
+            pungi_latest_real_name = os.readlink(os.path.join(self.mash_dir, pungi_latest_link_name))
+            self.path = os.path.join(self.mash_dir, pungi_latest_real_name)
             self.state['completed_repos'].append(self.path)
             self.save_state()
         else:
@@ -697,7 +693,7 @@ class MasherThread(threading.Thread):
     def generate_updateinfo(self):
         self.log.info('Generating updateinfo for %s' % self.release.name)
         uinfo = ExtendedMetadata(self.release, self.request,
-                                 self.db, self.path)
+                                 self.db, self.mash_dir)
         self.log.info('Updateinfo generation for %s complete' % self.release.name)
         return uinfo
 
@@ -706,14 +702,18 @@ class MasherThread(threading.Thread):
 
             - sanity check our repodata
         """
-        mash_path = os.path.join(self.path, self.id)
-        self.log.info("Running sanity checks on %s" % mash_path)
+        self.log.info("Running sanity checks on %s" % self.path)
 
         # sanity check our repodata
-        arches = os.listdir(mash_path)
+        arches = os.listdir(os.path.join(self.path, 'compose', 'Everything'))
         for arch in arches:
             try:
-                repodata = os.path.join(mash_path, arch, 'repodata')
+                if arch == 'source':
+                    repodata = os.path.join(self.path, 'compose',
+                                            'Everything', arch, 'tree', 'repodata')
+                else:
+                    repodata = os.path.join(self.path, 'compose',
+                                            'Everything', arch, 'os', 'repodata')
                 sanity_check_repodata(repodata)
             except Exception, e:
                 self.log.error("Repodata sanity check failed!\n%s" % str(e))
@@ -730,8 +730,8 @@ class MasherThread(threading.Thread):
         link = os.path.join(stage_dir, self.id)
         if os.path.islink(link):
             os.unlink(link)
-        self.log.info("Creating symlink: %s => %s" % (self.path, link))
-        os.symlink(os.path.join(self.path, self.id), link)
+        self.log.info("Creating symlink: %s => %s" % (link, self.path))
+        os.symlink(self.path, link)
 
     def wait_for_sync(self):
         """Block until our repomd.xml hits the master mirror"""
@@ -741,10 +741,10 @@ class MasherThread(threading.Thread):
             msg=dict(repo=self.id, agent=self.agent),
             force=True,
         )
-        mash_path = os.path.join(self.path, self.id)
-        arch = os.listdir(mash_path)[0]
+        arch = os.listdir(os.path.join(self.path, 'compose', 'Everything'))[0]
 
-        repomd = os.path.join(mash_path, arch, 'repodata', 'repomd.xml')
+        repomd = os.path.join(self.path, 'compose', 'Everything',
+                              arch, 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
             self.log.error('Cannot find local repomd: %s', repomd)
             return
@@ -1008,7 +1008,7 @@ class MashThread(threading.Thread):
 
         Args:
             tag (basestring): The tag to mash.
-            outputdir (basestring): The mash output directory.
+            outputdir (basestring): The toplevel updates directory
             comps (basestring): A path to a compsfile to be used during the mash.
             previous (basestring): The path to the previous mash for this tag.
             log (logging.Logger): A logger for the MashThread to use.
@@ -1017,12 +1017,24 @@ class MashThread(threading.Thread):
         self.tag = tag
         self.log = log
         self.success = False
-        mash_cmd = 'mash -o {outputdir} -c {config} -f {compsfile} {tag}'
-        mash_conf = config.get('mash_conf')
-        if os.path.exists(previous):
-            mash_cmd += ' -p {}'.format(previous)
-        self.mash_cmd = mash_cmd.format(outputdir=outputdir, config=mash_conf,
-                                        compsfile=comps, tag=self.tag).split()
+        if not config.get('use_pungi_in_bodhi'):
+
+            mash_cmd = 'mash -o {outputdir} -c {config} -f {compsfile} {tag}'
+            mash_conf = config.get('mash_conf')
+            if os.path.exists(previous):
+                mash_cmd += ' -p {}'.format(previous)
+            self.mash_cmd = mash_cmd.format(outputdir=outputdir, config=mash_conf,
+                                            compsfile=comps, tag=self.tag).split()
+
+        else:  # We are going to use pungi in this run
+            pungi_conf = config.get('pungi_conf')
+            pungi_cmd = "pungi-koji  --config={}".format(config)
+            if os.path.exists(previous):
+                pungi_cmd += ' --old-composes={}'.format(previous)
+            pungi_cmd += "--no-label --target-dir={}".format(outputdir)
+            # We are using the same name so that no new changes required in the code
+            self.mash_cmd = pungi_cmd
+
         # Set our thread's "name" so it shows up nicely in the logs.
         # https://docs.python.org/2/library/threading.html#thread-objects
         self.name = tag

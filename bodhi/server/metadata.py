@@ -37,14 +37,12 @@ class ExtendedMetadata(object):
 
     """
     def __init__(self, release, request, db, path):
-        self.repo = path
-        log.debug('repo = %r' % self.repo)
+        self.mash_dir = path
         self.request = request
         if request is UpdateRequest.stable:
             self.tag = release.stable_tag
         else:
             self.tag = release.testing_tag
-        self.repo_path = os.path.join(self.repo, self.tag)
 
         self.db = db
         self.updates = set()
@@ -63,11 +61,13 @@ class ExtendedMetadata(object):
             # compression, so use the lowest common denominator for now.
             self.comp_type = cr.BZ2
 
-        # Load from the cache if it exists
-        self.cached_repodata = os.path.join(self.repo, '..', self.tag +
-                                            '.repocache', 'repodata/')
-        if os.path.isfile(os.path.join(self.cached_repodata, 'repomd.xml')):
-            log.info('Loading cached updateinfo.xml')
+        # Load "cache" from the previous run if it exists
+        # Use the first arch we find
+        previous_archdir = os.listdir(os.path.join(self.mash_dir, self.tag,
+                                                   'compose', 'Everything'))[0]
+        previous_repodata = os.path.join(previous_archdir, 'os', 'repodata')
+        if os.path.isfile(os.path.join(previous_repodata, 'repomd.xml')):
+            log.info('Loading previous runs updateinfo.xml')
             self._load_cached_updateinfo()
         else:
             log.info("Generating new updateinfo.xml")
@@ -82,9 +82,9 @@ class ExtendedMetadata(object):
             log.error("%d updates with missing ID: %r" % (
                 len(self.missing_ids), self.missing_ids))
 
-    def _load_cached_updateinfo(self):
+    def _load_cached_updateinfo(self, repodata):
         """
-        Load the cached updateinfo.xml from '../{tag}.repocache/repodata'
+        Load the cached updateinfo.xml from the provided repodata dir'
         """
         seen_ids = set()
         from_cache = set()
@@ -92,13 +92,13 @@ class ExtendedMetadata(object):
 
         # Parse the updateinfo out of the repomd
         updateinfo = None
-        repomd_xml = os.path.join(self.cached_repodata, 'repomd.xml')
+        repomd_xml = os.path.join(repodata, 'repomd.xml')
         repomd = cr.Repomd()
         cr.xml_parse_repomd(repomd_xml, repomd)
         for record in repomd.records:
             if record.type == 'updateinfo':
                 updateinfo = os.path.join(os.path.dirname(
-                    os.path.dirname(self.cached_repodata)),
+                    os.path.dirname(repodata)),
                     record.location_href)
                 break
 
@@ -236,7 +236,7 @@ class ExtendedMetadata(object):
 
                 # Build the URL
                 if rpm['arch'] == 'src':
-                    arch = 'SRPMS'
+                    arch = 'source'
                 elif rpm['arch'] in ('noarch', 'i686'):
                     arch = 'i386'
                 else:
@@ -270,17 +270,21 @@ class ExtendedMetadata(object):
 
         self.uinfo.append(rec)
 
-    def insert_updateinfo(self):
+    def insert_updateinfo(self, repo):
         fd, name = tempfile.mkstemp()
         os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
         os.close(fd)
-        self.modifyrepo(name)
+        self.modifyrepo(name, repo)
         os.unlink(name)
 
-    def modifyrepo(self, filename):
+    def modifyrepo(self, filename, repo):
         """Inject a file into the repodata for each architecture"""
-        for arch in os.listdir(self.repo_path):
-            repodata = os.path.join(self.repo_path, arch, 'repodata')
+        repo_path = os.path.join(repo, 'compose', 'Everything')
+        for arch in os.listdir(repo_path):
+            if arch == 'source':
+                repodata = os.path.join(repo_path, arch, 'tree', 'repodata')
+            else:
+                repodata = os.path.join(repo_path, arch, 'os', 'repodata')
             log.info('Inserting %s into %s', filename, repodata)
             uinfo_xml = os.path.join(repodata, 'updateinfo.xml')
             shutil.copyfile(filename, uinfo_xml)
@@ -294,15 +298,3 @@ class ExtendedMetadata(object):
             with file(repomd_xml, 'w') as repomd_file:
                 repomd_file.write(repomd.xml_dump())
             os.unlink(uinfo_xml)
-
-    def cache_repodata(self):
-        arch = os.listdir(self.repo_path)[0]  # Take the first arch
-        repodata = os.path.join(self.repo_path, arch, 'repodata')
-        if not os.path.isdir(repodata):
-            log.warning('Cannot find repodata to cache: %s' % repodata)
-            return
-        cache = self.cached_repodata
-        if os.path.isdir(cache):
-            shutil.rmtree(cache)
-        shutil.copytree(repodata, cache)
-        log.info('%s cached to %s' % (repodata, cache))
