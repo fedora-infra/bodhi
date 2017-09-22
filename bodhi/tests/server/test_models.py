@@ -17,6 +17,7 @@
 from datetime import datetime, timedelta
 from HTMLParser import HTMLParser
 import json
+import pickle
 import time
 import unittest
 
@@ -86,15 +87,75 @@ class ModelTest(BaseTestCase):
                 self.assertEqual(self.klass.get(getattr(self.obj, col), self.db), self.obj)
 
 
-class TestQueryProperty(BaseTestCase):
+class TestBodhiBase(BaseTestCase):
+    """Test the BodhiBase class."""
 
-    def test_session(self):
-        """Assert the session the query property uses is from the scoped session."""
-        query = model.Package.query
-        self.assertTrue(self.db is query.session)
+    def test__expand_with_m2m_relation(self):
+        """Test the _expand() method with a many-to-many relation."""
+        p = model.Package.query.all()[0]
+        new_exclude_columns = list(model.Package.__exclude_columns__)
+        new_exclude_columns.remove('committers')
+        # p.committers is an InstrumentedList, which doesn't have an all() method. We have some
+        # code to handle m2m relationships with all() methods, but it's not immediately obvious
+        # which relationships have that for testing purposes. Thus, we can simulate this for
+        # test coverage purposes by setting it to its __iter__() method.
+        p.committers.all = p.committers.__iter__
 
+        with mock.patch.object(model.Package, '__exclude_columns__', new_exclude_columns):
+            committers = p._expand(p, p.committers, [], mock.MagicMock())
 
-class TestPolymorphicDiscovery(BaseTestCase):
+        self.assertEqual(len(committers), 1)
+        self.assertEqual(committers[0]['name'], 'guest')
+
+    def test__expand_with_relation_in_seen(self):
+        """_expand() should return the relation.id attribute if its type is in seen."""
+        b = model.Build.query.all()[0]
+
+        self.assertEqual(b._expand(b, b.package, [type(b.package)], mock.MagicMock()), b.package.id)
+
+    def test__to_json_anonymize_false(self):
+        """Test _to_json with anonymize set to False."""
+        c = model.Comment.query.all()[0]
+        c.anonymous = True
+
+        j = c._to_json(c, anonymize=False)
+
+        self.assertEqual(
+            j['user'],
+            {'avatar': None, 'email': c.user.email, 'groups': [{'name': 'packager'}],
+             'id': c.user.id, 'name': c.user.name, 'openid': None,
+             'show_popups': c.user.show_popups})
+
+    def test__to_json_anonymize_true(self):
+        """Test _to_json with anonymize set to True."""
+        c = model.Comment.query.all()[0]
+        c.anonymous = True
+
+        j = c._to_json(c, anonymize=True)
+
+        self.assertEqual(j['user'], 'anonymous')
+
+    def test__to_json_falsey_object(self):
+        """Assert that _to_json() returns None when handed a Falsey object."""
+        self.assertEqual(model.Build._to_json(False, seen=None), None)
+        self.assertEqual(model.Build._to_json(None, seen=None), None)
+        self.assertEqual(model.Build._to_json('', seen=None), None)
+        self.assertEqual(model.Build._to_json([], seen=None), None)
+
+    def test__to_json_no_seen(self):
+        """Assert correct behavior from _to_json() when seen is None."""
+        b = model.Build.query.all()[0]
+
+        j = b._to_json(b, seen=None)
+
+        self.assertEqual(
+            j,
+            {'ci_url': b.ci_url, 'epoch': b.epoch, 'nvr': b.nvr, 'signed': b.signed,
+             'type': b.type.value})
+
+    def test_grid_columns(self):
+        """Assert correct return value from the grid_columns() method."""
+        self.assertEqual(model.Build.grid_columns(), ['nvr', 'signed', 'ci_url', 'type', 'epoch'])
 
     def test_find_child_for_rpm(self):
         subclass = model.Package.find_polymorphic_child(model.ContentType.rpm)
@@ -117,6 +178,14 @@ class TestPolymorphicDiscovery(BaseTestCase):
     def test_find_child_with_badly_typed_argument(self):
         with self.assertRaises(TypeError):
             model.Update.find_polymorphic_child("whatever")
+
+
+class TestQueryProperty(BaseTestCase):
+
+    def test_session(self):
+        """Assert the session the query property uses is from the scoped session."""
+        query = model.Package.query
+        self.assertTrue(self.db is query.session)
 
 
 class TestComment(BaseTestCase):
@@ -150,6 +219,120 @@ class TestComment(BaseTestCase):
         self.assertEqual(len(feedback), 2)
         self.assertEqual(sorted(feedback_titles), sorted(feedback_titles_expected))
         self.assertEqual(feedback_karma_sum, 2)
+
+
+class TestDeclEnum(unittest.TestCase):
+    """Test the DeclEnum class."""
+
+    def test_from_string_bad_value(self):
+        """Test the from_string() method with a value that doesn't exist."""
+        with self.assertRaises(ValueError) as exc:
+            model.UpdateStatus.from_string('wrong')
+
+        self.assertEqual(str(exc.exception), "Invalid value for 'UpdateStatus': 'wrong'")
+
+
+class TestDeclEnumType(BaseTestCase):
+    """Test the DeclEnumType class."""
+
+    def test_create_does_not_raise_exception(self):
+        """Assert that a call to the create() method does not raise an Exception."""
+        t = model.DeclEnumType(model.UpdateStatus)
+
+        t.create(self.engine)
+
+    def test_drop_does_not_raise_exception(self):
+        """Assert that a call to the drop() method does not raise an Exception."""
+        t = model.DeclEnumType(model.UpdateStatus)
+
+        t.drop(self.engine)
+
+    def test_process_bind_param_None(self):
+        """Test the process_bind_param() method with a value of None."""
+        t = model.DeclEnumType(model.UpdateStatus)
+
+        self.assertEqual(t.process_bind_param(None, self.engine.dialect), None)
+
+    def test_process_bind_param_truthy_value(self):
+        """Test the process_bind_param() method with a truthy value."""
+        t = model.DeclEnumType(model.UpdateStatus)
+
+        self.assertEqual(t.process_bind_param(model.UpdateStatus.stable, self.engine.dialect),
+                         'stable')
+
+    def test_process_result_value_None(self):
+        """Test the process_result_value() method with a value of None."""
+        t = model.DeclEnumType(model.UpdateStatus)
+
+        self.assertEqual(t.process_result_value(None, self.engine.dialect), None)
+
+    def test_process_result_value_truthy_value(self):
+        """Test the process_result_value() method with a truthy value."""
+        t = model.DeclEnumType(model.UpdateStatus)
+
+        self.assertEqual(t.process_result_value('testing', self.engine.dialect),
+                         model.UpdateStatus.testing)
+
+
+class TestEnumMeta(unittest.TestCase):
+    """Test the Enummeta class."""
+
+    def test___iter__(self):
+        """Assert correct return value from the __iter__() method."""
+        m = model.EnumMeta('UpdateStatus', (model.DeclEnum,),
+                           {'testing': ('testing', 'Testing'), 'stable': ('stable', 'Stable')})
+        expected_values = ['testing', 'stable']
+
+        for v in iter(m):
+            self.assertEqual(str(v), '<{}>'.format(expected_values.pop(0)))
+            self.assertEqual(type(v), model.EnumSymbol)
+
+        self.assertEqual(expected_values, [])
+
+
+class TestEnumSymbol(unittest.TestCase):
+    """Test the EnumSymbol class."""
+
+    def test___iter__(self):
+        """Ensure correct operation of the __iter__() method."""
+        s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
+        expected_values = ['value', 'description']
+
+        for v in iter(s):
+            self.assertEqual(v, expected_values.pop(0))
+
+        self.assertEqual(expected_values, [])
+
+    def test___json__(self):
+        """Ensure that the __json__() method returns the value."""
+        s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
+
+        self.assertEqual(s.__json__(), 'value')
+
+    def test___reduce__(self):
+        """Ensure correct operation of the __reduce__() method by pickling an instance."""
+        s = model.EnumSymbol(model.UpdateStatus, 'testing', 'testing', 'testing')
+
+        p = pickle.dumps(s)
+
+        deserialized_s = pickle.loads(p)
+        self.assertEqual(deserialized_s.cls_, model.UpdateStatus)
+        self.assertEqual(deserialized_s.name, 'testing')
+        self.assertEqual(deserialized_s.value, 'testing')
+        self.assertEqual(deserialized_s.description, 'testing')
+
+    def test___repr__(self):
+        """Ensure correct operation of the __repr__() method."""
+        s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
+
+        self.assertEqual(repr(s), '<name>')
+
+    def test___unicode__(self):
+        """Ensure correct operation of the __unicode__() method."""
+        s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
+
+        self.assertEqual(unicode(s), 'value')
+        self.assertEqual(type(unicode(s)), unicode)
 
 
 class TestRelease(ModelTest):
