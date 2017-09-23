@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2007-2017 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,9 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""
-The CLI tool for triggering update pushes.
-"""
+"""The CLI tool for triggering update pushes."""
 from collections import defaultdict
 from datetime import datetime
 import glob
@@ -44,6 +47,7 @@ import bodhi.server.notifications
 @click.option('--username', envvar='USERNAME', prompt=True)
 @click.version_option(message='%(version)s')
 def push(username, cert_prefix, **kwargs):
+    """Push builds out to the repositories."""
     staging = kwargs.pop('staging')
     resume = kwargs.pop('resume')
 
@@ -140,6 +144,8 @@ def push(username, cert_prefix, **kwargs):
 
 def _filter_releases(session, query, releases=None):
     """
+    Filter the given query by releases.
+
     Apply a filter() transformation to the given query on Updates to filter updates that match the
     given releases argument. If releases evaluates "Falsey", this function will filter for Updates
     that are part of a current Release.
