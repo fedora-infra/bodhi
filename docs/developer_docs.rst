@@ -75,6 +75,10 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
   For example, Randy Barlow's commit messages include this line::
 
    Signed-off-by: Randy Barlow <randy@electronsweatshop.com>
+* Code may be submitted by opening a pull request at
+  `github.com/fedora-infra/bodhi <https://github.com/fedora-infra/bodhi/>`_, or you may e-mail a
+  patch to the
+  `mailing list <https://lists.fedoraproject.org/archives/list/bodhi@lists.fedorahosted.org/>`_.
 
 
 Create a Bodhi development environment
