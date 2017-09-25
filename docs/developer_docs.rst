@@ -29,6 +29,52 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
 * Make sure your commits are atomic. Each commit should focus on one improvement or bug fix. If you
   need to build upon changes that are related but aren't atomic, feel free to send more than one
   commit in the same pull request.
+* Your commit messages must include a Signed-off-by tag with your name and e-mail address,
+  indicating that you agree to the
+  `Developer Certificate of Origin <https://developercertificate.org/>`_. Bodhi uses version 1.1 of
+  the certificate, which reads::
+
+   Developer Certificate of Origin
+   Version 1.1
+
+    Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
+    1 Letterman Drive
+    Suite D4700
+    San Francisco, CA, 94129
+
+    Everyone is permitted to copy and distribute verbatim copies of this
+    license document, but changing it is not allowed.
+
+
+    Developer's Certificate of Origin 1.1
+
+    By making a contribution to this project, I certify that:
+
+    (a) The contribution was created in whole or in part by me and I
+        have the right to submit it under the open source license
+        indicated in the file; or
+
+    (b) The contribution is based upon previous work that, to the best
+        of my knowledge, is covered under an appropriate open source
+        license and I have the right under that license to submit that
+        work with modifications, whether created in whole or in part
+        by me, under the same open source license (unless I am
+        permitted to submit under a different license), as indicated
+        in the file; or
+
+    (c) The contribution was provided directly to me by some other
+        person who certified (a), (b) or (c) and I have not modified
+        it.
+
+    (d) I understand and agree that this project and the contribution
+        are public and that a record of the contribution (including all
+        personal information I submit with it, including my sign-off) is
+        maintained indefinitely and may be redistributed consistent with
+        this project or the open source license(s) involved.
+
+  For example, Randy Barlow's commit messages include this line::
+
+   Signed-off-by: Randy Barlow <randy@electronsweatshop.com>
 
 
 Create a Bodhi development environment
