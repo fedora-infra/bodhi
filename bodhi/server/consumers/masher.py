@@ -972,6 +972,7 @@ class PungiComposerThread(ComposerThread):
             uinfo.insert_updateinfo(self.path)
 
             self._sanity_check_repo()
+            self._wait_for_repo_signature()
             self._stage_repo()
 
             # Wait for the repo to hit the master mirror
@@ -1239,6 +1240,42 @@ class PungiComposerThread(ComposerThread):
 
         self.log.debug('Path: %s', self.path)
         self._checkpoints['completed_repo'] = self.path
+
+    def _wait_for_repo_signature(self):
+        """Wait for a repo signature to appear."""
+        # This message indicates to consumers that the repos are fully created and ready to be
+        # signed or otherwise processed.
+        notifications.publish(
+            topic="repo.done",
+            msg=dict(repo=self.id, agent=self.agent, path=self.path),
+            force=True,
+        )
+        if config.get('wait_for_repo_sig'):
+            self.save_state(ComposeState.signing_repo)
+            sigpaths = []
+            repopath = os.path.join(self.path, 'compose', 'Everything')
+            for arch in os.listdir(repopath):
+                if arch == 'source':
+                    sigpaths.append(os.path.join(repopath, arch, 'tree', 'repodata',
+                                                 'repomd.xml.asc'))
+                else:
+                    sigpaths.append(os.path.join(repopath, arch, 'os', 'repodata',
+                                                 'repomd.xml.asc'))
+
+            self.log.info('Waiting for signatures in %s', ', '.join(sigpaths))
+            while True:
+                missing = []
+                for path in sigpaths:
+                    if not os.path.exists(path):
+                        missing.append(path)
+                if len(missing) == 0:
+                    self.log.info('All signatures were created')
+                    break
+                else:
+                    self.log.info('Waiting on %s', ', '.join(missing))
+                    time.sleep(300)
+        else:
+            self.log.info('Not waiting for a repo signature')
 
     def _wait_for_sync(self):
         """
