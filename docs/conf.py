@@ -219,11 +219,13 @@ man_pages = [
     ('man_pages/bodhi', 'bodhi', u'manage Fedora updates', ['Randy Barlow', 'Luke Macken'], 1),
     ('man_pages/bodhi-approve-testing', 'bodhi-approve-testing', u'approve updates',
      ['Randy Barlow'], 1),
+    ('man_pages/bodhi-check-policies', 'bodhi-check-policies', u'check policies',
+     ['Matt Jia'], 1),
+    ('man_pages/bodhi-clean-old-mashes', 'bodhi-clean-old-mashes', u'clean old mashes',
+     ['Randy Barlow'], 1),
     ('man_pages/bodhi-push', 'bodhi-push', u'push Fedora updates', ['Randy Barlow'], 1),
     ('man_pages/initialize_bodhi_db', 'initialize_bodhi_db', u'intialize bodhi\'s database',
      ['Randy Barlow'], 1),
-    ('man_pages/bodhi-check-policies', 'bodhi-check-policies', u'check policies',
-     ['Matt Jia'], 1)
 ]
 
 # If true, show URL addresses after external links.
