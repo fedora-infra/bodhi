@@ -2974,7 +2974,7 @@ class BuildrootOverride(Base):
         try:
             koji_session.untagBuild(self.build.release.override_tag,
                                     self.build.nvr, strict=True)
-        except Exception, e:
+        except Exception as e:
             log.error('Unable to untag override %s: %s' % (self.build.nvr, e))
         self.expired_date = datetime.utcnow()
 

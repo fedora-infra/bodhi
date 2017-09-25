@@ -50,14 +50,14 @@ def clock_url(url, tries=4):
 def do_scan():
     results = collections.OrderedDict()
     for name, url in items.items():
-        print 'Crunching', name, url
+        print('Crunching', name, url)
         duration = clock_url(url)
         results[name] = duration
     return results
 
 
 def loop_over_refs(refs):
-    print "Checking %r" % refs
+    print("Checking %r" % refs)
     response = raw_input("Is that okay? ")
     if response != 'y':
         sys.exit(0)
@@ -65,7 +65,7 @@ def loop_over_refs(refs):
         time.sleep(3)
         ref = ref[:reflength]
         commands.getstatus('git checkout %s' % ref)
-        print "Running on", ref
+        print("Running on", ref)
         results[ref] = do_scan()
     return results
 
@@ -82,7 +82,7 @@ def print_table(table):
         )
 
     for row in rows:
-        print "|" + "|".join(row) + "|"
+        print("|" + "|".join(row) + "|")
 
 
 if __name__ == '__main__':
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     try:
         results = loop_over_refs(refs)
     finally:
-        print "Returning you to %s" % head
+        print("Returning you to %s" % head)
         commands.getstatus('git checkout %s' % head)
 
     print_table(results)

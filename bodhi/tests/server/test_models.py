@@ -540,7 +540,7 @@ class TestUpdateValidateBuilds(BaseTestCase):
             request=model.UpdateRequest.testing,
             notes=u'Useless details!',
             release=model.Release.query.filter_by(name=u'F17').one(),
-            date_submitted=datetime(1984, 11, 02),
+            date_submitted=datetime(1984, 11, 2),
             requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
@@ -1415,7 +1415,7 @@ class TestUpdate(ModelTest):
         try:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             assert False
-        except BodhiException, e:
+        except BodhiException as e:
             pass
         self.assertEqual(self.obj.request, UpdateRequest.testing)
         self.assertEqual(self.obj.status, UpdateStatus.pending)
@@ -1462,7 +1462,7 @@ class TestUpdate(ModelTest):
         try:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             assert False
-        except BodhiException, e:
+        except BodhiException as e:
             pass
         expected_msg = (
             'This critical path update has not yet been approved for pushing to the '

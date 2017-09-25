@@ -715,7 +715,7 @@ class MasherThread(threading.Thread):
             try:
                 repodata = os.path.join(mash_path, arch, 'repodata')
                 sanity_check_repodata(repodata)
-            except Exception, e:
+            except Exception as e:
                 self.log.error("Repodata sanity check failed!\n%s" % str(e))
                 raise
 

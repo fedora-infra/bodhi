@@ -130,7 +130,7 @@ assert result['update']['request'] is None
 
 print('Adding comment')
 result = bodhi.comment(update=alias, comment='yay', karma=1)
-print result
+print(result)
 comment = result['comment']
 assert comment['author'] == username
 assert comment['text'] == u'yay'

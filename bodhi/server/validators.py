@@ -385,7 +385,7 @@ def validate_acls(request):
                     release.branch, config)
                 committers, watchers = people
                 groups, notify_groups = groups
-            except Exception, e:
+            except Exception as e:
                 log.exception(e)
                 request.errors.add('body', 'builds',
                                    "Unable to access the Package "

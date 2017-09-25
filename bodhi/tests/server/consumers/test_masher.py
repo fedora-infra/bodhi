@@ -131,7 +131,7 @@ class TestMasher(unittest.TestCase):
                 req = requests.get('%s/new' % faitout)
                 if req.status_code == 200:
                     db_path = req.text
-                    print 'Using faitout at: %s' % db_path
+                    print('Using faitout at: %s' % db_path)
             except:
                 pass
         engine = initialize_db({'sqlalchemy.url': db_path})
