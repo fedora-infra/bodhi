@@ -59,8 +59,8 @@ def clean_up():
             dirs_to_delete.extend(sorted(dirs, reverse=True)[NUM_TO_KEEP:])
 
     if dirs_to_delete:
-        print 'Deleting the following directories:'
+        print('Deleting the following directories:')
         for d in dirs_to_delete:
             d = os.path.join(mash_dir, d)
             shutil.rmtree(d)
-            print d
+            print(d)
