@@ -372,6 +372,7 @@ That was the actual one''' % mash_dir
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch.object(ComposerThread, 'determine_and_perform_tag_actions', mock_exc)
@@ -413,6 +414,7 @@ That was the actual one''' % mash_dir
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -483,6 +485,7 @@ That was the actual one''' % mash_dir
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -534,6 +537,7 @@ That was the actual one''' % mash_dir
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -805,6 +809,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -891,6 +896,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -971,6 +977,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1069,6 +1076,7 @@ That was the actual one'''
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1096,6 +1104,7 @@ That was the actual one'''
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1126,6 +1135,7 @@ That was the actual one'''
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_mash(self, publish, *args):
@@ -1180,6 +1190,7 @@ That was the actual one'''
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1305,6 +1316,7 @@ testmodule:master:20172:2
     @mock.patch(**mock_failed_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1356,6 +1368,7 @@ testmodule:master:20172:2
     @mock.patch(**mock_absent_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1407,6 +1420,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1433,6 +1447,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1459,6 +1474,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1481,6 +1497,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1504,6 +1521,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1529,6 +1547,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1552,6 +1571,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1588,6 +1608,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1646,6 +1667,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1693,6 +1715,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -1735,6 +1758,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
@@ -2754,6 +2778,86 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
             t.log.info.mock_calls,
             [mock.call('Creating mash_stage_dir %s', stage_dir),
              mock.call('Creating symlink: %s => %s' % (link, t.path))])
+
+
+class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCase):
+    """Test PungiComposerThread._wait_for_repo_signature()."""
+
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    def test_dont_wait_for_signatures(self, publish):
+        """Test that if wait_for_repo_sig is disabled, nothing happens."""
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
+                                'ralph', log, self.Session, self.tempdir)
+        t.id = 'f17-updates-testing'
+        t.path = os.path.join(self.tempdir, 'latest-f17-updates-testing')
+        t.log.info = mock.MagicMock()
+
+        with mock.patch.dict(config, {'wait_for_repo_sig': False}):
+            t._wait_for_repo_signature()
+
+        publish.assert_called_once_with(topic='repo.done',
+                                        force=True,
+                                        msg={'repo': t.id,
+                                             'path': t.path,
+                                             'agent': 'ralph'})
+        self.assertEqual(
+            t.log.info.mock_calls,
+            [mock.call('Not waiting for a repo signature')])
+
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    @mock.patch('os.path.exists', side_effect=[
+        # First time, none of the signatures exist
+        False, False, False,
+        # Second time, we have two sets of signatures
+        True, False, True,
+        # Third time, we get all signatures and proceed
+        True, True, True
+    ])
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
+    @mock.patch('time.sleep')
+    @mock.patch('os.listdir', return_value=['x86_64', 'aarch64', 'source'])
+    def test_wait_for_signatures(self, listdir, sleep, save, exists, publish):
+        """Test that if wait_for_repo_sig is disabled, nothing happens."""
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
+                                'ralph', log, self.Session, self.tempdir)
+        t.id = 'f17-updates-testing'
+        t.path = '/composepath'
+        t.log.info = mock.MagicMock()
+
+        with mock.patch.dict(config, {'wait_for_repo_sig': True}):
+            t._wait_for_repo_signature()
+
+        self.assertEqual(len(sleep.mock_calls), 2)
+        self.assertEqual(
+            t.log.info.mock_calls,
+            [mock.call("Waiting for signatures in %s",
+                       "/composepath/compose/Everything/x86_64/os/repodata/repomd.xml.asc, "
+                       "/composepath/compose/Everything/aarch64/os/repodata/repomd.xml.asc, "
+                       "/composepath/compose/Everything/source/tree/repodata/repomd.xml.asc"),
+             mock.call('Waiting on %s',
+                       "/composepath/compose/Everything/x86_64/os/repodata/repomd.xml.asc, "
+                       "/composepath/compose/Everything/aarch64/os/repodata/repomd.xml.asc, "
+                       "/composepath/compose/Everything/source/tree/repodata/repomd.xml.asc"),
+             mock.call('Waiting on %s',
+                       "/composepath/compose/Everything/aarch64/os/repodata/repomd.xml.asc"),
+             mock.call('All signatures were created')])
+        self.assertEqual(
+            exists.mock_calls,
+            [mock.call('/composepath/compose/Everything/x86_64/os/repodata/repomd.xml.asc'),
+             mock.call('/composepath/compose/Everything/aarch64/os/repodata/repomd.xml.asc'),
+             mock.call('/composepath/compose/Everything/source/tree/repodata/repomd.xml.asc'),
+             mock.call('/composepath/compose/Everything/x86_64/os/repodata/repomd.xml.asc'),
+             mock.call('/composepath/compose/Everything/aarch64/os/repodata/repomd.xml.asc'),
+             mock.call('/composepath/compose/Everything/source/tree/repodata/repomd.xml.asc'),
+             mock.call('/composepath/compose/Everything/x86_64/os/repodata/repomd.xml.asc'),
+             mock.call('/composepath/compose/Everything/aarch64/os/repodata/repomd.xml.asc'),
+             mock.call('/composepath/compose/Everything/source/tree/repodata/repomd.xml.asc')])
+        save.assert_called_once_with(ComposeState.signing_repo)
+        publish.assert_called_once_with(topic='repo.done',
+                                        force=True,
+                                        msg={'repo': t.id,
+                                             'path': t.path,
+                                             'agent': 'ralph'})
 
 
 class TestPungiComposerThread__wait_for_pungi(ComposerThreadBaseTestCase):

@@ -618,6 +618,9 @@ class BodhiConfig(dict):
         'updateinfo_rights': {
             'value': 'Copyright (C) {} Red Hat, Inc. and others.'.format(datetime.now().year),
             'validator': six.text_type},
+        'wait_for_repo_sig': {
+            'value': False,
+            'validator': _validate_bool},
         'wiki_url': {
             'value': 'https://fedoraproject.org/w/api.php',
             'validator': six.text_type},
