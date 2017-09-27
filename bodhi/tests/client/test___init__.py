@@ -18,6 +18,7 @@ import datetime
 import os
 import platform
 import unittest
+import copy
 
 from click import testing
 import fedora.client
@@ -93,6 +94,89 @@ class TestDownload(unittest.TestCase):
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'))
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request')
+    def test_empty_options(self, send_request):
+        """
+        Assert we return an error if either --cves --updateid or --builds are not
+        used.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.download)
+
+        self.assertEqual(result.output,
+                         u'ERROR: must specify at least one of --cves, --updateid, --builds\n')
+        send_request.assert_not_called()
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    @mock.patch('bodhi.client.subprocess.call', return_value=0)
+    def test_no_builds_warning(self, call, send_request):
+        """
+        Test the download() no builds found warning.
+        """
+        runner = testing.CliRunner()
+        no_builds_response = copy.copy(client_test_data.EXAMPLE_QUERY_MUNCH)
+        no_builds_response.updates = []
+        send_request.return_value = no_builds_response
+        result = runner.invoke(
+            client.download,
+            ['--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, 'WARNING: No builds found!\n')
+        call.assert_not_called()
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.subprocess.call', return_value=0)
+    def test_some_builds_warning(self, call, send_request):
+        """
+        Test the download() some builds not found warning.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.download,
+            ['--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         'WARNING: Some builds not found!\nDownloading packages ' +
+                         'from nodejs-grunt-wrap-0.3.0-2.fc25\n')
+        call.assert_called_once_with((
+            'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
+            'nodejs-grunt-wrap-0.3.0-2.fc25'))
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.subprocess.call', return_value="Failure")
+    def test_download_failed_warning(self, call, send_request):
+        """
+        Test that we show a warning if a download fails.
+        i.e. the subprocess call calling koji returns something.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.download,
+            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         'Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n' +
+                         'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n')
+        call.assert_called_once_with((
+            'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
+            'nodejs-grunt-wrap-0.3.0-2.fc25'))
+
 
 class TestNew(unittest.TestCase):
     """
@@ -126,6 +210,61 @@ class TestNew(unittest.TestCase):
                 'suggest': None, 'notes': None, 'request': None, 'bugs': u'', 'requirements': None,
                 'unstable_karma': None, 'file': None, 'notes_file': None, 'type': 'bugfix'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.parse_file', autospec=True)
+    def test_file_flag(self, parse_file):
+        """
+        Assert correct behavior with the --file flag.
+        """
+        runner = testing.CliRunner()
+
+        runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
+             '--file', '/tmp/bodhiupdate.txt'])
+
+        bindings_client = parse_file.mock_calls[0][1][0]
+
+        parse_file.assert_called_once_with(bindings_client, u'/tmp/bodhiupdate.txt')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_bodhi_client_exception(self, send_request):
+        """
+        Assert that a BodhiClientException gets returned to the user via click echo
+        """
+        exception_message = "This is a BodhiClientException message"
+        send_request.side_effect = bindings.BodhiClientException(exception_message)
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn("This is a BodhiClientException message", result.output)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_exception(self, send_request):
+        """
+        Assert that any other Exception gets returned to the user as a traceback
+        """
+        exception_message = "This is an Exception message"
+        send_request.side_effect = Exception(exception_message)
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn("Traceback (most recent call last):", result.output)
+        self.assertIn("Exception: This is an Exception message", result.output)
 
 
 class TestPrintOverrideKojiHint(unittest.TestCase):
@@ -173,7 +312,63 @@ class TestQuery(unittest.TestCase):
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    def test_query_single_update(self, send_request):
+        """
+        Assert we display correctly when the query returns a single update.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.query,
+            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, client_test_data.EXPECTED_QUERY_OUTPUT + '\n')
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'updates/', verb='GET',
+            params={
+                'approved_since': None, 'status': None, 'locked': None,
+                'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
+                'content_type': None,
+                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
+                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
+                'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
+                'cves': None})
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH_MULTI, autospec=True)
+    def test_query_multiple_update(self, send_request):
+        """
+        Assert we display correctly when the query returns a single update.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.query,
+            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, client_test_data.EXAMPLE_QUERY_OUTPUT_MULTI)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'updates/', verb='GET',
+            params={
+                'approved_since': None, 'status': None, 'locked': None,
+                'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
+                'content_type': None,
+                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
+                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
+                'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
+                'cves': None})
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
     def test_url_flag(self, send_request):
         """
         Assert correct behavior with the --url flag.
@@ -186,8 +381,8 @@ class TestQuery(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.maxDiff = 2000
-        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
-                                                                          'localhost:6543')
+        expected_output = client_test_data.EXPECTED_QUERY_OUTPUT.replace('example.com/tests',
+                                                                         'localhost:6543')
         self.assertEqual(result.output, expected_output + '\n')
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
@@ -745,6 +940,24 @@ class TestEdit(unittest.TestCase):
                 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_bodhi_client_exception(self, send_request):
+        """
+        Assert that a BodhiClientException gets returned to the user via click echo
+        """
+        exception_message = "This is a BodhiClientException message"
+        send_request.side_effect = bindings.BodhiClientException(exception_message)
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn("This is a BodhiClientException message", result.output)
+
 
 class TestEditBuilrootOverrides(unittest.TestCase):
     """
@@ -821,3 +1034,58 @@ class TestHandleErrors(unittest.TestCase):
         self.assertEqual(result.exit_code, 1)
         self.assertEqual("Authentication failed: Check your FAS username & password\n",
                          result.output)
+
+
+class TestPrintResp(unittest.TestCase):
+    """
+    Test the print_resp() method.
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.SINGLE_UPDATE_MUNCH, autospec=True)
+    def test_single_update(self, send_request):
+        """
+        Test the single update response returns the update.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.query,
+            ['--url', 'http://localhost:6543'])
+
+        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
+                                                                          'localhost:6543')
+        self.assertEqual(result.output, expected_output + '\n')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.UNMATCHED_RESP, autospec=True)
+    def test_unhandled_response(self, send_request):
+        """
+        Test that if a response is not identified by print_resp, then we just print the response
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.query,
+            [])
+
+        self.assertEqual(result.output, u"{'pants': 'pants'}\n")
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_OVERRIDE_MUNCH_CAVEATS, autospec=True)
+    def test_caveats_output(self, send_request):
+        """
+        Assert we correctly output caveats.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.save_buildroot_overrides,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
+
+        self.assertIn("\nCaveats:\nthis is a caveat\n", result.output)

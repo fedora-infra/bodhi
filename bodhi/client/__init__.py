@@ -153,7 +153,7 @@ def cli():
     """
     Create the main CLI group
     """
-    pass
+    pass  # pragma: no cover
 
 
 @cli.group()
@@ -167,7 +167,7 @@ def updates():
     """
     Create the updates group.
     """
-    pass
+    pass  # pragma: no cover
 
 
 @updates.command()
@@ -517,7 +517,7 @@ def overrides():
     """
     Create the overrides CLI group.
     """
-    pass
+    pass  # pragma: no cover
 
 
 @overrides.command('query')
@@ -685,13 +685,8 @@ def print_resp(resp, client):
     elif 'comment' in resp:
         click.echo('The following comment was added to %s' % resp.comment['update'].title)
         click.echo(resp.comment.text)
-    elif 'errors' in resp:
-        for error in resp['errors']:
-            click.echo("ERROR: %s" % error['description'])
-        sys.exit(1)
     else:
         click.echo(resp)
-
     if resp.get('caveats', None):
         click.echo('Caveats:')
         for caveat in resp.caveats:
