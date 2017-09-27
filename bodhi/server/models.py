@@ -644,7 +644,7 @@ class Package(Base):
             namespace = self.type.name
         else:
             namespace = self.type.name + 's'
-        package_pagure_url = '{0}/api/0/{1}/{2}'.format(
+        package_pagure_url = '{0}/api/0/{1}/{2}?expand_group=1'.format(
             pagure_url.rstrip('/'), namespace, self.name)
         package_json = pagure_api_get(package_pagure_url)
 
@@ -657,6 +657,11 @@ class Package(Base):
         for access_type in ['admin', 'commit']:
             for group_name in package_json['access_groups'][access_type]:
                 groups.add(group_name)
+                # Add to the list of committers the users in the groups
+                # having admin or commit access
+                committers = committers | set(
+                    package_json.get(
+                        'group_details', {}).get(group_name, []))
 
         # The first list contains usernames with commit access. The second list
         # contains FAS group names with commit access.
