@@ -768,6 +768,60 @@ class TestBodhiClient_save_override(unittest.TestCase):
         expected_expiration = now + timedelta(days=2)
         self.assertTrue((actual_expiration - expected_expiration) < timedelta(minutes=5))
 
+    def test_save_override_edit(self):
+        """
+        Test the save_override() method with the edit argument.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='return_value')
+        client.csrf_token = 'a token'
+        now = datetime.utcnow()
+        response = client.save_override(nvr='python-pyramid-1.5.6-3.el7',
+                                        duration=2,
+                                        notes='This is needed to build bodhi-2.4.0.',
+                                        edit=True)
+
+        self.assertEqual(response, 'return_value')
+        actual_expiration = client.send_request.mock_calls[0][2]['data']['expiration_date']
+        client.send_request.assert_called_once_with(
+            'overrides/', verb='POST', auth=True,
+            data={'nvr': 'python-pyramid-1.5.6-3.el7',
+                  'expiration_date': actual_expiration,
+                  'csrf_token': 'a token', 'notes': 'This is needed to build bodhi-2.4.0.',
+                  'edited': 'python-pyramid-1.5.6-3.el7'})
+        # Since we can't mock utcnow() since it's a C extension, let's just make sure the expiration
+        # date sent is within 5 minutes of the now variable. It would be surprising if it took more
+        # than 5 minutes to start the function and execute its first instruction!
+        expected_expiration = now + timedelta(days=2)
+        self.assertTrue((actual_expiration - expected_expiration) < timedelta(minutes=5))
+
+    def test_save_override_expired(self):
+        """
+        Test the save_override() method with the edit argument.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='return_value')
+        client.csrf_token = 'a token'
+        now = datetime.utcnow()
+        response = client.save_override(nvr='python-pyramid-1.5.6-3.el7',
+                                        duration=2,
+                                        notes='This is needed to build bodhi-2.4.0.',
+                                        expired=True)
+
+        self.assertEqual(response, 'return_value')
+        actual_expiration = client.send_request.mock_calls[0][2]['data']['expiration_date']
+        client.send_request.assert_called_once_with(
+            'overrides/', verb='POST', auth=True,
+            data={'nvr': 'python-pyramid-1.5.6-3.el7',
+                  'expiration_date': actual_expiration,
+                  'csrf_token': 'a token', 'notes': 'This is needed to build bodhi-2.4.0.',
+                  'expired': True})
+        # Since we can't mock utcnow() since it's a C extension, let's just make sure the expiration
+        # date sent is within 5 minutes of the now variable. It would be surprising if it took more
+        # than 5 minutes to start the function and execute its first instruction!
+        expected_expiration = now + timedelta(days=2)
+        self.assertTrue((actual_expiration - expected_expiration) < timedelta(minutes=5))
+
 
 class TestBodhiClient_request(unittest.TestCase):
     """
@@ -876,7 +930,21 @@ class TestBodhiClient_update_str(unittest.TestCase):
                            '2016-10-21')
         self.assertEqual(text, expected_output)
 
-    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'request': 'stable'})
+    @mock.patch.dict(
+        client_test_data.EXAMPLE_UPDATE_MUNCH,
+        {u'builds': [{u'epoch': 0, u'nvr': u'bodhi-2.2.4-1.el7', u'signed': True},
+                     {u'epoch': 0, u'nvr': u'bodhi-pants-2.2.4-1.el7', u'signed': True}]})
+    def test_minimal_with_multiple_builds(self):
+        """Ensure correct output when minimal is True, and multiple builds"""
+        client = bindings.BodhiClient()
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
+
+        expected_output = (u' bodhi-2.2.4-1.el7                     rpm    bugfix       stable    '
+                           '2016-10-21\n bodhi-pants-2.2.4-1.el7')
+        self.assertEqual(text, expected_output)
+
+    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {u'request': u'stable'})
     def test_request_stable(self):
         """Ensure correct output when the update is request stable."""
         client = bindings.BodhiClient()
@@ -917,6 +985,47 @@ class TestBodhiClient_update_str(unittest.TestCase):
         self.maxDiff = None
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
             'Autokarma: True  [-3, 3]', 'Autokarma: False  [None, None]')
+        self.assertEqual(text, expected_output)
+
+    def test_update_as_string(self):
+        """Ensure we return a string if update is a string"""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+
+        text = client.update_str("this is a string")
+
+        self.assertEqual(
+            text,
+            "this is a string")
+
+    @mock.patch.dict(
+        client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0], {u'anonymous': True})
+    def test_update_with_anon_comment(self):
+        """Ensure we prepend (anonymous) to a username if an anon comment is rendered"""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertEqual(text, client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
+            "Comments: bodhi ",
+            "Comments: bodhi (unauthenticated) "))
+
+    @mock.patch.dict(
+        client_test_data.EXAMPLE_UPDATE_MUNCH, {u'alias': None})
+    def test_update_with_no_alias(self):
+        """Ensure we render an update with no alias set properly"""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
+            "http://example.com/tests/updates/FEDORA-EPEL-2016-3081a94111",
+            "http://example.com/tests/updates/bodhi-2.2.4-1.el7")
+        expected_output = expected_output.replace(
+            "   Update ID: FEDORA-EPEL-2016-3081a94111\n",
+            "")
         self.assertEqual(text, expected_output)
 
 
@@ -1316,3 +1425,44 @@ class TestBodhiClient_testable(unittest.TestCase):
             list(client.testable())
 
         self.assertEqual(str(exc.exception), 'dnf is required by this method and is not installed.')
+
+
+class TestGetKojiSession(unittest.TestCase):
+    """
+    This class tests the get_koji_session method.
+    """
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('bodhi.client.bindings.ConfigParser.readfp')
+    @mock.patch("os.path.exists")
+    @mock.patch("os.path.expanduser", return_value="/home/dudemcpants/")
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.koji.ClientSession')
+    @mock.patch('bodhi.client.bindings.ConfigParser.get')
+    def test_koji_conf_in_home_directory(self, get, koji, cookies,
+                                         expanduser, exists, readfp, mock_open):
+        """Test that if ~/.koji/config exists, we read the config from there first"""
+
+        client = bindings.BodhiClient()
+        exists.return_value = True
+        client.get_koji_session()
+
+        exists.assert_called_once_with("/home/dudemcpants/.koji/config")
+        mock_open.assert_called_once_with("/home/dudemcpants/.koji/config")
+
+    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('bodhi.client.bindings.ConfigParser.readfp')
+    @mock.patch("os.path.exists")
+    @mock.patch("os.path.expanduser", return_value="/home/dudemcpants/")
+    @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
+    @mock.patch('bodhi.client.bindings.koji.ClientSession')
+    @mock.patch('bodhi.client.bindings.ConfigParser.get')
+    def test_koji_conf_not_in_home_directory(self, get, koji, cookies,
+                                             expanduser, exists, readfp, mock_open):
+        """Test that if ~/.koji.config doesn't exist, we read config from /etc/koji.conf"""
+
+        client = bindings.BodhiClient()
+        exists.return_value = False
+        client.get_koji_session()
+
+        exists.assert_called_once_with("/home/dudemcpants/.koji/config")
+        mock_open.assert_called_once_with("/etc/koji.conf")
