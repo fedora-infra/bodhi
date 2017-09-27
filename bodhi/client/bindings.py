@@ -592,7 +592,7 @@ class BodhiClient(OpenIdBaseClient):
             val += "\n  %s\n" % ('%supdates/%s' % (self.base_url,
                                                    update['alias']))
         else:
-            val += "\n  %s\n" % ('%s%s' % (self.base_url, update['title']))
+            val += "\n  %s\n" % ('%supdates/%s' % (self.base_url, update['title']))
         return val
 
     @errorhandled
