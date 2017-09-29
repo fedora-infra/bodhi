@@ -150,12 +150,13 @@ class TestBodhiBase(BaseTestCase):
 
         self.assertEqual(
             j,
-            {'ci_url': b.ci_url, 'epoch': b.epoch, 'nvr': b.nvr, 'signed': b.signed,
-             'type': b.type.value})
+            {'release_id': 1, 'ci_url': b.ci_url, 'epoch': b.epoch, 'nvr': b.nvr,
+             'signed': b.signed, 'type': unicode(b.type.value)})
 
     def test_grid_columns(self):
         """Assert correct return value from the grid_columns() method."""
-        self.assertEqual(model.Build.grid_columns(), ['nvr', 'signed', 'ci_url', 'type', 'epoch'])
+        self.assertEqual(model.Build.grid_columns(), ['nvr', 'release_id', 'signed',
+                                                      'ci_url', 'type', 'epoch'])
 
     def test_find_child_for_rpm(self):
         subclass = model.Package.find_polymorphic_child(model.ContentType.rpm)
