@@ -30,7 +30,7 @@ Links
 ^^^^^
 
 * `Online documentation <https://bodhi.fedoraproject.org/docs/>`_
-*  IRC: #bodhi on Freenode
+* `IRC: #bodhi on Freenode <https://webchat.freenode.net/>`_
 * `Mailing list <https://lists.fedoraproject.org/archives/list/bodhi@lists.fedorahosted.org/>`_
 * `Report an issue <https://github.com/fedora-infra/bodhi/issues/new>`_
 * `Source code <https://github.com/fedora-infra/bodhi>`_
