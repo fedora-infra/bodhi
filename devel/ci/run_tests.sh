@@ -1,65 +1,38 @@
 #!/usr/bin/bash -ex
 
-sed -i '/pyramid_debugtoolbar/d' setup.py
-sed -i '/pyramid_debugtoolbar/d' development.ini.example
+RELEASES="f25 f26 f27 rawhide"
+
+gather_results() {
+    # Move the test results from the container-specific folders into the top test_results folder.
+    parallel -v mv $(pwd)/test_results/{}/coverage.xml coverage-{}.xml ::: $RELEASES
+    parallel -v mv $(pwd)/test_results/{}/nosetests.xml nosetests-{}.xml ::: $RELEASES
+    parallel -v mv $(pwd)/test_results/{}/docs docs-{} ::: $RELEASES
+}
 
 sudo yum install -y epel-release
+sudo yum install -y docker parallel
 
-# gcc is used to build some dependencies pulled from pypi for coverage.
-# git is needed for diff_cover to work.
-# python-devel is needed for some of the pypi deps when gcc is run.
-# pip is needed to install some things below.
-sudo yum install -y gcc git python-devel python2-pip
+sudo systemctl start docker
 
-# We want a newer version of flake8 than EL 7 has, because the EL 7 version fails and we only really
-# care about it for devs, who use Fedora.
-sudo pip install diff_cover flake8 pytest-cov tox
+# Assemble the Dockerfile snippets into Dockerfiles for each release.
+pushd devel/ci/
+for r in $RELEASES; do
+    cat Dockerfile-header $r-packages Dockerfile-footer > Dockerfile-$r
+done
+popd
 
-sudo yum install -y\
-    createrepo_c\
-    fedmsg\
-    koji\
-    liberation-mono-fonts\
-    packagedb-cli\
-    python-alembic\
-    python-arrow\
-    python-bleach\
-    python-bugzilla\
-    python-bunch\
-    python-click\
-    python-colander\
-    python-cornice\
-    python-createrepo_c\
-    python-cryptography\
-    python-dogpile-cache\
-    python-fedora\
-    python-kitchen\
-    python-librepo\
-    python-markdown\
-    python-mock\
-    python-openid\
-    python-pillow\
-    python-progressbar\
-    python-pydns\
-    python-pylibravatar\
-    python-pyramid-fas-openid\
-    python-pyramid-mako\
-    python-pyramid-tm\
-    python-pyramid\
-    python-simplemediawiki\
-    python-sqlalchemy\
-    python-sqlalchemy_schemadisplay\
-    python-waitress\
-    python-webhelpers\
-    python-webob1.4\
-    python-webtest\
-    python2-fedmsg-atomic-composer\
+# Insert the container tag to pull for each release. There's a substitution in the parallel {}'s
+# that will remove the "f" from the releases since Fedora uses just the number of the release in its
+# tags.
+parallel -v sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $RELEASES
+# Build the containers.
+parallel -v sudo docker build -t test/{} -f devel/ci/Dockerfile-{} . ::: $RELEASES
 
-mv development.ini.example development.ini
+# Make individual folders for each release to drop its test results and docs.
+parallel -v mkdir -p $(pwd)/test_results/{} ::: $RELEASES
+# Run the tests.
+parallel -v sudo docker run --rm -v $(pwd)/test_results/{}:/results:z test/{} ::: $RELEASES || (gather_results; exit 1)
+gather_results
 
-sudo /usr/bin/python setup.py develop
-
-/usr/bin/pytest
-/usr/bin/tox -e pydocstyle,flake8
-
-diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100
+# Run the tests on the EL 7 host.
+./devel/ci/run_tests_el7.sh

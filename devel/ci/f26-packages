@@ -1,0 +1,19 @@
+    python-alembic \
+    python-bugzilla \
+    python-bunch \
+    python-munch \
+    python-openid \
+    python-progressbar \
+    python-pylibravatar \
+    python-pyramid-fas-openid \
+    python-pytest \
+    python-simplemediawiki \
+    python-webhelpers \
+    python-webtest \
+    python2-fedmsg \
+    python2-kitchen \
+    python2-pyramid-mako \
+    python2-pyramid-tm \
+    python2-sqlalchemy
+
+RUN pip install diff_cover
