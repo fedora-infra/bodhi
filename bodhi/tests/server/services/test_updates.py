@@ -2079,6 +2079,41 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
+    def test_list_updates_by_status_active_release(self):
+        res = self.app.get(
+            '/updates/', {"status": "pending", "active_releases": 'true'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'medium')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEquals(up['karma'], 1)
+
+    def test_list_updates_by_status_inactive_release(self):
+        rel = self.db.query(Release).filter_by(name='F17').one()
+        rel.state = ReleaseState.archived
+        self.db.commit()
+
+        res = self.app.get(
+            '/updates/', {"status": "pending", "active_releases": 'true'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 0)
+
     def test_list_updates_by_unexisting_status(self):
         res = self.app.get('/updates/', {"status": "single"},
                            status=400)
