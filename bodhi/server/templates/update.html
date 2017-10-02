@@ -162,6 +162,9 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         // seem to break anything
         var arch = result.data.arch;
         var item = result.data.item;
+        if (item === undefined && testcase == 'org.centos.prod.ci.pipeline.complete'){
+            item = result.data.original_spec_nvr[0] + '#' + result.data.rev;
+        }
         var submit_time = new Date(result.submit_time);
 
 
@@ -341,6 +344,8 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
     $("#tab-automatedtests").append(" <span class='fa fa-spinner fa-spin'></span>");
 
     for (index = 0, len = builds.length; index < len; ++index) {
+      request_results(base_url+"results/latest?original_spec_nvr="
+        +builds[index]+"&testcases=org.centos.prod.ci.pipeline.complete");
       request_results(base_url+"results/latest?item="+builds[index]+"&type=koji_build&testcases:like=dist.*");
     }
 
