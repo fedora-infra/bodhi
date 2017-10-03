@@ -13,7 +13,7 @@ cp development.ini.example development.ini
 /usr/bin/python setup.py develop
 
 /usr/bin/tox
-/usr/bin/py.test || (gather_results; exit 1)
+/usr/bin/py.test $@ || (gather_results; exit 1)
 
 gather_results
 
