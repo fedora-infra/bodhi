@@ -1,6 +1,17 @@
 #!/usr/bin/bash -ex
+# This script is used to run the tests in the CI infrastructure, and launches a variety of parallel
+# containers to test Bodhi across supported Fedora releases (See the RELEASES variable below).
+# You can pass a -x flag to it to get it to exit early if a build or test run fails.
 
 RELEASES="f25 f26 f27 rawhide"
+
+if [[ $@ == *"-x"* ]]; then
+    FAILFAST="--halt now,fail=1"
+    PYTEST_ARGS="-x"
+else
+    FAILFAST=""
+    PYTEST_ARGS=""
+fi
 
 gather_results() {
     # Move the test results from the container-specific folders into the top test_results folder.
@@ -27,10 +38,10 @@ popd
 # tags.
 parallel -v sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $RELEASES
 # Build the containers.
-parallel -v sudo docker build -t test/{} -f devel/ci/Dockerfile-{} . ::: $RELEASES
+parallel -v $FAILFAST sudo docker build -t test/{} -f devel/ci/Dockerfile-{} . ::: $RELEASES
 
 # Make individual folders for each release to drop its test results and docs.
 parallel -v mkdir -p $(pwd)/test_results/{} ::: $RELEASES
 # Run the tests.
-parallel -v sudo docker run --rm -v $(pwd)/test_results/{}:/results:z test/{} ::: $RELEASES || (gather_results; exit 1)
+parallel -v $FAILFAST sudo docker run --rm -v $(pwd)/test_results/{}:/results:z test/{} /bodhi/devel/ci/run_tests_fedora.sh $PYTEST_ARGS ::: $RELEASES || (gather_results; exit 1)
 gather_results

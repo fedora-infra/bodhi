@@ -1,5 +1,4 @@
 
 VOLUME ["/results"]
 WORKDIR /bodhi
-ENTRYPOINT ["/bodhi/devel/ci/run_tests_fedora.sh"]
-CMD [""]
+CMD ["bash"]
