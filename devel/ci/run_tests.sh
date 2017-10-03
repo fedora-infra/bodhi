@@ -38,7 +38,7 @@ popd
 # tags.
 parallel -v sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $RELEASES
 # Build the containers.
-parallel -v $FAILFAST sudo docker build -t test/{} -f devel/ci/Dockerfile-{} . ::: $RELEASES
+parallel -v $FAILFAST sudo docker build --pull -t test/{} -f devel/ci/Dockerfile-{} . ::: $RELEASES
 
 # Make individual folders for each release to drop its test results and docs.
 parallel -v mkdir -p $(pwd)/test_results/{} ::: $RELEASES
