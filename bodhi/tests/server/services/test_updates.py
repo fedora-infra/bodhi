@@ -511,6 +511,67 @@ class TestNewUpdate(base.BaseTestCase):
         self.assertEquals(up.comments[-1].text, expected_comment)
 
 
+class TestSetRequest(base.BaseTestCase):
+    """
+    This class contains tests for the set_request() function.
+    """
+    @mock.patch(**mock_valid_requirements)
+    def test_set_request_locked_update(self, *args):
+        """Ensure that we get an error if trying to set request of a locked update"""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = True
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        self.assertEquals(res.json_body['status'], 'error')
+        self.assertEquals(res.json_body[u'errors'][0][u'description'],
+                          "Can't change request on a locked update")
+
+    @mock.patch(**mock_valid_requirements)
+    def test_set_request_archived_release(self, *args):
+        """Ensure that we get an error if trying to setrequest of a update in an archived release"""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+        up.release.state = ReleaseState.archived
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        self.assertEquals(res.json_body['status'], 'error')
+        self.assertEquals(res.json_body[u'errors'][0][u'description'],
+                          "Can't change request for an archived release")
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.services.updates.Update.set_request',
+                side_effect=IOError('IOError. oops!'))
+    @mock.patch('bodhi.server.services.updates.Update.check_requirements',
+                return_value=(True, "a fake reason"))
+    @mock.patch('bodhi.server.services.updates.log.exception')
+    def test_unexpected_exception(self, log_exception, check_requirements, send_request, *args):
+        """Ensure that an unexpected Exception is handled by set_request()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+        up.release.state = ReleaseState.current
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        self.assertEquals(res.json_body['status'], 'error')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          u'IOError. oops!')
+        log_exception.assert_called_once_with("Unhandled exception in set_request")
+
+
 class TestEditUpdateForm(base.BaseTestCase):
 
     def test_edit_with_permission(self):
@@ -1732,6 +1793,34 @@ class TestUpdatesService(base.BaseTestCase):
 
     def test_list_updates_by_release_name(self):
         res = self.app.get('/updates/', {"releases": "F17"})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'Useful details!')
+        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEquals(up['karma'], 1)
+
+    def test_list_updates_by_singular_release_param(self):
+        """
+        Test the singular parameter "release" rather than "releases".
+        Note that "release" is purely for bodhi1 compat (mostly RSS feeds)
+        """
+        res = self.app.get('/updates/', {"release": "F17"})
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
 
