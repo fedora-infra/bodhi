@@ -13,9 +13,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from datetime import datetime, timedelta
-
 import mock
+import copy
 
+from webtest import TestApp
+
+from bodhi.server import main
 from bodhi.server.models import (Comment, Release, Update, UpdateRequest, UpdateStatus, UpdateType,
                                  User)
 from bodhi.tests.server import base
@@ -228,6 +231,38 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['name'], 'email')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid email address")
+
+    def test_anonymous_commenting_with_no_author(self):
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
+
+        comment = {
+            u'update': 'bodhi-2.0-1.fc17',
+            u'text': 'Test',
+            u'karma': 0,
+            u'csrf_token': app.get('/csrf').json_body['csrf_token'],
+        }
+
+        res = app.post_json('/comments/', comment, status=400)
+
+        self.assertEquals(res.json_body['errors'][0]['name'], 'email')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          "You must provide an author")
+
+    @mock.patch('bodhi.server.services.comments.Update.comment',
+                side_effect=IOError('IOError. oops!'))
+    def test_unexpected_exception(self, exception):
+        """Ensure that an unexpected Exception is handled by new_comment()."""
+
+        res = self.app.post_json('/comments/', self.make_comment(email='w@t.com'), status=400)
+
+        self.assertEquals(res.json_body['status'], 'error')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          u'Unable to create comment')
 
     def test_get_single_comment(self):
         res = self.app.get('/comments/1')
