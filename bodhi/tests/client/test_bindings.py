@@ -998,14 +998,14 @@ class TestBodhiClient_update_str(unittest.TestCase):
             text,
             "this is a string")
 
-    @mock.patch.dict(
-        client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0], {u'anonymous': True})
     def test_update_with_anon_comment(self):
         """Ensure we prepend (anonymous) to a username if an anon comment is rendered"""
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
 
-        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+        with mock.patch.dict(
+                client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0], {u'anonymous': True}):
+            text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
         self.assertEqual(text, client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
             "Comments: bodhi ",
