@@ -3,7 +3,7 @@
 # containers to test Bodhi across supported Fedora releases (See the RELEASES variable below).
 # You can pass a -x flag to it to get it to exit early if a build or test run fails.
 
-RELEASES="f25 f26 f27 rawhide"
+RELEASES="f25 f26 f27 rawhide pip"
 
 if [[ $@ == *"-x"* ]]; then
     FAILFAST="--halt now,fail=1"
@@ -12,6 +12,8 @@ else
     FAILFAST=""
     PYTEST_ARGS=""
 fi
+FAILFAST="--halt now,fail=1"
+PYTEST_ARGS="-x"
 
 gather_results() {
     # Move the test results from the container-specific folders into the top test_results folder.
@@ -28,7 +30,15 @@ sudo systemctl start docker
 # Assemble the Dockerfile snippets into Dockerfiles for each release.
 pushd devel/ci/
 for r in $RELEASES; do
-    cat Dockerfile-header $r-packages Dockerfile-footer > Dockerfile-$r
+    cat Dockerfile-header > Dockerfile-$r
+    if [ $r != "pip" ]; then
+        # Add the common rpm packages for the non-pip releases.
+        cat rpm-packages >> Dockerfile-$r
+    else
+        # Let's use F26 for the pip tests.
+        sed -i "s/FEDORA_RELEASE/26/" Dockerfile-$r
+    fi
+    cat $r-packages Dockerfile-footer >> Dockerfile-$r
     echo "COPY . /bodhi" >> Dockerfile-$r
 done
 popd
