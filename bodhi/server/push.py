@@ -74,6 +74,10 @@ def push(username, cert_prefix, **kwargs):
                     update = session.query(Update).filter(Update.title == update).first()
                     updates.append(update)
         else:
+            if locked_updates:
+                click.echo('\nExisting push in progress. Please wait or resume')
+                return
+
             # Accept both comma and space separated request list
             requests = kwargs['request'].replace(',', ' ').split(' ')
             requests = [UpdateRequest.from_string(val) for val in requests]
