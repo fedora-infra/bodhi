@@ -18,6 +18,7 @@ sudo systemctl start docker
 pushd devel/ci/
 for r in $RELEASES; do
     cat Dockerfile-header $r-packages Dockerfile-footer > Dockerfile-$r
+    echo "COPY . /bodhi" >> Dockerfile-$r
 done
 popd
 
