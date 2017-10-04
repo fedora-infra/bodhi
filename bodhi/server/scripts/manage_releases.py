@@ -38,7 +38,7 @@ from bodhi.client import bindings
 @click.group()
 def main():
     """Create and manage releases in Bodhi."""
-    pass
+    pass  # pragma: no cover
 
 
 url_option = click.option(
