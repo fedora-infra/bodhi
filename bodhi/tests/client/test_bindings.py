@@ -982,7 +982,6 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(update)
 
-        self.maxDiff = None
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
             'Autokarma: True  [-3, 3]', 'Autokarma: False  [None, None]')
         self.assertEqual(text, expected_output)
