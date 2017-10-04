@@ -49,9 +49,9 @@
         - githubprb
     publishers:
         - archive:
-            artifacts: '*.xml'
+            artifacts: '*.xml,docs-*'
         - junit:
-            results: nosetests.xml
+            results: 'nosetests*.xml'
     builders:
         - shell: |
             set +e
