@@ -33,6 +33,3 @@ parallel -v mkdir -p $(pwd)/test_results/{} ::: $RELEASES
 # Run the tests.
 parallel -v sudo docker run --rm -v $(pwd)/test_results/{}:/results:z test/{} ::: $RELEASES || (gather_results; exit 1)
 gather_results
-
-# Run the tests on the EL 7 host.
-./devel/ci/run_tests_el7.sh
