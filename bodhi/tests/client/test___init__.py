@@ -380,7 +380,6 @@ class TestQuery(unittest.TestCase):
             ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--url', 'http://localhost:6543'])
 
         self.assertEqual(result.exit_code, 0)
-        self.maxDiff = 2000
         expected_output = client_test_data.EXPECTED_QUERY_OUTPUT.replace('example.com/tests',
                                                                          'localhost:6543')
         self.assertEqual(result.output, expected_output + '\n')
