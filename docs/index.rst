@@ -26,6 +26,12 @@ Features
 * Queries ResultsDB for automated test results and displays them on updates.
 
 
+System Requirements
+-------------------
+
+Bodhi is currently only supported on active Fedora releases.
+
+
 Links
 ^^^^^
 
