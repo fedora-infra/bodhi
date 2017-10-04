@@ -1,0 +1,16 @@
+    createrepo_c \
+    gcc \
+    graphviz \
+    python2-devel \
+    redhat-rpm-config
+
+COPY requirements.txt /bodhi/requirements.txt
+
+RUN pip-2 install -r /bodhi/requirements.txt
+RUN pip-2 install \
+    diff-cover \
+    pytest \
+    pytest-cov \
+    sqlalchemy_schemadisplay \
+    tox \
+    webtest

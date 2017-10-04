@@ -1,0 +1,14 @@
+    python2-arrow \
+    python2-bleach \
+    python2-cornice \
+    python2-dogpile-cache \
+    python2-fedmsg-atomic-composer \
+    python2-flake8 \
+    python2-iniparse \
+    python2-markdown \
+    python2-mock \
+    python2-pillow \
+    python2-pytest-cov \
+    python2-sqlalchemy_schemadisplay \
+    python3-pydocstyle \
+    python3-tox \
