@@ -19,6 +19,7 @@ import unittest
 
 import mock
 import PIL.Image
+from pyramid.httpexceptions import HTTPGone, HTTPNotFound
 
 from bodhi.server import captcha
 from bodhi.server.config import config
@@ -35,6 +36,24 @@ class TestDecrypt(unittest.TestCase):
         result = captcha.decrypt(bobs_message, config)
 
         self.assertEqual(result, plaintext)
+
+    @mock.patch.dict(config, {'captcha.secret': 'gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA='})
+    def test_base64_unsafe(self):
+        """Ensure that we raise an HTTPNotFound if the ciphertext is not a base64 safe string"""
+        base64_unsafe_message = "$@#his3##d*f"
+        with self.assertRaises(HTTPNotFound) as exc:
+            captcha.decrypt(base64_unsafe_message, config)
+
+        self.assertEqual(str(exc.exception), '$@#his3##d*f is garbage')
+
+    @mock.patch.dict(config, {'captcha.secret': 'gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA='})
+    def test_invalid_token(self):
+        """Ensure that we raise a HTTPGone if the token is no longer valid"""
+        invalid_token = "!!!!"
+        with self.assertRaises(HTTPGone) as exc:
+            captcha.decrypt(invalid_token, config)
+
+        self.assertEqual(str(exc.exception), 'captcha token is no longer valid')
 
 
 class TestJPEGGenerator(unittest.TestCase):
