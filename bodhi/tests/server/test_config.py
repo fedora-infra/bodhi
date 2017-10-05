@@ -176,6 +176,14 @@ class BodhiConfigLoadConfig(unittest.TestCase):
         self.assertEqual(c['wiki_url'], 'test')
         self.assertEqual(get_appsettings.call_count, 0)
 
+    @mock.patch('bodhi.server.config.log.error')
+    @mock.patch('os.path.exists', return_value=False)
+    def test_get_config_unable_to_find_file(self, exists, log_error):
+        """Test we log an error if get_configfile() doenst find a config file"""
+        config.get_configfile()
+
+        log_error.assert_called_once_with("Unable to find configuration to load!")
+
 
 class BodhiConfigLoadDefaultsTests(unittest.TestCase):
     """Test the BodhiConfig._load_defaults() method."""
@@ -365,8 +373,8 @@ class ValidateFernetKey(unittest.TestCase):
         self.assertEqual(str(exc.exception), 'Fernet key must be 32 url-safe base64-encoded bytes.')
 
     def test_valid_key(self):
-        """A valid key should be converted to a unicode object."""
-        key = 'gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA='
+        """A valid key should be a string, even if we pass it a unicode"""
+        key = unicode('gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA=')
         result = config._validate_fernet_key(key)
 
         self.assertEqual(result, key)

@@ -26,18 +26,13 @@ log = logging.getLogger('bodhi')
 def get_configfile():
     configfile = None
     setupdir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..')
-    if configfile:
-        if not os.path.exists(configfile):
-            log.error("Cannot find config: %s" % configfile)
-            return
+    for cfg in (os.path.join(setupdir, 'development.ini'),
+                '/etc/bodhi/production.ini'):
+        if os.path.exists(cfg):
+            configfile = cfg
+            break
     else:
-        for cfg in (os.path.join(setupdir, 'development.ini'),
-                    '/etc/bodhi/production.ini'):
-            if os.path.exists(cfg):
-                configfile = cfg
-                break
-        else:
-            log.error("Unable to find configuration to load!")
+        log.error("Unable to find configuration to load!")
     return configfile
 
 
