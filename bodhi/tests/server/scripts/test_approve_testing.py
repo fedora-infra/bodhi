@@ -15,6 +15,7 @@
 This module contains tests for the bodhi.server.scripts.approve_testing module.
 """
 from datetime import datetime, timedelta
+from cStringIO import StringIO
 
 from mock import patch
 
@@ -405,3 +406,18 @@ class TestMain(BaseTestCase):
             cmnts[2].text,
             config.get('testing_approval_msg') %
             update.release.mandatory_days_in_testing)
+
+    @patch('sys.exit')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_usage(self, stdout, exit):
+        """
+        Assert that the usage message is returned to the user if not exactly 2 arguments are given
+        """
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini', 'testnoses'])
+
+        self.assertEqual(
+            stdout.getvalue(),
+            'usage: nosetests <config_uri>\n(example: "nosetests development.ini")\n')
+        exit.assert_called_once_with(1)
