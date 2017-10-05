@@ -13,7 +13,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import mock
+import copy
 
+from webtest import TestApp
+
+from bodhi.server import main
 from bodhi.server.models import Group, RpmPackage, Stack, User
 from bodhi.tests.server import base
 
@@ -255,3 +259,17 @@ class TestStacksService(base.BaseTestCase):
     def test_new_stack_form(self):
         res = self.app.get('/stacks/new', status=200)
         self.assertIn('New Stack', res)
+
+    def test_new_stack_form_unauthed(self):
+        """
+        Assert we get a 403 if the user is not logged in
+        """
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
+        res = app.get('/stacks/new', status=403)
+        self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
+        self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)

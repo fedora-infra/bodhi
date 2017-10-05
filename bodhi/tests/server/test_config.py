@@ -176,6 +176,14 @@ class BodhiConfigLoadConfig(unittest.TestCase):
         self.assertEqual(c['wiki_url'], 'test')
         self.assertEqual(get_appsettings.call_count, 0)
 
+    @mock.patch('bodhi.server.config.log.error')
+    @mock.patch('os.path.exists', return_value=False)
+    def test_get_config_unable_to_find_file(self, exists, log_error):
+        """Test we log an error if get_configfile() doenst find a config file"""
+        config.get_configfile()
+
+        log_error.assert_called_once_with("Unable to find configuration to load!")
+
 
 class BodhiConfigLoadDefaultsTests(unittest.TestCase):
     """Test the BodhiConfig._load_defaults() method."""
@@ -370,7 +378,7 @@ class ValidateFernetKey(unittest.TestCase):
         result = config._validate_fernet_key(key)
 
         self.assertEqual(result, key)
-        self.assertTrue(type(result), str)
+        self.assertTrue(type(result), unicode)
 
     def test_wrong_length_key(self):
         """An key with wrong length should raise a ValueError."""
