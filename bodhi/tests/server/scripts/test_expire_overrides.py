@@ -15,10 +15,14 @@
 This module contains tests for the bodhi.server.scripts.expire_overrides module.
 """
 import unittest
+from cStringIO import StringIO
+from datetime import timedelta
 
 import mock
 
+from bodhi.server import models
 from bodhi.server.scripts import expire_overrides
+from bodhi.tests.server.base import BaseTestCase
 
 
 class TestUsage(unittest.TestCase):
@@ -40,4 +44,85 @@ class TestUsage(unittest.TestCase):
             message,
             ('usage: bodhi-expire-overrides <config_uri>\n(example: "bodhi-expire-overrides '
              'development.ini")\n'))
+        exit.assert_called_once_with(1)
+
+
+class TestMain(BaseTestCase):
+    """
+    This class contains tests for the main() function.
+    """
+    @mock.patch('sys.exit')
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_invalid_arguments(self, stdout, exit):
+        """
+        Assert that the usage message is returned to the user if not exactly 2 arguments are given
+        """
+        with mock.patch('bodhi.server.scripts.expire_overrides.initialize_db'):
+            with mock.patch('bodhi.server.scripts.expire_overrides.get_appsettings',
+                            return_value=''):
+                with mock.patch('bodhi.server.scripts.expire_overrides.setup_logging'):
+                    expire_overrides.main(['expire_overrides', 'some_config.ini', 'testnoses'])
+
+        self.assertEqual(
+            stdout.getvalue(),
+            'usage: expire_overrides <config_uri>\n(example: "expire_overrides development.ini")\n')
+        exit.assert_called_once_with(1)
+
+    @mock.patch('bodhi.server.scripts.expire_overrides.logging.Logger.info')
+    def test_no_expire(self, log_info):
+        """
+        Assert that we don't expire a buildroot override with an expiration date in the future
+        """
+        buildrootoverride = self.db.query(models.BuildrootOverride).all()[0]
+        buildrootoverride.expiration_date = buildrootoverride.expiration_date + timedelta(days=500)
+        self.db.commit()
+
+        with mock.patch('bodhi.server.scripts.expire_overrides.initialize_db'):
+            with mock.patch('bodhi.server.scripts.expire_overrides.get_appsettings',
+                            return_value=''):
+                with mock.patch('bodhi.server.scripts.expire_overrides.setup_logging'):
+                    expire_overrides.main(['expire_overrides', 'some_config.ini'])
+
+        log_info.assert_called_once_with("No active buildroot override to expire")
+        buildrootoverride = self.db.query(models.BuildrootOverride).all()[0]
+        self.assertEquals(buildrootoverride.expired_date, None)
+
+    @mock.patch('bodhi.server.scripts.expire_overrides.logging.Logger.info')
+    def test_expire(self, log_info):
+        """
+        Assert that we expire a buildroot override with an expiration date in the past
+        """
+        buildrootoverride = self.db.query(models.BuildrootOverride).all()[0]
+        buildrootoverride.expiration_date = buildrootoverride.expiration_date - timedelta(days=500)
+        self.db.commit()
+
+        with mock.patch('bodhi.server.scripts.expire_overrides.initialize_db'):
+            with mock.patch('bodhi.server.scripts.expire_overrides.get_appsettings',
+                            return_value=''):
+                with mock.patch('bodhi.server.scripts.expire_overrides.setup_logging'):
+                    expire_overrides.main(['expire_overrides', 'some_config.ini'])
+
+        log_info.assert_has_calls([mock.call('Expiring %d buildroot overrides...', 1),
+                                   mock.call(u'Expired bodhi-2.0-1.fc17')])
+        self.assertNotEquals(buildrootoverride.expired_date, None)
+
+    @mock.patch('sys.exit')
+    @mock.patch('bodhi.server.scripts.expire_overrides.logging.Logger.error')
+    def test_exception(self, log_error, exit):
+        """
+        Test the exception handling
+        """
+        buildrootoverride = self.db.query(models.BuildrootOverride).all()[0]
+        buildrootoverride.expiration_date = buildrootoverride.expiration_date - timedelta(days=500)
+        self.db.commit()
+
+        with mock.patch('bodhi.server.scripts.expire_overrides.initialize_db'):
+            with mock.patch('bodhi.server.scripts.expire_overrides.get_appsettings',
+                            return_value=''):
+                with mock.patch('bodhi.server.scripts.expire_overrides.setup_logging'):
+                    with mock.patch('bodhi.server.scripts.expire_overrides.logging.Logger.info',
+                                    side_effect=ValueError()):
+                        expire_overrides.main(['expire_overrides', 'some_config.ini'])
+
+        log_error.assert_called_once()
         exit.assert_called_once_with(1)
