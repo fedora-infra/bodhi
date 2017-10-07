@@ -68,6 +68,6 @@ $PARALLEL docker build --pull -t test/{} -f devel/ci/Dockerfile-{} . ::: $RELEAS
 # Make individual folders for each release to drop its test results and docs.
 $PARALLEL mkdir -p $(pwd)/test_results/{} ::: $RELEASES
 # Run the tests.
-$PARALLEL docker run --rm -v $(pwd)/test_results/{}:/results:z test/{} /bodhi/devel/ci/run_tests_fedora.sh $PYTEST_ARGS ::: $RELEASES || (tar_results; echo -e "\n\n\033[0;31mTESTS FAILED\033[0m\n\n"; exit 1)
+$PARALLEL docker run --rm -v $(pwd)/test_results/{}:/results:z test/{} /bodhi/devel/test_container.sh $PYTEST_ARGS ::: $RELEASES || (tar_results; echo -e "\n\n\033[0;31mTESTS FAILED\033[0m\n\n"; exit 1)
 tar_results
 echo -e "\n\n\033[0;32mSUCCESS!\033[0m\n\n"
