@@ -316,7 +316,7 @@ As a privileged user on a Fedora system run the following:
 
 
 Database Schema
----------------
+===============
 
 The Bodhi database schema can be seen below.
 
