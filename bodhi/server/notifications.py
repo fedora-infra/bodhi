@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright 2014-2017 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-
+"""A collection of fedmsg publishing utilities."""
 import collections
 import json
 import logging
@@ -31,6 +36,14 @@ _log = logging.getLogger(__name__)
 
 
 def init(active=None, cert_prefix=None):
+    """
+    Initialize fedmsg for publishing.
+
+    Args:
+        active (bool or None): If True, publish messages to a relay. If False, publish messages to
+            connected consumers.
+        cert_prefix (basestring): Configures the ``cert_prefix`` setting in the fedmsg_config.
+    """
     if not bodhi.server.config.config.get('fedmsg_enabled'):
         bodhi.server.log.warn("fedmsg disabled.  not initializing.")
         return
@@ -55,7 +68,7 @@ def init(active=None, cert_prefix=None):
 @event.listens_for(Session, 'after_commit')
 def send_fedmsgs_after_commit(session):
     """
-    An SQLAlchemy event listener to send fedmsgs after a database commit.
+    Send queued fedmsgs after a database commit.
 
     This relies on the session ``info`` dictionary being populated. At the moment,
     this is done by calling the :func:`publish` function. In the future it should
@@ -84,7 +97,7 @@ def send_fedmsgs_after_commit(session):
 
 
 def publish(topic, msg, force=False):
-    """ Publish a message to fedmsg.
+    """Publish a message to fedmsg.
 
     By default, messages are not sent immediately, but are queued in a
     transaction "data manager".  They will only get published after the
@@ -93,6 +106,11 @@ def publish(topic, msg, force=False):
 
     Specifying force=True to this function by-passes that -- messages are sent
     immediately.
+
+    Args:
+        msg (dict): A dictionary representing the message to be published via fedmsg.
+        force (bool): If True, send the message immediately. Else, queue the message to be sent
+            after the current database transaction is committed.
     """
     if not bodhi.server.config.config.get('fedmsg_enabled'):
         _log.warn("fedmsg disabled.  not sending %r" % topic)
@@ -124,7 +142,12 @@ def publish(topic, msg, force=False):
 
 
 def fedmsg_is_initialized():
-    """ Return True or False if fedmsg is initialized or not. """
+    """
+    Return True or False if fedmsg is initialized or not.
+
+    Returns:
+        bool: Indicating if fedmsg is initialized.
+    """
     local = getattr(fedmsg, '__local')
     if not hasattr(local, '__context'):
         return False
