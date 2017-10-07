@@ -81,6 +81,25 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
   `mailing list <https://lists.fedoraproject.org/archives/list/bodhi@lists.fedorahosted.org/>`_.
 
 
+CI Tests
+========
+
+All Bodhi pull requests are tested in a `Jenkins instance <https://ci.centos.org/job/bodhi-bodhi/>`_
+that is graciously hosted for us by the CentOS Project. Sometimes tests fail, and when they do you
+can visit the test job that failed and view its console output. This will display the output from
+the ``devel/ci/run_tests.sh`` script. That script runs Bodhi's test suite on a variety of
+Fedora versions using containers.
+
+It is possible for you to run these same tests locally. There is a ``devel/run_tests.sh`` script
+that is used by ``devel/ci/run_tests.sh`` and does the heavy lifting. This script is intended to be
+run as root since it uses ``docker``. It has a handy ``-x`` flag that will cause it to exit
+immediately upon failure. You can also set the ``RELEASES`` environment variable to a list of Fedora
+releases you wish to test in a given run. Thus, if I want to run the tests on only f26 and f27 and I
+want it to exit immediately upon failure, I can execute the script like this::
+
+    # RELEASES="f26 f27" ./devel/run_tests.sh
+
+
 Create a Bodhi development environment
 ======================================
 
