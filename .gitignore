@@ -21,6 +21,8 @@ build
 cover/
 coverage.xml
 devel/ansible/playbook.retry
+devel/ci/Dockerfile-f2*
+devel/ci/Dockerfile-rawhide
 development.ini
 dist
 docs/_build
