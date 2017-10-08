@@ -17,12 +17,12 @@ PYTEST_ARGS="-x"
 
 PARALLEL="parallel -v $FAILFAST --tag"
 
-gather_results() {
-    # Move the test results from the container-specific folders into the top test_results folder.
-    $PARALLEL mv $(pwd)/test_results/{}/coverage.xml coverage-{}.xml ::: $RELEASES
-    $PARALLEL mv $(pwd)/test_results/{}/nosetests.xml nosetests-{}.xml ::: $RELEASES
-    $PARALLEL mv $(pwd)/test_results/{}/docs docs-{} ::: $RELEASES
+
+tar_results() {
+    tar cjf test_results.tar.bz2 test_results/
+    mv test_results.tar.bz2 test_results/
 }
+
 
 sudo yum install -y epel-release
 sudo yum install -y docker parallel
@@ -55,5 +55,5 @@ $PARALLEL sudo docker build --pull -t test/{} -f devel/ci/Dockerfile-{} . ::: $R
 # Make individual folders for each release to drop its test results and docs.
 $PARALLEL mkdir -p $(pwd)/test_results/{} ::: $RELEASES
 # Run the tests.
-$PARALLEL sudo docker run --rm -v $(pwd)/test_results/{}:/results:z test/{} /bodhi/devel/ci/run_tests_fedora.sh $PYTEST_ARGS ::: $RELEASES || (gather_results; exit 1)
-gather_results
+$PARALLEL sudo docker run --rm -v $(pwd)/test_results/{}:/results:z test/{} /bodhi/devel/ci/run_tests_fedora.sh $PYTEST_ARGS ::: $RELEASES || (tar_results; exit 1)
+tar_results
