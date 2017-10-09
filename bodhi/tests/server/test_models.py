@@ -594,9 +594,109 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         self.db.flush()
 
     @mock.patch('bodhi.server.util.http_session')
-    def test_get_pkg_committers_from_pagure(self, session):
-        """ Ensure that the package committers can be found using the Pagure
-        API.
+    def test_get_pkg_committers_from_pagure_with_group(self, session):
+        """
+        Ensure that the package committers can be found using the Pagure
+        API with a package that does have group ACLs.
+        """
+        json_output = {
+            "access_groups": {
+                "admin": [],
+                "commit": ["rpm-software-management-sig"],
+                "ticket": []},
+            "access_users": {
+                "admin": ["ignatenkobrain"],
+                "commit": ["jmracek"],
+                "owner": ["dmach"],
+                "ticket": []},
+            "close_status": [],
+            "custom_keys": [],
+            "date_created": "1501867095",
+            "date_modified": "1507272820",
+            "description": "The dnf rpms",
+            "fullname": "rpms/dnf",
+            "group_details": {
+                "rpm-software-management-sig": [
+                    "releng",
+                    "ignatenkobrain",
+                    "jsilhan",
+                    "mluscon",
+                    "jmracek",
+                    "mhatina",
+                    "dmach"]},
+            "id": 2599,
+            "milestones": {},
+            "name": "dnf",
+            "namespace": "rpms",
+            "parent": None,
+            "priorities": {},
+            "tags": [],
+            "user": {
+                "fullname": "Daniel Mach",
+                "name": "dmach"}}
+        session.get.return_value.json.return_value = json_output
+        session.get.return_value.status_code = 200
+
+        rv = self.package.get_pkg_committers_from_pagure()
+
+        self.assertEqual(
+            rv,
+            (['ignatenkobrain', 'releng', 'dmach', 'jsilhan', 'mluscon', 'jmracek', 'mhatina'],
+             ['rpm-software-management-sig']))
+        session.get.assert_called_once_with(
+            'https://src.fedoraproject.org/pagure/api/0/rpms/the-greatest-package?expand_group=1',
+            timeout=60)
+
+    @mock.patch('bodhi.server.util.http_session')
+    def test_get_pkg_committers_from_pagure_without_group(self, session):
+        """
+        Ensure that the package committers can be found using the Pagure
+        API with a package that doesn't have group ACLs.
+        """
+        json_output = {
+            "access_groups": {
+                "admin": [],
+                "commit": ['factory2'],
+                "ticket": []
+            },
+            "access_users": {
+                "admin": [],
+                "commit": [],
+                "owner": [
+                    "mprahl"
+                ],
+                "ticket": ["jsmith"]
+            },
+            "close_status": [],
+            "custom_keys": [],
+            "date_created": "1494947106",
+            "description": "Python",
+            "fullname": "rpms/python",
+            "group_details": {},
+            "id": 2,
+            "milestones": {},
+            "name": "python",
+            "namespace": "rpms",
+            "parent": None,
+            "priorities": {},
+            "tags": [],
+            "user": {
+                "fullname": "Matt Prahl",
+                "name": "mprahl"
+            }
+        }
+        session.get.return_value.json.return_value = json_output
+        session.get.return_value.status_code = 200
+
+        rv = self.package.get_pkg_committers_from_pagure()
+
+        assert rv == (['mprahl'], ['factory2']), rv
+
+    @mock.patch('bodhi.server.util.http_session')
+    def test_get_pkg_committers_from_pagure_without_group_expansion(self, session):
+        """
+        Ensure that the package committers can be found using the Pagure
+        API with a Pagure version that doesn't support the expand_group GET parameter.
         """
         json_output = {
             "access_groups": {
@@ -631,52 +731,10 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         }
         session.get.return_value.json.return_value = json_output
         session.get.return_value.status_code = 200
-        rv = self.package.get_pkg_committers_from_pagure()
-        assert rv == (['mprahl'], ['factory2']), rv
 
-    @mock.patch('bodhi.server.util.http_session')
-    def test_get_pkg_committers_container_from_pagure(self, session):
-        """ Ensure that the container committers can be found using the Pagure
-        API.
-        """
-        json_output = {
-            "access_groups": {
-                "admin": ["factory2"],
-                "commit": [],
-                "ticket": []
-            },
-            "access_users": {
-                "admin": [],
-                "commit": ["tbrady"],
-                "owner": ["mprahl"],
-                "ticket": ["jsmith"]
-            },
-            "close_status": [],
-            "custom_keys": [],
-            "date_created": "1494947106",
-            "description": "Python",
-            "fullname": "container/python",
-            "id": 2,
-            "milestones": {},
-            "name": "python",
-            "namespace": "container",
-            "parent": None,
-            "priorities": {},
-            "tags": [],
-            "user": {
-                "fullname": "Matt Prahl",
-                "name": "mprahl"
-            }
-        }
-        session.get.return_value.json.return_value = json_output
-        session.get.return_value.status_code = 200
-        # Even though Bodhi doesn't support containers yet, let's mock this
-        # package to have the type set to `container` to make sure the code in
-        # get_pkg_committers_from_pagure works with containers in the future.
-        self.package.type = mock.Mock()
-        self.package.type.name = 'container'
         rv = self.package.get_pkg_committers_from_pagure()
-        assert rv == (['tbrady', 'mprahl'], ['factory2']), rv
+
+        assert rv == (['mprahl'], ['factory2']), rv
 
 
 class TestBuild(ModelTest):
