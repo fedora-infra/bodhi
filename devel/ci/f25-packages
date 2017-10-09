@@ -1,6 +1,7 @@
     python-alembic \
     python-bugzilla \
     python-bunch \
+    python-configparser \
     python-kitchen \
     python-moksha-hub \
     python-munch \
