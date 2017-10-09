@@ -156,9 +156,14 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         A comman-separated list of update IDs you would like to download.
 
-    ``--builds <nvrs``
+    ``--builds <nvrs>``
 
         A comma-separated list of NVRs that identify updates you would like to download.
+
+    ``--arch <arch>``
+
+        You can specify an architecture of packages to download. "all" will download packages for all architectures.
+        Omitting this option will download packages for the architecture you are currently running.
 
 ``bodhi updates new [options] <builds>``
 

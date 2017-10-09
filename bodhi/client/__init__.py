@@ -427,6 +427,8 @@ def comment(update, text, karma, user, password, url, **kwargs):
 @updates.command()
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
+@click.option('--arch', help='Specify arch of packages to download, ' +
+              '"all" will retrieve packages from all architectures')
 @click.option('--cves', help='Download update(s) by CVE(s) (comma-separated list)')
 @click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
@@ -444,12 +446,17 @@ def download(url, **kwargs):
 
     Args:
         staging (bool): Whether to use the staging server or not.
+        arch (unicode): Requested architecture of packages to download.
+                        "all" will retrieve packages from all architectures.
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
+    requested_arch = kwargs['arch']
+
     del(kwargs['staging'])
+    del(kwargs['arch'])
     # At this point we need to have reduced the kwargs dict to only our
     # query options (cves, updateid, builds)
     if not any(kwargs.values()):
@@ -476,8 +483,15 @@ def download(url, **kwargs):
                     # subprocess is icky, but koji module doesn't
                     # expose this in any usable way, and we don't want
                     # to rewrite it here.
-                    args = ('koji', 'download-build', '--arch=noarch',
-                            '--arch={0}'.format(platform.machine()), build['nvr'])
+                    if requested_arch is None:
+                        args = ('koji', 'download-build', '--arch=noarch',
+                                '--arch={0}'.format(platform.machine()), build['nvr'])
+                    else:
+                        if u'all' in requested_arch:
+                            args = ('koji', 'download-build', build['nvr'])
+                        if u'all' not in requested_arch:
+                            args = ('koji', 'download-build', '--arch=noarch',
+                                    '--arch={0}'.format(requested_arch), build['nvr'])
                     ret = subprocess.call(args)
                     if ret:
                         click.echo("WARNING: download of {0} failed!".format(build['nvr']))
