@@ -96,6 +96,49 @@ class TestDownload(unittest.TestCase):
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.subprocess.call', return_value=0)
+    def test_arch_flag(self, call, send_request):
+        """
+        Assert correct behavior with the --arch flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.download,
+            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'x86_64'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         'Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n')
+        call.assert_called_once_with((
+            'koji', 'download-build', '--arch=noarch', '--arch=x86_64',
+            'nodejs-grunt-wrap-0.3.0-2.fc25'))
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.subprocess.call', return_value=0)
+    def test_arch_all_flag(self, call, send_request):
+        """
+        Assert correct behavior with --arch all flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.download,
+            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'all'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         'Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n')
+        call.assert_called_once_with((
+            'koji', 'download-build', 'nodejs-grunt-wrap-0.3.0-2.fc25'))
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request')
     def test_empty_options(self, send_request):
         """
