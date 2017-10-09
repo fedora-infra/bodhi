@@ -30,6 +30,34 @@ Development improvements
   (`#1777 <https://github.com/fedora-infra/bodhi/pull/1777>`_).
 
 
+2.12.0
+------
+
+Features
+^^^^^^^^
+
+* Bodhi now asks Pagure to expand group membership when Pagure is used for ACLs
+  (`#1810 <https://github.com/fedora-infra/bodhi/issues/1810>`_).
+* Bodhi now displays Atomic CI pipeline results
+  (`#1847 <https://github.com/fedora-infra/bodhi/pull/1847>`_).
+
+
+Bugs
+^^^^
+
+* Use generic superclass models where possible
+  (`#1793 <https://github.com/fedora-infra/bodhi/issues/1793>`_).
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 2.11.0:
+
+* Pierre-Yves Chibon
+* Randy Barlow
+
+
 2.11.0
 ------
 
