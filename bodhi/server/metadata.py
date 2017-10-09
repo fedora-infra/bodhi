@@ -274,26 +274,26 @@ class ExtendedMetadata(object):
         fd, name = tempfile.mkstemp()
         os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
         os.close(fd)
-        self.modifyrepo(name)
+        self.modifyrepo('updateinfo', name)
         os.unlink(name)
 
-    def modifyrepo(self, filename):
+    def modifyrepo(self, filetype, filename):
         """Inject a file into the repodata for each architecture"""
         for arch in os.listdir(self.repo_path):
             repodata = os.path.join(self.repo_path, arch, 'repodata')
-            log.info('Inserting %s into %s', filename, repodata)
-            uinfo_xml = os.path.join(repodata, 'updateinfo.xml')
-            shutil.copyfile(filename, uinfo_xml)
+            log.info('Inserting %s into %s as %s', filename, repodata, filetype)
+            target_fname = os.path.join(repodata, filename)
+            shutil.copyfile(filename, target_fname)
             repomd_xml = os.path.join(repodata, 'repomd.xml')
             repomd = cr.Repomd(repomd_xml)
-            uinfo_rec = cr.RepomdRecord('updateinfo', uinfo_xml)
-            uinfo_rec_comp = uinfo_rec.compress_and_fill(self.hash_type, self.comp_type)
-            uinfo_rec_comp.rename_file()
-            uinfo_rec_comp.type = 'updateinfo'
-            repomd.set_record(uinfo_rec_comp)
+            rec = cr.RepomdRecord(filetype, target_fname)
+            rec_comp = rec.compress_and_fill(self.hash_type, self.comp_type)
+            rec_comp.rename_file()
+            rec_comp.type = filetype
+            repomd.set_record(rec_comp)
             with file(repomd_xml, 'w') as repomd_file:
                 repomd_file.write(repomd.xml_dump())
-            os.unlink(uinfo_xml)
+            os.unlink(target_fname)
 
     def cache_repodata(self):
         arch = os.listdir(self.repo_path)[0]  # Take the first arch
