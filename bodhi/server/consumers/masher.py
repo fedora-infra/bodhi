@@ -623,27 +623,32 @@ class MasherThread(threading.Thread):
         self.log.debug('remove_pending_tags koji.multiCall result = %r',
                        result)
 
+    @property
+    def my_comps_dir(self):
+        comps_dir = config.get('comps_dir')
+        return os.path.join(comps_dir, self.id)
+
+
     def update_comps(self):
         """
         Update our comps git module and merge the latest translations so we can
         pass it to mash insert into the repodata.
         """
         self.log.info("Updating comps")
-        comps_dir = config.get('comps_dir')
         comps_url = config.get('comps_url')
 
-        if not os.path.exists(comps_dir):
-            util.cmd(['git', 'clone', comps_url, comps_dir], os.path.dirname(comps_dir))
+        if not os.path.exists(self.my_comps_dir):
+            util.cmd(['git', 'clone', comps_url, self.my_comps_dir], os.path.dirname(self.my_comps_dir))
 
-        util.cmd(['git', 'pull'], comps_dir)
-        util.cmd(['make'], comps_dir)
+        util.cmd(['git', 'pull'], self.my_comps_dir)
+        util.cmd(['make'], self.my_comps_dir)
 
     def mash(self):
         if self.path in self.state['completed_repos']:
             self.log.info('Skipping completed repo: %s', self.path)
             return
 
-        comps = os.path.join(config.get('comps_dir'), 'comps-%s.xml' %
+        comps = os.path.join(self.my_comps_dir, 'comps-%s.xml' %
                              self.release.branch)
         previous = os.path.join(config.get('mash_stage_dir'), self.id)
 
