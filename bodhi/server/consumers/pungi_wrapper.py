@@ -297,6 +297,7 @@ class VariantsConfig(object):
         self.modules = self._generate_module_list()
         self.arches = arches
         self.headers = [
+            # https://pagure.io/pungi/blob/master/f/share/variants.dtd
             '<?xml version="1.0" encoding="UTF-8"?>',
             ('<!DOCTYPE variants PUBLIC "-//Red Hat, Inc.//DTD '
              'Variants info//EN" "variants2012.dtd">'),
