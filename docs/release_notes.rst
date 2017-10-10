@@ -91,7 +91,7 @@ Bugs
 Release contributors
 ^^^^^^^^^^^^^^^^^^^^
 
-The following developers contributed to Bodhi 2.11.0:
+The following developers contributed to Bodhi 2.12.0:
 
 * Pierre-Yves Chibon
 * Randy Barlow
