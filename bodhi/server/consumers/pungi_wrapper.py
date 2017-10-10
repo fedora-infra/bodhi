@@ -53,23 +53,23 @@ class PungiWrapper(object):
 
     @staticmethod
     def init_compose_dir(topdir, conf, compose_id, compose_type="production"):
-        """                                                                      
-        Pungi method which needed to be changed to work with bodhi. Creates         
-        necessary directories and files for the compose to be succesfull         
-        
+        """
+        Pungi method which needed to be changed to work with bodhi. Creates
+        necessary directories and files for the compose to be succesfull
+
         Args:
             topdir (str) - mash dir
             conf (dict) - pungi conf
             compose_id (str) - compose id
-            compose_type (str) - type of the compose                                                                      
-        Returns:                                                                 
-            str: Path to the compose_dir                                         
-        """               
-        compose_date=None 
-        compose_respin=None
-        compose_label=None
-        already_exists_callbacks=None
-        
+            compose_type (str) - type of the compose
+        Returns:
+            str: Path to the compose_dir
+        """
+        compose_date = None
+        compose_respin = None
+        compose_label = None
+        already_exists_callbacks = None
+
         already_exists_callbacks = already_exists_callbacks or []
 
         # create an incomplete composeinfo to generate compose ID
@@ -105,10 +105,10 @@ class PungiWrapper(object):
         return compose_dir
 
     def compose_repo(self):
-        """                                                                      
-        Wrapper method which start the compose process with loading the variants 
-        config and executing all the phases necessary for a pungi compose        
-        """       
+        """
+        Wrapper method which start the compose process with loading the variants
+        config and executing all the phases necessary for a pungi compose
+        """
         self.load_variants_config()
         self.execute_phases()
 
@@ -250,9 +250,9 @@ class PungiWrapper(object):
                 pungi.metadata.write_media_repo(self.compose, arch, variant, timestamp)
 
     def create_latest_repo_links(self):
-        """                                                                      
-        Creates symlinks for the newly created compose                           
-        """      
+        """
+        Creates symlinks for the newly created compose
+        """
         self.compose_dir = os.path.basename(self.compose.topdir)
         symlink_name = "latest-%s-%s" % (
             self.compose.conf["release_short"],
@@ -287,11 +287,11 @@ class VariantsConfig(object):
                  arches=['x86_64', 'armhfp', 'aarch64', 'i386', 'ppc64', 'ppc64le', 's390x']):
         """
         Args:
-              updates (list) - list of Update objects                                      
-              builds (list) - list of ModularBuild objects                                 
-              variant_id (str) - the type of variant which will be composed                
+              updates (list) - list of Update objects
+              builds (list) - list of ModularBuild objects
+              variant_id (str) - the type of variant which will be composed
               arches (list) - architectures which should be included in compose
-        """ 
+        """
         self.updates = updates
         self.builds = builds
         self.modules = self._generate_module_list()
@@ -316,10 +316,10 @@ class VariantsConfig(object):
 
     def _generate_module_list(self):
         """
-        Generates a list of NSV which should be used for pungi modular compose   
-                                                                               
-        Returns:                                                                 
-          list: list of NSV string which should be composed 
+        Generates a list of NSV which should be used for pungi modular compose
+
+        Returns:
+          list: list of NSV string which should be composed
         """
         newest_builds = {}
         # we loop through builds so we get rid of older builds and get only
@@ -360,8 +360,8 @@ class VariantsConfig(object):
 
 
 def get_pungi_conf(path):
-        """ 
-        Reads the config from the provided path 
+        """
+        Reads the config from the provided path
 
         Args:
             path (string) - this holds the path to the config file.

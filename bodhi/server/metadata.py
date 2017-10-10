@@ -332,9 +332,9 @@ class PungiMetadata(ExtendedMetadata):
     """ Class which represents updateinfo metadata for pungi. """
 
     def __init__(self, release, request, db, path, compose_dir):
-        """ 
+        """
         Same as its parent class only with the addition of compose_dir arg.
-        
+
         Args:
             compose_dir - path to the pungi compose
         """
