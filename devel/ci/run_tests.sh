@@ -15,11 +15,13 @@ fi
 FAILFAST="--halt now,fail=1"
 PYTEST_ARGS="-x"
 
+PARALLEL="parallel -v $FAILFAST --tag"
+
 gather_results() {
     # Move the test results from the container-specific folders into the top test_results folder.
-    parallel -v mv $(pwd)/test_results/{}/coverage.xml coverage-{}.xml ::: $RELEASES
-    parallel -v mv $(pwd)/test_results/{}/nosetests.xml nosetests-{}.xml ::: $RELEASES
-    parallel -v mv $(pwd)/test_results/{}/docs docs-{} ::: $RELEASES
+    $PARALLEL mv $(pwd)/test_results/{}/coverage.xml coverage-{}.xml ::: $RELEASES
+    $PARALLEL mv $(pwd)/test_results/{}/nosetests.xml nosetests-{}.xml ::: $RELEASES
+    $PARALLEL mv $(pwd)/test_results/{}/docs docs-{} ::: $RELEASES
 }
 
 sudo yum install -y epel-release
@@ -46,12 +48,12 @@ popd
 # Insert the container tag to pull for each release. There's a substitution in the parallel {}'s
 # that will remove the "f" from the releases since Fedora uses just the number of the release in its
 # tags.
-parallel -v sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $RELEASES
+$PARALLEL sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $RELEASES
 # Build the containers.
-parallel -v $FAILFAST sudo docker build --pull -t test/{} -f devel/ci/Dockerfile-{} . ::: $RELEASES
+$PARALLEL sudo docker build --pull -t test/{} -f devel/ci/Dockerfile-{} . ::: $RELEASES
 
 # Make individual folders for each release to drop its test results and docs.
-parallel -v mkdir -p $(pwd)/test_results/{} ::: $RELEASES
+$PARALLEL mkdir -p $(pwd)/test_results/{} ::: $RELEASES
 # Run the tests.
-parallel -v $FAILFAST sudo docker run --rm -v $(pwd)/test_results/{}:/results:z test/{} /bodhi/devel/ci/run_tests_fedora.sh $PYTEST_ARGS ::: $RELEASES || (gather_results; exit 1)
+$PARALLEL sudo docker run --rm -v $(pwd)/test_results/{}:/results:z test/{} /bodhi/devel/ci/run_tests_fedora.sh $PYTEST_ARGS ::: $RELEASES || (gather_results; exit 1)
 gather_results
