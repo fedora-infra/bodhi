@@ -636,7 +636,8 @@ class MasherThread(threading.Thread):
             util.cmd(['git', 'clone', comps_url, comps_dir], os.path.dirname(comps_dir))
 
         util.cmd(['git', 'pull'], comps_dir)
-        util.cmd(['make'], comps_dir)
+        target = 'comps-%s.xml' % self.release.branch
+        util.cmd(['make', target], comps_dir)
 
     def mash(self):
         if self.path in self.state['completed_repos']:
