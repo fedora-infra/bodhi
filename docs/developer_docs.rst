@@ -99,6 +99,12 @@ want it to exit immediately upon failure, I can execute the script like this::
 
     # RELEASES="f26 f27" ./devel/run_tests.sh
 
+The CI system does not halt immediately upon failure, so that you can see all the problems at once.
+Sometimes this makes it difficult to tell where the failure happened when looking at the console
+output on the CI server. Some common failures will print out "JENKIES FAIL" to help with this. If
+you browse to the console output on a job with failed tests, you can use your browser's text search
+feature to find that string in the output to more quickly identify where the failure occurred.
+
 
 Create a Bodhi development environment
 ======================================

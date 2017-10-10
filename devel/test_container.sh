@@ -21,6 +21,11 @@
 # docs, runs the unit tests, moves results into /results to be collected, and ensures that new code
 # has 100% test coverage.
 
+fail() {
+    echo "JENKIES FAIL!"
+    exit 1
+}
+
 gather_results() {
     mv docs/_build/html /results/docs
     cp *.xml /results
@@ -31,11 +36,11 @@ sed -i '/pyramid_debugtoolbar/d' development.ini.example
 
 cp development.ini.example development.ini
 
-/usr/bin/python setup.py develop
+/usr/bin/python setup.py develop || fail
 
-/usr/bin/tox
-/usr/bin/py.test $@ || (gather_results; exit 1)
+/usr/bin/tox || fail
+/usr/bin/py.test $@ || (gather_results; fail)
 
 gather_results
 
-diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100
+diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100 || fail
