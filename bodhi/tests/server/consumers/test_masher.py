@@ -1316,12 +1316,25 @@ class TestMasherThread_eject_from_mash(MasherThreadBaseTestCase):
         self.assertEqual(t.state['updates'], [])
 
 
+class TestMasherThread_my_comps_dir(unittest.TestCase):
+    """This test class contains tests for the MasherThread.my_comps_dir() method."""
+    @mock.patch('bodhi.server.consumers.masher.config', {'comps_dir': '/some/path'})
+    def test_my_comps_dir(self):
+        """Assert correct return value from the my_comps_dir property."""
+        self.masher_thread = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                                          u'bowlofeggs', mock.Mock(), mock.Mock(), mock.Mock())
+        self.masher_thread.id = 'f17-updates'
+
+        self.assertEqual(self.masher_thread.my_comps_dir, '/some/path/f17-updates')
+
+
 class TestMasherThread_update_comps(unittest.TestCase):
     """This test class contains tests for the MasherThread.update_comps() method."""
 
     def setUp(self):
         self.masher_thread = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
                                           u'bowlofeggs', mock.Mock(), mock.Mock(), mock.Mock())
+        self.masher_thread.id = 'f17-updates'
 
     @mock.patch('bodhi.server.consumers.masher.os.path.exists')
     @mock.patch('bodhi.server.consumers.masher.config', {'comps_dir': '/some/path',
@@ -1330,13 +1343,14 @@ class TestMasherThread_update_comps(unittest.TestCase):
     def test_comps_no_dir(self, mock_cmd, mock_exists):
         mock_exists.return_value = False
         calls = [
-            mock.call(['git', 'clone', 'https://example.com/', '/some/path'], '/some'),
-            mock.call(['git', 'pull'], '/some/path'),
-            mock.call(['make'], '/some/path'),
+            mock.call(['git', 'clone', 'https://example.com/', '/some/path/f17-updates'],
+                      '/some/path'),
+            mock.call(['git', 'pull'], '/some/path/f17-updates'),
+            mock.call(['make'], '/some/path/f17-updates'),
         ]
         self.masher_thread.update_comps()
         self.assertEqual(calls, mock_cmd.call_args_list)
-        mock_exists.assert_called_once_with('/some/path')
+        mock_exists.assert_called_once_with('/some/path/f17-updates')
 
     @mock.patch('bodhi.server.consumers.masher.os.path.exists')
     @mock.patch('bodhi.server.consumers.masher.config', {'comps_dir': '/some/path',
@@ -1345,12 +1359,12 @@ class TestMasherThread_update_comps(unittest.TestCase):
     def test_comps_existing_dir(self, mock_cmd, mock_exists):
         mock_exists.return_value = True
         calls = [
-            mock.call(['git', 'pull'], '/some/path'),
-            mock.call(['make'], '/some/path'),
+            mock.call(['git', 'pull'], '/some/path/f17-updates'),
+            mock.call(['make'], '/some/path/f17-updates'),
         ]
         self.masher_thread.update_comps()
         self.assertEqual(calls, mock_cmd.call_args_list)
-        mock_exists.assert_called_once_with('/some/path')
+        mock_exists.assert_called_once_with('/some/path/f17-updates')
 
 
 class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
