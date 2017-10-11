@@ -733,13 +733,11 @@ class TestUpdatesService(base.BaseTestCase):
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
-        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
-        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
-        res = app.post_json('/updates/', up_data)
+        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
+        res = self.app.post_json('/updates/', up_data)
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -749,8 +747,9 @@ class TestUpdatesService(base.BaseTestCase):
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
-                         csrf_token=app.get('/csrf').json_body['csrf_token'])
-        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        with mock.patch.dict(config, {'test_gating.required': True}):
+            res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure we can't push it until it passed test gating
         self.assertEqual(res.json_body['status'], 'error')
@@ -769,13 +768,11 @@ class TestUpdatesService(base.BaseTestCase):
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
-        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
-        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
-        res = app.post_json('/updates/', up_data)
+        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
+        res = self.app.post_json('/updates/', up_data)
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -785,8 +782,9 @@ class TestUpdatesService(base.BaseTestCase):
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
-                         csrf_token=app.get('/csrf').json_body['csrf_token'])
-        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        with mock.patch.dict(config, {'test_gating.required': True}):
+            res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure we can't push it until it passed test gating
         self.assertEqual(res.json_body['status'], 'error')
@@ -805,13 +803,11 @@ class TestUpdatesService(base.BaseTestCase):
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
-        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
-        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
-        res = app.post_json('/updates/', up_data)
+        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
+        res = self.app.post_json('/updates/', up_data)
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -821,8 +817,9 @@ class TestUpdatesService(base.BaseTestCase):
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
-                         csrf_token=app.get('/csrf').json_body['csrf_token'])
-        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        with mock.patch.dict(config, {'test_gating.required': True}):
+            res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure we can't push it until it passed test gating
         self.assertEqual(res.json_body['status'], 'error')
@@ -841,13 +838,11 @@ class TestUpdatesService(base.BaseTestCase):
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
-        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
-        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
-        res = app.post_json('/updates/', up_data)
+        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
+        res = self.app.post_json('/updates/', up_data)
         assert 'does not have commit access to bodhi' not in res, res
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
@@ -858,8 +853,9 @@ class TestUpdatesService(base.BaseTestCase):
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
-                         csrf_token=app.get('/csrf').json_body['csrf_token'])
-        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        with mock.patch.dict(config, {'test_gating.required': True}):
+            res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure the reason we cannot push isn't test gating this time
         self.assertEqual(res.json_body['status'], 'error')
@@ -878,13 +874,11 @@ class TestUpdatesService(base.BaseTestCase):
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
-        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
-        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
-        res = app.post_json('/updates/', up_data)
+        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
+        res = self.app.post_json('/updates/', up_data)
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -894,8 +888,9 @@ class TestUpdatesService(base.BaseTestCase):
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
-                         csrf_token=app.get('/csrf').json_body['csrf_token'])
-        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        with mock.patch.dict(config, {'test_gating.required': True}):
+            res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure we can't push it until it passed test gating
         self.assertEqual(res.json_body['status'], 'error')
@@ -914,13 +909,11 @@ class TestUpdatesService(base.BaseTestCase):
         self.db.add(user)
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
-        self.app_settings['test_gating.required'] = True
         self.db.commit()
 
-        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
-        up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
-        res = app.post_json('/updates/', up_data)
+        up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
+        res = self.app.post_json('/updates/', up_data)
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -930,8 +923,9 @@ class TestUpdatesService(base.BaseTestCase):
 
         # Try and submit the update to stable as a provenpackager
         post_data = dict(update=nvr, request='stable',
-                         csrf_token=app.get('/csrf').json_body['csrf_token'])
-        res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        with mock.patch.dict(config, {'test_gating.required': True}):
+            res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
         # Ensure the reason we can't push is not test gating
         self.assertEqual(res.json_body['status'], 'error')
@@ -3686,26 +3680,251 @@ class TestUpdatesService(base.BaseTestCase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_manually_push_to_stable_from_batched(self, publish, *args):
+    def test_edit_button_not_present_when_stable(self, publish, *args):
         """
-        Test manually push to stable from batched when autokarma is disabled
+        Assert that the edit button is not present on stable updates.
         """
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr, self.db)
+        update.date_stable = datetime.utcnow()
+        update.status = UpdateStatus.stable
+        update.pushed = True
+        self.db.commit()
 
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks Edit text not in the html page for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertNotIn('Push to Batched', resp)
+        self.assertNotIn('Push to Stable', resp)
+        self.assertNotIn('Edit', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_batched_button_present_when_karma_reached(self, publish, *args):
+        """
+        Assert that the "Push to Batched" button appears when the required karma is
+        reached.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr, self.db)
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.pushed = True
+        update.autokarma = False
+        update.stable_karma = 1
+        update.comment(self.db, 'works', 1, 'bowlofeggs')
+        self.db.commit()
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks Push to Batched text in the html page for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertIn('Push to Batched', resp)
+        self.assertNotIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_stable_button_present_when_karma_reached_urgent(self, publish, *args):
+        """
+        Assert that the "Push to Stable" button appears when the required karma is
+        reached for an urgent update.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr, self.db)
+        update.severity = UpdateSeverity.urgent
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.pushed = True
+        update.autokarma = False
+        update.stable_karma = 1
+        update.comment(self.db, 'works', 1, 'bowlofeggs')
+        self.db.commit()
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks Push to Stable text in the html page for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertNotIn('Push to Batched', resp)
+        self.assertIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_stable_button_present_when_karma_reached_and_batched(self, publish, *args):
+        """
+        Assert that the "Push to Stable" button appears when the required karma is
+        reached and the update is already batched.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
         update = Update.get(nvr, self.db)
         update.status = UpdateStatus.testing
         update.request = UpdateRequest.batched
+        update.pushed = True
+        update.autokarma = False
+        update.stable_karma = 1
+        update.comment(self.db, 'works', 1, 'bowlofeggs')
         self.db.commit()
 
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
         # Checks Push to Stable text in the html page for this update
-        id = 'bodhi-2.0.0-2.fc17'
-        resp = self.app.get('/updates/%s' % id,
-                            headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
-        self.assertIn(id, resp)
+        self.assertIn(nvr, resp)
+        self.assertNotIn('Push to Batched', resp)
         self.assertIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_batched_button_present_when_time_reached(self, publish, *args):
+        """
+        Assert that the "Push to Batched" button appears when the required time in testing is
+        reached.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr, self.db)
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.pushed = True
+        # This update has been in testing a while, so a "Push to Batched" button should appear.
+        update.date_testing = datetime.now() - timedelta(days=30)
+        self.db.commit()
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks Push to Batched text in the html page for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertIn('Push to Batched', resp)
+        self.assertNotIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_stable_button_present_when_time_reached_and_urgent(self, publish, *args):
+        """
+        Assert that the "Push to Stable" button appears when the required time in testing is
+        reached.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr, self.db)
+        update.severity = UpdateSeverity.urgent
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.pushed = True
+        # This urgent update has been in testing a while, so a "Push to Stable" button should
+        # appear.
+        update.date_testing = datetime.now() - timedelta(days=30)
+        self.db.commit()
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks Push to Stable text in the html page for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertNotIn('Push to Batched', resp)
+        self.assertIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_stable_button_present_when_time_reached_and_batched(self, publish, *args):
+        """
+        Assert that the "Push to Stable" button appears when the required time in testing is
+        reached and the update is already batched.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr, self.db)
+        update.status = UpdateStatus.testing
+        update.request = UpdateRequest.batched
+        update.pushed = True
+        # This update has been in testing a while, so a "Push to Stable" button should appear.
+        update.date_testing = datetime.now() - timedelta(days=30)
+        self.db.commit()
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks Push to Stable text in the html page for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertNotIn('Push to Batched', resp)
+        self.assertIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_batched_button_present_when_time_reached_critpath(self, publish, *args):
+        """
+        Assert that the "Push to Batched" button appears when it should for a critpath update.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr, self.db)
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.pushed = True
+        update.critpath = True
+        # This update has been in testing a while, so a "Push to Batched" button should appear.
+        update.date_testing = datetime.now() - timedelta(days=30)
+        self.db.commit()
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks Push to Batched text in the html page for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertIn('Push to Batched', resp)
+        self.assertNotIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_stable_button_present_when_time_reached_and_batched_critpath(self, publish,
+                                                                                  *args):
+        """
+        Assert that the "Push to Stable" button appears when the required time in testing is
+        reached and the update is already batched.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr, self.db)
+        update.critpath = True
+        update.status = UpdateStatus.testing
+        update.request = UpdateRequest.batched
+        update.pushed = True
+        # This update has been in testing a while, so a "Push to Batched" button should appear.
+        update.date_testing = datetime.now() - timedelta(days=30)
+        self.db.commit()
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks Push to Stable text in the html page for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertNotIn('Push to Batched', resp)
+        self.assertIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')

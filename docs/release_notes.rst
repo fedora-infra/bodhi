@@ -9,6 +9,16 @@ Bugs
 
 * Positive karma on stable updates no longer sends them back to batched
   (`#1881 <https://github.com/fedora-infra/bodhi/issues/1881>`_).
+* Push to batched buttons now appear on pushed updates when appropriate
+  (`#1875 <https://github.com/fedora-infra/bodhi/issues/1875>`_).
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 2.12.2:
+
+* Randy Barlow
 
 
 2.12.1
