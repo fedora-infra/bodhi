@@ -1581,6 +1581,29 @@ class TestUpdate(ModelTest):
         publish.assert_called_with(topic='update.comment', msg=mock.ANY)
 
     @mock.patch('bodhi.server.notifications.publish')
+    def test_karma_on_stable_request_does_not_set_to_batched(self, publish):
+        """
+        Ensure that adding karma to an update that is going stable doesn't send it back to batched.
+
+        https://github.com/fedora-infra/bodhi/issues/1881
+        """
+        update = self.obj
+        update.request = None
+        update.status = UpdateStatus.testing
+        update.comment(self.db, u"foo", 1, u'foo')
+        update.comment(self.db, u"foo", 1, u'bar')
+        update.comment(self.db, u"foo", 1, u'biz')
+        self.assertEqual(update.request, UpdateRequest.batched)
+        # Simulate the stable cron job having run.
+        update.request = UpdateRequest.stable
+
+        update.comment(self.db, u"dont go back to batched!", 1, u'bowlofeggs')
+
+        # The update should stay at stable, rather than being set back to batched.
+        self.assertEqual(update.request, UpdateRequest.stable)
+        publish.assert_called_with(topic='update.comment', msg=mock.ANY)
+
+    @mock.patch('bodhi.server.notifications.publish')
     def test_unstable_karma(self, publish):
         update = self.obj
         update.status = UpdateStatus.testing
