@@ -30,6 +30,16 @@ Development improvements
   (`#1777 <https://github.com/fedora-infra/bodhi/pull/1777>`_).
 
 
+2.12.2
+------
+
+Bugs
+^^^^
+
+* Positive karma on stable updates no longer sends them back to batched
+  (`#1881 <https://github.com/fedora-infra/bodhi/issues/1881>`_).
+
+
 2.12.1
 ------
 
