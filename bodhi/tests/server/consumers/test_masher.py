@@ -1355,7 +1355,6 @@ References:
         assert os.path.isfile(updateinfo_path)
 
 
-
 class MasherThreadBaseTestCase(base.BaseTestCase):
     """
     This test class has common setUp() and tearDown() methods that are useful for testing the
