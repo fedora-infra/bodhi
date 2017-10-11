@@ -30,6 +30,7 @@ import pytest
 import re
 
 import mock
+from functools import partial
 
 from bodhi.server import buildsys, log, initialize_db
 from bodhi.server.config import config
@@ -1843,11 +1844,14 @@ class TestPungiMashThread(object):
         mash = PungiMashThread(compose_id, target_dir, pungi_conf, variants_conf, logger)
 
         assert not mash.success
-        pungi_wrapper().compose_repo.side_effect = Exception("Mash exception!")
+        err_msg = "Mash exception!"
+        pungi_wrapper().compose_repo.side_effect = Exception(err_msg)
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception) as ex:
             mash.run()
             pungi_wrapper().compose_repo.assert_called_once()
+            assert ex.msg == err_msg
+            assert ex is pungi_wrapper().compose_repo.side_effect
 
         assert not mash.success
 
@@ -1866,12 +1870,6 @@ class TestPungiMasherThread(object):
         self.wrapper.id = release
         self.wrapper.path = os.path.join(mash_dir, self.wrapper.id)
         self.wrapper.db = mock.Mock()
-
-    @mock.patch("bodhi.server.consumers.masher.config")
-    def test_get_pungi_conf_path(self, config):
-        config.get.return_value = "/tmp/bodhi/pungi"
-        pungi_conf_path = self.wrapper._get_pungi_conf_path()
-        assert pungi_conf_path == "/tmp/bodhi/pungi/fedora-modular-example.conf"
 
     def test_get_compose_dir(self):
         compose_dir = self.wrapper._get_compose_dir("/tmp")
@@ -1907,12 +1905,15 @@ class TestPungiMasherThread(object):
     def test_sanity_check_repo_repodata_exception(self, list_dir, sanity_check_repodata,
                                                   get_compose_dir):
         list_dir.return_value = ["x86_64"]
-        sanity_check_repodata.side_effect = Exception("Repodata validation failure!")
-        with pytest.raises(Exception):
+        err_msg = "Repodata validation failure!"
+        sanity_check_repodata.side_effect = Exception(err_msg)
+        with pytest.raises(Exception) as ex:
             self.wrapper.sanity_check_repo()
             sanity_check_repodata.assert_called_once()
             get_compose_dir.assert_called_once()
             self.log.error.assert_called_once()
+            assert ex.msg == err_msg
+            assert ex is sanity_check_repodata.side_effect
 
     @mock.patch("bodhi.server.consumers.masher.PungiMasherThread._get_compose_dir")
     @mock.patch("bodhi.server.consumers.masher.PungiMetadata")
@@ -1927,7 +1928,7 @@ class TestPungiMasherThread(object):
     @mock.patch('bodhi.server.notifications.publish')
     def test_skip_mash(self, *args):
         masher_mock = mock.create_autospec(self.wrapper)
-        masher_mock.work = lambda: PungiMasherThread.work(masher_mock)
+        masher_mock.work = partial(PungiMasherThread.work, masher_mock)
         masher_mock.request = UpdateRequest.from_string('stable')
         release = mock.Mock()
         release.state = ReleaseState.pending
@@ -1948,10 +1949,13 @@ class TestPungiMasherThread(object):
         masher_mock.db = mock.Mock()
         masher_mock.db.query.return_value.filter_by.return_value.one.return_value = release
         masher_mock.log = mock.Mock()
-        masher_mock.load_updates.side_effect = Exception("Just fail!")
+        err_msg = "Mash fail!"
+        masher_mock.load_updates.side_effect = Exception(err_msg)
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception) as ex:
             masher_mock.work()
+            assert ex.msg == err_msg
+            assert ex is masher_mock.load_updates.side_effect
 
         masher_mock.log.exception.assert_called_once()
         masher_mock.save_state.assert_called_once()

@@ -391,8 +391,10 @@ class TestPungiWrapper(object):
 
         wrapper = PungiWrapper(compose, variants_conf)
         wrapper.create_latest_repo_links()
-        unlink.assert_called_once()
-        symlink.assert_called_once()
+        symlink_name = "latest-Fedora-23-Fedora-23"
+        symlink_path = os.path.join(compose.topdir, "..", symlink_name)
+        unlink.assert_called_once_with(symlink_path)
+        symlink.assert_called_once_with(compose_id, symlink_path)
 
     @mock.patch("os.symlink")
     @mock.patch("os.unlink")
@@ -410,11 +412,13 @@ class TestPungiWrapper(object):
 
         wrapper = PungiWrapper(compose, variants_conf)
 
-        with pytest.raises(Exception):
-            ex = OSError("Test error")
-            ex.errno = 1
-            unlink.side_effect = ex
+        with pytest.raises(Exception) as ex:
+            os_err = OSError("Test error")
+            os_err.errno = 1
+            unlink.side_effect = os_err
             wrapper.create_latest_repo_links()
+            assert ex is os_err
+            assert ex.errno == 1
 
     @mock.patch("os.symlink")
     @mock.patch("os.unlink")
@@ -437,4 +441,5 @@ class TestPungiWrapper(object):
         symlink.side_effect = ex
         compose.log_error = mock.Mock()
         wrapper.create_latest_repo_links()
-        compose.log_error.assert_called_once()
+        compose.log_error.assert_called_once_with(
+            "Couldn't create latest symlink: %s" % ex.message)
