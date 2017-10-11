@@ -1,6 +1,25 @@
 Release notes
 =============
 
+2.12.1
+------
+
+Bugs
+^^^^
+
+* Use separate directories to clone the comps repositories
+  (`#1885 <https://github.com/fedora-infra/bodhi/pull/1885>`_).
+
+
+Release contributors
+^^^^^^^^^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 2.12.1:
+
+* Patrick Uiterwijk
+* Randy Barlow
+
+
 2.12.0
 ------
 
