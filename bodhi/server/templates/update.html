@@ -514,7 +514,7 @@ $(document).ready(function(){
               <a id='revoke' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Revoke</a>
             % endif
           % elif update.pushed and (update.status.description != 'stable' or (update.status.description == 'stable' and 'releng' in [group.name for group in request.user.groups])):
-            <a id='edit' class="btn btn-sm btn-default"><span class="fa fa-fw fa-pencil"></span> Edit</a>
+            <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
             % if update.critpath and update.critpath_approved:
               ${self.util.push_to_batched_or_stable_button(update) | n}
             % elif update.meets_testing_requirements:
