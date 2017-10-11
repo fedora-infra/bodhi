@@ -625,9 +625,14 @@ class MasherThread(threading.Thread):
 
     @property
     def my_comps_dir(self):
+        """
+        Return a path to a directory that can be used to clone the comps repo.
+
+        Returns:
+            basestring: A path to a directory that can be used for comps.
+        """
         comps_dir = config.get('comps_dir')
         return os.path.join(comps_dir, self.id)
-
 
     def update_comps(self):
         """
@@ -638,7 +643,8 @@ class MasherThread(threading.Thread):
         comps_url = config.get('comps_url')
 
         if not os.path.exists(self.my_comps_dir):
-            util.cmd(['git', 'clone', comps_url, self.my_comps_dir], os.path.dirname(self.my_comps_dir))
+            util.cmd(['git', 'clone', comps_url, self.my_comps_dir],
+                     os.path.dirname(self.my_comps_dir))
 
         util.cmd(['git', 'pull'], self.my_comps_dir)
         util.cmd(['make'], self.my_comps_dir)
