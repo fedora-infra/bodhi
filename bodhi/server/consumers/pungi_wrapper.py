@@ -339,10 +339,11 @@ class VariantsConfig(object):
 
         # make sure that the modules we want to update get their correct versions
         for update in self.updates:
-            nsv = update.builds[0].nvr.rsplit('-', 1)
-            ns = nsv[0]
-            version = nsv[1]
-            newest_builds[ns] = version
+            for build in update.builds:
+                nsv = build.nvr.rsplit('-', 1)
+                ns = nsv[0]
+                version = nsv[1]
+                newest_builds[ns] = version
 
         module_list = ["%s-%s" % (nstream, v) for nstream, v in newest_builds.iteritems()]
         return module_list

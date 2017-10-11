@@ -24,11 +24,11 @@ from pungi.compose import Compose
 import pytest
 
 from bodhi.server.consumers.pungi_wrapper import (
-    PungiWrapper, PungiConfig, VariantsConfig
+    PungiWrapper, get_pungi_conf, VariantsConfig
 )
 
 
-@pytest.mark.usefixture("get_pungi_conf")
+@pytest.mark.usefixture("get_mock_pungi_conf")
 @pytest.fixture(scope="module")
 def get_compose(pungi_conf, compose_dir):
 
@@ -42,7 +42,7 @@ def get_compose(pungi_conf, compose_dir):
 
 
 @pytest.fixture(scope="module")
-def get_pungi_conf(tmpdir, config_str=None):
+def get_mock_pungi_conf(tmpdir, config_str=None):
     conf = tmpdir.mkdir("conf").join("pungi.conf")
     config_data = """ # RELEASE
     release_name = "Fedora"
@@ -86,36 +86,54 @@ def get_pungi_conf(tmpdir, config_str=None):
     return conf
 
 
-@pytest.mark.usefixture("get_pungi_conf")
+@pytest.mark.usefixture("get_mock_pungi_conf")
 class TestPungiConfig(object):
 
     def test_load_config_from_file(self, tmpdir):
-        logger = mock.Mock()
-        pungi_conf = get_pungi_conf(tmpdir)
+        pungi_conf = get_mock_pungi_conf(tmpdir)
 
-        conf_xml = PungiConfig(path=str(pungi_conf), logger=logger)
-        assert isinstance(conf_xml, dict)
-        assert isinstance(conf_xml["sigkeys"], list)
-        assert conf_xml["release_name"] == "Fedora"
-        assert conf_xml["release_version"] == "23"
+        conf = get_pungi_conf(path=str(pungi_conf))
+        assert isinstance(conf, dict)
+        assert isinstance(conf["sigkeys"], list)
+        assert conf["release_name"] == "Fedora"
+        assert conf["release_version"] == "23"
+        assert conf["release_short"] == "Fedora"
+        assert conf["comps_file"] == "comps-f23.xml"
+        assert conf["variants_file"] == "variants-f23.xml"
+        assert conf["koji_profile"] == "koji"
+        assert conf["runroot"] == False
+        assert conf["pkgset_source"] == "koji"
+        assert conf["pkgset_koji_tag"] == "f23"
+        assert conf["createrepo_checksum"] == "sha256"
+        assert conf["bootable"] == True
+        assert conf["buildinstall_method"] == "lorax"
+        assert conf["release_is_layered"] == True
+        assert conf["base_product_name"] == "Fedora"
+        assert conf["base_product_short"] == "Fedora"
+        assert conf["base_product_version"] == "23"
+        assert conf["gather_source"] == "comps"
+        assert conf["gather_method"] == "deps"
+        assert conf["greedy_method"] == "build"
+        assert conf["check_deps"] == False
 
-    def test_valid_pungi_config(self, tmpdir):
-        logger = mock.Mock()
+    def test_invalid_pungi_config(self, tmpdir):
         config_data = """ # RELEASE
         release_name = "Fedora"
         release_short = "Fedora"
         release_version = "23" """
-        pungi_conf = get_pungi_conf(tmpdir, config_data)
+        pungi_conf = get_mock_pungi_conf(tmpdir, config_data)
 
         with pytest.raises(Exception):
-            PungiConfig(path=str(pungi_conf), logger=logger)
+            get_pungi_conf(path=str(pungi_conf))
 
 
 @pytest.fixture(scope="module")
 def get_updates_and_builds():
-    updates = [u'host-master-20170830200108', u'platform-master-20170818100407']
+    updates = [[u'host-master-20170830200108', u'host-f27-20170830200108'],
+               [u'platform-master-20170818100407']]
     builds = [
         u'platform-master-20160818100407',
+        u'host-f27-20170830200107',
         u'platform-master-20160818100408',
         u'shim-master-20160502110605',
         u'shim-master-20160502110601',
@@ -127,8 +145,13 @@ def get_updates_and_builds():
     mock_updates = []
     mock_builds = []
     for update in updates:
+        update_builds = []
+        for nvr in update:
+            m = mock.Mock()
+            m.nvr = nvr
+            update_builds.append(m)
         mock_update = mock.Mock()
-        mock_update.title = update
+        mock_update.builds = update_builds
         mock_updates.append(mock_update)
 
     for build in builds:
@@ -148,7 +171,7 @@ class TestVariantsConfig(object):
 
         module_list = variants_conf._generate_module_list()
         assert isinstance(module_list, list)
-        assert len(module_list) == 4
+        assert len(module_list) == 5
 
     def test_create_an_updated_variants_conf(self):
         updates, builds = get_updates_and_builds()
@@ -290,12 +313,11 @@ class TestPungiWrapper(object):
     def test_init_compose_dir(self, util, tmpdir):
         compose = mock.Mock()
         variants_conf = mock.Mock()
-        logger = mock.Mock()
         wrapper = PungiWrapper(compose, variants_conf)
 
         topdir = str(tmpdir.mkdir("mash-dir"))
-        pungi_conf_path = get_pungi_conf(tmpdir)
-        pungi_conf = PungiConfig(str(pungi_conf_path), logger)
+        pungi_conf_path = get_mock_pungi_conf(tmpdir)
+        pungi_conf = get_pungi_conf(str(pungi_conf_path))
         compose_id = "f27-modular-updates"
         compose_dir = wrapper.init_compose_dir(topdir, pungi_conf, compose_id)
 
@@ -316,11 +338,10 @@ class TestPungiWrapper(object):
 
     @mock.patch("shutil.copyfileobj")
     def test_load_variants_config(self, copyfileobj, tmpdir):
-        logger = mock.Mock()
         topdir = str(tmpdir.mkdir("mash_dir"))
         compose_id = "f27-modular-updates"
-        pungi_conf_path = get_pungi_conf(tmpdir)
-        pungi_conf = PungiConfig(str(pungi_conf_path), logger)
+        pungi_conf_path = get_mock_pungi_conf(tmpdir)
+        pungi_conf = get_pungi_conf(str(pungi_conf_path))
         compose_dir = PungiWrapper.init_compose_dir(topdir, pungi_conf, compose_id)
 
         compose = get_compose(pungi_conf, compose_dir)
@@ -336,11 +357,10 @@ class TestPungiWrapper(object):
 
     @mock.patch("pungi.metadata")
     def test_write_repo_metadata(self, pungi_metadata, tmpdir):
-        logger = mock.Mock()
         topdir = str(tmpdir.mkdir("mash_dir"))
         compose_id = "f27-modular-updates"
-        pungi_conf_path = get_pungi_conf(tmpdir)
-        pungi_conf = PungiConfig(str(pungi_conf_path), logger)
+        pungi_conf_path = get_mock_pungi_conf(tmpdir)
+        pungi_conf = get_pungi_conf(str(pungi_conf_path))
         compose_dir = PungiWrapper.init_compose_dir(topdir, pungi_conf, compose_id)
 
         compose = get_compose(pungi_conf, compose_dir)
@@ -358,11 +378,10 @@ class TestPungiWrapper(object):
     @mock.patch("os.symlink")
     @mock.patch("os.unlink")
     def test_create_latest_symlinks(self, unlink, symlink, tmpdir):
-        logger = mock.Mock()
         topdir = str(tmpdir.mkdir("mash_dir"))
         compose_id = "f27-modular-updates"
-        pungi_conf_path = get_pungi_conf(tmpdir)
-        pungi_conf = PungiConfig(str(pungi_conf_path), logger)
+        pungi_conf_path = get_mock_pungi_conf(tmpdir)
+        pungi_conf = get_pungi_conf(str(pungi_conf_path))
         compose_dir = PungiWrapper.init_compose_dir(topdir, pungi_conf, compose_id)
 
         compose = get_compose(pungi_conf, compose_dir)
@@ -378,11 +397,10 @@ class TestPungiWrapper(object):
     @mock.patch("os.symlink")
     @mock.patch("os.unlink")
     def test_create_latest_symlinks_unlink_exception(self, unlink, symlink, tmpdir):
-        logger = mock.Mock()
         topdir = str(tmpdir.mkdir("mash_dir"))
         compose_id = "f27-modular-updates"
-        pungi_conf_path = get_pungi_conf(tmpdir)
-        pungi_conf = PungiConfig(str(pungi_conf_path), logger)
+        pungi_conf_path = get_mock_pungi_conf(tmpdir)
+        pungi_conf = get_pungi_conf(str(pungi_conf_path))
         compose_dir = PungiWrapper.init_compose_dir(topdir, pungi_conf, compose_id)
 
         compose = get_compose(pungi_conf, compose_dir)
@@ -401,11 +419,10 @@ class TestPungiWrapper(object):
     @mock.patch("os.symlink")
     @mock.patch("os.unlink")
     def test_create_latest_symlinks_symlink_exception(self, unlink, symlink, tmpdir):
-        logger = mock.Mock()
         topdir = str(tmpdir.mkdir("mash_dir"))
         compose_id = "f27-modular-updates"
-        pungi_conf_path = get_pungi_conf(tmpdir)
-        pungi_conf = PungiConfig(str(pungi_conf_path), logger)
+        pungi_conf_path = get_mock_pungi_conf(tmpdir)
+        pungi_conf = get_pungi_conf(str(pungi_conf_path))
         compose_dir = PungiWrapper.init_compose_dir(topdir, pungi_conf, compose_id)
 
         compose = get_compose(pungi_conf, compose_dir)
