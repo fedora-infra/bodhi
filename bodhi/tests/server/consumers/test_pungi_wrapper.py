@@ -299,15 +299,18 @@ class TestPungiWrapper(object):
     @mock.patch("pungi.phases")
     def test_execute_phases_exception(self, pungi_phases, *args):
         init_phase = pungi_phases.InitPhase()
-        init_phase.validate.side_effect = ValueError("Test Error")
+        msg_err = "Test Error"
+        init_phase.validate.side_effect = ValueError(msg_err)
         init_phase.skip.return_value = False
         init_phase.name = "init phase"
         compose = mock.Mock()
         variants_conf = mock.Mock()
         wrapper = PungiWrapper(compose, variants_conf)
 
-        with pytest.raises(Exception):
+        with pytest.raises(Exception) as ex:
             wrapper.execute_phases()
+            assert ex is init_phase.validate.side_effect
+            assert ex.message is msg_err
 
     @mock.patch("pungi.util")
     def test_init_compose_dir(self, util, tmpdir):
