@@ -506,9 +506,9 @@ $(document).ready(function(){
               <a id='testing' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Testing</a>
               % endif
               % if update.status.description not in ['stable', 'obsolete']:
-		<a id='batched' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Batched</a>
+                <a id='batched' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Batched</a>
               % endif
-	    % elif update.request.description == 'batched':
+            % elif update.request.description == 'batched':
                 <a id='stable' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Stable</a>
             % else:
               <a id='revoke' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Revoke</a>
