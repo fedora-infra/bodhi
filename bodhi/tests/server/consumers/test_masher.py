@@ -27,6 +27,7 @@ import unittest
 import urllib2
 import urlparse
 import pytest
+import re
 
 import mock
 
@@ -1153,12 +1154,14 @@ References:
     @mock.patch('bodhi.server.consumers.masher.PungiMasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.PungiMasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiMasherThread.stage_repo')
-    @mock.patch('bodhi.server.consumers.masher.PungiMasherThread.generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiMasherThread.wait_for_sync')
     @mock.patch('bodhi.server.buildsys.DevBuildsys.listTagged')
     @mock.patch('bodhi.server.buildsys.DevBuildsys.listBuildRPMs')
     @mock.patch('bodhi.server.notifications.publish')
-    def test_mash_modules(self, publish, listbuildrpms, listtagged, *args):
+    @mock.patch('bodhi.server.consumers.masher.PungiMasherThread._get_compose_dir')
+    def test_mash_modules(self, get_compose_dir, publish, listbuildrpms, listtagged,
+                          wait_for_sync, stage_repo, sanity_check_repo, wait_for_mash,
+                          run, *args):
         with self.db_factory() as db:
             user = db.query(User).first()
 
@@ -1300,13 +1303,56 @@ References:
         listtagged.return_value = builds_md
         listbuildrpms.return_value = rpms
 
-        self.masher.consume(msg)
+        # mock config option which will have a test pungi config
+        bodhi_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../"))
+        pungi_conf_path = os.path.join(bodhi_dir, "devel", "pungi", "fedora-modular-example.conf")
+        mock_config = config.copy()
+        mock_config["pungi_modular_config_path"] = pungi_conf_path
+
+        # to test updateinfo.xml we need a dir structure as the actual repo.
+        compose_dir = os.path.join(self.tempdir, "compose_dir")
+        os.mkdir(compose_dir)
+        os.mkdir(os.path.join(self.tempdir, "compose_dir", "x86_64"))
+        os.mkdir(os.path.join(self.tempdir, "compose_dir", "x86_64", "os"))
+        repodata_dir = os.path.join(self.tempdir, "compose_dir", "x86_64", "os", "repodata")
+        os.mkdir(repodata_dir)
+
+        get_compose_dir.return_value = compose_dir
+        # we need a mocked repomd.xml in the repo structure
+        mock_repomd = (u'<?xml version="1.0" encoding="UTF-8"?>'
+                       u'<repomd xmlns="http://linux.duke.edu/metadata/repo" '
+                       u'xmlns:rpm="http://linux.duke.edu/metadata/rpm"></repomd>')
+        repomd_file = os.path.join(repodata_dir, "repomd.xml")
+        with open(repomd_file, "w+") as fd:
+            fd.write(mock_repomd)
+        with mock.patch.dict("bodhi.server.consumers.masher.config", mock_config):
+            self.masher.consume(msg)
 
         publish.assert_called_with(topic="mashtask.complete",
                                    force=True,
                                    msg=dict(success=True,
                                             repo='f27-modular-updates',
                                             agent='mcurlej'))
+        wait_for_sync.assert_called_once()
+        run.assert_called_once()
+        stage_repo.assert_called_once()
+        sanity_check_repo.assert_called_once()
+        wait_for_mash.assert_called_once()
+
+        # open and check if our repomd.xml was updated by updateinfo.xml
+        with open(repomd_file, "r") as fd:
+            updated_repomd = fd.read()
+
+        assert '<data type="updateinfo">' in updated_repomd
+        assert '-updateinfo.xml.xz' in updated_repomd
+        # get the name of updateinfo.xml.xz from repomd.xml and check if it
+        # exits
+        rx = re.compile('[\w]+\-updateinfo\.xml\.xz')
+        updateinfo = rx.search(updated_repomd).group()
+        updateinfo_path = os.path.join(repodata_dir, updateinfo)
+
+        assert os.path.isfile(updateinfo_path)
+
 
 
 class MasherThreadBaseTestCase(base.BaseTestCase):
