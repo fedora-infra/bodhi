@@ -1160,6 +1160,26 @@ class PungiMashThread(threading.Thread):
     """ A pungi masher thread. Is used for mashing modules with pungi. """
 
     def __init__(self, compose_id, target_dir, pungi_conf, variants_conf, log):
+        """
+        Initializes the mash thread
+
+        Args:
+            compose_id (str): id of the compose also the id of the thread
+            target_dir (str): mash dir where the compose will take place
+            pungi_conf (dict): the pungi conf in a dictionary
+            variants_conf (VariantsConfig object): object which represents the variants config
+            for the pungi compose
+            log (logger): bodhi server logger
+
+        Attributes:
+            success (bool): tells you if the compose was a success or not
+            compose_dir (str): path to to the dir where the compose will took place. This
+            needs to be run through init_compose_dir method to initialize also some metadata
+            files
+            compose (pungi.compose.Compose): main compose object
+            name (str): name of the thread
+
+        """
         super(PungiMashThread, self).__init__()
         self.success = False
         self.compose_id = compose_id
