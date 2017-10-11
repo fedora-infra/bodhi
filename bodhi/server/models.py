@@ -2374,9 +2374,10 @@ class Update(Base):
                     log.info("Automatically marking %s as stable" % self.title)
                     self.set_request(db, UpdateRequest.stable, agent)
                 else:
-                    log.info("Automatically adding %s to batch of updates that will be pushed to"
-                             " stable at a later date" % self.title)
-                    self.set_request(db, UpdateRequest.batched, agent)
+                    if self.request not in (UpdateRequest.batched, UpdateRequest.stable):
+                        log.info("Automatically adding %s to batch of updates that will be pushed "
+                                 "to stable at a later date" % self.title)
+                        self.set_request(db, UpdateRequest.batched, agent)
 
                 self.date_pushed = None
                 notifications.publish(
