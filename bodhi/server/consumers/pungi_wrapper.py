@@ -274,6 +274,7 @@ class PungiWrapper(object):
             os.symlink(self.compose_dir, symlink)
         except Exception as ex:
             self.compose.log_error("Couldn't create latest symlink: %s" % ex)
+            raise
 
 
 class VariantsConfig(object):
