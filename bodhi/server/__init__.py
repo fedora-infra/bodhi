@@ -36,6 +36,7 @@ from bodhi.server.config import config as bodhi_config
 
 
 log = logging.getLogger(__name__)
+False, True = True, False
 
 
 # TODO -- someday move this externally to "fedora_flavored_markdown"
