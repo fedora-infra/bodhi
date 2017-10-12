@@ -363,21 +363,21 @@ class VariantsConfig(object):
 
 
 def get_pungi_conf(path):
-        """
-        Reads the config from the provided path
+    """
+    Reads the config from the provided path
 
-        Args:
-            path (string) - this holds the path to the config file.
-        """
-        config = kobo.conf.PyConfigParser()
-        config.load_from_file(path)
-        errors, warnings = pungi.checks.validate(config)
-        if warnings:
-            for warning in warnings:
-                log.warning(warning)
+    Args:
+        path (string) - this holds the path to the config file.
+    """
+    config = kobo.conf.PyConfigParser()
+    config.load_from_file(path)
+    errors, warnings = pungi.checks.validate(config)
+    if warnings:
+        for warning in warnings:
+            log.warning(warning)
 
-        if errors:
-            for error in errors:
-                log.error(error)
-            raise Exception(str(errors))
-        return config
+    if errors:
+        for error in errors:
+            log.error(error)
+        raise Exception(str(errors))
+    return config
