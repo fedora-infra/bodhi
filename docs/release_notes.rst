@@ -4,10 +4,13 @@ Release notes
 develop
 -------
 
-New dependency
-^^^^^^^^^^^^^^
+New dependencies
+^^^^^^^^^^^^^^^^
 
-This version of Bodhi now requires pungi >= 4.1.18.
+* This version of Bodhi now requires pungi >= 4.1.18.
+* As pungi 4 is not available in EPEL 7, this release of Bodhi formally drops support for EL 7. The
+  supported operating systems only include active Fedora releases now, and are documented on Bodhi's
+  docs' front page.
 
 
 Special instructions
