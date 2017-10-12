@@ -28,4 +28,4 @@ simplemediawiki
 sqlalchemy
 waitress
 webhelpers
-pungi
+pungi >= 4.1.18

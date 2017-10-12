@@ -4,6 +4,12 @@ Release notes
 develop
 -------
 
+New dependency
+^^^^^^^^^^^^^^
+
+This version of Bodhi now requires pungi >= 4.1.18.
+
+
 Special instructions
 ^^^^^^^^^^^^^^^^^^^^
 
