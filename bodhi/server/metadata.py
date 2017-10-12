@@ -271,25 +271,45 @@ class ExtendedMetadata(object):
         self.uinfo.append(rec)
 
     def insert_updateinfo(self):
-        fd, name = tempfile.mkstemp()
+        fd, tmp_file_path = tempfile.mkstemp()
         os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
         os.close(fd)
-        self.modifyrepo('updateinfo', name)
-        os.unlink(name)
+        self.modifyrepo('updateinfo', 'updateinfo.xml', tmp_file_path)
+        os.unlink(tmp_file_path)
 
-    def modifyrepo(self, filetype, filename):
-        """Inject a file into the repodata for each architecture"""
+    def modifyrepo(self, filetype, filename, tempfile):
+        """
+        Inject a file into the repodata for each architecture with the help of createrepo_c.
+
+        Args:
+            filetype (basestring): what type of metadata will be inserted by createrepo_c.
+                This does allow any string to be inserted (custom types). There are some
+                types which are used with dnf repos as primary, updateinfo, comps, filelist etc.
+            filename (basestring): the actual name of the metadata file which will be inserted
+                (createrepo_c takes this as one of its arguments so the ouput file will be
+                {hash}-{filename}.xz)
+            tempfile (basestring): a temp file path. File holds the dump of metadata untill
+                copied to the repodata folder.
+        """
         for arch in os.listdir(self.repo_path):
+            # path of repodata folder for the current arch
             repodata = os.path.join(self.repo_path, arch, 'repodata')
             log.info('Inserting %s into %s as %s', filename, repodata, filetype)
+            # the path of the metadata file
             target_fname = os.path.join(repodata, filename)
-            shutil.copyfile(filename, target_fname)
+            # copy the temp file to the metadata file path
+            shutil.copyfile(tempfile, target_fname)
             repomd_xml = os.path.join(repodata, 'repomd.xml')
             repomd = cr.Repomd(repomd_xml)
+            # create a new record for our repomd.xml
             rec = cr.RepomdRecord(filetype, target_fname)
+            # compress our metadata file with the self.comp_type
             rec_comp = rec.compress_and_fill(self.hash_type, self.comp_type)
+            # add hash to the compresed metadata file
             rec_comp.rename_file()
+            # set type of metadata
             rec_comp.type = filetype
+            # insert metadata about our metadata in repomd.xml
             repomd.set_record(rec_comp)
             with file(repomd_xml, 'w') as repomd_file:
                 repomd_file.write(repomd.xml_dump())
