@@ -99,7 +99,13 @@ html_theme = 'alabaster'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+html_theme_options = {
+    'logo': 'logo.svg',
+    'logo_name': True,
+    'github_user': 'fedora-infra',
+    'github_repo': 'bodhi',
+    'page_width': '1040px',
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
@@ -133,8 +139,20 @@ html_static_path = ['_static']
 # typographically correct entities.
 # html_use_smartypants = True
 
-# Custom sidebar templates, maps document names to template names.
-# html_sidebars = {}
+# Custom sidebar templates, must be a dictionary that maps document names
+# to template names.
+#
+# This is required for the alabaster theme
+# refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',  # needs 'show_related': True theme option to display
+        'searchbox.html',
+        'donate.html',
+    ]
+}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
