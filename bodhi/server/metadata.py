@@ -288,7 +288,7 @@ class ExtendedMetadata(object):
             filename (basestring): the actual name of the metadata file which will be inserted
                 (createrepo_c takes this as one of its arguments so the ouput file will be
                 {hash}-{filename}.xz)
-            tempfile (basestring): a temp file path. File holds the dump of metadata untill
+            tempfile (basestring): a temp file path. The file holds the dump of metadata until
                 copied to the repodata folder.
         """
         for arch in os.listdir(self.repo_path):
