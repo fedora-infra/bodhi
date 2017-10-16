@@ -879,20 +879,6 @@ class Build(Base):
                 koji.moveBuild(tag, release.candidate_tag, self.nvr)
 
 
-class ModuleBuild(Build):
-    """
-    Represents a Module build.
-
-    Note that this model uses single-table inheritance with its Build superclass.
-
-    Attributes:
-        nvr (unicode): A unique Koji identifier for the module build.
-    """
-    __mapper_args__ = {
-        'polymorphic_identity': ContentType.module,
-    }
-
-
 class RpmBuild(Build):
     """
     Represents an RPM build.
@@ -993,6 +979,20 @@ class RpmBuild(Build):
                                       descrip[i])
             i += 1
         return str
+
+
+class ModuleBuild(RpmBuild):
+    """
+    Represents a Module build.
+
+    Note that this model uses single-table inheritance with its Build superclass.
+
+    Attributes:
+        nvr (unicode): A unique Koji identifier for the module build.
+    """
+    __mapper_args__ = {
+        'polymorphic_identity': ContentType.module,
+    }
 
 
 class Update(Base):

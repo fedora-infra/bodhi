@@ -479,6 +479,9 @@ class BodhiConfig(dict):
         'pkgdb_url': {
             'value': 'https://admin.fedoraproject.org/pkgdb',
             'validator': unicode},
+        'pungi_modular_config_path': {
+            'value': '/etc/bodhi/pungi/{release}-modular.conf',
+            'validator': unicode},
         'query_wiki_test_cases': {
             'value': False,
             'validator': _validate_bool},

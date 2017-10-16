@@ -12,3 +12,4 @@ RUN dnf install -y \
     python2-createrepo_c \
     python2-koji \
     python2-librepo \
+    pungi \

@@ -102,6 +102,10 @@ badge_ids = binary-star|both-bull-and-self-transcended-tester-viii|catching-the-
 # comps_dir = %(here)s/masher/comps
 # comps_url = https://git.fedorahosted.org/comps.git
 
+## Pungi configuration files
+# pungi_modular_config_path = /etc/bodhi/pungi/{release}-modular.conf
+
+
 ##
 ## Mirror settings
 ##
