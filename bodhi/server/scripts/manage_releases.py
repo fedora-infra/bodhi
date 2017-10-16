@@ -47,7 +47,7 @@ url_option = click.option(
 
 
 @main.command()
-@click.option('--username', envvar='USERNAME')
+@click.option('--username')
 @click.option('--password', prompt=True, hide_input=True)
 @click.option('--name', help='Release name (eg: F20)')
 @click.option('--long-name', help='Long release name (eg: "Fedora 20")')
@@ -78,7 +78,7 @@ def create(username, password, url, **kwargs):
 
 
 @main.command()
-@click.option('--username', envvar='USERNAME')
+@click.option('--username')
 @click.option('--password', prompt=True, hide_input=True)
 @click.option('--name', help='Release name (eg: F20)')
 @click.option('--new-name', help='New release name (eg: F20)')
