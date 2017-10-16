@@ -200,14 +200,14 @@ Once mash is done:
                     if request == req:
                         self.log.info('Starting thread for %s %s for %d updates',
                                       release, request, len(updates))
-                        if "modular" not in release:
-                            thread = MasherThread(
+                        if self.are_modules(updates):
+                            thread = PungiMasherThread(
                                 release, request, updates, agent,
                                 self.log, self.db_factory,
                                 self.mash_dir, resume
                             )
                         else:
-                            thread = PungiMasherThread(
+                            thread = MasherThread(
                                 release, request, updates, agent,
                                 self.log, self.db_factory,
                                 self.mash_dir, resume
@@ -241,6 +241,24 @@ Once mash is done:
                 self.log.warn('Cannot find update: %s' % title)
         return releases
 
+    def are_modules(self, updates):
+        """
+        Check if the builds we want to mash are modules
+
+        Args:
+            updates (list): list of build names
+        """
+        for update in updates:
+            nsv = update.split("-")
+            if len(nsv) != 3 and len(nsv[2]) != 14:
+                return False
+            try:
+                int(nsv[2])
+            except ValueError:
+                return False
+
+        return True
+
 
 class MasherThread(threading.Thread):
 
@@ -265,6 +283,7 @@ class MasherThread(threading.Thread):
             'completed_repos': []
         }
         self.success = False
+        self.mash_type = "rpm"
 
     def run(self):
         try:
@@ -442,7 +461,7 @@ class MasherThread(threading.Thread):
 
     def perform_gating(self):
 
-        if 'modular' in self.id:
+        if 'modular' == self.mash_type:
             # We can/should enable gating for modules after we work out kinks.
             self.log.warn("SKIPPING gating check for %r" % self.id)
             return
@@ -659,7 +678,7 @@ class MasherThread(threading.Thread):
         pass it to mash insert into the repodata.
         """
 
-        if 'modular' in self.id:
+        if 'modular' == self.mash_type:
             # Comps for the modular repo doesn't make any sense.
             self.log.warn("SKIPPING comps update for %r" % self.id)
             return
@@ -946,7 +965,7 @@ class MasherThread(threading.Thread):
     def compose_atomic_trees(self):
         """Compose Atomic OSTrees for each tag that we mashed."""
 
-        if 'modular' in self.id:
+        if 'modular' == self.mash_type:
             # We can start building atomic trees for modules later.  One thing at a time.
             self.log.warn("SKIPPING compose of atomic trees for %r" % self.id)
             return
@@ -1087,6 +1106,11 @@ class MashThread(threading.Thread):
 
 class PungiMasherThread(MasherThread):
     """ Like the MasherThread, but with pungi, for modules. """
+    def __init__(self, release, request, updates, agent, log,
+                 db_factory, mash_dir, resume=False):
+        super(PungiMasherThread, self).__init__(release, request, updates, agent,
+                                                log, db_factory, mash_dir, resume)
+        self.mash_type = "modular"
 
     def _get_compose_dir(self, mash_path, variant_id="Server"):
         """ Return the compose directory
@@ -1128,6 +1152,7 @@ class PungiMasherThread(MasherThread):
             return
 
         self.pungi_conf_path = config.get("pungi_modular_config_path")
+        self.pungi_conf_path.format(release=self.id)
         self.pungi_conf = get_pungi_conf(self.pungi_conf_path)
 
         self.variants_conf = VariantsConfig(self.updates, self.release.builds)

@@ -480,7 +480,7 @@ class BodhiConfig(dict):
             'value': 'https://admin.fedoraproject.org/pkgdb',
             'validator': unicode},
         'pungi_modular_config_path': {
-            'value': '/etc/bodhi/pungi/fedora-modular.conf',
+            'value': '/etc/bodhi/pungi/{release}-modular.conf',
             'validator': unicode},
         'query_wiki_test_cases': {
             'value': False,

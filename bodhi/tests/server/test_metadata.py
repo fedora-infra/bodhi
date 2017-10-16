@@ -589,7 +589,7 @@ class TestPungiMetadata(object):
         rmd.xml_dump.return_value = "test"
 
         uinfo = PungiMetadata(release, request, db, path, compose_dir)
-        uinfo.modifyrepo(tmpfile_path)
+        uinfo.modifyrepo('updateinfo', 'updateinfo.xml', tmpfile_path)
 
         assert uinfo.compose_dir == compose_dir
         fetch_updates.assert_called_once

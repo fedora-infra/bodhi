@@ -341,7 +341,7 @@ class PungiMetadata(ExtendedMetadata):
         super(PungiMetadata, self).__init__(release, request, db, path)
         self.compose_dir = compose_dir
 
-    def modifyrepo(self, filename):
+    def modifyrepo(self, filetype, filename, tempfile):
         """Inject a file into the repodata for each architecture"""
         dir_blacklist = ['source']
         arches = [d for d in os.listdir(self.compose_dir) if d not in dir_blacklist]
@@ -349,14 +349,14 @@ class PungiMetadata(ExtendedMetadata):
         for arch in arches:
             repodata = os.path.join(self.compose_dir, arch, 'os', 'repodata')
             log.info('Inserting %s into %s', filename, repodata)
-            uinfo_xml = os.path.join(repodata, 'updateinfo.xml')
-            shutil.copyfile(filename, uinfo_xml)
+            uinfo_xml = os.path.join(repodata, filename)
+            shutil.copyfile(tempfile, uinfo_xml)
             repomd_xml = os.path.join(repodata, 'repomd.xml')
             repomd = cr.Repomd(repomd_xml)
-            uinfo_rec = cr.RepomdRecord('updateinfo', uinfo_xml)
+            uinfo_rec = cr.RepomdRecord(filetype, uinfo_xml)
             uinfo_rec_comp = uinfo_rec.compress_and_fill(self.hash_type, self.comp_type)
             uinfo_rec_comp.rename_file()
-            uinfo_rec_comp.type = 'updateinfo'
+            uinfo_rec_comp.type = filetype
             repomd.set_record(uinfo_rec_comp)
             with file(repomd_xml, 'w') as repomd_file:
                 repomd_file.write(repomd.xml_dump())

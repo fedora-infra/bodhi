@@ -443,6 +443,7 @@ class TestPungiWrapper(object):
         ex.errno = 1
         symlink.side_effect = ex
         compose.log_error = mock.Mock()
-        wrapper.create_latest_repo_links()
-        compose.log_error.assert_called_once_with(
-            "Couldn't create latest symlink: %s" % ex.message)
+        with pytest.raises(Exception) as ex:
+            wrapper.create_latest_repo_links()
+            compose.log_error.assert_called_once_with(
+                "Couldn't create latest symlink: %s" % ex.message)
