@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright 2007-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -12,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301, USA.
+"""A collection of utilities for sending e-mail to Bodhi users."""
 from textwrap import wrap
 import smtplib
 
@@ -335,7 +341,13 @@ maillist_template = u"""\
 def get_template(update, use_template='fedora_errata_template'):
     """
     Build the update notice for a given update.
-    @param use_template: the template to generate this notice with
+
+    Args:
+        update (bodhi.server.models.Update): The update to generate a template about.
+        use_template (basestring): The name of the variable in bodhi.server.mail that references the
+            template to generate this notice with.
+    Returns:
+        list: A list of templates for the given update.
     """
     from bodhi.server.models import UpdateStatus, UpdateType
     use_template = globals()[use_template]
@@ -426,7 +438,14 @@ def get_template(update, use_template='fedora_errata_template'):
 
 
 def _send_mail(from_addr, to_addr, body):
-    """A lower level function to send emails with smtplib"""
+    """
+    Send emails with smtplib. This is a lower level function than send_e-mail().
+
+    Args:
+        from_addr (str): The e-mail address to use in the envelope from field.
+        to_addr (str): The e-mail address to use in the envelope to field.
+        body (str): The body of the e-mail.
+    """
     smtp_server = config.get('smtp_server')
     if not smtp_server:
         log.info('Not sending email: No smtp_server defined')
@@ -446,6 +465,17 @@ def _send_mail(from_addr, to_addr, body):
 
 
 def send_mail(from_addr, to_addr, subject, body_text, headers=None):
+    """
+    Send an e-mail.
+
+    Args:
+        from_addr (basestring): The address to use in the From: header.
+        to_addr (basestring): The address to send the e-mail to.
+        subject (basestring): The subject of the e-mail.
+        body_text (basestring): The body of the e-mail to be sent.
+        headers (dict or None): A mapping of header fields to values to be included in the e-mail,
+            if not None.
+    """
     if not from_addr:
         from_addr = config.get('bodhi_email')
     if not from_addr:
@@ -472,7 +502,18 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
 
 
 def send(to, msg_type, update, sender=None, agent=None):
-    """ Send an update notification email to a given recipient """
+    """
+    Send an update notification email to a given recipient.
+
+    Args:
+        to (iterable): An iterable of e-mail addresses to send an update e-mail to.
+        msg_type (basestring): The message template to use. Should be one of the keys in the
+            MESSAGES template.
+        update (bodhi.server.models.Update): The Update we are mailing people about.
+        sender (basestring or None): The address to use in the From: header. If None, the
+            "bodhi_email" setting will be used as the From: header.
+        agent (basestring): The username that performed the action that generated this e-mail.
+    """
     assert agent, 'No agent given'
 
     critpath = getattr(update, 'critpath', False) and '[CRITPATH] ' or ''
@@ -509,11 +550,26 @@ def send(to, msg_type, update, sender=None, agent=None):
 
 
 def send_releng(subject, body):
-    """ Send the Release Engineering team a message """
+    """
+    Send the Release Engineering team a message.
+
+    Args:
+        subject (basestring): The subject of the e-mail.
+        body (basestring): The body of the e-mail.
+    """
     send_mail(config.get('bodhi_email'), config.get('release_team_address'),
               subject, body)
 
 
 def send_admin(msg_type, update, sender=None):
-    """ Send an update notification to the admins/release team. """
+    """
+    Send an update notification to the admins/release team.
+
+    Args:
+        msg_type (basestring): The type of the message. Should match one of the keys from the
+            MESSAGES dict.
+        update (bodhi.server.models.Update): The Update we are mailing about.
+        sender (basestring or None): The sender to use for the mail. If None, defaults to the
+            "bodhi_email" setting.
+    """
     send(config.get('release_team_address'), msg_type, update, sender)
