@@ -282,13 +282,13 @@ class ExtendedMetadata(object):
         Inject a file into the repodata for each architecture with the help of createrepo_c.
 
         Args:
-            filetype (basestring): what type of metadata will be inserted by createrepo_c.
+            filetype (basestring): What type of metadata will be inserted by createrepo_c.
                 This does allow any string to be inserted (custom types). There are some
                 types which are used with dnf repos as primary, updateinfo, comps, filelist etc.
-            filename (basestring): the actual name of the metadata file which will be inserted
+            filename (basestring): The actual name of the metadata file which will be inserted
                 (createrepo_c takes this as one of its arguments so the ouput file will be
                 {hash}-{filename}.xz)
-            tempfile (basestring): a temp file path. File holds the dump of metadata untill
+            tempfile (basestring): A temp file path. The file holds the dump of metadata until
                 copied to the repodata folder.
         """
         for arch in os.listdir(self.repo_path):
