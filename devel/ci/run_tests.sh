@@ -25,7 +25,7 @@ tar_results() {
 
 
 sudo yum install -y epel-release
-sudo yum install -y docker parallel
+sudo yum install -y bzip2 docker parallel
 
 sudo systemctl start docker
 
