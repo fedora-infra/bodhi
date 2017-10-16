@@ -52,7 +52,7 @@ url_option = click.option('--url', envvar='BODHI_URL', default=bindings.BASE_URL
 
 
 new_edit_options = [
-    click.option('--user', envvar='USERNAME'),
+    click.option('--user'),
     click.option('--password', hide_input=True),
     click.option('--type', default='bugfix', help='Update type', required=True,
                  type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage'])),
@@ -80,7 +80,7 @@ save_edit_options = [
                  help='Number of days the override should exist.'),
     click.option('--notes', default="No explanation given...",
                  help='Notes on why this override is in place.'),
-    click.option('--user', envvar='USERNAME'),
+    click.option('--user'),
     click.option('--password', hide_input=True),
     click.option('--staging', help='Use the staging bodhi instance',
                  is_flag=True, default=False),
@@ -327,11 +327,8 @@ def query(url, mine=False, **kwargs):
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
     if mine:
-        if 'USERNAME' in os.environ:
-            kwargs['user'] = os.environ['USERNAME']
-        else:
-            client.init_username()
-            kwargs['user'] = client.username
+        client.init_username()
+        kwargs['user'] = client.username
     resp = client.query(**kwargs)
     print_resp(resp, client)
 
@@ -339,7 +336,7 @@ def query(url, mine=False, **kwargs):
 @updates.command()
 @click.argument('update')
 @click.argument('state')
-@click.option('--user', envvar='USERNAME')
+@click.option('--user')
 @click.option('--password', hide_input=True)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
@@ -386,7 +383,7 @@ def request(update, state, user, password, url, **kwargs):
 @click.argument('update')
 @click.argument('text')
 @click.option('--karma', default=0, type=click.INT, help='The karma for this comment (+1/0/-1)')
-@click.option('--user', envvar='USERNAME')
+@click.option('--user')
 @click.option('--password', hide_input=True)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
@@ -562,11 +559,8 @@ def query_buildroot_overrides(url, user=None, mine=False, packages=None,
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
     if mine:
-        if 'USERNAME' in os.environ:
-            user = os.environ['USERNAME']
-        else:
-            client.init_username()
-            user = client.username
+        client.init_username()
+        user = client.username
     resp = client.list_overrides(user=user, packages=packages,
                                  expired=expired, releases=releases, builds=builds)
     print_resp(resp, client)

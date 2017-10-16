@@ -41,7 +41,7 @@ import bodhi.server.notifications
               is_flag=True, default=False)
 @click.option('--staging', help='Use the staging bodhi instance',
               is_flag=True, default=False)
-@click.option('--username', envvar='USERNAME', prompt=True)
+@click.option('--username', prompt=True)
 @click.version_option(message='%(version)s')
 def push(username, cert_prefix, **kwargs):
     staging = kwargs.pop('staging')
