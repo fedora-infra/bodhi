@@ -396,31 +396,6 @@ class TestQuery(unittest.TestCase):
                 'cves': None})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
-    @mock.patch.dict('os.environ', {'USERNAME': 'dudemcpants'})
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
-    def test_query_mine_flag_username_set(self, send_request):
-        """
-        Assert that we use the USERNAME variable if it is set
-        """
-        runner = testing.CliRunner()
-
-        runner.invoke(client.query, ['--mine'])
-
-        bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'updates/', verb='GET',
-            params={
-                'approved_since': None, 'status': None, 'locked': None,
-                'builds': None, 'releases': None,
-                'content_type': None,
-                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
-                'user': 'dudemcpants', 'critpath': None, 'updateid': None, 'packages': None,
-                'type': None, 'cves': None})
-
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
@@ -476,22 +451,6 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
             bindings_client, 'overrides/', verb='GET',
             params={'user': u'bowlofeggs'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
-
-    @mock.patch.dict('os.environ', {'USERNAME': 'dudemcpants'})
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
-    def test_queryoverrides_mine_flag_username_set(self, send_request):
-        """
-        Assert that we use the USERNAME variable if it is set
-        """
-        runner = testing.CliRunner()
-
-        runner.invoke(client.query_buildroot_overrides, ['--mine'])
-        bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'overrides/', verb='GET', params={'user': 'dudemcpants'})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
