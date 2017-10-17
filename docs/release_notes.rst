@@ -37,7 +37,7 @@ Backwards incomptible changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Support for the ``USERNAME`` environment variable in all of Bodhi's CLI tools has been dropped, as
-  it conflicts with GDM's varaible by the same name. Many users do not have the same FAS username as
+  it conflicts with GDM's variable by the same name. Many users do not have the same FAS username as
   they use on their desktop, and this variable causes confusion in the CLI
   (`#1789 <https://github.com/fedora-infra/bodhi/issues/1789>`_).
 
