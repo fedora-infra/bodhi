@@ -517,6 +517,8 @@ $(document).ready(function(){
             <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
             % if update.critpath and update.critpath_approved:
               ${self.util.push_to_batched_or_stable_button(update) | n}
+	    % elif update.request and update.request.description == 'batched':
+              ${self.util.push_to_batched_or_stable_button(update) | n}
             % elif update.meets_testing_requirements:
               ${self.util.push_to_batched_or_stable_button(update) | n}
             % elif update.stable_karma not in (0, None) and update.karma >= update.stable_karma and not update.autokarma:
