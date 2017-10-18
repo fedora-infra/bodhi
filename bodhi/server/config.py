@@ -141,12 +141,12 @@ def _validate_fernet_key(value):
 
     This function is used to ensure that secret values in the config have been set by the user to
     something other than the default of CHANGEME and that the value can be used as a Fernet key. It
-    is converted to unicode before returning.
+    is converted to str before returning.
 
     Args:
         value (basestring): The value to be validated.
     Returns:
-        unicode: The value.
+        str: The value.
     Raises:
         ValueError: If value is "CHANGEME" or if it cannot be used as a Fernet key.
     """
