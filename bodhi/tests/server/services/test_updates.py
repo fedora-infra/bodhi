@@ -3878,6 +3878,34 @@ class TestUpdatesService(base.BaseTestCase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_stable_button_present_when_autokarma_and_batched(self, publish, *args):
+        """
+        Assert that the "Push to Stable" button appears when the required karma is
+        reached and the update is already batched and autokarma was enabled.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr, self.db)
+        update.status = UpdateStatus.testing
+        update.request = UpdateRequest.batched
+        update.pushed = True
+        update.autokarma = True
+        update.stable_karma = 1
+        update.comment(self.db, 'works', 1, 'bowlofeggs')
+        self.db.commit()
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks Push to Stable text in the html page for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertNotIn('Push to Batched', resp)
+        self.assertIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_batched_button_present_when_time_reached(self, publish, *args):
         """
         Assert that the "Push to Batched" button appears when the required time in testing is
