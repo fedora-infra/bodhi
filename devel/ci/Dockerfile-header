@@ -8,7 +8,9 @@ RUN dnf install -y \
     git \
     liberation-mono-fonts \
     packagedb-cli \
+    pungi \
     python2-cornice-sphinx \
     python2-createrepo_c \
+    python2-jinja2 \
     python2-koji \
     python2-librepo \

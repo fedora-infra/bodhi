@@ -40,6 +40,53 @@ Backwards incomptible changes
   it conflicts with GDM's variable by the same name. Many users do not have the same FAS username as
   they use on their desktop, and this variable causes confusion in the CLI
   (`#1789 <https://github.com/fedora-infra/bodhi/issues/1789>`_).
+* The layout of the repositories after mash is now different.
+* The following settings have been removed from Bodhi, as Pungi now manages
+  comps files instead of Bodhi::
+
+    * ``compose_atomic_trees``
+    * ``comps_dir``
+    * ``comps_url``
+    * ``mash_conf``
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Bodhi no longer uses or requires mash.
+* Bodhi no longer uses or requires fedmsg-atomic-composer.
+* Pungi is now a required dependency for Bodhi, replacing mash.
+* jinja2 is now a required dependency for Bodhi, used by its masher.
+
+
+New settings
+^^^^^^^^^^^^
+
+The ``production.ini`` file supports some new settings:
+
+* ``pungi.basepath`` specifies which path Bodhi should find Pungi config files inside. Defaults to
+  ``/etc/bodhi``.
+* ``pungi.cmd`` specifies the command to run ``pungi`` with. Defaults to ``/usr/bin/pungi-koji``.
+* ``pungi.conf.module`` should be the name of a jinja2 template file found in ``pungi.basepath``
+  that will be rendered to generate a Pungi config file that will be used to mash RPM repositories
+  (yum, dnf, and atomic repositories). Defaults to ``pungi.module.conf``, meaning that an
+  ``/etc/bodhi/pungi.module.conf`` is the default config file for Modules.
+* ``pungi.conf.rpm`` should be the name of a jinja2 template file found in ``pungi.basepath`` that
+  will be rendered to generate a Pungi config file that will be used to mash RPM repositories (yum,
+  dnf, and atomic repositories). Defaults to ``pungi.rpm.conf``, meaning that an
+  ``/etc/bodhi/pungi.rpm.conf`` is the default config file for RPMs.
+* The ``pungi.conf.*`` setting files above have the following jinja2 template variables available to
+  them::
+
+    * 'id': The id of the Release being mashed.
+    * 'release': The Release being mashed.
+    * 'request': The request being mashed.
+    * 'updates': The Updates being mashed.
+
+You will need to create ``variants.xml`` templates inside ``pungi.basepath`` as well. These
+templates will have access to the same template variables described above, and should be named
+``variants.rpm.xml.j2`` and ``variants.module.xml.j2``, for RPMs composes and module composes,
+respectively.
 
 
 Release contributors
@@ -47,6 +94,10 @@ Release contributors
 
 The following developers contributed to Bodhi 3.0.0:
 
+* Patrick Uiterwijk
+* Adam Miller
+* Dusty Mabe
+* Kushal Das
 * Randy Barlow
 
 

@@ -13,6 +13,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 import logging
 import os
+import shelve
 import shutil
 import tempfile
 
@@ -28,7 +29,46 @@ __version__ = '2.0'
 log = logging.getLogger(__name__)
 
 
-class ExtendedMetadata(object):
+def modifyrepo(comp_type, compose_path, filetype, extension, source):
+    """
+    Inject a file into the repodata for each architecture with the help of createrepo_c.
+
+    Args:
+        compose_path (basestring): The path to the compose where the metadata will be inserted.
+        filetype (basestring): What type of metadata will be inserted by createrepo_c.
+            This does allow any string to be inserted (custom types). There are some
+            types which are used with dnf repos as primary, updateinfo, comps, filelist etc.
+        extension (basestring): The file extension (xml, sqlite).
+        source (basestring): A file path. File holds the dump of metadata until
+            copied to the repodata folder.
+    """
+    repo_path = os.path.join(compose_path, 'compose', 'Everything')
+    for arch in os.listdir(repo_path):
+        if arch == 'source':
+            repodata = os.path.join(repo_path, arch, 'tree', 'repodata')
+        else:
+            repodata = os.path.join(repo_path, arch, 'os', 'repodata')
+        log.info('Inserting %s.%s into %s', filetype, extension, repodata)
+        target_fname = os.path.join(repodata, '%s.%s' % (filetype, extension))
+        shutil.copyfile(source, target_fname)
+        repomd_xml = os.path.join(repodata, 'repomd.xml')
+        repomd = cr.Repomd(repomd_xml)
+        # create a new record for our repomd.xml
+        rec = cr.RepomdRecord(filetype, target_fname)
+        # compress our metadata file with the comp_type
+        rec_comp = rec.compress_and_fill(cr.SHA256, comp_type)
+        # add hash to the compresed metadata file
+        rec_comp.rename_file()
+        # set type of metadata
+        rec_comp.type = filetype
+        # insert metadata about our metadata in repomd.xml
+        repomd.set_record(rec_comp)
+        with open(repomd_xml, 'w') as repomd_file:
+            repomd_file.write(repomd.xml_dump())
+        os.unlink(target_fname)
+
+
+class UpdateInfoMetadata(object):
     """This class represents the updateinfo.xml yum metadata.
 
     It is generated during push time by the bodhi masher based on koji tags
@@ -36,26 +76,22 @@ class ExtendedMetadata(object):
     which is included in the `createrepo_c` package.
 
     """
-    def __init__(self, release, request, db, path):
-        self.repo = path
-        log.debug('repo = %r' % self.repo)
+    def __init__(self, release, request, db, mashdir, close_shelf=True):
         self.request = request
         if request is UpdateRequest.stable:
             self.tag = release.stable_tag
         else:
             self.tag = release.testing_tag
-        self.repo_path = os.path.join(self.repo, self.tag)
 
         self.db = db
         self.updates = set()
         self.builds = {}
-        self.missing_ids = []
         self._from = config.get('bodhi_email')
+        self.shelf = shelve.open(os.path.join(mashdir, '%s.shelve' % self.tag))
         self._fetch_updates()
 
         self.uinfo = cr.UpdateInfo()
 
-        self.hash_type = cr.SHA256
         self.comp_type = cr.XZ
 
         if release.id_prefix == u'FEDORA-EPEL':
@@ -63,107 +99,14 @@ class ExtendedMetadata(object):
             # compression, so use the lowest common denominator for now.
             self.comp_type = cr.BZ2
 
-        # Load from the cache if it exists
-        self.cached_repodata = os.path.join(self.repo, '..', self.tag +
-                                            '.repocache', 'repodata/')
-        if os.path.isfile(os.path.join(self.cached_repodata, 'repomd.xml')):
-            log.info('Loading cached updateinfo.xml')
-            self._load_cached_updateinfo()
-        else:
-            log.info("Generating new updateinfo.xml")
-            self.uinfo = cr.UpdateInfo()
-            for update in self.updates:
-                if update.alias:
-                    self.add_update(update)
-                else:
-                    self.missing_ids.append(update.title)
-
-        if self.missing_ids:
-            log.error("%d updates with missing ID: %r" % (
-                len(self.missing_ids), self.missing_ids))
-
-    def _load_cached_updateinfo(self):
-        """
-        Load the cached updateinfo.xml from '../{tag}.repocache/repodata'
-        """
-        seen_ids = set()
-        from_cache = set()
-        existing_ids = set()
-
-        # Parse the updateinfo out of the repomd
-        updateinfo = None
-        repomd_xml = os.path.join(self.cached_repodata, 'repomd.xml')
-        repomd = cr.Repomd()
-        cr.xml_parse_repomd(repomd_xml, repomd)
-        for record in repomd.records:
-            if record.type == 'updateinfo':
-                updateinfo = os.path.join(os.path.dirname(
-                    os.path.dirname(self.cached_repodata)),
-                    record.location_href)
-                break
-
-        assert updateinfo, 'Unable to find updateinfo'
-
-        # Load the metadata with createrepo_c
-        log.info('Loading cached updateinfo: %s', updateinfo)
-        uinfo = cr.UpdateInfo(updateinfo)
-
-        # Determine which updates are present in the cache
-        for update in uinfo.updates:
-            existing_ids.add(update.id)
-
-        # Generate metadata for any new builds
+        self.uinfo = cr.UpdateInfo()
         for update in self.updates:
-            seen_ids.add(update.alias)
             if not update.alias:
-                self.missing_ids.append(update.title)
-                continue
-            if update.alias in existing_ids:
-                notice = None
-                for value in uinfo.updates:
-                    if value.title == update.title:
-                        notice = value
-                        break
-                if not notice:
-                    log.warn('%s ID in cache but notice cannot be found', update.title)
-                    self.add_update(update)
-                    continue
-                if notice.updated_date:
-                    if notice.updated_date < update.date_modified:
-                        log.debug('Update modified, generating new notice: %s' % update.title)
-                        self.add_update(update)
-                    else:
-                        log.debug('Loading updated %s from cache' % update.title)
-                        from_cache.add(update.alias)
-                elif update.date_modified:
-                    log.debug('Update modified, generating new notice: %s' % update.title)
-                    self.add_update(update)
-                else:
-                    log.debug('Loading %s from cache' % update.title)
-                    from_cache.add(update.alias)
-            else:
-                log.debug('Adding new update notice: %s' % update.title)
-                self.add_update(update)
+                update.assign_alias()
+            self.add_update(update)
 
-        # Add all relevant notices from the cache to this document
-        for notice in uinfo.updates:
-            if notice.id in from_cache:
-                log.debug('Keeping existing notice: %s', notice.title)
-                self.uinfo.append(notice)
-            else:
-                # Keep all security notices in the stable repo
-                if self.request is not UpdateRequest.testing:
-                    if notice.type == 'security':
-                        if notice.id not in seen_ids:
-                            log.debug('Keeping existing security notice: %s',
-                                      notice.title)
-                            self.uinfo.append(notice)
-                        else:
-                            log.debug('%s already added?', notice.title)
-                    else:
-                        log.debug('Purging cached stable notice %s', notice.title)
-                else:
-                    log.debug('Purging cached testing update %s', notice.title)
+        if close_shelf:
+            self.shelf.close()
 
     def _fetch_updates(self):
         """Based on our given koji tag, populate a list of Update objects"""
@@ -184,6 +127,29 @@ class ExtendedMetadata(object):
         if nonexistent:
             log.warning("Couldn't find the following koji builds tagged as "
                         "%s in bodhi: %s" % (self.tag, nonexistent))
+
+    def get_rpms(self, koji, nvr):
+        """
+        Retrieve the given RPM nvr from the cache if available, or from Koji if not available.
+
+        Args:
+            koji (koji.ClientSession): An initialized Koji client.
+            nvr (basestring): The nvr for which you wish to retrieve Koji data.
+        Returns:
+            list: A list of dictionaries describing all the subpackages that are part of the given
+                nvr.
+        """
+        if str(nvr) in self.shelf:
+            return self.shelf[str(nvr)]
+
+        if nvr in self.builds:
+            buildid = self.builds[nvr]['id']
+        else:
+            buildid = koji.getBuild(nvr)['id']
+
+        rpms = koji.listBuildRPMs(buildid)
+        self.shelf[str(nvr)] = rpms
+        return rpms
 
     def add_update(self, update):
         """Generate the extended metadata for a given update"""
@@ -211,12 +177,7 @@ class ExtendedMetadata(object):
 
         koji = get_session()
         for build in update.builds:
-            try:
-                kojiBuild = self.builds[build.nvr]
-            except:
-                kojiBuild = koji.getBuild(build.nvr)
-
-            rpms = koji.listBuildRPMs(kojiBuild['id'])
+            rpms = self.get_rpms(koji, build.nvr)
             for rpm in rpms:
                 pkg = cr.UpdateCollectionPackage()
                 pkg.name = rpm['name']
@@ -270,59 +231,9 @@ class ExtendedMetadata(object):
 
         self.uinfo.append(rec)
 
-    def insert_updateinfo(self):
+    def insert_updateinfo(self, compose_path):
         fd, tmp_file_path = tempfile.mkstemp()
         os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
         os.close(fd)
-        self.modifyrepo('updateinfo', 'updateinfo.xml', tmp_file_path)
+        modifyrepo(self.comp_type, compose_path, 'updateinfo', 'xml', tmp_file_path)
         os.unlink(tmp_file_path)
-
-    def modifyrepo(self, filetype, filename, tempfile):
-        """
-        Inject a file into the repodata for each architecture with the help of createrepo_c.
-
-        Args:
-            filetype (basestring): What type of metadata will be inserted by createrepo_c.
-                This does allow any string to be inserted (custom types). There are some
-                types which are used with dnf repos as primary, updateinfo, comps, filelist etc.
-            filename (basestring): The actual name of the metadata file which will be inserted
-                (createrepo_c takes this as one of its arguments so the ouput file will be
-                {hash}-{filename}.xz)
-            tempfile (basestring): A temp file path. The file holds the dump of metadata until
-                copied to the repodata folder.
-        """
-        for arch in os.listdir(self.repo_path):
-            # path of repodata folder for the current arch
-            repodata = os.path.join(self.repo_path, arch, 'repodata')
-            log.info('Inserting %s into %s as %s', filename, repodata, filetype)
-            # the path of the metadata file
-            target_fname = os.path.join(repodata, filename)
-            # copy the temp file to the metadata file path
-            shutil.copyfile(tempfile, target_fname)
-            repomd_xml = os.path.join(repodata, 'repomd.xml')
-            repomd = cr.Repomd(repomd_xml)
-            # create a new record for our repomd.xml
-            rec = cr.RepomdRecord(filetype, target_fname)
-            # compress our metadata file with the self.comp_type
-            rec_comp = rec.compress_and_fill(self.hash_type, self.comp_type)
-            # add hash to the compresed metadata file
-            rec_comp.rename_file()
-            # set type of metadata
-            rec_comp.type = filetype
-            # insert metadata about our metadata in repomd.xml
-            repomd.set_record(rec_comp)
-            with file(repomd_xml, 'w') as repomd_file:
-                repomd_file.write(repomd.xml_dump())
-            os.unlink(target_fname)
-
-    def cache_repodata(self):
-        arch = os.listdir(self.repo_path)[0]  # Take the first arch
-        repodata = os.path.join(self.repo_path, arch, 'repodata')
-        if not os.path.isdir(repodata):
-            log.warning('Cannot find repodata to cache: %s' % repodata)
-            return
-        cache = self.cached_repodata
-        if os.path.isdir(cache):
-            shutil.rmtree(cache)
-        shutil.copytree(repodata, cache)
-        log.info('%s cached to %s' % (repodata, cache))

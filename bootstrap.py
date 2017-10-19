@@ -111,7 +111,7 @@ def link_system_libs():
                 'rpmUtils', 'sqlitecachec', '_sqlitecache', 'psycopg2',
                 'krbVmodule', 'deltarpm', '_deltarpmmodule',
                 'fedora_cert', 'libxml2', 'libxml2mod', 'librepo', 'createrepo_c',
-                'dnf', 'libcomps', 'gpg', 'gpgme', 'lzma', 'iniparse', 'hawkey',
+                'dnf', 'gpg', 'gpgme', 'lzma', 'iniparse', 'hawkey',
                 'yum'):
         _link_system_lib(mod)
 

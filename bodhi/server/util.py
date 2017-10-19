@@ -37,6 +37,7 @@ import arrow
 import bleach
 import colander
 import libravatar
+import librepo
 import markdown
 import requests
 import rpm
@@ -280,7 +281,6 @@ def sanity_check_repodata(myurl):
     Raises:
         bodhi.server.exceptions.RepodataException: If the repodata is not valid or does not exist.
     """
-    import librepo
     h = librepo.Handle()
     h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
     h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())
