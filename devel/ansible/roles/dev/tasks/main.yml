@@ -28,7 +28,6 @@
       - python-arrow
       - python-bleach
       - python-bugzilla
-      - python-bunch
       - python-click
       - python-cornice
       - python-cornice-sphinx
