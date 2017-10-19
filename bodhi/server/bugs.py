@@ -15,7 +15,7 @@
 import logging
 import xmlrpclib
 
-from bunch import Bunch
+from collections import namedtuple
 from kitchen.text.converters import to_unicode
 import bugzilla
 
@@ -24,6 +24,7 @@ from bodhi.server.config import config
 
 bugtracker = None
 log = logging.getLogger('bodhi')
+FakeBug = namedtuple('FakeBug', ['bug_id'])
 
 
 class BugTracker(object):
@@ -37,7 +38,7 @@ class BugTracker(object):
 class FakeBugTracker(BugTracker):
 
     def getbug(self, bug_id, *args, **kw):
-        return Bunch(bug_id=int(bug_id))
+        return FakeBug(bug_id=int(bug_id))
 
     def __noop__(self, *args, **kw):
         log.debug('__noop__(%s)' % str(args))

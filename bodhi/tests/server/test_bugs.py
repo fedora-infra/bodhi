@@ -17,7 +17,6 @@
 
 import unittest
 
-import bunch
 import mock
 import xmlrpclib
 
@@ -221,7 +220,7 @@ class TestFakeBugTracker(unittest.TestCase):
 
         b = bt.getbug(1234)
 
-        self.assertTrue(isinstance(b, bunch.Bunch))
+        self.assertTrue(isinstance(b, bugs.FakeBug))
         self.assertEqual(b.bug_id, 1234)
 
     @mock.patch('bodhi.server.bugs.log.debug')

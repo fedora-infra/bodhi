@@ -1,6 +1,5 @@
     python-alembic \
     python-bugzilla \
-    python-bunch \
     python-munch \
     python-openid \
     python-progressbar \
