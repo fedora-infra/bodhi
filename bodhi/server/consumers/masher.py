@@ -19,29 +19,29 @@ comprised of a fedmsg consumer that launches threads for each repository being
 mashed.
 """
 
-import copy
 import functools
 import hashlib
 import json
 import os
+import shutil
+import subprocess
+import tempfile
 import threading
 import time
 import urllib2
-from collections import defaultdict
 from datetime import datetime
 
-from fedmsg_atomic_composer.composer import AtomicComposer
-from fedmsg_atomic_composer.config import config as atomic_config
 from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
 import fedmsg.consumers
+import jinja2
 
-from bodhi.server import bugs, log, buildsys, notifications, mail, util
+from bodhi.server import bugs, log, buildsys, notifications, mail
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
-from bodhi.server.metadata import ExtendedMetadata
+from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Update, UpdateRequest, UpdateType, Release,
-                                 UpdateStatus, ReleaseState, Base)
+                                 UpdateStatus, ReleaseState, Base, ContentType)
 from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
 
 
@@ -68,6 +68,29 @@ def checkpoint(method):
     return wrapper
 
 
+def request_order_key(requestblob):
+    """This generates a sort key for the updates documents in generate_batches
+
+    Args:
+        requestblob: A dictionary as described in generate_batches
+
+    Returns:
+        int: Ordering key for this batch.
+
+    The key comes down to:
+        Stable + security: -3
+        Testing + security: -2
+        Stable: -1
+        Testing: 0
+    """
+    value = 0
+    if requestblob['has_security']:
+        value -= 2
+    if requestblob['phase'] == 'stable':
+        value -= 1
+    return value
+
+
 class Masher(fedmsg.consumers.FedmsgConsumer):
     """The Bodhi Masher.
 
@@ -88,7 +111,6 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     - Expire buildroot overrides
     - Remove pending tags
     - Send fedmsgs
-    - Update comps
     - mash
 
 Things to do while we're waiting on mash
@@ -150,24 +172,66 @@ Once mash is done:
 
         self.work(msg)
 
-    def prioritize_updates(self, releases):
-        """Return 2 batches of repos: important, and normal.
+    def generate_batches(self, session, update_titles):
+        """Generate a sorted list of batches to perform.
 
-        At the moment an important repo is one that contains a security update.
+        Args:
+            session: Database transaction
+            update_titles: List of models.Update.title
+
+        Returns:
+            list: A list of dictionaries with the following keys:
+                title: Name of the "batch" ("f27-stable")
+                contenttype: instance of models.ContentType
+                updates: list of models.Update instances
+                phase: "stable" | "testing"
+                has_security: bool
+
+        Raises:
+            ValueError: If a submitted update could not be found
+            ValueError: if updates exist with multiple types of builds
         """
-        important, normal = [], []
-        for release in releases:
-            for request, updates in releases[release].items():
-                update_titles = [update.title for update in updates]
-                for update in updates:
-                    if update.type is UpdateType.security:
-                        important.append((release, request, update_titles))
-                        self.log.info('%s %s contains a security update' % (
-                            release, request))
-                        break
-                else:
-                    normal.append((release, request, update_titles))
-        return important, normal
+        work = {}
+        for title in update_titles:
+            update = session.query(Update).filter_by(title=title).one()
+            if not update.request:
+                self.log.info('%s request was revoked', update.title)
+                continue
+            update.locked = True
+            update.date_locked = datetime.utcnow()
+            # ASSUMPTION: For now, updates can only be of a single type.
+            ctype = None
+            for build in update.builds:
+                if ctype is None:
+                    ctype = build.type
+                elif ctype is not build.type:  # pragma: no cover
+                    # This branch is not covered because the Update.validate_builds validator
+                    # catches the same assumption breakage. This check here is extra for the
+                    # time when someone adds multitype updates and forgets to update this.
+                    raise ValueError('Builds of multiple types found in %s'
+                                     % title)
+            # This key is just to insert things in the same place in the "work"
+            # dict.
+            key = '%s-%s-%s' % (update.release.name, update.request.value,
+                                ctype.value)
+            if key in work:
+                work[key]['updates'].append(title)
+                work[key]['has_security'] = (
+                    work[key]['has_security'] or (update.type is UpdateType.security))
+            else:
+                work[key] = {'title': '%s-%s' % (update.release.name,
+                                                 update.request.value),
+                             'contenttype': ctype,
+                             'updates': [title],
+                             'phase': update.request.value,
+                             'release': update.release.name,
+                             'request': update.request.value,
+                             'has_security': update.type is UpdateType.security}
+
+        # Now that we have a full list of all the release-request-ctype requests, let's sort them
+        batches = work.values()
+        batches.sort(key=request_order_key)
+        return batches
 
     def work(self, msg):
         """Begin the push process.
@@ -184,52 +248,61 @@ Once mash is done:
         notifications.publish(topic="mashtask.start", msg=dict(agent=agent), force=True)
 
         with self.db_factory() as session:
-            releases = self.organize_updates(session, body)
-            batches = self.prioritize_updates(releases)
+            batches = self.generate_batches(session, body['updates'])
 
         results = []
         # Important repos first, then normal
+        last_key = None
+        threads = []
         for batch in batches:
-            # Stable first, then testing
-            for req in ('stable', 'testing'):
-                threads = []
-                for release, request, updates in batch:
-                    if request == req:
-                        self.log.info('Starting thread for %s %s for %d updates',
-                                      release, request, len(updates))
-                        thread = MasherThread(release, request, updates, agent,
-                                              self.log, self.db_factory,
-                                              self.mash_dir, resume)
-                        threads.append(thread)
-                        thread.start()
+            if last_key is not None and request_order_key(batch) != last_key:
+                # This means that after we submit all Stable+Security updates, we wait with kicking
+                # off the next series of mashes until that finishes.
+                self.log.info('All mashes for priority %s running, waiting', last_key)
                 for thread in threads:
                     thread.join()
                     for result in thread.results():
                         results.append(result)
 
+            last_key = request_order_key(batch)
+            self.log.info('Now starting mashes for priority %s', last_key)
+
+            masher = get_masher(batch['contenttype'])
+            if not masher:
+                self.log.error('Unsupported content type %s submitted for mashing. SKIPPING',
+                               batch['contenttype'].value)
+                continue
+
+            self.log.info('Starting masher type %s for %s with %d updates',
+                          masher, batch['title'], len(batch['updates']))
+            thread = masher(batch['release'], batch['request'], batch['updates'], agent, self.log,
+                            self.db_factory, self.mash_dir, resume)
+            threads.append(thread)
+            thread.start()
+
+        self.log.info('All of the batches are running. Now waiting for the final results')
+        for thread in threads:
+            thread.join()
+            for result in thread.results():
+                results.append(result)
+
         self.log.info('Push complete!  Summary follows:')
         for result in results:
             self.log.info(result)
 
-    def organize_updates(self, session, body):
-        # {Release: {UpdateRequest: [Update,]}}
-        releases = defaultdict(lambda: defaultdict(list))
-        for title in body['updates']:
-            update = session.query(Update).filter_by(title=title).first()
-            if update:
-                if not update.request:
-                    self.log.info('%s request revoked' % update.title)
-                    continue
-                update.locked = True
-                update.date_locked = datetime.utcnow()
-                repo = releases[update.release.name][update.request.value]
-                repo.append(update)
-            else:
-                self.log.warn('Cannot find update: %s' % title)
-        return releases
+
+def get_masher(content_type):
+    """Function to return the correct MasherThread subclass for content_type."""
+    mashers = [RPMMasherThread, ModuleMasherThread]
+    for possible in mashers:
+        if possible.ctype is content_type:
+            return possible
 
 
 class MasherThread(threading.Thread):
+    """The base class that defines common things for all mashings."""
+    ctype = None
+    pungi_template_config_key = None
 
     def __init__(self, release, request, updates, agent,
                  log, db_factory, mash_dir, resume=False):
@@ -247,11 +320,13 @@ class MasherThread(threading.Thread):
         self.add_tags_sync = []
         self.move_tags_sync = []
         self.testing_digest = {}
+        self.path = None
         self.state = {
             'updates': updates,
             'completed_repos': []
         }
         self.success = False
+        self.devnull = None
 
     def run(self):
         try:
@@ -288,12 +363,13 @@ class MasherThread(threading.Thread):
 
         self.log.info('Running MasherThread(%s)' % self.id)
         self.init_state()
-        if not self.resume:
-            self.init_path()
 
         notifications.publish(
             topic="mashtask.mashing",
-            msg=dict(repo=self.id, updates=self.state['updates'], agent=self.agent),
+            msg=dict(repo=self.id,
+                     updates=self.state['updates'],
+                     agent=self.agent,
+                     ctype=self.ctype.value),
             force=True,
         )
 
@@ -315,10 +391,9 @@ class MasherThread(threading.Thread):
 
             self.expire_buildroot_overrides()
             self.remove_pending_tags()
-            self.update_comps()
 
             if not self.skip_mash:
-                mash_thread = self.mash()
+                mash_process = self.mash()
 
             # Things we can do while we're mashing
             self.complete_requests()
@@ -327,14 +402,9 @@ class MasherThread(threading.Thread):
             if not self.skip_mash:
                 uinfo = self.generate_updateinfo()
 
-                self.wait_for_mash(mash_thread)
+                self.wait_for_mash(mash_process)
 
-                uinfo.insert_updateinfo()
-                uinfo.cache_repodata()
-
-            # Compose OSTrees from our freshly mashed repos
-            if config.get('compose_atomic_trees'):
-                self.compose_atomic_trees()
+                uinfo.insert_updateinfo(self.path)
 
             if not self.skip_mash:
                 self.sanity_check_repo()
@@ -376,9 +446,8 @@ class MasherThread(threading.Thread):
         self.log.debug('Loading updates')
         updates = []
         for title in self.state['updates']:
-            update = self.db.query(Update).filter_by(title=title).first()
-            if update:
-                updates.append(update)
+            update = self.db.query(Update).filter_by(title=title).one()
+            updates.append(update)
         if not updates:
             raise Exception('Unable to load updates: %r' %
                             self.state['updates'])
@@ -465,13 +534,6 @@ class MasherThread(threading.Thread):
             force=True,
         )
 
-    def init_path(self):
-        self.path = os.path.join(self.mash_dir, self.id + '-' +
-                                 time.strftime("%y%m%d.%H%M"))
-        if not os.path.isdir(self.path):
-            os.makedirs(self.path)
-            self.log.info('Creating new mash: %s' % self.path)
-
     def init_state(self):
         if not os.path.exists(self.mash_dir):
             self.log.info('Creating %s' % self.mash_dir)
@@ -504,17 +566,20 @@ class MasherThread(threading.Thread):
                 self.log.info('Resuming push with completed repo: %s' % self.path)
                 return
         self.log.info('Resuming push without any completed repos')
-        self.init_path()
 
     def remove_state(self):
         self.log.info('Removing state: %s', self.mash_lock)
         os.remove(self.mash_lock)
 
     def finish(self, success):
+        if hasattr(self, '_pungi_conf_dir') and os.path.exists(self._pungi_conf_dir):
+            # Let's clean up the pungi configs we wrote
+            shutil.rmtree(self._pungi_conf_dir)
+
         self.log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
         notifications.publish(
             topic="mashtask.complete",
-            msg=dict(success=success, repo=self.id, agent=self.agent),
+            msg=dict(success=success, repo=self.id, agent=self.agent, ctype=self.ctype.value),
             force=True,
         )
 
@@ -623,56 +688,95 @@ class MasherThread(threading.Thread):
         self.log.debug('remove_pending_tags koji.multiCall result = %r',
                        result)
 
-    @property
-    def my_comps_dir(self):
-        """
-        Return a path to a directory that can be used to clone the comps repo.
+    def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
+        raise NotImplementedError
 
-        Returns:
-            basestring: A path to a directory that can be used for comps.
-        """
-        comps_dir = config.get('comps_dir')
-        return os.path.join(comps_dir, self.id)
+    def create_pungi_config(self):
+        loader = jinja2.FileSystemLoader(searchpath=config.get('pungi.basepath'))
+        env = jinja2.Environment(loader=loader, autoescape=False)
 
-    def update_comps(self):
-        """
-        Update our comps git module and merge the latest translations so we can
-        pass it to mash insert into the repodata.
-        """
-        self.log.info("Updating comps")
-        comps_url = config.get('comps_url')
+        env.globals['id'] = self.id
+        env.globals['release'] = self.release
+        env.globals['request'] = self.request
+        env.globals['updates'] = self.updates
 
-        if not os.path.exists(self.my_comps_dir):
-            util.cmd(['git', 'clone', comps_url, self.my_comps_dir],
-                     os.path.dirname(self.my_comps_dir))
+        config_template = config.get(self.pungi_template_config_key)
+        template = env.get_template(config_template)
 
-        util.cmd(['git', 'pull'], self.my_comps_dir)
-        util.cmd(['make'], self.my_comps_dir)
+        self._pungi_conf_dir = tempfile.mkdtemp(prefix='bodhi-pungi-%s-' % self.id)
+
+        with open(os.path.join(self._pungi_conf_dir, 'pungi.conf'), 'w') as conffile:
+            conffile.write(template.render())
+
+        self.copy_additional_pungi_files(self._pungi_conf_dir, env)
 
     def mash(self):
-        if self.path in self.state['completed_repos']:
+        if self.path and self.path in self.state['completed_repos']:
             self.log.info('Skipping completed repo: %s', self.path)
             return
 
-        comps = os.path.join(self.my_comps_dir, 'comps-%s.xml' %
-                             self.release.branch)
-        previous = os.path.join(config.get('mash_stage_dir'), self.id)
+        # We have a thread-local devnull FD so that we can close them after the mash is done
+        self.devnull = open(os.devnull, 'wb')
 
-        mash_thread = MashThread(self.id, self.path, comps, previous, self.log)
-        mash_thread.start()
-        return mash_thread
+        previous = self.get_previous_compose()
+        self.create_pungi_config()
+        config_file = os.path.join(self._pungi_conf_dir, 'pungi.conf')
+        pungi_cmd = [config.get('pungi.cmd'),
+                     '--config', config_file,
+                     '--no-label',
+                     '--target-dir', self.mash_dir]
+        if previous:
+            pungi_cmd += ['--old-composes', previous]
 
-    def wait_for_mash(self, mash_thread):
-        if mash_thread is None:
+        self.log.info('Running the pungi command: %s', pungi_cmd)
+        mash_process = subprocess.Popen(pungi_cmd,
+                                        # Nope. No shell for you
+                                        shell=False,
+                                        # Should be useless, but just to set something predictable
+                                        cwd=self.mash_dir,
+                                        # Pungi will logs its stdout into pungi.global.log
+                                        stdout=self.devnull,
+                                        # Stderr should also go to pungi.global.log if it starts
+                                        stderr=subprocess.PIPE,
+                                        # We will never have additional input
+                                        stdin=self.devnull)
+        self.log.info('Pungi running as PID: %s', mash_process.pid)
+        # Since the mash process takes a long time, we can safely just wait 3 seconds to abort the
+        # entire mash early if Pungi fails to start up correctly.
+        time.sleep(3)
+        if mash_process.poll() not in [0, None]:
+            self.log.error('Pungi process terminated with error within 3 seconds! Abandoning!')
+            _, err = mash_process.communicate()
+            self.log.error('Stderr: %s', err)
+            self.devnull.close()
+            raise Exception('Pungi returned error, aborting!')
+
+        return mash_process
+
+    def get_previous_compose(self):
+        """Function to return the previous composes' output."""
+        return os.path.join(config.get('mash_stage_dir'), self.id)
+
+    def wait_for_mash(self, mash_process):
+        if mash_process is None:
             self.log.info('Not waiting for mash thread, as there was no mash')
             return
-        self.log.debug('Waiting for mash thread to finish')
-        mash_thread.join()
-        if mash_thread.success:
-            self.state['completed_repos'].append(self.path)
-            self.save_state()
+        self.log.info('Waiting for mash thread to finish')
+        _, err = mash_process.communicate()
+        self.devnull.close()
+        if mash_process.returncode != 0:
+            self.log.error('Mashing process exited with exit code %d', mash_process.returncode)
+            self.log.error('Stderr: %s', err)
+            raise Exception('Pungi exited with status %d' % mash_process.returncode)
         else:
-            raise Exception
+            self.log.info('Mashing finished')
+
+        # Find the real name of the directory pungi just created
+        pungi_latest_link_name = 'latest-%s-%s' % (self.id, self.release.version)
+        pungi_latest_real_name = os.readlink(os.path.join(self.mash_dir, pungi_latest_link_name))
+        self.path = os.path.join(self.mash_dir, pungi_latest_real_name)
+        self.state['completed_repos'].append(self.path)
+        self.save_state()
 
     def complete_requests(self):
         """Mark all the updates as pushed using Update.request_complete()."""
@@ -707,27 +811,69 @@ class MasherThread(threading.Thread):
 
     def generate_updateinfo(self):
         self.log.info('Generating updateinfo for %s' % self.release.name)
-        uinfo = ExtendedMetadata(self.release, self.request,
-                                 self.db, self.path)
+        uinfo = UpdateInfoMetadata(self.release, self.request,
+                                   self.db, self.mash_dir)
         self.log.info('Updateinfo generation for %s complete' % self.release.name)
         return uinfo
 
     def sanity_check_repo(self):
         """Sanity check our repo.
 
+            - make sure we didn't compose a repo full of symlinks
             - sanity check our repodata
-        """
-        mash_path = os.path.join(self.path, self.id)
-        self.log.info("Running sanity checks on %s" % mash_path)
 
-        # sanity check our repodata
-        arches = os.listdir(mash_path)
+        This basically checks that pungi was run with gather_method='hardlink-or-copy' so that
+        we get a repository with either hardlinks or copied files.
+        This means that we when we go and sync generated repositories out, we do not need to take
+        special case to copy the target files rather than symlinks.
+        """
+        self.log.info("Running sanity checks on %s" % self.path)
+
+        arches = os.listdir(os.path.join(self.path, 'compose', 'Everything'))
         for arch in arches:
+            # sanity check our repodata
             try:
-                repodata = os.path.join(mash_path, arch, 'repodata')
+                if arch == 'source':
+                    repodata = os.path.join(self.path, 'compose',
+                                            'Everything', arch, 'tree', 'repodata')
+                else:
+                    repodata = os.path.join(self.path, 'compose',
+                                            'Everything', arch, 'os', 'repodata')
                 sanity_check_repodata(repodata)
-            except Exception as e:
-                self.log.error("Repodata sanity check failed!\n%s" % str(e))
+            except Exception:
+                self.log.exception("Repodata sanity check failed!")
+                raise
+
+            # make sure that pungi didn't symlink our packages
+            try:
+                if arch == 'source':
+                    dirs = [('tree', 'Packages')]
+                else:
+                    dirs = [('debug', 'tree', 'Packages'), ('os', 'Packages')]
+
+                # Example of full path we are checking:
+                # self.path/compose/Everything/os/Packages/s/something.rpm
+                for checkdir in dirs:
+                    checkdir = os.path.join(self.path, 'compose', 'Everything', arch, *checkdir)
+                    subdirs = os.listdir(checkdir)
+                    # subdirs is the self.path/compose/Everything/os/Packages/{a,b,c,...}/ dirs
+                    #
+                    # Let's check the first file in each subdir. If they are correct, we'll assume
+                    # the rest is correct
+                    # This is to avoid tons and tons of IOPS for a bunch of files put in in the
+                    # same way
+                    for subdir in subdirs:
+                        for checkfile in os.listdir(os.path.join(checkdir, subdir)):
+                            if not checkfile.endswith('.rpm'):
+                                continue
+                            if os.path.islink(os.path.join(checkdir, subdir, checkfile)):
+                                self.log.error('Pungi out directory contains at least one '
+                                               'symlink at %s', checkfile)
+                                raise Exception('Symlinks found')
+                            # We have checked the first rpm in the subdir
+                            break
+            except Exception:
+                self.log.exception('Unable to check pungi mashed repositories')
                 raise
 
         return True
@@ -741,8 +887,8 @@ class MasherThread(threading.Thread):
         link = os.path.join(stage_dir, self.id)
         if os.path.islink(link):
             os.unlink(link)
-        self.log.info("Creating symlink: %s => %s" % (self.path, link))
-        os.symlink(os.path.join(self.path, self.id), link)
+        self.log.info("Creating symlink: %s => %s" % (link, self.path))
+        os.symlink(self.path, link)
 
     def wait_for_sync(self):
         """Block until our repomd.xml hits the master mirror"""
@@ -752,17 +898,26 @@ class MasherThread(threading.Thread):
             msg=dict(repo=self.id, agent=self.agent),
             force=True,
         )
-        mash_path = os.path.join(self.path, self.id)
-        arch = os.listdir(mash_path)[0]
+        mash_path = os.path.join(self.path, 'compose', 'Everything')
+        checkarch = None
+        # Find the first non-source arch to check against
+        for arch in os.listdir(mash_path):
+            if arch == 'source':
+                continue
+            checkarch = arch
+            break
+        if not checkarch:
+            raise Exception('Not found an arch to wait_for_sync with')
 
-        repomd = os.path.join(mash_path, arch, 'repodata', 'repomd.xml')
+        repomd = os.path.join(mash_path, arch, 'os', 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
             self.log.error('Cannot find local repomd: %s', repomd)
             return
 
         master_repomd_url = self._get_master_repomd_url(arch)
 
-        checksum = hashlib.sha1(file(repomd).read()).hexdigest()
+        with open(repomd) as repomdf:
+            checksum = hashlib.sha1(repomdf.read()).hexdigest()
         while True:
             try:
                 self.log.info('Polling %s' % master_repomd_url)
@@ -917,53 +1072,6 @@ class MasherThread(threading.Thread):
         updates.sort(key=lambda update: update.days_in_testing, reverse=True)
         return updates
 
-    @checkpoint
-    def compose_atomic_trees(self):
-        """Compose Atomic OSTrees for each tag that we mashed."""
-        composer = AtomicComposer()
-        mashed_repos = dict([('-'.join(os.path.basename(repo).split('-')[:-1]), repo)
-                             for repo in self.state['completed_repos']])
-        for tag, mash_path in mashed_repos.items():
-            if tag not in atomic_config['releases']:
-                log.warn('Cannot find atomic configuration for %r', tag)
-                continue
-
-            # Update the repo URLs to point to our local mashes
-            release = copy.deepcopy(atomic_config['releases'][tag])
-            mash_path = 'file://' + os.path.join(mash_path, tag, release['arch'])
-
-            if 'updates-testing' in tag:
-                release['repos']['updates-testing'] = mash_path
-                updates_tag = tag.replace('-testing', '')
-                if updates_tag in mashed_repos:
-                    release['repos']['updates'] = 'file://' + os.path.join(
-                        mashed_repos[updates_tag], updates_tag,
-                        release['arch'])
-                log.debug('Using the updates repo from %s',
-                          release['repos']['updates'])
-            else:
-                release['repos']['updates'] = mash_path
-
-            # Compose the tree, and raise an exception upon failure
-            notifications.publish(topic="ostree.compose.start",
-                                  msg=dict(tag=tag),
-                                  force=True)
-            result = composer.compose(release)
-            if result['result'] != 'success':
-                self.log.error(result)
-                notifications.publish(topic="ostree.compose.fail",
-                                      msg=dict(tag=tag),
-                                      force=True)
-                raise Exception('%s atomic compose failed' % tag)
-            else:
-                self.log.info('%s atomic tree compose successful', tag)
-                notifications.publish(
-                    topic="ostree.compose.finish",
-                    msg=dict(tag=tag,
-                             ref=result.get('ref'),
-                             commitid=result.get('commitid')),
-                    force=True)
-
     def _get_master_repomd_url(self, arch):
         """
         Return the master repomd URL for the given arch.
@@ -999,57 +1107,67 @@ class MasherThread(threading.Thread):
         return master_repomd % (self.release.version, arch)
 
 
-class MashThread(threading.Thread):
-    """
-    A Thread that performs the subprocess call to mash.
+class RPMMasherThread(MasherThread):
+    ctype = ContentType.rpm
+    pungi_template_config_key = 'pungi.conf.rpm'
 
-    Attributes:
-        log (logging.Logger): A logger for the thread to use.
-        mash_cmd (basestring): The command to run, including arguments.
-        name (basestring): The tag being mashed. This is set so that the thread name will appear in
-            the logs.
-        success (bool): True if the subprocess finished with exit code 0, False if the process is
-            still running or exited with a non-0 exit code.
-        tag (basestring): The tag being mashed.
-    """
+    def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
+        variants_template = template_env.get_template('variants.rpm.xml.j2')
 
-    def __init__(self, tag, outputdir, comps, previous, log):
+        with open(os.path.join(pungi_conf_dir, 'variants.xml'), 'w') as variantsfile:
+            variantsfile.write(variants_template.render())
+
+
+class ModuleMasherThread(MasherThread):
+    ctype = ContentType.module
+    pungi_template_config_key = 'pungi.conf.module'
+
+    def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
+        template = template_env.get_template('variants.module.xml.j2')
+
+        module_list = self._generate_module_list()
+
+        with open(os.path.join(pungi_conf_dir, 'module-variants.xml'), 'w') as variantsfile:
+            variantsfile.write(template.render(modules=module_list))
+
+    def generate_testing_digest(self):
+        """Temporarily disable testing digests for modules.
+
+        At some point, we'd want to fill the testing digest for modules too, but we basically
+        need to determine what kind of emails we want to send and write templates.
+        For now, let's skip this, since the current version tries to read RPM headers, which
+        do not exist in the module build objects.
         """
-        Initialize the MashThread.
+        pass
 
-        Args:
-            tag (basestring): The tag to mash.
-            outputdir (basestring): The mash output directory.
-            comps (basestring): A path to a compsfile to be used during the mash.
-            previous (basestring): The path to the previous mash for this tag.
-            log (logging.Logger): A logger for the MashThread to use.
+    def _generate_module_list(self):
         """
-        super(MashThread, self).__init__()
-        self.tag = tag
-        self.log = log
-        self.success = False
-        mash_cmd = 'mash -o {outputdir} -c {config} -f {compsfile} {tag}'
-        mash_conf = config.get('mash_conf')
-        if os.path.exists(previous):
-            mash_cmd += ' -p {}'.format(previous)
-        self.mash_cmd = mash_cmd.format(outputdir=outputdir, config=mash_conf,
-                                        compsfile=comps, tag=self.tag).split()
-        # Set our thread's "name" so it shows up nicely in the logs.
-        # https://docs.python.org/2/library/threading.html#thread-objects
-        self.name = tag
+        Generates a list of NSV which should be used for pungi modular compose
 
-    def run(self):
-        """Perform the mash in a subprocess."""
-        start = time.time()
-        self.log.info('Mashing %s', self.tag)
-        out, err, returncode = util.cmd(self.mash_cmd)
-        self.log.info('Took %s seconds to mash %s', time.time() - start,
-                      self.tag)
-        if returncode != 0:
-            self.log.error('There was a problem running mash (%d)' % returncode)
-            self.log.error(out)
-            self.log.error(err)
-            raise Exception('mash failed')
-        else:
-            self.success = True
-        return out, err, returncode
+        Returns:
+          list: list of NSV string which should be composed
+        """
+        newest_builds = {}
+        # we loop through builds so we get rid of older builds and get only
+        # a dict with the newest builds
+        for build in self.release.builds:
+            nsv = build.nvr.rsplit('-', 1)
+            ns = nsv[0]
+            version = nsv[1]
+
+            if ns in newest_builds:
+                curr_version = newest_builds[ns]
+                if int(curr_version) < int(version):
+                    newest_builds[ns] = version
+            else:
+                newest_builds[ns] = version
+
+        # make sure that the modules we want to update get their correct versions
+        for update in self.updates:
+            for build in update.builds:
+                nsv = build.nvr.rsplit('-', 1)
+                ns = nsv[0]
+                version = nsv[1]
+                newest_builds[ns] = version
+
+        return ["%s-%s" % (nstream, v) for nstream, v in newest_builds.iteritems()]

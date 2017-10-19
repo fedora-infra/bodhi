@@ -1139,6 +1139,7 @@ class Update(Base):
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
     greenwave_summary_string = Column(Unicode(255))
 
+    # WARNING: consumers/masher.py assumes that this validation is performed!
     @validates('builds')
     def validate_builds(self, key, build):
         """

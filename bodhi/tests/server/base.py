@@ -30,8 +30,8 @@ from bodhi.tests.server import create_update, populate
 original_config = config.config.copy()
 engine = None
 _app = None
-DEFAULT_DB = 'sqlite:///' + os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '../../../bodhi-tests.sqlite'))
+PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../'))
+DEFAULT_DB = 'sqlite:///' + os.path.join(PROJECT_PATH, 'bodhi-tests.sqlite')
 
 
 def _configure_test_db(db_uri=DEFAULT_DB):

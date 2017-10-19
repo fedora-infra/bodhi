@@ -2,13 +2,6 @@
 use = egg:bodhi-server
 
 ##
-## Atomic OSTree support
-## This will compose Atomic OSTrees during the push process using the fedmsg-atomic-composer
-## https://github.com/fedora-infra/fedmsg-atomic-composer
-##
-# compose_atomic_trees = False
-
-##
 ## Messages
 ##
 
@@ -85,7 +78,7 @@ badge_ids = binary-star|both-bull-and-self-transcended-tester-viii|catching-the-
 # message_id_email_domain = admin.fedoraproject.org
 
 ##
-## Mash settings
+## Masher settings
 ##
 
 # Where to initially mash repositories. You can use %(here)s to reference the location of this file.
@@ -95,12 +88,22 @@ badge_ids = binary-star|both-bull-and-self-transcended-tester-viii|catching-the-
 # location of this file.
 # mash_stage_dir =
 
-# mash_conf = /etc/mash/mash.conf
+# The base path where pungi configs will be stored
+# pungi.basepath = /etc/bodhi
+# The Pungi executable to use when mashing.
+# pungi.cmd = /usr/bin/pungi-koji
+# The following settings reference filenames of jinja2 templates found in pungi.basepath to be used as Pungi configs
+# for mashing modules or RPMs (The RPM config includes dnf, yum, and atomic repos). The following jinja2 template
+# varliables are available for use to customize the Pungi config to the Release and Updates:
+#
+#  * 'id': The id of the Release being mashed.
+#  * 'release': The Release being mashed.
+#  * 'request': The request being mashed.
+#  * 'updates': The Updates being mashed.
+#
+# pungi.conf.module = pungi.module.conf
+# pungi.conf.rpm = pungi.rpm.conf
 
-
-## Comps configuration
-# comps_dir = %(here)s/masher/comps
-# comps_url = https://git.fedorahosted.org/comps.git
 
 ##
 ## Mirror settings

@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from cStringIO import StringIO
 import datetime
+import errno
 import json
 import os
 import shutil
@@ -29,12 +30,13 @@ import urlparse
 
 import mock
 
-from bodhi.server import buildsys, log, initialize_db
+from bodhi.server import buildsys, exceptions, log, initialize_db
 from bodhi.server.config import config
-from bodhi.server.consumers.masher import Masher, MasherThread
+from bodhi.server.consumers.masher import (
+    Masher, MasherThread, RPMMasherThread, ModuleMasherThread)
 from bodhi.server.models import (
     Base, Build, BuildrootOverride, Release, ReleaseState, RpmBuild, TestGatingStatus, Update,
-    UpdateRequest, UpdateStatus, UpdateType, User)
+    UpdateRequest, UpdateStatus, UpdateType, User, ModuleBuild, ContentType, Package)
 from bodhi.server.util import mkmetadatadir, transactional_session_maker
 from bodhi.tests.server import base, populate
 
@@ -98,6 +100,13 @@ def makemsg(body=None):
     }
 
 
+# We don't need real pungi config files, we just need them to exist. Let's also mock all calls to
+# pungi.
+@mock.patch.dict(
+    config,
+    {'pungi.basepath': os.path.join(
+        base.PROJECT_PATH, 'bodhi/tests/server/consumers/pungi.basepath'),
+     'pungi.cmd': '/usr/bin/true'})
 class TestMasher(unittest.TestCase):
 
     def setUp(self):
@@ -169,6 +178,66 @@ class TestMasher(unittest.TestCase):
             update.request = UpdateRequest.stable
             session.flush()
 
+    def _generate_fake_pungi(self, masher_thread, tag, release):
+        """
+        Return a function that is suitable for mock to replace the call to Popen that run Pungi.
+
+        Args:
+            masher_thread (bodhi.server.consumers.masher.MasherThread): The MasherThread that Pungi
+                is running inside.
+            tag (basestring): The type of tag you wish to mash ("stable_tag" or "testing_tag").
+            release (bodhi.server.models.Release): The Release you are mashing.
+        Returns:
+            method: A fake Pungi subprocess that will create some basic repo files and folders for
+                testing.
+        """
+        def fake_pungi(*args, **kwargs):
+            """
+            Create some test files/folders and return a fake Popen() return MagicMock.
+
+            Returns:
+                mock.MagicMock: A fake return value suitable for Popen().
+            """
+            fake_repodata = '''<?xml version="1.0" encoding="UTF-8"?>
+<repomd xmlns="http://linux.duke.edu/metadata/repo"
+    xmlns:rpm="http://linux.duke.edu/metadata/rpm">
+<revision>1508375628</revision></repomd>'''
+
+            # We need to fake Pungi having run or wait_for_mash() will fail to find the output dir
+            _tag = getattr(release, tag)
+            mash_dir = os.path.join(
+                masher_thread.mash_dir,
+                '%s-%s-%s-%s.0' % (release.version, _tag, release.version,
+                                   time.strftime("%y%m%d")))
+
+            for arch in ('i386', 'x86_64', 'armhfp'):
+                arch_repo = os.path.join(mash_dir, 'compose', 'Everything', arch)
+                repodata = os.path.join(arch_repo, 'os', 'repodata')
+                os.makedirs(repodata)
+                os.makedirs(os.path.join(arch_repo, 'debug/tree/Packages'))
+                os.makedirs(os.path.join(arch_repo, 'os/Packages'))
+                with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                    repomd.write(fake_repodata)
+
+            source_repo = os.path.join(mash_dir, 'compose', 'Everything', 'source')
+            repodata = os.path.join(source_repo, 'tree', 'repodata')
+            os.makedirs(repodata)
+            os.makedirs(os.path.join(source_repo, 'tree', 'Packages'))
+            with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                repomd.write(fake_repodata)
+
+            os.symlink(
+                mash_dir,
+                os.path.join(masher_thread.mash_dir,
+                             'latest-%s-%s' % (_tag, release.version)))
+            fake_popen = mock.MagicMock()
+            fake_popen.communicate = lambda: (mock.MagicMock(), 'hello')
+            fake_popen.poll.return_value = None
+            fake_popen.returncode = 0
+            return fake_popen
+
+        return fake_pungi
+
     @mock.patch('bodhi.server.consumers.masher.bugs.set_bugtracker')
     def test___init___sets_bugtracker(self, set_bugtracker):
         """
@@ -206,12 +275,13 @@ class TestMasher(unittest.TestCase):
     def test_push_invalid_update(self, publish):
         msg = makemsg()
         msg['body']['msg']['updates'] = u'invalidbuild-1.0-1.fc17'
-        self.masher.consume(msg)
-        self.assertEquals(len(publish.call_args_list), 1)
+        try:
+            self.masher.consume(msg)
+            assert False, "Invalid builds should have crashed the mash"
+        except:
+            pass
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -232,7 +302,10 @@ class TestMasher(unittest.TestCase):
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=False, repo='f17-updates-testing', agent='lmacken'),
+            msg=dict(success=False,
+                     ctype='rpm',
+                     repo='f17-updates-testing',
+                     agent='lmacken'),
             force=True)
 
         with self.db_factory() as session:
@@ -249,8 +322,6 @@ class TestMasher(unittest.TestCase):
                 pass
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -277,7 +348,10 @@ class TestMasher(unittest.TestCase):
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=True, repo='f17-updates-testing', agent='lmacken'),
+            msg=dict(success=True,
+                     ctype='rpm',
+                     repo='f17-updates-testing',
+                     agent='lmacken'),
             force=True)
 
         # Ensure our single update was moved
@@ -317,8 +391,6 @@ class TestMasher(unittest.TestCase):
             self.assertIsNone(up.request)
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -327,7 +399,7 @@ class TestMasher(unittest.TestCase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_tag_ordering(self, publish, *args):
         """
-        Test pushing an batch of updates with multiple builds for the same package.
+        Test pushing a batch of updates with multiple builds for the same package.
         Ensure that the latest version is tagged last.
         """
         otherbuild = u'bodhi-2.0-2.fc17'
@@ -353,7 +425,10 @@ class TestMasher(unittest.TestCase):
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
-            msg=dict(success=True, repo='f17-updates-testing', agent='lmacken'),
+            msg=dict(success=True,
+                     ctype='rpm',
+                     repo='f17-updates-testing',
+                     agent='lmacken'),
             force=True)
 
         # Ensure our two updates were moved
@@ -381,8 +456,6 @@ class TestMasher(unittest.TestCase):
             t.remove_state()
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -391,8 +464,8 @@ class TestMasher(unittest.TestCase):
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.mail._send_mail')
     def test_testing_digest(self, mail, *args):
-        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
-                         'ralph', log, self.db_factory, self.tempdir)
+        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
             t.db = session
             t.work()
@@ -434,11 +507,17 @@ References:
              '------------------------------------------------------------\n\n') % (
                 config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
 
-    def test_sanity_check(self):
-        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
-                         'ralph', log, self.db_factory, self.tempdir)
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
+    def test_sanity_check_no_arches(self, save_state):
+        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
+        t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
-        t.init_path()
+        with self.db_factory() as session:
+            t.db = session
+            t.release = session.query(Release).filter_by(name='F17').one()
+            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
+            t.db = None
 
         # test without any arches
         try:
@@ -447,40 +526,141 @@ References:
         except:
             pass
 
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
+    def test_sanity_check_valid(self, save_state):
+        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
+        t.devnull = mock.MagicMock()
+        t.id = 'f17-updates-testing'
+        with self.db_factory() as session:
+            t.db = session
+            t.release = session.query(Release).filter_by(name='F17').one()
+            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
+            t.db = None
+
         # test with valid repodata
         for arch in ('i386', 'x86_64', 'armhfp'):
-            repo = os.path.join(t.path, t.id, arch)
-            os.makedirs(repo)
+            repo = os.path.join(t.path, 'compose', 'Everything', arch, 'os')
             mkmetadatadir(repo)
+            os.makedirs(os.path.join(repo, 'Packages', 'a'))
+            name = 'test.rpm'
+            if arch == 'armhfp':
+                name = 'test.notrpm'
+            with open(os.path.join(repo, 'Packages', 'a', name), 'w') as tf:
+                tf.write('foo')
+
+        mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
+        os.makedirs(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree', 'Packages',
+                                 'a'))
+        with open(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree', 'Packages', 'a',
+                               'test.src.rpm'), 'w') as tf:
+            tf.write('bar')
 
         t.sanity_check_repo()
 
-        # test with truncated/busted repodata
-        xml = os.path.join(t.path, t.id, 'i386', 'repodata', 'repomd.xml')
-        repomd = open(xml).read()
-        with open(xml, 'w') as f:
-            f.write(repomd[:-10])
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
+    def test_sanity_check_broken_repodata(self, save_state):
+        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
+        t.devnull = mock.MagicMock()
+        t.id = 'f17-updates-testing'
+        with self.db_factory() as session:
+            t.db = session
+            t.release = session.query(Release).filter_by(name='F17').one()
+            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
+            t.db = None
 
-        from bodhi.server.exceptions import RepodataException
+        # test with valid repodata
+        for arch in ('i386', 'x86_64', 'armhfp'):
+            repo = os.path.join(t.path, 'compose', 'Everything', arch, 'os')
+            mkmetadatadir(repo)
+
+            # test with truncated/busted repodata
+            xml = os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'repodata',
+                               'repomd.xml')
+            with open(xml) as f:
+                repomd = f.read()
+            with open(xml, 'w') as f:
+                f.write(repomd[:-10])
+
         try:
             t.sanity_check_repo()
             assert False, 'Busted metadata passed'
-        except RepodataException:
+        except exceptions.RepodataException:
             pass
+
+        save_state.assert_called_once_with()
+
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
+    def test_sanity_check_symlink(self, save_state):
+        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
+        t.devnull = mock.MagicMock()
+        t.id = 'f17-updates-testing'
+        with self.db_factory() as session:
+            t.db = session
+            t.release = session.query(Release).filter_by(name='F17').one()
+            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
+            t.db = None
+
+        # test with valid repodata
+        for arch in ('i386', 'x86_64', 'armhfp'):
+            repo = os.path.join(t.path, 'compose', 'Everything', arch, 'os')
+            mkmetadatadir(repo)
+            os.makedirs(os.path.join(repo, 'Packages', 'a'))
+            os.symlink('/dev/null', os.path.join(repo, 'Packages', 'a', 'test.notrpm'))
+
+        mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
+        os.makedirs(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree', 'Packages',
+                                 'a'))
+        os.symlink('/dev/null', os.path.join(t.path, 'compose', 'Everything', 'source', 'tree',
+                                             'Packages', 'a', 'test.src.rpm'))
+
+        try:
+            t.sanity_check_repo()
+            assert False, "Symlinks passed"
+        except Exception as ex:
+            assert str(ex) == "Symlinks found"
+
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
+    def test_sanity_check_directories_missing(self, save_state):
+        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
+        t.devnull = mock.MagicMock()
+        t.id = 'f17-updates-testing'
+        with self.db_factory() as session:
+            t.db = session
+            t.release = session.query(Release).filter_by(name='F17').one()
+            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
+            t.db = None
+
+        # test with valid repodata
+        for arch in ('i386', 'x86_64', 'armhfp'):
+            repo = os.path.join(t.path, 'compose', 'Everything', arch, 'os')
+            mkmetadatadir(repo)
+            shutil.rmtree(os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'Packages'))
+
+        mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
+
+        try:
+            t.sanity_check_repo()
+            assert False, "Missing directories passed"
+        except OSError as oex:
+            assert oex.errno == errno.ENOENT
 
     def test_stage(self):
         t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
                          'ralph', log, self.db_factory, self.tempdir)
         t.id = 'f17-updates-testing'
-        t.init_path()
+        t.path = os.path.join(self.tempdir, 'latest-f17-updates-testing')
+        os.makedirs(t.path)
         t.stage_repo()
         stage_dir = config.get('mash_stage_dir')
         link = os.path.join(stage_dir, t.id)
         self.assertTrue(os.path.islink(link))
+        assert os.readlink(link) == t.path
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -538,29 +718,33 @@ References:
         self.assertEquals(calls[1], mock.call(
             force=True,
             msg={'repo': u'f18-updates',
+                 'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc18'],
                  'agent': 'lmacken'},
             topic='mashtask.mashing'))
         self.assertEquals(calls[4], mock.call(
             force=True,
-            msg={'success': True, 'repo': 'f18-updates', 'agent': 'lmacken'},
+            msg={'success': True,
+                 'ctype': 'rpm',
+                 'repo': 'f18-updates',
+                 'agent': 'lmacken'},
             topic='mashtask.complete'))
         self.assertEquals(calls[5], mock.call(
             force=True,
             msg={'repo': u'f17-updates-testing',
+                 'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc17'],
                  'agent': 'lmacken'},
             topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(
             force=True,
             msg={'success': True,
+                 'ctype': 'rpm',
                  'repo': 'f17-updates-testing',
                  'agent': 'lmacken'},
             topic='mashtask.complete'))
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -610,30 +794,34 @@ References:
         calls = publish.mock_calls
         self.assertEquals(calls[1], mock.call(
             msg={'repo': u'f17-updates-testing',
+                 'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc17'],
                  'agent': 'lmacken'},
             force=True,
             topic='mashtask.mashing'))
         self.assertEquals(calls[3], mock.call(
             msg={'success': True,
+                 'ctype': 'rpm',
                  'repo': 'f17-updates-testing',
                  'agent': 'lmacken'},
             force=True,
             topic='mashtask.complete'))
         self.assertEquals(calls[4], mock.call(
             msg={'repo': u'f18-updates',
+                 'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc18'],
                  'agent': 'lmacken'},
             force=True,
             topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(
-            msg={'success': True, 'repo': 'f18-updates', 'agent': 'lmacken'},
+            msg={'success': True,
+                 'ctype': 'rpm',
+                 'repo': 'f18-updates',
+                 'agent': 'lmacken'},
             force=True,
             topic='mashtask.complete'))
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -683,39 +871,55 @@ References:
         # Ensure that F18 and F17 run in parallel
         calls = publish.mock_calls
         if calls[1] == mock.call(
-                msg={'repo': u'f18-updates', 'updates': [u'bodhi-2.0-1.fc18'], 'agent': 'lmacken'},
+                msg={'repo': u'f18-updates',
+                     'ctype': 'rpm',
+                     'updates': [u'bodhi-2.0-1.fc18'],
+                     'agent': 'lmacken'},
                 force=True, topic='mashtask.mashing'):
             self.assertEquals(
                 calls[2],
-                mock.call(msg={'repo': u'f17-updates', 'updates': [u'bodhi-2.0-1.fc17'],
+                mock.call(msg={'repo': u'f17-updates',
+                               'ctype': 'rpm',
+                               'updates': [u'bodhi-2.0-1.fc17'],
                                'agent': 'lmacken'},
                           force=True, topic='mashtask.mashing'))
         elif calls[1] == self.assertEquals(
                 calls[1],
                 mock.call(
-                    msg={'repo': u'f17-updates', 'updates': [u'bodhi-2.0-1.fc17'],
+                    msg={'repo': u'f17-updates',
+                         'ctype': 'rpm',
+                         'updates': [u'bodhi-2.0-1.fc17'],
                          'agent': 'lmacken'},
                     force=True, topic='mashtask.mashing')):
             self.assertEquals(
                 calls[2],
-                mock.call(msg={'repo': u'f18-updates', 'updates': [u'bodhi-2.0-1.fc18']},
+                mock.call(msg={'repo': u'f18-updates',
+                               'ctype': 'rpm',
+                               'updates': [u'bodhi-2.0-1.fc18']},
                           force=True, topic='mashtask.mashing'))
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.notifications.init')
     @mock.patch('bodhi.server.notifications.publish')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
-    @mock.patch('bodhi.server.util.cmd')
-    def test_update_comps(self, cmd, *args):
-        cmd.return_value = '', '', 0
-        self.masher.consume(self.msg)
-        self.assertIn(mock.call(['git', 'pull'], mock.ANY), cmd.mock_calls)
-        self.assertIn(mock.call(['make'], mock.ANY), cmd.mock_calls)
+    def test_mash_invalid_ctype(self, publish, *args):
+        fake_batches = [{'title': 'nonsense',
+                         'contenttype': ContentType.base,
+                         'updates': [],
+                         'phase': 'stable',
+                         'has_security': False}]
+
+        with mock.patch.object(self.masher, 'generate_batches', return_value=fake_batches):
+            self.masher.log = mock.MagicMock()
+            self.masher.work(self.msg)
+            self.masher.log.error.assert_called_once_with(
+                'Unsupported content type %s submitted for mashing. SKIPPING', 'base')
+
+    def test_base_masher_pungi_not_implemented(self, *args):
+        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                         'ralph', log, self.db_factory, self.tempdir)
+        try:
+            t.copy_additional_pungi_files(None, None)
+            assert False, "This should not be implemented"
+        except NotImplementedError:
+            pass
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -723,32 +927,172 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
-    @mock.patch('bodhi.server.util.cmd')
-    def test_mash(self, cmd, publish, *args):
-        cmd.return_value = '', '', 0
-
+    @mock.patch.dict(
+        config,
+        {'pungi.cmd': '/usr/bin/false'})
+    def test_mash_early_exit(self, publish, *args):
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
 
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
-                         'ralph', log, self.db_factory, self.tempdir)
+        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
             t.db = session
-            t.work()
-            t.db = None
+            try:
+                t.work()
+                assert False, "We should have quit early"
+            except Exception as ex:
+                assert str(ex) == "Pungi returned error, aborting!"
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_mash_late_exit(self, publish, *args):
+        # Set the request to stable right out the gate so we can test gating
+        self.set_stable_request(u'bodhi-2.0-1.fc17')
+
+        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
+
+        with self.db_factory() as session:
+            with tempfile.NamedTemporaryFile(delete=False) as script:
+                script.write('#!/bin/bash\nsleep 5\nexit 1\n')
+                script.close()
+                os.chmod(script.name, 0o755)
+
+                with mock.patch.dict(config, {'pungi.cmd': script.name}):
+                    t.db = session
+                    try:
+                        t.work()
+                        assert False, "We should have quit late"
+                    except Exception as ex:
+                        assert str(ex) == "Pungi exited with status 1"
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_mash(self, publish, *args):
+        # Set the request to stable right out the gate so we can test gating
+        self.set_stable_request(u'bodhi-2.0-1.fc17')
+
+        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
+
+        with self.db_factory() as session:
+            with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
+                release = session.query(Release).filter_by(name='F17').one()
+                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
+                t.db = session
+                t.work()
+                t.db = None
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
                                    force=True,
                                    msg=dict(success=True,
                                             repo='f17-updates',
+                                            ctype='rpm',
                                             agent='ralph'))
         publish.assert_any_call(topic='update.complete.stable',
                                 force=True,
                                 msg=mock.ANY)
 
-        self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
+        self.assertEqual(
+            Popen.mock_calls,
+            [mock.call(
+                [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
+                 '--no-label', '--target-dir', t.mash_dir, '--old-composes',
+                 t.get_previous_compose()],
+                cwd=t.mash_dir, shell=False, stderr=-1,
+                stdin=mock.ANY,
+                stdout=mock.ANY)])
+        self.assertEquals(len(t.state['completed_repos']), 1)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_mash_module(self, publish, *args):
+        with self.db_factory() as db:
+            user = db.query(User).first()
+
+            release = Release(
+                name=u'F18M', long_name=u'Fedora 18 Modular',
+                id_prefix=u'FEDORA-MODULE', version=u'18',
+                dist_tag=u'f18m', stable_tag=u'f18-modular-updates',
+                testing_tag=u'f18-modular-updates-testing',
+                candidate_tag=u'f18-modular-updates-candidate',
+                pending_signing_tag=u'f18-modular-updates-testing-signing',
+                pending_testing_tag=u'f18-modular-updates-testing-pending',
+                pending_stable_tag=u'f18-modular-updates-pending',
+                override_tag=u'f18-modular-override',
+                branch=u'f18m')
+            db.add(release)
+            package = Package(name=u'testmodule',
+                              type=ContentType.module)
+            db.add(package)
+            build1 = ModuleBuild(nvr=u'testmodule-master-1',
+                                 release=release,
+                                 package=package)
+            db.add(build1)
+            build2 = ModuleBuild(nvr=u'testmodule-master-2',
+                                 release=release,
+                                 package=package)
+            db.add(build2)
+            update = Update(
+                title=u'testmodule-master-2',
+                builds=[build2], user=user,
+                status=UpdateStatus.testing,
+                request=UpdateRequest.stable,
+                notes=u'Useful details!', release=release,
+                test_gating_status=TestGatingStatus.passed)
+            update.type = UpdateType.security
+            db.add(update)
+
+            # Wipe out the tag cache so it picks up our new release
+            Release._tag_cache = None
+
+        self.msg['body']['msg']['updates'] = [u'testmodule-master-2']
+
+        t = ModuleMasherThread(u'F18M', u'stable', [u'testmodule-master-2'],
+                               'puiterwijk', log, self.db_factory, self.tempdir)
+
+        with self.db_factory() as session:
+            with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
+                release = session.query(Release).filter_by(name='F18M').one()
+                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
+                t.db = session
+                t.work()
+                t.db = None
+
+        # Also, ensure we reported success
+        publish.assert_called_with(topic="mashtask.complete",
+                                   force=True,
+                                   msg=dict(success=True,
+                                            repo='f18-modular-updates',
+                                            ctype='module',
+                                            agent='puiterwijk'))
+        publish.assert_any_call(topic='update.complete.stable',
+                                force=True,
+                                msg=mock.ANY)
+
+        self.assertEqual(
+            Popen.mock_calls,
+            [mock.call(
+                [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
+                 '--no-label', '--target-dir', t.mash_dir, '--old-composes',
+                 t.get_previous_compose()],
+                cwd=t.mash_dir, shell=False, stderr=-1,
+                stdin=mock.ANY,
+                stdout=mock.ANY)])
         self.assertEquals(len(t.state['completed_repos']), 1)
 
     @mock.patch(**mock_failed_taskotron_results)
@@ -757,30 +1101,40 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
-    @mock.patch('bodhi.server.util.cmd')
-    def test_failed_gating(self, cmd, publish, *args):
-        cmd.return_value = '', '', 0
+    def test_failed_gating(self, publish, *args):
 
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
 
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
-                         'ralph', log, self.db_factory, self.tempdir)
+        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
-            t.db = session
-            t.work()
-            t.db = None
+            with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
+                release = session.query(Release).filter_by(name='F17').one()
+                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
+                t.db = session
+                t.work()
+                t.db = None
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
                                    force=True,
                                    msg=dict(success=True,
+                                            ctype='rpm',
                                             repo='f17-updates',
                                             agent='ralph'))
         publish.assert_any_call(topic='update.eject', msg=mock.ANY, force=True)
 
-        self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
+        self.assertEqual(
+            Popen.mock_calls,
+            [mock.call(
+                [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
+                 '--no-label', '--target-dir', t.mash_dir, '--old-composes',
+                 t.get_previous_compose()],
+                cwd=t.mash_dir, shell=False, stderr=-1,
+                stdin=mock.ANY,
+                stdout=mock.ANY)])
         self.assertEquals(len(t.state['completed_repos']), 1)
 
     @mock.patch(**mock_absent_taskotron_results)
@@ -789,34 +1143,41 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
-    @mock.patch('bodhi.server.util.cmd')
-    def test_absent_gating(self, cmd, publish, *args):
-        cmd.return_value = '', '', 0
-
+    def test_absent_gating(self, publish, *args):
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
 
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
-                         'ralph', log, self.db_factory, self.tempdir)
+        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
-            t.db = session
-            t.work()
-            t.db = None
+            with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
+                release = session.query(Release).filter_by(name='F17').one()
+                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
+                t.db = session
+                t.work()
+                t.db = None
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
                                    force=True,
                                    msg=dict(success=True,
+                                            ctype='rpm',
                                             repo='f17-updates',
                                             agent='ralph'))
         publish.assert_any_call(topic='update.eject', msg=mock.ANY, force=True)
 
-        self.assertIn(mock.call(['mash'] + [mock.ANY] * 7), cmd.mock_calls)
+        self.assertEqual(
+            Popen.mock_calls,
+            [mock.call(
+                [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
+                 '--no-label', '--target-dir', t.mash_dir, '--old-composes',
+                 t.get_previous_compose()],
+                cwd=t.mash_dir, shell=False, stderr=-1,
+                stdin=mock.ANY,
+                stdout=mock.ANY)])
         self.assertEquals(len(t.state['completed_repos']), 1)
 
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -841,21 +1202,18 @@ References:
         on_qa.assert_called_once_with(12345, expected_message)
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
-    @mock.patch('bodhi.server.util.cmd')
     @mock.patch('bodhi.server.bugs.bugtracker.comment')
     @mock.patch('bodhi.server.bugs.bugtracker.close')
     def test_modify_stable_bugs(self, close, comment, *args):
         self.set_stable_request(u'bodhi-2.0-1.fc17')
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
-                         'ralph', log, self.db_factory, self.tempdir)
+        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
             t.db = session
             t.work()
@@ -867,8 +1225,6 @@ References:
                      u'problems still persist, please make note of it in this bug report.'))
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -890,8 +1246,6 @@ References:
             self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to testing.')
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -914,8 +1268,6 @@ References:
             self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to stable.')
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -939,8 +1291,6 @@ References:
             self.assertEquals(updates[0].title, build)
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -963,8 +1313,6 @@ References:
             self.assertEquals(up.status, UpdateStatus.stable)
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -999,8 +1347,6 @@ References:
             self.assertEquals(up.request, None)
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -1058,8 +1404,6 @@ References:
             self.assertEquals(up.request, UpdateRequest.batched)
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -1090,7 +1434,10 @@ References:
         publish.assert_called_with(
             topic="mashtask.complete",
             force=True,
-            msg=dict(success=True, repo='f17-updates-testing', agent='lmacken'))
+            msg=dict(success=True,
+                     repo='f17-updates-testing',
+                     ctype='rpm',
+                     agent='lmacken'))
 
         self.koji.clear()
 
@@ -1103,8 +1450,6 @@ References:
             self.assertIsNotNone(up.date_stable)
 
     @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.MasherThread.update_comps')
-    @mock.patch('bodhi.server.consumers.masher.MashThread.run')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
@@ -1316,57 +1661,6 @@ class TestMasherThread_eject_from_mash(MasherThreadBaseTestCase):
         self.assertEqual(t.state['updates'], [])
 
 
-class TestMasherThread_my_comps_dir(unittest.TestCase):
-    """This test class contains tests for the MasherThread.my_comps_dir() method."""
-    @mock.patch('bodhi.server.consumers.masher.config', {'comps_dir': '/some/path'})
-    def test_my_comps_dir(self):
-        """Assert correct return value from the my_comps_dir property."""
-        self.masher_thread = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
-                                          u'bowlofeggs', mock.Mock(), mock.Mock(), mock.Mock())
-        self.masher_thread.id = 'f17-updates'
-
-        self.assertEqual(self.masher_thread.my_comps_dir, '/some/path/f17-updates')
-
-
-class TestMasherThread_update_comps(unittest.TestCase):
-    """This test class contains tests for the MasherThread.update_comps() method."""
-
-    def setUp(self):
-        self.masher_thread = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
-                                          u'bowlofeggs', mock.Mock(), mock.Mock(), mock.Mock())
-        self.masher_thread.id = 'f17-updates'
-
-    @mock.patch('bodhi.server.consumers.masher.os.path.exists')
-    @mock.patch('bodhi.server.consumers.masher.config', {'comps_dir': '/some/path',
-                                                         'comps_url': 'https://example.com/'})
-    @mock.patch('bodhi.server.consumers.masher.util.cmd')
-    def test_comps_no_dir(self, mock_cmd, mock_exists):
-        mock_exists.return_value = False
-        calls = [
-            mock.call(['git', 'clone', 'https://example.com/', '/some/path/f17-updates'],
-                      '/some/path'),
-            mock.call(['git', 'pull'], '/some/path/f17-updates'),
-            mock.call(['make'], '/some/path/f17-updates'),
-        ]
-        self.masher_thread.update_comps()
-        self.assertEqual(calls, mock_cmd.call_args_list)
-        mock_exists.assert_called_once_with('/some/path/f17-updates')
-
-    @mock.patch('bodhi.server.consumers.masher.os.path.exists')
-    @mock.patch('bodhi.server.consumers.masher.config', {'comps_dir': '/some/path',
-                                                         'comps_url': 'https://example.com/'})
-    @mock.patch('bodhi.server.consumers.masher.util.cmd')
-    def test_comps_existing_dir(self, mock_cmd, mock_exists):
-        mock_exists.return_value = True
-        calls = [
-            mock.call(['git', 'pull'], '/some/path/f17-updates'),
-            mock.call(['make'], '/some/path/f17-updates'),
-        ]
-        self.masher_thread.update_comps()
-        self.assertEqual(calls, mock_cmd.call_args_list)
-        mock_exists.assert_called_once_with('/some/path/f17-updates')
-
-
 class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
     """This test class contains tests for the MasherThread.wait_for_sync() method."""
     @mock.patch.dict(
@@ -1388,7 +1682,7 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         t.id = 'f26-updates-testing'
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
         for arch in ['aarch64', 'x86_64']:
-            repodata = os.path.join(t.path, t.id, arch, 'repodata')
+            repodata = os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'repodata')
             os.makedirs(repodata)
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write('---\nyaml: rules')
@@ -1417,6 +1711,36 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         {'fedora_testing_master_repomd':
             'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep',
+                mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
+                return_value=StringIO('---\nyaml: rules'))
+    def test_no_checkarch(self, urlopen, publish):
+        """
+        Assert error when no checkarch is found.
+        """
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.id = 'f26-updates-testing'
+        t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
+        for arch in ['source']:
+            repodata = os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'repodata')
+            os.makedirs(repodata)
+            with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                repomd.write('---\nyaml: rules')
+
+        try:
+            t.wait_for_sync()
+            assert False, "Compose with just source passed"
+        except Exception as ex:
+            assert str(ex) == "Not found an arch to wait_for_sync with"
+
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch(
         'bodhi.server.consumers.masher.urllib2.urlopen',
@@ -1431,7 +1755,7 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         t.id = 'f26-updates-testing'
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
         for arch in ['aarch64', 'x86_64']:
-            repodata = os.path.join(t.path, t.id, arch, 'repodata')
+            repodata = os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'repodata')
             os.makedirs(repodata)
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write('---\nyaml: rules')
@@ -1476,7 +1800,7 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         t.log = mock.MagicMock()
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
         for arch in ['aarch64', 'x86_64']:
-            repodata = os.path.join(t.path, t.id, arch, 'repodata')
+            repodata = os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'repodata')
             os.makedirs(repodata)
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write('---\nyaml: rules')
@@ -1519,7 +1843,7 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         t.id = 'f26-updates-testing'
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
         for arch in ['aarch64', 'x86_64']:
-            repodata = os.path.join(t.path, t.id, arch, 'repodata')
+            repodata = os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'repodata')
             os.makedirs(repodata)
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write('---\nyaml: rules')
@@ -1547,7 +1871,7 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         t.id = 'f26-updates-testing'
         t.log = mock.MagicMock()
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
-        repodata = os.path.join(t.path, t.id, 'x86_64', 'repodata')
+        repodata = os.path.join(t.path, 'compose', 'Everything', 'x86_64', 'os', 'repodata')
         os.makedirs(repodata)
 
         t.wait_for_sync()
@@ -1578,7 +1902,7 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         t.log = mock.MagicMock()
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
         for arch in ['aarch64', 'x86_64']:
-            repodata = os.path.join(t.path, t.id, arch, 'repodata')
+            repodata = os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'repodata')
             os.makedirs(repodata)
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write('---\nyaml: rules')

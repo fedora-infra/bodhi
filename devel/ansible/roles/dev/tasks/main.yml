@@ -22,6 +22,7 @@
       - packagedb-cli
       - pcaro-hermit-fonts
       - postgresql-devel
+      - pungi
       - python
       - python-alembic
       - python-arrow
@@ -63,6 +64,7 @@
       - python2-fedmsg-commands
       - python2-fedmsg-consumers
       - python2-flake8
+      - python2-jinja2
       - python2-markdown
       - python2-pytest-cov
       - python2-sphinx
