@@ -60,6 +60,38 @@ templates will have access to the same template variables described above, and s
 respectively.
 
 
+Features
+^^^^^^^^
+
+The 3.0.0 release is focused on delivering one big change that enables a variety of features: the
+use of Pungi to do mashing rather than mash. The most notable feature this enables is the ability to
+deliver update repositories for modules, but in general all of Pungi's feature set is now available
+for Bodhi to use.
+
+* Bodhi now supports non-RPM artifacts, namely, modules
+  (`#653 <https://github.com/fedora-infra/bodhi/issues/653>`_,
+  `#1330 <https://github.com/fedora-infra/bodhi/issues/1330>`_).
+* Via Pungi, Bodhi is now able to use Koji signed repos
+  (`#909 <https://github.com/fedora-infra/bodhi/issues/909>`_).
+* Via Pungi, Bodhi is now able to generate OSTrees that are more consistent with Fedora's release
+  day OSTrees
+  (`#1182 <https://github.com/fedora-infra/bodhi/issues/1182>`_).
+* Bodhi now uses Pungi instead of the retiring mash project
+  (`#1219 <https://github.com/fedora-infra/bodhi/issues/1219>`_).
+
+
+Bugs
+^^^^
+
+* Bodhi, via Pungi, will now reliably produce repomd files
+  (`#887 <https://github.com/fedora-infra/bodhi/issues/887>`_).
+* Bodhi's CLI no longer uses USERNAME, which conflicted with GDM for users who use a different local
+  system username than their FAS username. For such users, there was no workaround other than to
+  constantly use the ``--user`` flag, and the environment varaible wasn't particularly useful
+  anymore now that the Bodhi CLI remembers usernames after one successful authentication
+  (`#1789 <https://github.com/fedora-infra/bodhi/issues/1789>`_).
+
+
 Release contributors
 ^^^^^^^^^^^^^^^^^^^^
 
