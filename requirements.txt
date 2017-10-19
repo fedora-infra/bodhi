@@ -7,7 +7,6 @@ colander
 cornice<2
 cryptography
 dogpile.cache
-fedmsg-atomic-composer >= 2016.3
 fedmsg[consumers]
 kitchen
 jinja2
