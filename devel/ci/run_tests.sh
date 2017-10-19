@@ -54,7 +54,6 @@ sudo yum install -y\
     python-webhelpers\
     python-webob1.4\
     python-webtest\
-    python2-fedmsg-atomic-composer\
 
 mv development.ini.example development.ini
 
