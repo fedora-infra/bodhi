@@ -323,15 +323,6 @@ class BodhiConfig(dict):
         'captcha.ttl': {
             'value': 300,
             'validator': int},
-        'compose_atomic_trees': {
-            'value': False,
-            'validator': _validate_bool},
-        'comps_dir': {
-            'value': os.path.join(os.path.dirname(__file__), '..', '..', 'masher', 'comps'),
-            'validator': unicode},
-        'comps_url': {
-            'value': 'https://git.fedorahosted.org/comps.git',
-            'validator': _validate_tls_url},
         'cors_connect_src': {
             'value': 'https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/',
             'validator': unicode},
@@ -428,9 +419,6 @@ class BodhiConfig(dict):
         'mandatory_packager_groups': {
             'value': ['packager'],
             'validator': _generate_list_validator()},
-        'mash_conf': {
-            'value': '/etc/mash/mash.conf',
-            'validator': unicode},
         'mash_dir': {
             'value': None,
             'validator': _validate_none_or(_validate_path)},
@@ -478,6 +466,18 @@ class BodhiConfig(dict):
             'validator': _validate_tls_url},
         'pkgdb_url': {
             'value': 'https://admin.fedoraproject.org/pkgdb',
+            'validator': unicode},
+        'pungi.basepath': {
+            'value': '/etc/bodhi',
+            'validator': unicode},
+        'pungi.cmd': {
+            'value': '/usr/bin/pungi-koji',
+            'validator': _validate_path},
+        'pungi.conf.module': {
+            'value': 'pungi.module.conf',
+            'validator': unicode},
+        'pungi.conf.rpm': {
+            'value': 'pungi.rpm.conf',
             'validator': unicode},
         'query_wiki_test_cases': {
             'value': False,

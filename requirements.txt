@@ -9,6 +9,7 @@ dogpile.cache
 fedmsg[consumers]
 fedmsg-atomic-composer >= 2016.3
 kitchen
+jinja2
 markdown
 packagedb-cli
 # for captchas

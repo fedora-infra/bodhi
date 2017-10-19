@@ -34,6 +34,7 @@ import arrow
 import bleach
 import colander
 import libravatar
+import librepo
 import markdown
 import requests
 import rpm
@@ -181,8 +182,6 @@ def sanity_check_repodata(myurl):
     """
     Sanity check the repodata for a given repository.
     """
-
-    import librepo
     h = librepo.Handle()
     h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
     h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())

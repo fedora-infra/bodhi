@@ -190,18 +190,6 @@ class BodhiConfigLoadDefaultsTests(unittest.TestCase):
 
 
 class BodhiConfigValidate(unittest.TestCase):
-    def test_comps_unsafe_http_url(self):
-        """Ensure that setting comps_url to http://example.com fails validation."""
-        c = config.BodhiConfig()
-        c.load_config()
-        c['comps_url'] = 'http://example.com'
-
-        with self.assertRaises(ValueError) as exc:
-            c._validate()
-
-        self.assertEqual(str(exc.exception), ('Invalid config values were set: \n\tcomps_url: This '
-                                              'setting must be a URL starting with https://.'))
-
     def test_koji_settings_are_strs(self):
         """
         Ensure that the koji related settings are strings.

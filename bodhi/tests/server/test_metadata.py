@@ -30,16 +30,15 @@ import createrepo_c
 from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
                                    DevBuildsys)
 from bodhi.server.config import config
-from bodhi.server.models import (Release, RpmPackage, Update, RpmBuild, UpdateRequest, UpdateStatus,
-                                 UpdateType)
-from bodhi.server.metadata import ExtendedMetadata
+from bodhi.server.models import Release, Update, UpdateRequest, UpdateStatus
+from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.util import mkmetadatadir
 from bodhi.tests.server import base
 
 
 class TestAddUpdate(base.BaseTestCase):
     """
-    This class contains tests for the ExtendedMetadata.add_update() method.
+    This class contains tests for the UpdateInfoMetadata.add_update() method.
     """
     def setUp(self):
         """
@@ -65,9 +64,12 @@ class TestAddUpdate(base.BaseTestCase):
         koji.getBuild() is called instead.
         """
         update = self.db.query(Update).one()
-        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
+        md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                                close_shelf=False)
 
         md.add_update(update)
+
+        md.shelf.close()
 
         self.assertEqual(len(md.uinfo.updates), 1)
         self.assertEquals(md.uinfo.updates[0].title, update.title)
@@ -118,10 +120,10 @@ class TestAddUpdate(base.BaseTestCase):
         self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.noarch.rpm')
 
 
-class TestExtendedMetadata(base.BaseTestCase):
+class TestUpdateInfoMetadata(base.BaseTestCase):
 
     def setUp(self):
-        super(TestExtendedMetadata, self).setUp()
+        super(TestUpdateInfoMetadata, self).setUp()
 
         self._new_mash_stage_dir = tempfile.mkdtemp()
         self._mash_stage_dir = config['mash_stage_dir']
@@ -132,9 +134,11 @@ class TestExtendedMetadata(base.BaseTestCase):
 
         # Initialize our temporary repo
         self.tempdir = tempfile.mkdtemp('bodhi')
-        self.temprepo = join(self.tempdir, 'f17-updates-testing')
-        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
-        self.repodata = join(self.temprepo, 'f17-updates-testing', 'i386', 'repodata')
+        self.tempcompdir = join(self.tempdir, 'f17-updates-testing')
+        self.temprepo = join(self.tempcompdir, 'compose', 'Everything', 'i386', 'os')
+        mkmetadatadir(self.temprepo)
+        mkmetadatadir(join(self.tempcompdir, 'compose', 'Everything', 'source', 'tree'))
+        self.repodata = join(self.temprepo, 'repodata')
         assert exists(join(self.repodata, 'repomd.xml'))
 
         DevBuildsys.__rpms__ = [{
@@ -156,7 +160,7 @@ class TestExtendedMetadata(base.BaseTestCase):
         config['mash_stage_dir'] = self._mash_stage_dir
         config['mash_dir'] = self._mash_dir
         shutil.rmtree(self._new_mash_stage_dir)
-        super(TestExtendedMetadata, self).setUp()
+        super(TestUpdateInfoMetadata, self).setUp()
 
     def _verify_updateinfo(self, repodata):
         updateinfos = glob.glob(join(repodata, "*-updateinfo.xml*"))
@@ -172,55 +176,11 @@ class TestExtendedMetadata(base.BaseTestCase):
             if record.title == title:
                 return record
 
-    def test___init___checks_existence_if_repomd_xml(self):
-        """
-        The __init__() method has a test for finding cached repodata. It used to check for the
-        existence of a repodata folder, but this caused crashes sometimes because due to an unsolved
-        bug[0] this directory sometimes does not contain a repomd.xml file. This test ensures that
-        the existence of the repomd.xml file itself is tested to decide if it can load a cache.
-
-        [0] https://github.com/fedora-infra/bodhi/issues/887
-        """
-        update = self.db.query(Update).one()
-        # Pretend it's pushed to testing
-        update.status = UpdateStatus.testing
-        update.request = None
-        update.date_pushed = datetime.utcnow()
-        DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
-        # Generate the XML
-        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
-        # Insert the updateinfo.xml into the repository
-        md.insert_updateinfo()
-        md.cache_repodata()
-        updateinfo = self._verify_updateinfo(self.repodata)
-        # Change the notes on the update, but not the date_modified. Since this test deletes
-        # repomd.xml the cached notes should be ignored and we should see this 'x' in the notes.
-        # We can test for this to ensure that the cache was not used.
-        update.notes = u'x'
-        # Re-initialize our temporary repo
-        shutil.rmtree(self.temprepo)
-        os.mkdir(self.temprepo)
-        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
-        # Simulate the repomd.xml file missing. This should cause new updateinfo to be generated
-        # instead of it trying to load from the cache.
-        os.remove(
-            join(self.temprepo, '..', 'f17-updates-testing.repocache', 'repodata', 'repomd.xml'))
-
-        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
-
-        md.insert_updateinfo()
-        updateinfo = self._verify_updateinfo(self.repodata)
-        # Read and verify the updateinfo.xml.gz
-        uinfo = createrepo_c.UpdateInfo(updateinfo)
-        notice = self.get_notice(uinfo, update.title)
-        # Since 'x' made it into the xml, we know it didn't use the cache.
-        self.assertEquals(notice.description, u'x')  # not u'Useful details!'
-
     def test___init___uses_bz2_for_epel(self):
         """Assert that the __init__() method sets the comp_type attribute to cr.BZ2 for EPEL."""
         epel_7 = Release(id_prefix="FEDORA-EPEL", stable_tag='epel7')
 
-        md = ExtendedMetadata(epel_7, UpdateRequest.stable, self.db, '/some/path')
+        md = UpdateInfoMetadata(epel_7, UpdateRequest.stable, self.db, self.tempdir)
 
         self.assertEqual(md.comp_type, createrepo_c.BZ2)
 
@@ -228,24 +188,46 @@ class TestExtendedMetadata(base.BaseTestCase):
         """Assert that the __init__() method sets the comp_type attribute to cr.XZ for Fedora."""
         fedora = Release.query.one()
 
-        md = ExtendedMetadata(fedora, UpdateRequest.stable, self.db, '/some/path')
+        md = UpdateInfoMetadata(fedora, UpdateRequest.stable, self.db, self.tempdir)
 
         self.assertEqual(md.comp_type, createrepo_c.XZ)
 
     def test_extended_metadata(self):
+        self._test_extended_metadata(True)
+
+    def test_extended_metadata_no_alias(self):
+        self._test_extended_metadata(False)
+
+    def test_extended_metadata_cache(self):
+        """Asserts that when the same update is retrieved twice, the info is unshelved.
+
+        After the first run, we clear the buildsystem.__rpms__ so that there would be no way to
+        again retrieve the info from the buildsystem, and it'll have to be returned from the
+        cache.
+        """
+        self._test_extended_metadata(True)
+        shutil.rmtree(self.temprepo)
+        mkmetadatadir(self.temprepo)
+        mkmetadatadir(join(self.tempcompdir, 'compose', 'Everything', 'source', 'tree'))
+        DevBuildsys.__rpms__ = []
+        self._test_extended_metadata(True)
+
+    def _test_extended_metadata(self, has_alias):
         update = self.db.query(Update).one()
 
         # Pretend it's pushed to testing
         update.status = UpdateStatus.testing
         update.request = None
+        if not has_alias:
+            update.alias = None
         update.date_pushed = datetime.utcnow()
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 
         # Generate the XML
-        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
+        md = UpdateInfoMetadata(update.release, update.request, self.db, self.tempcompdir)
 
         # Insert the updateinfo.xml into the repository
-        md.insert_updateinfo()
+        md.insert_updateinfo(self.tempcompdir)
         updateinfo = self._verify_updateinfo(self.repodata)
 
         # Read an verify the updateinfo.xml.gz
@@ -290,265 +272,3 @@ class TestExtendedMetadata(base.BaseTestCase):
         self.assertFalse(pkg.reboot_suggested)
         self.assertEquals(pkg.arch, 'src')
         self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')
-
-    def test_extended_metadata_updating(self):
-        update = self.db.query(Update).one()
-
-        # Pretend it's pushed to testing
-        update.status = UpdateStatus.testing
-        update.request = None
-        update.date_pushed = datetime.utcnow()
-        DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
-
-        # Generate the XML
-        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
-
-        # Insert the updateinfo.xml into the repository
-        md.insert_updateinfo()
-        md.cache_repodata()
-
-        updateinfo = self._verify_updateinfo(self.repodata)
-
-        # Read an verify the updateinfo.xml.gz
-        uinfo = createrepo_c.UpdateInfo(updateinfo)
-        notice = self.get_notice(uinfo, update.title)
-
-        self.assertIsNotNone(notice)
-        self.assertEquals(notice.title, update.title)
-        self.assertEquals(notice.release, update.release.long_name)
-        self.assertEquals(notice.status, update.status.value)
-        self.assertEquals(notice.updated_date, update.date_modified)
-        self.assertEquals(notice.fromstr, config.get('bodhi_email'))
-        self.assertEquals(notice.description, update.notes)
-        self.assertEquals(notice.id, update.alias)
-        bug = notice.references[0]
-        url = update.bugs[0].url
-        self.assertEquals(bug.href, url)
-        self.assertEquals(bug.id, '12345')
-        self.assertEquals(bug.type, 'bugzilla')
-        cve = notice.references[1]
-        self.assertEquals(cve.type, 'cve')
-        self.assertEquals(cve.href, update.cves[0].url)
-        self.assertEquals(cve.id, update.cves[0].cve_id)
-
-        # Change the notes on the update, but not the date_modified, so we can
-        # ensure that the notice came from the cache
-        update.notes = u'x'
-
-        # Re-initialize our temporary repo
-        shutil.rmtree(self.temprepo)
-        os.mkdir(self.temprepo)
-        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
-
-        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
-        md.insert_updateinfo()
-        updateinfo = self._verify_updateinfo(self.repodata)
-
-        # Read an verify the updateinfo.xml.gz
-        uinfo = createrepo_c.UpdateInfo(updateinfo)
-        notice = self.get_notice(uinfo, update.title)
-
-        self.assertIsNotNone(notice)
-        self.assertEquals(notice.description, u'Useful details!')  # not u'x'
-
-    def test_metadata_updating_with_edited_update(self):
-        update = self.db.query(Update).one()
-
-        # Pretend it's pushed to testing
-        update.status = UpdateStatus.testing
-        update.request = None
-        update.date_pushed = datetime.utcnow()
-        DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
-
-        # Generate the XML
-        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
-
-        # Insert the updateinfo.xml into the repository
-        md.insert_updateinfo()
-        md.cache_repodata()
-
-        updateinfo = self._verify_updateinfo(self.repodata)
-
-        # Read an verify the updateinfo.xml.gz
-        uinfo = createrepo_c.UpdateInfo(updateinfo)
-        notice = self.get_notice(uinfo, update.title)
-
-        self.assertIsNotNone(notice)
-        self.assertEquals(notice.title, update.title)
-        self.assertEquals(notice.release, update.release.long_name)
-        self.assertEquals(notice.status, update.status.value)
-        self.assertEquals(notice.updated_date, update.date_modified)
-        self.assertEquals(notice.fromstr, config.get('bodhi_email'))
-        self.assertEquals(notice.description, update.notes)
-        self.assertIsNotNone(notice.issued_date)
-        self.assertEquals(notice.id, update.alias)
-        bug = notice.references[0]
-        self.assertEquals(bug.href, update.bugs[0].url)
-        self.assertEquals(bug.id, '12345')
-        self.assertEquals(bug.type, 'bugzilla')
-        cve = notice.references[1]
-        self.assertEquals(cve.type, 'cve')
-        self.assertEquals(cve.href, update.cves[0].url)
-        self.assertEquals(cve.id, update.cves[0].cve_id)
-
-        # Change the notes on the update *and* the date_modified
-        update.notes = u'x'
-        update.date_modified = datetime.utcnow()
-
-        # Re-initialize our temporary repo
-        shutil.rmtree(self.temprepo)
-        os.mkdir(self.temprepo)
-        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
-
-        md = ExtendedMetadata(update.release, update.request, self.db, self.temprepo)
-        md.insert_updateinfo()
-        updateinfo = self._verify_updateinfo(self.repodata)
-
-        # Read an verify the updateinfo.xml.gz
-        uinfo = createrepo_c.UpdateInfo(updateinfo)
-        notice = self.get_notice(uinfo, update.title)
-
-        self.assertIsNotNone(notice)
-        self.assertEquals(notice.description, u'x')
-        self.assertEquals(notice.updated_date.strftime('%Y-%m-%d %H:%M:%S'),
-                          update.date_modified.strftime('%Y-%m-%d %H:%M:%S'))
-
-    def test_metadata_updating_with_old_stable_security(self):
-        update = self.db.query(Update).one()
-        update.request = None
-        update.type = UpdateType.security
-        update.status = UpdateStatus.stable
-        update.date_pushed = datetime.utcnow()
-        DevBuildsys.__tagged__[update.title] = ['f17-updates']
-
-        repo = join(self.tempdir, 'f17-updates')
-        mkmetadatadir(join(repo, 'f17-updates', 'i386'))
-        self.repodata = join(repo, 'f17-updates', 'i386', 'repodata')
-
-        # Generate the XML
-        md = ExtendedMetadata(update.release, UpdateRequest.stable,
-                              self.db, repo)
-
-        # Insert the updateinfo.xml into the repository
-        md.insert_updateinfo()
-        md.cache_repodata()
-
-        updateinfo = self._verify_updateinfo(self.repodata)
-
-        # Read an verify the updateinfo.xml.gz
-        uinfo = createrepo_c.UpdateInfo(updateinfo)
-        notice = self.get_notice(uinfo, update.title)
-        self.assertIsNotNone(notice)
-
-        # Create a new non-security update for the same package
-        newbuild = u'bodhi-2.0-2.fc17'
-        pkg = self.db.query(RpmPackage).filter_by(name=u'bodhi').one()
-        build = RpmBuild(nvr=newbuild, package=pkg)
-        self.db.add(build)
-        self.db.flush()
-        newupdate = Update(title=newbuild,
-                           type=UpdateType.enhancement,
-                           status=UpdateStatus.stable,
-                           request=None,
-                           release=update.release,
-                           builds=[build],
-                           notes=u'x')
-        newupdate.assign_alias()
-        self.db.add(newupdate)
-        self.db.flush()
-
-        # Untag the old security build
-        DevBuildsys.__untag__.append(update.title)
-        DevBuildsys.__tagged__[newupdate.title] = [newupdate.release.stable_tag]
-        buildrpms = DevBuildsys.__rpms__[0].copy()
-        buildrpms['nvr'] = 'bodhi-2.0-2.fc17'
-        buildrpms['release'] = '2.fc17'
-        DevBuildsys.__rpms__.append(buildrpms)
-
-        # Re-initialize our temporary repo
-        shutil.rmtree(repo)
-        os.mkdir(repo)
-        mkmetadatadir(join(repo, 'f17-updates', 'i386'))
-
-        md = ExtendedMetadata(update.release, UpdateRequest.stable, self.db, repo)
-        md.insert_updateinfo()
-        updateinfo = self._verify_updateinfo(self.repodata)
-
-        # Read an verify the updateinfo.xml.gz
-        uinfo = createrepo_c.UpdateInfo(updateinfo)
-
-        self.assertEquals(len(uinfo.updates), 2)
-
-        notice = self.get_notice(uinfo, 'bodhi-2.0-1.fc17')
-        self.assertIsNotNone(notice)
-        notice = self.get_notice(uinfo, 'bodhi-2.0-2.fc17')
-        self.assertIsNotNone(notice)
-
-    def test_metadata_updating_with_old_testing_security(self):
-        update = self.db.query(Update).one()
-        update.request = None
-        update.type = UpdateType.security
-        update.status = UpdateStatus.testing
-        update.date_pushed = datetime.utcnow()
-        DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
-
-        # Generate the XML
-        md = ExtendedMetadata(update.release, UpdateRequest.testing,
-                              self.db, self.temprepo)
-
-        # Insert the updateinfo.xml into the repository
-        md.insert_updateinfo()
-        md.cache_repodata()
-
-        updateinfo = self._verify_updateinfo(self.repodata)
-
-        # Read an verify the updateinfo.xml.gz
-        uinfo = createrepo_c.UpdateInfo(updateinfo)
-        notice = self.get_notice(uinfo, update.title)
-        self.assertIsNotNone(notice)
-
-        # Create a new non-security update for the same package
-        newbuild = u'bodhi-2.0-2.fc17'
-        pkg = self.db.query(RpmPackage).filter_by(name=u'bodhi').one()
-        build = RpmBuild(nvr=newbuild, package=pkg)
-        self.db.add(build)
-        self.db.flush()
-        newupdate = Update(title=newbuild,
-                           type=UpdateType.enhancement,
-                           status=UpdateStatus.testing,
-                           request=None,
-                           release=update.release,
-                           builds=[build],
-                           notes=u'x')
-        newupdate.assign_alias()
-        self.db.add(newupdate)
-        self.db.flush()
-
-        # Untag the old security build
-        del(DevBuildsys.__tagged__[update.title])
-        DevBuildsys.__untag__.append(update.title)
-        DevBuildsys.__tagged__[newupdate.title] = [newupdate.release.testing_tag]
-        buildrpms = DevBuildsys.__rpms__[0].copy()
-        buildrpms['nvr'] = 'bodhi-2.0-2.fc17'
-        buildrpms['release'] = '2.fc17'
-        DevBuildsys.__rpms__.append(buildrpms)
-        del(DevBuildsys.__rpms__[0])
-
-        # Re-initialize our temporary repo
-        shutil.rmtree(self.temprepo)
-        os.mkdir(self.temprepo)
-        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
-
-        md = ExtendedMetadata(update.release, UpdateRequest.testing,
-                              self.db, self.temprepo)
-        md.insert_updateinfo()
-        updateinfo = self._verify_updateinfo(self.repodata)
-
-        # Read an verify the updateinfo.xml.gz
-        uinfo = createrepo_c.UpdateInfo(updateinfo)
-
-        self.assertEquals(len(uinfo.updates), 1)
-        notice = self.get_notice(uinfo, 'bodhi-2.0-1.fc17')
-        self.assertIsNone(notice)
-        notice = self.get_notice(uinfo, 'bodhi-2.0-2.fc17')
-        self.assertIsNotNone(notice)
