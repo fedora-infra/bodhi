@@ -4,8 +4,8 @@ Release notes
 3.0.0
 -----
 
-Backwards incomptible changes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Backwards incompatible changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Support for the ``USERNAME`` environment variable in all of Bodhi's CLI tools has been dropped, as
   it conflicts with GDM's varaible by the same name. Many users do not have the same FAS username as
