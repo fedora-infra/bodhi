@@ -25,22 +25,7 @@
 
 RELEASES=${RELEASES:="f25 f26 f27 rawhide pip"}
 
-if [[ $@ == *"-x"* ]]; then
-    FAILFAST="--halt now,fail=1"
-    PYTEST_ARGS="-x"
-else
-    FAILFAST=""
-    PYTEST_ARGS=""
-fi
-
-PARALLEL="parallel -v $FAILFAST --tag"
-
-
-tar_results() {
-    tar cjf test_results.tar.bz2 test_results/
-    mv test_results.tar.bz2 test_results/
-}
-
+PARALLEL="parallel -v --tag"
 
 # Assemble the Dockerfile snippets into Dockerfiles for each release.
 pushd devel/ci/
@@ -65,11 +50,6 @@ $PARALLEL sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $REL
 # Try to pull existing containers
 $PARALLEL "docker pull docker.io/puiterwijk/bodhi-cache:{} || :" ::: $RELEASES
 # Build the containers.
-$PARALLEL "docker build -t docker.io/puiterwijk/bodhi-cache:{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
-
-# Make individual folders for each release to drop its test results and docs.
-$PARALLEL mkdir -p $(pwd)/test_results/{} ::: $RELEASES
-# Run the tests.
-$PARALLEL docker run --rm -v $(pwd)/test_results/{}:/results:z docker.io/puiterwijk/bodhi-cache:{} /bodhi/devel/test_container.sh $PYTEST_ARGS ::: $RELEASES || (tar_results; echo -e "\n\n\033[0;31mTESTS FAILED\033[0m\n\n"; exit 1)
-tar_results
-echo -e "\n\n\033[0;32mSUCCESS!\033[0m\n\n"
+$PARALLEL "docker build --pull -t docker.io/puiterwijk/bodhi-cache:{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
+# Push new caches up
+$PARALLEL docker push docker.io/puiterwijk/bodhi-cache:{} ::: $RELEASES
