@@ -462,6 +462,9 @@ class BodhiConfig(dict):
         'pkgdb_url': {
             'value': 'https://admin.fedoraproject.org/pkgdb',
             'validator': unicode},
+        'prefer_ssl': {
+            'value': None,
+            'validator': _validate_none_or(bool)},
         'pungi.basepath': {
             'value': '/etc/bodhi',
             'validator': unicode},
