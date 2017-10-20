@@ -25,12 +25,6 @@ Bodhi's main features are:
 * Queries ResultsDB for automated test results and displays them on updates.
 
 
-System Requirements
-===================
-
-Bodhi is currently only supported on active Fedora releases.
-
-
 User Guide
 ==========
 
@@ -62,6 +56,15 @@ Contributor Guide
    :maxdepth: 2
 
    developer_docs
+
+
+Admin Guide
+===========
+
+.. toctree::
+   :maxdepth: 2
+
+   administration
 
 
 Community
