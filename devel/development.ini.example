@@ -1,0 +1,96 @@
+# See production.ini for documentation on the settings that can be used in this file.
+[app:main]
+use = egg:bodhi-server
+fedmsg_enabled = True
+badge_ids = binary-star|both-bull-and-self-transcended-tester-viii|catching-the-bull-tester-iv|corporate-drone|corporate-overlord|corporate-shill|discovery-of-the-footprints-tester-ii|in-search-of-the-bull-tester-i|is-this-thing-on-updates-testing-i|is-this-thing-on-updates-testing-ii|is-this-thing-on-updates-testing-iii|is-this-thing-on-updates-testing-iv|it-still-works!|like-a-rock-updates-stable-i|like-a-rock-updates-stable-ii|like-a-rock-updates-stable-iii|like-a-rock-updates-stable-iv|mic-check!-updates-testing-v|missed-the-train|override,-you-say|perceiving-the-bull-tester-iii|reaching-the-source-tester-ix|return-to-society-tester-x|riding-the-bull-home-tester-vi|stop-that-update!|take-this-and-call-me-in-the-morning|taming-the-bull-tester-v|tectonic!-updates-stable-v|the-bull-transcended-tester-vii|what-goes-around-comes-around-karma-i|what-goes-around-comes-around-karma-ii|what-goes-around-comes-around-karma-iii|what-goes-around-comes-around-karma-iv|white-hat|you-can-pry-it-from-my-cold,-dead-hands
+base_address = http://localhost:6543/
+fedora_announce_list = package-announce@lists.fedoraproject.org
+fedora_test_announce_list = test@lists.fedoraproject.org
+fedora_epel_announce_list = epel-package-announce@lists.fedoraproject.org
+fedora_epel_test_announce_list = epel-devel@lists.fedoraproject.org
+dogpile.cache.arguments.filename = %(here)s/dogpile-cache.dbm
+fedora.mandatory_days_in_testing = 7
+fedora_epel.mandatory_days_in_testing = 14
+f7.status = post_beta
+f7.post_beta.mandatory_days_in_testing = 7
+f7.post_beta.critpath.num_admin_approvals = 0
+f7.post_beta.critpath.min_karma = 2
+cors_origins_ro = *
+cors_origins_rw = http://0.0.0.0:6543
+cors_connect_src = http://0.0.0.0:6543 http://localhost:6543 https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/
+pyramid.reload_templates = true
+pyramid.debug_authorization = true
+pyramid.debug_notfound = true
+pyramid.debug_routematch = true
+pyramid.default_locale_name = en
+pyramid.includes =
+    pyramid_debugtoolbar
+    pyramid_tm
+debugtoolbar.hosts = 127.0.0.1 ::1
+sqlalchemy.url = sqlite:///%(here)s/bodhi.db
+authtkt.secret = changethisinproduction!
+session.secret = ChangeThisSecret!!1
+authtkt.secure = false
+authtkt.timeout = 2592000
+session.type = file
+session.data_dir = %(here)s/data/sessions/data
+session.lock_dir = %(here)s/data/sessions/lock
+session.key = mykey
+session.cookie_on_exception = true
+cache.regions = default_term, second, short_term, long_term
+cache.type = memory
+cache.second.expire = 1
+cache.short_term.expire = 60
+cache.default_term.expire = 300
+cache.long_term.expire = 3600
+
+[server:main]
+use = egg:waitress#main
+host = 0.0.0.0
+port = 6543
+
+[pshell]
+m = bodhi.server.models
+s = bodhi.server.Session
+
+[loggers]
+keys = root, bodhi, sqlalchemy, moksha, fedmsg
+
+[handlers]
+keys = console
+
+[formatters]
+keys = generic
+
+[logger_root]
+level = INFO
+handlers = console
+
+[logger_bodhi]
+level = DEBUG
+handlers =
+qualname = bodhi
+
+[logger_moksha]
+level = INFO
+handlers = console
+qualname = moksha.hub
+
+[logger_fedmsg]
+level = INFO
+handlers = console
+qualname = fedmsg
+
+[logger_sqlalchemy]
+level = WARN
+handlers =
+qualname = sqlalchemy.engine
+
+[handler_console]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = generic
+
+[formatter_generic]
+format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s

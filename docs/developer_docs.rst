@@ -242,13 +242,13 @@ Setting up
 
 ``pip install psycopg2 pyramid_debugtoolbar``
 
-Create the `development.ini <https://github.com/fedora-infra/bodhi/blob/develop/development.ini.example>`_ file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Create the `development.ini <https://github.com/fedora-infra/bodhi/blob/develop/devel/development.ini.example>`_ file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Copy ``development.ini.example`` to ``development.ini``:
+Copy ``devel/development.ini.example`` to ``development.ini``:
 ::
 
-    cp development.ini.example development.ini
+    cp devel/development.ini.example development.ini
     
 Run the test suite
 ^^^^^^^^^^^^^^^^^^
@@ -267,8 +267,8 @@ Import the bodhi2 database
           instructions at the bottom of the file.
 
 
-Adjust database configuration in `development.ini <https://github.com/fedora-infra/bodhi/blob/develop/development.ini.example>`_ file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Adjust database configuration in `development.ini <https://github.com/fedora-infra/bodhi/blob/develop/devel/development.ini.example>`_ file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Set the configuration key
 `sqlalchemy.url <https://github.com/fedora-infra/bodhi/blob/02d0a883c156d9a27a4dbac994409ecf726d00a9/development.ini#L413>`_
