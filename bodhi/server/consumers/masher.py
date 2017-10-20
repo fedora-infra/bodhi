@@ -829,16 +829,16 @@ class MasherThread(threading.Thread):
         """
         self.log.info("Running sanity checks on %s" % self.path)
 
-        arches = os.listdir(os.path.join(self.path, 'compose', 'Everything'))
+        arches = os.listdir(os.path.join(self.path, 'compose', self.variant))
         for arch in arches:
             # sanity check our repodata
             try:
                 if arch == 'source':
                     repodata = os.path.join(self.path, 'compose',
-                                            'Everything', arch, 'tree', 'repodata')
+                                            self.variant, arch, 'tree', 'repodata')
                 else:
                     repodata = os.path.join(self.path, 'compose',
-                                            'Everything', arch, 'os', 'repodata')
+                                            self.variant, arch, 'os', 'repodata')
                 sanity_check_repodata(repodata)
             except Exception:
                 self.log.exception("Repodata sanity check failed!")
@@ -854,7 +854,7 @@ class MasherThread(threading.Thread):
                 # Example of full path we are checking:
                 # self.path/compose/Everything/os/Packages/s/something.rpm
                 for checkdir in dirs:
-                    checkdir = os.path.join(self.path, 'compose', 'Everything', arch, *checkdir)
+                    checkdir = os.path.join(self.path, 'compose', self.variant, arch, *checkdir)
                     subdirs = os.listdir(checkdir)
                     # subdirs is the self.path/compose/Everything/os/Packages/{a,b,c,...}/ dirs
                     #
@@ -898,7 +898,7 @@ class MasherThread(threading.Thread):
             msg=dict(repo=self.id, agent=self.agent),
             force=True,
         )
-        mash_path = os.path.join(self.path, 'compose', 'Everything')
+        mash_path = os.path.join(self.path, 'compose', self.variant)
         checkarch = None
         # Find the first non-source arch to check against
         for arch in os.listdir(mash_path):
@@ -1110,6 +1110,7 @@ class MasherThread(threading.Thread):
 class RPMMasherThread(MasherThread):
     ctype = ContentType.rpm
     pungi_template_config_key = 'pungi.conf.rpm'
+    variant = 'Everything'
 
     def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
         variants_template = template_env.get_template('variants.rpm.xml.j2')
@@ -1121,6 +1122,7 @@ class RPMMasherThread(MasherThread):
 class ModuleMasherThread(MasherThread):
     ctype = ContentType.module
     pungi_template_config_key = 'pungi.conf.module'
+    variant = 'Server'
 
     def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
         template = template_env.get_template('variants.module.xml.j2')
