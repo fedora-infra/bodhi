@@ -32,9 +32,9 @@ gather_results() {
 }
 
 sed -i '/pyramid_debugtoolbar/d' setup.py
-sed -i '/pyramid_debugtoolbar/d' development.ini.example
+sed -i '/pyramid_debugtoolbar/d' devel/development.ini.example
 
-cp development.ini.example development.ini
+cp devel/development.ini.example development.ini
 
 /usr/bin/python setup.py develop || fail
 

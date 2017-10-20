@@ -98,7 +98,7 @@
   args:
       creates: /home/vagrant/.db-imported
 
-- command: cp /home/vagrant/bodhi/development.ini.example /home/vagrant/bodhi/development.ini
+- command: cp /home/vagrant/bodhi/devel/development.ini.example /home/vagrant/bodhi/development.ini
   args:
       creates: /home/vagrant/bodhi/development.ini
 
