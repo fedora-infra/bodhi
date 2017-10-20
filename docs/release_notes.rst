@@ -56,7 +56,7 @@ The ``production.ini`` file supports some new settings:
 
 You will need to create ``variants.xml`` templates inside ``pungi.basepath`` as well. These
 templates will have access to the same template variables described above, and should be named
-``variants.rpm.xml.j2`` and ``variants.module.xml.j2``, for RPMs composes and module composes,
+``variants.rpm.xml.j2`` and ``variants.module.xml.j2``, for RPM composes and module composes,
 respectively.
 
 
