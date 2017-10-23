@@ -22,6 +22,7 @@ mashed.
 import functools
 import hashlib
 import json
+import glob
 import os
 import shutil
 import subprocess
@@ -327,6 +328,7 @@ class MasherThread(threading.Thread):
         }
         self.success = False
         self.devnull = None
+        self._startyear = None
 
     def run(self):
         try:
@@ -572,7 +574,7 @@ class MasherThread(threading.Thread):
         os.remove(self.mash_lock)
 
     def finish(self, success):
-        if hasattr(self, '_pungi_conf_dir') and os.path.exists(self._pungi_conf_dir):
+        if hasattr(self, '_pungi_conf_dir') and os.path.exists(self._pungi_conf_dir) and success:
             # Let's clean up the pungi configs we wrote
             shutil.rmtree(self._pungi_conf_dir)
 
@@ -718,15 +720,18 @@ class MasherThread(threading.Thread):
         # We have a thread-local devnull FD so that we can close them after the mash is done
         self.devnull = open(os.devnull, 'wb')
 
-        previous = self.get_previous_compose()
         self.create_pungi_config()
         config_file = os.path.join(self._pungi_conf_dir, 'pungi.conf')
+        self._label = '%s-%s' % (config.get('pungi.labeltype'),
+                                 datetime.utcnow().strftime('%Y%m%d.%H%M'))
         pungi_cmd = [config.get('pungi.cmd'),
                      '--config', config_file,
-                     '--no-label',
-                     '--target-dir', self.mash_dir]
-        if previous:
-            pungi_cmd += ['--old-composes', previous]
+                     '--quiet',
+                     '--target-dir', self.mash_dir,
+                     '--old-composes', self.mash_dir,
+                     '--no-latest-link',
+                     '--label', self._label]
+        pungi_cmd += config.get('pungi.extracmdline')
 
         self.log.info('Running the pungi command: %s', pungi_cmd)
         mash_process = subprocess.Popen(pungi_cmd,
@@ -751,11 +756,12 @@ class MasherThread(threading.Thread):
             self.devnull.close()
             raise Exception('Pungi returned error, aborting!')
 
-        return mash_process
+        # This is used to find the generated directory post-mash.
+        # This is stored at the time of start so that even if the update run crosses the year
+        # border, we can still find it back.
+        self._startyear = datetime.utcnow().year
 
-    def get_previous_compose(self):
-        """Function to return the previous composes' output."""
-        return os.path.join(config.get('mash_stage_dir'), self.id)
+        return mash_process
 
     def wait_for_mash(self, mash_process):
         if mash_process is None:
@@ -771,10 +777,23 @@ class MasherThread(threading.Thread):
         else:
             self.log.info('Mashing finished')
 
-        # Find the real name of the directory pungi just created
-        pungi_latest_link_name = 'latest-%s-%s' % (self.id, self.release.version)
-        pungi_latest_real_name = os.readlink(os.path.join(self.mash_dir, pungi_latest_link_name))
-        self.path = os.path.join(self.mash_dir, pungi_latest_real_name)
+        # Find the path Pungi just created
+        requesttype = 'updates'
+        if self.request is UpdateRequest.testing:
+            requesttype = 'updates-testing'
+        # The year here is used so that we can correctly find the latest updates mash, so that we
+        # find updates-20420101.1 instead of updates-testing-20420506.5
+        prefix = '%s-%d-%s-%s*' % (self.release.id_prefix.title(),
+                                   int(self.release.version),
+                                   requesttype,
+                                   self._startyear)
+
+        paths = glob.glob(os.path.join(self.mash_dir, prefix))
+        paths.sort()
+        if len(paths) < 1:
+            raise Exception('We were unable to find a path with prefix %s in mashdir' % prefix)
+        self.log.debug('Paths: %s', paths)
+        self.path = paths[-1]
         self.state['completed_repos'].append(self.path)
         self.save_state()
 
