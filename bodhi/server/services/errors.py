@@ -102,7 +102,7 @@ class html_handler(pyramid.httpexceptions.HTTPError):
                 request=errors.request,
                 summary=status2summary(errors.status),
             )
-        except:
+        except Exception:
             log.error(mako.exceptions.text_error_template().render())
             raise
 

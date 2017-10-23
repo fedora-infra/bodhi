@@ -101,7 +101,7 @@ class Bugzilla(BugTracker):
         except InvalidComment:
             log.exception(
                 "Comment too long for bug #%d:  %s" % (bug_id, comment))
-        except:
+        except Exception:
             log.exception("Unable to add comment to bug #%d" % bug_id)
 
     def on_qa(self, bug_id, comment):
@@ -113,7 +113,7 @@ class Bugzilla(BugTracker):
         try:
             bug = self.bz.getbug(bug_id)
             bug.setstatus('ON_QA', comment=comment)
-        except:
+        except Exception:
             log.exception("Unable to alter bug #%d" % bug_id)
 
     def close(self, bug_id, versions, comment):
@@ -159,8 +159,9 @@ class Bugzilla(BugTracker):
                 bug_entity.title = 'Invalid bug number'
                 log.exception("Got fault from Bugzilla")
                 return
-            except:
+            except Exception:
                 log.exception("Unknown exception from Bugzilla")
+                return
         if bug.product == 'Security Response':
             bug_entity.parent = True
         bug_entity.title = to_unicode(bug.short_desc)
@@ -180,7 +181,7 @@ class Bugzilla(BugTracker):
             if bug.bug_status not in ('MODIFIED', 'VERIFIED', 'CLOSED'):
                 log.info('Setting bug #%d status to MODIFIED' % bug_id)
                 bug.setstatus('MODIFIED')
-        except:
+        except Exception:
             log.exception("Unable to alter bug #%d" % bug_id)
 
 

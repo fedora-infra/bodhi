@@ -52,7 +52,7 @@ for up in bad:
             db.flush()
 
             assert up.days_in_testing != 0, up
-    except:
+    except Exception:
         print('Cannot find koji build for %s' % build.nvr)
 
 # vim: ts=4 sw=4 ai expandtab

@@ -41,3 +41,16 @@ class TestSend(base.BaseTestCase):
         self.assertTrue('X-Bodhi-Update-Title: bodhi-2.0-1.fc17' in sendmail.mock_calls[0][1][2])
         self.assertTrue(
             'Subject: [Fedora Update] [comment] bodhi-2.0-1.fc17' in sendmail.mock_calls[0][1][2])
+
+    @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.example.com'})
+    @mock.patch('bodhi.server.mail.smtplib.SMTP', side_effect=Exception())
+    @mock.patch('bodhi.server.mail.log.exception')
+    def test_exception_in__send_mail(self, exception_log, SMTP):
+        """Assert that we log an exception if _send_mail catches one"""
+        update = models.Update.query.all()[0]
+
+        mail.send('fake@news.com', 'comment', update, agent='bowlofeggs')
+
+        exception_log.assert_called_once_with('Unable to send mail')
+        sendmail = SMTP.return_value.sendmail
+        self.assertEqual(sendmail.call_count, 0)

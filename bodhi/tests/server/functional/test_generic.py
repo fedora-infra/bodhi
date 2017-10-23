@@ -15,6 +15,7 @@
 from datetime import datetime
 import copy
 
+import mock
 from pyramid.testing import DummyRequest
 from webtest import TestApp
 
@@ -341,6 +342,22 @@ class TestGenericViews(base.BaseTestCase):
         self.assertIn('f17-updates-testing-pending', body)
         self.assertIn('f17-override', body)
         self.assertEquals(body['f17-updates'], 'TurboGears-1.0.2.2-2.fc17')
+
+    @mock.patch("bodhi.server.buildsys.DevBuildsys.getLatestBuilds", side_effect=Exception())
+    def test_latest_builds_exception(self, mock_getlatestbuilds):
+        """
+        Test that the latest_builds() just passes if it hits an exception
+        the result here is that there should be no builds returned
+        """
+        res = self.app.get('/latest_builds')
+        body = res.json_body
+
+        self.assertNotIn('f17-updates', body)
+        self.assertNotIn('f17-updates-pending', body)
+        self.assertNotIn('f17-updates-candidate', body)
+        self.assertNotIn('f17-updates-testing', body)
+        self.assertNotIn('f17-updates-testing-pending', body)
+        self.assertNotIn('f17-override', body)
 
     def test_candidate(self):
         res = self.app.get('/latest_candidates')

@@ -1093,7 +1093,7 @@ class TransactionalSessionMaker(object):
             # original Exception.
             try:
                 session.rollback()
-            except:
+            except Exception:
                 log.exception('An Exception was raised while rolling back a transaction.')
             raise e
         finally:

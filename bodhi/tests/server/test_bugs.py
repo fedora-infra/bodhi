@@ -168,6 +168,21 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
 
     @mock.patch('bodhi.server.bugs.log.info')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
+    def test_modified(self, info):
+        """Test the modified() method"""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'aproduct'
+        bz._bz.getbug.return_value.bug_status = 'NEW'
+
+        bz.modified(1411188)
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        info.assert_called_once_with("Setting bug #1411188 status to MODIFIED")
+        self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 1)
+
+    @mock.patch('bodhi.server.bugs.log.info')
     def test_modified_product_skipped(self, info):
         """Test the modified() method when the bug's product is not in the bz_products config."""
         bz = bugs.Bugzilla()
@@ -179,6 +194,30 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         info.assert_called_once_with("Skipping 'not fedora!' bug")
         self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
+
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_modified_exception(self, exception_log):
+        """Test the modified() method logs an exception if encountered"""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = Exception()
+
+        bz.modified(1411188)
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        exception_log.assert_called_once_with("Unable to alter bug #1411188")
+        self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
+
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_update_details_exception(self, mock_exceptionlog):
+        """Test we log an exception if update_details raises one"""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = Exception()
+
+        bz.update_details(0, 0)
+
+        mock_exceptionlog.assert_called_once_with('Unknown exception from Bugzilla')
 
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_on_qa_failure(self, exception):
