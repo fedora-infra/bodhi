@@ -58,7 +58,7 @@ class ModelTest(BaseTestCase):
                 self.db.add(self.obj)
                 self.db.flush()
                 return self.obj
-            except:
+            except Exception:
                 self.db.rollback()
                 raise
 

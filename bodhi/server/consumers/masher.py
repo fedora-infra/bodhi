@@ -336,7 +336,7 @@ class MasherThread(threading.Thread):
                 self.db = session
                 self.work()
                 self.db = None
-        except:
+        except Exception:
             self.log.exception('MasherThread failed. Transaction rolled back.')
 
     def results(self):
@@ -437,7 +437,7 @@ class MasherThread(threading.Thread):
             self.check_all_karma_thresholds()
             self.obsolete_older_updates()
 
-        except:
+        except Exception:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
             self.save_state()
             raise
@@ -671,7 +671,7 @@ class MasherThread(threading.Thread):
                     if build.override:
                         try:
                             build.override.expire()
-                        except:
+                        except Exception:
                             log.exception('Problem expiring override')
 
     def remove_pending_tags(self):

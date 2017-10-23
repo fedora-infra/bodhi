@@ -634,6 +634,6 @@ class BodhiClient(OpenIdBaseClient):
                 for build in koji.listTagged(release['candidate_tag'], latest=True):
                     if build['owner_name'] == self.username:
                         builds.append(build)
-            except:
+            except Exception:
                 log.exception('Unable to query candidate builds for %s' % release)
         return builds

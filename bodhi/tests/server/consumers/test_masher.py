@@ -141,7 +141,7 @@ class TestMasher(unittest.TestCase):
                 if req.status_code == 200:
                     db_path = req.text
                     print('Using faitout at: %s' % db_path)
-            except:
+            except Exception:
                 pass
         engine = initialize_db({'sqlalchemy.url': db_path})
         Base.metadata.create_all(engine)
@@ -166,7 +166,7 @@ class TestMasher(unittest.TestCase):
         shutil.rmtree(self.tempdir)
         try:
             os.remove(self.db_filename)
-        except:
+        except Exception:
             pass
         buildsys.teardown_buildsystem()
         shutil.rmtree(self._new_mash_stage_dir)
@@ -276,7 +276,7 @@ class TestMasher(unittest.TestCase):
         try:
             self.masher.consume(msg)
             assert False, "Invalid builds should have crashed the mash"
-        except:
+        except Exception:
             pass
 
     @mock.patch(**mock_taskotron_results)
@@ -544,7 +544,7 @@ References:
         try:
             t.sanity_check_repo()
             assert False, "Sanity check didn't fail with empty dir"
-        except:
+        except Exception:
             pass
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
@@ -1516,6 +1516,30 @@ References:
             up = session.query(Update).filter_by(title=otherbuild).one()
             self.assertEquals(up.status, UpdateStatus.testing)
             self.assertEquals(up.request, None)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.server.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.log.exception')
+    @mock.patch('bodhi.server.models.BuildrootOverride.expire', side_effect=Exception())
+    def test_expire_buildroot_overrides_exception(self, expire, exception_log, publish, *args):
+        title = self.msg['body']['msg']['updates'][0]
+        with self.db_factory() as session:
+            release = session.query(Update).one().release
+            pending_testing_tag = release.pending_testing_tag
+            self.koji.__tagged__[title] = [release.override_tag,
+                                           pending_testing_tag]
+            up = session.query(Update).one()
+            up.release.state = ReleaseState.pending
+            up.request = UpdateRequest.stable
+
+        self.masher.consume(self.msg)
+
+        exception_log.assert_called_once_with("Problem expiring override")
 
 
 class MasherThreadBaseTestCase(base.BaseTestCase):

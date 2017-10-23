@@ -331,7 +331,7 @@ def latest_builds(request):
             try:
                 for build in koji.getLatestBuilds(tag, package=package):
                     builds[tag] = build['nvr']
-            except:  # Things like EPEL don't have pending tags
+            except Exception:  # Things like EPEL don't have pending tags
                 pass
     return builds
 
