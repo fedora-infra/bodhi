@@ -204,11 +204,13 @@ class TestMasher(unittest.TestCase):
 <revision>1508375628</revision></repomd>'''
 
             # We need to fake Pungi having run or wait_for_mash() will fail to find the output dir
-            _tag = getattr(release, tag)
+            reqtype = 'updates' if tag == 'stable_tag' else 'updates-testing'
             mash_dir = os.path.join(
                 masher_thread.mash_dir,
-                '%s-%s-%s-%s.0' % (release.version, _tag, release.version,
-                                   time.strftime("%y%m%d")))
+                '%s-%d-%s-%s.0' % (release.id_prefix.title(),
+                                   int(release.version),
+                                   reqtype,
+                                   time.strftime("%Y%m%d")))
 
             for arch in ('i386', 'x86_64', 'armhfp'):
                 arch_repo = os.path.join(mash_dir, 'compose', 'Everything', arch)
@@ -226,10 +228,6 @@ class TestMasher(unittest.TestCase):
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write(fake_repodata)
 
-            os.symlink(
-                mash_dir,
-                os.path.join(masher_thread.mash_dir,
-                             'latest-%s-%s' % (_tag, release.version)))
             fake_popen = mock.MagicMock()
             fake_popen.communicate = lambda: (mock.MagicMock(), 'hello')
             fake_popen.poll.return_value = None
@@ -508,6 +506,28 @@ References:
                 config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
+    def test_mash_no_found_dirs(self, save_state):
+        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+                            'ralph', log, self.db_factory, self.tempdir)
+        t.devnull = mock.MagicMock()
+        t.id = 'f17-updates-testing'
+        with self.db_factory() as session:
+            t.db = session
+            t.release = session.query(Release).filter_by(name='F17').one()
+            try:
+                fake_popen = mock.MagicMock()
+                fake_popen.communicate = lambda: (mock.MagicMock(), 'hello')
+                fake_popen.poll.return_value = None
+                fake_popen.returncode = 0
+                t._startyear = datetime.datetime.utcnow().year
+                t.wait_for_mash(fake_popen)
+                assert False, "Mash without generated dirs did not crash"
+            except Exception as ex:
+                assert str(ex) == 'We were unable to find a path with prefix ' + \
+                                  'Fedora-17-updates-testing-2017* in mashdir'
+            t.db = None
+
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
     def test_sanity_check_no_arches(self, save_state):
         t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
                             'ralph', log, self.db_factory, self.tempdir)
@@ -516,6 +536,7 @@ References:
         with self.db_factory() as session:
             t.db = session
             t.release = session.query(Release).filter_by(name='F17').one()
+            t._startyear = datetime.datetime.utcnow().year
             t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
             t.db = None
 
@@ -535,6 +556,7 @@ References:
         with self.db_factory() as session:
             t.db = session
             t.release = session.query(Release).filter_by(name='F17').one()
+            t._startyear = datetime.datetime.utcnow().year
             t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
             t.db = None
 
@@ -567,6 +589,7 @@ References:
         with self.db_factory() as session:
             t.db = session
             t.release = session.query(Release).filter_by(name='F17').one()
+            t._startyear = datetime.datetime.utcnow().year
             t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
             t.db = None
 
@@ -600,6 +623,7 @@ References:
         with self.db_factory() as session:
             t.db = session
             t.release = session.query(Release).filter_by(name='F17').one()
+            t._startyear = datetime.datetime.utcnow().year
             t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
             t.db = None
 
@@ -631,6 +655,7 @@ References:
         with self.db_factory() as session:
             t.db = session
             t.release = session.query(Release).filter_by(name='F17').one()
+            t._startyear = datetime.datetime.utcnow().year
             t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
             t.db = None
 
@@ -1007,8 +1032,8 @@ References:
             Popen.mock_calls,
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--no-label', '--target-dir', t.mash_dir, '--old-composes',
-                 t.get_previous_compose()],
+                 '--quiet', '--target-dir', t.mash_dir, '--old-composes', t.mash_dir,
+                 '--no-latest-link', '--label', t._label],
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
@@ -1088,8 +1113,8 @@ References:
             Popen.mock_calls,
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--no-label', '--target-dir', t.mash_dir, '--old-composes',
-                 t.get_previous_compose()],
+                 '--quiet', '--target-dir', t.mash_dir, '--old-composes', t.mash_dir,
+                 '--no-latest-link', '--label', t._label],
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
@@ -1130,8 +1155,8 @@ References:
             Popen.mock_calls,
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--no-label', '--target-dir', t.mash_dir, '--old-composes',
-                 t.get_previous_compose()],
+                 '--quiet', '--target-dir', t.mash_dir, '--old-composes', t.mash_dir,
+                 '--no-latest-link', '--label', t._label],
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
@@ -1171,8 +1196,8 @@ References:
             Popen.mock_calls,
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--no-label', '--target-dir', t.mash_dir, '--old-composes',
-                 t.get_previous_compose()],
+                 '--quiet', '--target-dir', t.mash_dir, '--old-composes', t.mash_dir,
+                 '--no-latest-link', '--label', t._label],
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
