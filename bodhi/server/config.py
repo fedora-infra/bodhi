@@ -477,6 +477,12 @@ class BodhiConfig(dict):
         'pungi.conf.rpm': {
             'value': 'pungi.rpm.conf',
             'validator': unicode},
+        'pungi.extracmdline': {
+            'value': [],
+            'validator': _generate_list_validator()},
+        'pungi.labeltype': {
+            'value': 'Update',
+            'validator': unicode},
         'query_wiki_test_cases': {
             'value': False,
             'validator': _validate_bool},
