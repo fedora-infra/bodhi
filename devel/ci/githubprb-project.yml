@@ -38,6 +38,7 @@
     name: '{ci_project}-{git_repo}'
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
+    concurrent: true
     node: "{ci_project}"
     properties:
         - github:
@@ -115,4 +116,3 @@
             ci_project: '{name}'
             ci_cmd: "devel/ci/run_tests.sh"
             timeout: '64m'
-            concurrent: true
