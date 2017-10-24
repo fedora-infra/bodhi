@@ -49,6 +49,11 @@ Backwards incompatible changes
     * ``comps_url``
     * ``mash_conf``
 
+* ``bodhi-push`` no longer has a ``--staging`` flag as it was not needed. It was used to determine
+  the mashing directory to look for lock files, but the directories it looked in were hardcoded
+  instead of using the ``mash_dir`` setting. With 3.0.0, ``mash_dir`` is used and the ``--staging``
+  flag is no longer needed.
+
 
 Dependency changes
 ^^^^^^^^^^^^^^^^^^
