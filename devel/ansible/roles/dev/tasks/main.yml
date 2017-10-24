@@ -52,7 +52,6 @@
       - python-rpdb
       - python-simplemediawiki
       - python-sqlalchemy
-      - python-webhelpers
       - python-webtest
       - python-zmq
       - python2-colander
@@ -83,6 +82,11 @@
 - name: pip install pydocstyle
   pip:
       name: pydocstyle
+
+# This isn't packaged in Fedora yet, but there is a package review open https://bugzilla.redhat.com/show_bug.cgi?id=1505993
+- name: pip install feedgen
+  pip:
+      name: feedgen
 
 - name: Install bodhi in developer mode
   command: python /home/vagrant/bodhi/setup.py develop

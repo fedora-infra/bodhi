@@ -1,8 +1,9 @@
 import io
 import operator
 
+from pytz import utc
 from pyramid.exceptions import HTTPNotFound
-import webhelpers.feedgenerator
+from feedgen.feed import FeedGenerator
 
 
 def rss(info):
@@ -25,22 +26,23 @@ def rss(info):
         else:
             raise HTTPNotFound("RSS not implemented for this service")
 
-        feed = webhelpers.feedgenerator.Rss201rev2Feed(
-            title=key,
-            link=request.url,
-            description=key,
-            language=u"en",
-        )
+        feed = FeedGenerator()
+        feed.title(key)
+        feed.link(href=request.url, rel='self')
+        feed.description(key)
+        feed.language(u'en')
 
         def linker(route, param, key):
-            return lambda obj: request.route_url(route, **{param: obj[key]})
+            def link_dict(obj):
+                return dict(href=request.route_url(route, **{param: obj[key]}))
+            return link_dict
 
         getters = {
             'updates': {
                 'title': operator.itemgetter('title'),
                 'link': linker('update', 'id', 'title'),
                 'description': operator.itemgetter('notes'),
-                'pubdate': operator.itemgetter('date_submitted'),
+                'pubdate': lambda obj: utc.localize(obj['date_submitted']),
             },
             'users': {
                 'title': operator.itemgetter('name'),
@@ -51,22 +53,25 @@ def rss(info):
                 'title': operator.itemgetter('text'),
                 'link': linker('comment', 'id', 'id'),
                 'description': operator.itemgetter('text'),
-                'pubdate': operator.itemgetter('timestamp'),
+                'pubdate': lambda obj: utc.localize(obj['timestamp']),
             },
             'overrides': {
                 'title': operator.itemgetter('nvr'),
                 'link': linker('override', 'nvr', 'nvr'),
                 'description': operator.itemgetter('notes'),
-                'pubdate': operator.itemgetter('submission_date'),
+                'pubdate': lambda obj: utc.localize(obj['submission_date']),
             },
         }
 
         for value in data[key]:
-            feed.add_item(**dict([
-                (name, getter(value)) for name, getter in getters[key].items()
-            ]))
+            feed_item = feed.add_item()
+            for name, getter in getters[key].items():
+                # Because we have to use methods to fill feed entry attributes,
+                # it's done by getting methods by name and calling them
+                # on the same line
+                getattr(feed_item, name)(getter(value))
 
-        return feed.writeString('utf-8')
+        return feed.rss_str()
 
     return render
 
