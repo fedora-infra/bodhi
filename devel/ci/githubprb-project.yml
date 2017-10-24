@@ -115,3 +115,4 @@
             ci_project: '{name}'
             ci_cmd: "devel/ci/run_tests.sh"
             timeout: '64m'
+            concurrent: true
