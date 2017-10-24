@@ -695,7 +695,14 @@ class MasherThread(threading.Thread):
 
     def create_pungi_config(self):
         loader = jinja2.FileSystemLoader(searchpath=config.get('pungi.basepath'))
-        env = jinja2.Environment(loader=loader, autoescape=False)
+        env = jinja2.Environment(loader=loader,
+                                 autoescape=False,
+                                 block_start_string='[%',
+                                 block_end_string='%]',
+                                 variable_start_string='[[',
+                                 variable_end_string=']]',
+                                 comment_start_string='[#',
+                                 comment_end_string='#]')
 
         env.globals['id'] = self.id
         env.globals['release'] = self.release
