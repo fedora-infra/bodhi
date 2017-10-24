@@ -4,7 +4,7 @@
 # On your host:
 # git clone https://github.com/fedora-infra/bodhi.git
 # cd bodhi
-# cp Vagrantfile.example Vagrantfile
+# cp devel/Vagrantfile.example Vagrantfile
 # vagrant up
 # vagrant ssh -c "cd /home/vagrant/bodhi; pserve development.ini --reload"
 

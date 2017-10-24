@@ -125,7 +125,7 @@ use these commands::
     $ sudo dnf install ansible libvirt vagrant-libvirt vagrant-sshfs
     $ sudo systemctl enable libvirtd
     $ sudo systemctl start libvirtd
-    $ cp Vagrantfile.example Vagrantfile
+    $ cp devel/Vagrantfile.example Vagrantfile
     # Make sure your bodhi checkout is your shell's cwd
     $ vagrant up
 
