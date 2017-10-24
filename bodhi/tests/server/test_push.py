@@ -64,6 +64,12 @@ class TestFilterReleases(base.BaseTestCase):
         self.db.add(self.archived_release_update)
         self.db.commit()
 
+        test_config = base.original_config.copy()
+        test_config['mash_dir'] = '/mashdir/'
+        mock_config = mock.patch.dict('bodhi.server.push.config', test_config)
+        mock_config.start()
+        self.addCleanup(mock_config.stop)
+
     def test_defaults_to_filtering_correct_releases(self):
         """
         Ensure that _filter_releases() filters out archived and disabled releases by default.
@@ -255,17 +261,6 @@ Locking updates...
 Sending masher.start fedmsg
 """
 
-TEST_STAGING_FLAG_EXPECTED_OUTPUT = """Warning: bodhi-2.0-1.fc17 is locked but not in a push
-Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
-python-nose-1.3.7-11.fc17
-python-paste-deploy-1.5.2-8.fc17
-Push these 2 updates? [y/N]: y
-
-Locking updates...
-
-Sending masher.start fedmsg
-"""
-
 TEST_UNSIGNED_UPDATES_SKIPPED_EXPECTED_OUTPUT = """Warning: python-nose-1.3.7-11.fc17 has unsigned builds and has been skipped
 Warning: bodhi-2.0-1.fc17 is locked but not in a push
 Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
@@ -293,6 +288,12 @@ class TestPush(base.BaseTestCase):
         python_nose.builds[0].signed = True
         python_paste_deploy.builds[0].signed = True
         self.db.commit()
+
+        test_config = base.original_config.copy()
+        test_config['mash_dir'] = '/mashdir/'
+        mock_config = mock.patch.dict('bodhi.server.push.config', test_config)
+        mock_config.start()
+        self.addCleanup(mock_config.stop)
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     def test_abort_push(self, publish):
@@ -415,7 +416,7 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_LOCKED_UPDATES_EXPECTED_OUTPUT)
-        glob.assert_called_once_with('/mnt/koji/mash/updates/MASHING-*')
+        glob.assert_called_once_with('/mashdir//MASHING-*')
         publish.assert_called_once_with(
             topic='masher.start',
             msg={'updates': ['python-nose-1.3.7-11.fc17', 'python-paste-deploy-1.5.2-8.fc17'],
@@ -468,7 +469,7 @@ class TestPush(base.BaseTestCase):
             set([l for l in result.output.split('\n') if l[-4:] == 'fc17']),
             set([l for l in TEST_LOCKED_UPDATES_NOT_IN_A_PUSH_EXPECTED_OUTPUT.split('\n')
                  if l[-4:] == 'fc17']))
-        glob.assert_called_once_with('/mnt/koji/mash/updates/MASHING-*')
+        glob.assert_called_once_with('/mashdir//MASHING-*')
         publish.assert_called_once_with(
             topic='masher.start',
             msg={'updates': ['ejabberd-16.09-4.fc17', 'python-nose-1.3.7-11.fc17',
@@ -654,7 +655,7 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RESUME_FLAG_EXPECTED_OUTPUT)
-        glob.assert_called_once_with('/mnt/koji/mash/updates/MASHING-*')
+        glob.assert_called_once_with('/mashdir//MASHING-*')
         publish.assert_called_once_with(
             topic='masher.start',
             msg={'updates': ['ejabberd-16.09-4.fc17'],
@@ -706,7 +707,7 @@ class TestPush(base.BaseTestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT)
-        glob.assert_called_once_with('/mnt/koji/mash/updates/MASHING-*')
+        glob.assert_called_once_with('/mashdir//MASHING-*')
         publish.assert_called_once_with(
             topic='masher.start',
             msg={'updates': ['ejabberd-16.09-4.fc17'],
@@ -727,44 +728,6 @@ class TestPush(base.BaseTestCase):
         for u in [python_nose, python_paste_deploy]:
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
-
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
-    @mock.patch('bodhi.server.push.file', create=True)
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    @mock.patch('bodhi.server.push.glob.glob',
-                return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
-    @mock.patch('bodhi.server.push.json.load', return_value={'updates': [u'ejabberd-16.09-4.fc17']})
-    def test_staging_flag(self, load, glob, publish, mock_file, mock_init):
-        """
-        Test correct operation when the --staging flag is given. The main thing that matters is that
-        the glob call happens on a different directory.
-        """
-        cli = CliRunner()
-        self.db.commit()
-
-        with mock.patch('bodhi.server.push.transactional_session_maker',
-                        return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--staging'], input='y')
-
-        self.assertEqual(result.exit_code, 0)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
-        self.assertEqual(result.output, TEST_STAGING_FLAG_EXPECTED_OUTPUT)
-        glob.assert_called_once_with('/var/cache/bodhi/mashing/MASHING-*')
-        publish.assert_called_once_with(
-            topic='masher.start',
-            msg={'updates': ['python-nose-1.3.7-11.fc17', u'python-paste-deploy-1.5.2-8.fc17'],
-                 'resume': False, 'agent': 'bowlofeggs'},
-            force=True)
-        mock_file.assert_called_once_with('/mnt/koji/mash/updates/MASHING-f17-updates')
-
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
-        # The packages should be locked
-        for u in [python_nose, python_paste_deploy]:
-            self.assertTrue(u.locked)
-            self.assertTrue(u.date_locked <= datetime.utcnow())
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
