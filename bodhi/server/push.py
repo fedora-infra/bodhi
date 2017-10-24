@@ -39,20 +39,15 @@ import bodhi.server.notifications
               help='Push updates with a specific request (default: testing,stable)')
 @click.option('--resume', help='Resume one or more previously failed pushes',
               is_flag=True, default=False)
-@click.option('--staging', help='Use the staging bodhi instance',
-              is_flag=True, default=False)
 @click.option('--username', prompt=True)
 @click.version_option(message='%(version)s')
 def push(username, cert_prefix, **kwargs):
-    staging = kwargs.pop('staging')
+    """Push builds out to the repositories."""
     resume = kwargs.pop('resume')
 
     lockfiles = defaultdict(list)
     locked_updates = []
-    if staging:
-        locks = '/var/cache/bodhi/mashing/MASHING-*'
-    else:
-        locks = '/mnt/koji/mash/updates/MASHING-*'
+    locks = '%s/MASHING-*' % config.get('mash_dir')
     for lockfile in glob.glob(locks):
         with file(lockfile) as lock:
             state = json.load(lock)
