@@ -7,7 +7,6 @@
     python-pyramid-fas-openid \
     python-pytest \
     python-simplemediawiki \
-    python-webhelpers \
     python-webtest \
     python2-fedmsg \
     python2-kitchen \

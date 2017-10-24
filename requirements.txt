@@ -7,6 +7,7 @@ cornice<2
 cryptography
 dogpile.cache
 fedmsg[consumers]
+feedgen
 kitchen
 jinja2
 markdown
@@ -26,4 +27,3 @@ python-openid
 simplemediawiki
 sqlalchemy
 waitress
-webhelpers

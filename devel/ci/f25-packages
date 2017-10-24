@@ -12,7 +12,6 @@
     python-pytest \
     python-simplemediawiki \
     python-sqlalchemy \
-    python-webhelpers \
     python-webtest \
     python2-fedmsg-consumers \
     python2-fedmsg-core \
