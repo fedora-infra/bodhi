@@ -14,3 +14,4 @@ RUN dnf install -y \
     python2-jinja2 \
     python2-koji \
     python2-librepo \
+    python2-yaml \

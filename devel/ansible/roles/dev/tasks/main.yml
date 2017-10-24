@@ -68,6 +68,7 @@
       - python2-sphinx
       - python2-sqlalchemy_schemadisplay
       - python2-waitress
+      - python2-yaml
       - python3-tox
       - redhat-rpm-config
       - vim-enhanced
