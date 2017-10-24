@@ -6,7 +6,6 @@
 # cd bodhi
 # cp devel/Vagrantfile.example Vagrantfile
 # vagrant up
-# vagrant ssh -c "cd /home/vagrant/bodhi; pserve development.ini --reload"
 
 VAGRANTFILE_API_VERSION = "2"
 
