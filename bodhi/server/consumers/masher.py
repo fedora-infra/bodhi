@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2007-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -47,8 +52,14 @@ from bodhi.server.util import sorted_updates, sanity_check_repodata, transaction
 
 
 def checkpoint(method):
-    """ A decorator for skipping sections of the mash when resuming. """
+    """
+    Decorate a method for skipping sections of the mash when resuming.
 
+    Args:
+        method (callable): The callable to skip if we are resuming.
+    Returns:
+        callable: A function that skips the method if it can.
+    """
     key = method.__name__
 
     @functools.wraps(method)
@@ -70,10 +81,11 @@ def checkpoint(method):
 
 
 def request_order_key(requestblob):
-    """This generates a sort key for the updates documents in generate_batches
+    """
+    Generate a sort key for the updates documents in generate_batches.
 
     Args:
-        requestblob: A dictionary as described in generate_batches
+        requestblob (dict): A dictionary as described in generate_batches.
 
     Returns:
         int: Ordering key for this batch.
@@ -93,7 +105,8 @@ def request_order_key(requestblob):
 
 
 class Masher(fedmsg.consumers.FedmsgConsumer):
-    """The Bodhi Masher.
+    """
+    The Bodhi Masher.
 
     A fedmsg consumer that listens for messages from releng members.
 
@@ -114,11 +127,14 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     - Send fedmsgs
     - mash
 
-Things to do while we're waiting on mash
+    Things to do while we're waiting on mash:
+
     - Add testing updates to updates-testing digest
     - Generate/update updateinfo.xml
+    - Have a coffee. Have 7 coffees.
 
-Once mash is done:
+    Once mash is done:
+
     - inject the updateinfo it into the repodata
     - Sanity check the repo
     - Flip the symlinks to the new repo
@@ -135,10 +151,22 @@ Once mash is done:
         - unlock updates
         - see if any updates now meet the stable criteria, and set the request
     """
+
     config_key = 'masher'
 
     def __init__(self, hub, db_factory=None, mash_dir=config.get('mash_dir'),
                  *args, **kw):
+        """
+        Initialize the Masher.
+
+        Args:
+            hub (moksha.hub.hub.CentralMokshaHub): The hub this handler is consuming messages from.
+                It is used to look up the hub config values.
+            db_factory (bodhi.server.util.TransactionalSessionMaker or None): If given, used as the
+                db_factory for this Masher. If None (the default), a new TransactionalSessionMaker
+                is created and used.
+            mash_dir (basestring): The directory in which to place mashes.
+        """
         if not db_factory:
             config_uri = '/etc/bodhi/production.ini'
             settings = get_appsettings(config_uri)
@@ -162,6 +190,12 @@ Once mash is done:
         log.info('Bodhi masher listening on topic: %s' % self.topic)
 
     def consume(self, msg):
+        """
+        Receive a fedmsg and call work() with it.
+
+        Args:
+            msg (munch.Munch): The fedmsg that was received.
+        """
         self.log.info(msg)
         if self.valid_signer:
             if not fedmsg.crypto.validate_signed_by(msg['body'], self.valid_signer,
@@ -293,7 +327,15 @@ Once mash is done:
 
 
 def get_masher(content_type):
-    """Function to return the correct MasherThread subclass for content_type."""
+    """
+    Return the correct MasherThread subclass for content_type.
+
+    Args:
+        content_type (bodhi.server.models.EnumSymbol): The content type we seek a masher for.
+    Return:
+        MasherThread or None: Either an RPMMasherThread or a ModuleMasherThread, as appropriate, or
+            None if no masher is found.
+    """
     mashers = [RPMMasherThread, ModuleMasherThread]
     for possible in mashers:
         if possible.ctype is content_type:
@@ -302,11 +344,26 @@ def get_masher(content_type):
 
 class MasherThread(threading.Thread):
     """The base class that defines common things for all mashings."""
+
     ctype = None
     pungi_template_config_key = None
 
     def __init__(self, release, request, updates, agent,
                  log, db_factory, mash_dir, resume=False):
+        """
+        Initialize the MasherThread.
+
+        Args:
+            release (basestring): The long_name of the Release being mashed.
+            request (basestring): The name of the UpdateRequest being mashed.
+            updates (list): A list of Update titles (basestrings) being mashed.
+            agent (basestring): The user who is executing the mash.
+            log (logging.Logger): A logger to use for this mash.
+            db_factory (bodhi.server.util.TransactionalSessionMaker): A DB session to use while
+                mashing.
+            mash_dir (basestring): A path to a directory to generate the mash in.
+            resume (bool): Whether or not we are resuming a previous failed mash. Defaults to False.
+        """
         super(MasherThread, self).__init__()
         self.db_factory = db_factory
         self.log = log
@@ -331,6 +388,7 @@ class MasherThread(threading.Thread):
         self._startyear = None
 
     def run(self):
+        """Run the thread by managing a db transaction and calling work()."""
         try:
             with self.db_factory() as session:
                 self.db = session
@@ -340,12 +398,19 @@ class MasherThread(threading.Thread):
             self.log.exception('MasherThread failed. Transaction rolled back.')
 
     def results(self):
+        """
+        Yield log string messages about the results of this mash run.
+
+        Yields:
+            basestring: A string for human readers indicating the success of the mash.
+        """
         attrs = ['name', 'success']
         yield "  name:  %(name)-20s  success:  %(success)s" % dict(
             zip(attrs, [getattr(self, attr, 'Undefined') for attr in attrs])
         )
 
     def work(self):
+        """Perform the various high-level tasks for the mash."""
         self.release = self.db.query(Release)\
                               .filter_by(name=self.release).one()
         self.id = getattr(self.release, '%s_tag' % self.request.value)
@@ -445,6 +510,7 @@ class MasherThread(threading.Thread):
             self.finish(self.success)
 
     def load_updates(self):
+        """For each title we are to mash, get the Update from the DB, placing it in self.updates."""
         self.log.debug('Loading updates')
         updates = []
         for title in self.state['updates']:
@@ -456,6 +522,7 @@ class MasherThread(threading.Thread):
         self.updates = updates
 
     def unlock_updates(self):
+        """Mark all updates in this mash as unlocked."""
         self.log.debug('Unlocking updates')
         for update in self.updates:
             update.locked = False
@@ -463,10 +530,7 @@ class MasherThread(threading.Thread):
         self.db.flush()
 
     def check_all_karma_thresholds(self):
-        """
-        If we just pushed testing updates see if any of them now meet either of
-        the karma thresholds
-        """
+        """Run check_karma_thresholds() on testing Updates."""
         if self.request is UpdateRequest.testing:
             self.log.info('Determing if any testing updates reached the karma '
                           'thresholds during the push')
@@ -477,14 +541,13 @@ class MasherThread(threading.Thread):
                     self.log.exception('Problem checking karma thresholds')
 
     def obsolete_older_updates(self):
-        """
-        Obsolete any older updates that may still be lying around.
-        """
+        """Obsolete any older updates that may still be lying around."""
         self.log.info('Checking for obsolete updates')
         for update in self.updates:
             update.obsolete_older_updates(self.db)
 
     def verify_updates(self):
+        """Look for updates that don't match the mash request or release, and eject them."""
         for update in list(self.updates):
             if update.request is not self.request:
                 reason = "Request %s inconsistent with mash request %s" % (
@@ -499,6 +562,7 @@ class MasherThread(threading.Thread):
                 continue
 
     def perform_gating(self):
+        """Look for Updates that don't meet testing requirements, and eject them from the mash."""
         self.log.debug('Performing gating.')
         for update in list(self.updates):
             result, reason = update.check_requirements(self.db, config)
@@ -507,6 +571,14 @@ class MasherThread(threading.Thread):
                 self.eject_from_mash(update, reason)
 
     def eject_from_mash(self, update, reason):
+        """
+        Eject the given Update from the current mash for the given human-readable reason.
+
+        Args:
+            update (bodhi.server.models.Update): The Update being ejected.
+            reason (basestring): A human readable explanation for the ejection, which is used in a
+                comment on the update, in a log message, and in a fedmsg.
+        """
         update.locked = False
         text = '%s ejected from the push because %r' % (update.title, reason)
         log.warn(text)
@@ -537,6 +609,15 @@ class MasherThread(threading.Thread):
         )
 
     def init_state(self):
+        """
+        Create the mash_dir if it doesn't exist, and generate the lock file path within it.
+
+        This does not create the lock file itself, only the path that will be used for the lock
+        file, which is stored on self.mash_lock.
+
+        Raises:
+            Execption: If a lock file already exists and we are not resuming.
+        """
         if not os.path.exists(self.mash_dir):
             self.log.info('Creating %s' % self.mash_dir)
             os.makedirs(self.mash_dir)
@@ -547,17 +628,13 @@ class MasherThread(threading.Thread):
             raise Exception
 
     def save_state(self):
-        """
-        Save the state of this push so it can be resumed later if necessary
-        """
+        """Save the state of this push so it can be resumed later if necessary."""
         with file(self.mash_lock, 'w') as lock:
             json.dump(self.state, lock)
         self.log.info('Masher lock saved: %s', self.mash_lock)
 
     def load_state(self):
-        """
-        Load the state of this push so it can be resumed later if necessary
-        """
+        """Load the state of this push so it can be resumed later if necessary."""
         with file(self.mash_lock) as lock:
             self.state = json.load(lock)
         self.log.info('Masher state loaded from %s', self.mash_lock)
@@ -570,10 +647,17 @@ class MasherThread(threading.Thread):
         self.log.info('Resuming push without any completed repos')
 
     def remove_state(self):
+        """Remove the mash lock file."""
         self.log.info('Removing state: %s', self.mash_lock)
         os.remove(self.mash_lock)
 
     def finish(self, success):
+        """
+        Clean up pungi configs if the mash was successful, and send logs and fedmsgs.
+
+        Args:
+            success (bool): True if the mash had been successful, False otherwise.
+        """
         if hasattr(self, '_pungi_conf_dir') and os.path.exists(self._pungi_conf_dir) and success:
             # Let's clean up the pungi configs we wrote
             shutil.rmtree(self._pungi_conf_dir)
@@ -586,7 +670,7 @@ class MasherThread(threading.Thread):
         )
 
     def update_security_bugs(self):
-        """Update the bug titles for security updates"""
+        """Update the bug titles for security updates."""
         self.log.info('Updating bug titles for security updates')
         for update in self.updates:
             if update.type is UpdateType.security:
@@ -595,6 +679,7 @@ class MasherThread(threading.Thread):
 
     @checkpoint
     def determine_and_perform_tag_actions(self):
+        """Call _determine_tag_actions() and _perform_tag_actions()."""
         self._determine_tag_actions()
         self._perform_tag_actions()
 
@@ -664,7 +749,7 @@ class MasherThread(threading.Thread):
                     raise Exception("Failed to move builds: %s" % failed_tasks)
 
     def expire_buildroot_overrides(self):
-        """ Expire any buildroot overrides that are in this push """
+        """Expire any buildroot overrides that are in this push."""
         for update in self.updates:
             if update.request is UpdateRequest.stable:
                 for build in update.builds:
@@ -675,7 +760,7 @@ class MasherThread(threading.Thread):
                             log.exception('Problem expiring override')
 
     def remove_pending_tags(self):
-        """ Remove all pending tags from these updates """
+        """Remove all pending tags from the updates."""
         self.log.debug("Removing pending tags from builds")
         koji = buildsys.get_session()
         koji.multicall = True
@@ -691,9 +776,21 @@ class MasherThread(threading.Thread):
                        result)
 
     def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
+        """
+        Child classes should override this to place type-specific Pungi files in the config dir.
+
+        Args:
+            pungi_conf_dir (basestring): A path to the directory that Pungi's configs are being
+                written to.
+            template_env (jinja2.Environment): The jinja2 environment to be used while rendering the
+                variants.xml template.
+        raises:
+            NotImplementedError: The parent class does not implement this method.
+        """
         raise NotImplementedError
 
     def create_pungi_config(self):
+        """Create a temp dir and render the Pungi config templates into the dir."""
         loader = jinja2.FileSystemLoader(searchpath=config.get('pungi.basepath'))
         env = jinja2.Environment(loader=loader,
                                  autoescape=False,
@@ -720,6 +817,14 @@ class MasherThread(threading.Thread):
         self.copy_additional_pungi_files(self._pungi_conf_dir, env)
 
     def mash(self):
+        """
+        Launch the Pungi child process to "punge" the repository.
+
+        Returns:
+            subprocess.Popen: A process handle to the child Pungi process.
+        Raises:
+            Exception: If the child Pungi process exited with a non-0 exit code within 3 seconds.
+        """
         if self.path and self.path in self.state['completed_repos']:
             self.log.info('Skipping completed repo: %s', self.path)
             return
@@ -771,6 +876,15 @@ class MasherThread(threading.Thread):
         return mash_process
 
     def wait_for_mash(self, mash_process):
+        """
+        Wait for the pungi process to exit and find the path of the repository that it produced.
+
+        Args:
+            mash_process (subprocess.Popen): The Popen handle of the running child process.
+        Raises:
+            Exception: If pungi's exit code is not 0, or if it is unable to find the directory that
+                Pungi created.
+        """
         if mash_process is None:
             self.log.info('Not waiting for mash thread, as there was no mash')
             return
@@ -829,6 +943,7 @@ class MasherThread(threading.Thread):
             self.testing_digest[prefix][update.builds[i].nvr] = subbody[1]
 
     def generate_testing_digest(self):
+        """Generate a testing digest message for this release."""
         self.log.info('Generating testing digest for %s' % self.release.name)
         for update in self.updates:
             if update.status is UpdateStatus.testing:
@@ -836,6 +951,13 @@ class MasherThread(threading.Thread):
         self.log.info('Testing digest generation for %s complete' % self.release.name)
 
     def generate_updateinfo(self):
+        """
+        Create the updateinfo.xml file for this repository.
+
+        Returns:
+            bodhi.server.metadata.UpdateInfoMetadata: The updateinfo model that was created for this
+                repository.
+        """
         self.log.info('Generating updateinfo for %s' % self.release.name)
         uinfo = UpdateInfoMetadata(self.release, self.request,
                                    self.db, self.mash_dir)
@@ -905,7 +1027,7 @@ class MasherThread(threading.Thread):
         return True
 
     def stage_repo(self):
-        """Symlink our updates repository into the staging directory"""
+        """Symlink our updates repository into the staging directory."""
         stage_dir = config.get('mash_stage_dir')
         if not os.path.isdir(stage_dir):
             self.log.info('Creating mash_stage_dir %s', stage_dir)
@@ -917,7 +1039,12 @@ class MasherThread(threading.Thread):
         os.symlink(self.path, link)
 
     def wait_for_sync(self):
-        """Block until our repomd.xml hits the master mirror"""
+        """
+        Block until our repomd.xml hits the master mirror.
+
+        Raises:
+            Exception: If no folder other than "source" was found in the mash_path.
+        """
         self.log.info('Waiting for updates to hit the master mirror')
         notifications.publish(
             topic="mashtask.sync.wait",
@@ -967,6 +1094,7 @@ class MasherThread(threading.Thread):
             time.sleep(200)
 
     def send_notifications(self):
+        """Send fedmsgs to announce completion of mashing for each update."""
         self.log.info('Sending notifications')
         try:
             agent = os.getlogin()
@@ -982,18 +1110,21 @@ class MasherThread(threading.Thread):
 
     @checkpoint
     def modify_bugs(self):
+        """Mark bugs on each Update as modified."""
         self.log.info('Updating bugs')
         for update in self.updates:
             self.log.debug('Modifying bugs for %s', update.title)
             update.modify_bugs()
 
     def status_comments(self):
+        """Add bodhi system comments to each update."""
         self.log.info('Commenting on updates')
         for update in self.updates:
             update.status_comment(self.db)
 
     @checkpoint
     def send_stable_announcements(self):
+        """Send the stable announcement e-mails out."""
         self.log.info('Sending stable update announcements')
         for update in self.updates:
             if update.status is UpdateStatus.stable:
@@ -1001,7 +1132,7 @@ class MasherThread(threading.Thread):
 
     @checkpoint
     def send_testing_digest(self):
-        """Send digest mail to mailing lists"""
+        """Send digest mail to mailing lists."""
         self.log.info('Sending updates-testing digest')
         sechead = u'The following %s Security updates need testing:\n Age  URL\n'
         crithead = u'The following %s Critical Path updates have yet to be approved:\n Age URL\n'
@@ -1052,6 +1183,15 @@ class MasherThread(threading.Thread):
                            '%s updates-testing report' % prefix, maildata)
 
     def get_security_updates(self, release):
+        """
+        Return an iterable of security updates in the given release.
+
+        Args:
+            release (basestring): The long_name of a Release object, used to query for the matching
+                Release model.
+        Returns:
+            iterable: An iterable of security Update objects from the given release.
+        """
         release = self.db.query(Release).filter_by(long_name=release).one()
         updates = self.db.query(Update).filter(
             Update.type == UpdateType.security,
@@ -1134,10 +1274,21 @@ class MasherThread(threading.Thread):
 
 
 class RPMMasherThread(MasherThread):
+    """Run Pungi with configs that produce RPM repositories (yum/dnf and OSTrees)."""
+
     ctype = ContentType.rpm
     pungi_template_config_key = 'pungi.conf.rpm'
 
     def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
+        """
+        Generate and write the variants.xml file for this Pungi run.
+
+        Args:
+            pungi_conf_dir (basestring): A path to the directory that Pungi's configs are being
+                written to.
+            template_env (jinja2.Environment): The jinja2 environment to be used while rendering the
+                variants.xml template.
+        """
         variants_template = template_env.get_template('variants.rpm.xml.j2')
 
         with open(os.path.join(pungi_conf_dir, 'variants.xml'), 'w') as variantsfile:
@@ -1145,10 +1296,21 @@ class RPMMasherThread(MasherThread):
 
 
 class ModuleMasherThread(MasherThread):
+    """Run Pungi with configs that produce module repositories."""
+
     ctype = ContentType.module
     pungi_template_config_key = 'pungi.conf.module'
 
     def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
+        """
+        Generate and write the variants.xml file for this Pungi run.
+
+        Args:
+            pungi_conf_dir (basestring): A path to the directory that Pungi's configs are being
+                written to.
+            template_env (jinja2.Environment): The jinja2 environment to be used while rendering the
+                variants.xml template.
+        """
         template = template_env.get_template('variants.module.xml.j2')
 
         module_list = self._generate_module_list()
@@ -1168,10 +1330,10 @@ class ModuleMasherThread(MasherThread):
 
     def _generate_module_list(self):
         """
-        Generates a list of NSV which should be used for pungi modular compose
+        Generate a list of NSVs which should be used for pungi modular compose.
 
         Returns:
-          list: list of NSV string which should be composed
+            list: list of NSV string which should be composed.
         """
         newest_builds = {}
         # we loop through builds so we get rid of older builds and get only
