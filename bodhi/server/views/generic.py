@@ -19,14 +19,13 @@
 """A collection of views that don't fit in any other common category."""
 
 import datetime
-import sqlalchemy as sa
-
-import cornice.errors
 
 from pyramid.settings import asbool
 from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import HTTPForbidden, HTTPBadRequest
 from pyramid.httpexceptions import HTTPFound
+import cornice.errors
+import sqlalchemy as sa
 
 from bodhi.server import log, models
 from bodhi.server.config import config
