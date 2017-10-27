@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © YEAR AUTHOR
+# Copyright (c) YEAR AUTHOR
 #
 # This file is part of Bodhi.
 #
