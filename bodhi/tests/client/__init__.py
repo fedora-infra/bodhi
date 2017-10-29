@@ -238,13 +238,12 @@ Content Type: rpm
        Karma: 0
    Autokarma: True  [-3, 3]
         Bugs: 1420605 - Review Request: nodejs-grunt-wrap - A Grunt plugin for
-           : wrapping project text files
+            : wrapping project text files
        Notes: New package.
    Submitter: bowlofeggs
    Submitted: 2017-02-13 17:38:43
     Comments: bodhi - 2017-02-13 17:38:43 (karma 0)
-              This update has been submitted for testing by
-              bowlofeggs.
+              This update has been submitted for testing by bowlofeggs.
               bodhi - 2017-02-14 00:55:18 (karma 0)
               This update has been pushed to testing.
               bowlofeggs - 2017-02-28 14:47:43 (karma 0)
@@ -792,12 +791,11 @@ Content Type: rpm
    Submitter: bowlofeggs
    Submitted: 2016-10-05 18:10:22
     Comments: bodhi - 2016-10-05 18:10:22 (karma 0)
-              This update has been submitted for testing by
-              bowlofeggs.
+              This update has been submitted for testing by bowlofeggs.
               bodhi - 2016-10-05 18:10:27 (karma 0)
-              This update has obsoleted [bodhi-2.2.3-1.el7](https:/
-              /bodhi.fedoraproject.org/updates/FEDORA-
-              EPEL-2016-a0eb4cc41f), and has inherited its bugs and
+              This update has obsoleted
+              [bodhi-2.2.3-1.el7](https://bodhi.fedoraproject.org/updates
+              /FEDORA-EPEL-2016-a0eb4cc41f), and has inherited its bugs and
               notes.
 
   http://example.com/tests/updates/FEDORA-EPEL-2016-3081a94111

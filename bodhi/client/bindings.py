@@ -29,6 +29,7 @@ This module provides Python bindings to the Bodhi REST API.
 import datetime
 import functools
 import getpass
+import itertools
 import json
 import logging
 import os
@@ -538,62 +539,97 @@ class BodhiClient(OpenIdBaseClient):
             for build in update['builds'][1:]:
                 val += '\n %s' % build['nvr']
             return val
-        val = "%s\n%s\n%s\n" % ('=' * 80, '\n'.join(
-            textwrap.wrap(update['title'].replace(',', ', '), width=80,
-                          initial_indent=' ' * 5, subsequent_indent=' ' * 5)), '=' * 80)
+
+        # Content will be formatted as wrapped lines, each line is in format
+        #    indent            content wrap width
+        #  |--> 12 <--|  |-->        66       .... <--|
+        # "            : wrapped line ...              "
+        #  |-->          80 chars in total         <--|
+        wrap_width = 66
+        wrap_line = functools.partial(textwrap.wrap, width=wrap_width)
+        line_formatter = '{0:>12}: {1}\n'
+
+        update_lines = ['{:=^80}\n'.format('=')]
+        update_lines += [
+            line + '\n' for line in textwrap.wrap(
+                update['title'].replace(',', ', '),
+                width=80,
+                initial_indent=' ' * 5,
+                subsequent_indent=' ' * 5)
+        ]
+        update_lines.append('{:=^80}\n'.format('='))
+
         if update['alias']:
-            val += "   Update ID: %s\n" % update['alias']
-        val += """Content Type: %s
-     Release: %s
-      Status: %s
-        Type: %s
-       Karma: %d
-   Autokarma: %s  [%s, %s]""" % (
-            update['content_type'], update['release']['long_name'], update['status'],
-            update['type'], update['karma'], update['autokarma'], update['unstable_karma'],
-            update['stable_karma'])
+            update_lines.append(
+                line_formatter.format('Update ID', update['alias']))
+
+        update_lines += [
+            line_formatter.format('Content Type', update['content_type']),
+            line_formatter.format('Release', update['release']['long_name']),
+            line_formatter.format('Status', update['status']),
+            line_formatter.format('Type', update['type']),
+            line_formatter.format('Karma', update['karma']),
+            line_formatter.format('Autokarma', '{0}  [{1}, {2}]'.format(
+                update['autokarma'], update['unstable_karma'], update['stable_karma']))
+        ]
+
         if update['request'] is not None:
-            val += "\n     Request: %s" % update['request']
+            update_lines.append(line_formatter.format('Request', update['request']))
+
         if len(update['bugs']):
-            bugs = ''
-            i = 0
-            for bug in update['bugs']:
-                bugstr = '%s%s - %s\n' % (i and ' ' * 12 + ': ' or '',
-                                          bug['bug_id'], bug['title'])
-                bugs += '\n'.join(textwrap.wrap(bugstr, width=67,
-                                                subsequent_indent=' ' * 11 + ': ')) + '\n'
-                i += 1
-            bugs = bugs[:-1]
-            val += "\n        Bugs: %s" % bugs
+            bugs = list(itertools.chain(*[
+                wrap_line('{0} - {1}'.format(bug['bug_id'], bug['title']))
+                for bug in update['bugs']
+            ]))
+            indent_lines = ['Bugs'] + [' '] * (len(bugs) - 1)
+            update_lines += [
+                line_formatter.format(indent, line)
+                for indent, line in six.moves.zip(indent_lines, bugs)
+            ]
+
         if update['notes']:
-            notes = textwrap.wrap(update['notes'], width=67,
-                                  subsequent_indent=' ' * 12 + ': ')
-            val += "\n       Notes: %s" % '\n'.join(notes)
-        val += """
-   Submitter: %s
-   Submitted: %s\n""" % (update['user']['name'], update['date_submitted'])
+            buf = six.moves.cStringIO(update['notes'])
+            notes_lines = list(itertools.chain(
+                *[wrap_line(line) for line in buf]
+            ))
+            buf.close()
+            indent_lines = ['Notes'] + [' '] * (len(notes_lines) - 1)
+            update_lines += [
+                line_formatter.format(indent, line)
+                for indent, line in six.moves.zip(indent_lines, notes_lines)
+            ]
+
+        update_lines += [
+            line_formatter.format('Submitter', update['user']['name']),
+            line_formatter.format('Submitted', update['date_submitted']),
+        ]
+
         if len(update['comments']):
-            val += "    Comments: "
-            comments = []
+            comments_lines = []
             for comment in update['comments']:
-                if comment['anonymous']:
-                    anonymous = " (unauthenticated)"
-                else:
-                    anonymous = ""
-                comments.append("%s%s%s - %s (karma %s)" % (' ' * 14,
-                                comment['user']['name'], anonymous,
-                                comment['timestamp'], comment['karma']))
-                if comment['text']:
-                    text = textwrap.wrap(comment['text'], initial_indent=' ' * 14,
-                                         subsequent_indent=' ' * 14, width=67)
-                    comments.append('\n'.join(text))
-            val += '\n'.join(comments).lstrip() + '\n'
+                anonymous = " (unauthenticated)" if comment['anonymous'] else ''
+                comments_lines.append('{0}{1} - {2} (karma {3})'.format(
+                    comment['user']['name'], anonymous,
+                    comment['timestamp'], comment['karma']))
+                comments_lines += wrap_line(comment['text'])
+
+            update_lines.append(line_formatter.format('Comments', comments_lines[0]))
+            comment_line_formatter = line_formatter.replace(': ', '  ')
+            update_lines += [
+                comment_line_formatter.format(indent, line)
+                for indent, line in six.moves.zip(
+                    itertools.repeat(' ', len(comments_lines) - 1),
+                    comments_lines[1:])
+            ]
+
         if update['alias']:
-            val += "\n  %s\n" % ('%supdates/%s' % (self.base_url,
-                                                   update['alias']))
+            update_lines.append(
+                '\n  {0}updates/{1}\n'.format(self.base_url, update['alias']))
         else:
-            val += "\n  %s\n" % ('%supdates/%s' % (self.base_url, update['title']))
-        return val
+            update_lines.append(
+                '\n  {0}updates/{1}\n'.format(self.base_url, update['title']))
+
+        return ''.join(update_lines)
 
     @errorhandled
     def get_releases(self, **kwargs):
