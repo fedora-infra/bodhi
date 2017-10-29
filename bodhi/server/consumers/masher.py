@@ -264,6 +264,7 @@ Once mash is done:
                     thread.join()
                     for result in thread.results():
                         results.append(result)
+                threads = []
 
             last_key = request_order_key(batch)
             self.log.info('Now starting mashes for priority %s', last_key)
