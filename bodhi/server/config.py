@@ -420,6 +420,9 @@ class BodhiConfig(dict):
         'mash_stage_dir': {
             'value': None,
             'validator': _validate_none_or(_validate_path)},
+        'max_concurrent_mashes': {
+            'value': 2,
+            'validator': int},
         'max_update_length_for_ui': {
             'value': 30,
             'validator': int},
