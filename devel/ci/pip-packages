@@ -1,5 +1,6 @@
     createrepo_c \
     gcc \
+    gcc-c++ \
     graphviz \
     python2-devel \
     redhat-rpm-config
