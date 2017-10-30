@@ -25,7 +25,8 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi.server.models import Update, Build, Package, Release
-from bodhi.server.validators import validate_updates, validate_packages, validate_releases
+from bodhi.server.validators import (colander_querystring_validator, validate_updates,
+                                     validate_packages, validate_releases)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -61,7 +62,7 @@ def get_build(request):
 
 @builds.get(schema=bodhi.server.schemas.ListBuildSchema, renderer='json',
             error_handler=bodhi.server.services.errors.json_handler,
-            validators=(validate_releases, validate_updates,
+            validators=(colander_querystring_validator, validate_releases, validate_updates,
                         validate_packages))
 def query_builds(request):
     """

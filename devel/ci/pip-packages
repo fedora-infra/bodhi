@@ -10,8 +10,10 @@ COPY requirements.txt /bodhi/requirements.txt
 RUN pip-2 install -r /bodhi/requirements.txt
 RUN pip-2 install \
     diff-cover \
+    mock \
     pytest \
     pytest-cov \
     sqlalchemy_schemadisplay \
     tox \
     webtest
+RUN pip-2 install -e git+https://github.com/bowlofeggs/cornice.ext.sphinx.git@copy_child_nodes#egg=cornice_sphinx

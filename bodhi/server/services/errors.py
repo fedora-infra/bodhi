@@ -73,7 +73,7 @@ def status2summary(status):
 class html_handler(pyramid.httpexceptions.HTTPError):
     """An HTML formatting handler for all our errors."""
 
-    def __init__(self, errors):
+    def __init__(self, errors, request):
         """
         Initialize the HTML error handler to render an error messgae for human readers.
 
@@ -82,6 +82,7 @@ class html_handler(pyramid.httpexceptions.HTTPError):
 
         Args:
             errors (cornice.errors.Errors): The errors to be rendered as HTML for users.
+            request (pyramid.util.Request): The current Request.
         """
         location = config.get('mako.directories')
         module, final = location.split(':')
@@ -99,7 +100,7 @@ class html_handler(pyramid.httpexceptions.HTTPError):
             body = template.render(
                 errors=errors,
                 status=errors.status,
-                request=errors.request,
+                request=request,
                 summary=status2summary(errors.status),
             )
         except Exception:

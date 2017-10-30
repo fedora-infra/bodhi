@@ -161,8 +161,11 @@ class TestNewUpdate(base.BaseTestCase):
         self.db.add(user)
         self.db.commit()
         app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
-        res = app.post_json('/updates/', self.get_update(u'bodhi-2.1-1.fc17'),
-                            status=400)
+        update_json = self.get_update(u'bodhi-2.1-1.fc17')
+        update_json['csrf_token'] = self.get_csrf_token(app)
+
+        res = app.post_json('/updates/', update_json, status=400)
+
         expected_error = {
             "location": "body",
             "name": "builds",
@@ -208,11 +211,10 @@ class TestNewUpdate(base.BaseTestCase):
 
     @mock.patch(**mock_valid_requirements)
     def test_invalid_acl_system(self, *args):
-        settings = self.app_settings.copy()
-        settings['acl_system'] = 'null'
-        app = TestApp(main({}, testing=u'guest', session=self.db, **settings))
-        res = app.post_json('/updates/', self.get_update(u'bodhi-2.0-2.fc17'),
-                            status=400)
+        with mock.patch.dict(config, {'acl_system': 'null'}):
+            res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-2.fc17'),
+                                     status=400)
+
         assert "guest does not have commit access to bodhi" in res, res
 
     def test_put_json_update(self):

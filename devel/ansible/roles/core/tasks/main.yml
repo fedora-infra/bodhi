@@ -6,7 +6,6 @@
   with_items:
       - bash-completion
       - dstat
-      - fedora-easy-karma
       - htop
       - screen
       - tmux

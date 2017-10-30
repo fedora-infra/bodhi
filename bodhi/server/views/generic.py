@@ -437,7 +437,7 @@ def exception_view(exc, request):
     Return an error response upon generic errors (404s, 403s, 500s, etc..).
 
     This is here to catch everything that isn't caught by our cornice error
-    handlers.  When we do catch something, we transform it intpu a cornice
+    handlers.  When we do catch something, we transform it into a cornice
     Errors object and pass it to our nice cornice error handler.  That way, all
     the exception presentation and rendering we can keep in one place.
 
@@ -459,7 +459,7 @@ def exception_view(exc, request):
     if not len(errors):
         description = getattr(exc, 'explanation', None) or str(exc)
 
-        errors = cornice.errors.Errors(request, status=status)
-        errors.add('unknown', description=description)
+        errors = cornice.errors.Errors(status=status)
+        errors.add('body', description=description)
 
-    return bodhi.server.services.errors.html_handler(errors)
+    return bodhi.server.services.errors.html_handler(errors, request)

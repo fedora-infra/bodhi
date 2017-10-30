@@ -23,6 +23,7 @@ from cornice import Service
 from sqlalchemy import func, distinct
 from sqlalchemy.sql.expression import case
 
+from bodhi.server import validators
 from bodhi.server.models import Package
 import bodhi.server.schemas
 import bodhi.server.security
@@ -34,11 +35,10 @@ packages = Service(name='packages', path='/packages/',
                    cors_origins=bodhi.server.security.cors_origins_ro)
 
 
-@packages.get(schema=bodhi.server.schemas.ListPackageSchema, renderer='json',
-              error_handler=bodhi.server.services.errors.json_handler,
-              validators=(
-                  # None yet...
-              ))
+@packages.get(
+    schema=bodhi.server.schemas.ListPackageSchema, renderer='json',
+    error_handler=bodhi.server.services.errors.json_handler,
+    validators=(validators.colander_querystring_validator,))
 def query_packages(request):
     """
     Search for packages via query string parameters.

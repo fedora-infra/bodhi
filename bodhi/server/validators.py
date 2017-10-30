@@ -14,6 +14,7 @@
 
 from datetime import datetime, timedelta
 
+from cornice.validators import _colander
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 from pyramid.httpexceptions import HTTPFound, HTTPNotImplemented
 from sqlalchemy.sql import or_, and_
@@ -59,6 +60,67 @@ data again. Make sure to save your input somewhere before reloading.
 """.replace('\n', ' ')
 
 
+# This has been proposed to cornice at https://github.com/Cornices/cornice/pull/465
+def _generate_colander_validator(location):
+    """
+    Generate a colander validator for data from the given location.
+
+    :param location: The location in the request to find the data to be validated, such as "body" or
+        "querystring".
+    :type location: str
+    :return: Returns a callable that will validate the request at the given location.
+    :rtype: callable
+    """
+    def _validator(request, schema=None, deserializer=None, **kwargs):
+        """
+        Validate the location against the schema defined on the service.
+
+        The content of the location is deserialized, validated and stored in the
+        ``request.validated`` attribute.
+
+        .. note::
+
+            If no schema is defined, this validator does nothing.
+
+        :param request: Current request
+        :type request: :class:`~pyramid:pyramid.request.Request`
+
+        :param schema: The Colander schema
+        :param deserializer: Optional deserializer, defaults to
+            :func:`cornice.validators.extract_cstruct`
+        """
+        if schema is None:
+            return  # pragma: no cover
+
+        class RequestSchemaMeta(type):
+            """A metaclass that will inject a location class attribute into RequestSchema."""
+            def __new__(cls, name, bases, class_attrs):
+                """
+                Instantiate the RequestSchema class.
+
+                :param name: The name of the class we are instantiating. Will be "RequestSchema".
+                :type name: str
+                :param bases: The class's superclasses.
+                :type bases: tuple
+                :param dct: The class's class attributes.
+                :type dct: dict
+                """
+                class_attrs[location] = _colander._ensure_instantiated(schema)
+                return type(name, bases, class_attrs)
+
+        class RequestSchema(colander.MappingSchema):
+            """A schema to validate the request's location attributes."""
+            __metaclass__ = RequestSchemaMeta
+
+        _colander.validator(request, RequestSchema(), deserializer, **kwargs)
+        request.validated = request.validated.get(location, {})
+
+    return _validator
+
+
+colander_querystring_validator = _generate_colander_validator('querystring')
+
+
 # This one is a colander validator which is different from the cornice
 # validators defined elsehwere.
 def validate_csrf_token(node, value):
@@ -83,7 +145,14 @@ def cache_nvrs(request, build):
     request.buildinfo[build]['info'] = request.koji.getBuild(build)
 
 
-def validate_nvrs(request):
+def validate_nvrs(request, **kwargs):
+    """
+    Ensure the the given builds reference valid Build objects.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     for build in request.validated.get('builds', []):
         try:
             cache_nvrs(request, build)
@@ -94,7 +163,14 @@ def validate_nvrs(request):
             return
 
 
-def validate_builds(request):
+def validate_builds(request, **kwargs):
+    """
+    Ensure that the builds parameter is valid for the request.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     edited = request.validated.get('edited')
     user = User.get(request.user.name, request.db)
 
@@ -136,8 +212,14 @@ def validate_builds(request):
             return
 
 
-def validate_build_tags(request):
-    """ Ensure that all of the builds are tagged as candidates """
+def validate_build_tags(request, **kwargs):
+    """
+    Ensure that all of the referenced builds are tagged as candidates.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     tag_types, tag_rels = Release.get_tags(request.db)
     edited = request.validated.get('edited')
     release = None
@@ -208,8 +290,14 @@ def validate_build_tags(request):
                     build, valid_tags))
 
 
-def validate_tags(request):
-    """Ensure that all the tags are valid Koji tags"""
+def validate_tags(request, **kwargs):
+    """
+    Ensure that the referenced tags are valid Koji tags.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     tag_types, tag_rels = Release.get_tags(request.db)
 
     for tag_type in tag_types:
@@ -227,11 +315,17 @@ def validate_tags(request):
                                'Invalid tag: %s' % tag_name)
 
 
-def validate_acls(request):
-    """Ensure this user has commit privs to these builds or is an admin"""
+def validate_acls(request, **kwargs):
+    """
+    Ensure the user has commit privs to these builds or is an admin.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     if not request.user:
         # If you're not logged in, obviously you don't have ACLs.
-        request.errors.add('session', 'user', 'No ACLs for anonymous user')
+        request.errors.add('cookies', 'user', 'No ACLs for anonymous user')
         return
     db = request.db
     user = User.get(request.user.name, request.db)
@@ -434,8 +528,14 @@ def validate_acls(request):
                                    "access to {}".format(user.name, package.name))
 
 
-def validate_uniqueness(request):
-    """ Check for multiple builds from the same package and same release """
+def validate_uniqueness(request, **kwargs):
+    """
+    Check for multiple builds from the same package and same release.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     builds = request.validated.get('builds', [])
     if not builds:  # validate_nvr failed
         return
@@ -462,8 +562,14 @@ def validate_uniqueness(request):
                 return
 
 
-def validate_enums(request):
-    """Convert from strings to our enumerated types"""
+def validate_enums(request, **kwargs):
+    """
+    Convert from strings to our enumerated types.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     for param, enum in (("request", UpdateRequest),
                         ("severity", UpdateSeverity),
                         ("status", UpdateStatus),
@@ -478,8 +584,14 @@ def validate_enums(request):
         request.validated[param] = enum.from_string(value)
 
 
-def validate_packages(request):
-    """Make sure those packages exist"""
+def validate_packages(request, **kwargs):
+    """
+    Make sure referenced packages exist
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     packages = request.validated.get("packages")
     if packages is None:
         return
@@ -504,8 +616,14 @@ def validate_packages(request):
         request.validated["packages"] = validated_packages
 
 
-def validate_updates(request):
-    """Make sure those updates exist"""
+def validate_updates(request, **kwargs):
+    """
+    Make sure referenced updates exist.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     updates = request.validated.get("updates")
     if updates is None:
         return
@@ -533,8 +651,14 @@ def validate_updates(request):
         request.validated["updates"] = validated_updates
 
 
-def validate_groups(request):
-    """Make sure those groups exist"""
+def validate_groups(request, **kwargs):
+    """
+    Make sure the referenced groups exist.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     groups = request.validated.get("groups")
     if groups is None:
         return
@@ -559,8 +683,14 @@ def validate_groups(request):
         request.validated["groups"] = validated_groups
 
 
-def validate_release(request):
-    """Make sure this singular release exists"""
+def validate_release(request, **kwargs):
+    """
+    Make sure the referenced release exists.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     releasename = request.validated.get("release")
     if releasename is None:
         return
@@ -577,8 +707,14 @@ def validate_release(request):
                            "Invalid release specified: {}".format(releasename))
 
 
-def validate_releases(request):
-    """Make sure those releases exist"""
+def validate_releases(request, **kwargs):
+    """
+    Make sure referenced releases exist.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     releases = request.validated.get("releases")
     if releases is None:
         return
@@ -606,7 +742,14 @@ def validate_releases(request):
         request.validated["releases"] = validated_releases
 
 
-def validate_bugs(request):
+def validate_bugs(request, **kwargs):
+    """
+    Ensure that the list of bugs are all valid integers.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     bugs = request.validated.get('bugs')
     if bugs:
         try:
@@ -616,8 +759,14 @@ def validate_bugs(request):
                                "Invalid bug ID specified: {}".format(bugs))
 
 
-def validate_username(request):
-    """Make sure this user exists"""
+def validate_username(request, **kwargs):
+    """
+    Make sure the referenced user exists.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     username = request.validated.get("user")
     if username is None:
         return
@@ -632,8 +781,14 @@ def validate_username(request):
                            "Invalid user specified: {}".format(username))
 
 
-def validate_update(request):
-    """Make sure this update exists"""
+def validate_update(request, **kwargs):
+    """
+    Make sure the requested update exists.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     idx = request.validated.get('update')
     update = Update.get(idx, request.db)
 
@@ -645,8 +800,14 @@ def validate_update(request):
         request.errors.status = HTTPNotFound.code
 
 
-def validate_update_owner(request):
-    """Make sure this user exists"""
+def validate_update_owner(request, **kwargs):
+    """
+    Make sure the referenced update owner is an existing user.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     username = request.validated.get("update_owner")
     if username is None:
         return
@@ -661,8 +822,14 @@ def validate_update_owner(request):
                            "Invalid user specified: {}".format(username))
 
 
-def validate_ignore_user(request):
-    """Make sure this user exists"""
+def validate_ignore_user(request, **kwargs):
+    """
+    Make sure the ignore_user parameter references an existing user.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     username = request.validated.get("ignore_user")
     if username is None:
         return
@@ -677,8 +844,14 @@ def validate_ignore_user(request):
                            "Invalid user specified: {}".format(username))
 
 
-def validate_update_id(request):
-    """Ensure that a given update id exists"""
+def validate_update_id(request, **kwargs):
+    """
+    Ensure that a given update id exists.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     update = Update.get(request.matchdict['id'], request.db)
     if update:
         request.validated['update'] = update
@@ -708,8 +881,14 @@ def _conditionally_get_update(request):
     return update
 
 
-def validate_bug_feedback(request):
-    """Ensure that a given update id exists"""
+def validate_bug_feedback(request, **kwargs):
+    """
+    Ensure that bug feedback references bugs associated with the given update.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     feedback = request.validated.get('bug_feedback')
     if feedback is None:
         return
@@ -742,8 +921,14 @@ def validate_bug_feedback(request):
         request.validated["bug_feedback"] = validated
 
 
-def validate_testcase_feedback(request):
-    """Ensure that a given update id exists"""
+def validate_testcase_feedback(request, **kwargs):
+    """
+    Ensure that the referenced test case exists and is associated with the referenced package.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     feedback = request.validated.get('testcase_feedback')
     if feedback is None:
         return
@@ -791,8 +976,14 @@ def validate_testcase_feedback(request):
         request.validated["testcase_feedback"] = validated
 
 
-def validate_comment_id(request):
-    """Ensure that a given comment id exists"""
+def validate_comment_id(request, **kwargs):
+    """
+    Ensure that a given comment id exists.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     idx = request.matchdict['id']
 
     try:
@@ -811,8 +1002,14 @@ def validate_comment_id(request):
         request.errors.status = HTTPNotFound.code
 
 
-def validate_override_builds(request):
-    """ Ensure that the build is properly tagged """
+def validate_override_builds(request, **kwargs):
+    """
+    Ensure that the override builds are properly referenced.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     nvrs = splitter(request.validated['nvr'])
     db = request.db
 
@@ -908,8 +1105,14 @@ def _validate_override_build(request, nvr, db):
     return build
 
 
-def validate_expiration_date(request):
-    """Ensure the expiration date is in the future"""
+def validate_expiration_date(request, **kwargs):
+    """
+    Ensure the expiration date is in the future.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     expiration_date = request.validated.get('expiration_date')
 
     if expiration_date is None:
@@ -932,17 +1135,22 @@ def validate_expiration_date(request):
     request.validated['expiration_date'] = expiration_date
 
 
-def validate_captcha(request):
-    """ A validator for our captcha. """
+def validate_captcha(request, **kwargs):
+    """
+    Validate the captcha.
 
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     data = request.validated
 
     email = data.get('email', None)
     author = email or (request.user and request.user.name)
     anonymous = bool(email) or not author
 
-    key = data.pop('captcha_key')
-    value = data.pop('captcha_value')
+    key = data.pop('captcha_key', None)
+    value = data.pop('captcha_value', None)
 
     if anonymous and config.get('captcha.secret'):
         if not key:
@@ -980,8 +1188,14 @@ def validate_captcha(request):
         del request.session['captcha']
 
 
-def validate_stack(request):
-    """Make sure this singular stack exists"""
+def validate_stack(request, **kwargs):
+    """
+    Make sure this singular stack exists.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     name = request.matchdict.get('name')
     stack = Stack.get(name, request.db)
     if stack:
@@ -1008,7 +1222,14 @@ def _get_valid_requirements(request, requirements):
         yield testcase['name']
 
 
-def validate_requirements(request):
+def validate_requirements(request, **kwargs):
+    """
+    Validate the requirements parameter for the stack.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
     requirements = request.validated.get('requirements')
 
     if requirements is None:  # None is okay
@@ -1027,9 +1248,13 @@ def validate_requirements(request):
             return
 
 
-def validate_request(request):
+def validate_request(request, **kwargs):
     """
-    Ensure that this update is newer than whatever is in the requested state
+    Ensure that this update is newer than whatever is in the requested state.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
     """
     log.debug('validating request')
     update = request.validated['update']

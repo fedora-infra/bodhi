@@ -13,4 +13,5 @@
     python2-sqlalchemy \
     python2-webtest
 
-RUN pip install diff_cover
+RUN pip-2 install cornice~=2.0 diff_cover
+RUN pip-2 install -e git+https://github.com/bowlofeggs/cornice.ext.sphinx.git@copy_child_nodes#egg=cornice_sphinx

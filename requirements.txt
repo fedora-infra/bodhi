@@ -3,7 +3,7 @@ arrow
 bleach
 click
 colander
-cornice<2
+cornice~=2.0
 cryptography
 dogpile.cache
 fedmsg[consumers]
@@ -17,7 +17,7 @@ Pillow
 progressbar
 pyDNS
 pylibravatar
-pyramid
+pyramid~=1.7
 pyramid_fas_openid
 pyramid_mako
 pyramid_tm

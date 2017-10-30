@@ -21,6 +21,7 @@
 import math
 
 from cornice import Service
+from cornice.validators import colander_body_validator
 from pyramid.exceptions import HTTPNotFound
 
 from sqlalchemy import func, distinct
@@ -31,6 +32,7 @@ from bodhi.server.models import Build, BuildrootOverride, Package, Release, User
 import bodhi.server.schemas
 import bodhi.server.services.errors
 from bodhi.server.validators import (
+    colander_querystring_validator,
     validate_override_builds,
     validate_expiration_date,
     validate_packages,
@@ -91,6 +93,7 @@ def get_override(request):
 
 
 validators = (
+    colander_querystring_validator,
     validate_packages,
     validate_releases,
     validate_username,
@@ -212,6 +215,7 @@ def query_overrides(request):
                 accept=("application/json", "text/json"), renderer='json',
                 error_handler=bodhi.server.services.errors.json_handler,
                 validators=(
+                    colander_body_validator,
                     validate_override_builds,
                     validate_expiration_date,
                 ))
@@ -220,6 +224,7 @@ def query_overrides(request):
                 accept=("application/javascript"), renderer="jsonp",
                 error_handler=bodhi.server.services.errors.jsonp_handler,
                 validators=(
+                    colander_body_validator,
                     validate_override_builds,
                     validate_expiration_date,
                 ))

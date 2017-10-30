@@ -21,6 +21,7 @@
 import math
 
 from cornice import Service
+from cornice.validators import colander_body_validator
 from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
@@ -36,6 +37,7 @@ from bodhi.server.models import (
     Release,
 )
 from bodhi.server.validators import (
+    colander_querystring_validator,
     validate_tags,
     validate_enums,
     validate_updates,
@@ -184,11 +186,14 @@ def get_release_json(request):
     return release
 
 
+releases_get_validators = (colander_querystring_validator, validate_release, validate_updates,
+                           validate_packages)
+
+
 @releases.get(accept="text/html", schema=bodhi.server.schemas.ListReleaseSchema,
               renderer='releases.html',
               error_handler=bodhi.server.services.errors.html_handler,
-              validators=(validate_release, validate_updates,
-                          validate_packages))
+              validators=releases_get_validators)
 def query_releases_html(request):
     """
     Return all releases, collated by state, rendered as HTML.
@@ -216,8 +221,7 @@ def query_releases_html(request):
 @releases.get(accept=('application/json', 'text/json'),
               schema=bodhi.server.schemas.ListReleaseSchema, renderer='json',
               error_handler=bodhi.server.services.errors.json_handler,
-              validators=(validate_release, validate_updates,
-                          validate_packages))
+              validators=releases_get_validators)
 def query_releases_json(request):
     """
     Search releases by given criteria, returning the results as JSON.
@@ -281,7 +285,7 @@ def query_releases_json(request):
 @releases.post(schema=bodhi.server.schemas.SaveReleaseSchema,
                permission='admin', renderer='json',
                error_handler=bodhi.server.services.errors.json_handler,
-               validators=(validate_tags, validate_enums)
+               validators=(colander_body_validator, validate_tags, validate_enums)
                )
 def save_release(request):
     """
@@ -302,7 +306,7 @@ def save_release(request):
 
     # This has already been validated at this point, but we need to ditch
     # it since the models don't care about a csrf argument.
-    data.pop('csrf_token')
+    data.pop('csrf_token', None)
 
     try:
         if edited is None:

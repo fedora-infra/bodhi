@@ -183,8 +183,10 @@ class BaseTestCase(unittest.TestCase):
             _app = TestApp(main({}, testing=u'guest', **self.app_settings))
         self.app = _app
 
-    def get_csrf_token(self):
-        return self.app.get('/csrf').json_body['csrf_token']
+    def get_csrf_token(self, app=None):
+        if not app:
+            app = self.app
+        return app.get('/csrf').json_body['csrf_token']
 
     def get_update(self, builds='bodhi-2.0-1.fc17', stable_karma=3, unstable_karma=-3):
         if isinstance(builds, list):

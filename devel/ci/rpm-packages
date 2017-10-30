@@ -1,6 +1,5 @@
     python2-arrow \
     python2-bleach \
-    python2-cornice \
     python2-dogpile-cache \
     python2-flake8 \
     python2-iniparse \

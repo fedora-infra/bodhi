@@ -21,6 +21,7 @@
 import math
 
 from cornice import Service
+from cornice.validators import colander_body_validator
 from pyramid.httpexceptions import HTTPBadRequest
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
@@ -28,6 +29,7 @@ from sqlalchemy.sql import or_
 from bodhi.server import log
 from bodhi.server.models import Comment, Build, Update
 from bodhi.server.validators import (
+    colander_querystring_validator,
     validate_packages,
     validate_update,
     validate_updates,
@@ -80,6 +82,7 @@ def get_comment(request):
 
 
 validators = (
+    colander_querystring_validator,
     validate_username,
     validate_update_owner,
     validate_ignore_user,
@@ -191,6 +194,7 @@ def query_comments(request):
                renderer='json',
                error_handler=bodhi.server.services.errors.json_handler,
                validators=(
+                   colander_body_validator,
                    validate_update,
                    validate_bug_feedback,
                    validate_testcase_feedback,

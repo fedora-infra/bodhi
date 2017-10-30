@@ -22,6 +22,7 @@ import copy
 import math
 
 from cornice import Service
+from cornice.validators import colander_body_validator
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
@@ -42,6 +43,7 @@ import bodhi.server.security
 import bodhi.server.services.errors
 import bodhi.server.util
 from bodhi.server.validators import (
+    colander_querystring_validator,
     validate_nvrs,
     validate_uniqueness,
     validate_build_tags,
@@ -139,6 +141,7 @@ def get_update_for_editing(request):
 
 @update_request.post(schema=bodhi.server.schemas.UpdateRequestSchema,
                      validators=(
+                         colander_body_validator,
                          validate_enums,
                          validate_update_id,
                          validate_build_tags,
@@ -190,6 +193,7 @@ def set_request(request):
 
 
 validators = (
+    colander_querystring_validator,
     validate_release,
     validate_releases,
     validate_enums,
@@ -392,6 +396,7 @@ def query_updates(request):
               permission='create', renderer='json',
               error_handler=bodhi.server.services.errors.json_handler,
               validators=(
+                  colander_body_validator,
                   validate_nvrs,
                   validate_builds,
                   validate_uniqueness,

@@ -25,63 +25,70 @@
       - pungi
       - python
       - python-alembic
-      - python-arrow
-      - python-bleach
       - python-bugzilla
-      - python-click
-      - python-cornice
-      - python-cornice-sphinx
-      - python-devel
-      - python3-diff-cover
-      - python-dogpile-cache
-      - python-fedora
-      - python-ipdb
-      - python-kitchen
-      - python-librepo
-      - python-mock
       - python-openid
-      - python-pillow
       - python-progressbar
-      - python-psycopg2
       - python-pydns
       - python-pylibravatar
-      - python-pyramid
-      - python-pyramid-mako
       - python-pyramid-fas-openid
-      - python-pyramid-tm
-      - python-rpdb
       - python-simplemediawiki
-      - python-sqlalchemy
       - python-webtest
-      - python-zmq
+      - python2-arrow
+      - python2-bleach
+      - python2-click
       - python2-colander
       - python2-createrepo_c
       - python2-cryptography
+      - python2-devel
       - python2-dnf
+      - python2-dogpile-cache
       - python2-fedmsg-commands
       - python2-fedmsg-consumers
+      - python2-fedora
       - python2-flake8
+      - python2-ipdb
       - python2-jinja2
+      - python2-kitchen
+      - python2-librepo
       - python2-markdown
+      - python2-mock
+      - python2-pillow
+      - python2-psycopg2
+      - python2-pyramid
+      - python2-pyramid-mako
+      - python2-pyramid-tm
       - python2-pytest-cov
+      - python2-rpdb
       - python2-sphinx
+      - python2-sqlalchemy
       - python2-sqlalchemy_schemadisplay
       - python2-waitress
       - python2-yaml
+      - python3-pydocstyle
       - python3-tox
       - redhat-rpm-config
       - vim-enhanced
       - zlib-devel
+
+# cornice > 1 won't be available until Fedora 28 is released.
+- name: pip install cornice
+  pip:
+      name: cornice~=2.0
+
+# cornice_sphinx is not packaged in Fedora yet, but won't be available until Fedora 28 is released.
+- name: pip install cornice_sphinx
+  pip:
+      name: -e git+https://github.com/bowlofeggs/cornice.ext.sphinx.git@copy_child_nodes#egg=cornice_sphinx
 
 # This isn't packaged in Fedora yet, but it's only a development tool (we should still add it)
 - name: pip install debugtoolbar
   pip:
       name: pyramid_debugtoolbar
 
-# This isn't packaged in Fedora yet, but there is a package review open https://bugzilla.redhat.com/show_bug.cgi?id=1409654
-- name: pip install pydocstyle
+# This has been retired in Fedora and needs to be unretired. We'll pip install for now.
+- name: pip install diff_cover
   pip:
-      name: pydocstyle
+      name: diff_cover
 
 # This isn't packaged in Fedora yet, but there is a package review open https://bugzilla.redhat.com/show_bug.cgi?id=1505993
 - name: pip install feedgen
@@ -114,7 +121,7 @@
     replace: "sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2"
 
 - name: Apply database migrations
-  command: alembic upgrade head
+  shell: PYTHONPATH=. alembic upgrade head
   args:
       chdir: /home/vagrant/bodhi
 

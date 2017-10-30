@@ -25,7 +25,8 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi.server.models import Group, Package, Update, User
-from bodhi.server.validators import validate_updates, validate_packages, validate_groups
+from bodhi.server.validators import (colander_querystring_validator, validate_updates,
+                                     validate_packages, validate_groups)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -90,6 +91,7 @@ def get_user(request):
 
 
 validators = (
+    colander_querystring_validator,
     validate_groups,
     validate_updates,
     validate_packages,

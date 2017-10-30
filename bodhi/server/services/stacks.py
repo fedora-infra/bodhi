@@ -21,6 +21,7 @@
 import math
 
 from cornice import Service
+from cornice.validators import colander_body_validator
 from pyramid.exceptions import HTTPForbidden
 from pyramid.view import view_config
 from sqlalchemy import func, distinct
@@ -30,7 +31,8 @@ from bodhi.server import log, notifications
 from bodhi.server.config import config
 from bodhi.server.models import Package, Stack, Group, User
 from bodhi.server.util import tokenize
-from bodhi.server.validators import validate_packages, validate_stack, validate_requirements
+from bodhi.server.validators import (colander_querystring_validator, validate_packages,
+                                     validate_stack, validate_requirements)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -70,11 +72,11 @@ def get_stack(request):
 @stacks.get(accept="text/html", renderer='stacks.html',
             error_handler=bodhi.server.services.errors.html_handler,
             schema=bodhi.server.schemas.ListStackSchema,
-            validators=(validate_packages,))
+            validators=(colander_querystring_validator, validate_packages,))
 @stacks.get(accept=('application/json', 'text/json'),
             error_handler=bodhi.server.services.errors.json_handler,
             schema=bodhi.server.schemas.ListStackSchema,
-            validators=(validate_packages,), renderer='json')
+            validators=(colander_querystring_validator, validate_packages,), renderer='json')
 def query_stacks(request):
     """
     Return a paginated list of filtered stacks.
@@ -126,7 +128,7 @@ def query_stacks(request):
 
 @stacks.post(schema=bodhi.server.schemas.SaveStackSchema,
              permission='edit',
-             validators=(validate_requirements,), renderer='json',
+             validators=(colander_body_validator, validate_requirements,), renderer='json',
              error_handler=bodhi.server.services.errors.json_handler)
 def save_stack(request):
     """

@@ -2,6 +2,15 @@
 Release notes
 =============
 
+develop
+-------
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Bodhi now requires ``cornice~=2``.
+
+
 v3.1.0
 ------
 
