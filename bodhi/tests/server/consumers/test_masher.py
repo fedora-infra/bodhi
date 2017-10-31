@@ -1541,6 +1541,109 @@ References:
 
         exception_log.assert_called_once_with("Problem expiring override")
 
+    def _ensure_three_mashes_in_same_batch(self):
+        """
+        Ensure there are three mashes that would go into the same batch.
+
+        This helps us to test the max_concurrent_mashes setting.
+        """
+        with self.db_factory() as db:
+            up = db.query(Update).one()
+            user = db.query(User).first()
+            # Create two more releases.
+            release = Release(
+                name=u'F18', long_name=u'Fedora 18',
+                id_prefix=u'FEDORA', version=u'18',
+                dist_tag=u'f18', stable_tag=u'f18-updates',
+                testing_tag=u'f18-updates-testing',
+                candidate_tag=u'f18-updates-candidate',
+                pending_signing_tag=u'f18-updates-testing-signing',
+                pending_testing_tag=u'f18-updates-testing-pending',
+                pending_stable_tag=u'f18-updates-pending',
+                override_tag=u'f18-override',
+                branch=u'f18')
+            db.add(release)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
+            db.add(build)
+            update = Update(
+                title=u'bodhi-2.0-1.fc18',
+                builds=[build], user=user,
+                status=UpdateStatus.pending,
+                request=UpdateRequest.testing,
+                notes=u'Useful details!', release=release,
+                test_gating_status=TestGatingStatus.passed)
+            update.type = UpdateType.enhancement
+            db.add(update)
+            release = Release(
+                name=u'F27', long_name=u'Fedora 27',
+                id_prefix=u'FEDORA', version=u'27',
+                dist_tag=u'f27', stable_tag=u'f27-updates',
+                testing_tag=u'f27-updates-testing',
+                candidate_tag=u'f27-updates-candidate',
+                pending_signing_tag=u'f27-updates-testing-signing',
+                pending_testing_tag=u'f27-updates-testing-pending',
+                pending_stable_tag=u'f27-updates-pending',
+                override_tag=u'f27-override',
+                branch=u'f27')
+            db.add(release)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc27', release=release, package=up.builds[0].package)
+            db.add(build)
+            update = Update(
+                title=u'bodhi-2.0-1.fc27',
+                builds=[build], user=user,
+                status=UpdateStatus.pending,
+                request=UpdateRequest.testing,
+                notes=u'Useful details!', release=release,
+                test_gating_status=TestGatingStatus.passed)
+            update.type = UpdateType.enhancement
+            db.add(update)
+            # Wipe out the tag cache so it picks up our new releases
+            Release._tag_cache = None
+        self.msg['body']['msg']['updates'] += [u'bodhi-2.0-1.fc18', u'bodhi-2.0-1.fc27']
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_work_max_concurrent_mashes_1(self, publish, *args):
+        """Assert that we don't launch more than 1 max_concurrent_mashes."""
+        self._ensure_three_mashes_in_same_batch()
+        self.masher.log.info = mock.MagicMock()
+
+        with mock.patch.dict(config, {'max_concurrent_mashes': 1}):
+            self.masher.work(self.msg)
+
+        info_log_messages = [c[1] for c in self.masher.log.info.mock_calls]
+        waiting_messages = [m for m in info_log_messages if 'Waiting on' in m[0]]
+        # Since we have max_concurrent_mashes set to 1 and there are 3 mashes to be done, we should
+        # see two log messages that say it's waiting on 1 mash to finish.
+        self.assertEqual(waiting_messages, [('Waiting on %d mashes for priority %s', 1, 0),
+                                            ('Waiting on %d mashes for priority %s', 1, 0)])
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
+    @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_work_max_concurrent_mashes_2(self, publish, *args):
+        """Assert that we don't launch more than 2 max_concurrent_mashes."""
+        self._ensure_three_mashes_in_same_batch()
+        self.masher.log.info = mock.MagicMock()
+
+        with mock.patch.dict(config, {'max_concurrent_mashes': 2}):
+            self.masher.work(self.msg)
+
+        info_log_messages = [c[1] for c in self.masher.log.info.mock_calls]
+        waiting_messages = [m for m in info_log_messages if 'Waiting on' in m[0]]
+        # Since we have max_concurrent_mashes set to 2 and there are 3 mashes to be done, we should
+        # see one log message that says we are waiting on the first two to finish.
+        self.assertEqual(waiting_messages, [('Waiting on %d mashes for priority %s', 2, 0)])
+
 
 class MasherThreadBaseTestCase(base.BaseTestCase):
     """

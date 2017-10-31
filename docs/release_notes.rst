@@ -21,6 +21,9 @@ Features
 * The CLI now prints a helpful hint about how to use ``koji wait-repo`` when creating or editing a
   buildroot override, or when a query for overrides returns exactly one result
   (`#1376 <https://github.com/fedora-infra/bodhi/pull/1376>`_).
+* It is now possible to configure a maximum number of mash threads that Bodhi will run at once,
+  which is handy if the new Pungi masher has been mean to your NAS. There is a new
+  ``max_concurrent_mashes`` setting in production.ini, which defaults to ``2``.
 
 
 Development improvements

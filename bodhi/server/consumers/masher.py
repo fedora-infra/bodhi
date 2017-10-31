@@ -290,14 +290,16 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         last_key = None
         threads = []
         for batch in batches:
-            if last_key is not None and request_order_key(batch) != last_key:
+            if ((last_key is not None and request_order_key(batch) != last_key) or
+                    (len(threads) >= config.get('max_concurrent_mashes'))):
                 # This means that after we submit all Stable+Security updates, we wait with kicking
                 # off the next series of mashes until that finishes.
-                self.log.info('All mashes for priority %s running, waiting', last_key)
+                self.log.info('Waiting on %d mashes for priority %s', len(threads), last_key)
                 for thread in threads:
                     thread.join()
                     for result in thread.results():
                         results.append(result)
+                threads = []
 
             last_key = request_order_key(batch)
             self.log.info('Now starting mashes for priority %s', last_key)
