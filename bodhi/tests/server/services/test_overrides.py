@@ -23,14 +23,24 @@ import copy
 import mock
 from webtest import TestApp
 
-from bodhi.server.models import RpmBuild, RpmPackage, Release, User
+from bodhi.server.models import BuildrootOverride, RpmBuild, RpmPackage, Release, User
 from bodhi.server import main
 from bodhi.tests.server import base
 
 
 class TestOverridesService(base.BaseTestCase):
-    def test_404(self):
+    def test_404_build_not_found(self):
+        """Test a 404 due to the build for the override not existing."""
         self.app.get('/overrides/watwatwat', status=404)
+
+    def test_404_override_not_found(self):
+        """Test a 404 when the build does exist, but there is no override for it."""
+        b = RpmBuild.query.first()
+        BuildrootOverride.query.filter_by(build=b).delete()
+        b.override = None
+        self.db.commit()
+
+        self.app.get('/overrides/{}'.format(b.nvr), status=404)
 
     def test_get_single_override(self):
         res = self.app.get('/overrides/bodhi-2.0-1.fc17')
@@ -416,6 +426,32 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['expired_date'], None)
         self.assertEquals(len(publish.call_args_list), 0)
 
+    def test_edit_nonexisting_build(self):
+        """
+        Validate the handler for an override that exists with an edit on a build that doesn't.
+
+        We're doing to do something weird in this test. We're going to edit an override nvr that is
+        not a 404, but we're going to set the edited property to a build that does not exist. The
+        service should handle this by giving us an error.
+        """
+        build = RpmBuild.query.first()
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+        o = {
+            'nvr': build.nvr,
+            'notes': 'blah blah blah',
+            'expiration_date': expiration_date,
+            'edited': 'does not exist!',
+            'csrf_token': self.get_csrf_token(),
+        }
+
+        res = self.app.post('/overrides/', o, status=400)
+
+        errors = res.json_body['errors']
+        self.assertEquals(len(errors), 1)
+        self.assertEquals(errors[0]['name'], 'edited')
+        self.assertEquals(errors[0]['description'],
+                          'No such build')
+
     def test_edit_unexisting_override(self):
         release = Release.get(u'F17', self.db)
 
@@ -439,6 +475,28 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(errors[0]['name'], 'edited')
         self.assertEquals(errors[0]['description'],
                           'No buildroot override for this build')
+
+    @mock.patch('bodhi.server.services.overrides.BuildrootOverride.edit',
+                mock.MagicMock(side_effect=IOError('no db for you!')))
+    def test_edit_unexpected_error(self):
+        """Validate that Exceptions are handled when editing overrides."""
+        build = RpmBuild.query.first()
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+        o = {
+            'nvr': build.nvr,
+            'notes': 'blah blah blah',
+            'expiration_date': expiration_date,
+            'edited': build.nvr,
+            'csrf_token': self.get_csrf_token(),
+        }
+
+        res = self.app.post('/overrides/', o, status=400)
+
+        errors = res.json_body['errors']
+        self.assertEquals(len(errors), 1)
+        self.assertEquals(errors[0]['name'], 'override')
+        self.assertEquals(errors[0]['description'],
+                          'Unable to save buildroot override: no db for you!')
 
     def test_edit_notes(self):
         old_nvr = u'bodhi-2.0-1.fc17'
