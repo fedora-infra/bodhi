@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+# Copyright 2016-2017 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -22,6 +25,40 @@ import mock
 
 from bodhi.server import notifications, Session, models
 from bodhi.tests.server import base
+
+
+class TestFedmsgIsInitialized(unittest.TestCase):
+    """Test the fedmsg_is_initialized() function."""
+    def test_is_initialized(self):
+        """Test for when fedmsg is initialized."""
+        class FakeLocal(object):
+            def __init__(self):
+                class FakeContext(object):
+                    def __init__(self):
+                        self.publisher = object()
+                setattr(self, '__context', FakeContext())
+
+        with mock.patch('bodhi.server.notifications.fedmsg.__local', FakeLocal()):
+            self.assertTrue(notifications.fedmsg_is_initialized())
+
+    def test_is_not_initalized_no_context(self):
+        """Test for when fedmsg is not initialized due to not having a __context."""
+        class FakeLocal(object):
+            pass
+
+        with mock.patch('bodhi.server.notifications.fedmsg.__local', FakeLocal()):
+            self.assertFalse(notifications.fedmsg_is_initialized())
+
+    def test_is_not_initalized_no_publisher(self):
+        """Test for when fedmsg is not initialized due to not having a publisher."""
+        class FakeLocal(object):
+            def __init__(self):
+                class FakeContext(object):
+                    pass
+                setattr(self, '__context', FakeContext())
+
+        with mock.patch('bodhi.server.notifications.fedmsg.__local', FakeLocal()):
+            self.assertFalse(notifications.fedmsg_is_initialized())
 
 
 class TestInit(unittest.TestCase):
