@@ -2,7 +2,6 @@ import io
 import operator
 
 from pytz import utc
-from pyramid.exceptions import HTTPNotFound
 from feedgen.feed import FeedGenerator
 
 
@@ -23,8 +22,6 @@ def rss(info):
             key = 'comments'
         elif 'overrides' in data:
             key = 'overrides'
-        else:
-            raise HTTPNotFound("RSS not implemented for this service")
 
         feed = FeedGenerator()
         feed.title(key)
