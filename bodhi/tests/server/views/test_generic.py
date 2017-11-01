@@ -31,6 +31,20 @@ from bodhi.server.security import remember_me
 from bodhi.tests.server import base
 
 
+class TestExceptionView(base.BaseTestCase):
+    """Test the exception_view() handler."""
+    @mock.patch('bodhi.server.views.generic.log.exception')
+    @mock.patch('bodhi.server.views.metrics.compute_ticks_and_data',
+                mock.MagicMock(side_effect=RuntimeError("BOOM")))
+    def test_status_500(self, exception):
+        """Assert that a status 500 code causes the exception to get logged."""
+        res = self.app.get('/metrics', status=500)
+
+        self.assertIn('Server Error', res)
+        self.assertIn('BOOM', res)
+        exception.assert_called_once_with("Error caught.  Handling HTML response.")
+
+
 class TestGenericViews(base.BaseTestCase):
 
     def test_login(self):
@@ -702,3 +716,13 @@ http://localhost/updates/?releases=F18&amp;status=stable&amp;type=newpackage">
         </a>
           <span class="label label-default">prerelease</span>
       </h3>""", res)
+
+
+class TestNotfoundView(base.BaseTestCase):
+    """Test the notfound_view() handler."""
+    def test_notfound(self):
+        """Assert that we correctly deal with 404's."""
+        res = self.app.get('/makemerich', status=404)
+
+        self.assertIn('404 <small>Not Found</small>', res)
+        self.assertIn('The resource could not be found.', res)
