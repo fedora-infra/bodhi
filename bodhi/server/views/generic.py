@@ -286,8 +286,6 @@ def latest_candidates(request):
         response = koji.multiCall() or []  # Protect against None
 
         for taglist in response:
-            if isinstance(taglist, dict):
-                continue
             for build in taglist[0]:
                 item = {
                     'nvr': build['nvr'],
