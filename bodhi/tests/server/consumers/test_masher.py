@@ -33,7 +33,7 @@ import mock
 from bodhi.server import buildsys, exceptions, log, initialize_db
 from bodhi.server.config import config
 from bodhi.server.consumers.masher import (
-    Masher, MasherThread, RPMMasherThread, ModuleMasherThread)
+    checkpoint, Masher, MasherThread, RPMMasherThread, ModuleMasherThread)
 from bodhi.server.models import (
     Base, Build, BuildrootOverride, Release, ReleaseState, RpmBuild, TestGatingStatus, Update,
     UpdateRequest, UpdateStatus, UpdateType, User, ModuleBuild, ContentType, Package)
@@ -98,6 +98,24 @@ def makemsg(body=None):
             u'username': u'lmacken',
         },
     }
+
+
+class TestCheckpoint(unittest.TestCase):
+    """Test the checkpoint() decorator."""
+    def test_with_return(self):
+        """checkpoint() should raise a ValueError if the wrapped function returns anything."""
+        class TestClass(object):
+            def __init__(self):
+                self.resume = False
+
+            @checkpoint
+            def dont_wrap_me_bro(self):
+                return "I told you not to do this. Now look what happened."
+
+        with self.assertRaises(ValueError) as exc:
+            TestClass().dont_wrap_me_bro()
+
+        self.assertEqual(str(exc.exception), 'checkpointed functions may not return stuff')
 
 
 # We don't need real pungi config files, we just need them to exist. Let's also mock all calls to
@@ -244,6 +262,16 @@ class TestMasher(unittest.TestCase):
         Masher(FakeHub(), db_factory=self.db_factory, mash_dir=self.tempdir)
 
         set_bugtracker.assert_called_once_with()
+
+    @mock.patch('bodhi.server.consumers.masher.initialize_db')
+    @mock.patch('bodhi.server.consumers.masher.transactional_session_maker')
+    def test___init___without_db_factory(self, transactional_session_maker, initialize_db):
+        """__init__() should make its own db_factory if not given one."""
+        m = Masher(FakeHub(), mash_dir=self.tempdir)
+
+        self.assertEqual(m.db_factory, transactional_session_maker.return_value)
+        initialize_db.assert_called_once_with(config)
+        transactional_session_maker.assert_called_once_with()
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_invalid_signature(self, publish):
@@ -1781,6 +1809,23 @@ class TestMasherThread__perform_tag_actions(MasherThreadBaseTestCase):
                          [('f26-updates-candidate', 'f26-updates-testing', 'bodhi-2.3.2-1.fc26')])
 
 
+class TestMasherThread_check_all_karma_thresholds(MasherThreadBaseTestCase):
+    """Test the MasherThread.check_all_karma_thresholds() method."""
+    def test_BodhiException(self):
+        """Assert that a raised BodhiException gets caught and logged."""
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.db = self.db
+        t.log.exception = mock.MagicMock()
+        t.updates = [mock.MagicMock(), mock.MagicMock()]
+        t.updates[1].check_karma_thresholds.side_effect = exceptions.BodhiException("BOOM")
+
+        t.check_all_karma_thresholds()
+
+        t.log.exception.assert_called_once_with('Problem checking karma thresholds')
+
+
 class TestMasherThread_eject_from_mash(MasherThreadBaseTestCase):
     """This test class contains tests for the MasherThread.eject_from_mash() method."""
     @mock.patch('bodhi.server.notifications.publish')
@@ -1811,6 +1856,174 @@ class TestMasherThread_eject_from_mash(MasherThreadBaseTestCase):
         self.assertEqual(t.updates, set([]))
         # The update's title should also have been removed from t.state['updates']
         self.assertEqual(t.state['updates'], [])
+
+
+class TestMasherThread_init_state(MasherThreadBaseTestCase):
+    """This test class contains tests for the MasherThread.init_state() method."""
+    def test_creates_mash_dir(self):
+        """Assert that mash_dir gets created if it doesn't exist."""
+        mash_dir = os.path.join(self.tempdir, 'cool_dir')
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, mash_dir)
+        # t.work() would normally set this up for us, so we'll just fake it
+        t.id = getattr(release, '{}_tag'.format('stable'))
+
+        t.init_state()
+
+        self.assertTrue(os.path.exists(mash_dir))
+
+    def test_lock_exists_resume_false(self):
+        """If a lock exists and we are not resuming, an Exception should be raised."""
+        mash_dir = os.path.join(self.tempdir, 'cool_dir')
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, mash_dir)
+        # t.work() would normally set this up for us, so we'll just fake it
+        t.id = getattr(release, '{}_tag'.format('stable'))
+        t.log.error = mock.MagicMock()
+        lock_file = os.path.join(mash_dir, 'MASHING-{}'.format(t.id))
+        os.makedirs(mash_dir)
+        with open(lock_file, 'w') as lf:
+            lf.write('some updates')
+
+        with self.assertRaises(Exception):
+            t.init_state()
+
+        t.log.error.assert_called_once_with(
+            'Trying to do a fresh push and masher lock already exists: {}'.format(lock_file))
+
+    def test_lock_exists_resume_true(self):
+        """If a lock exists and we are resuming, no Exception should be raised."""
+        mash_dir = os.path.join(self.tempdir, 'cool_dir')
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, mash_dir)
+        # t.work() would normally set this up for us, so we'll just fake it
+        t.id = getattr(release, '{}_tag'.format('stable'))
+        t.resume = True
+        lock_file = os.path.join(mash_dir, 'MASHING-{}'.format(t.id))
+        os.makedirs(mash_dir)
+        with open(lock_file, 'w') as lf:
+            lf.write('some updates')
+
+        # This should not raise any Exceptions.
+        t.init_state()
+
+    def test_no_locks(self):
+        """Assert that no Exceptions are raised if locks don't exist."""
+        mash_dir = os.path.join(self.tempdir, 'cool_dir')
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, mash_dir)
+        # t.work() would normally set this up for us, so we'll just fake it
+        t.id = getattr(release, '{}_tag'.format('stable'))
+        os.makedirs(mash_dir)
+
+        # This should not raise any Exceptions.
+        t.init_state()
+
+
+class TestMasherThread_load_updates(MasherThreadBaseTestCase):
+    """Test the MasherThread.load_updates() method."""
+    def test_no_updates(self):
+        """Assert that an Exception is raised when no Updates are found."""
+        release = self.db.query(Release).filter_by(name=u'F17').one()
+        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.db = self.db
+        t.state['updates'] = []
+
+        with self.assertRaises(Exception) as exc:
+            t.load_updates()
+
+        self.assertEqual(str(exc.exception), 'Unable to load updates: []')
+
+
+class TestMasherThread_verify_updates(MasherThreadBaseTestCase):
+    """Test the MasherThread.verify_updates() method."""
+    def test_all_updates_ok(self):
+        """Assert that no updates get ejected when they are OK."""
+        up = Update.query.one()
+        up.request = UpdateRequest.stable
+        t = MasherThread(up.release, u'stable', [u'bodhi-2.0-1.fc17'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.db = self.Session()
+        # t.work() would normally set this up for us, so we'll just fake it
+        t.id = getattr(up.release, '{}_tag'.format('stable'))
+        t.updates = set([up])
+
+        t.verify_updates()
+
+        # Verify that up wasn't removed from t.updates.
+        self.assertIn(up, t.updates)
+
+    def test_mismatched_release(self):
+        """Assert that Updates with mismatched Releases get ejected."""
+        user = User.query.first()
+        up_1 = Update.query.one()
+        up_1.request = UpdateRequest.stable
+        release = Release(
+            name=u'F18', long_name=u'Fedora 18',
+            id_prefix=u'FEDORA', version=u'18',
+            dist_tag=u'f18', stable_tag=u'f18-updates',
+            testing_tag=u'f18-updates-testing',
+            candidate_tag=u'f18-updates-candidate',
+            pending_signing_tag=u'f18-updates-testing-signing',
+            pending_testing_tag=u'f18-updates-testing-pending',
+            pending_stable_tag=u'f18-updates-pending',
+            override_tag=u'f18-override',
+            branch=u'f18')
+        self.db.add(release)
+        build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up_1.builds[0].package)
+        self.db.add(build)
+        up_2 = Update(
+            title=u'bodhi-2.0-1.fc18',
+            builds=[build], user=user,
+            status=UpdateStatus.testing,
+            request=UpdateRequest.stable,
+            type=UpdateType.enhancement,
+            notes=u'Useful details!', release=release,
+            test_gating_status=TestGatingStatus.passed)
+        t = MasherThread(up_1.release, u'stable', [u'bodhi-2.0-1.fc17'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.db = self.Session()
+        # t.work() would normally set this up for us, so we'll just fake it
+        t.id = getattr(up_1.release, '{}_tag'.format('stable'))
+        t.updates = set([up_1, up_2])
+
+        t.verify_updates()
+
+        # up_2 got removed for having the wrong release.
+        self.assertEqual(t.updates, set([up_1]))
+
+    def test_mismatched_request(self):
+        """Assert that Updates with mismatched Requests get ejected."""
+        user = User.query.first()
+        up_1 = Update.query.one()
+        up_1.request = UpdateRequest.stable
+        build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=up_1.release,
+                         package=up_1.builds[0].package)
+        self.db.add(build)
+        up_2 = Update(
+            title=u'bodhi-2.0-1.fc18',
+            builds=[build], user=user,
+            status=UpdateStatus.testing,
+            request=UpdateRequest.batched,
+            type=UpdateType.enhancement,
+            notes=u'Useful details!', release=up_1.release,
+            test_gating_status=TestGatingStatus.passed)
+        t = MasherThread(up_1.release, u'stable', [u'bodhi-2.0-1.fc17'],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.db = self.Session()
+        # t.work() would normally set this up for us, so we'll just fake it
+        t.id = getattr(up_1.release, '{}_tag'.format('stable'))
+        t.updates = [up_1, up_2]
+
+        t.verify_updates()
+
+        # up_2 got removed for having the wrong release.
+        self.assertEqual(t.updates, [up_1])
 
 
 class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
