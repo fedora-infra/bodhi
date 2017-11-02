@@ -200,11 +200,12 @@ class TestSetupBuildsystem(unittest.TestCase):
                           {'buildsystem': 'Something unsupported'})
 
 
+@mock.patch('bodhi.server.buildsys.log.debug')
 class TestWaitForTasks(unittest.TestCase):
     """Test the wait_for_tasks() function."""
 
     @mock.patch('bodhi.server.buildsys.time.sleep')
-    def test_wait_on_unfinished_task(self, sleep):
+    def test_wait_on_unfinished_task(self, sleep, debug):
         """Assert that we wait on unfinished tasks for sleep seconds."""
         tasks = [1, 2, 3]
         session = mock.MagicMock()
@@ -214,12 +215,16 @@ class TestWaitForTasks(unittest.TestCase):
         ret = buildsys.wait_for_tasks(tasks, session, sleep=0.01)
 
         self.assertEqual(ret, [])
+        self.assertEqual(
+            debug.mock_calls,
+            [mock.call('Waiting for 3 tasks to complete: [1, 2, 3]'),
+             mock.call('3 tasks completed successfully, 0 tasks failed.')])
         self.assertEqual(session.taskFinished.mock_calls,
                          [mock.call(1), mock.call(2), mock.call(2), mock.call(2), mock.call(3)])
         self.assertEqual(sleep.mock_calls, [mock.call(0.01), mock.call(0.01)])
         self.assertEqual(session.getTaskInfo.mock_calls, [mock.call(1), mock.call(2), mock.call(3)])
 
-    def test_with_failed_task(self):
+    def test_with_failed_task(self, debug):
         """Assert that we return a list of failed_tasks."""
         tasks = [1, 2, 3]
         session = mock.MagicMock()
@@ -232,11 +237,14 @@ class TestWaitForTasks(unittest.TestCase):
         ret = buildsys.wait_for_tasks(tasks, session, sleep=0.01)
 
         self.assertEqual(ret, [2])
+        self.assertEqual(
+            debug.mock_calls,
+            [mock.call('Waiting for 3 tasks to complete: [1, 2, 3]'),
+             mock.call('2 tasks completed successfully, 1 tasks failed.')])
         self.assertEqual(session.taskFinished.mock_calls,
                          [mock.call(1), mock.call(2), mock.call(3)])
         self.assertEqual(session.getTaskInfo.mock_calls, [mock.call(1), mock.call(2), mock.call(3)])
 
-    @mock.patch('bodhi.server.buildsys.log.debug')
     def test_with_falsey_task(self, debug):
         """Assert that a Falsey entry in the list doesn't raise an Exception."""
         tasks = [1, False, 3]
@@ -253,12 +261,12 @@ class TestWaitForTasks(unittest.TestCase):
             debug.mock_calls,
             [mock.call('Waiting for 3 tasks to complete: [1, False, 3]'),
              mock.call('Skipping task: False'),
-             mock.call('Tasks completed successfully!')])
+             mock.call('3 tasks completed successfully, 0 tasks failed.')])
         self.assertEqual(session.taskFinished.mock_calls,
                          [mock.call(1), mock.call(3)])
         self.assertEqual(session.getTaskInfo.mock_calls, [mock.call(1), mock.call(3)])
 
-    def test_with_successful_tasks(self):
+    def test_with_successful_tasks(self, debug):
         """A list of successful tasks should return []."""
         tasks = [1, 2, 3]
         session = mock.MagicMock()
@@ -271,12 +279,16 @@ class TestWaitForTasks(unittest.TestCase):
         ret = buildsys.wait_for_tasks(tasks, session, sleep=0.01)
 
         self.assertEqual(ret, [])
+        self.assertEqual(
+            debug.mock_calls,
+            [mock.call('Waiting for 3 tasks to complete: [1, 2, 3]'),
+             mock.call('3 tasks completed successfully, 0 tasks failed.')])
         self.assertEqual(session.taskFinished.mock_calls,
                          [mock.call(1), mock.call(2), mock.call(3)])
         self.assertEqual(session.getTaskInfo.mock_calls, [mock.call(1), mock.call(2), mock.call(3)])
 
     @mock.patch('bodhi.server.buildsys.get_session')
-    def test_without_session(self, get_session):
+    def test_without_session(self, get_session, debug):
         """Test the function without handing it a Koji session."""
         tasks = [1, 2, 3]
         get_session.return_value.taskFinished.side_effect = [True, True, True]
@@ -288,6 +300,10 @@ class TestWaitForTasks(unittest.TestCase):
         ret = buildsys.wait_for_tasks(tasks, sleep=0.01)
 
         self.assertEqual(ret, [])
+        self.assertEqual(
+            debug.mock_calls,
+            [mock.call('Waiting for 3 tasks to complete: [1, 2, 3]'),
+             mock.call('3 tasks completed successfully, 0 tasks failed.')])
         get_session.assert_called_once_with()
         self.assertEqual(get_session.return_value.taskFinished.mock_calls,
                          [mock.call(1), mock.call(2), mock.call(3)])
