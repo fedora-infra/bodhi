@@ -37,17 +37,15 @@ import time
 import urllib2
 from datetime import datetime
 
-from pyramid.paster import get_appsettings
-from sqlalchemy import engine_from_config
 import fedmsg.consumers
 import jinja2
 
-from bodhi.server import bugs, log, buildsys, notifications, mail
+from bodhi.server import bugs, initialize_db, log, buildsys, notifications, mail
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Update, UpdateRequest, UpdateType, Release,
-                                 UpdateStatus, ReleaseState, Base, ContentType)
+                                 UpdateStatus, ReleaseState, ContentType)
 from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
 
 
@@ -168,10 +166,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
             mash_dir (basestring): The directory in which to place mashes.
         """
         if not db_factory:
-            config_uri = '/etc/bodhi/production.ini'
-            settings = get_appsettings(config_uri)
-            engine = engine_from_config(settings, 'sqlalchemy.')
-            Base.metadata.create_all(engine)
+            initialize_db(config)
             self.db_factory = transactional_session_maker()
         else:
             self.db_factory = db_factory
