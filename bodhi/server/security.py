@@ -248,7 +248,7 @@ class CorsOrigins(object):
         """
         if self.origins is None:
             self.initialize()
-        return iter(self.originals)
+        return iter(self.origins)
 
     def __contains__(self, item):
         """
@@ -261,7 +261,7 @@ class CorsOrigins(object):
         """
         if self.origins is None:
             self.initialize()
-        return item in self.originals
+        return item in self.origins
 
 
 cors_origins_ro = CorsOrigins('cors_origins_ro')
