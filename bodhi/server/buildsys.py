@@ -453,8 +453,15 @@ def setup_buildsystem(settings):
 
 def wait_for_tasks(tasks, session=None, sleep=300):
     """
-    Wait for a list of koji tasks to complete.  Return the first task number
-    to fail, otherwise zero.
+    Wait for a list of koji tasks to complete.
+
+    Args:
+        tasks (list): The return value of Koji's multiCall().
+        session (koji.ClientSession or None): A Koji client session to use. If not provided, the
+            function will acquire its own session.
+        sleep (int): How long to sleep between polls on Koji when waiting for tasks to complete.
+    Returns:
+        list: A list of failed tasks. An empty list indicates that all tasks completed successfully.
     """
     log.debug("Waiting for %d tasks to complete: %s" % (len(tasks), tasks))
     failed_tasks = []
