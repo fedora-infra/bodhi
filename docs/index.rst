@@ -55,7 +55,9 @@ Contributor Guide
 .. toctree::
    :maxdepth: 2
 
-   developer_docs
+   developer/index
+   developer/vagrant
+   developer/virtualenv
 
 
 Admin Guide
