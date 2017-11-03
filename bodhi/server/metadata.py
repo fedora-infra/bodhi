@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright 2007-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+"""Create metadata files when mashing repositories."""
 import logging
 import os
 import shelve
@@ -69,14 +75,26 @@ def modifyrepo(comp_type, compose_path, filetype, extension, source):
 
 
 class UpdateInfoMetadata(object):
-    """This class represents the updateinfo.xml yum metadata.
+    """
+    This class represents the updateinfo.xml yum metadata.
 
     It is generated during push time by the bodhi masher based on koji tags
     and is injected into the yum repodata using the `modifyrepo_c` tool,
     which is included in the `createrepo_c` package.
-
     """
+
     def __init__(self, release, request, db, mashdir, close_shelf=True):
+        """
+        Initialize the UpdateInfoMetadata object.
+
+        Args:
+            release (bodhi.server.models.Release): The Release that is being mashed.
+            request (bodhi.server.models.UpdateRequest): The Request that is being mashed.
+            db (): A database session to be used for queries.
+            mashdir (basestring): A path to the mashdir.
+            close_shelf (bool): Whether to close the shelve, which is used to cache updateinfo
+                between mashes.
+        """
         self.request = request
         if request is UpdateRequest.stable:
             self.tag = release.stable_tag
@@ -109,7 +127,7 @@ class UpdateInfoMetadata(object):
             self.shelf.close()
 
     def _fetch_updates(self):
-        """Based on our given koji tag, populate a list of Update objects"""
+        """Based on our given koji tag, populate a list of Update objects."""
         log.debug("Fetching builds tagged with '%s'" % self.tag)
         kojiBuilds = get_session().listTagged(self.tag, latest=True)
         nonexistent = []
@@ -152,7 +170,12 @@ class UpdateInfoMetadata(object):
         return rpms
 
     def add_update(self, update):
-        """Generate the extended metadata for a given update"""
+        """
+        Generate the extended metadata for a given update, adding it to self.uinfo.
+
+        Args:
+            update (bodhi.server.models.Update): The Update to be added to self.uinfo.
+        """
         rec = cr.UpdateRecord()
         rec.version = __version__
         rec.fromstr = config.get('bodhi_email')
@@ -232,6 +255,12 @@ class UpdateInfoMetadata(object):
         self.uinfo.append(rec)
 
     def insert_updateinfo(self, compose_path):
+        """
+        Add the updateinfo.xml file to the repository.
+
+        Args:
+            compose_path (basestring): The path to the compose where the metadata will be inserted.
+        """
         fd, tmp_file_path = tempfile.mkstemp()
         os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
         os.close(fd)
