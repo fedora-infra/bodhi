@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2013-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Bodhi's configuration and configuration loading and validation mechanisms."""
 from datetime import datetime
 import os
 import logging
@@ -24,6 +30,16 @@ log = logging.getLogger('bodhi')
 
 
 def get_configfile():
+    """
+    Return a path to a config file, if found.
+
+    Return the path to a config file, with a heirarchy of preferential paths. It searches first
+    for development.ini if found. if not found, it will return /etc/bodhi/production.ini if it
+    exists. Otherwise, it returns None.
+
+    Returns:
+        basestring or None: The path of a config file, or None if no config file is found.
+    """
     configfile = None
     setupdir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..')
     for cfg in (os.path.join(setupdir, 'development.ini'),
@@ -240,6 +256,13 @@ def _validate_tls_url(value):
 
 
 class BodhiConfig(dict):
+    """
+    A dictionary interface to the Bodhi configuration.
+
+    This class defines defaults for most of Bodhi's settings, and also provides validation that
+    converts them to the expected types.
+    """
+
     loaded = False
 
     _defaults = {
@@ -563,21 +586,25 @@ class BodhiConfig(dict):
     }
 
     def __getitem__(self, *args, **kw):
+        """Ensure the config is loaded, and then call the superclass __getitem__."""
         if not self.loaded:
             self.load_config()
         return super(BodhiConfig, self).__getitem__(*args, **kw)
 
     def get(self, *args, **kw):
+        """Ensure the config is loaded, and then call the superclass get."""
         if not self.loaded:
             self.load_config()
         return super(BodhiConfig, self).get(*args, **kw)
 
     def pop(self, *args, **kw):
+        """Ensure the config is loaded, and then call the superclass pop."""
         if not self.loaded:
             self.load_config()
         return super(BodhiConfig, self).pop(*args, **kw)
 
     def copy(self, *args, **kw):
+        """Ensure the config is loaded, and then call the superclass copy."""
         if not self.loaded:
             self.load_config()
         return super(BodhiConfig, self).copy(*args, **kw)
