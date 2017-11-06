@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+# Copyright 2011-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -2335,8 +2338,7 @@ class TestUpdatesService(base.BaseTestCase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_pending_update_on_stable_karma_reached_autopush_enabled(self, publish, *args):
-        """ Ensure that pending update directly requests for stable if
-        it hits stable karma before reaching testing state """
+        """Ensure that a pending update stays in testing if it hits stable karma while pending."""
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['autokarma'] = True
@@ -2355,7 +2357,36 @@ class TestUpdatesService(base.BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
 
         self.assertEquals(up.karma, 2)
-        self.assertEquals(up.request, UpdateRequest.batched)
+        self.assertEquals(up.request, UpdateRequest.testing)
+        self.assertEquals(up.status, UpdateStatus.pending)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_pending_urgent_update_on_stable_karma_reached_autopush_enabled(self, publish, *args):
+        """
+        Ensure that a pending urgent update directly requests for stable if
+        it hits stable karma before reaching testing state.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['autokarma'] = True
+        args['stable_karma'] = 2
+        args['unstable_karma'] = -2
+        args['severity'] = 'urgent'
+        self.app.post_json('/updates/', args)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.pending
+        self.db.commit()
+
+        up.comment(self.db, u'WFM', author=u'dustymabe', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+
+        up.comment(self.db, u'LGTM', author=u'bowlofeggs', karma=1)
+        up = self.db.query(Update).filter_by(title=nvr).one()
+
+        self.assertEquals(up.karma, 2)
+        self.assertEquals(up.request, UpdateRequest.stable)
         self.assertEquals(up.status, UpdateStatus.pending)
 
     @mock.patch(**mock_valid_requirements)
@@ -4067,6 +4098,7 @@ class TestUpdatesService(base.BaseTestCase):
         upd = Update.get(nvr, self.db)
         upd.status = UpdateStatus.testing
         upd.request = UpdateRequest.batched
+        upd.pushed = True
         upd.date_testing = datetime.now() - timedelta(days=1)
         self.db.commit()
 
@@ -4080,6 +4112,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(upd.status, UpdateStatus.testing)
         self.assertEquals(upd.request, UpdateRequest.batched)
         self.assertEquals(upd.autokarma, False)
+        self.assertEquals(upd.pushed, True)
 
         text = unicode(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author=u'bodhi')
@@ -4113,6 +4146,7 @@ class TestUpdatesService(base.BaseTestCase):
         # Marks it as testing
         upd = Update.get(nvr, self.db)
         upd.status = UpdateStatus.testing
+        upd.pushed = True
         upd.request = None
         upd.date_testing = datetime.now() - timedelta(days=1)
         self.db.commit()
@@ -4318,6 +4352,9 @@ class TestUpdatesService(base.BaseTestCase):
         args = self.get_update('bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+        up.pushed = True
         up.test_gating_status = TestGatingStatus.passed
         up.comment(self.db, u"foo1", 1, u'foo1')
         up.comment(self.db, u"foo2", 1, u'foo2')
