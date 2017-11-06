@@ -1785,6 +1785,12 @@ class Update(Base):
                         else:
                             action = UpdateRequest.testing
 
+        if action is UpdateRequest.batched and self.status is not UpdateStatus.testing:
+            # We don't want to allow updates to go to batched if they haven't been mashed into the
+            # testing repository yet.
+            raise BodhiException('This update is not in the testing repository yet. It cannot be '
+                                 'requested for batching until it is in testing.')
+
         # Add the appropriate 'pending' koji tag to this update, so tools like
         # AutoQA can mash repositories of them for testing.
         if action is UpdateRequest.testing:
@@ -2379,7 +2385,8 @@ class Update(Base):
                     log.info("Automatically marking %s as stable" % self.title)
                     self.set_request(db, UpdateRequest.stable, agent)
                 else:
-                    if self.request not in (UpdateRequest.batched, UpdateRequest.stable):
+                    if self.request not in (UpdateRequest.batched, UpdateRequest.stable) and \
+                            self.status is not UpdateStatus.pending:
                         log.info("Automatically adding %s to batch of updates that will be pushed "
                                  "to stable at a later date" % self.title)
                         self.set_request(db, UpdateRequest.batched, agent)
