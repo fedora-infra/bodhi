@@ -505,11 +505,6 @@ $(document).ready(function(){
               % if update.status.description != 'testing':
               <a id='testing' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Testing</a>
               % endif
-              % if update.status.description not in ['stable', 'obsolete']:
-                <a id='batched' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Batched</a>
-              % endif
-            % elif update.request.description in ['batched', 'stable']:
-                ${self.util.push_to_batched_or_stable_button(update) | n}
             % else:
               <a id='revoke' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Revoke</a>
             % endif
@@ -517,7 +512,7 @@ $(document).ready(function(){
             <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
             % if update.critpath and update.critpath_approved:
               ${self.util.push_to_batched_or_stable_button(update) | n}
-	    % elif update.request and update.request.description == 'batched':
+            % elif update.request and update.request.description in ['batched', 'stable']:
               ${self.util.push_to_batched_or_stable_button(update) | n}
             % elif update.meets_testing_requirements:
               ${self.util.push_to_batched_or_stable_button(update) | n}
