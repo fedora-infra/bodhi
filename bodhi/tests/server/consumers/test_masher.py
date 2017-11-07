@@ -474,7 +474,7 @@ class TestMasher(unittest.TestCase):
         t.init_state()
         t.save_state()
         self.assertTrue(os.path.exists(t.mash_lock))
-        with file(t.mash_lock) as f:
+        with open(t.mash_lock) as f:
             state = json.load(f)
         try:
             self.assertEquals(state, {u'updates': [u'bodhi-2.0-1.fc17'], u'completed_repos': []})

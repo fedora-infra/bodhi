@@ -52,7 +52,7 @@ def push(username, cert_prefix, **kwargs):
     locked_updates = []
     locks = '%s/MASHING-*' % config.get('mash_dir')
     for lockfile in glob.glob(locks):
-        with file(lockfile) as lock:
+        with open(lockfile) as lock:
             state = json.load(lock)
         for update in state['updates']:
             lockfiles[lockfile].append(update)
