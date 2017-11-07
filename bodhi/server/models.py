@@ -352,7 +352,7 @@ class BodhiBase(object):
 
         exclude = getattr(obj, '__exclude_columns__', [])
         properties = list(class_mapper(type(obj)).iterate_properties)
-        rels = [p.key for p in properties if type(p) is RelationshipProperty]
+        rels = [p.key for p in properties if isinstance(p, RelationshipProperty)]
         attrs = [p.key for p in properties if p.key not in rels]
         d = dict([(attr, getattr(obj, attr)) for attr in attrs
                   if attr not in exclude and not attr.startswith('_')])
@@ -1525,7 +1525,7 @@ class Update(Base):
             ValueError: If the build being appended is not the same type as the
                 existing builds.
         """
-        if not all([type(b) is type(build) for b in self.builds]):
+        if not all([isinstance(b, type(build)) for b in self.builds]):
             raise ValueError(u'An update must contain builds of the same type.')
         return build
 

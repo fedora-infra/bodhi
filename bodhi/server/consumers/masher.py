@@ -907,8 +907,7 @@ class MasherThread(threading.Thread):
                                    requesttype,
                                    self._startyear)
 
-        paths = glob.glob(os.path.join(self.mash_dir, prefix))
-        paths.sort()
+        paths = sorted(glob.glob(os.path.join(self.mash_dir, prefix)))
         if len(paths) < 1:
             raise Exception('We were unable to find a path with prefix %s in mashdir' % prefix)
         self.log.debug('Paths: %s', paths)
@@ -1170,8 +1169,7 @@ class MasherThread(threading.Thread):
                 maildata += '\n\n'
 
             maildata += testhead % prefix
-            updlist = content.keys()
-            updlist.sort()
+            updlist = sorted(content.keys())
             for pkg in updlist:
                 maildata += u'    %s\n' % pkg
             maildata += u'\nDetails about builds:\n\n'
