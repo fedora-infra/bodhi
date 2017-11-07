@@ -13,7 +13,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import logging
-import xmlrpclib
+from six.moves import xmlrpc_client
 
 from collections import namedtuple
 from kitchen.text.converters import to_unicode
@@ -93,7 +93,7 @@ class Bugzilla(BugTracker):
                 try:
                     bug.addcomment(comment)
                     break
-                except xmlrpclib.Fault as e:
+                except xmlrpc_client.Fault as e:
                     attempts += 1
                     log.exception(
                         "\nA fault has occurred \nFault code: %d \nFault string: %s" %
@@ -148,14 +148,14 @@ class Bugzilla(BugTracker):
                 args['fixedin'] = " ".join(fixedin)
 
             bug.close('ERRATA', **args)
-        except xmlrpclib.Fault:
+        except xmlrpc_client.Fault:
             log.exception("Unable to close bug #%d" % bug_id)
 
     def update_details(self, bug, bug_entity):
         if not bug:
             try:
                 bug = self.bz.getbug(bug_entity.bug_id)
-            except xmlrpclib.Fault:
+            except xmlrpc_client.Fault:
                 bug_entity.title = 'Invalid bug number'
                 log.exception("Got fault from Bugzilla")
                 return

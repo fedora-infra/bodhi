@@ -21,7 +21,7 @@
 import unittest
 
 import mock
-import xmlrpclib
+from six.moves import xmlrpc_client
 
 from bodhi.server import bugs, models
 
@@ -92,7 +92,7 @@ class TestBugzilla(unittest.TestCase):
         """Assert that an xmlrpc Fault is caught and logged by close()."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
-        bz._bz.getbug.return_value.close.side_effect = xmlrpclib.Fault(
+        bz._bz.getbug.return_value.close.side_effect = xmlrpc_client.Fault(
             410, 'You must log in before using this part of Red Hat Bugzilla.')
 
         # This should not raise an Exception.
@@ -133,8 +133,7 @@ class TestBugzilla(unittest.TestCase):
         """Assert that only 5 attempts are made to comment before giving up."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
-        bz._bz.getbug.return_value.addcomment.side_effect = xmlrpclib.Fault(
-            42, 'Someone turned the microwave on and now the WiFi is down.')
+        bz._bz.getbug.return_value.addcomment.side_effect = xmlrpc_client.Fault(42, 'Someone turned the microwave on and now the WiFi is down.')
 
         bz.comment(1411188, 'A nice message.')
 

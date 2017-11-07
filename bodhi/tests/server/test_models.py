@@ -15,7 +15,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test suite for bodhi.server.models"""
 from datetime import datetime, timedelta
-from HTMLParser import HTMLParser
+from six.moves.html_parser import HTMLParser
 import json
 import pickle
 import time
