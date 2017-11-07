@@ -38,6 +38,7 @@ import textwrap
 
 from iniparse.compat import ConfigParser
 from six.moves import configparser
+from six.moves import input
 try:
     import dnf
 except ImportError:  # pragma: no cover
@@ -391,7 +392,7 @@ class BodhiClient(OpenIdBaseClient):
                         break
 
             if not self.username:
-                self.username = raw_input('Username: ')
+                self.username = input('Username: ')
 
             self._load_cookies()
 
