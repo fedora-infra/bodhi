@@ -45,6 +45,7 @@ import rpm
 from bodhi.server import log, buildsys, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
+from six.moves import map
 
 
 _ = TranslationStringFactory('bodhi')
@@ -102,7 +103,7 @@ def get_nvr(nvr):
     Returns:
         tuple: A 3-tuple representing the name, version, and release from the given nvr string.
     """
-    x = map(unicode, nvr.split('-'))
+    x = list(map(unicode, nvr.split('-')))
     return ('-'.join(x[:-2]), x[-2], x[-1])
 
 
@@ -116,7 +117,7 @@ def packagename_from_nvr(context, nvr):
     Returns:
         basestring: The name from the nvr string.
     """
-    x = map(unicode, nvr.split('-'))
+    x = list(map(unicode, nvr.split('-')))
     return '-'.join(x[:-2])
 
 

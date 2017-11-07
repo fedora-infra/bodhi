@@ -58,6 +58,7 @@ from .util import (
     taskotron_results,
 )
 from bodhi.server.config import config
+from six.moves import map
 
 
 csrf_error_message = """CSRF tokens do not match.  This happens if you have
@@ -773,7 +774,7 @@ def validate_bugs(request, **kwargs):
     bugs = request.validated.get('bugs')
     if bugs:
         try:
-            request.validated['bugs'] = map(int, bugs)
+            request.validated['bugs'] = list(map(int, bugs))
         except ValueError:
             request.errors.add("querystring", "bugs",
                                "Invalid bug ID specified: {}".format(bugs))

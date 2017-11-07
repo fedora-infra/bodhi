@@ -1992,7 +1992,7 @@ class Update(Base):
         Returns:
             basestring: A title for this update.
         """
-        all_nvrs = map(lambda x: x.nvr, self.builds)
+        all_nvrs = [x.nvr for x in self.builds]
         nvrs = all_nvrs[:limit]
         builds = delim.join(sorted(nvrs)) + (after_limit if limit and len(all_nvrs) > limit else "")
         return builds
