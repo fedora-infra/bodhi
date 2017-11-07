@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+# Copyright © 2016-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -348,6 +351,16 @@ class TestPrintOverrideKojiHint(unittest.TestCase):
         self.assertEqual(c.send_request.call_count, 0)
 
 
+real_open = open
+
+
+def fake_open_no_session_cache(*args, **kwargs):
+    """Fake open so that it looks like we have no session cache."""
+    if args[0] == fedora.client.openidbaseclient.b_SESSION_FILE:
+        return mock.mock_open(read_data='{}')(*args, **kwargs)
+    return real_open(*args, **kwargs)
+
+
 class TestQuery(unittest.TestCase):
     """
     Test the query() function.
@@ -445,17 +458,16 @@ class TestQuery(unittest.TestCase):
                 return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
     @mock.patch('__builtin__.raw_input', create=True)
     def test_query_mine_flag_username_unset(self, mock_raw_input, send_request):
-        """
-        Assert that we use init_username if USERNAME is not set
-        """
+        """Assert that we use init_username if --user is not given."""
         mock_raw_input.return_value = 'dudemcpants'
 
         with mock.patch.dict('os.environ'):
-            if 'USERNAME' in os.environ:
-                del os.environ['USERNAME']
-            runner = testing.CliRunner()
-            runner.invoke(client.query, ['--mine'])
+            with mock.patch('__builtin__.open', create=True) as mock_open:
+                mock_open.side_effect = fake_open_no_session_cache
+                runner = testing.CliRunner()
+                res = runner.invoke(client.query, ['--mine'])
 
+        self.assertEqual(res.exit_code, 0)
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'updates/', verb='GET',
@@ -467,6 +479,7 @@ class TestQuery(unittest.TestCase):
                 'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
                 'user': 'dudemcpants', 'critpath': None, 'updateid': None, 'packages': None,
                 'type': None, 'cves': None})
+        mock_open.assert_called_with(fedora.client.openidbaseclient.b_SESSION_FILE, 'rb')
 
 
 class TestQueryBuildrootOverrides(unittest.TestCase):
@@ -501,17 +514,20 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
                 return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
     @mock.patch('__builtin__.raw_input', create=True)
     def test_queryoverrides_mine_flag_username_unset(self, mock_raw_input, send_request):
-        """
-        Assert that we use init_username if USERNAME is not set
-        """
+        """Assert that we use init_username if --user is not given."""
         mock_raw_input.return_value = 'dudemcpants'
-        runner = testing.CliRunner()
 
-        runner.invoke(client.query_buildroot_overrides, ['--mine'])
+        with mock.patch.dict('os.environ'):
+            with mock.patch('__builtin__.open', create=True) as mock_open:
+                mock_open.side_effect = fake_open_no_session_cache
+                runner = testing.CliRunner()
+                res = runner.invoke(client.query_buildroot_overrides, ['--mine'])
 
+        self.assertEqual(res.exit_code, 0)
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'overrides/', verb='GET', params={'user': 'dudemcpants'})
+        mock_open.assert_called_with(fedora.client.openidbaseclient.b_SESSION_FILE, 'rb')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
