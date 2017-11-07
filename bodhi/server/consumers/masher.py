@@ -47,6 +47,7 @@ from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
 from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
+from six.moves import zip
 
 
 def checkpoint(method):
