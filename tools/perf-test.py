@@ -10,6 +10,7 @@ import time
 import sys
 
 import requests
+from six.moves import map
 
 
 reflength = 10
@@ -71,7 +72,7 @@ def loop_over_refs(refs):
 
 
 def print_table(table):
-    width = max(map(len, items.keys()))
+    width = max([len(key) for key in items.keys()])
     headers = [' ' * width] + [ref.ljust(reflength) for ref in table.keys()]
 
     rows = [headers] + [["-" * width] + ["-" * reflength] * len(table)]
