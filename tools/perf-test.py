@@ -11,6 +11,7 @@ import sys
 
 import requests
 from six.moves import map
+from six.moves import input
 
 
 reflength = 10
@@ -59,7 +60,7 @@ def do_scan():
 
 def loop_over_refs(refs):
     print("Checking %r" % refs)
-    response = raw_input("Is that okay? ")
+    response = input("Is that okay? ")
     if response != 'y':
         sys.exit(0)
     for ref in refs:
