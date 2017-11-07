@@ -626,13 +626,13 @@ class MasherThread(threading.Thread):
 
     def save_state(self):
         """Save the state of this push so it can be resumed later if necessary."""
-        with file(self.mash_lock, 'w') as lock:
+        with open(self.mash_lock, 'w') as lock:
             json.dump(self.state, lock)
         self.log.info('Masher lock saved: %s', self.mash_lock)
 
     def load_state(self):
         """Load the state of this push so it can be resumed later if necessary."""
-        with file(self.mash_lock) as lock:
+        with open(self.mash_lock) as lock:
             self.state = json.load(lock)
         self.log.info('Masher state loaded from %s', self.mash_lock)
         self.log.info(self.state)
