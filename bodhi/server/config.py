@@ -24,6 +24,7 @@ import logging
 from pyramid import settings
 from pyramid.paster import get_appsettings
 import cryptography.fernet
+import six
 
 
 log = logging.getLogger('bodhi')
@@ -79,7 +80,7 @@ def _generate_list_validator(splitter=' ', validator=unicode):
         Raises:
             ValueError: If validator fails on any of the list's elements.
         """
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             value = [idx.strip() for idx in value.split(splitter) if idx.strip()]
 
         if not isinstance(value, list):
@@ -106,7 +107,7 @@ def _validate_bool(value):
     Raises:
         ValueError: If value cannot be interpreted as a boolean.
     """
-    if isinstance(value, basestring):
+    if isinstance(value, six.string_types):
         # Recent versions of Pyramid define a settings.falsey, but version 1.5.6 does not so its
         # values have been backported here for the False case. Pyramid defines an asbool(), but it
         # will not raise any error for strings that aren't in the truthy or falsey lists, and we
@@ -138,7 +139,7 @@ def _validate_color(value):
     """
     e = ValueError('"{}" is not a valid color expression.'.format(value))
 
-    if not isinstance(value, basestring):
+    if not isinstance(value, six.string_types):
         raise e
     if not len(value) == 7:
         raise e
@@ -249,7 +250,7 @@ def _validate_tls_url(value):
     Raises:
         ValueError: If value is not a string starting with https://.
     """
-    if not isinstance(value, basestring) or not value.startswith('https://'):
+    if not isinstance(value, six.string_types) or not value.startswith('https://'):
         raise ValueError('This setting must be a URL starting with https://.')
 
     return unicode(value)

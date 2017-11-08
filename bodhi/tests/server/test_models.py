@@ -33,6 +33,7 @@ from bodhi.server.models import (
     BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
     UpdateSuggestion, UpdateType, TestGatingStatus)
 from bodhi.tests.server.base import BaseTestCase
+import six
 
 
 class DummyUser(object):
@@ -1040,7 +1041,7 @@ class TestUpdate(ModelTest):
 
         subject = self.obj.greenwave_subject_json
 
-        self.assertTrue(isinstance(subject, basestring))
+        self.assertTrue(isinstance(subject, six.string_types))
         self.assertEqual(
             json.loads(subject),
             [{'item': u'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},

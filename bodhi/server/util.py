@@ -46,6 +46,7 @@ from bodhi.server import log, buildsys, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
 from six.moves import map
+import six
 
 
 _ = TranslationStringFactory('bodhi')
@@ -398,7 +399,7 @@ def splitter(value):
 
     items = []
     for v in iterate(value):
-        if isinstance(v, basestring):
+        if isinstance(v, six.string_types):
             for item in v.replace(',', ' ').split():
                 items.append(item)
 
@@ -972,7 +973,7 @@ def cmd(cmd, cwd=None):
             process's return code (int).
     """
     log.info('Running %r', cmd)
-    if isinstance(cmd, basestring):
+    if isinstance(cmd, six.string_types):
         cmd = cmd.split()
     p = subprocess.Popen(cmd, cwd=cwd,
                          stdout=subprocess.PIPE,
