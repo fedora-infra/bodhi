@@ -104,7 +104,7 @@ def get_nvr(nvr):
     Returns:
         tuple: A 3-tuple representing the name, version, and release from the given nvr string.
     """
-    x = list(map(unicode, nvr.split('-')))
+    x = list(map(six.text_type, nvr.split('-')))
     return ('-'.join(x[:-2]), x[-2], x[-1])
 
 
@@ -118,7 +118,7 @@ def packagename_from_nvr(context, nvr):
     Returns:
         basestring: The name from the nvr string.
     """
-    x = list(map(unicode, nvr.split('-')))
+    x = list(map(six.text_type, nvr.split('-')))
     return '-'.join(x[:-2])
 
 
@@ -497,7 +497,7 @@ def status2html(context, status):
     Returns:
         basestring: An HTML span tag representing the UpdateStatus.
     """
-    status = unicode(status)
+    status = six.text_type(status)
     cls = {
         'pending': 'primary',
         'testing': 'warning',
@@ -557,7 +557,7 @@ def state2class(context, state):
         basestring: A string representing the classification of the given ReleaseState. Can return
             'danger', 'warning', 'success', or 'default active'.
     """
-    state = unicode(state)
+    state = six.text_type(state)
     cls = {
         'disabled': 'default active',
         'pending': 'warning',
@@ -578,7 +578,7 @@ def type2color(context, t):
         basestring: A string in the format rgba(RED, GREEN, BLUE, ALPHA), where RED, GREEN, BLUE,
             and ALPHA are replaced with numerical values to represent a color.
     """
-    t = unicode(t)
+    t = six.text_type(t)
     cls = {
         'bugfix': 'rgba(150,180,205,0.5)',
         'security': 'rgba(205,150,180,0.5)',
@@ -669,7 +669,7 @@ def type2html(context, kind):
     Returns:
         basestring: An HTML span tag representing the UpdateType.
     """
-    kind = unicode(kind)
+    kind = six.text_type(kind)
     cls = {
         'security': 'danger',
         'bugfix': 'warning',
@@ -691,7 +691,7 @@ def type2icon(context, kind):
     Returns:
         basestring: An HTML span tag representing the UpdateType.
     """
-    kind = unicode(kind)
+    kind = six.text_type(kind)
     cls = {
         'security': 'danger',
         'bugfix': 'warning',
@@ -722,7 +722,7 @@ def severity2html(context, severity):
     Returns:
         basestring: An HTML span tag representing the UpdateSeverity.
     """
-    severity = unicode(severity)
+    severity = six.text_type(severity)
     cls = {
         'urgent': 'danger',
         'high': 'warning',
@@ -743,7 +743,7 @@ def request2html(context, request):
     Returns:
         basestring: An HTML span tag representing the UpdateRequest.
     """
-    request = unicode(request)
+    request = six.text_type(request)
     cls = {
         'unpush': 'danger',
         'obsolete': 'default',

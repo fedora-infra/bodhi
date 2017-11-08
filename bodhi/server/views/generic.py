@@ -59,7 +59,7 @@ def get_top_testers(request):
         .filter(models.Comment.timestamp > start_time)
 
     for user in blacklist:
-        query = query.filter(models.User.name != unicode(user))
+        query = query.filter(models.User.name != six.text_type(user))
 
     return query\
         .group_by(models.User)\
@@ -384,7 +384,7 @@ def popup_toggle(request):
     userid = request.authenticated_userid
     if userid is None:
         raise HTTPForbidden("You must be logged in.")
-    user = request.db.query(models.User).filter_by(name=unicode(userid)).first()
+    user = request.db.query(models.User).filter_by(name=six.text_type(userid)).first()
 
     # Toggle the value.
     user.show_popups = not user.show_popups

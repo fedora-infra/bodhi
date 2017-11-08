@@ -26,6 +26,7 @@ import mock
 
 from bodhi.client import bindings
 from bodhi.tests import client as client_test_data
+import six
 
 
 class TestBodhiClient___init__(unittest.TestCase):
@@ -1184,7 +1185,7 @@ class TestUpdateNotFound(unittest.TestCase):
         exc = bindings.UpdateNotFound('bodhi-2.2.4-1.el7')
 
         self.assertEqual(exc.update, u'bodhi-2.2.4-1.el7')
-        self.assertEqual(type(exc.update), unicode)
+        self.assertEqual(type(exc.update), six.text_type)
 
     def test___unicode__(self):
         """
@@ -1192,9 +1193,9 @@ class TestUpdateNotFound(unittest.TestCase):
         """
         exc = bindings.UpdateNotFound('bodhi-2.2.4-1.el7')
 
-        self.assertEqual(unicode(exc.update), u'bodhi-2.2.4-1.el7')
-        self.assertEqual(type(unicode(exc.update)), unicode)
-        self.assertEqual(unicode(exc), 'Update not found: bodhi-2.2.4-1.el7')
+        self.assertEqual(six.text_type(exc.update), u'bodhi-2.2.4-1.el7')
+        self.assertEqual(type(six.text_type(exc.update)), six.text_type)
+        self.assertEqual(six.text_type(exc), 'Update not found: bodhi-2.2.4-1.el7')
 
 
 class TestBodhiClient_candidates(unittest.TestCase):
@@ -1310,7 +1311,7 @@ class TestBodhiClient_parse_file(unittest.TestCase):
         with self.assertRaises(ValueError) as exc:
             client.parse_file("sad")
 
-        self.assertEqual(unicode(exc.exception), 'Invalid input file: sad')
+        self.assertEqual(six.text_type(exc.exception), 'Invalid input file: sad')
 
     @mock.patch('__builtin__.open', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
@@ -1374,7 +1375,7 @@ class TestBodhiClient_parse_file(unittest.TestCase):
         with self.assertRaises(ValueError) as exc:
             client.parse_file("/tmp/bodhi-test-parsefile2")
 
-        self.assertEqual(unicode(exc.exception),
+        self.assertEqual(six.text_type(exc.exception),
                          'No such file or directory: /tmp/bodhi-test-parsefile2')
 
 

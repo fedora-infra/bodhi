@@ -107,7 +107,7 @@ class EnumSymbol(object):
         Returns:
             unicode: A string representation of this EnumSymbol's value.
         """
-        return unicode(self.value)
+        return six.text_type(self.value)
 
     def __json__(self, request=None):
         """
@@ -376,7 +376,7 @@ class BodhiBase(object):
             if isinstance(value, datetime):
                 d[key] = value.strftime('%Y-%m-%d %H:%M:%S')
             if isinstance(value, EnumSymbol):
-                d[key] = unicode(value)
+                d[key] = six.text_type(value)
 
         # If explicitly asked to, we will overwrite some fields if the
         # corresponding condition of each evaluates to True.

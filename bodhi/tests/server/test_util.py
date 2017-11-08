@@ -26,6 +26,7 @@ from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
 from bodhi.server.models import TestGatingStatus, Update, UpdateRequest, UpdateSeverity
 from bodhi.tests.server import base
+import six
 
 
 class TestBugLink(base.BaseTestCase):
@@ -212,7 +213,7 @@ class TestUtils(base.BaseTestCase):
             util.get_critpath_components('f25')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = unicode(error)
+            actual_error = six.text_type(error)
         # We are not testing the whole error message because there is no
         # guarantee of the ordering of the GET parameters.
         assert 'Bodhi failed to get a resource from PDC' in actual_error
@@ -344,7 +345,7 @@ class TestUtils(base.BaseTestCase):
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = unicode(error)
+            actual_error = six.text_type(error)
 
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
@@ -362,7 +363,7 @@ class TestUtils(base.BaseTestCase):
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = unicode(error)
+            actual_error = six.text_type(error)
 
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
@@ -381,7 +382,7 @@ class TestUtils(base.BaseTestCase):
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = unicode(error)
+            actual_error = six.text_type(error)
 
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
@@ -430,7 +431,7 @@ class TestUtils(base.BaseTestCase):
                 'http://domain.local/rest_api/v1/component-branch-slas/')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = unicode(error)
+            actual_error = six.text_type(error)
 
         expected_error = (
             'Bodhi failed to get a resource from PDC at the following URL '
@@ -452,7 +453,7 @@ class TestUtils(base.BaseTestCase):
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = unicode(error)
+            actual_error = six.text_type(error)
 
         expected_error = (
             'Bodhi failed to get a resource from PDC at the following URL '
@@ -473,7 +474,7 @@ class TestUtils(base.BaseTestCase):
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = unicode(error)
+            actual_error = six.text_type(error)
 
         expected_error = (
             'Bodhi failed to get a resource from PDC at the following URL '
@@ -487,7 +488,7 @@ class TestUtils(base.BaseTestCase):
 
         assert result == ('ejabberd', '16.12', '3.fc26')
         for element in result:
-            assert isinstance(element, unicode)
+            assert isinstance(element, six.text_type)
 
     @mock.patch('bodhi.server.util.http_session')
     def test_greenwave_api_post(self, session):
@@ -526,7 +527,7 @@ class TestUtils(base.BaseTestCase):
                                     data)
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = unicode(error)
+            actual_error = six.text_type(error)
 
         expected_error = (
             'Bodhi failed to send POST request to Greenwave at the following URL '
@@ -552,7 +553,7 @@ class TestUtils(base.BaseTestCase):
                                     data)
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = unicode(error)
+            actual_error = six.text_type(error)
 
         expected_error = (
             'Bodhi failed to send POST request to Greenwave at the following URL '
@@ -577,7 +578,7 @@ class TestUtils(base.BaseTestCase):
                                     data)
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = unicode(error)
+            actual_error = six.text_type(error)
 
         expected_error = (
             'Bodhi failed to send POST request to Greenwave at the following URL '
