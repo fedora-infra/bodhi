@@ -152,7 +152,7 @@ class TestBodhiBase(BaseTestCase):
         self.assertEqual(
             j,
             {'release_id': 1, 'ci_url': b.ci_url, 'epoch': b.epoch, 'nvr': b.nvr,
-             'signed': b.signed, 'type': unicode(b.type.value)})
+             'signed': b.signed, 'type': six.text_type(b.type.value)})
 
     def test_grid_columns(self):
         """Assert correct return value from the grid_columns() method."""
@@ -333,8 +333,8 @@ class TestEnumSymbol(unittest.TestCase):
         """Ensure correct operation of the __unicode__() method."""
         s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
 
-        self.assertEqual(unicode(s), 'value')
-        self.assertEqual(type(unicode(s)), unicode)
+        self.assertEqual(six.text_type(s), 'value')
+        self.assertEqual(type(six.text_type(s)), six.text_type)
 
 
 class TestRelease(ModelTest):
@@ -428,7 +428,7 @@ class TestModulePackage(ModelTest, unittest.TestCase):
             self.package.builds.append(build2)
 
         self.assertEqual(
-            unicode(exc_context.exception),
+            six.text_type(exc_context.exception),
             ("A RPM Build cannot be associated with a Module Package. A Package's "
              "builds must be the same type as the package."))
 
@@ -441,7 +441,7 @@ class TestModulePackage(ModelTest, unittest.TestCase):
             self.package.builds = [build1, build2]
 
         self.assertEqual(
-            unicode(exc_context.exception),
+            six.text_type(exc_context.exception),
             ("A RPM Build cannot be associated with a Module Package. A Package's "
              "builds must be the same type as the package."))
 
@@ -463,7 +463,7 @@ class TestModulePackage(ModelTest, unittest.TestCase):
             build2.package = self.package
 
         self.assertEqual(
-            unicode(exc_context.exception),
+            six.text_type(exc_context.exception),
             ("A RPM Build cannot be associated with a Module Package. A Package's "
              "builds must be the same type as the package."))
 
@@ -538,7 +538,7 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
             self.package.builds.append(build2)
 
         self.assertEqual(
-            unicode(exc_context.exception),
+            six.text_type(exc_context.exception),
             ("A Module Build cannot be associated with a RPM Package. A Package's "
              "builds must be the same type as the package."))
 
@@ -560,7 +560,7 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
             build2.package = self.package
 
         self.assertEqual(
-            unicode(exc_context.exception),
+            six.text_type(exc_context.exception),
             ("A Module Build cannot be associated with a RPM Package. A Package's "
              "builds must be the same type as the package."))
 
@@ -1881,7 +1881,7 @@ class TestUpdate(ModelTest):
         # The update should be eligible to receive the testing_approval_msg now.
         self.assertEqual(self.obj.meets_testing_requirements, True)
         # Add the testing_approval_message
-        text = unicode(config.get('testing_approval_msg') % self.obj.days_in_testing)
+        text = six.text_type(config.get('testing_approval_msg') % self.obj.days_in_testing)
         self.obj.comment(self.db, text, author=u'bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
@@ -1994,7 +1994,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
         self.obj.comment(self.db, u'testing', author=u'hunter3', anonymous=False, karma=1)
         # Add the testing_approval_message
-        text = unicode(config.get('testing_approval_msg_based_on_karma'))
+        text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
         self.obj.comment(self.db, text, author=u'bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to

@@ -33,6 +33,7 @@ import os
 import shutil
 import subprocess
 import sys
+import six
 
 
 ENVS = os.path.expanduser('~/.virtualenvs')
@@ -139,7 +140,7 @@ def rebuild():
             cmd = 'rmvirtualenv %s' % VENV
         _do_virtualenvwrapper_command(cmd)
     except Exception as e:
-        print(unicode(e))
+        print(six.text_type(e))
 
     cmd = 'virtualenv --no-site-packages -p /usr/bin/python{major}.{minor} {v}'
     cmd = cmd.format(major=sys.version_info[0], minor=sys.version_info[1], v=VENV)

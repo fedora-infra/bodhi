@@ -21,6 +21,7 @@ import unittest
 import mock
 
 from bodhi.server import config
+import six
 
 
 class BodhiConfigGetItemTests(unittest.TestCase):
@@ -241,7 +242,7 @@ class GenerateListValidatorTests(unittest.TestCase):
         result = config._generate_list_validator('|')('thing 1| thing 2')
 
         self.assertEqual(result, [u'thing 1', u'thing 2'])
-        self.assertTrue(all([isinstance(v, unicode) for v in result]))
+        self.assertTrue(all([isinstance(v, six.text_type) for v in result]))
 
     def test_custom_validator(self):
         """Test with a non-default validator."""
@@ -255,7 +256,7 @@ class GenerateListValidatorTests(unittest.TestCase):
         result = config._generate_list_validator()('play it again sam')
 
         self.assertEqual(result, [u'play', u'it', u'again', u'sam'])
-        self.assertTrue(all([isinstance(v, unicode) for v in result]))
+        self.assertTrue(all([isinstance(v, six.text_type) for v in result]))
 
     def test_with_list(self):
         """Test with a list."""
@@ -320,7 +321,7 @@ class ValidateColorTests(unittest.TestCase):
         color = config._validate_color('#65FE00')
 
         self.assertEqual(color, u'#65FE00')
-        self.assertTrue(isinstance(color, unicode))
+        self.assertTrue(isinstance(color, six.text_type))
 
     def test_wrong_base(self):
         """A string that isn't a base-16 number should raise a ValueError."""
@@ -362,7 +363,7 @@ class ValidateFernetKey(unittest.TestCase):
 
     def test_valid_key(self):
         """A valid key should be a string, even if we pass it a unicode"""
-        key = unicode('gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA=')
+        key = six.text_type('gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA=')
         result = config._validate_fernet_key(key)
 
         self.assertEqual(result, key)
@@ -380,16 +381,16 @@ class ValidateNoneOrTests(unittest.TestCase):
     """Test the _validate_none_or() function."""
     def test_with_none(self):
         """Assert that None is allowed."""
-        result = config._validate_none_or(unicode)(None)
+        result = config._validate_none_or(six.text_type)(None)
 
         self.assertTrue(result is None)
 
     def test_with_string(self):
         """Assert that a string is validated and converted to unicode."""
-        result = config._validate_none_or(unicode)('unicode?')
+        result = config._validate_none_or(six.text_type)('unicode?')
 
         self.assertEqual(result, u'unicode?')
-        self.assertTrue(isinstance(result, unicode))
+        self.assertTrue(isinstance(result, six.text_type))
 
 
 class ValidatePathTests(unittest.TestCase):
@@ -406,7 +407,7 @@ class ValidatePathTests(unittest.TestCase):
         result = config._validate_path(__file__)
 
         self.assertEqual(result, __file__)
-        self.assertTrue(isinstance(result, unicode))
+        self.assertTrue(isinstance(result, six.text_type))
 
 
 class ValidateSecretTests(unittest.TestCase):
@@ -423,7 +424,7 @@ class ValidateSecretTests(unittest.TestCase):
         result = config._validate_secret('secret')
 
         self.assertEqual(result, u'secret')
-        self.assertTrue(isinstance(result, unicode))
+        self.assertTrue(isinstance(result, six.text_type))
 
 
 class ValidateTLSURL(unittest.TestCase):
@@ -440,4 +441,4 @@ class ValidateTLSURL(unittest.TestCase):
         result = config._validate_tls_url('https://example.com')
 
         self.assertEqual(result, u'https://example.com')
-        self.assertTrue(isinstance(result, unicode))
+        self.assertTrue(isinstance(result, six.text_type))

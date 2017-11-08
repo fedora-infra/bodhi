@@ -33,6 +33,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 from bodhi.server import bugs, buildsys, ffmarkdown
 from bodhi.server.config import config as bodhi_config
+import six
 
 
 log = logging.getLogger(__name__)
@@ -112,7 +113,7 @@ def get_user(request):
     from bodhi.server.models import User
     userid = request.unauthenticated_userid
     if userid is not None:
-        user = request.db.query(User).filter_by(name=unicode(userid)).first()
+        user = request.db.query(User).filter_by(name=six.text_type(userid)).first()
         # Why munch?  https://github.com/fedora-infra/bodhi/issues/473
         return munchify(user.__json__(request=request))
 

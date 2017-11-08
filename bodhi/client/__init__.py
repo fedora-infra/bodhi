@@ -24,6 +24,7 @@ import click
 
 from bodhi.client import bindings
 from fedora.client import AuthError
+import six
 
 
 def _warn_if_url_and_staging_set(ctx, param, value):
@@ -374,7 +375,7 @@ def request(update, state, user, password, url, **kwargs):
     try:
         resp = client.request(update, state)
     except bindings.UpdateNotFound as exc:
-        raise click.BadParameter(unicode(exc), param_hint='UPDATE')
+        raise click.BadParameter(six.text_type(exc), param_hint='UPDATE')
 
     print_resp(resp, client)
 

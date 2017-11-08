@@ -31,6 +31,7 @@ from pyramid.paster import get_appsettings
 from ..models import Update, UpdateStatus
 from ..config import config
 from bodhi.server import Session, initialize_db
+import six
 
 
 def usage(argv):
@@ -95,7 +96,7 @@ def main(argv=sys.argv):
             # not reached the karma threshold.
             if update.meets_testing_requirements:
                 print('%s now meets testing requirements' % update.title)
-                text = unicode(
+                text = six.text_type(
                     config.get('testing_approval_msg') % update.mandatory_days_in_testing)
                 update.comment(db, text, author=u'bodhi')
 

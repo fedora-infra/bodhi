@@ -59,6 +59,7 @@ from .util import (
 )
 from bodhi.server.config import config
 from six.moves import map
+import six
 
 
 csrf_error_message = """CSRF tokens do not match.  This happens if you have
@@ -515,7 +516,7 @@ def validate_acls(request, **kwargs):
                 # If it's a RuntimeError, then the error will be logged
                 # and we can return the error to the user as is
                 log.error(error)
-                request.errors.add('body', 'builds', unicode(error))
+                request.errors.add('body', 'builds', six.text_type(error))
                 return
             except Exception as error:
                 # This is an unexpected error, so let's log it and give back

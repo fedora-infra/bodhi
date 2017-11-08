@@ -53,7 +53,7 @@ def get_configfile():
     return configfile
 
 
-def _generate_list_validator(splitter=' ', validator=unicode):
+def _generate_list_validator(splitter=' ', validator=six.text_type):
     """Return a function that takes a value and interprets it to be a list with the given splitter.
 
     This function generates a function that can take a string and interpret it as a list by
@@ -150,7 +150,7 @@ def _validate_color(value):
     except ValueError:
         raise e
 
-    return unicode(value)
+    return six.text_type(value)
 
 
 def _validate_fernet_key(value):
@@ -169,7 +169,7 @@ def _validate_fernet_key(value):
     """
     _validate_secret(value)
 
-    if isinstance(value, unicode):
+    if isinstance(value, six.text_type):
         value = value.encode('utf-8')
 
     try:
@@ -218,7 +218,7 @@ def _validate_path(value):
     if not os.path.exists(value):
         raise ValueError('"{}" does not exist.'.format(value))
 
-    return unicode(value)
+    return six.text_type(value)
 
 
 def _validate_secret(value):
@@ -237,7 +237,7 @@ def _validate_secret(value):
     if value == 'CHANGEME':
         raise ValueError('This setting must be changed from its default value.')
 
-    return unicode(value)
+    return six.text_type(value)
 
 
 def _validate_tls_url(value):
@@ -253,7 +253,7 @@ def _validate_tls_url(value):
     if not isinstance(value, six.string_types) or not value.startswith('https://'):
         raise ValueError('This setting must be a URL starting with https://.')
 
-    return unicode(value)
+    return six.text_type(value)
 
 
 class BodhiConfig(dict):
@@ -269,7 +269,7 @@ class BodhiConfig(dict):
     _defaults = {
         'acl_system': {
             'value': 'dummy',
-            'validator': unicode},
+            'validator': six.text_type},
         'admin_groups': {
             'value': ['proventesters', 'security_respons', 'bodhiadmin', 'sysadmin-main'],
             'validator': _generate_list_validator()},
@@ -290,31 +290,31 @@ class BodhiConfig(dict):
             'validator': _generate_list_validator('|')},
         'base_address': {
             'value': 'https://admin.fedoraproject.org/updates/',
-            'validator': unicode},
+            'validator': six.text_type},
         'bodhi_email': {
             'value': 'updates@fedoraproject.org',
-            'validator': unicode},
+            'validator': six.text_type},
         'bodhi_password': {
             'value': None,
-            'validator': _validate_none_or(unicode)},
+            'validator': _validate_none_or(six.text_type)},
         'buglink': {
             'value': 'https://bugzilla.redhat.com/show_bug.cgi?id=%s',
-            'validator': unicode},
+            'validator': six.text_type},
         'bugtracker': {
             'value': None,
-            'validator': _validate_none_or(unicode)},
+            'validator': _validate_none_or(six.text_type)},
         'buildroot_limit': {
             'value': 31,
             'validator': int},
         'buildsystem': {
             'value': 'dev',
-            'validator': unicode},
+            'validator': six.text_type},
         'bz_products': {
             'value': [],
             'validator': _generate_list_validator(',')},
         'bz_server': {
             'value': 'https://bugzilla.redhat.com/xmlrpc.cgi',
-            'validator': unicode},
+            'validator': six.text_type},
         'captcha.background_color': {
             'value': '#ffffff',
             'validator': _validate_color},
@@ -344,13 +344,13 @@ class BodhiConfig(dict):
             'validator': int},
         'cors_connect_src': {
             'value': 'https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/',
-            'validator': unicode},
+            'validator': six.text_type},
         'cors_origins_ro': {
             'value': '*',
-            'validator': unicode},
+            'validator': six.text_type},
         'cors_origins_rw': {
             'value': 'https://bodhi.fedoraproject.org',
-            'validator': unicode},
+            'validator': six.text_type},
         'critpath_pkgs': {
             'value': [],
             'validator': _generate_list_validator()},
@@ -365,55 +365,55 @@ class BodhiConfig(dict):
             'validator': int},
         'critpath.type': {
             'value': None,
-            'validator': _validate_none_or(unicode)},
+            'validator': _validate_none_or(six.text_type)},
         'datagrepper_url': {
             'value': 'https://apps.fedoraproject.org/datagrepper',
-            'validator': unicode},
+            'validator': six.text_type},
         'default_email_domain': {
             'value': 'fedoraproject.org',
-            'validator': unicode},
+            'validator': six.text_type},
         'disable_automatic_push_to_stable': {
             'value': (
                 'Bodhi is disabling automatic push to stable due to negative karma. The '
                 'maintainer may push manually if they determine that the issue is not severe.'),
-            'validator': unicode},
+            'validator': six.text_type},
         'dogpile.cache.arguments.filename': {
             'value': '/var/cache/bodhi-dogpile-cache.dbm',
-            'validator': unicode},
+            'validator': six.text_type},
         'dogpile.cache.backend': {
             'value': 'dogpile.cache.dbm',
-            'validator': unicode},
+            'validator': six.text_type},
         'dogpile.cache.expiration_time': {
             'value': '100',
-            'validator': unicode},
+            'validator': six.text_type},
         'exclude_mail': {
             'value': ['autoqa', 'taskotron'],
             'validator': _generate_list_validator()},
         'fedmenu.data_url': {
             'value': 'https://apps.fedoraproject.org/js/data.js',
-            'validator': unicode},
+            'validator': six.text_type},
         'fedmenu.url': {
             'value': 'https://apps.fedoraproject.org/fedmenu',
-            'validator': unicode},
+            'validator': six.text_type},
         'fedmsg_enabled': {
             'value': False,
             'validator': _validate_bool},
         'file_url': {
             'value': 'https://download.fedoraproject.org/pub/fedora/linux/updates',
-            'validator': unicode},
+            'validator': six.text_type},
         'fmn_url': {
             'value': 'https://apps.fedoraproject.org/notifications/',
-            'validator': unicode},
+            'validator': six.text_type},
         'important_groups': {
             'value': ['proventesters', 'provenpackager,' 'releng', 'security_respons', 'packager',
                       'bodhiadmin'],
             'validator': _generate_list_validator()},
         'initial_bug_msg': {
             'value': '%s has been submitted as an update to %s. %s',
-            'validator': unicode},
+            'validator': six.text_type},
         'greenwave_api_url': {
             'value': 'https://greenwave.fedoraproject.org/api/v1.0',
-            'validator': unicode},
+            'validator': six.text_type},
         'koji_hub': {
             'value': 'https://koji.stg.fedoraproject.org/kojihub',
             'validator': str},
@@ -434,7 +434,7 @@ class BodhiConfig(dict):
             'validator': _validate_bool},
         'mako.directories': {
             'value': 'bodhi:server/templates',
-            'validator': unicode},
+            'validator': six.text_type},
         'mandatory_packager_groups': {
             'value': ['packager'],
             'validator': _generate_list_validator()},
@@ -452,34 +452,34 @@ class BodhiConfig(dict):
             'validator': int},
         'message_id_email_domain': {
             'value': 'admin.fedoraproject.org',
-            'validator': unicode},
+            'validator': six.text_type},
         'not_yet_tested_epel_msg': {
             'value': (
                 'This update has not yet met the minimum testing requirements defined in the '
                 '<a href="https://fedoraproject.org/wiki/EPEL_Updates_Policy">EPEL Update Policy'
                 '</a>'),
-            'validator': unicode},
+            'validator': six.text_type},
         'not_yet_tested_msg': {
             'value': (
                 'This update has not yet met the minimum testing requirements defined in the '
                 '<a href="https://fedoraproject.org/wiki/Package_update_acceptance_criteria">'
                 'Package Update Acceptance Criteria</a>'),
-            'validator': unicode},
+            'validator': six.text_type},
         'openid.provider': {
             'value': 'https://id.fedoraproject.org/openid/',
-            'validator': unicode},
+            'validator': six.text_type},
         'openid.sreg_required': {
             'value': 'email',
-            'validator': unicode},
+            'validator': six.text_type},
         'openid.success_callback': {
             'value': 'bodhi.server.security:remember_me',
-            'validator': unicode},
+            'validator': six.text_type},
         'openid.url': {
             'value': 'https://id.fedoraproject.org/',
-            'validator': unicode},
+            'validator': six.text_type},
         'openid_template': {
             'value': '{username}.id.fedoraproject.org',
-            'validator': unicode},
+            'validator': six.text_type},
         'pagure_url': {
             'value': 'https://src.fedoraproject.org/pagure/',
             'validator': _validate_tls_url},
@@ -488,56 +488,56 @@ class BodhiConfig(dict):
             'validator': _validate_tls_url},
         'pkgdb_url': {
             'value': 'https://admin.fedoraproject.org/pkgdb',
-            'validator': unicode},
+            'validator': six.text_type},
         'prefer_ssl': {
             'value': None,
             'validator': _validate_none_or(bool)},
         'pungi.basepath': {
             'value': '/etc/bodhi',
-            'validator': unicode},
+            'validator': six.text_type},
         'pungi.cmd': {
             'value': '/usr/bin/pungi-koji',
             'validator': _validate_path},
         'pungi.conf.module': {
             'value': 'pungi.module.conf',
-            'validator': unicode},
+            'validator': six.text_type},
         'pungi.conf.rpm': {
             'value': 'pungi.rpm.conf',
-            'validator': unicode},
+            'validator': six.text_type},
         'pungi.extracmdline': {
             'value': [],
             'validator': _generate_list_validator()},
         'pungi.labeltype': {
             'value': 'Update',
-            'validator': unicode},
+            'validator': six.text_type},
         'query_wiki_test_cases': {
             'value': False,
             'validator': _validate_bool},
         'release_team_address': {
             'value': 'bodhiadmin-members@fedoraproject.org',
-            'validator': unicode},
+            'validator': six.text_type},
         'resultsdb_api_url': {
             'value': 'https://taskotron.fedoraproject.org/resultsdb_api/',
-            'validator': unicode},
+            'validator': six.text_type},
         'session.secret': {
             'value': 'CHANGEME',
             'validator': _validate_secret},
         'site_requirements': {
             'value': 'dist.rpmdeplint dist.upgradepath',
-            'validator': unicode},
+            'validator': six.text_type},
         'smtp_server': {
             'value': None,
-            'validator': _validate_none_or(unicode)},
+            'validator': _validate_none_or(six.text_type)},
         'sqlalchemy.url': {
             'value': 'sqlite:////var/cache/bodhi.db',
-            'validator': unicode},
+            'validator': six.text_type},
         'stable_bug_msg': {
             'value': ('%s has been pushed to the %s repository. If problems still persist, please '
                       'make note of it in this bug report.'),
-            'validator': unicode},
+            'validator': six.text_type},
         'stable_from_batched_msg': {
             'value': ('This update has been dequeued from batched and is now entering stable.'),
-            'validator': unicode},
+            'validator': six.text_type},
         'stacks_enabled': {
             'value': False,
             'validator': _validate_bool},
@@ -549,26 +549,26 @@ class BodhiConfig(dict):
             'validator': _generate_list_validator()},
         'test_case_base_url': {
             'value': 'https://fedoraproject.org/wiki/',
-            'validator': unicode},
+            'validator': six.text_type},
         'testing_approval_msg_based_on_karma': {
             'value': ('This update has reached the stable karma threshold and can be pushed to '
                       'stable now if the maintainer wishes.'),
-            'validator': unicode
+            'validator': six.text_type
         },
         'testing_approval_msg': {
             'value': ('This update has reached %d days in testing and can be pushed to stable now '
                       'if the maintainer wishes'),
-            'validator': unicode},
+            'validator': six.text_type},
         'testing_bug_epel_msg': {
             'value': (
                 '\nSee https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how '
                 'to install test updates.\nYou can provide feedback for this update here: %s'),
-            'validator': unicode},
+            'validator': six.text_type},
         'testing_bug_msg': {
             'value': (
                 '\nSee https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how '
                 'to install test updates.\nYou can provide feedback for this update here: %s'),
-            'validator': unicode},
+            'validator': six.text_type},
         'top_testers_timeframe': {
             'value': 7,
             'validator': int},
@@ -577,13 +577,13 @@ class BodhiConfig(dict):
             'validator': _validate_bool},
         'test_gating.url': {
             'value': '',
-            'validator': unicode},
+            'validator': six.text_type},
         'updateinfo_rights': {
             'value': 'Copyright (C) {} Red Hat, Inc. and others.'.format(datetime.now().year),
-            'validator': unicode},
+            'validator': six.text_type},
         'wiki_url': {
             'value': 'https://fedoraproject.org/w/api.php',
-            'validator': unicode},
+            'validator': six.text_type},
     }
 
     def __getitem__(self, *args, **kw):
@@ -639,7 +639,7 @@ class BodhiConfig(dict):
             try:
                 self[k] = self._defaults[k]['validator'](self[k])
             except ValueError as e:
-                errors.append('\t{}: {}'.format(k, unicode(e)))
+                errors.append('\t{}: {}'.format(k, six.text_type(e)))
 
         if errors:
             raise ValueError(

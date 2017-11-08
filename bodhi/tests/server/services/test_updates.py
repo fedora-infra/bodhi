@@ -34,6 +34,7 @@ from bodhi.server.models import (
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
     UpdateSeverity, User, TestGatingStatus)
 from bodhi.tests.server import base
+import six
 
 
 YEAR = time.localtime().tm_year
@@ -2439,7 +2440,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up.status, UpdateStatus.pending)
         self.assertEquals(up.request, UpdateRequest.testing)
 
-        text = unicode(config.get('testing_approval_msg_based_on_karma'))
+        text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
         up.comment(self.db, text, author=u'bodhi')
         self.assertIn('pushed to stable now if the maintainer wishes', up.comments[-1]['text'])
 
@@ -4116,7 +4117,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(upd.autokarma, False)
         self.assertEquals(upd.pushed, True)
 
-        text = unicode(config.get('testing_approval_msg_based_on_karma'))
+        text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author=u'bodhi')
 
         # Checks Push to Stable text in the html page for this update
@@ -4164,7 +4165,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(upd.request, None)
         self.assertEquals(upd.autokarma, False)
 
-        text = unicode(config.get('testing_approval_msg_based_on_karma'))
+        text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author=u'bodhi')
 
         # Checks Push to Batched text in the html page for this update

@@ -39,6 +39,7 @@ from bodhi.server.models import (
     UpdateRequest, UpdateStatus, UpdateType, User, ModuleBuild, ContentType, Package)
 from bodhi.server.util import mkmetadatadir, transactional_session_maker
 from bodhi.tests.server import base, populate
+import six
 
 
 mock_exc = mock.Mock()
@@ -1737,7 +1738,7 @@ class TestMasherThread__get_master_repomd_url(MasherThreadBaseTestCase):
         with self.assertRaises(ValueError) as exc:
             t._get_master_repomd_url('aarch64')
 
-        self.assertEqual(unicode(exc.exception),
+        self.assertEqual(six.text_type(exc.exception),
                          'Could not find fedora_testing_alt_master_repomd in the config file')
 
     @mock.patch.dict(
@@ -1802,7 +1803,7 @@ class TestMasherThread__perform_tag_actions(MasherThreadBaseTestCase):
         with self.assertRaises(Exception) as exc:
             t._perform_tag_actions()
 
-        self.assertEqual(unicode(exc.exception), "Failed to move builds: ['failed_task_1']")
+        self.assertEqual(six.text_type(exc.exception), "Failed to move builds: ['failed_task_1']")
         # Since the task didn't really fail (we just mocked that it did) the DevBuildsys should have
         # registered that the move occurred.
         self.assertEqual(buildsys.DevBuildsys.__moved__,
@@ -2216,7 +2217,7 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         with self.assertRaises(ValueError) as exc:
             t.wait_for_sync()
 
-        self.assertEqual(unicode(exc.exception),
+        self.assertEqual(six.text_type(exc.exception),
                          'Could not find fedora_testing_master_repomd in the config file')
         publish.assert_called_once_with(topic='mashtask.sync.wait',
                                         msg={'repo': t.id, 'agent': 'bowlofeggs'}, force=True)

@@ -67,7 +67,7 @@ class BodhiClientException(FedoraClientError):
 
 class UpdateNotFound(BodhiClientException):
     def __init__(self, update):
-        self.update = unicode(update)
+        self.update = six.text_type(update)
 
     def __unicode__(self):
         return u'Update not found: {}'.format(self.update)
