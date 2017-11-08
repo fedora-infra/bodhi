@@ -241,7 +241,8 @@ def new_update(request):
     return dict(
         update=None,
         types=reversed(list(models.UpdateType.values())),
-        severities=sorted(list(models.UpdateSeverity.values()), key=bodhi.server.util.sort_severity),
+        severities=sorted(list(models.UpdateSeverity.values()),
+                          key=bodhi.server.util.sort_severity),
         suggestions=reversed(list(models.UpdateSuggestion.values())),
     )
 

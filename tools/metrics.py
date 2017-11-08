@@ -294,7 +294,8 @@ def main(releases=None):
 
         print("Out of %d packages updated, the top 50 were:" % (
             len(data['packages'])))
-        for package in sorted(six.iteritems(data['packages']), key=itemgetter(1), reverse=True)[:50]:
+        for package in sorted(six.iteritems(data['packages']),
+                              key=itemgetter(1), reverse=True)[:50]:
             print(" * %s (%d)" % (package[0], package[1]))
 
         print("Out of %d update submitters, the top 50 were:" % (
