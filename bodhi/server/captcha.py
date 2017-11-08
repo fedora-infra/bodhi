@@ -15,6 +15,7 @@
 #
 # Authors:  Ralph Bean <rbean@redhat.com>
 
+from __future__ import division
 import base64
 import math
 import random
@@ -78,8 +79,8 @@ def jpeg_generator(plainkey, settings):
 
 def warp_image(image):
     r = 10  # individually warp a bunch of 10x10 tiles.
-    mesh_x = (image.size[0] / r) + 2
-    mesh_y = (image.size[1] / r) + 2
+    mesh_x = (image.size[0] // r) + 2
+    mesh_y = (image.size[1] // r) + 2
 
     # Set up some random values we'll use over and over...
     amplitude = random.uniform(6, 10)
