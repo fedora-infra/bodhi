@@ -20,6 +20,7 @@ from kitchen.text.converters import to_unicode
 import bugzilla
 
 from bodhi.server.config import config
+import six
 
 
 bugtracker = None
@@ -165,7 +166,7 @@ class Bugzilla(BugTracker):
         if bug.product == 'Security Response':
             bug_entity.parent = True
         bug_entity.title = to_unicode(bug.short_desc)
-        if isinstance(bug.keywords, basestring):
+        if isinstance(bug.keywords, six.string_types):
             keywords = bug.keywords.split()
         else:  # python-bugzilla 0.8.0+
             keywords = bug.keywords

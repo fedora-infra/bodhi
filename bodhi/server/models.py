@@ -2140,7 +2140,7 @@ class Update(Base):
         """
         log.debug('Attempting to set request %s' % action)
         notes = []
-        if isinstance(action, basestring):
+        if isinstance(action, six.string_types):
             action = UpdateRequest.from_string(action)
         if self.status and action.description == self.status.description:
             log.info("%s already %s" % (self.title, action.description))
