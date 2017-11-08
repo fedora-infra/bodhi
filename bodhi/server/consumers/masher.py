@@ -48,6 +48,7 @@ from bodhi.server.models import (Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
 from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
 from six.moves import zip
+import six
 
 
 def checkpoint(method):
@@ -260,7 +261,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
                              'has_security': update.type is UpdateType.security}
 
         # Now that we have a full list of all the release-request-ctype requests, let's sort them
-        batches = work.values()
+        batches = list(work.values())
         batches.sort(key=request_order_key)
         return batches
 
@@ -1136,7 +1137,7 @@ class MasherThread(threading.Thread):
         crithead = u'The following %s Critical Path updates have yet to be approved:\n Age URL\n'
         testhead = u'The following builds have been pushed to %s updates-testing\n\n'
 
-        for prefix, content in self.testing_digest.iteritems():
+        for prefix, content in six.iteritems(self.testing_digest):
             release = self.db.query(Release).filter_by(long_name=prefix).one()
             test_list_key = '%s_test_announce_list' % (
                 release.id_prefix.lower().replace('-', '_'))
@@ -1355,4 +1356,4 @@ class ModuleMasherThread(MasherThread):
                 version = nsv[1]
                 newest_builds[ns] = version
 
-        return ["%s-%s" % (nstream, v) for nstream, v in newest_builds.iteritems()]
+        return ["%s-%s" % (nstream, v) for nstream, v in six.iteritems(newest_builds)]

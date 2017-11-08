@@ -131,10 +131,10 @@ def get_update_for_editing(request):
             suggestions: The possible values for update suggestion.
     """
     return dict(
-        update=request.validated['update'], types=reversed(bodhi.server.models.UpdateType.values()),
+        update=request.validated['update'], types=reversed(list(bodhi.server.models.UpdateType.values())),
         severities=sorted(
-            bodhi.server.models.UpdateSeverity.values(), key=bodhi.server.util.sort_severity),
-        suggestions=reversed(bodhi.server.models.UpdateSuggestion.values()),
+            list(bodhi.server.models.UpdateSeverity.values()), key=bodhi.server.util.sort_severity),
+        suggestions=reversed(list(bodhi.server.models.UpdateSuggestion.values())),
     )
 
 

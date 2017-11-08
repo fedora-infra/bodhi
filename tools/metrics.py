@@ -29,6 +29,7 @@ from bodhi.server import Session, initialize_db
 from bodhi.server.models import Update, Release, UpdateStatus, UpdateType
 from bodhi.server.util import header, get_critpath_components
 import bodhi
+import six
 
 
 statuses = ('stable', 'testing', 'pending', 'obsolete')
@@ -289,22 +290,22 @@ def main(releases=None):
         print("   * median = %d days" % (
             data['deltas'][len(data['deltas']) / 2].days))
         print("   * mode = %d days" % (
-            sorted(data['occurrences'].items(), key=itemgetter(1))[-1][0]))
+            sorted(list(data['occurrences'].items()), key=itemgetter(1))[-1][0]))
 
         print("Out of %d packages updated, the top 50 were:" % (
             len(data['packages'])))
-        for package in sorted(data['packages'].iteritems(), key=itemgetter(1), reverse=True)[:50]:
+        for package in sorted(six.iteritems(data['packages']), key=itemgetter(1), reverse=True)[:50]:
             print(" * %s (%d)" % (package[0], package[1]))
 
         print("Out of %d update submitters, the top 50 were:" % (
             len(data['submitters'])))
         for submitter in sorted(
-                data['submitters'].iteritems(), key=itemgetter(1), reverse=True)[:50]:
+                six.iteritems(data['submitters']), key=itemgetter(1), reverse=True)[:50]:
             print(" * %s (%d)" % (submitter[0], submitter[1]))
 
         print("Out of %d critical path updates, the top 50 updated were:" % (
             len(data['critpath_pkgs'])))
-        for x in sorted(data['critpath_pkgs'].iteritems(), key=itemgetter(1), reverse=True)[:50]:
+        for x in sorted(six.iteritems(data['critpath_pkgs']), key=itemgetter(1), reverse=True)[:50]:
             print(" * %s (%d)" % (x[0], x[1]))
 
         critpath_not_updated = set()
@@ -323,7 +324,7 @@ def main(releases=None):
         num_updates, feedback, (float(feedback) / num_updates * 100)))
     print("Out of %d total unique commenters, the top 50 were:" % (
         len(karma)))
-    for submitter in sorted(karma.iteritems(), key=itemgetter(1), reverse=True)[:50]:
+    for submitter in sorted(six.iteritems(karma), key=itemgetter(1), reverse=True)[:50]:
         print(" * %s (%d)" % (submitter[0], submitter[1]))
 
 

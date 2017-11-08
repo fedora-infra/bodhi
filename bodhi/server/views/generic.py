@@ -30,6 +30,7 @@ import sqlalchemy as sa
 from bodhi.server import log, models
 from bodhi.server.config import config
 import bodhi.server.util
+import six
 
 
 def get_top_testers(request):
@@ -239,9 +240,9 @@ def new_update(request):
         raise HTTPForbidden("You must be logged in.")
     return dict(
         update=None,
-        types=reversed(models.UpdateType.values()),
-        severities=sorted(models.UpdateSeverity.values(), key=bodhi.server.util.sort_severity),
-        suggestions=reversed(models.UpdateSuggestion.values()),
+        types=reversed(list(models.UpdateType.values())),
+        severities=sorted(list(models.UpdateSeverity.values()), key=bodhi.server.util.sort_severity),
+        suggestions=reversed(list(models.UpdateSuggestion.values())),
     )
 
 
@@ -324,7 +325,7 @@ def latest_builds(request):
     builds = {}
     koji = request.koji
     package = request.params.get('package')
-    for tag_type, tags in models.Release.get_tags(request.db)[0].iteritems():
+    for tag_type, tags in six.iteritems(models.Release.get_tags(request.db)[0]):
         for tag in tags:
             try:
                 for build in koji.getLatestBuilds(tag, package=package):

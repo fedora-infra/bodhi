@@ -187,16 +187,16 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
     type = colander.SchemaNode(
         colander.String(),
-        validator=colander.OneOf(UpdateType.values()),
+        validator=colander.OneOf(list(UpdateType.values())),
     )
     request = colander.SchemaNode(
         colander.String(),
-        validator=colander.OneOf(UpdateRequest.values()),
+        validator=colander.OneOf(list(UpdateRequest.values())),
         missing='testing',
     )
     severity = colander.SchemaNode(
         colander.String(),
-        validator=colander.OneOf(UpdateSeverity.values()),
+        validator=colander.OneOf(list(UpdateSeverity.values())),
         missing='unspecified',
     )
     notes = colander.SchemaNode(
@@ -219,7 +219,7 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
     suggest = colander.SchemaNode(
         colander.String(),
-        validator=colander.OneOf(UpdateSuggestion.values()),
+        validator=colander.OneOf(list(UpdateSuggestion.values())),
         missing='unspecified',
     )
     edited = colander.SchemaNode(
@@ -374,7 +374,7 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
     state = colander.SchemaNode(
         colander.String(),
-        validator=colander.OneOf(ReleaseState.values()),
+        validator=colander.OneOf(list(ReleaseState.values())),
         missing="disabled",
     )
     edited = colander.SchemaNode(
@@ -566,21 +566,21 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.String(),
         location="querystring",
         missing=None,
-        validator=colander.OneOf(UpdateRequest.values()),
+        validator=colander.OneOf(list(UpdateRequest.values())),
     )
 
     severity = colander.SchemaNode(
         colander.String(),
         location="querystring",
         missing=None,
-        validator=colander.OneOf(UpdateSeverity.values()),
+        validator=colander.OneOf(list(UpdateSeverity.values())),
     )
 
     status = colander.SchemaNode(
         colander.String(),
         location="querystring",
         missing=None,
-        validator=colander.OneOf(UpdateStatus.values()),
+        validator=colander.OneOf(list(UpdateStatus.values())),
     )
 
     submitted_since = colander.SchemaNode(
@@ -599,21 +599,21 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.String(),
         location="querystring",
         missing=None,
-        validator=colander.OneOf(UpdateSuggestion.values()),
+        validator=colander.OneOf(list(UpdateSuggestion.values())),
     )
 
     type = colander.SchemaNode(
         colander.String(),
         location="querystring",
         missing=None,
-        validator=colander.OneOf(UpdateType.values()),
+        validator=colander.OneOf(list(UpdateType.values())),
     )
 
     content_type = colander.SchemaNode(
         colander.String(),
         location="querystring",
         missing=None,
-        validator=colander.OneOf(ContentType.values()),
+        validator=colander.OneOf(list(ContentType.values())),
     )
 
     user = colander.SchemaNode(
@@ -676,7 +676,7 @@ class UpdateRequestSchema(CSRFProtectedSchema, colander.MappingSchema):
 
     request = colander.SchemaNode(
         colander.String(),
-        validator=colander.OneOf(UpdateRequest.values()),
+        validator=colander.OneOf(list(UpdateRequest.values())),
     )
 
 

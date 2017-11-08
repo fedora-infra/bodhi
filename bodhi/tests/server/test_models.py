@@ -74,7 +74,7 @@ class ModelTest(BaseTestCase):
         pass
 
     def test_query_obj(self):
-        for key, value in self.attrs.iteritems():
+        for key, value in six.iteritems(self.attrs):
             self.assertEqual(getattr(self.obj, key), value)
 
     def test_json(self):
@@ -361,7 +361,7 @@ class TestRelease(ModelTest):
 
     def test_all_releases(self):
         releases = model.Release.all_releases(self.db)
-        state = ReleaseState.from_string(releases.keys()[0])
+        state = ReleaseState.from_string(list(releases.keys())[0])
         assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
         assert releases is model.Release.all_releases(self.db)

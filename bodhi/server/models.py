@@ -182,7 +182,7 @@ class DeclEnum(six.with_metaclass(EnumMeta, object)):
         Returns:
             list: A list of strings of the values that this enum can represent.
         """
-        return cls._reg.keys()
+        return list(cls._reg.keys())
 
     @classmethod
     def db_type(cls):
@@ -372,7 +372,7 @@ class BodhiBase(object):
                 continue
             d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
 
-        for key, value in d.iteritems():
+        for key, value in six.iteritems(d):
             if isinstance(value, datetime):
                 d[key] = value.strftime('%Y-%m-%d %H:%M:%S')
             if isinstance(value, EnumSymbol):
