@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for bodhi.server.bugs."""
 
+from __future__ import division
 import unittest
 
 import mock
@@ -119,7 +120,7 @@ class TestBugzilla(unittest.TestCase):
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
         oh_my = u'All work aind no play makes bowlofeggs a dull… something something… '
-        long_comment = oh_my * (65535 / len(oh_my) + 1)
+        long_comment = oh_my * (65535 // len(oh_my) + 1)
 
         bz.comment(1411188, long_comment)
 
