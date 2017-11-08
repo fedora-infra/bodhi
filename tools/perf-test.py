@@ -10,7 +10,6 @@ import time
 import sys
 
 import requests
-from six.moves import map
 from six.moves import input
 
 

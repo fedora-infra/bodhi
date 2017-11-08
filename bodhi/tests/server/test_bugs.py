@@ -134,7 +134,11 @@ class TestBugzilla(unittest.TestCase):
         """Assert that only 5 attempts are made to comment before giving up."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
-        bz._bz.getbug.return_value.addcomment.side_effect = xmlrpc_client.Fault(42, 'Someone turned the microwave on and now the WiFi is down.')
+        bz._bz.getbug.return_value.addcomment.side_effect = \
+            xmlrpc_client.Fault(
+                42,
+                'Someone turned the microwave on and now the WiFi is down.'
+            )
 
         bz.comment(1411188, 'A nice message.')
 
