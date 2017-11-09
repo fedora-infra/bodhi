@@ -3,7 +3,7 @@ arrow
 bleach
 click
 colander
-cornice~=2.0
+cornice>=3
 cryptography
 dogpile.cache
 fedmsg[consumers]

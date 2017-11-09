@@ -20,8 +20,8 @@
 import unittest
 
 from cornice import errors
+from pyramid import testing
 from pyramid.security import Allow, ALL_PERMISSIONS, DENY_ALL
-from pyramid.testing import DummyRequest
 from zope.interface import interfaces
 import mock
 
@@ -29,17 +29,31 @@ from bodhi.server import models, security
 from bodhi.tests.server import base
 
 
-class TestAdminOnlyACL(unittest.TestCase):
-    """Test the admin_only_acl() function."""
-    def test_admin_only_acl(self):
-        """Ensure correct return value."""
-        request = DummyRequest()
-        request.registry.settings = {'admin_groups': ['cool_gals', 'cool_guys']}
+class TestACLFactory(unittest.TestCase):
+    """Test the ACLFactory object."""
 
-        acl = security.admin_only_acl(request)
+    def test___init__(self):
+        """Ensure correct operation of the __init__() method."""
+        r = testing.DummyRequest()
+
+        f = security.ACLFactory(r)
+
+        self.assertTrue(f.request is r)
+
+
+class TestAdminACLFactory(base.BaseTestCase):
+    """Test the AdminACLFactory object."""
+
+    def test___acl__(self):
+        """Test correct return value from the __acl__() method."""
+        r = testing.DummyRequest()
+        r.registry.settings = {'admin_groups': ['cool_gals', 'cool_guys']}
+        f = security.AdminACLFactory(r)
+
+        acls = f.__acl__()
 
         self.assertEqual(
-            acl,
+            acls,
             [(Allow, 'group:cool_gals', ALL_PERMISSIONS),
              (Allow, 'group:cool_guys', ALL_PERMISSIONS)] + [DENY_ALL])
 
@@ -144,21 +158,6 @@ class TestCorsOrigins(unittest.TestCase):
         self.assertEqual(co.origins, ['origin_1', 'origin_2'])
 
 
-class TestPackagersAllowedACL(unittest.TestCase):
-    """Test the packagers_allowed_acl() function."""
-    def test_packagers_allowed_acl(self):
-        """Ensure correct return value."""
-        request = DummyRequest()
-        request.registry.settings = {'mandatory_packager_groups': ['cool_gals', 'cool_guys']}
-
-        acl = security.packagers_allowed_acl(request)
-
-        self.assertEqual(
-            acl,
-            [(Allow, 'group:cool_gals', ALL_PERMISSIONS),
-             (Allow, 'group:cool_guys', ALL_PERMISSIONS)] + [DENY_ALL])
-
-
 class TestLogin(base.BaseTestCase):
     """Test the login() function."""
     def test_login(self):
@@ -175,11 +174,28 @@ class TestLogout(base.BaseTestCase):
         self.assertEquals(resp.location, 'http://localhost/')
 
 
+class TestPackagerACLFactory(base.BaseTestCase):
+    """Test the PackagerACLFactory object."""
+
+    def test___acl__(self):
+        """Test correct return value from the __acl__() method."""
+        r = testing.DummyRequest()
+        r.registry.settings = {'mandatory_packager_groups': ['cool_gals', 'cool_guys']}
+        f = security.PackagerACLFactory(r)
+
+        acls = f.__acl__()
+
+        self.assertEqual(
+            acls,
+            [(Allow, 'group:cool_gals', ALL_PERMISSIONS),
+             (Allow, 'group:cool_guys', ALL_PERMISSIONS)] + [DENY_ALL])
+
+
 class TestProtectedRequest(unittest.TestCase):
     """Test the ProtectedRequest class."""
     def test___init__(self):
         """Assert that __init__() properly shadows the given Request."""
-        request = DummyRequest()
+        request = testing.DummyRequest()
         request.buildinfo = mock.MagicMock()
         request.db = mock.MagicMock()
         request.user = mock.MagicMock()
@@ -202,7 +218,7 @@ class TestRememberMe(base.BaseTestCase):
 
     def _generate_req_info(self, openid_endpoint):
         """Generate the request and info to be handed to remember_me() for these tests."""
-        req = DummyRequest(params={'openid.op_endpoint': openid_endpoint})
+        req = testing.DummyRequest(params={'openid.op_endpoint': openid_endpoint})
         req.db = self.db
         req.session['came_from'] = '/'
         info = {

@@ -26,7 +26,7 @@ from cornice.validators import colander_body_validator
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-from bodhi.server import log
+from bodhi.server import log, security
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
     Update,
@@ -39,7 +39,6 @@ from bodhi.server.models import (
     Package,
 )
 import bodhi.server.schemas
-import bodhi.server.security
 import bodhi.server.services.errors
 import bodhi.server.util
 from bodhi.server.validators import (
@@ -63,27 +62,27 @@ from bodhi.server.validators import (
 update = Service(name='update', path='/updates/{id}',
                  validators=(validate_update_id,),
                  description='Update submission service',
-                 acl=bodhi.server.security.packagers_allowed_acl,
+                 factory=security.PackagerACLFactory,
                  cors_origins=bodhi.server.security.cors_origins_ro)
 
 update_edit = Service(
     name='update_edit', path='/updates/{id}/edit', validators=(validate_update_id,),
-    description='Update submission service', acl=bodhi.server.security.packagers_allowed_acl,
+    description='Update submission service', factory=security.PackagerACLFactory,
     cors_origins=bodhi.server.security.cors_origins_rw)
 
 updates = Service(name='updates', path='/updates/',
-                  acl=bodhi.server.security.packagers_allowed_acl,
+                  factory=security.PackagerACLFactory,
                   description='Update submission service',
                   cors_origins=bodhi.server.security.cors_origins_ro)
 
 updates_rss = Service(name='updates_rss', path='/rss/updates/',
-                      acl=bodhi.server.security.packagers_allowed_acl,
+                      factory=security.PackagerACLFactory,
                       description='Update submission service RSS feed',
                       cors_origins=bodhi.server.security.cors_origins_ro)
 
 update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
-                         acl=bodhi.server.security.packagers_allowed_acl,
+                         factory=security.PackagerACLFactory,
                          cors_origins=bodhi.server.security.cors_origins_rw)
 
 

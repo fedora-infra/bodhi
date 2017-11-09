@@ -31,35 +31,51 @@ from .models import User, Group
 #
 # Pyramid ACL factories
 #
+class ACLFactory(object):
+    """Define an ACL factory base class to share the __init__()."""
 
-def admin_only_acl(request):
-    """
-    Generate our admin-only ACL.
+    def __init__(self, request, context=None):
+        """
+        Initialize the Factory.
 
-    Args:
-        request (pyramid.request.Request): The current web request.
-    Returns:
-        list: A list of ACLs that allow all permissions for the admin_groups defined in settings.
-    """
-    return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
-            request.registry.settings['admin_groups']] + \
-           [DENY_ALL]
+        Args:
+            request (pyramid.util.Request): The current request.
+            context (object): The request's context (unused).
+        """
+        self.request = request
 
 
-def packagers_allowed_acl(request):
-    """
-    Generate an ACL for update submission.
+class AdminACLFactory(ACLFactory):
+    """Define the ACLs for the admin only views below."""
 
-    Args:
-        request (pyramid.request.Request): The current web request.
-    Returns:
-        list: A list of ACLs that allow all permissions for the mandatory_packager_groups defined
-            in settings.
-    """
-    groups = request.registry.settings['mandatory_packager_groups']
-    return [
-        (Allow, 'group:' + group, ALL_PERMISSIONS) for group in groups
-    ] + [DENY_ALL]
+    def __acl__(self):
+        """
+        Generate our admin-only ACL.
+
+        Returns:
+            list: A list of ACLs that allow all permissions for the admin_groups defined in
+                settings.
+        """
+        return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
+                self.request.registry.settings['admin_groups']] + \
+               [DENY_ALL]
+
+
+class PackagerACLFactory(ACLFactory):
+    """Define an ACL factory for packagers."""
+
+    def __acl__(self):
+        """
+        Generate an ACL for update submission.
+
+        Returns:
+            list: A list of ACLs that allow all permissions for the mandatory_packager_groups
+                defined in settings.
+        """
+        groups = self.request.registry.settings['mandatory_packager_groups']
+        return [
+            (Allow, 'group:' + group, ALL_PERMISSIONS) for group in groups
+        ] + [DENY_ALL]
 
 
 #

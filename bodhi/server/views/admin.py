@@ -21,11 +21,12 @@
 from cornice import Service
 
 from bodhi.server import log
-from bodhi.server.security import admin_only_acl
+from bodhi.server import security
+
 
 admin_service = Service(name='admin', path='/admin/',
                         description='Administrator view',
-                        acl=admin_only_acl)
+                        factory=security.AdminACLFactory)
 
 
 @admin_service.get(permission='admin')

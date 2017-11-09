@@ -8,7 +8,7 @@ develop
 Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
-* Bodhi now requires ``cornice~=2``.
+* Bodhi now requires ``cornice>=3``.
 
 
 v3.1.0
