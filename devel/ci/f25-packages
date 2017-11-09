@@ -17,5 +17,5 @@
     python2-fedmsg-core \
     python3-diff-cover
 
-RUN pip install cornice~=2.0 pyramid~=1.7
+RUN pip install cornice pyramid~=1.7
 RUN pip install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx

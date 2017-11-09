@@ -27,7 +27,7 @@ from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-from bodhi.server import log
+from bodhi.server import log, security
 from bodhi.server.models import Build, BuildrootOverride, Package, Release, User
 import bodhi.server.schemas
 import bodhi.server.services.errors
@@ -47,7 +47,7 @@ override = Service(name='override', path='/overrides/{nvr}',
 
 overrides = Service(name='overrides', path='/overrides/',
                     description='Buildroot Overrides',
-                    acl=bodhi.server.security.packagers_allowed_acl,
+                    factory=security.PackagerACLFactory,
                     # Note, this 'rw' is not a typo.  the @comments service has
                     # a ``post`` section at the bottom.
                     cors_origins=bodhi.server.security.cors_origins_rw)

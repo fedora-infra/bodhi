@@ -26,7 +26,7 @@ from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-from bodhi.server import log
+from bodhi.server import log, security
 from bodhi.server.models import (
     Update,
     UpdateStatus,
@@ -45,7 +45,6 @@ from bodhi.server.validators import (
     validate_release,
 )
 import bodhi.server.schemas
-import bodhi.server.security
 import bodhi.server.services.errors
 
 
@@ -54,7 +53,7 @@ release = Service(name='release', path='/releases/{name}',
                   cors_origins=bodhi.server.security.cors_origins_ro)
 releases = Service(name='releases', path='/releases/',
                    description='Fedora Releases',
-                   acl=bodhi.server.security.admin_only_acl,
+                   factory=security.AdminACLFactory,
                    # Note, this 'rw' is not a typo.  the @comments service has
                    # a ``post`` section at the bottom.
                    cors_origins=bodhi.server.security.cors_origins_rw)

@@ -27,26 +27,25 @@ from pyramid.view import view_config
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-from bodhi.server import log, notifications
+from bodhi.server import log, notifications, security
 from bodhi.server.config import config
 from bodhi.server.models import Package, Stack, Group, User
 from bodhi.server.util import tokenize
 from bodhi.server.validators import (colander_querystring_validator, validate_packages,
                                      validate_stack, validate_requirements)
 import bodhi.server.schemas
-import bodhi.server.security
 import bodhi.server.services.errors
 
 
 stack = Service(name='stack', path='/stacks/{name}',
-                acl=bodhi.server.security.packagers_allowed_acl,
+                factory=security.PackagerACLFactory,
                 validators=(validate_stack,),
                 description='Bodhi Stacks',
                 # Note, this 'rw' is not a typo.  there are deletes and posts.
                 cors_origins=bodhi.server.security.cors_origins_rw)
 stacks = Service(name='stacks', path='/stacks/',
                  description='Bodhi Stacks',
-                 acl=bodhi.server.security.packagers_allowed_acl,
+                 factory=security.PackagerACLFactory,
                  # Not a typo.  there are deletes and posts in here.
                  cors_origins=bodhi.server.security.cors_origins_rw)
 
