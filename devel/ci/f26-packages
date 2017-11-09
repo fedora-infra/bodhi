@@ -15,4 +15,4 @@
     python2-sqlalchemy
 
 RUN pip-2 install cornice~=2.0 diff_cover
-RUN pip-2 install -e git+https://github.com/bowlofeggs/cornice.ext.sphinx.git@copy_child_nodes#egg=cornice_sphinx
+RUN pip install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx

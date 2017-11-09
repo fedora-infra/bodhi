@@ -78,7 +78,7 @@
 # cornice_sphinx is not packaged in Fedora yet, but won't be available until Fedora 28 is released.
 - name: pip install cornice_sphinx
   pip:
-      name: -e git+https://github.com/bowlofeggs/cornice.ext.sphinx.git@copy_child_nodes#egg=cornice_sphinx
+      name: -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
 
 # This isn't packaged in Fedora yet, but it's only a development tool (we should still add it)
 - name: pip install debugtoolbar

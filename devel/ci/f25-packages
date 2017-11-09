@@ -18,4 +18,4 @@
     python3-diff-cover
 
 RUN pip install cornice~=2.0 pyramid~=1.7
-RUN pip install -e git+https://github.com/bowlofeggs/cornice.ext.sphinx.git@copy_child_nodes#egg=cornice_sphinx
+RUN pip install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
