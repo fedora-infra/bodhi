@@ -1113,6 +1113,7 @@ class MasherThread(threading.Thread):
             self.log.debug('Modifying bugs for %s', update.title)
             update.modify_bugs()
 
+    @checkpoint
     def status_comments(self):
         """Add bodhi system comments to each update."""
         self.log.info('Commenting on updates')
