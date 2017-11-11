@@ -449,7 +449,7 @@ class TestMasher(unittest.TestCase):
         with file(t.mash_lock) as f:
             state = json.load(f)
         try:
-            self.assertEquals(state, {u'updates': [u'bodhi-2.0-1.fc17'], u'completed_repos': []})
+            self.assertEquals(state, {u'updates': [u'bodhi-2.0-1.fc17'], u'completed_repo': None})
         finally:
             t.remove_state()
 
@@ -1037,7 +1037,7 @@ References:
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
-        self.assertEquals(len(t.state['completed_repos']), 1)
+        self.assertIsNotNone(t.state['completed_repo'])
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -1118,7 +1118,7 @@ References:
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
-        self.assertEquals(len(t.state['completed_repos']), 1)
+        self.assertIsNotNone(t.state['complete_repo'])
 
     @mock.patch(**mock_failed_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -1160,7 +1160,7 @@ References:
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
-        self.assertEquals(len(t.state['completed_repos']), 1)
+        self.assertIsNotNone(t.state['completed_repo'])
 
     @mock.patch(**mock_absent_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -1201,7 +1201,7 @@ References:
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
-        self.assertEquals(len(t.state['completed_repos']), 1)
+        self.assertIsNotNone(t.state['completed_repo'])
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
