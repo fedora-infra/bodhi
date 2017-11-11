@@ -982,7 +982,7 @@ class RpmBuild(Build):
         when = rpm_header['changelogtime']
 
         num = len(descrip)
-        if num == 1:
+        if not isinstance(when, list):
             when = [when]
 
         str = ""
