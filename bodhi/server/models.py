@@ -988,9 +988,13 @@ class RpmBuild(Build):
         str = ""
         i = 0
         while (i < num) and (when[i] > timelimit):
-            str += '* %s %s\n%s\n' % (time.strftime("%a %b %e %Y",
-                                      time.localtime(when[i])), who[i],
-                                      descrip[i])
+            try:
+                str += '* %s %s\n%s\n' % (time.strftime("%a %b %e %Y",
+                                          time.localtime(when[i])), who[i],
+                                          descrip[i])
+            except Exception:
+                log.exception('Unable to add changelog entry for header %s',
+                              rpm_header)
             i += 1
         return str
 
