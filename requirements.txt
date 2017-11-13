@@ -15,7 +15,7 @@ packagedb-cli
 # for captchas
 Pillow
 progressbar
-pyDNS
+pyDNS  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 pylibravatar
 pyramid~=1.7
 pyramid_fas_openid

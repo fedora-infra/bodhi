@@ -28,7 +28,6 @@
       - python-bugzilla
       - python-openid
       - python-progressbar
-      - python-pydns
       - python-pylibravatar
       - python-pyramid-fas-openid
       - python-simplemediawiki
