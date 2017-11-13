@@ -63,7 +63,7 @@ popd
 # tags.
 $PARALLEL sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $RELEASES
 # Build the containers.
-$PARALLEL "docker build --pull -t test/{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
+$PARALLEL --delay 16 "docker build --pull -t test/{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
 
 # Make individual folders for each release to drop its test results and docs.
 $PARALLEL mkdir -p $(pwd)/test_results/{} ::: $RELEASES
