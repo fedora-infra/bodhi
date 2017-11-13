@@ -752,6 +752,91 @@ class TestRpmBuild(ModelTest):
         return dict(release=model.Release(**TestRelease.attrs),
                     package=model.RpmPackage(**TestRpmPackage.attrs))
 
+    @mock.patch('bodhi.server.models.log.exception')
+    def test_get_changelog_bad_data(self, exception):
+        """Ensure the get_changelog() logs an error when it is unable to form the log."""
+        # The changelogname field doesn't have enough entries, which will cause an Exception.
+        rpm_header = {
+            'changelogtext': ['- Added a free money feature.', '- Make users ☺'],
+            'release': '1.fc20',
+            'version': '2.1.0',
+            'changelogtime': [1375531200, 1370952000],
+            'description': 'blah blah blah',
+            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1'],
+            'url': 'http://libseccomp.sourceforge.net',
+            'name': 'libseccomp',
+            'summary': 'Enhanced seccomp library'}
+
+        with mock.patch(
+                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+            changelog = self.obj.get_changelog()
+
+        # The free money note should still have made it.
+        self.assertEqual(
+            changelog,
+            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+             'a free money feature.\n'))
+        # The changelogname field should have caused an Exception to be raised.
+        exception.assert_called_once_with(
+            'Unable to add changelog entry for header %s', rpm_header)
+        get_rpm_header.assert_called_once_with(self.obj.nvr)
+
+    @mock.patch('bodhi.server.models.log.exception')
+    def test_get_changelog_when_is_list(self, exception):
+        """Test get_changelog() when the changelogtime is given as a list."""
+        rpm_header = {
+            'changelogtext': ['- Added a free money feature.', '- Make users ☺'],
+            'release': '1.fc20',
+            'version': '2.1.0',
+            'changelogtime': [1375531200, 1370952000],
+            'description': 'blah blah blah',
+            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1',
+                              'Randy <bowlofeggs@fpo> - 2.0.1-2'],
+            'url': 'http://libseccomp.sourceforge.net',
+            'name': 'libseccomp',
+            'summary': 'Enhanced seccomp library'}
+
+        with mock.patch(
+                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+            changelog = self.obj.get_changelog()
+
+        # The full changelog should be rendered.
+        self.assertEqual(
+            changelog,
+            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+             'a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo> - 2.0.1-2\n- Make '
+             'users \xe2\x98\xba\n'))
+        # No exception should have been logged.
+        self.assertEqual(exception.call_count, 0)
+        get_rpm_header.assert_called_once_with(self.obj.nvr)
+
+    @mock.patch('bodhi.server.models.log.exception')
+    def test_get_changelog_when_not_list(self, exception):
+        """Test get_changelog() when the changelogtime is not given as a list."""
+        rpm_header = {
+            'changelogtext': ['- Added a free money feature.'],
+            'release': '1.fc20',
+            'version': '2.1.0',
+            'changelogtime': 1375531200,
+            'description': 'blah blah blah',
+            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1'],
+            'url': 'http://libseccomp.sourceforge.net',
+            'name': 'libseccomp',
+            'summary': 'Enhanced seccomp library'}
+
+        with mock.patch(
+                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+            changelog = self.obj.get_changelog()
+
+        # The full changelog should be rendered.
+        self.assertEqual(
+            changelog,
+            ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
+             'a free money feature.\n'))
+        # No exception should have been logged.
+        self.assertEqual(exception.call_count, 0)
+        get_rpm_header.assert_called_once_with(self.obj.nvr)
+
     def test_release_relation(self):
         self.assertEqual(self.obj.release.name, u"F11")
         self.assertEqual(len(self.obj.release.builds), 1)
