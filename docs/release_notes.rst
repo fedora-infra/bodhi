@@ -55,6 +55,7 @@ Bugs
 * The bindings will re-attempt authentication upon captcha failures (:issue:`1787`).
 * The formatting is fixed on mobile for the edit/create update form (:issue:`1791`).
 * The "Push to Stable" button is now rendered in the web UI on batched updates (:issue:`1907`).
+* Do not fail the mash if a changelog is malformed (:issue:`1989`).
 * Unreachable RSS Accept-header based redirects were fixed (:commit:`6f3db0c0`).
 * Fixed an unsafe default in ``bodhi.server.util.call_api()`` (:commit:`9461b3a4`).
 * Bodhi now distinguishes between testing and stable when asking Greenwave for gating decisions
