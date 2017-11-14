@@ -120,14 +120,3 @@ working system more quickly and with less effort. If you would like to use Vagra
 
 .. _Vagrant: https://www.vagrantup.com
 .. _Virtualenv: https://virtualenv.pypa.io/en/stable/
-
-
-Database Schema
-===============
-
-The Bodhi database schema can be seen below.
-
-.. figure:: ../images/database.png
-   :align:  center
-
-   Database schema.

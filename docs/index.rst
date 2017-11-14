@@ -58,6 +58,7 @@ Contributor Guide
    developer/index
    developer/vagrant
    developer/virtualenv
+   developer/models
 
 
 Admin Guide

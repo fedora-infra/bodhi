@@ -27,6 +27,8 @@ devel/ci/Dockerfile-rawhide
 development.ini
 dist
 docs/_build
+docs/docblocks
+docs/developer/docblocks
 docs/images/database.png
 dogpile-cache.dbm*
 html-docs
