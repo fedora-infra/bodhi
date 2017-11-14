@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Bodhi's database models."""
 
 from collections import defaultdict
 from datetime import datetime
@@ -56,26 +57,66 @@ class EnumSymbol(object):
     """Define a fixed symbol tied to a parent class."""
 
     def __init__(self, cls_, name, value, description):
+        """
+        Initialize the EnumSymbol.
+
+        Args:
+            cls_ (EnumMeta): The metaclass this symbol is tied to.
+            name (basestring): The name of this symbol.
+            value (basestring): The value used in the database to represent this symbol.
+            description (basestring): A human readable description of this symbol.
+        """
         self.cls_ = cls_
         self.name = name
         self.value = value
         self.description = description
 
     def __reduce__(self):
-        """Allow unpickling to return the symbol
-        linked to the DeclEnum class."""
+        """
+        Allow unpickling to return the symbol linked to the DeclEnum class.
+
+        Returns:
+            tuple: A 2-tuple of the ``getattr`` function, and a 2-tuple of the EnumSymbol's member
+            class and name.
+        """
         return getattr, (self.cls_, self.name)
 
     def __iter__(self):
+        """
+        Iterate over this EnumSymbol's value and description.
+
+        Returns:
+            iterator: An iterator over the value and description.
+        """
         return iter([self.value, self.description])
 
     def __repr__(self):
+        """
+        Return a string representation of this EnumSymbol.
+
+        Returns:
+            basestring: A string representation of this EnumSymbol's value.
+        """
         return "<%s>" % self.name
 
     def __unicode__(self):
+        """
+        Return a string representation of this EnumSymbol.
+
+        Returns:
+            unicode: A string representation of this EnumSymbol's value.
+        """
         return unicode(self.value)
 
     def __json__(self, request=None):
+        """
+        Return a JSON representation of this EnumSymbol.
+
+        Args:
+            request (pyramid.util.Request): The current request.
+        Returns:
+            basestring: A string representation of this EnumSymbol's value.
+        """
         return self.value
 
 
@@ -83,6 +124,16 @@ class EnumMeta(type):
     """Generate new DeclEnum classes."""
 
     def __init__(cls, classname, bases, dict_):
+        """
+        Initialize the metaclass.
+
+        Args:
+            classname (basestring): The name of the enum.
+            bases (list): A list of base classes for the enum.
+            dict_ (dict): A key-value mapping for the new enum's attributes.
+        Returns:
+            DeclEnum: A new DeclEnum.
+        """
         cls._reg = reg = cls._reg.copy()
         for k, v in dict_.items():
             if isinstance(v, tuple):
@@ -91,6 +142,12 @@ class EnumMeta(type):
         return type.__init__(cls, classname, bases, dict_)
 
     def __iter__(cls):
+        """
+        Iterate the enum values.
+
+        Returns:
+            iterator: An iterator for the enum values.
+        """
         return iter(cls._reg.values())
 
 
@@ -102,6 +159,16 @@ class DeclEnum(object):
 
     @classmethod
     def from_string(cls, value):
+        """
+        Convert a string version of the enum to its enum type.
+
+        Args:
+            value (basestring): A string that you wish to convert to an Enum value.
+        Returns:
+            EnumSymbol: The symbol corresponding to the value.
+        Raises:
+            ValueError: If no symbol matches the given value.
+        """
         try:
             return cls._reg[value]
         except KeyError:
@@ -109,36 +176,84 @@ class DeclEnum(object):
 
     @classmethod
     def values(cls):
+        """
+        Return the possible values that this enum can take on.
+
+        Returns:
+            list: A list of strings of the values that this enum can represent.
+        """
         return cls._reg.keys()
 
     @classmethod
     def db_type(cls):
+        """
+        Return a database column type to be used for this enum.
+
+        Returns:
+            DeclEnumType: A DeclEnumType to be used for this enum.
+        """
         return DeclEnumType(cls)
 
 
 class DeclEnumType(SchemaType, TypeDecorator):
+    """A database column type for an enum."""
+
     def __init__(self, enum):
+        """
+        Initialize with the given enum.
+
+        Args:
+            enum (bodhi.server.models.EnumMeta): The enum metaclass.
+        """
         self.enum = enum
         self.impl = Enum(
             *enum.values(),
             name="ck%s" % re.sub('([A-Z])', lambda m: "_" + m.group(1).lower(), enum.__name__))
 
     def _set_table(self, table, column):
+        """
+        Set the table for this object.
+
+        Args:
+            table (sqlalchemy.sql.schema.Table): The table that uses this Enum.
+            column (sqlalchemy.sql.schema.Column): The column that uses this Enum.
+        """
         self.impl._set_table(table, column)
 
     def copy(self):
+        """
+        Return a copy of self.
+
+        Returns:
+            DeclEnumType: A copy of self.
+        """
         return DeclEnumType(self.enum)
 
     def process_bind_param(self, value, dialect):
         """
-        :type value:   bodhi.server.models.enum.EnumSymbol
-        :type dialect: sqlalchemy.engine.default.DefaultDialect
+        Return the value of the enum.
+
+        Args:
+            value (bodhi.server.models.enum.EnumSymbol): The enum symbol we are resolving the value
+                of.
+            dialect (sqlalchemy.engine.default.DefaultDialect): Unused.
+        Returns:
+            basestring: The EnumSymbol's value.
         """
         if value is None:
             return None
         return value.value
 
     def process_result_value(self, value, dialect):
+        """
+        Return the enum that matches the given string.
+
+        Args:
+            value (basestring): The name of an enum.
+            dialect (sqlalchemy.engine.default.DefaultDialect): Unused.
+        Returns:
+            EnumSymbol or None: The enum that matches value, or ``None`` if ``value`` is ``None``.
+        """
         if value is None:
             return None
         return self.enum.from_string(value.strip())
@@ -170,6 +285,7 @@ class BodhiBase(object):
         query (sqlalchemy.orm.query.Query): a class property which produces a
             Query object against the class and the current Session when called.
     """
+
     __exclude_columns__ = ('id',)
     __include_extras__ = tuple()
     __get_by__ = ()
@@ -180,17 +296,51 @@ class BodhiBase(object):
 
     @classmethod
     def get(cls, id, db):
+        """
+        Return an instance of the model by using its __get_by__ attribute with id.
+
+        Args:
+            id (object): An attribute to look up the model by.
+            db (sqlalchemy.orm.session.Session): A database session.
+        Returns:
+            BodhiBase or None: An instance of the model that matches the id, or ``None`` if no match
+            was found.
+        """
         return db.query(cls).filter(or_(
             getattr(cls, col) == id for col in cls.__get_by__
         )).first()
 
     def __getitem__(self, key):
+        """
+        Define a dictionary like interface for the models.
+
+        Args:
+            key (string): The name of an attribute you wish to retrieve from the model.
+        Returns:
+            object: The value of the attribute represented by key.
+        """
         return getattr(self, key)
 
     def __repr__(self):
+        """
+        Return a string representation of this model.
+
+        Returns:
+            basestring: A string representation of this model.
+        """
         return '<{0} {1}>'.format(self.__class__.__name__, self.__json__())
 
     def __json__(self, request=None, anonymize=False):
+        """
+        Return a JSON representation of this model.
+
+        Args:
+            request (pyramid.util.Request or None): The current web request, or None.
+            anonymize (bool): If True, scrub out some information from the JSON blob using
+                the model's ``__anonymity_map__``. Defaults to False.
+        Returns:
+            basestring: A JSON representation of the model.
+        """
         return self._to_json(self, request=request, anonymize=anonymize)
 
     @classmethod
@@ -242,7 +392,17 @@ class BodhiBase(object):
 
     @classmethod
     def _expand(cls, obj, relation, seen, req):
-        """ Return the to_json or id of a sqlalchemy relationship. """
+        """
+        Return the to_json or id of a sqlalchemy relationship.
+
+        Args:
+            obj (BodhiBase): The object we are trying to describe a relationship on.
+            relation (object): A relationship attribute on obj we are trying to learn about.
+            seen (list): A list of objects we have already recursed over.
+            req (pyramid.util.Request): The current request.
+        Returns:
+            object: The to_json() or the id of a sqlalchemy relationship.
+        """
         if hasattr(relation, 'all'):
             relation = relation.all()
         if hasattr(relation, '__iter__'):
@@ -254,6 +414,12 @@ class BodhiBase(object):
 
     @classmethod
     def grid_columns(cls):
+        """
+        Return the column names for the model, except for the excluded ones.
+
+        Returns:
+            list: A list of column names, with excluded ones removed.
+        """
         columns = []
         exclude = getattr(cls, '__exclude_columns__', [])
         for col in cls.__table__.columns:
@@ -264,7 +430,8 @@ class BodhiBase(object):
 
     @classmethod
     def find_polymorphic_child(cls, identity):
-        """ Find a child of a polymorphic base class.
+        """
+        Find a child of a polymorphic base class.
 
         For example, given the base Package class and the 'rpm' identity, this
         class method should return the RpmPackage class.
@@ -274,10 +441,15 @@ class BodhiBase(object):
         class.  Among those, return the one whose polymorphic_identity matches
         the value given.  If none are found, then raise a NameError.
 
-        Arguments:
-        identity -- An instance of EnumSymbol used to identify the child.
+        Args:
+            identity (EnumSymbol): An instance of EnumSymbol used to identify the child.
+        Returns:
+            BodhiBase: The type-specific child class.
+        Raises:
+            KeyError: If this class is not polymorphic.
+            NameError: If no child class is found for the given identity.
+            TypeError: If identity is not an EnumSymbol.
         """
-
         if not isinstance(identity, EnumSymbol):
             raise TypeError("%r is not an instance of EnumSymbol" % identity)
 
@@ -295,17 +467,19 @@ class BodhiBase(object):
         raise NameError(error % (cls, identity))
 
     def update_relationship(self, name, model, data, db):
-        """Add items to or remove items from a many-to-many relationship
-
-        :name: The name of the relationship column on self, as well as
-               the key in `data`
-        :model: The model class of the relationship that we're updating
-        :data: A dict containing the key `name` with a list of values
-
-        Returns a three-tuple of lists, `new`, `same`, and `removed` indicating
-        which items have been added and removed, and which remain unchanged.
         """
+        Add items to or remove items from a many-to-many relationship.
 
+        Args:
+            name (basestring): The name of the relationship column on self, as well as the key in
+                ``data``.
+            model (BodhiBase): The model class of the relationship that we're updating.
+            data (dict): A dict containing the key `name` with a list of values.
+            db (sqlalchemy.orm.session.Session): A database session.
+        Return:
+            tuple: A three-tuple of lists, `new`, `same`, and `removed`, indicating which items have
+            been added and removed, and which remain unchanged.
+        """
         rel = getattr(self, name)
         items = data.get(name)
         new, same, removed = [], copy.copy(items), []
@@ -337,24 +511,41 @@ metadata = Base.metadata
 #  Enumerated type declarations
 ##
 class ContentType(DeclEnum):
+    """
+    Used to differentiate between different kinds of content in various models.
+
+    This enum is used to mark objects as pertaining to particular kinds of content type, such as
+    RPMs or Modules.
+
+    Attributes:
+        base (EnumSymbol): This is used to represent base classes that are shared between specific
+            content types.
+        rpm (EnumSymbol): Used to represent RPM related objects.
+        module (EnumSymbol): Used to represent Module related objects.
+    """
+
     base = 'base', 'Base'
     rpm = 'rpm', 'RPM'
     module = 'module', 'Module'
 
     @classmethod
     def infer_content_class(cls, base, build):
-        """ Given a base class and a build from koji, identify and return the child
-        class associated with the appropriate ContentType.
+        """
+        Identify and return the child class associated with the appropriate ContentType.
 
         For example, given the Package base class and a normal koji build, return
         the RpmPackage model class. Or, given the Build base class and a container
         build, return the ContainerBuild model class.
 
-        Arguments:
-        base -- A base model class.
-        build -- A dict of information from the build system (koji).
+        Args:
+            base (BodhiBase): A base model class, such as :class:`Build` or :class:`Package`.
+            build (dict): Information about the build from the build system (koji).
+        Returns:
+            BodhiBase: The type-specific child class of base that is appropriate to use with the
+            given koji build.
+        Raises:
+            NotImplementedError: If the build is a container.
         """
-
         # Default value.  Overridden below if we find markers in the build info
         identity = cls.rpm
 
@@ -369,6 +560,18 @@ class ContentType(DeclEnum):
 
 
 class UpdateStatus(DeclEnum):
+    """
+    An enum used to describe the current state of an update.
+
+    Attributes:
+        pending (EnumSymbol): The update is not in any repository.
+        testing (EnumSymbol): The update is in the testing repository.
+        stable (EnumSymbol): The update is in the stable repository.
+        unpushed (EnumSymbol): The update had been in a testing repository, but has been removed.
+        obsolete (EnumSymbol): The update has been obsoleted by another update.
+        processing (EnumSymbol): Unused.
+    """
+
     pending = 'pending', 'pending'
     testing = 'testing', 'testing'
     stable = 'stable', 'stable'
@@ -378,25 +581,38 @@ class UpdateStatus(DeclEnum):
 
 
 class TestGatingStatus(DeclEnum):
-    """ This class lists the different status the test_gating_status flag can have. """
-    # None: Updates created while bodhi has not enabled Greenwave integration
-    # waiting: Updates created while bodhi has enabled Greenwave integration
+    """
+    This class lists the different status the ``Update.test_gating_status`` flag can have.
+
+    Attributes:
+        waiting (EnumSymbol): Bodhi is waiting to hear about the test gating status of the update.
+        ignored (EnumSymbol): Greenwave said that the update does not require any tests.
+        queued (EnumSymbol): Greenwave said that the required tests for this update have been
+            queued.
+        running (EnumSymbol): Greenwave said that the required tests for this update are running.
+        passed (EnumSymbol): Greenwave said that the required tests for this update have passed.
+        failed (EnumSymbol): Greenwave said that the required tests for this update have failed.
+    """
+
     waiting = 'waiting', 'Waiting'
-    # ignored: a decision from Greenwave said that this update does not require any tests
     ignored = 'ignored', 'Ignored'
-    # queued: a decision from Greenwave said that the required tests for this update have been
-    # queued
     queued = 'queued', 'Queued'
-    # running: a decision from Greenwave said that the required tests for this update are running
     running = 'running', 'Running'
-    # passed: a decision from Greenwave said that the required tests for this update have passed
     passed = 'passed', 'Passed'
-    # failed: a decision from the Greenwave said that the required tests for this update have
-    # been failed
     failed = 'failed', 'Failed'
 
 
 class UpdateType(DeclEnum):
+    """
+    An enum used to classify the type of the update.
+
+    Attributes:
+        bugfix (EnumSymbol): The update fixes bugs only.
+        security (EnumSymbol): The update addresses security issues.
+        newpackage (EnumSymbol): The update introduces new packages to the release.
+        enhancement (EnumSymbol): The update introduces new features.
+    """
+
     bugfix = 'bugfix', 'bugfix'
     security = 'security', 'security'
     newpackage = 'newpackage', 'newpackage'
@@ -404,6 +620,19 @@ class UpdateType(DeclEnum):
 
 
 class UpdateRequest(DeclEnum):
+    """
+    An enum used to specify an update requesting to change states.
+
+    Attributes:
+        testing (EnumSymbol): The update is requested to change to testing.
+        batched (EnumSymbol): The update is requested to be pushed to stable during the next batch
+            push.
+        obsolete (EnumSymbol): The update has been obsoleted by another update.
+        unpush (EnumSymbol): The update no longer needs to be released.
+        revoke (EnumSymbol): The unpushed update will no longer be mashed in any repository.
+        stable (EnumSymbol): The update is ready to be pushed to the stable repository.
+    """
+
     testing = 'testing', 'testing'
     batched = 'batched', 'batched'
     obsolete = 'obsolete', 'obsolete'
@@ -413,6 +642,17 @@ class UpdateRequest(DeclEnum):
 
 
 class UpdateSeverity(DeclEnum):
+    """
+    An enum used to specify the severity of the update.
+
+    Attributes:
+        unspecified (EnumSymbol): The packager has not specified a severity.
+        urgent (EnumSymbol): The update is urgent, and will skip the batched state automatically.
+        high (EnumSymbol): The update is high severity.
+        medium (EnumSymbol): The update is medium severity.
+        low (EnumSymbol): The update is low severity.
+    """
+
     unspecified = 'unspecified', 'unspecified'
     urgent = 'urgent', 'urgent'
     high = 'high', 'high'
@@ -421,12 +661,31 @@ class UpdateSeverity(DeclEnum):
 
 
 class UpdateSuggestion(DeclEnum):
+    """
+    An enum used to tell the user whether they need to reboot or logout after applying an update.
+
+    Attributes:
+        unspecified (EnumSymbol): No action is needed.
+        reboot (EnumSymbol): The user should reboot after applying the update.
+        logout (EnumSymbol): The user should logout after applying the update.
+    """
+
     unspecified = 'unspecified', 'unspecified'
     reboot = 'reboot', 'reboot'
     logout = 'logout', 'logout'
 
 
 class ReleaseState(DeclEnum):
+    """
+    An enum that describes the state of a :class:`Release`.
+
+    Attributes:
+        disabled (EnumSymbol): Indicates that the release is disabled.
+        pending (EnumSymbol): Indicates that the release is pending.
+        current (EnumSymbol): Indicates that the release is current.
+        archived (EnumSymbol): Indicates taht the release is archived.
+    """
+
     disabled = 'disabled', 'disabled'
     pending = 'pending', 'pending'
     current = 'current', 'current'
@@ -459,6 +718,38 @@ user_package_table = Table(
 
 
 class Release(Base):
+    """
+    Represent a distribution release, such as Fedora 27.
+
+    Attributes:
+        name (unicode): The name of the release, such as 'F27'.
+        long_name (unicode): A human readable name for the release, such as 'Fedora 27'.
+        version (unicode): The version of the release, such as '27'.
+        id_prefix (unicode): The prefix to use when forming update aliases for this release, such as
+            'FEDORA'.
+        branch (unicode): The dist-git branch associated with this release, such as 'f27'.
+        dist_tag (unicode): The koji dist_tag associated with this release, such as 'f27'.
+        stable_tag (unicode): The koji tag to be used for stable builds in this release, such as
+            'f27-updates'.
+        testing_tag (unicode): The koji tag to be used for testing builds in this release, such as
+            'f27-updates-testing'.
+        candidate_tag (unicode): The koji tag used for builds that are candidates to be updates,
+            such as 'f27-updates-candidate'.
+        pending_signing_tag (unicode): The koji tag that specifies that a build is waiting to be
+            signed, such as 'f27-signing-pending'.
+        pending_testing_tag (unicode): The koji tag that indicates that a build is waiting to be
+            mashed into the testing repository, such as 'f27-updates-testing-pending'.
+        pending_stable_tag (unicode): The koji tag that indicates that a build is waiting to be
+            mashed into the stable repository, such as 'f27-updates-pending'.
+        override_tag (unicode): The koji tag that is used when a build is added as a buildroot
+            override, such as 'f27-override'.
+        state (:class:`ReleaseState`): The current state of the release. Defaults to
+            ``ReleaseState.disabled``.
+        id (int): The primary key of this release.
+        builds (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Builds <Build>`
+            associated with this release.
+    """
+
     __tablename__ = 'releases'
     __exclude_columns__ = ('id', 'builds')
     __get_by__ = ('name', 'long_name', 'dist_tag')
@@ -482,11 +773,25 @@ class Release(Base):
 
     @property
     def version_int(self):
+        """
+        Return an integer representation of the version of this release.
+
+        Returns:
+            int: The version of the release.
+        """
         regex = re.compile('\D+(\d+)$')
         return int(regex.match(self.name).groups()[0])
 
     @property
     def mandatory_days_in_testing(self):
+        """
+        Return the number of days that updates in this release must spend in testing.
+
+        Returns:
+            int or None: The number of days in testing that updates in this release must spend in
+            testing. If the release isn't configured to have mandatory testing time, ``None`` is
+            returned.
+        """
         name = self.name.lower().replace('-', '')
         status = config.get('%s.status' % name, None)
         if status:
@@ -502,11 +807,25 @@ class Release(Base):
 
     @property
     def collection_name(self):
-        """ Return the collection name of this release.  (eg: Fedora EPEL) """
+        """
+        Return the collection name of this release (eg: Fedora EPEL).
+
+        Returns:
+            basestring: The collection name of this release.
+        """
         return ' '.join(self.long_name.split()[:-1])
 
     @classmethod
     def all_releases(cls, session):
+        """
+        Return a mapping of release states to a list of dictionaries describing the releases.
+
+        Args:
+            session (sqlalchemy.orm.session.Session): A database session.
+        Returns:
+            defaultdict: Mapping strings of :class:`ReleaseState` names to lists of dictionaries
+            that describe the releases in those states.
+        """
         if cls._all_releases:
             return cls._all_releases
         releases = defaultdict(list)
@@ -518,6 +837,17 @@ class Release(Base):
 
     @classmethod
     def get_tags(cls, session):
+        """
+        Return a 2-tuple mapping tags to releases.
+
+        Args:
+            session (sqlalchemy.orm.session.Session): A database session.
+        Returns:
+            tuple: A 2-tuple. The first element maps the keys 'candidate', 'testing', 'stable',
+            'override', 'pending_testing', and 'pending_stable' each to a list of tags for various
+            releases that correspond to those tag semantics. The second element maps each koji tag
+            to the release's name that uses it.
+        """
         if cls._tag_cache:
             return cls._tag_cache
         data = {'candidate': [], 'testing': [], 'stable': [], 'override': [],
@@ -534,6 +864,16 @@ class Release(Base):
 
     @classmethod
     def from_tags(cls, tags, session):
+        """
+        Find a release associated with one of the given koji tags.
+
+        Args:
+            tags (list): A list of koji tags for which an associated release is desired.
+            session (sqlalchemy.orm.session.Session): A database session.
+        Returns:
+            Release or None: The first release found that matches the first tag. If no release is
+                found, ``None`` is returned.
+        """
         tag_types, tag_rels = cls.get_tags(session)
         for tag in tags:
             release = session.query(cls).filter_by(name=tag_rels[tag]).first()
@@ -542,7 +882,15 @@ class Release(Base):
 
 
 class TestCase(Base):
-    """Test cases from the wiki"""
+    """
+    Represents test cases from the wiki.
+
+    Attributes:
+        name (unicode): The name of the test case.
+        package_id (int): The primary key of the :class:`Package` associated with this test case.
+        package (Package): The package associated with this test case.
+    """
+
     __tablename__ = 'testcases'
     __get_by__ = ('name',)
 
@@ -571,6 +919,7 @@ class Package(Base):
             who are committers.
         stack_id (int): A foreign key to the :class:`Stack`
     """
+
     __tablename__ = 'packages'
     __get_by__ = ('name',)
     __exclude_columns__ = ('id', 'committers', 'test_cases', 'builds',)
@@ -596,12 +945,13 @@ class Package(Base):
     )
 
     def get_pkg_pushers(self, branch, settings):
-        """ Pull users who can commit and are watching a package.
+        """
+        Return users who can commit and are watching a package.
 
         Return two two-tuples of lists:
-        * The first tuple is for usernames.  The second tuple is for groups.
-        * The first list of the tuple is for committers. The second is for
-          watchers.
+            * The first tuple is for usernames. The second tuple is for groups.
+            * The first list of the tuples is for committers. The second is for
+              watchers.
         """
         watchers = []
         committers = []
@@ -668,7 +1018,12 @@ class Package(Base):
         return list(committers), list(groups)
 
     def fetch_test_cases(self, db):
-        """ Get a list of test cases from the wiki """
+        """
+        Get a list of test cases for this package from the wiki.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        """
         if not config.get('query_wiki_test_cases'):
             return
 
@@ -714,7 +1069,7 @@ class Package(Base):
     @validates('builds')
     def validate_builds(self, key, build):
         """
-        Validates builds being appended to ensure they are all the same type as the Package.
+        Validate builds being appended to ensure they are all the same type as the Package.
 
         This method checks to make sure that all the builds on self.builds have their type attribute
         equal to self.type. The goal is to make sure that Builds of a specific type are only ever
@@ -737,6 +1092,12 @@ class Package(Base):
         return build
 
     def __str__(self):
+        """
+        Return a string representation of the package.
+
+        Returns:
+            basestring: A string representing this package.
+        """
         x = header(self.name)
         states = {'pending': [], 'testing': [], 'stable': []}
         if len(self.builds):
@@ -756,6 +1117,7 @@ class Package(Base):
 
 class ModulePackage(Package):
     """Represents a Module package."""
+
     __mapper_args__ = {
         'polymorphic_identity': ContentType.module,
     }
@@ -763,6 +1125,7 @@ class ModulePackage(Package):
 
 class RpmPackage(Package):
     """Represents a RPM package."""
+
     __mapper_args__ = {
         'polymorphic_identity': ContentType.rpm,
     }
@@ -794,6 +1157,7 @@ class Build(Base):
         type (int): The polymorphic identify of the row. This is used by sqlalchemy to identify
             which subclass of Build to use.
     """
+
     __tablename__ = 'builds'
     __exclude_columns__ = ('id', 'package', 'package_id', 'release',
                            'update_id', 'update', 'override')
@@ -888,6 +1252,7 @@ class ModuleBuild(Build):
     Attributes:
         nvr (unicode): A unique Koji identifier for the module build.
     """
+
     __mapper_args__ = {
         'polymorphic_identity': ContentType.module,
     }
@@ -914,7 +1279,7 @@ class RpmBuild(Build):
     @property
     def evr(self):
         """
-        The RpmBuild's epoch, version, release, all basestrings in a 3-tuple.
+        Return the RpmBuild's epoch, version, release, all basestrings in a 3-tuple.
 
         Return:
             tuple: (epoch, version, release)
@@ -931,12 +1296,13 @@ class RpmBuild(Build):
 
     def get_latest(self):
         """
-        Return the nvr string of the most recent evr that is less than this RpmBuild's nvr. If there
-        is no other Build, this returns None.
+        Return the nvr string of the most recent evr that is less than this RpmBuild's nvr.
 
-        Return:
+        If there is no other Build, this returns ``None``.
+
+        Returns:
             basestring or None: An nvr string, formatted like RpmBuild.nvr. If there is no other
-                Build, returns None.
+                Build, returns ``None``.
         """
         koji_session = buildsys.get_session()
 
@@ -1075,6 +1441,7 @@ class Update(Base):
         greenwave_summary_string (unicode): A short summary of the outcome from Greenwave
             (e.g. 2 of 32 required tests failed).
     """
+
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id', 'cves')
     __include_extras__ = ('meets_testing_requirements', 'url',)
@@ -1147,7 +1514,7 @@ class Update(Base):
     @validates('builds')
     def validate_builds(self, key, build):
         """
-        Validates builds being appended to ensure they are all the same type.
+        Validate builds being appended to ensure they are all the same type.
 
         Args:
             key (str): The field's key, which is un-used in this validator.
@@ -1190,12 +1557,13 @@ class Update(Base):
     @property
     def _composite_karma(self):
         """
-        Calculate and return a 2-tuple of the sum of the positive karma comments, and the sum of the
-        negative karma comments. The total karma is simply the sum of the two elements of this
-        2-tuple.
+        Calculate and return a 2-tuple of the positive and negative karma.
 
-        :return: a 2-tuple of (positive_karma, negative_karma)
-        :rtype:  tuple
+        Sums the positive karma comments, and then sums the negative karma comments. The total karma
+        is simply the sum of the two elements of this 2-tuple.
+
+        Returns:
+            tuple: A 2-tuple of (positive_karma, negative_karma).
         """
         positive_karma = 0
         negative_karma = 0
@@ -1214,10 +1582,12 @@ class Update(Base):
     @property
     def comments_since_karma_reset(self):
         """
-        Return the comments since the most recent karma reset event, which
-        occurs whenever a build is added or removed from an Update.
-        :return: an iterable of recent comments
-        :rtype: generator
+        Generate the comments since the most recent karma reset event.
+
+        Karma is reset when :class:`Builds <Build>` are added or removed from an update.
+
+        Returns:
+            generator: :class:`Comments <Comment>` since the karma reset.
         """
         # We want to traverse the comments in reverse order so we only consider
         # the most recent comments from any given user and only the comments
@@ -1236,11 +1606,13 @@ class Update(Base):
     @staticmethod
     def contains_critpath_component(builds, release_name):
         """
-        Determines if there is a critpath component in the builds passed in.
-        :param builds: a list of Build objects
-        :param release_name: a string representing the name of the release
-        such as "f25"
-        :return: a boolean determining if the update contains a critpath
+        Determine if there is a critpath component in the builds passed in.
+
+        Args:
+            builds (list): :class:`Builds <Build>` to be considered.
+            release_name (basestring): The name of the release, such as "f25".
+        Returns:
+            bool: ``True`` if the update contains a critical path package, ``False`` otherwise.
         component
         """
         for build in builds:
@@ -1283,7 +1655,15 @@ class Update(Base):
 
     @classmethod
     def new(cls, request, data):
-        """ Create a new update """
+        """
+        Create a new update.
+
+        Args:
+            request (pyramid.util.Request): The current web request.
+            data (dict): A key-value mapping of the new update's attributes.
+        Returns:
+            tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
+        """
         db = request.db
         user = User.get(request.user.name, request.db)
         data['user'] = user
@@ -1346,6 +1726,17 @@ class Update(Base):
 
     @classmethod
     def edit(cls, request, data):
+        """
+        Edit the update.
+
+        Args:
+            request (pyramid.util.Request): The current web request.
+            data (dict): A key-value mapping of what should be altered in this update.
+        Returns:
+            tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
+        Raises:
+            LockedUpdateException: If the update is locked.
+        """
         db = request.db
         buildinfo = request.buildinfo
         koji = request.koji
@@ -1467,18 +1858,29 @@ class Update(Base):
 
     @property
     def signed(self):
+        """
+        Return whether the update is considered signed or not.
+
+        This will return ``True`` if all :class:`Builds <Build>` associated with this update are
+        signed, or if the associated :class:`Release` does not have a ``pending_signing_tag``
+        defined. Otherwise, it will return ``False``.
+
+        Returns:
+            bool: ``True`` if the update is signed, ``False`` otherwise.
+        """
         if not self.release.pending_signing_tag:
             return True
         return all([build.signed for build in self.builds])
 
     @property
     def content_type(self):
-        """ Return the ContentType associated with this Update.
+        """
+        Return the ContentType associated with this update.
 
-        If the update has no builds, this evaluates to `None`.
+        If the update has no :class:`Builds <Build>`, this evaluates to ``None``.
 
         Returns:
-            ContentType or None: The content type of this Update or None.
+            ContentType or None: The content type of this update or ``None``.
         """
         if self.builds:
             return self.builds[0].type
@@ -1569,17 +1971,42 @@ class Update(Base):
         return caveats
 
     def get_tags(self):
-        """ Return all koji tags for all builds on this update. """
+        """
+        Return all koji tags for all builds on this update.
+
+        Returns:
+            list: basestrings of the koji tags used in this update.
+        """
         return list(set(sum([b.get_tags() for b in self.builds], [])))
 
     def get_title(self, delim=' ', limit=None, after_limit='…'):
+        u"""
+        Return a title for the update based on the :class:`Builds <Build>` it is associated with.
+
+        Args:
+            delim (basestring): The delimeter used to separate the builds. Defaults to ' '.
+            limit (int or None): If provided, limit the number of builds included to the given
+                number. If ``None`` (the default), no limit is used.
+            after_limit (basestring): If a limit is set, use this string after the limit is reached.
+                Defaults to '…'.
+        Returns:
+            basestring: A title for this update.
+        """
         all_nvrs = map(lambda x: x.nvr, self.builds)
         nvrs = all_nvrs[:limit]
         builds = delim.join(sorted(nvrs)) + (after_limit if limit and len(all_nvrs) > limit else "")
         return builds
 
     def get_bugstring(self, show_titles=False):
-        """Return a space-delimited string of bug numbers for this update """
+        """
+        Return a space-delimited string of bug numbers for this update.
+
+        Args:
+            show_titles (bool): If True, include the bug titles in the output. If False, include
+                only bug ids.
+        Returns:
+            basestring: A space separated list of bugs associated with this update.
+        """
         val = u''
         if show_titles:
             i = 0
@@ -1596,10 +2023,24 @@ class Update(Base):
         return val
 
     def get_cvestring(self):
-        """ Return a space-delimited string of CVE ids for this update """
+        """
+        Return a space-delimited string of CVE ids for this update.
+
+        Returns:
+            basestring: A space-separated list of CVE ids.
+        """
         return u' '.join([cve.cve_id for cve in self.cves])
 
     def get_bug_karma(self, bug):
+        """
+        Return the karma for this update for the given bug.
+
+        Args:
+            bug (Bug): The bug we want the karma about.
+        Returns:
+            tuple: A 2-tuple of integers. The first represents negative karma, the second represents
+            positive karma.
+        """
         good, bad, seen = 0, 0, set()
         for comment in reversed(self.comments):
             if comment.user.name in seen:
@@ -1614,6 +2055,15 @@ class Update(Base):
         return bad * -1, good
 
     def get_testcase_karma(self, testcase):
+        """
+        Return the karma for this update for the given TestCase.
+
+        Args:
+            testcase (TestCase): The TestCase we want the karma about.
+        Returns:
+            tuple: A 2-tuple of integers. The first represents negative karma, the second represents
+            positive karma.
+        """
         good, bad, seen = 0, 0, set()
         for comment in reversed(self.comments):
             if comment.user.name in seen:
@@ -1672,7 +2122,22 @@ class Update(Base):
         self.alias = alias
 
     def set_request(self, db, action, username):
-        """ Attempt to request an action for this update """
+        """
+        Set the update's request to the given action.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+            action (UpdateRequest or basestring): The desired request. May be expressed as an
+                UpdateRequest instance, or as a string describing the desired request.
+            username (basestring): The username of the user making the request.
+        Raises:
+            BodhiException: Two circumstances can raise this ``Exception``:
+
+                * If the user tries to push a critical path update directly from pending to stable.
+                * If the update doesn't meet testing requirements.
+
+            LockedUpdateException: If the update is locked.
+        """
         log.debug('Attempting to set request %s' % action)
         notes = []
         if isinstance(action, basestring):
@@ -1818,7 +2283,12 @@ class Update(Base):
         notifications.publish(topic=topic, msg=dict(update=self, agent=username))
 
     def add_tag(self, tag):
-        """ Add a koji tag to all builds in this update """
+        """
+        Add the given koji tag to all :class:`Builds <Build>` in this update.
+
+        Args:
+            tag (basestring): The tag to be added to the builds.
+        """
         log.debug('Adding tag %s to %s' % (tag, self.title))
         if not tag:
             log.warn("Not adding builds of %s to empty tag" % self.title)
@@ -1831,7 +2301,18 @@ class Update(Base):
         return koji.multiCall()
 
     def remove_tag(self, tag, koji=None):
-        """ Remove a koji tag from all builds in this update """
+        """
+        Remove the given koji tag from all builds in this update.
+
+        Args:
+            tag (basestring): The tag to remove from the :class:`Builds <Build>` in this update.
+            koji (koji.ClientSession or None): A koji client to use to perform the action. If None
+                (the default), this method will use :func:`buildsys.get_session` to get one and
+                multicall will be used.
+        Returns:
+            list or None: If a koji client was provided, ``None`` is returned. Else, a list of tasks
+                from ``koji.multiCall()`` are returned.
+        """
         log.debug('Removing tag %s from %s' % (tag, self.title))
         if not tag:
             log.warn("Not removing builds of %s from empty tag" % self.title)
@@ -1847,7 +2328,12 @@ class Update(Base):
             return koji.multiCall()
 
     def request_complete(self):
-        """Perform post-request actions"""
+        """
+        Perform post-request actions.
+
+        This sets the appropriate timestamps on the update, marks its request as ``None``, and marks
+        it as pushed.
+        """
         now = datetime.utcnow()
         if self.request is UpdateRequest.testing:
             self.status = UpdateStatus.testing
@@ -1860,7 +2346,8 @@ class Update(Base):
         self.pushed = True
 
     def modify_bugs(self):
-        """ Comment on and close this updates bugs as necessary
+        """
+        Comment on and close this update's bugs as necessary.
 
         This typically gets called by the Masher at the end.
         """
@@ -1887,7 +2374,10 @@ class Update(Base):
 
     def status_comment(self, db):
         """
-        Add a comment to this update about a change in status
+        Add a comment to this update about a change in status.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
         """
         if self.status is UpdateStatus.stable:
             self.comment(db, u'This update has been pushed to stable.',
@@ -1899,6 +2389,7 @@ class Update(Base):
             self.comment(db, u'This update has been obsoleted.', author=u'bodhi')
 
     def send_update_notice(self):
+        """Send e-mail notices about this update."""
         log.debug("Sending update notice for %s" % self.title)
         mailinglist = None
         sender = config.get('bodhi_email')
@@ -1931,7 +2422,12 @@ class Update(Base):
             log.error("release_name = %r", release_name)
 
     def get_url(self):
-        """ Return the relative URL to this update """
+        """
+        Return the relative URL to this update.
+
+        Returns:
+            basestring: A URL.
+        """
         path = ['updates']
         if self.alias:
             path.append(self.alias)
@@ -1940,7 +2436,12 @@ class Update(Base):
         return os.path.join(*path)
 
     def abs_url(self, request=None):
-        """ Return the absolute URL to this update """
+        """
+        Return the absolute URL to this update.
+
+        Args:
+            request (pyramid.util.Request or None): The current web request. Unused.
+        """
         base = config['base_address']
         return os.path.join(base, self.get_url())
 
@@ -1949,6 +2450,9 @@ class Update(Base):
     def __str__(self):
         """
         Return a string representation of this update.
+
+        Returns:
+            basestring: A string representation of the update.
         """
         val = u"%s\n%s\n%s\n" % ('=' * 80, u'\n'.join(wrap(
             self.title.replace(',', ', '), width=80, initial_indent=' ' * 5,
@@ -2000,10 +2504,17 @@ class Update(Base):
 
     def update_bugs(self, bug_ids, session):
         """
-        Create any new bugs, and remove any missing ones. Destroy removed bugs
-        that are no longer referenced anymore.
+        Make the update's bugs consistent with the given list of bug ids.
 
-        :returns: a list of new Bug instances.
+        Create any new bugs, and remove any missing ones. Destroy removed bugs that are no longer
+        referenced anymore. If any associated bug is found to be a security bug, alter the update to
+        be a security update.
+
+        Args:
+            bug_ids (list): A list of basestrings of bug ids to associate with this update.
+            session (sqlalchemy.orm.session.Session): A database session.
+        Returns:
+            list: :class:`Bugs <Bug>` that are newly associated with the update.
         """
         to_remove = [bug for bug in self.bugs if bug.bug_id not in bug_ids]
 
@@ -2034,8 +2545,14 @@ class Update(Base):
 
     def update_cves(self, cves, session):
         """
-        Create any new CVES, and remove any missing ones.  Destroy removed CVES
-        that are no longer referenced anymore.
+        Create any new CVES, and remove any missing ones.
+
+        This method cannot possibly work:
+            https://github.com/fedora-infra/bodhi/issues/1998#issuecomment-344332011
+
+        Args:
+            cves (list): A list of basestrings of CVE identifiers.
+            session (sqlalchemy.orm.session.Session): A database session.
         """
         for cve in self.cves:
             if cve.cve_id not in cves and len(cve.updates) == 0:
@@ -2053,8 +2570,10 @@ class Update(Base):
 
     def obsolete_if_unstable(self, db):
         """
-        If an update with pending status(autopush enabled) reaches unstable karma
-        threshold, make sure it gets obsoleted.
+        Obsolete the update if it reached the negative karma threshold while pending.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
         """
         if self.autokarma and self.status is UpdateStatus.pending \
                 and self.request is UpdateRequest.testing and self.unstable_karma not in (0, None) \
@@ -2179,7 +2698,14 @@ class Update(Base):
         return comment, caveats
 
     def unpush(self, db):
-        """ Move this update back to its dist-fX-updates-candidate tag """
+        """
+        Move this update back to its dist-fX-updates-candidate tag.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        Raises:
+            BodhiException: If the update isn't in testing.
+        """
         log.debug("Unpushing %s" % self.title)
         koji = buildsys.get_session()
 
@@ -2201,7 +2727,13 @@ class Update(Base):
         self.request = None
 
     def revoke(self):
-        """ Remove pending request for this update """
+        """
+        Remove pending request for this update.
+
+        Raises:
+            BodhiException: If the update doesn't have a request set, or if it is not in an expected
+                status.
+        """
         log.debug("Revoking %s" % self.title)
 
         if not self.request:
@@ -2225,7 +2757,12 @@ class Update(Base):
         self.request = None
 
     def untag(self, db):
-        """ Untag all of the builds in this update """
+        """
+        Untag all of the :class:`Builds <Build>` in this update.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        """
         log.info("Untagging %s" % self.title)
         koji = buildsys.get_session()
         tag_types, tag_rels = Release.get_tags(db)
@@ -2240,9 +2777,15 @@ class Update(Base):
 
     def obsolete(self, db, newer=None):
         """
-        Obsolete this update. Even though unpushing/obsoletion is an "instant"
-        action, changes in the repository will not propagate until the next
-        mash takes place.
+        Obsolete this update.
+
+        Even though unpushing/obsoletion is an "instant" action, changes in the repository will not
+        propagate until the next mash takes place.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+            newer (Update or None): If given, the update that has obsoleted this one. Defaults to
+                ``None``.
         """
         log.debug("Obsoleting %s" % self.title)
         self.untag(db)
@@ -2256,8 +2799,11 @@ class Update(Base):
 
     def get_maintainers(self):
         """
-        Return a list of User objects that have commit access to all of the
-        packages that are contained within this update.
+        Return a list of maintainers who have commit access on the packages in this update.
+
+        Returns:
+            list: A list of :class:`Users <User>` who have commit access to all of the
+                packages that are contained within this update.
         """
         people = set([self.user])
         for build in self.builds:
@@ -2280,12 +2826,16 @@ class Update(Base):
         return self.release.long_name.lower().replace(' ', '-')
 
     def check_requirements(self, session, settings):
-        """ Check that an update meets its self-prescribed policy to be pushed
-
-        Returns a tuple containing (result, reason) where result is a boolean
-        and reason is a string.
         """
+        Check that an update meets its self-prescribed policy to be pushed.
 
+        Args:
+            session (sqlalchemy.orm.session.Session): A database session. Unused.
+            settings (bodhi.server.config.BodhiConfig): Bodhi's settings.
+        Returns:
+            tuple: A tuple containing (result, reason) where result is a bool
+                and reason is a str.
+        """
         requirements = tokenize(self.requirements or '')
         requirements = list(requirements)
 
@@ -2362,8 +2912,16 @@ class Update(Base):
 
     def check_karma_thresholds(self, db, agent):
         """
-        Check if we have reached either karma threshold, call set_request if necessary,
-        and Ignore karma thresholds if the update is locked and raise exception
+        Check if we have reached either karma threshold, and adjust state as necessary.
+
+        This method will call :meth:`set_request` if necessary. If the update is locked, it will
+        ignore karma thresholds and raise an Exception.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+            agent (basestring): The username of the user who has provided karma.
+        Raises:
+            LockedUpdateException: If the update is locked.
         """
         # Raise Exception if the update is locked
         if self.locked:
@@ -2412,21 +2970,38 @@ class Update(Base):
 
     @property
     def builds_json(self):
+        """
+        Return a JSON representation of this update's associated builds.
+
+        Returns:
+            basestring: A JSON list of the :class:`Builds <Build>` associated with this update.
+        """
         return json.dumps([build.nvr for build in self.builds])
 
     @property
     def requirements_json(self):
+        """
+        Return a JSON representation of this update's requirements.
+
+        Returns:
+            basestring: A JSON representation of this update's requirements.
+        """
         return json.dumps(list(tokenize(self.requirements or '')))
 
     @property
     def last_modified(self):
-        """ Return the last time this update was edited or created.
+        """
+        Return the last time this update was edited or created.
 
         This gets used specifically by taskotron/resultsdb queries so we only
         query for test runs that occur *after* the last time this update
         (in its current form) was in play.
-        """
 
+        Returns:
+            datetime.datetime: The most recent time of modification or creation.
+        Raises:
+            ValueError: If the update has no timestamps set, which should not be possible.
+        """
         # Prune out None values that have not been set
         possibilities = [self.date_submitted, self.date_modified]
         possibilities = [p for p in possibilities if p]
@@ -2439,7 +3014,12 @@ class Update(Base):
 
     @property
     def critpath_approved(self):
-        """ Return whether or not this critpath update has been approved """
+        """
+        Return whether or not this critpath update has been approved.
+
+        Returns:
+            bool: True if this update meets critpath testing requirements, False otherwise.
+        """
         # https://fedorahosted.org/bodhi/ticket/642
         if self.meets_testing_requirements:
             return True
@@ -2459,11 +3039,13 @@ class Update(Base):
     @property
     def meets_testing_requirements(self):
         """
-        Return whether or not this update meets the testing requirements
-        for this specific release.
+        Return whether or not this update meets its release's testing requirements.
 
-        If this release does not have a mandatory testing requirement, then
+        If this update's release does not have a mandatory testing requirement, then
         simply return True.
+
+        Returns:
+            bool: True if the update meets testing requirements, False otherwise.
         """
         num_days = self.mandatory_days_in_testing
 
@@ -2493,6 +3075,8 @@ class Update(Base):
     @property
     def met_testing_requirements(self):
         """
+        Return True if the update has already been found to meet requirements in the past.
+
         Return whether or not this update has already met the testing
         requirements and bodhi has commented on the update that the
         requirements have been met. This is used to determine whether bodhi
@@ -2501,6 +3085,9 @@ class Update(Base):
 
         If this release does not have a mandatory testing requirement, then
         simply return True.
+
+        Returns:
+            bool: See description above for what the bool might mean.
         """
         min_num_days = self.mandatory_days_in_testing
         if min_num_days:
@@ -2518,12 +3105,18 @@ class Update(Base):
 
     @property
     def days_to_stable(self):
-        """Return the number of days until an update can be pushed to stable.
+        """
+        Return the number of days until an update can be pushed to stable.
 
         This method will return the number of days until an update can be pushed to stable, or 0.
         0 is returned if the update meets testing requirements already, if it doesn't have a
         "truthy" date_testing attribute, or if it's been in testing for the release's
-        mandatory_days_in_testing or longer."""
+        mandatory_days_in_testing or longer.
+
+        Returns:
+            int: The number of dates until this update can be pushed to stable, or 0 if it cannot be
+                determined.
+        """
         if not self.meets_testing_requirements and self.date_testing:
             num_days = (self.mandatory_days_in_testing - self.days_in_testing)
             if num_days > 0:
@@ -2532,7 +3125,12 @@ class Update(Base):
 
     @property
     def days_in_testing(self):
-        """ Return the number of days that this update has been in testing """
+        """
+        Return the number of days that this update has been in testing.
+
+        Returns:
+            int: The number of days since this update's date_testing if it is set, else 0.
+        """
         if self.date_testing:
             return (datetime.utcnow() - self.date_testing).days
         else:
@@ -2540,7 +3138,12 @@ class Update(Base):
 
     @property
     def num_admin_approvals(self):
-        """ Return the number of Releng/QA approvals of this update """
+        """
+        Return the number of Releng/QA approvals of this update.
+
+        Returns:
+            int: The number of admin approvals found in the comments of this update.
+        """
         approvals = 0
         for comment in self.comments:
             if comment.karma != 1:
@@ -2554,6 +3157,13 @@ class Update(Base):
 
     @property
     def test_cases(self):
+        """
+        Return a list of all TestCase names associated with all packages in this update.
+
+        Returns:
+            list: A list of basestrings naming the :class:`TestCases <TestCase>` associated with
+                this update.
+        """
         tests = set()
         for build in self.builds:
             for test in build.package.test_cases:
@@ -2562,6 +3172,12 @@ class Update(Base):
 
     @property
     def full_test_cases(self):
+        """
+        Return a list of all TestCases associated with all packages in this update.
+
+        Returns:
+            list: A list of :class:`TestCases <TestCase>`.
+        """
         tests = set()
         for build in self.builds:
             test_names = set()
@@ -2573,7 +3189,13 @@ class Update(Base):
 
     @property
     def requested_tag(self):
-        """Return the tag that update has requested"""
+        """
+        Return the tag the update has requested.
+
+        Returns:
+            basestring or None: The Koji tag that corresponds to the update's current request, or
+                None if the method is unable to do so.
+        """
         tag = None
         if self.request is UpdateRequest.stable:
             tag = self.release.stable_tag
@@ -2591,6 +3213,17 @@ class Update(Base):
         return tag
 
     def __json__(self, request=None, anonymize=False):
+        """
+        Return a JSON representation of this update.
+
+        Args:
+            request (pyramid.util.Request or None): The current web request, or None. Passed on to
+                :meth:`BodhiBase.__json__`.
+            anonymize (bool): Whether to anonymize the results. Passed on to
+                :meth:`BodhiBase.__json__`.
+        Returns:
+            basestring: A JSON representation of this update.
+        """
         result = super(Update, self).__json__(
             request=request, anonymize=anonymize)
         # Duplicate alias as updateid for backwards compat with bodhi1
@@ -2622,6 +3255,15 @@ class Update(Base):
 
 # Used for many-to-many relationships between karma and a bug
 class BugKarma(Base):
+    """
+    Karma for a bug associated with a comment.
+
+    Attributes:
+        karma (int): The karma associated with this bug and comment.
+        comment (Comment): The comment this BugKarma is part of.
+        bug (Bug): The bug this BugKarma pertains to.
+    """
+
     __tablename__ = 'comment_bug_assoc'
 
     karma = Column(Integer, default=0)
@@ -2635,6 +3277,15 @@ class BugKarma(Base):
 
 # Used for many-to-many relationships between karma and a bug
 class TestCaseKarma(Base):
+    """
+    Karma for a TestCase associated with a comment.
+
+    Attributes:
+        karma (int): The karma associated with this TestCase comment.
+        comment (Comment): The comment this TestCaseKarma is associated with.
+        testcase (TestCase): The TestCase this TestCaseKarma pertains to.
+    """
+
     __tablename__ = 'comment_testcase_assoc'
 
     karma = Column(Integer, default=0)
@@ -2647,6 +3298,20 @@ class TestCaseKarma(Base):
 
 
 class Comment(Base):
+    """
+    An update comment.
+
+    Attributes:
+        karma (int): The karma associated with this comment. Defaults to 0.
+        karma_critpath (int): The critpath karma associated with this comment. Defaults to 0.
+        text (unicode): The text of the comment.
+        anonymous (bool): If True, the comment was from an anonymous user. Defaults to False.
+        timestamp (datetime.datetime): The time the comment was created. Defaults to
+            the return value of datetime.utcnow().
+        update (Update): The update that this comment pertains to.
+        user (User): The user who wrote this comment.
+    """
+
     __tablename__ = 'comments'
     __exclude_columns__ = tuple()
     __get_by__ = ('id',)
@@ -2663,13 +3328,25 @@ class Comment(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
 
     def url(self):
+        """
+        Return a URL to this comment.
+
+        Returns:
+            basestring: A URL to this comment.
+        """
         url = '/updates/' + self.update.title + '#comment-' + str(self.id)
         return url
 
     @property
     def unique_testcase_feedback(self):
-        """This will filter out duplicates for testcases. It will return the
-        correct number of testcases in testcase_feedbacks as a list.
+        """
+        Return a list of unique :class:`TestCaseKarma` objects found in the testcase_feedback.
+
+        This will filter out duplicates for :class:`TestCases <TestCase>`. It will return the
+        correct number of TestCases in testcase_feedback as a list.
+
+        Returns:
+            list: A list of unique :class:`TestCaseKarma` objects associated with this comment.
         """
         feedbacks = self.testcase_feedback
         unique_feedbacks = set()
@@ -2682,6 +3359,15 @@ class Comment(Base):
         return filtered_feedbacks
 
     def __json__(self, *args, **kwargs):
+        """
+        Return a JSON string representation of this comment.
+
+        Args:
+            args (list): A list of extra args to pass on to :meth:`BodhiBase.__json__`.
+            kwargs (dict): Extra kwargs to pass on to :meth:`BodhiBase.__json__`.
+        Returns:
+            basestring: A JSON representation of this comment.
+        """
         result = super(Comment, self).__json__(*args, **kwargs)
         # Duplicate 'user' as 'author' just for backwards compat with bodhi1.
         # Things like fedmsg and fedbadges rely on this.
@@ -2701,6 +3387,12 @@ class Comment(Base):
         return result
 
     def __str__(self):
+        """
+        Return a str representation of this comment.
+
+        Returns:
+            str: A str representation of this comment.
+        """
         karma = '0'
         if self.karma != 0:
             karma = '%+d' % (self.karma,)
@@ -2713,6 +3405,17 @@ class Comment(Base):
 
 
 class CVE(Base):
+    """
+    Represents a CVE.
+
+    Attributes:
+        cve_id (unicode): The CVE identifier for this CVE.
+        updates (sqlalchemy.orm.collections.InstrumentedList): An iterable of
+            :class:`Updates <Update>` associated with this CVE.
+        bugs (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Bugs <Bug>`
+            associated with this CVE.
+    """
+
     __tablename__ = 'cves'
     __exclude_columns__ = ('id', 'updates', 'bugs')
     __get_by__ = ('cve_id',)
@@ -2721,11 +3424,31 @@ class CVE(Base):
 
     @property
     def url(self):
+        """
+        Return a URL about this CVE.
+
+        Returns:
+            str: A URL describing this CVE.
+        """
         return "http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=%s" % \
             self.cve_id
 
 
 class Bug(Base):
+    """
+    Represents a Bugzilla bug.
+
+    Attributes:
+        bug_id (int): The bug's id.
+        title (unicode): The description of the bug.
+        security (bool): True if the bug is marked as a security issue.
+        url (unicode): The URL for the bug. Inaccessible due to being overridden by the url
+            property (https://github.com/fedora-infra/bodhi/issues/1995).
+        parent (bool): True if this is a parent tracker bug for release-specific bugs.
+        cves (sqlalchemy.orm.collections.InstrumentedList): An interable of :class:`CVEs <CVE>` this
+            bug is associated with.
+    """
+
     __tablename__ = 'bugs'
     __exclude_columns__ = ('id', 'cves', 'updates')
     __get_by__ = ('bug_id',)
@@ -2750,16 +3473,35 @@ class Bug(Base):
 
     @property
     def url(self):
+        """
+        Return a URL to the bug.
+
+        Returns:
+            basestring: The URL to this bug.
+        """
         return config['buglink'] % self.bug_id
 
     def update_details(self, bug=None):
-        """ Grab details from rhbz to populate our bug fields.
+        """
+        Grab details from rhbz to populate our bug fields.
 
         This is typically called "offline" in the UpdatesHandler consumer.
+
+        Args:
+            bug (bugzilla.bug.Bug or None): The Bug to retrieve details from Bugzilla about. If
+                None, self.bug_id will be used to retrieve the bug. Defaults to None.
         """
         bugs.bugtracker.update_details(bug, self)
 
     def default_message(self, update):
+        """
+        Return a default comment to add to a bug with add_comment().
+
+        Args:
+            update (Update): The update that is related to the bug.
+        Returns:
+            basestring: The default comment to add to the bug related to the given update.
+        """
         message = config['stable_bug_msg'] % (
             update.get_title(delim=', '), "%s %s" % (
                 update.release.long_name, update.status.description))
@@ -2776,6 +3518,14 @@ class Bug(Base):
         return message
 
     def add_comment(self, update, comment=None):
+        """
+        Add a comment to the bug, pertaining to the given update.
+
+        Args:
+            update (Update): The update that is related to the bug.
+            comment (basestring or None): The comment to add to the bug. If None, a default message
+                is added to the bug. Defaults to None.
+        """
         if (update.type is UpdateType.security and self.parent and
                 update.status is not UpdateStatus.stable):
             log.debug('Not commenting on parent security bug %s', self.bug_id)
@@ -2787,8 +3537,13 @@ class Bug(Base):
 
     def testing(self, update):
         """
-        Change the status of this bug to ON_QA, and comment on the bug with
-        some details on how to test and provide feedback for this update.
+        Change the status of this bug to ON_QA.
+
+        Also, comment on the bug with some details on how to test and provide feedback for the given
+        update.
+
+        Args:
+            update (Update): The update associated with the bug.
         """
         # Skip modifying Security Response bugs for testing updates
         if update.type is UpdateType.security and self.parent:
@@ -2798,6 +3553,12 @@ class Bug(Base):
             bugs.bugtracker.on_qa(self.bug_id, comment)
 
     def close_bug(self, update):
+        """
+        Close the bug.
+
+        Args:
+            update (Update): The update associated with the bug.
+        """
         # Build a mapping of package names to build versions
         # so that .close() can figure out which build version fixes which bug.
         versions = dict([
@@ -2806,7 +3567,12 @@ class Bug(Base):
         bugs.bugtracker.close(self.bug_id, versions=versions, comment=self.default_message(update))
 
     def modified(self, update):
-        """ Change the status of this bug to MODIFIED """
+        """
+        Change the status of this bug to MODIFIED unless it is a parent security bug.
+
+        Args:
+            update (Update): The update that is associated with this bug.
+        """
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying on parent security bug %s', self.bug_id)
         else:
@@ -2827,6 +3593,22 @@ stack_user_table = Table('stack_user_table', Base.metadata,
 
 
 class User(Base):
+    """
+    A Bodhi user.
+
+    Attributes:
+        name (unicode): The username.
+        email (unicode): An e-mail address for the user.
+        show_popups (bool): If True, the web interface will display fedmsg popups to the user.
+            Defaults to True.
+        comments (sqlalchemy.orm.dynamic.AppenderQuery): An iterable of :class:`Comments <Comment>`
+            the user has written.
+        updates (sqlalchemy.orm.dynamic.AppenderQuery): An iterable of :class:`Updates <Update>` the
+            user has created.
+        groups (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Groups <Group>`
+            the user is a member of.
+    """
+
     __tablename__ = 'users'
     __exclude_columns__ = ('comments', 'updates', 'packages', 'stacks',
                            'buildroot_overrides')
@@ -2847,12 +3629,28 @@ class User(Base):
     groups = relationship("Group", secondary=user_group_table, backref='users')
 
     def avatar(self, request):
+        """
+        Return a URL for the User's avatar, or None if request is falsey.
+
+        Args:
+            request (pyramid.util.Request): The current web request.
+        Returns:
+            basestring or None: A URL for the User's avatar, or None if request is falsey.
+        """
         if not request:
             return None
         context = dict(request=request)
         return get_avatar(context=context, username=self.name, size=24)
 
     def openid(self, request):
+        """
+        Return an openid identity URL.
+
+        Args:
+            request (pyramid.util.Request): The current web request.
+        Returns:
+            basestring: The openid identity URL for the User object.
+        """
         if not request:
             return None
         template = request.registry.settings.get('openid_template')
@@ -2860,6 +3658,15 @@ class User(Base):
 
 
 class Group(Base):
+    """
+    A group of users.
+
+    Attributes:
+        name (unicode): The name of the Group.
+        users (sqlalchemy.orm.collections.InstrumentedList): An iterable of the
+            :class:`Users <User>` who are in the group.
+    """
+
     __tablename__ = 'groups'
     __get_by__ = ('name',)
     __exclude_columns__ = ('id', 'stacks',)
@@ -2884,10 +3691,11 @@ class BuildrootOverride(Base):
         expiration_date (DateTime): The date that the buildroot override expires.
         expired_date (DateTime): The date that the buildroot override expired.
         build_id (int): The primary key of the :class:`Build` this override is related to.
-        build (Build): The :class:`Build` object this override is related to.
+        build (Build): The build this override is related to.
         submitter_id (int): The primary key of the :class:`User` this override was created by.
-        submitter (User): The :class:`User` this override was created by.
+        submitter (User): The user this override was created by.
     """
+
     __tablename__ = 'buildroot_overrides'
     __include_extras__ = ('nvr',)
     __get_by__ = ('build_id',)
@@ -2909,12 +3717,25 @@ class BuildrootOverride(Base):
 
     @property
     def nvr(self):
-        """ Convenience access to the build NVR. """
+        """
+        Return the NVR of the :class:`Build` associated with this override.
+
+        Returns:
+            basestring: The override's :class:`Build's <Build>` NVR.
+        """
         return self.build.nvr
 
     @classmethod
     def new(cls, request, **data):
-        """Create a new buildroot override"""
+        """
+        Create a new buildroot override.
+
+        Args:
+            request (pyramid.util.Request): The current web request.
+            data (dict): A dictionary of all the attributes to be used on the new override.
+        Returns:
+            BuildrootOverride: The newly created BuildrootOverride instance.
+        """
         db = request.db
 
         build = data['build']
@@ -2944,7 +3765,15 @@ class BuildrootOverride(Base):
 
     @classmethod
     def edit(cls, request, **data):
-        """Edit an existing buildroot override"""
+        """
+        Edit an existing buildroot override.
+
+        Args:
+            request (pyramid.util.Request): The current web request.
+            data (dict): The changed being made to the BuildrootOverride.
+        Returns:
+            BuildrootOverride: The new updated override.
+        """
         db = request.db
 
         edited = data.pop('edited')
@@ -2974,6 +3803,7 @@ class BuildrootOverride(Base):
         return override
 
     def enable(self):
+        """Mark the BuildrootOverride as enabled."""
         koji_session = buildsys.get_session()
         koji_session.tagBuild(self.build.release.override_tag, self.build.nvr)
 
@@ -2985,6 +3815,7 @@ class BuildrootOverride(Base):
         self.expired_date = None
 
     def expire(self):
+        """Mark the BuildrootOverride as expired."""
         if self.expired_date is not None:
             return
 
@@ -3004,9 +3835,20 @@ class BuildrootOverride(Base):
 
 class Stack(Base):
     """
-    A Stack in bodhi represents a group of packages that are commonly pushed
-    together as a group.
+    A group of packages that are commonly pushed together as a group.
+
+    Attributes:
+        name (unicode): The name of the stack.
+        packages (sqlalchemy.orm.collections.InstrumentedList): An iterable of
+            :class:`Packages <Package>` associated with this stack.
+        description (unicode): A human readable description of the stack.
+        requirements (unicode): The required tests for the stack.
+        users (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Users <User>`
+            associated with this stack.
+        groups (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Groups <Group>`
+            associated with this stack.
     """
+
     __tablename__ = 'stacks'
     __get_by__ = ('name',)
 
