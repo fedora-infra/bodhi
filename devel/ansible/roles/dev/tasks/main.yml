@@ -44,6 +44,7 @@
       - python2-fedmsg-commands
       - python2-fedmsg-consumers
       - python2-fedora
+      - python2-feedgen
       - python2-flake8
       - python2-ipdb
       - python2-jinja2
@@ -88,11 +89,6 @@
 - name: pip install diff_cover
   pip:
       name: diff_cover
-
-# This isn't packaged in Fedora yet, but there is a package review open https://bugzilla.redhat.com/show_bug.cgi?id=1505993
-- name: pip install feedgen
-  pip:
-      name: feedgen
 
 - name: Install bodhi in developer mode
   command: python /home/vagrant/bodhi/setup.py develop
