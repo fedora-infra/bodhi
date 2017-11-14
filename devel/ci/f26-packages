@@ -9,6 +9,7 @@
     python-simplemediawiki \
     python-webtest \
     python2-fedmsg \
+    python2-feedgen \
     python2-kitchen \
     python2-pyramid-mako \
     python2-pyramid-tm \

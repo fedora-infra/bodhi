@@ -1,6 +1,7 @@
     python2-alembic \
     python2-bugzilla \
     python2-fedmsg \
+    python2-feedgen \
     python2-kitchen \
     python2-munch \
     python2-openid \
