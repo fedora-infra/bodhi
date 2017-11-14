@@ -456,10 +456,10 @@ class TestQuery(unittest.TestCase):
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
                 return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
-    @mock.patch('__builtin__.raw_input', create=True)
-    def test_query_mine_flag_username_unset(self, mock_raw_input, send_request):
+    @mock.patch('bodhi.client.bindings.input', create=True)
+    def test_query_mine_flag_username_unset(self, mock_input, send_request):
         """Assert that we use init_username if --user is not given."""
-        mock_raw_input.return_value = 'dudemcpants'
+        mock_input.return_value = 'dudemcpants'
 
         with mock.patch.dict('os.environ'):
             with mock.patch('__builtin__.open', create=True) as mock_open:
@@ -512,10 +512,10 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
                 return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
-    @mock.patch('__builtin__.raw_input', create=True)
-    def test_queryoverrides_mine_flag_username_unset(self, mock_raw_input, send_request):
+    @mock.patch('bodhi.client.bindings.input', create=True)
+    def test_queryoverrides_mine_flag_username_unset(self, mock_input, send_request):
         """Assert that we use init_username if --user is not given."""
-        mock_raw_input.return_value = 'dudemcpants'
+        mock_input.return_value = 'dudemcpants'
 
         with mock.patch.dict('os.environ'):
             with mock.patch('__builtin__.open', create=True) as mock_open:
