@@ -1,11 +1,9 @@
 Python bindings
 ===============
 
-.. automodule:: bodhi.client.bindings
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Click below to explore documentation on Bodhi's Python bindings:
 
-.. contents::
-   :local:
-   :backlinks: none
+.. autosummary::
+   :toctree: docblocks
+
+   bodhi.client.bindings
