@@ -11,7 +11,8 @@
     python2-pyramid-tm \
     python2-simplemediawiki \
     python2-sqlalchemy \
-    python2-webtest
+    python2-webtest \
+    python3-diff-cover
 
-RUN pip-2 install cornice~=2.0 diff_cover
+RUN pip-2 install cornice~=2.0
 RUN pip install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
