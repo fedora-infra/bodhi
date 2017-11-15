@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+# Copyright © 2007-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -20,7 +23,7 @@ import unittest
 import mock
 import xmlrpclib
 
-from bodhi.server import bugs
+from bodhi.server import bugs, models
 
 
 class TestBugzilla(unittest.TestCase):
@@ -83,6 +86,19 @@ class TestBugzilla(unittest.TestCase):
 
         self.assertTrue(return_value is bz._bz)
         self.assertEqual(_connect.call_count, 0)
+
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_close_fault(self, exception):
+        """Assert that an xmlrpc Fault is caught and logged by close()."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.close.side_effect = xmlrpclib.Fault(
+            410, 'You must log in before using this part of Red Hat Bugzilla.')
+
+        # This should not raise an Exception.
+        bz.close(12345, {'bodhi': ['bodhi-3.1.0-1.fc27']}, 'whabam!')
+
+        exception.assert_called_once_with('Unable to close bug #12345')
 
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_comment_successful(self, exception):
@@ -218,6 +234,18 @@ class TestBugzilla(unittest.TestCase):
         bz.update_details(0, 0)
 
         mock_exceptionlog.assert_called_once_with('Unknown exception from Bugzilla')
+
+    def test_update_details_keywords_str(self):
+        """Assert that we split the keywords into a list when they are a str."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bug = mock.MagicMock()
+        bug.keywords = 'some words but sEcuriTy is in the middle of them'
+        bug_entity = models.Bug()
+
+        bz.update_details(bug, bug_entity)
+
+        self.assertTrue(bug_entity.security)
 
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_on_qa_failure(self, exception):
