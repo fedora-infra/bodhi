@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2017 Caleigh Runge-Hottman
+# Copyright © 2017 Caleigh Runge-Hottman and Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -36,11 +36,17 @@ def dequeue_stable():
     try:
         batched = db.query(models.Update).filter_by(request=models.UpdateRequest.batched).all()
         for update in batched:
-            update.set_request(db, models.UpdateRequest.stable, u'bodhi')
-        db.commit()
-
+            try:
+                update.set_request(db, models.UpdateRequest.stable, u'bodhi')
+                db.commit()
+            except Exception as e:
+                print('Unable to stabilize {}: {}'.format(update.alias, str(e)))
+                db.rollback()
+                msg = u"Bodhi is unable to request this update for stabilization: {}"
+                update.comment(db, msg.format(str(e)), author=u'bodhi')
+                db.commit()
     except Exception as e:
         print(str(e))
-        db.rollback()
-        Session.remove()
         sys.exit(1)
+    finally:
+        Session.remove()
