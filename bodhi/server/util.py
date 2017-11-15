@@ -731,26 +731,6 @@ def severity2html(context, severity):
     return "<span class='label label-%s'>%s</span>" % (cls, severity)
 
 
-def suggestion2html(context, suggestion):
-    """
-    Render the given UpdateSuggestion as an HTML span tag.
-
-    Args:
-        context (mako.runtime.Context): Unused.
-        suggestion (bodhi.server.models.UpdateSuggestion): The UpdateSuggestion to render as a span
-            tag.
-    Returns:
-        basestring: An HTML span tag representing the UpdateSuggestion.
-    """
-    suggestion = unicode(suggestion)
-    cls = {
-        'reboot': 'danger',
-        'logout': 'warning',
-    }.get(suggestion)
-
-    return "<span class='label label-%s'>%s</span>" % (cls, suggestion)
-
-
 def request2html(context, request):
     """
     Render the given UpdateRequest as an HTML span tag.
