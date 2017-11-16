@@ -25,11 +25,11 @@ import tempfile
 
 from kitchen.text.converters import to_bytes
 import createrepo_c as cr
+import six
 
 from bodhi.server.buildsys import get_session
 from bodhi.server.config import config
 from bodhi.server.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
-import six
 
 
 __version__ = '2.0'

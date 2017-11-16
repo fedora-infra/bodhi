@@ -26,11 +26,11 @@ from pyramid.exceptions import HTTPForbidden
 from pyramid.httpexceptions import HTTPFound
 import cornice.errors
 import sqlalchemy as sa
+import six
 
 from bodhi.server import log, models
 from bodhi.server.config import config
 import bodhi.server.util
-import six
 
 
 def get_top_testers(request):

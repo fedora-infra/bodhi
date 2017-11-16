@@ -23,10 +23,10 @@ from pyramid.security import (Allow, ALL_PERMISSIONS, DENY_ALL)
 from pyramid.security import remember, forget
 from pyramid.httpexceptions import HTTPFound
 from pyramid.threadlocal import get_current_registry
+import six
 
 from . import log
 from .models import User, Group
-import six
 
 
 #

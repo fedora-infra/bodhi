@@ -23,10 +23,10 @@ import unittest
 
 import fedora.client
 import mock
+import six
 
 from bodhi.client import bindings
 from bodhi.tests import client as client_test_data
-import six
 
 
 class TestBodhiClient___init__(unittest.TestCase):

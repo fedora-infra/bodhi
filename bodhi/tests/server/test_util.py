@@ -20,13 +20,13 @@ import subprocess
 
 import mock
 import pkgdb2client
+import six
 
 from bodhi.server import util
 from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
 from bodhi.server.models import TestGatingStatus, Update, UpdateRequest, UpdateSeverity
 from bodhi.tests.server import base
-import six
 
 
 class TestBugLink(base.BaseTestCase):

@@ -15,7 +15,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test suite for bodhi.server.models"""
 from datetime import datetime, timedelta
-from six.moves.html_parser import HTMLParser
 import json
 import pickle
 import time
@@ -25,6 +24,8 @@ from pyramid.testing import DummyRequest
 from sqlalchemy.exc import IntegrityError
 import cornice
 import mock
+from six.moves.html_parser import HTMLParser
+import six
 
 from bodhi.server import models as model, buildsys, mail, util, Session
 from bodhi.server.config import config
@@ -33,7 +34,6 @@ from bodhi.server.models import (
     BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
     UpdateSuggestion, UpdateType, TestGatingStatus)
 from bodhi.tests.server.base import BaseTestCase
-import six
 
 
 class DummyUser(object):

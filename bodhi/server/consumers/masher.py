@@ -39,6 +39,8 @@ from datetime import datetime
 
 import fedmsg.consumers
 import jinja2
+from six.moves import zip
+import six
 
 from bodhi.server import bugs, initialize_db, log, buildsys, notifications, mail
 from bodhi.server.config import config
@@ -47,8 +49,6 @@ from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
 from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
-from six.moves import zip
-import six
 
 
 def checkpoint(method):

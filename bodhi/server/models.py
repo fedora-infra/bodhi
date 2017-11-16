@@ -32,7 +32,6 @@ import uuid
 
 from pkgdb2client import PkgDB
 from simplemediawiki import MediaWiki
-from six.moves.urllib.parse import quote
 from sqlalchemy import (and_, Boolean, Column, DateTime, ForeignKey, Integer, or_, Table, Unicode,
                         UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
@@ -41,6 +40,8 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.sql import text
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
+from six.moves.urllib.parse import quote
+import six
 
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session
 from bodhi.server.config import config
@@ -49,7 +50,6 @@ from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_critpath_components,
     get_nvr, get_rpm_header, header, packagename_from_nvr, tokenize, pagure_api_get)
 import bodhi.server.util
-import six
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
