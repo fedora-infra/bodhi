@@ -13,14 +13,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import logging
-from six.moves import xmlrpc_client
 
 from collections import namedtuple
 from kitchen.text.converters import to_unicode
 import bugzilla
+import six
+from six.moves import xmlrpc_client
 
 from bodhi.server.config import config
-import six
 
 
 bugtracker = None

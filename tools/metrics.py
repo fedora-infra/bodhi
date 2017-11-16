@@ -24,12 +24,12 @@ from operator import itemgetter
 import sys
 
 from sqlalchemy.sql import and_
+import six
 
 from bodhi.server import Session, initialize_db
 from bodhi.server.models import Update, Release, UpdateStatus, UpdateType
 from bodhi.server.util import header, get_critpath_components
 import bodhi
-import six
 
 
 statuses = ('stable', 'testing', 'pending', 'obsolete')

@@ -26,6 +26,7 @@ import urlparse
 from mock import ANY
 from webtest import TestApp
 import mock
+import six
 
 from bodhi.server import main
 from bodhi.server.config import config
@@ -34,7 +35,6 @@ from bodhi.server.models import (
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
     UpdateSeverity, User, TestGatingStatus)
 from bodhi.tests.server import base
-import six
 
 
 YEAR = time.localtime().tm_year

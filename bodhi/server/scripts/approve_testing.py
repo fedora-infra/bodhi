@@ -27,11 +27,11 @@ import os
 import sys
 
 from pyramid.paster import get_appsettings
+import six
 
 from ..models import Update, UpdateStatus
 from ..config import config
 from bodhi.server import Session, initialize_db
-import six
 
 
 def usage(argv):

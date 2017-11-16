@@ -21,10 +21,10 @@ import re
 import functools
 
 import click
+import six
 
 from bodhi.client import bindings
 from fedora.client import AuthError
-import six
 
 
 def _warn_if_url_and_staging_set(ctx, param, value):

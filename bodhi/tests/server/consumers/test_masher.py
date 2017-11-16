@@ -29,6 +29,7 @@ import urllib2
 import urlparse
 
 import mock
+import six
 
 from bodhi.server import buildsys, exceptions, log, initialize_db
 from bodhi.server.config import config
@@ -39,7 +40,6 @@ from bodhi.server.models import (
     UpdateRequest, UpdateStatus, UpdateType, User, ModuleBuild, ContentType, Package)
 from bodhi.server.util import mkmetadatadir, transactional_session_maker
 from bodhi.tests.server import base, populate
-import six
 
 
 mock_exc = mock.Mock()

@@ -30,10 +30,10 @@ from pyramid.exceptions import HTTPForbidden
 from pyramid.renderers import JSONP
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
+import six
 
 from bodhi.server import bugs, buildsys, ffmarkdown
 from bodhi.server.config import config as bodhi_config
-import six
 
 
 log = logging.getLogger(__name__)

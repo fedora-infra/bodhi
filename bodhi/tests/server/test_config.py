@@ -19,9 +19,9 @@
 import unittest
 
 import mock
+import six
 
 from bodhi.server import config
-import six
 
 
 class BodhiConfigGetItemTests(unittest.TestCase):

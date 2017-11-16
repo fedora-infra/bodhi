@@ -28,6 +28,8 @@ import colander
 import koji
 import pyramid.threadlocal
 import rpm
+from six.moves import map
+import six
 
 from . import captcha
 from . import log
@@ -58,8 +60,6 @@ from .util import (
     taskotron_results,
 )
 from bodhi.server.config import config
-from six.moves import map
-import six
 
 
 csrf_error_message = """CSRF tokens do not match.  This happens if you have

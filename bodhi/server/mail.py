@@ -23,11 +23,11 @@ import smtplib
 
 from kitchen.iterutils import iterate
 from kitchen.text.converters import to_unicode, to_bytes
+import six
 
 from bodhi.server import log
 from bodhi.server.config import config
 from bodhi.server.util import get_rpm_header
-import six
 
 
 #

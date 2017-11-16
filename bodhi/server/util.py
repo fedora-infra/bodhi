@@ -41,12 +41,12 @@ import librepo
 import markdown
 import requests
 import rpm
+from six.moves import map
+import six
 
 from bodhi.server import log, buildsys, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
-from six.moves import map
-import six
 
 
 _ = TranslationStringFactory('bodhi')
