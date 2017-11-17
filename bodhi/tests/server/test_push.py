@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+# Copyright © 2016-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -165,50 +168,59 @@ class TestFilterReleases(base.BaseTestCase):
             self.assertEqual(str(ex.exception), 'Unknown release: RELEASE WITH NO NAME')
 
 
-TEST_ABORT_PUSH_EXPECTED_OUTPUT = """Warning: bodhi-2.0-1.fc17 is locked but not in a push
-Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
+TEST_ABORT_PUSH_EXPECTED_OUTPUT = """
+
+===== <Compose: F17 testing> =====
+
 python-nose-1.3.7-11.fc17
 python-paste-deploy-1.5.2-8.fc17
-Push these 2 updates? [y/N]: n
+bodhi-2.0-1.fc17
+
+
+Push these 3 updates? [y/N]: n
 Aborted!
 """
 
-TEST_BUILDS_FLAG_EXPECTED_OUTPUT = """ejabberd-16.09-4.fc17
-python-nose-1.3.7-11.fc17
-Push these 2 updates? [y/N]: y
+TEST_BUILDS_FLAG_EXPECTED_OUTPUT = """
 
-Locking updates...
+===== <Compose: F17 testing> =====
 
-Sending masher.start fedmsg
-"""
-
-TEST_CERT_PREFIX_FLAG_EXPECTED_OUTPUT = """Warning: bodhi-2.0-1.fc17 is locked but not in a push
-Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
-python-nose-1.3.7-11.fc17
-python-paste-deploy-1.5.2-8.fc17
-Push these 2 updates? [y/N]: y
-
-Locking updates...
-
-Sending masher.start fedmsg
-"""
-
-TEST_LOCKED_UPDATES_EXPECTED_OUTPUT = """Warning: bodhi-2.0-1.fc17 is locked but not in a push
-Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
-python-nose-1.3.7-11.fc17
-python-paste-deploy-1.5.2-8.fc17
-Push these 2 updates? [y/N]: y
-
-Locking updates...
-
-Sending masher.start fedmsg
-"""
-
-TEST_LOCKED_UPDATES_NOT_IN_A_PUSH_EXPECTED_OUTPUT = """Warning: ejabberd-16.09-4.fc17 is locked but not in a push
-python-nose-1.3.7-11.fc17
-python-paste-deploy-1.5.2-8.fc17
 ejabberd-16.09-4.fc17
+python-nose-1.3.7-11.fc17
+
+
+Push these 2 updates? [y/N]: y
+
+Locking updates...
+
+Sending masher.start fedmsg
+"""
+
+TEST_CERT_PREFIX_FLAG_EXPECTED_OUTPUT = """
+
+===== <Compose: F17 testing> =====
+
+python-nose-1.3.7-11.fc17
+python-paste-deploy-1.5.2-8.fc17
+bodhi-2.0-1.fc17
+
+
 Push these 3 updates? [y/N]: y
+
+Locking updates...
+
+Sending masher.start fedmsg
+"""
+
+TEST_LOCKED_UPDATES_EXPECTED_OUTPUT = """Existing composes detected: <Compose: F17 testing>. Do you wish to resume them all? [y/N]: y
+
+
+===== <Compose: F17 testing> =====
+
+ejabberd-16.09-4.fc17
+
+
+Push these 1 updates? [y/N]: y
 
 Locking updates...
 
@@ -217,14 +229,23 @@ Sending masher.start fedmsg
 
 TEST_NO_UPDATES_TO_PUSH_EXPECTED_OUTPUT = """Warning: python-nose-1.3.7-11.fc17 has unsigned builds and has been skipped
 Warning: python-paste-deploy-1.5.2-8.fc17 has unsigned builds and has been skipped
-Warning: bodhi-2.0-1.fc17 is locked but not in a push
 Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
 
 There are no updates to push.
 """
 
-TEST_RELEASES_FLAG_EXPECTED_OUTPUT = """python-nose-1.3.7-11.fc25
+TEST_RELEASES_FLAG_EXPECTED_OUTPUT = """
+
+===== <Compose: F25 testing> =====
+
+python-nose-1.3.7-11.fc25
+
+
+===== <Compose: F26 testing> =====
+
 python-paste-deploy-1.5.2-8.fc26
+
+
 Push these 2 updates? [y/N]: y
 
 Locking updates...
@@ -232,9 +253,29 @@ Locking updates...
 Sending masher.start fedmsg
 """
 
-TEST_REQUEST_FLAG_EXPECTED_OUTPUT = """Warning: bodhi-2.0-1.fc17 is locked but not in a push
-Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
+TEST_REQUEST_FLAG_EXPECTED_OUTPUT = """
+
+===== <Compose: F17 testing> =====
+
 python-paste-deploy-1.5.2-8.fc17
+bodhi-2.0-1.fc17
+
+
+Push these 2 updates? [y/N]: y
+
+Locking updates...
+
+Sending masher.start fedmsg
+"""
+
+TEST_RESUME_FLAG_EXPECTED_OUTPUT = """Resume <Compose: F17 testing>? [y/N]: y
+
+
+===== <Compose: F17 testing> =====
+
+ejabberd-16.09-4.fc17
+
+
 Push these 1 updates? [y/N]: y
 
 Locking updates...
@@ -242,8 +283,15 @@ Locking updates...
 Sending masher.start fedmsg
 """
 
-TEST_RESUME_FLAG_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-updates? [y/N]: y
+TEST_RESUME_EMPTY_COMPOSE = """Resume <Compose: F17 testing>? [y/N]: y
+<Compose: F17 stable> has no updates. It is being removed.
+
+
+===== <Compose: F17 testing> =====
+
 ejabberd-16.09-4.fc17
+
+
 Push these 1 updates? [y/N]: y
 
 Locking updates...
@@ -251,9 +299,15 @@ Locking updates...
 Sending masher.start fedmsg
 """
 
-TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT = """Resume /mnt/koji/mash/updates/MASHING-f17-testing? [y/N]: n
-Resume /mnt/koji/mash/updates/MASHING-f17-updates? [y/N]: y
+TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT = """Resume <Compose: F17 testing>? [y/N]: y
+Resume <Compose: F17 stable>? [y/N]: n
+
+
+===== <Compose: F17 testing> =====
+
 ejabberd-16.09-4.fc17
+
+
 Push these 1 updates? [y/N]: y
 
 Locking updates...
@@ -262,10 +316,15 @@ Sending masher.start fedmsg
 """
 
 TEST_UNSIGNED_UPDATES_SKIPPED_EXPECTED_OUTPUT = """Warning: python-nose-1.3.7-11.fc17 has unsigned builds and has been skipped
-Warning: bodhi-2.0-1.fc17 is locked but not in a push
-Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
+
+
+===== <Compose: F17 testing> =====
+
 python-paste-deploy-1.5.2-8.fc17
-Push these 1 updates? [y/N]: y
+bodhi-2.0-1.fc17
+
+
+Push these 2 updates? [y/N]: y
 
 Locking updates...
 
@@ -319,13 +378,10 @@ class TestPush(base.BaseTestCase):
             doctored_output = result.output
         self.assertEqual(doctored_output, TEST_ABORT_PUSH_EXPECTED_OUTPUT)
         self.assertEqual(publish.call_count, 0)
-
         # The updates should not be locked
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
-        for u in [python_nose, python_paste_deploy]:
+        for u in [u'bodhi-2.0-1.fc17', u'python-nose-1.3.7-11.fc17',
+                  u'python-paste-deploy-1.5.2-8.fc17']:
+            u = self.db.query(models.Update).filter_by(title=u).one()
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
@@ -353,18 +409,18 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.output, TEST_BUILDS_FLAG_EXPECTED_OUTPUT)
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'updates': [u'ejabberd-16.09-4.fc17', u'python-nose-1.3.7-11.fc17'],
-                 'resume': False, 'agent': 'bowlofeggs'},
+            msg={
+                'composes': [{'security': False, 'release_id': ejabberd.release.id,
+                              'request': u'testing', 'content_type': u'rpm'}],
+                'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
 
-        ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
-        for u in [ejabberd, python_nose]:
+        for u in [u'ejabberd-16.09-4.fc17', u'python-nose-1.3.7-11.fc17']:
+            u = self.db.query(models.Update).filter_by(title=u).one()
             self.assertTrue(u.locked)
             self.assertTrue(u.date_locked <= datetime.utcnow())
+        python_paste_deploy = self.db.query(models.Update).filter_by(
+            title=u'python-paste-deploy-1.5.2-8.fc17').one()
         self.assertFalse(python_paste_deploy.locked)
         self.assertIsNone(python_paste_deploy.date_locked)
 
@@ -387,105 +443,56 @@ class TestPush(base.BaseTestCase):
         init.assert_called_once_with(active=True, cert_prefix='some_prefix')
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'updates': ['python-nose-1.3.7-11.fc17', u'python-paste-deploy-1.5.2-8.fc17'],
-                 'resume': False, 'agent': 'bowlofeggs'},
+            msg={
+                'composes': [{'security': False, 'release_id': 1, 'request': u'testing',
+                              'content_type': u'rpm'}],
+                'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
-    @mock.patch('bodhi.server.push.open', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    @mock.patch('bodhi.server.push.glob.glob',
-                return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
-    @mock.patch('bodhi.server.push.json.load', return_value={'updates': ['ejabberd-16.09-4.fc17']})
-    def test_locked_updates(self, load, glob, publish, mock_file, mock_init):
+    def test_locked_updates(self, publish, mock_init):
         """
         Test correct operation when there are some locked updates.
         """
         cli = CliRunner()
-        # Let's mark ejabberd as locked and already in a push. It should get silently ignored.
+        # Let's mark ejabberd as locked and already in a push. bodhi-push should prompt the user to
+        # resume this compose rather than starting a new one.
         ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
-        ejabberd.date_locked = datetime.utcnow()
+        compose = models.Compose(
+            release=ejabberd.release, request=ejabberd.request, state=models.ComposeState.failed,
+            error_message=u'y r u so mean nfs')
+        self.db.add(compose)
         self.db.commit()
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
+            result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y\ny')
 
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_LOCKED_UPDATES_EXPECTED_OUTPUT)
-        glob.assert_called_once_with('/mashdir//MASHING-*')
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'updates': ['python-nose-1.3.7-11.fc17', 'python-paste-deploy-1.5.2-8.fc17'],
-                 'resume': False, 'agent': 'bowlofeggs'},
+            msg={'composes': [ejabberd.compose.__json__()],
+                 'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
-        mock_file.assert_called_once_with('/mnt/koji/mash/updates/MASHING-f17-updates')
-
         ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
+        self.assertTrue(ejabberd.locked)
+        self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
+        self.assertEqual(ejabberd.compose.release, ejabberd.release)
+        self.assertEqual(ejabberd.compose.request, ejabberd.request)
+        self.assertEqual(ejabberd.compose.state, models.ComposeState.requested)
+        self.assertEqual(ejabberd.compose.error_message, '')
         python_nose = self.db.query(models.Update).filter_by(
             title=u'python-nose-1.3.7-11.fc17').one()
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
-        for u in [ejabberd, python_nose, python_paste_deploy]:
-            self.assertTrue(u.locked)
-            self.assertTrue(u.date_locked <= datetime.utcnow())
-
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
-    @mock.patch('bodhi.server.push.open', create=True)
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    @mock.patch('bodhi.server.push.glob.glob',
-                return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
-    @mock.patch('bodhi.server.push.json.load', return_value={'updates': ['bodhi-2.0-1.fc17']})
-    def test_locked_updates_not_in_a_push(self, load, glob, publish, mock_file, mock_init):
-        """
-        Test correct operation when there are some locked updates that aren't in a push.
-        """
-        cli = CliRunner()
-        # Let's mark ejabberd as locked but not already in a push. It should print a warning but
-        # still get pushed.
-        ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
-        ejabberd.builds[0].signed = True
-        ejabberd.locked = True
-        ejabberd.date_locked = datetime.utcnow()
-        self.db.commit()
-
-        with mock.patch('bodhi.server.push.transactional_session_maker',
-                        return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
-
-        self.assertEqual(result.exit_code, 0)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
-        # The packages might be printed in any order and the order isn't important. So let's compare
-        # the output with the package list removed to make sure that it is correct.
-        self.assertEqual(
-            '\n'.join([l for l in result.output.split('\n') if l[-4:] != 'fc17']),
-            '\n'.join([l for l in TEST_LOCKED_UPDATES_NOT_IN_A_PUSH_EXPECTED_OUTPUT.split('\n')
-                       if l[-4:] != 'fc17']))
-        # Now let's assert that the package list is correct
-        self.assertEqual(
-            set([l for l in result.output.split('\n') if l[-4:] == 'fc17']),
-            set([l for l in TEST_LOCKED_UPDATES_NOT_IN_A_PUSH_EXPECTED_OUTPUT.split('\n')
-                 if l[-4:] == 'fc17']))
-        glob.assert_called_once_with('/mashdir//MASHING-*')
-        publish.assert_called_once_with(
-            topic='masher.start',
-            msg={'updates': ['ejabberd-16.09-4.fc17', 'python-nose-1.3.7-11.fc17',
-                             'python-paste-deploy-1.5.2-8.fc17'],
-                 'resume': False, 'agent': 'bowlofeggs'},
-            force=True)
-        mock_file.assert_called_once_with('/mnt/koji/mash/updates/MASHING-f17-updates')
-
-        ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
-        for u in [ejabberd, python_nose, python_paste_deploy]:
-            self.assertTrue(u.locked)
-            self.assertTrue(u.date_locked <= datetime.utcnow())
+        for u in [python_nose, python_paste_deploy]:
+            self.assertFalse(u.locked)
+            self.assertIsNone(u.date_locked)
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     def test_no_updates_to_push(self, publish):
@@ -493,10 +500,13 @@ class TestPush(base.BaseTestCase):
         If there are no updates to push, no push message should get sent.
         """
         cli = CliRunner()
+        bodhi = self.db.query(models.Update).filter_by(
+            title=u'bodhi-2.0-1.fc17').one()
         python_nose = self.db.query(models.Update).filter_by(
             title=u'python-nose-1.3.7-11.fc17').one()
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        bodhi.builds[0].signed = False
         python_nose.builds[0].signed = False
         python_paste_deploy.builds[0].signed = False
         self.db.commit()
@@ -510,6 +520,8 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(publish.call_count, 0)
 
         # The updates should not be locked
+        bodhi = self.db.query(models.Update).filter_by(
+            title=u'bodhi-2.0-1.fc17').one()
         python_nose = self.db.query(models.Update).filter_by(
             title=u'python-nose-1.3.7-11.fc17').one()
         python_paste_deploy = self.db.query(models.Update).filter_by(
@@ -551,6 +563,8 @@ class TestPush(base.BaseTestCase):
         self.db.commit()
         # Let's make an update for each release
         python_nose = self.create_update([u'python-nose-1.3.7-11.fc25'], u'F25')
+        # Let's make nose a security update to test that its compose gets sorted first.
+        python_nose.type = models.UpdateType.security
         python_paste_deploy = self.create_update([u'python-paste-deploy-1.5.2-8.fc26'], u'F26')
         python_nose.builds[0].signed = True
         python_paste_deploy.builds[0].signed = True
@@ -568,10 +582,16 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
+        f25_python_nose = self.db.query(models.Update).filter_by(
+            title=u'python-nose-1.3.7-11.fc25').one()
+        f26_python_paste_deploy = self.db.query(models.Update).filter_by(
+            title=u'python-paste-deploy-1.5.2-8.fc26').one()
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'updates': ['python-nose-1.3.7-11.fc25', 'python-paste-deploy-1.5.2-8.fc26'],
-                 'resume': False, 'agent': 'bowlofeggs'},
+            msg={
+                'composes': [f25_python_nose.compose.__json__(),
+                             f26_python_paste_deploy.compose.__json__()],
+                'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
 
         # The Fedora 17 updates should not have been locked.
@@ -581,17 +601,20 @@ class TestPush(base.BaseTestCase):
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         self.assertFalse(f17_python_nose.locked)
         self.assertIsNone(f17_python_nose.date_locked)
+        self.assertIsNone(f17_python_nose.compose)
         self.assertFalse(f17_python_paste_deploy.locked)
         self.assertIsNone(f17_python_paste_deploy.date_locked)
+        self.assertIsNone(f17_python_paste_deploy.compose)
         # The new updates should both be locked.
-        f25_python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc25').one()
-        f26_python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc26').one()
         self.assertTrue(f25_python_nose.locked)
         self.assertTrue(f25_python_nose.date_locked <= datetime.utcnow())
         self.assertTrue(f26_python_paste_deploy.locked)
         self.assertTrue(f26_python_paste_deploy.date_locked <= datetime.utcnow())
+        # The new updates should also be associated with the new Composes.
+        self.assertEqual(f25_python_nose.compose.release.id, f25.id)
+        self.assertEqual(f25_python_nose.compose.request, models.UpdateRequest.testing)
+        self.assertEqual(f26_python_paste_deploy.compose.release.id, f26.id)
+        self.assertEqual(f26_python_paste_deploy.compose.request, models.UpdateRequest.testing)
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
@@ -614,28 +637,30 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_REQUEST_FLAG_EXPECTED_OUTPUT)
-        publish.assert_called_once_with(
-            topic='masher.start',
-            msg={'updates': ['python-paste-deploy-1.5.2-8.fc17'],
-                 'resume': False, 'agent': 'bowlofeggs'},
-            force=True)
-
+        bodhi = self.db.query(models.Update).filter_by(
+            title=u'bodhi-2.0-1.fc17').one()
         python_nose = self.db.query(models.Update).filter_by(
             title=u'python-nose-1.3.7-11.fc17').one()
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        publish.assert_called_once_with(
+            topic='masher.start',
+            msg={'composes': [python_paste_deploy.compose.__json__()],
+                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
+            force=True)
         self.assertFalse(python_nose.locked)
         self.assertIsNone(python_nose.date_locked)
-        self.assertTrue(python_paste_deploy.locked)
-        self.assertTrue(python_paste_deploy.date_locked <= datetime.utcnow())
+        self.assertIsNone(python_nose.compose)
+        for u in [bodhi, python_paste_deploy]:
+            self.assertTrue(u.locked)
+            self.assertTrue(u.date_locked <= datetime.utcnow())
+            self.assertEqual(u.compose.release.id, python_paste_deploy.release.id)
+            self.assertEqual(u.compose.request, models.UpdateRequest.testing)
+            self.assertEqual(u.compose.content_type, models.ContentType.rpm)
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
-    @mock.patch('bodhi.server.push.open', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    @mock.patch('bodhi.server.push.glob.glob',
-                return_value=['/mnt/koji/mash/updates/MASHING-f17-updates'])
-    @mock.patch('bodhi.server.push.json.load', return_value={'updates': [u'ejabberd-16.09-4.fc17']})
-    def test_resume_flag(self, load, glob, publish, mock_file, mock_init):
+    def test_resume_flag(self, publish, mock_init):
         """
         Test correct operation when the --resume flag is given.
         """
@@ -645,7 +670,8 @@ class TestPush(base.BaseTestCase):
         ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
-        ejabberd.date_locked = datetime.utcnow()
+        compose = models.Compose(release=ejabberd.release, request=ejabberd.request)
+        self.db.add(compose)
         self.db.commit()
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
@@ -655,37 +681,84 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RESUME_FLAG_EXPECTED_OUTPUT)
-        glob.assert_called_once_with('/mashdir//MASHING-*')
-        publish.assert_called_once_with(
-            topic='masher.start',
-            msg={'updates': ['ejabberd-16.09-4.fc17'],
-                 'resume': True, 'agent': 'bowlofeggs'},
-            force=True)
-        mock_file.assert_called_once_with('/mnt/koji/mash/updates/MASHING-f17-updates')
-
         ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
         python_nose = self.db.query(models.Update).filter_by(
             title=u'python-nose-1.3.7-11.fc17').one()
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        publish.assert_called_once_with(
+            topic='masher.start',
+            msg={'composes': [ejabberd.compose.__json__()],
+                 'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
+            force=True)
         # ejabberd should be locked still
         self.assertTrue(ejabberd.locked)
         self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
+        self.assertEqual(ejabberd.compose.release, ejabberd.release)
+        self.assertEqual(ejabberd.compose.request, ejabberd.request)
         # The other packages should have been left alone
         for u in [python_nose, python_paste_deploy]:
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
+            self.assertIsNone(u.compose)
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.init', mock.Mock())
-    @mock.patch('bodhi.server.push.open', create=True)
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    @mock.patch('bodhi.server.push.glob.glob',
-                return_value=['/mnt/koji/mash/updates/MASHING-f17-testing',
-                              '/mnt/koji/mash/updates/MASHING-f17-updates'])
-    @mock.patch('bodhi.server.push.json.load',
-                side_effect=[{'updates': [u'python-nose-1.3.7-11.fc17']},
-                             {'updates': [u'ejabberd-16.09-4.fc17']}])
-    def test_resume_human_says_no(self, load, glob, publish, mock_file):
+    def test_resume_empty_compose(self, publish):
+        """
+        Test correct operation when the --resume flag is given but one of the Composes has no
+        updates.
+        """
+        cli = CliRunner()
+        # Let's mark ejabberd as locked and already in a push. Since we are resuming and since we
+        # will decline pushing the first time we are asked, it should be the only package that gets
+        # included.
+        ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
+        ejabberd.builds[0].signed = True
+        ejabberd.locked = True
+        compose = models.Compose(release=ejabberd.release, request=ejabberd.request)
+        self.db.add(compose)
+        # This compose has no updates, so bodhi-push should delete it.
+        compose = models.Compose(release=ejabberd.release, request=models.UpdateRequest.stable)
+        self.db.add(compose)
+        self.db.commit()
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'],
+                                input='y\ny')
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, TEST_RESUME_EMPTY_COMPOSE)
+        ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
+        python_nose = self.db.query(models.Update).filter_by(
+            title=u'python-nose-1.3.7-11.fc17').one()
+        python_paste_deploy = self.db.query(models.Update).filter_by(
+            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        publish.assert_called_once_with(
+            topic='masher.start',
+            msg={'composes': [ejabberd.compose.__json__()],
+                 'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
+            force=True)
+        # ejabberd should still be locked.
+        self.assertTrue(ejabberd.locked)
+        self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
+        self.assertEqual(ejabberd.compose.release, ejabberd.release)
+        self.assertEqual(ejabberd.compose.request, ejabberd.request)
+        # These should be left alone.
+        for u in [python_nose, python_paste_deploy]:
+            self.assertFalse(u.locked)
+            self.assertIsNone(u.date_locked)
+            self.assertIsNone(u.compose)
+        # The empty compose should have been deleted.
+        self.assertEqual(
+            self.db.query(models.Compose).filter_by(
+                release_id=ejabberd.release.id, request=models.UpdateRequest.stable).count(),
+            0)
+
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init', mock.Mock())
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
+    def test_resume_human_says_no(self, publish):
         """
         Test correct operation when the --resume flag is given but the human says they don't want to
         resume one of the lockfiles.
@@ -697,37 +770,43 @@ class TestPush(base.BaseTestCase):
         ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
-        ejabberd.date_locked = datetime.utcnow()
+        compose = models.Compose(release=ejabberd.release, request=ejabberd.request)
+        self.db.add(compose)
+        python_nose = self.db.query(models.Update).filter_by(
+            title=u'python-nose-1.3.7-11.fc17').one()
+        python_nose.locked = True
+        python_nose.request = models.UpdateRequest.stable
+        compose = models.Compose(release=python_nose.release, request=python_nose.request)
+        self.db.add(compose)
         self.db.commit()
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'],
-                                input='n\ny\ny')
+                                input='y\nn\ny')
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT)
-        glob.assert_called_once_with('/mashdir//MASHING-*')
-        publish.assert_called_once_with(
-            topic='masher.start',
-            msg={'updates': ['ejabberd-16.09-4.fc17'],
-                 'resume': True, 'agent': 'bowlofeggs'},
-            force=True)
-        mock_file.assert_any_call('/mnt/koji/mash/updates/MASHING-f17-testing')
-        mock_file.assert_any_call('/mnt/koji/mash/updates/MASHING-f17-updates')
-
         ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
         python_nose = self.db.query(models.Update).filter_by(
             title=u'python-nose-1.3.7-11.fc17').one()
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
-        # ejabberd should be locked still
-        self.assertTrue(ejabberd.locked)
-        self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
-        # The other packages should have been left alone
-        for u in [python_nose, python_paste_deploy]:
-            self.assertFalse(u.locked)
-            self.assertIsNone(u.date_locked)
+        publish.assert_called_once_with(
+            topic='masher.start',
+            msg={'composes': [ejabberd.compose.__json__()],
+                 'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
+            force=True)
+        # These should still be locked.
+        for u in [ejabberd, python_nose]:
+            self.assertTrue(u.locked)
+            self.assertTrue(u.date_locked <= datetime.utcnow())
+            self.assertEqual(u.compose.release, u.release)
+            self.assertEqual(u.compose.request, u.request)
+        # paste_deploy should have been left alone
+        self.assertFalse(python_paste_deploy.locked)
+        self.assertIsNone(python_paste_deploy.date_locked)
+        self.assertIsNone(python_paste_deploy.compose)
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
@@ -749,17 +828,18 @@ class TestPush(base.BaseTestCase):
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_UNSIGNED_UPDATES_SKIPPED_EXPECTED_OUTPUT)
-        publish.assert_called_once_with(
-            topic='masher.start',
-            msg={'updates': ['python-paste-deploy-1.5.2-8.fc17'],
-                 'resume': False, 'agent': 'bowlofeggs'},
-            force=True)
-
         python_nose = self.db.query(models.Update).filter_by(
             title=u'python-nose-1.3.7-11.fc17').one()
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        publish.assert_called_once_with(
+            topic='masher.start',
+            msg={'composes': [python_paste_deploy.compose.__json__()],
+                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
+            force=True)
         self.assertFalse(python_nose.locked)
         self.assertIsNone(python_nose.date_locked)
         self.assertTrue(python_paste_deploy.locked)
         self.assertTrue(python_paste_deploy.date_locked <= datetime.utcnow())
+        self.assertEqual(python_paste_deploy.compose.release, python_paste_deploy.release)
+        self.assertEqual(python_paste_deploy.compose.request, python_paste_deploy.request)

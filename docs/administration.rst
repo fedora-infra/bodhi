@@ -6,7 +6,7 @@ Administration
 System Requirements
 ===================
 
-Bodhi is currently only supported on active Fedora releases.
+Bodhi is currently only supported on active Fedora releases. It requires PostgreSQL >= 9.2.0.
 
 
 Configuration

@@ -157,6 +157,7 @@ setup(
     bodhi-dequeue-stable = bodhi.server.scripts.dequeue_stable:dequeue_stable
     bodhi-push = bodhi.server.push:push
     bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
+    bodhi-monitor-composes = bodhi.server.scripts.monitor_composes:monitor
     bodhi-untag-branched = bodhi.server.scripts.untag_branched:main
     bodhi-approve-testing = bodhi.server.scripts.approve_testing:main
     bodhi-manage-releases = bodhi.server.scripts.manage_releases:main

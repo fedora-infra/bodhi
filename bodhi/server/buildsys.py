@@ -196,7 +196,7 @@ class DevBuildsys(Buildsystem):
 
             # Hardcoding for modules in the dev buildsys
             if token.startswith("2017"):
-                tag = "f17-updates-testing"
+                tag = "f27M-updates-testing"
                 data['extra'] = {
                     'typeinfo': {'module': {'more': 'mbs stuff goes here'}}
                 }
@@ -290,11 +290,11 @@ class DevBuildsys(Buildsystem):
             # Hardcoding for modules in the dev buildsys
             result = [
                 {'arches': 'x86_64', 'id': 15, 'locked': True,
-                 'name': 'f17-updates-candidate'},
+                 'name': 'f27M-updates-candidate'},
                 {'arches': 'x86_64', 'id': 16, 'locked': True,
-                 'name': 'f17-updates-testing'},
+                 'name': 'f27M-updates-testing'},
                 {'arches': 'x86_64', 'id': 17, 'locked': True,
-                 'name': 'f17'},
+                 'name': 'f27M'},
             ]
         else:
             release = build.split('.')[-1].replace('fc', 'f')

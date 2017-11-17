@@ -17,17 +17,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """The CLI tool for triggering update pushes."""
-from collections import defaultdict
-from datetime import datetime
-import glob
-import json
-
 from sqlalchemy.sql import or_
 import click
 
 from bodhi.server import initialize_db
 from bodhi.server.config import config
-from bodhi.server.models import Release, ReleaseState, Build, Update, UpdateRequest
+from bodhi.server.models import (Compose, ComposeState, Release, ReleaseState, Build, Update,
+                                 UpdateRequest)
 from bodhi.server.util import transactional_session_maker
 import bodhi.server.notifications
 
@@ -47,33 +43,41 @@ import bodhi.server.notifications
 def push(username, cert_prefix, **kwargs):
     """Push builds out to the repositories."""
     resume = kwargs.pop('resume')
-
-    lockfiles = defaultdict(list)
-    locked_updates = []
-    locks = '%s/MASHING-*' % config.get('mash_dir')
-    for lockfile in glob.glob(locks):
-        with open(lockfile) as lock:
-            state = json.load(lock)
-        for update in state['updates']:
-            lockfiles[lockfile].append(update)
-            locked_updates.append(update)
-
-    update_titles = None
+    resume_all = False
 
     initialize_db(config)
     db_factory = transactional_session_maker()
+    composes = []
     with db_factory() as session:
-        updates = []
+        if not resume and session.query(Compose).count():
+            click.confirm('Existing composes detected: {}. Do you wish to resume them all?'.format(
+                ', '.join([str(c) for c in session.query(Compose).all()])), abort=True)
+            resume = True
+            resume_all = True
+
         # If we're resuming a push
         if resume:
-            for lockfile in lockfiles:
-                if not click.confirm('Resume {}?'.format(lockfile)):
+            for compose in session.query(Compose).all():
+                if len(compose.updates) == 0:
+                    # Compose objects can end up with 0 updates in them if the masher ejects all the
+                    # updates in a compose for some reason. Composes with no updates cannot be
+                    # serialized because their content_type property uses the content_type of the
+                    # first update in the Compose. Additionally, it doesn't really make sense to go
+                    # forward with running an empty Compose. It makes the most sense to delete them.
+                    click.echo("{} has no updates. It is being removed.".format(compose))
+                    session.delete(compose)
                     continue
 
-                for update in lockfiles[lockfile]:
-                    update = session.query(Update).filter(Update.title == update).first()
-                    updates.append(update)
+                if not resume_all and not click.confirm('Resume {}?'.format(compose)):
+                    continue
+
+                # Reset the Compose's state and error message.
+                compose.state = ComposeState.requested
+                compose.error_message = u''
+
+                composes.append(compose)
         else:
+            updates = []
             # Accept both comma and space separated request list
             requests = kwargs['request'].replace(',', ' ').split(' ')
             requests = [UpdateRequest.from_string(val) for val in requests]
@@ -88,16 +92,6 @@ def push(username, cert_prefix, **kwargs):
             query = _filter_releases(session, query, kwargs.get('releases'))
 
             for update in query.all():
-                # Skip locked updates that are in a current push
-                if update.locked:
-                    if update.title in locked_updates:
-                        continue
-                    # Warn about locked updates that aren't a part of a push and
-                    # push them again.
-                    else:
-                        click.echo('Warning: %s is locked but not in a push' %
-                                   update.title)
-
                 # Skip unsigned updates (this checks that all builds in the update are signed)
                 if not update.signed:
                     click.echo('Warning: %s has unsigned builds and has been skipped' %
@@ -106,21 +100,39 @@ def push(username, cert_prefix, **kwargs):
 
                 updates.append(update)
 
-        for update in updates:
-            click.echo(update.title)
+            composes = Compose.from_updates(updates)
+            for c in composes:
+                session.add(c)
 
-        if updates:
-            click.confirm('Push these {:d} updates?'.format(len(updates)), abort=True)
+            # We need to flush so the database knows about the new Compose objects, so the
+            # Compose.updates relationship will work properly. This is due to us overriding the
+            # primaryjoin on the relationship between Composes and Updates.
+            session.flush()
+
+            # Now we need to refresh the composes so their updates property will not be empty.
+            for compose in composes:
+                session.refresh(compose)
+
+        # Now we need to sort the composes so their security property can be used to prioritize
+        # security updates. The security property relies on the updates property being
+        # non-empty, so this must happen after the refresh above.
+        composes = sorted(composes)
+
+        for compose in composes:
+            click.echo('\n\n===== {} =====\n'.format(compose))
+            for update in compose.updates:
+                click.echo(update.title)
+
+        if composes:
+            click.confirm('\n\nPush these {:d} updates?'.format(
+                sum([len(c.updates) for c in composes])), abort=True)
             click.echo('\nLocking updates...')
-            for update in updates:
-                update.locked = True
-                update.date_locked = datetime.utcnow()
         else:
             click.echo('\nThere are no updates to push.')
 
-        update_titles = list([update.title for update in updates])
+        composes = [c.__json__() for c in composes]
 
-    if update_titles:
+    if composes:
         click.echo('\nSending masher.start fedmsg')
         # Because we're a script, we want to send to the fedmsg-relay,
         # that's why we say active=True
@@ -128,7 +140,8 @@ def push(username, cert_prefix, **kwargs):
         bodhi.server.notifications.publish(
             topic='masher.start',
             msg=dict(
-                updates=update_titles,
+                api_version=2,
+                composes=composes,
                 resume=resume,
                 agent=username,
             ),

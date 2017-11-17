@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from cStringIO import StringIO
 import datetime
+import dummy_threading
 import errno
 import json
 import os
@@ -28,18 +29,21 @@ import unittest
 import urllib2
 import urlparse
 
+from click import testing
 import mock
 import six
 
-from bodhi.server import buildsys, exceptions, log, initialize_db
+from bodhi.server import buildsys, exceptions, log, push
 from bodhi.server.config import config
 from bodhi.server.consumers.masher import (
     checkpoint, Masher, MasherThread, RPMMasherThread, ModuleMasherThread)
+from bodhi.server.exceptions import LockedUpdateException
 from bodhi.server.models import (
-    Base, Build, BuildrootOverride, Release, ReleaseState, RpmBuild, TestGatingStatus, Update,
-    UpdateRequest, UpdateStatus, UpdateType, User, ModuleBuild, ContentType, Package)
-from bodhi.server.util import mkmetadatadir, transactional_session_maker
-from bodhi.tests.server import base, populate
+    Build, BuildrootOverride, Compose, ComposeState, Release, ReleaseState, RpmBuild,
+    TestGatingStatus, Update, UpdateRequest, UpdateStatus, UpdateType, User, ModuleBuild,
+    ContentType, Package)
+from bodhi.server.util import mkmetadatadir
+from bodhi.tests.server import base
 
 
 mock_exc = mock.Mock()
@@ -85,22 +89,6 @@ class FakeHub(object):
         pass
 
 
-def makemsg(body=None):
-    if not body:
-        body = {'updates': [u'bodhi-2.0-1.fc17'], 'agent': u'lmacken'}
-    return {
-        'topic': u'org.fedoraproject.dev.bodhi.masher.start',
-        'body': {
-            u'i': 1,
-            u'msg': body,
-            u'msg_id': u'2014-9568c910-91de-4870-90f5-709cc577d56d',
-            u'timestamp': 1401728063,
-            u'topic': u'org.fedoraproject.dev.bodhi.masher.start',
-            u'username': u'lmacken',
-        },
-    }
-
-
 class TestCheckpoint(unittest.TestCase):
     """Test the checkpoint() decorator."""
     def test_with_return(self):
@@ -119,6 +107,30 @@ class TestCheckpoint(unittest.TestCase):
         self.assertEqual(str(exc.exception), 'checkpointed functions may not return stuff')
 
 
+@mock.patch('bodhi.server.push.initialize_db', mock.MagicMock())
+@mock.patch('bodhi.server.push.bodhi.server.notifications.init', mock.MagicMock())
+def _make_msg(transactional_session_maker, extra_push_args=None):
+    """
+    Use bodhi-push to start a compose, and return the fedmsg that bodhi-push sends.
+
+    Args:
+        transactional_session_maker (object): A context manager to use to get a db session.
+        extra_push_args (list): A list of extra arguments to pass to bodhi-push.
+    Returns:
+        dict: A dictionary of the fedmsg that bodhi-push sends.
+    """
+    if extra_push_args is None:
+        extra_push_args = []
+    cli = testing.CliRunner()
+
+    with mock.patch('bodhi.server.push.bodhi.server.notifications.publish') as publish:
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=transactional_session_maker):
+            cli.invoke(push.push, ['--username', 'bowlofeggs'] + extra_push_args, input='y\ny')
+
+    return {'body': publish.mock_calls[0][2]}
+
+
 # We don't need real pungi config files, we just need them to exist. Let's also mock all calls to
 # pungi.
 @mock.patch.dict(
@@ -126,11 +138,21 @@ class TestCheckpoint(unittest.TestCase):
     {'pungi.basepath': os.path.join(
         base.PROJECT_PATH, 'bodhi/tests/server/consumers/pungi.basepath'),
      'pungi.cmd': '/usr/bin/true'})
-class TestMasher(unittest.TestCase):
+class TestMasher(base.BaseTestCase):
 
     def setUp(self):
+        super(TestMasher, self).setUp()
         self._new_mash_stage_dir = tempfile.mkdtemp()
 
+        # Since the MasherThread is a subclass of Thread and since it is already constructed before
+        # we have a chance to alter it, we need to change its superclass to be
+        # dummy_threading.Thread so that the test suite doesn't launch real Threads. Threads cannot
+        # use the same database sessions, and that means that changes that threads make will not
+        # appear in other thread's sessions, which cause a lot of problems in these tests.
+        # Mock was not able to make this change since the __bases__ attribute cannot be removed, but
+        # we don't really need this to be cleaned up since we don't want any tests launching theads
+        # anyway.
+        MasherThread.__bases__ = (dummy_threading.Thread,)
         test_config = base.original_config.copy()
         test_config['mash_stage_dir'] = self._new_mash_stage_dir
         test_config['mash_dir'] = os.path.join(self._new_mash_stage_dir, 'mash')
@@ -142,39 +164,11 @@ class TestMasher(unittest.TestCase):
 
         os.makedirs(os.path.join(self._new_mash_stage_dir, 'mash'))
 
-        buildsys.setup_buildsystem({'buildsystem': 'dev'})
-
-        fd, self.db_filename = tempfile.mkstemp(prefix='bodhi-testing-', suffix='.db')
-        db_path = 'sqlite:///%s' % self.db_filename
-        # The BUILD_ID environment variable is set by Jenkins and allows us to
-        # detect if
-        # we are running the tests in jenkins or not
-        # Note: The URL below spans two lines.
-        # https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project
-        # #Buildingasoftwareproject-below
-        if os.environ.get('BUILD_ID'):
-            faitout = 'http://209.132.184.152/faitout/'
-            try:
-                import requests
-                req = requests.get('%s/new' % faitout)
-                if req.status_code == 200:
-                    db_path = req.text
-                    print('Using faitout at: %s' % db_path)
-            except Exception:
-                pass
-        engine = initialize_db({'sqlalchemy.url': db_path})
-        Base.metadata.create_all(engine)
-        self.db_factory = transactional_session_maker()
-
-        with self.db_factory() as session:
-            populate(session)
-            assert session.query(Update).count() == 1
-
         self.koji = buildsys.get_session()
         self.koji.clear()  # clear out our dev introspection
 
-        self.msg = makemsg()
         self.tempdir = tempfile.mkdtemp('bodhi')
+        self.db_factory = base.TransactionalSessionMaker(self.Session)
         self.masher = Masher(FakeHub(), db_factory=self.db_factory, mash_dir=self.tempdir)
 
         # Reset "cached" objects before each test.
@@ -182,12 +176,8 @@ class TestMasher(unittest.TestCase):
         Release._tag_cache = None
 
     def tearDown(self):
+        super(TestMasher, self).tearDown()
         shutil.rmtree(self.tempdir)
-        try:
-            os.remove(self.db_filename)
-        except Exception:
-            pass
-        buildsys.teardown_buildsystem()
         shutil.rmtree(self._new_mash_stage_dir)
 
     def set_stable_request(self, title):
@@ -255,6 +245,15 @@ class TestMasher(unittest.TestCase):
 
         return fake_pungi
 
+    def _make_msg(self, extra_push_args=None):
+        """
+        Use bodhi-push to start a compose, and return the fedmsg that bodhi-push sends.
+
+        Returns:
+            dict: A dictionary of the fedmsg that bodhi-push sends.
+        """
+        return _make_msg(self.db_factory, extra_push_args)
+
     @mock.patch('bodhi.server.consumers.masher.bugs.set_bugtracker')
     def test___init___sets_bugtracker(self, set_bugtracker):
         """
@@ -274,39 +273,79 @@ class TestMasher(unittest.TestCase):
         initialize_db.assert_called_once_with(config)
         transactional_session_maker.assert_called_once_with()
 
+    def test__get_composes_api_1(self):
+        """Test _get_composes() with API version 1 (which isn't explicit about its version)."""
+        with self.db_factory() as db:
+            msg = {'resume': False, 'agent': u'bowlofeggs',
+                   'updates': [db.query(Update).one().title]}
+
+        composes = self.masher._get_composes(msg)
+
+        self.assertEqual(len(composes), 1)
+        with self.db_factory() as db:
+            compose = Compose.from_dict(db, composes[0])
+            self.assertEqual(
+                composes,
+                [{'content_type': compose.content_type.value, 'release_id': compose.release.id,
+                  'request': compose.request.value, 'security': compose.security}])
+            self.assertEqual(compose.state, ComposeState.pending)
+            self.assertEqual(compose.updates, [db.query(Update).one()])
+
+    def test__get_composes_api_2(self):
+        """Test _get_composes() with API version 2."""
+        composes = self.masher._get_composes(self._make_msg()['body']['msg'])
+
+        self.assertEqual(len(composes), 1)
+        with self.db_factory() as db:
+            compose = Compose.from_dict(db, composes[0])
+            self.assertEqual(
+                composes,
+                [{'content_type': compose.content_type.value, 'release_id': compose.release.id,
+                  'request': compose.request.value, 'security': compose.security}])
+            self.assertEqual(compose.state, ComposeState.pending)
+
+    def test__get_composes_api_3(self):
+        """Test _get_composes() with API version 3, which is currently unsupported."""
+        msg = self._make_msg()['body']['msg']
+        msg['api_version'] = 3
+
+        with self.assertRaises(ValueError) as exc:
+            self.masher._get_composes(msg)
+
+        self.assertEqual(str(exc.exception), 'Unable to process fedmsg: {}'.format(msg))
+        with self.db_factory() as db:
+            compose = db.query(Compose).one()
+            # The Compose's state should not have been altered.
+            self.assertEqual(compose.state, ComposeState.requested)
+
     @mock.patch('bodhi.server.notifications.publish')
     def test_invalid_signature(self, publish):
         """Make sure the masher ignores messages that aren't signed with the
         appropriate releng cert
         """
-        with self.db_factory() as session:
-            # Ensure that the update was locked
-            up = session.query(Update).one()
-            up.locked = False
-
         fakehub = FakeHub()
         fakehub.config['releng_fedmsg_certname'] = 'foo'
         self.masher = Masher(fakehub, db_factory=self.db_factory)
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
-        # Make sure the update did not get locked
+        # The masher should not have unlocked the Update.
         with self.db_factory() as session:
             # Ensure that the update was locked
             up = session.query(Update).one()
-            self.assertFalse(up.locked)
+            self.assertTrue(up.locked)
 
         # Ensure mashtask.start never got sent
         self.assertEquals(len(publish.call_args_list), 0)
 
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_invalid_update(self, publish):
-        msg = makemsg()
-        msg['body']['msg']['updates'] = u'invalidbuild-1.0-1.fc17'
-        try:
+    def test_push_invalid_compose(self, publish):
+        msg = self._make_msg()
+        msg['body']['msg']['composes'][0]['release_id'] = 65535
+
+        with self.assertRaises(Exception) as exc:
             self.masher.consume(msg)
-            assert False, "Invalid builds should have crashed the mash"
-        except Exception:
-            pass
+
+        self.assertEqual(str(exc.exception), 'No row was found for one()')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
@@ -314,14 +353,14 @@ class TestMasher(unittest.TestCase):
     @mock.patch('bodhi.server.consumers.masher.MasherThread.stage_repo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
-    @mock.patch.object(MasherThread, 'verify_updates', mock_exc)
+    @mock.patch.object(MasherThread, 'determine_and_perform_tag_actions', mock_exc)
     @mock.patch('bodhi.server.notifications.publish')
     def test_update_locking(self, publish, *args):
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.locked = False
 
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         # Ensure that fedmsg was called 4 times
         self.assertEquals(len(publish.call_args_list), 3)
@@ -332,7 +371,7 @@ class TestMasher(unittest.TestCase):
             msg=dict(success=False,
                      ctype='rpm',
                      repo='f17-updates-testing',
-                     agent='lmacken'),
+                     agent='bowlofeggs'),
             force=True)
 
         with self.db_factory() as session:
@@ -341,7 +380,6 @@ class TestMasher(unittest.TestCase):
             self.assertTrue(up.locked)
 
             # Ensure we can't set a request
-            from bodhi.server.exceptions import LockedUpdateException
             try:
                 up.set_request(session, UpdateRequest.stable, u'bodhi')
                 assert False, 'Set the request on a locked update'
@@ -357,18 +395,17 @@ class TestMasher(unittest.TestCase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_tags(self, publish, *args):
         # Make the build a buildroot override as well
-        title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
             release = session.query(Update).one().release
             build = session.query(Build).one()
             nvr = build.nvr
             pending_testing_tag = release.pending_testing_tag
             override_tag = release.override_tag
-            self.koji.__tagged__[title] = [release.override_tag,
-                                           pending_testing_tag]
+            self.koji.__tagged__[session.query(Update).first().title] = [release.override_tag,
+                                                                         pending_testing_tag]
 
         # Start the push
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         # Ensure that fedmsg was called 3 times
         self.assertEquals(len(publish.call_args_list), 4)
@@ -378,7 +415,7 @@ class TestMasher(unittest.TestCase):
             msg=dict(success=True,
                      ctype='rpm',
                      repo='f17-updates-testing',
-                     agent='lmacken'),
+                     agent='bowlofeggs'),
             force=True)
 
         # Ensure our single update was moved
@@ -399,7 +436,7 @@ class TestMasher(unittest.TestCase):
 
         self.koji.clear()
 
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         # Ensure that stable updates to pending releases get their
         # tags added, not removed
@@ -430,22 +467,20 @@ class TestMasher(unittest.TestCase):
         Ensure that the latest version is tagged last.
         """
         otherbuild = u'bodhi-2.0-2.fc17'
-        self.msg['body']['msg']['updates'].insert(0, otherbuild)
 
         with self.db_factory() as session:
-            firstupdate = session.query(Update).filter_by(
-                title=self.msg['body']['msg']['updates'][1]).one()
-            build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package)
+            firstupdate = session.query(Update).one()
+            build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package, signed=True)
             session.add(build)
             update = Update(
                 title=otherbuild, builds=[build], type=UpdateType.bugfix,
-                request=UpdateRequest.testing, notes=u'second update', user=firstupdate.user,
-                release=firstupdate.release)
+                request=UpdateRequest.testing, notes=u'second update', user=firstupdate.user)
+            update.release = firstupdate.release
             session.add(update)
             session.flush()
 
         # Start the push
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         # Ensure that fedmsg was called 5 times
         self.assertEquals(len(publish.call_args_list), 5)
@@ -455,7 +490,7 @@ class TestMasher(unittest.TestCase):
             msg=dict(success=True,
                      ctype='rpm',
                      repo='f17-updates-testing',
-                     agent='lmacken'),
+                     agent='bowlofeggs'),
             force=True)
 
         # Ensure our two updates were moved
@@ -468,20 +503,6 @@ class TestMasher(unittest.TestCase):
         self.assertEquals(self.koji.__moved__[1],
                           (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-2.fc17'))
 
-    def test_statefile(self):
-        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
-                         'ralph', log, self.db_factory, self.tempdir)
-        t.id = 'f17-updates-testing'
-        t.init_state()
-        t.save_state()
-        self.assertTrue(os.path.exists(t.mash_lock))
-        with open(t.mash_lock) as f:
-            state = json.load(f)
-        try:
-            self.assertEquals(state, {u'updates': [u'bodhi-2.0-1.fc17'], u'completed_repos': []})
-        finally:
-            t.remove_state()
-
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -491,12 +512,11 @@ class TestMasher(unittest.TestCase):
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.mail._send_mail')
     def test_testing_digest(self, mail, *args):
-        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+        t = RPMMasherThread(self._make_msg()['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
-        with self.db_factory() as session:
-            t.db = session
-            t.work()
-            t.db = None
+
+        t.run()
+
         self.assertEquals(t.testing_digest[u'Fedora 17'][u'bodhi-2.0-1.fc17'], """\
 ================================================================================
  libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)
@@ -536,13 +556,15 @@ References:
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
     def test_mash_no_found_dirs(self, save_state):
-        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+        msg = self._make_msg()
+        t = RPMMasherThread(msg['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
         with self.db_factory() as session:
             t.db = session
-            t.release = session.query(Release).filter_by(name='F17').one()
+            t.compose = Compose.from_dict(session, msg['body']['msg']['composes'][0])
+            t.release = session.query(Release).filter_by(name=u'F17').one()
             try:
                 fake_popen = mock.MagicMock()
                 fake_popen.communicate = lambda: (mock.MagicMock(), 'hello')
@@ -558,15 +580,17 @@ References:
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
     def test_sanity_check_no_arches(self, save_state):
-        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+        msg = self._make_msg()
+        t = RPMMasherThread(msg['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
         with self.db_factory() as session:
             t.db = session
-            t.release = session.query(Release).filter_by(name='F17').one()
+            t.compose = session.query(Compose).one()
+            t._checkpoints = {}
             t._startyear = datetime.datetime.utcnow().year
-            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
+            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.compose.release)())
             t.db = None
 
         # test without any arches
@@ -578,15 +602,17 @@ References:
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
     def test_sanity_check_valid(self, save_state):
-        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+        msg = self._make_msg()
+        t = RPMMasherThread(msg['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
         with self.db_factory() as session:
             t.db = session
-            t.release = session.query(Release).filter_by(name='F17').one()
+            t.compose = session.query(Compose).one()
+            t._checkpoints = {}
             t._startyear = datetime.datetime.utcnow().year
-            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
+            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.compose.release)())
             t.db = None
 
         # test with valid repodata
@@ -611,15 +637,17 @@ References:
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
     def test_sanity_check_broken_repodata(self, save_state):
-        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+        msg = self._make_msg()
+        t = RPMMasherThread(msg['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
         with self.db_factory() as session:
             t.db = session
-            t.release = session.query(Release).filter_by(name='F17').one()
+            t.compose = session.query(Compose).one()
             t._startyear = datetime.datetime.utcnow().year
-            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
+            t._checkpoints = {}
+            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.compose.release)())
             t.db = None
 
         # test with valid repodata
@@ -641,19 +669,21 @@ References:
         except exceptions.RepodataException:
             pass
 
-        save_state.assert_called_once_with()
+        save_state.assert_called_once_with(ComposeState.punging)
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
     def test_sanity_check_symlink(self, save_state):
-        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+        msg = self._make_msg()
+        t = RPMMasherThread(msg['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
         with self.db_factory() as session:
             t.db = session
-            t.release = session.query(Release).filter_by(name='F17').one()
+            t.compose = session.query(Compose).one()
+            t._checkpoints = {}
             t._startyear = datetime.datetime.utcnow().year
-            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
+            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.compose.release)())
             t.db = None
 
         # test with valid repodata
@@ -677,15 +707,17 @@ References:
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
     def test_sanity_check_directories_missing(self, save_state):
-        t = RPMMasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+        msg = self._make_msg()
+        t = RPMMasherThread(msg['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
         with self.db_factory() as session:
             t.db = session
-            t.release = session.query(Release).filter_by(name='F17').one()
+            t.compose = session.query(Compose).one()
+            t._checkpoints = {}
             t._startyear = datetime.datetime.utcnow().year
-            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.release)())
+            t.wait_for_mash(self._generate_fake_pungi(t, 'testing_tag', t.compose.release)())
             t.db = None
 
         # test with valid repodata
@@ -703,7 +735,7 @@ References:
             assert oex.errno == errno.ENOENT
 
     def test_stage(self):
-        t = MasherThread(u'F17', u'testing', [u'bodhi-2.0-1.fc17'],
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'ralph', log, self.db_factory, self.tempdir)
         t.id = 'f17-updates-testing'
         t.path = os.path.join(self.tempdir, 'latest-f17-updates-testing')
@@ -737,9 +769,11 @@ References:
                 pending_testing_tag=u'f18-updates-testing-pending',
                 pending_stable_tag=u'f18-updates-pending',
                 override_tag=u'f18-override',
+                state=ReleaseState.current,
                 branch=u'f18')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
+                             signed=True)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
@@ -754,9 +788,7 @@ References:
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
 
-        self.msg['body']['msg']['updates'] += [u'bodhi-2.0-1.fc18']
-
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         # Ensure that F18 runs before F17
         calls = publish.mock_calls
@@ -774,28 +806,28 @@ References:
             msg={'repo': u'f18-updates',
                  'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc18'],
-                 'agent': 'lmacken'},
+                 'agent': 'bowlofeggs'},
             topic='mashtask.mashing'))
         self.assertEquals(calls[4], mock.call(
             force=True,
             msg={'success': True,
                  'ctype': 'rpm',
                  'repo': 'f18-updates',
-                 'agent': 'lmacken'},
+                 'agent': 'bowlofeggs'},
             topic='mashtask.complete'))
         self.assertEquals(calls[5], mock.call(
             force=True,
             msg={'repo': u'f17-updates-testing',
                  'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc17'],
-                 'agent': 'lmacken'},
+                 'agent': 'bowlofeggs'},
             topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(
             force=True,
             msg={'success': True,
                  'ctype': 'rpm',
                  'repo': 'f17-updates-testing',
-                 'agent': 'lmacken'},
+                 'agent': 'bowlofeggs'},
             topic='mashtask.complete'))
 
     @mock.patch(**mock_taskotron_results)
@@ -823,9 +855,11 @@ References:
                 pending_testing_tag=u'f18-updates-testing-pending',
                 pending_stable_tag=u'f18-updates-pending',
                 override_tag=u'f18-override',
+                state=ReleaseState.current,
                 branch=u'f18')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
+                             signed=True)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
@@ -840,9 +874,7 @@ References:
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
 
-        self.msg['body']['msg']['updates'] += [u'bodhi-2.0-1.fc18']
-
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         # Ensure that F17 updates-testing runs before F18
         calls = publish.mock_calls
@@ -850,28 +882,28 @@ References:
             msg={'repo': u'f17-updates-testing',
                  'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc17'],
-                 'agent': 'lmacken'},
+                 'agent': 'bowlofeggs'},
             force=True,
             topic='mashtask.mashing'))
         self.assertEquals(calls[3], mock.call(
             msg={'success': True,
                  'ctype': 'rpm',
                  'repo': 'f17-updates-testing',
-                 'agent': 'lmacken'},
+                 'agent': 'bowlofeggs'},
             force=True,
             topic='mashtask.complete'))
         self.assertEquals(calls[4], mock.call(
             msg={'repo': u'f18-updates',
                  'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc18'],
-                 'agent': 'lmacken'},
+                 'agent': 'bowlofeggs'},
             force=True,
             topic='mashtask.mashing'))
         self.assertEquals(calls[-1], mock.call(
             msg={'success': True,
                  'ctype': 'rpm',
                  'repo': 'f18-updates',
-                 'agent': 'lmacken'},
+                 'agent': 'bowlofeggs'},
             force=True,
             topic='mashtask.complete'))
 
@@ -901,9 +933,11 @@ References:
                 pending_testing_tag=u'f18-updates-testing-pending',
                 pending_stable_tag=u'f18-updates-pending',
                 override_tag=u'f18-override',
+                state=ReleaseState.current,
                 branch=u'f18')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
+                             signed=True)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
@@ -918,9 +952,7 @@ References:
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
 
-        self.msg['body']['msg']['updates'] += [u'bodhi-2.0-1.fc18']
-
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         # Ensure that F18 and F17 run in parallel
         calls = publish.mock_calls
@@ -928,14 +960,14 @@ References:
                 msg={'repo': u'f18-updates',
                      'ctype': 'rpm',
                      'updates': [u'bodhi-2.0-1.fc18'],
-                     'agent': 'lmacken'},
+                     'agent': 'bowlofeggs'},
                 force=True, topic='mashtask.mashing'):
             self.assertEquals(
                 calls[2],
                 mock.call(msg={'repo': u'f17-updates',
                                'ctype': 'rpm',
                                'updates': [u'bodhi-2.0-1.fc17'],
-                               'agent': 'lmacken'},
+                               'agent': 'bowlofeggs'},
                           force=True, topic='mashtask.mashing'))
         elif calls[1] == self.assertEquals(
                 calls[1],
@@ -943,7 +975,7 @@ References:
                     msg={'repo': u'f17-updates',
                          'ctype': 'rpm',
                          'updates': [u'bodhi-2.0-1.fc17'],
-                         'agent': 'lmacken'},
+                         'agent': 'bowlofeggs'},
                     force=True, topic='mashtask.mashing')):
             self.assertEquals(
                 calls[2],
@@ -954,26 +986,23 @@ References:
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_mash_invalid_ctype(self, publish, *args):
-        fake_batches = [{'title': 'nonsense',
-                         'contenttype': ContentType.base,
-                         'updates': [],
-                         'phase': 'stable',
-                         'has_security': False}]
+        msg = self._make_msg()
+        msg['body']['msg']['composes'][0]['content_type'] = ContentType.base.value
 
-        with mock.patch.object(self.masher, 'generate_batches', return_value=fake_batches):
+        with mock.patch.object(self.masher, '_get_composes',
+                               return_value=msg['body']['msg']['composes']):
             self.masher.log = mock.MagicMock()
-            self.masher.work(self.msg)
+            self.masher.work(msg)
             self.masher.log.error.assert_called_once_with(
                 'Unsupported content type %s submitted for mashing. SKIPPING', 'base')
 
     def test_base_masher_pungi_not_implemented(self, *args):
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
-                         'ralph', log, self.db_factory, self.tempdir)
-        try:
+        msg = self._make_msg()
+        t = MasherThread(msg['body']['msg']['composes'][0], 'ralph', log, self.db_factory,
+                         self.tempdir)
+
+        with self.assertRaises(NotImplementedError):
             t.copy_additional_pungi_files(None, None)
-            assert False, "This should not be implemented"
-        except NotImplementedError:
-            pass
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -987,17 +1016,18 @@ References:
     def test_mash_early_exit(self, publish, *args):
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
-
-        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+        msg = self._make_msg()
+        t = RPMMasherThread(msg['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
 
-        with self.db_factory() as session:
-            t.db = session
-            try:
-                t.work()
-                assert False, "We should have quit early"
-            except Exception as ex:
-                assert str(ex) == "Pungi returned error, aborting!"
+        t.run()
+
+        self.assertFalse(t.success)
+        with self.db_factory() as db:
+            compose = Compose.from_dict(db, msg['body']['msg']['composes'][0])
+            self.assertEqual(compose.state, ComposeState.failed)
+            self.assertEqual(compose.error_message, 'Pungi returned error, aborting!')
+        self.assertEqual(t._checkpoints, {'determine_and_perform_tag_actions': True})
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -1008,8 +1038,8 @@ References:
     def test_mash_late_exit(self, publish, *args):
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
-
-        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+        msg = self._make_msg()
+        t = RPMMasherThread(msg['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
@@ -1019,12 +1049,13 @@ References:
                 os.chmod(script.name, 0o755)
 
                 with mock.patch.dict(config, {'pungi.cmd': script.name}):
-                    t.db = session
-                    try:
-                        t.work()
-                        assert False, "We should have quit late"
-                    except Exception as ex:
-                        assert str(ex) == "Pungi exited with status 1"
+                    t.run()
+
+            self.assertFalse(t.success)
+            compose = Compose.from_dict(session, msg['body']['msg']['composes'][0])
+            self.assertEqual(compose.state, ComposeState.failed)
+            self.assertEqual(compose.error_message, 'Pungi exited with status 1')
+        self.assertEqual(t._checkpoints, {'determine_and_perform_tag_actions': True})
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -1034,17 +1065,15 @@ References:
     def test_mash(self, publish, *args):
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
-
-        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+        msg = self._make_msg()
+        t = RPMMasherThread(msg['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name='F17').one()
+                release = session.query(Release).filter_by(name=u'F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                t.db = session
-                t.work()
-                t.db = None
+                t.run()
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
@@ -1066,7 +1095,16 @@ References:
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
-        self.assertEquals(len(t.state['completed_repos']), 1)
+        d = datetime.datetime.utcnow()
+        self.assertEqual(
+            t._checkpoints,
+            {'completed_repo': os.path.join(
+                self.tempdir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+             'determine_and_perform_tag_actions': True,
+             'modify_bugs': True,
+             'send_stable_announcements': True,
+             'send_testing_digest': True,
+             'status_comments': True})
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -1078,27 +1116,16 @@ References:
         with self.db_factory() as db:
             user = db.query(User).first()
 
-            release = Release(
-                name=u'F18M', long_name=u'Fedora 18 Modular',
-                id_prefix=u'FEDORA-MODULE', version=u'18',
-                dist_tag=u'f18m', stable_tag=u'f18-modular-updates',
-                testing_tag=u'f18-modular-updates-testing',
-                candidate_tag=u'f18-modular-updates-candidate',
-                pending_signing_tag=u'f18-modular-updates-testing-signing',
-                pending_testing_tag=u'f18-modular-updates-testing-pending',
-                pending_stable_tag=u'f18-modular-updates-pending',
-                override_tag=u'f18-modular-override',
-                branch=u'f18m')
-            db.add(release)
+            release = self.create_release('27M')
             package = Package(name=u'testmodule',
                               type=ContentType.module)
             db.add(package)
             build1 = ModuleBuild(nvr=u'testmodule-master-1',
-                                 release=release,
+                                 release=release, signed=True,
                                  package=package)
             db.add(build1)
             build2 = ModuleBuild(nvr=u'testmodule-master-2',
-                                 release=release,
+                                 release=release, signed=True,
                                  package=package)
             db.add(build2)
             update = Update(
@@ -1114,24 +1141,21 @@ References:
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
 
-        self.msg['body']['msg']['updates'] = [u'testmodule-master-2']
-
-        t = ModuleMasherThread(u'F18M', u'stable', [u'testmodule-master-2'],
+        msg = self._make_msg(['--releases', 'F27M'])
+        t = ModuleMasherThread(msg['body']['msg']['composes'][0],
                                'puiterwijk', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name='F18M').one()
+                release = session.query(Release).filter_by(name=u'F27M').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                t.db = session
-                t.work()
-                t.db = None
+                t.run()
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
                                    force=True,
                                    msg=dict(success=True,
-                                            repo='f18-modular-updates',
+                                            repo='f27M-updates',
                                             ctype='module',
                                             agent='puiterwijk'))
         publish.assert_any_call(topic='update.complete.stable',
@@ -1147,7 +1171,17 @@ References:
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
-        self.assertEquals(len(t.state['completed_repos']), 1)
+        d = datetime.datetime.utcnow()
+        self.assertEqual(
+            t._checkpoints,
+            {'completed_repo': os.path.join(
+                self.tempdir,
+                'Fedora-27-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+             'determine_and_perform_tag_actions': True,
+             'modify_bugs': True,
+             'send_stable_announcements': True,
+             'send_testing_digest': True,
+             'status_comments': True})
 
     @mock.patch(**mock_failed_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -1159,17 +1193,15 @@ References:
 
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
-
-        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
-                            'ralph', log, self.db_factory, self.tempdir)
+        msg = self._make_msg()
+        t = RPMMasherThread(
+            msg['body']['msg']['composes'][0], 'ralph', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name='F17').one()
+                release = session.query(Release).filter_by(name=u'F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                t.db = session
-                t.work()
-                t.db = None
+                t.run()
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
@@ -1189,7 +1221,16 @@ References:
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
-        self.assertEquals(len(t.state['completed_repos']), 1)
+        d = datetime.datetime.utcnow()
+        self.assertEqual(
+            t._checkpoints,
+            {'completed_repo': os.path.join(
+                self.tempdir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+             'determine_and_perform_tag_actions': True,
+             'modify_bugs': True,
+             'send_stable_announcements': True,
+             'send_testing_digest': True,
+             'status_comments': True})
 
     @mock.patch(**mock_absent_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -1200,17 +1241,16 @@ References:
     def test_absent_gating(self, publish, *args):
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
+        msg = self._make_msg()
 
-        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
-                            'ralph', log, self.db_factory, self.tempdir)
+        t = RPMMasherThread(msg['body']['msg']['composes'][0], 'ralph', log, self.db_factory,
+                            self.tempdir)
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name='F17').one()
+                release = session.query(Release).filter_by(name=u'F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                t.db = session
-                t.work()
-                t.db = None
+                t.run()
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",
@@ -1230,7 +1270,16 @@ References:
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
-        self.assertEquals(len(t.state['completed_repos']), 1)
+        d = datetime.datetime.utcnow()
+        self.assertEqual(
+            t._checkpoints,
+            {'completed_repo': os.path.join(
+                self.tempdir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+             'determine_and_perform_tag_actions': True,
+             'modify_bugs': True,
+             'send_stable_announcements': True,
+             'send_testing_digest': True,
+             'status_comments': True})
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
     @mock.patch('bodhi.server.consumers.masher.MasherThread.sanity_check_repo')
@@ -1242,7 +1291,7 @@ References:
     @mock.patch('bodhi.server.bugs.bugtracker.modified')
     @mock.patch('bodhi.server.bugs.bugtracker.on_qa')
     def test_modify_testing_bugs(self, on_qa, modified, *args):
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         expected_message = (
             u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems '
@@ -1266,12 +1315,12 @@ References:
     @mock.patch('bodhi.server.bugs.bugtracker.close')
     def test_modify_stable_bugs(self, close, comment, *args):
         self.set_stable_request(u'bodhi-2.0-1.fc17')
-        t = RPMMasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+        msg = self._make_msg()
+        t = RPMMasherThread(msg['body']['msg']['composes'][0],
                             'ralph', log, self.db_factory, self.tempdir)
-        with self.db_factory() as session:
-            t.db = session
-            t.work()
-            t.db = None
+
+        t.run()
+
         close.assert_called_with(
             12345,
             versions=dict(bodhi=u'bodhi-2.0-1.fc17'),
@@ -1287,15 +1336,14 @@ References:
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_status_comment_testing(self, *args):
-        title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
-            up = session.query(Update).filter_by(title=title).one()
+            up = session.query(Update).one()
             self.assertEquals(len(up.comments), 2)
 
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
-            up = session.query(Update).filter_by(title=title).one()
+            up = session.query(Update).one()
             self.assertEquals(len(up.comments), 3)
             self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to testing.')
 
@@ -1308,16 +1356,15 @@ References:
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_status_comment_stable(self, *args):
-        title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
-            up = session.query(Update).filter_by(title=title).one()
+            up = session.query(Update).one()
             up.request = UpdateRequest.stable
             self.assertEquals(len(up.comments), 2)
 
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
-            up = session.query(Update).filter_by(title=title).one()
+            up = session.query(Update).one()
             self.assertEquals(len(up.comments), 3)
             self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to stable.')
 
@@ -1329,8 +1376,8 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_get_security_updates(self, *args):
-        build = u'bodhi-2.0-1.fc17'
-        t = MasherThread(u'F17', u'testing', [build],
+        msg = self._make_msg()
+        t = MasherThread(msg['body']['msg']['composes'][0],
                          'ralph', log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
             t.db = session
@@ -1340,9 +1387,11 @@ References:
             u.request = None
             session.commit()
             release = session.query(Release).one()
+
             updates = t.get_security_updates(release.long_name)
+
             self.assertEquals(len(updates), 1)
-            self.assertEquals(updates[0].title, build)
+            self.assertEquals(updates[0].title, u.builds[0].nvr)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
@@ -1353,16 +1402,15 @@ References:
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_unlock_updates(self, *args):
-        title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
-            up = session.query(Update).filter_by(title=title).one()
+            up = session.query(Update).one()
             up.request = UpdateRequest.stable
             self.assertEquals(len(up.comments), 2)
 
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
-            up = session.query(Update).filter_by(title=title).one()
+            up = session.query(Update).one()
             self.assertEquals(up.locked, False)
             self.assertEquals(up.status, UpdateStatus.stable)
 
@@ -1375,28 +1423,28 @@ References:
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_resume_push(self, *args):
-        title = self.msg['body']['msg']['updates'][0]
         with mock.patch.object(MasherThread, 'generate_testing_digest', mock_exc):
             with self.db_factory() as session:
-                up = session.query(Update).filter_by(title=title).one()
+                up = session.query(Update).one()
                 up.request = UpdateRequest.testing
                 up.status = UpdateStatus.pending
 
             # Simulate a failed push
-            self.masher.consume(self.msg)
+            self.masher.consume(self._make_msg())
 
         # Ensure that the update hasn't changed state
         with self.db_factory() as session:
-            up = session.query(Update).filter_by(title=title).one()
+            up = session.query(Update).one()
             self.assertEquals(up.request, UpdateRequest.testing)
             self.assertEquals(up.status, UpdateStatus.pending)
 
         # Resume the push
-        self.msg['body']['msg']['resume'] = True
-        self.masher.consume(self.msg)
+        msg = self._make_msg()
+        msg['body']['msg']['resume'] = True
+        self.masher.consume(msg)
 
         with self.db_factory() as session:
-            up = session.query(Update).filter_by(title=title).one()
+            up = session.query(Update).one()
             self.assertEquals(up.status, UpdateStatus.testing)
             self.assertEquals(up.request, None)
 
@@ -1413,19 +1461,17 @@ References:
         Test reaching the stablekarma threshold while the update is being
         pushed to testing
         """
-        title = self.msg['body']['msg']['updates'][0]
-
         # Simulate a failed push
-        with mock.patch.object(MasherThread, 'verify_updates', mock_exc):
+        with mock.patch.object(MasherThread, 'determine_and_perform_tag_actions', mock_exc):
             with self.db_factory() as session:
-                up = session.query(Update).filter_by(title=title).one()
+                up = session.query(Update).one()
                 up.request = UpdateRequest.testing
                 up.status = UpdateStatus.pending
                 self.assertEquals(up.stable_karma, 3)
-            self.masher.consume(self.msg)
+            self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
-            up = session.query(Update).filter_by(title=title).one()
+            up = session.query(Update).one()
 
             # Ensure the update is still locked and in testing
             self.assertEquals(up.locked, True)
@@ -1445,11 +1491,12 @@ References:
             self.assertEquals(up.karma, 4)
 
         # finish push and unlock updates
-        self.msg['body']['msg']['resume'] = True
-        self.masher.consume(self.msg)
+        msg = self._make_msg()
+        msg['body']['msg']['resume'] = True
+        self.masher.consume(msg)
 
         with self.db_factory() as session:
-            up = session.query(Update).filter_by(title=title).one()
+            up = session.query(Update).one()
             up.comment(session, u"foo", 1, u'baz')
             self.assertEquals(up.karma, 5)
 
@@ -1465,15 +1512,14 @@ References:
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_timestamps(self, publish, *args):
-        title = self.msg['body']['msg']['updates'][0]
         with self.db_factory() as session:
             release = session.query(Update).one().release
             pending_testing_tag = release.pending_testing_tag
-            self.koji.__tagged__[title] = [release.override_tag,
-                                           pending_testing_tag]
+            self.koji.__tagged__[session.query(Update).first().title] = [release.override_tag,
+                                                                         pending_testing_tag]
 
         # Start the push
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
             # Set the update request to stable and the release to pending
@@ -1491,11 +1537,11 @@ References:
             msg=dict(success=True,
                      repo='f17-updates-testing',
                      ctype='rpm',
-                     agent='lmacken'))
+                     agent='bowlofeggs'))
 
         self.koji.clear()
 
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
             # Check that the request_complete method got run
@@ -1512,8 +1558,6 @@ References:
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsolete_older_updates(self, publish, *args):
         otherbuild = u'bodhi-2.0-2.fc17'
-        oldbuild = None
-        self.msg['body']['msg']['updates'].insert(0, otherbuild)
 
         with self.db_factory() as session:
             # Put the older update into testing
@@ -1524,16 +1568,16 @@ References:
             oldupdate.locked = False
 
             # Create a newer build
-            build = RpmBuild(nvr=otherbuild, package=oldupdate.builds[0].package)
+            build = RpmBuild(nvr=otherbuild, package=oldupdate.builds[0].package, signed=True)
             session.add(build)
             update = Update(
                 title=otherbuild, builds=[build], type=UpdateType.bugfix,
-                request=UpdateRequest.testing, notes=u'second update', user=oldupdate.user,
-                release=oldupdate.release)
+                request=UpdateRequest.testing, notes=u'second update', user=oldupdate.user)
+            update.release = oldupdate.release
             session.add(update)
             session.flush()
 
-        self.masher.consume(self.msg)
+        self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
             # Ensure that the older update got obsoleted
@@ -1556,17 +1600,17 @@ References:
     @mock.patch('bodhi.server.consumers.masher.log.exception')
     @mock.patch('bodhi.server.models.BuildrootOverride.expire', side_effect=Exception())
     def test_expire_buildroot_overrides_exception(self, expire, exception_log, publish, *args):
-        title = self.msg['body']['msg']['updates'][0]
-        with self.db_factory() as session:
-            release = session.query(Update).one().release
+        with self.db_factory() as db:
+            release = db.query(Update).one().release
             pending_testing_tag = release.pending_testing_tag
-            self.koji.__tagged__[title] = [release.override_tag,
-                                           pending_testing_tag]
-            up = session.query(Update).one()
+            self.koji.__tagged__[db.query(Update).first().title] = [release.override_tag,
+                                                                    pending_testing_tag]
+            up = db.query(Update).one()
             up.release.state = ReleaseState.pending
             up.request = UpdateRequest.stable
+        msg = self._make_msg()
 
-        self.masher.consume(self.msg)
+        self.masher.consume(msg)
 
         exception_log.assert_called_once_with("Problem expiring override")
 
@@ -1590,9 +1634,11 @@ References:
                 pending_testing_tag=u'f18-updates-testing-pending',
                 pending_stable_tag=u'f18-updates-pending',
                 override_tag=u'f18-override',
+                state=ReleaseState.current,
                 branch=u'f18')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
+                             signed=True)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc18',
@@ -1613,9 +1659,11 @@ References:
                 pending_testing_tag=u'f27-updates-testing-pending',
                 pending_stable_tag=u'f27-updates-pending',
                 override_tag=u'f27-override',
+                state=ReleaseState.current,
                 branch=u'f27')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc27', release=release, package=up.builds[0].package)
+            build = RpmBuild(nvr=u'bodhi-2.0-1.fc27', release=release, package=up.builds[0].package,
+                             signed=True)
             db.add(build)
             update = Update(
                 title=u'bodhi-2.0-1.fc27',
@@ -1628,7 +1676,6 @@ References:
             db.add(update)
             # Wipe out the tag cache so it picks up our new releases
             Release._tag_cache = None
-        self.msg['body']['msg']['updates'] += [u'bodhi-2.0-1.fc18', u'bodhi-2.0-1.fc27']
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.MasherThread.wait_for_mash')
@@ -1643,7 +1690,7 @@ References:
         self.masher.log.info = mock.MagicMock()
 
         with mock.patch.dict(config, {'max_concurrent_mashes': 1}):
-            self.masher.work(self.msg)
+            self.masher.work(self._make_msg())
 
         info_log_messages = [c[1] for c in self.masher.log.info.mock_calls]
         waiting_messages = [m for m in info_log_messages if 'Waiting on' in m[0]]
@@ -1665,7 +1712,7 @@ References:
         self.masher.log.info = mock.MagicMock()
 
         with mock.patch.dict(config, {'max_concurrent_mashes': 2}):
-            self.masher.work(self.msg)
+            self.masher.work(self._make_msg())
 
         info_log_messages = [c[1] for c in self.masher.log.info.mock_calls]
         waiting_messages = [m for m in info_log_messages if 'Waiting on' in m[0]]
@@ -1695,6 +1742,15 @@ class MasherThreadBaseTestCase(base.BaseTestCase):
         shutil.rmtree(self.tempdir)
         buildsys.teardown_buildsystem()
 
+    def _make_msg(self, extra_push_args=None):
+        """
+        Use bodhi-push to start a compose, and return the fedmsg that bodhi-push sends.
+
+        Returns:
+            dict: A dictionary of the fedmsg that bodhi-push sends.
+        """
+        return _make_msg(base.TransactionalSessionMaker(self.Session), extra_push_args)
+
 
 class TestMasherThread__get_master_repomd_url(MasherThreadBaseTestCase):
     """This test class contains tests for the MasherThread._get_master_repomd_url() method."""
@@ -1710,9 +1766,10 @@ class TestMasherThread__get_master_repomd_url(MasherThreadBaseTestCase):
         Assert that the *_alt_master_repomd settings are used when the release does define primary
         arches and the arch being looked up is not in the primary arch list.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        msg = self._make_msg()
+        t = MasherThread(msg['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
 
         url = t._get_master_repomd_url('aarch64')
 
@@ -1731,9 +1788,10 @@ class TestMasherThread__get_master_repomd_url(MasherThreadBaseTestCase):
         Assert that a ValueError is raised when the config is missing a master_repomd config for
         the release.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        msg = self._make_msg()
+        t = MasherThread(msg['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
 
         with self.assertRaises(ValueError) as exc:
             t._get_master_repomd_url('aarch64')
@@ -1753,9 +1811,10 @@ class TestMasherThread__get_master_repomd_url(MasherThreadBaseTestCase):
         Assert that the *_master_repomd settings are used when the release does define primary
         arches and the arch being looked up is primary.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        msg = self._make_msg()
+        t = MasherThread(msg['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
 
         url = t._get_master_repomd_url('x86_64')
 
@@ -1775,9 +1834,10 @@ class TestMasherThread__get_master_repomd_url(MasherThreadBaseTestCase):
         Assert that the *_master_repomd settings are used when the release does not have primary
         arches defined in the config file.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        msg = self._make_msg()
+        t = MasherThread(msg['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
 
         url = t._get_master_repomd_url('aarch64')
 
@@ -1795,8 +1855,10 @@ class TestMasherThread__perform_tag_actions(MasherThreadBaseTestCase):
         Assert that the method raises an Exception when the buildsys gives us failed tasks.
         """
         wait_for_tasks.return_value = ['failed_task_1']
-        t = MasherThread(u'F26', u'stable', [u'bodhi-2.3.2-1.fc26'],
+        msg = self._make_msg()
+        t = MasherThread(msg['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
         t.move_tags_async.append(
             (u'f26-updates-candidate', u'f26-updates-testing', u'bodhi-2.3.2-1.fc26'))
 
@@ -1812,15 +1874,16 @@ class TestMasherThread__perform_tag_actions(MasherThreadBaseTestCase):
 
 class TestMasherThread_check_all_karma_thresholds(MasherThreadBaseTestCase):
     """Test the MasherThread.check_all_karma_thresholds() method."""
+    @mock.patch('bodhi.server.models.Update.check_karma_thresholds',
+                mock.MagicMock(side_effect=exceptions.BodhiException('BOOM')))
     def test_BodhiException(self):
         """Assert that a raised BodhiException gets caught and logged."""
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        msg = self._make_msg()
+        t = MasherThread(msg['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
         t.db = self.db
         t.log.exception = mock.MagicMock()
-        t.updates = [mock.MagicMock(), mock.MagicMock()]
-        t.updates[1].check_karma_thresholds.side_effect = exceptions.BodhiException("BOOM")
 
         t.check_all_karma_thresholds()
 
@@ -1836,27 +1899,29 @@ class TestMasherThread_eject_from_mash(MasherThreadBaseTestCase):
         """
         up = self.db.query(Update).one()
         up.request = UpdateRequest.testing
-        t = MasherThread(u'F17', u'stable', [u'bodhi-2.0-1.fc17'],
+        self.db.commit()
+        msg = self._make_msg()
+        t = MasherThread(msg['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        # t.work() would normally set these up for us, so we'll just fake it
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
         t.db = self.Session()
-        # t.work() would normally set this up for us, so we'll just fake it
         t.id = getattr(self.db.query(Release).one(), '{}_tag'.format('stable'))
-        t.updates = set([up])
+        up = self.db.query(Update).one()
 
         t.eject_from_mash(up, 'This update is unacceptable!')
 
         self.assertEqual(buildsys.DevBuildsys.__untag__,
                          [(u'f17-updates-testing-pending', u'bodhi-2.0-1.fc17')])
+        up = self.db.query(Update).one()
         publish.assert_called_once_with(
             topic='update.eject',
             msg={'repo': 'f17-updates', 'update': up,
-                 'reason': 'This update is unacceptable!', 'request': UpdateRequest.stable,
-                 'release': 'F17', 'agent': 'bowlofeggs'},
+                 'reason': 'This update is unacceptable!', 'request': UpdateRequest.testing,
+                 'release': t.compose.release, 'agent': 'bowlofeggs'},
             force=True)
         # The update should have been removed from t.updates
-        self.assertEqual(t.updates, set([]))
-        # The update's title should also have been removed from t.state['updates']
-        self.assertEqual(t.state['updates'], [])
+        self.assertEqual(len(t.compose.updates), 0)
 
 
 class TestMasherThread_init_state(MasherThreadBaseTestCase):
@@ -1864,167 +1929,96 @@ class TestMasherThread_init_state(MasherThreadBaseTestCase):
     def test_creates_mash_dir(self):
         """Assert that mash_dir gets created if it doesn't exist."""
         mash_dir = os.path.join(self.tempdir, 'cool_dir')
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        msg = self._make_msg()
+        t = MasherThread(msg['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, mash_dir)
         # t.work() would normally set this up for us, so we'll just fake it
-        t.id = getattr(release, '{}_tag'.format('stable'))
+        t.id = getattr(self.db.query(Release).one(), '{}_tag'.format('stable'))
 
         t.init_state()
 
         self.assertTrue(os.path.exists(mash_dir))
 
-    def test_lock_exists_resume_false(self):
-        """If a lock exists and we are not resuming, an Exception should be raised."""
-        mash_dir = os.path.join(self.tempdir, 'cool_dir')
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
-                         'bowlofeggs', log, self.Session, mash_dir)
-        # t.work() would normally set this up for us, so we'll just fake it
-        t.id = getattr(release, '{}_tag'.format('stable'))
-        t.log.error = mock.MagicMock()
-        lock_file = os.path.join(mash_dir, 'MASHING-{}'.format(t.id))
-        os.makedirs(mash_dir)
-        with open(lock_file, 'w') as lf:
-            lf.write('some updates')
 
-        with self.assertRaises(Exception):
-            t.init_state()
-
-        t.log.error.assert_called_once_with(
-            'Trying to do a fresh push and masher lock already exists: {}'.format(lock_file))
-
-    def test_lock_exists_resume_true(self):
-        """If a lock exists and we are resuming, no Exception should be raised."""
-        mash_dir = os.path.join(self.tempdir, 'cool_dir')
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
-                         'bowlofeggs', log, self.Session, mash_dir)
-        # t.work() would normally set this up for us, so we'll just fake it
-        t.id = getattr(release, '{}_tag'.format('stable'))
-        t.resume = True
-        lock_file = os.path.join(mash_dir, 'MASHING-{}'.format(t.id))
-        os.makedirs(mash_dir)
-        with open(lock_file, 'w') as lf:
-            lf.write('some updates')
-
-        # This should not raise any Exceptions.
-        t.init_state()
-
-    def test_no_locks(self):
-        """Assert that no Exceptions are raised if locks don't exist."""
-        mash_dir = os.path.join(self.tempdir, 'cool_dir')
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
-                         'bowlofeggs', log, self.Session, mash_dir)
-        # t.work() would normally set this up for us, so we'll just fake it
-        t.id = getattr(release, '{}_tag'.format('stable'))
-        os.makedirs(mash_dir)
-
-        # This should not raise any Exceptions.
-        t.init_state()
-
-
-class TestMasherThread_load_updates(MasherThreadBaseTestCase):
-    """Test the MasherThread.load_updates() method."""
-    def test_no_updates(self):
-        """Assert that an Exception is raised when no Updates are found."""
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+class TestMasherThread_load_state(MasherThreadBaseTestCase):
+    """This test class contains tests for the MasherThread.load_state() method."""
+    def test_with_completed_repo(self):
+        """Test when there is a completed_repo in the checkpoints."""
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t._checkpoints = {'cool': 'checkpoint'}
+        t.compose = self.db.query(Compose).one()
+        t.compose.checkpoints = json.dumps({'other': 'checkpoint', 'completed_repo': '/path/to/it'})
         t.db = self.db
-        t.state['updates'] = []
 
-        with self.assertRaises(Exception) as exc:
-            t.load_updates()
+        t.load_state()
 
-        self.assertEqual(str(exc.exception), 'Unable to load updates: []')
+        self.assertEqual(t._checkpoints, {'other': 'checkpoint', 'completed_repo': '/path/to/it'})
+        self.assertEqual(t.path, '/path/to/it')
 
-
-class TestMasherThread_verify_updates(MasherThreadBaseTestCase):
-    """Test the MasherThread.verify_updates() method."""
-    def test_all_updates_ok(self):
-        """Assert that no updates get ejected when they are OK."""
-        up = Update.query.one()
-        up.request = UpdateRequest.stable
-        t = MasherThread(up.release, u'stable', [u'bodhi-2.0-1.fc17'],
+    def test_without_completed_repo(self):
+        """Test when there is not a completed_repo in the checkpoints."""
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
-        t.db = self.Session()
-        # t.work() would normally set this up for us, so we'll just fake it
-        t.id = getattr(up.release, '{}_tag'.format('stable'))
-        t.updates = set([up])
+        t._checkpoints = {'cool': 'checkpoint'}
+        t.compose = self.db.query(Compose).one()
+        t.compose.checkpoints = json.dumps({'other': 'checkpoint'})
+        t.db = self.db
 
-        t.verify_updates()
+        t.load_state()
 
-        # Verify that up wasn't removed from t.updates.
-        self.assertIn(up, t.updates)
+        self.assertEqual(t._checkpoints, {'other': 'checkpoint'})
+        self.assertEqual(t.path, None)
 
-    def test_mismatched_release(self):
-        """Assert that Updates with mismatched Releases get ejected."""
-        user = User.query.first()
-        up_1 = Update.query.one()
-        up_1.request = UpdateRequest.stable
-        release = Release(
-            name=u'F18', long_name=u'Fedora 18',
-            id_prefix=u'FEDORA', version=u'18',
-            dist_tag=u'f18', stable_tag=u'f18-updates',
-            testing_tag=u'f18-updates-testing',
-            candidate_tag=u'f18-updates-candidate',
-            pending_signing_tag=u'f18-updates-testing-signing',
-            pending_testing_tag=u'f18-updates-testing-pending',
-            pending_stable_tag=u'f18-updates-pending',
-            override_tag=u'f18-override',
-            branch=u'f18')
-        self.db.add(release)
-        build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up_1.builds[0].package)
-        self.db.add(build)
-        up_2 = Update(
-            title=u'bodhi-2.0-1.fc18',
-            builds=[build], user=user,
-            status=UpdateStatus.testing,
-            request=UpdateRequest.stable,
-            type=UpdateType.enhancement,
-            notes=u'Useful details!', release=release,
-            test_gating_status=TestGatingStatus.passed)
-        t = MasherThread(up_1.release, u'stable', [u'bodhi-2.0-1.fc17'],
+
+class TestMasherThread_remove_state(MasherThreadBaseTestCase):
+    """Test the remove_state() method."""
+    def test_remove_state(self):
+        """Assert that remove_state() deletes the Compose."""
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
-        t.db = self.Session()
-        # t.work() would normally set this up for us, so we'll just fake it
-        t.id = getattr(up_1.release, '{}_tag'.format('stable'))
-        t.updates = set([up_1, up_2])
+        t.compose = self.db.query(Compose).one()
+        t.db = self.db
 
-        t.verify_updates()
+        t.remove_state()
 
-        # up_2 got removed for having the wrong release.
-        self.assertEqual(t.updates, set([up_1]))
+        self.db.flush()
+        self.assertEqual(self.db.query(Compose).count(), 0)
 
-    def test_mismatched_request(self):
-        """Assert that Updates with mismatched Requests get ejected."""
-        user = User.query.first()
-        up_1 = Update.query.one()
-        up_1.request = UpdateRequest.stable
-        build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=up_1.release,
-                         package=up_1.builds[0].package)
-        self.db.add(build)
-        up_2 = Update(
-            title=u'bodhi-2.0-1.fc18',
-            builds=[build], user=user,
-            status=UpdateStatus.testing,
-            request=UpdateRequest.batched,
-            type=UpdateType.enhancement,
-            notes=u'Useful details!', release=up_1.release,
-            test_gating_status=TestGatingStatus.passed)
-        t = MasherThread(up_1.release, u'stable', [u'bodhi-2.0-1.fc17'],
+
+class TestMasherThread_save_state(MasherThreadBaseTestCase):
+    """This test class contains tests for the MasherThread.save_state() method."""
+    def test_with_state(self):
+        """Test the optional state parameter."""
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
-        t.db = self.Session()
-        # t.work() would normally set this up for us, so we'll just fake it
-        t.id = getattr(up_1.release, '{}_tag'.format('stable'))
-        t.updates = [up_1, up_2]
+        t._checkpoints = {'cool': 'checkpoint'}
+        t.compose = self.db.query(Compose).one()
+        t.db = self.db
+        t.db.commit = mock.MagicMock()
 
-        t.verify_updates()
+        t.save_state(ComposeState.notifying)
 
-        # up_2 got removed for having the wrong release.
-        self.assertEqual(t.updates, [up_1])
+        compose = self.db.query(Compose).one()
+        self.assertEqual(compose.state, ComposeState.notifying)
+        self.assertEqual(json.loads(compose.checkpoints), {'cool': 'checkpoint'})
+        t.db.commit.assert_called_once_with()
+
+    def test_without_state(self):
+        """Test without the optional state parameter."""
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t._checkpoints = {'cool': 'checkpoint'}
+        t.compose = self.db.query(Compose).one()
+        t.db = self.db
+        t.db.commit = mock.MagicMock()
+
+        t.save_state()
+
+        compose = self.db.query(Compose).one()
+        self.assertEqual(compose.state, ComposeState.requested)
+        self.assertEqual(json.loads(compose.checkpoints), {'cool': 'checkpoint'})
+        t.db.commit.assert_called_once_with()
 
 
 class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
@@ -2042,9 +2036,9 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         """
         Assert correct operation when the repomd checksum matches immediately.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
         for arch in ['aarch64', 'x86_64']:
@@ -2085,9 +2079,9 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         """
         Assert error when no checkarch is found.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
         for arch in ['source']:
@@ -2115,9 +2109,9 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         """
         Assert correct operation when the repomd checksum matches on the third try.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
         for arch in ['aarch64', 'x86_64']:
@@ -2159,9 +2153,9 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         """
         Assert that an HTTPError is properly caught and logged, and that the algorithm continues.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
         t.log = mock.MagicMock()
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
@@ -2203,9 +2197,9 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         """
         Assert that a ValueError is raised when the needed *_master_repomd config is missing.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
         for arch in ['aarch64', 'x86_64']:
@@ -2231,9 +2225,9 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         """
         Assert that an error is logged when the local repomd is missing.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
         t.log = mock.MagicMock()
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
@@ -2261,9 +2255,9 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         """
         Assert that a URLError is properly caught and logged, and that the algorithm continues.
         """
-        release = self.db.query(Release).filter_by(name=u'F17').one()
-        t = MasherThread(release, u'testing', [u'bodhi-2.4.0-1.fc26'],
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
                          'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
         t.log = mock.MagicMock()
         t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
@@ -2292,3 +2286,67 @@ class TestMasherThread_wait_for_sync(MasherThreadBaseTestCase):
         urlopen.assert_has_calls(expected_calls)
         t.log.exception.assert_called_once_with('Error fetching repomd.xml')
         sleep.assert_called_once_with(200)
+
+
+class TestMasherThread__mark_status_changes(MasherThreadBaseTestCase):
+    """Test the _mark_status_changes() method."""
+    def test_stable_update(self):
+        """Assert that a stable update gets the right status."""
+        update = Update.query.one()
+        update.status = UpdateStatus.testing
+        update.request = UpdateRequest.stable
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
+
+        t._mark_status_changes()
+
+        update = Update.query.one()
+        self.assertEqual(update.status, UpdateStatus.stable)
+        # The request is removed by the _unlock_updates() method, which is called later than this
+        # one.
+        self.assertEqual(update.request, UpdateRequest.stable)
+        now = datetime.datetime.utcnow()
+        self.assertTrue((now - update.date_stable) < datetime.timedelta(seconds=5))
+        self.assertIsNone(update.date_testing)
+        self.assertTrue((now - update.date_pushed) < datetime.timedelta(seconds=5))
+        self.assertTrue(update.pushed)
+
+    def test_testing_update(self):
+        """Assert that a testing update gets the right status."""
+        update = Update.query.one()
+        update.status = UpdateStatus.pending
+        update.request = UpdateRequest.testing
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
+
+        t._mark_status_changes()
+
+        update = Update.query.one()
+        self.assertEqual(update.status, UpdateStatus.testing)
+        # The request is removed by the _unlock_updates() method, which is called later than this
+        # one.
+        self.assertEqual(update.request, UpdateRequest.testing)
+        now = datetime.datetime.utcnow()
+        self.assertTrue((now - update.date_testing) < datetime.timedelta(seconds=5))
+        self.assertIsNone(update.date_stable)
+        self.assertTrue((now - update.date_pushed) < datetime.timedelta(seconds=5))
+        self.assertTrue(update.pushed)
+
+
+class TestMasherThread__unlock_updates(MasherThreadBaseTestCase):
+    """Test the _unlock_updates() method."""
+    def test__unlock_updates(self):
+        """Assert that _unlock_updates() works correctly."""
+        update = Update.query.one()
+        update.request = UpdateRequest.testing
+        t = MasherThread(self._make_msg()['body']['msg']['composes'][0],
+                         'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
+
+        t._unlock_updates()
+
+        update = Update.query.one()
+        self.assertIsNone(update.request)
+        self.assertFalse(update.locked)

@@ -113,6 +113,8 @@ class TestNewUpdate(base.BaseTestCase):
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_unicode_description(self, publish, *args):
+        # We don't want the new update to obsolete the existing one.
+        self.db.delete(Update.query.one())
         update = self.get_update('bodhi-2.0.0-2.fc17')
         update['notes'] = u'This is wünderfül'
         r = self.app.post_json('/updates/', update)
@@ -249,7 +251,8 @@ class TestNewUpdate(base.BaseTestCase):
         self.assertEquals(up['severity'], u'unspecified')
         self.assertEquals(up['suggest'], u'unspecified')
         self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'this is a test update')
+        # The notes are inheriting notes from the update that this update obsoleted.
+        self.assertEquals(up['notes'], u'this is a test update\n\n----\n\nUseful details!')
         self.assertIsNotNone(up['date_submitted'])
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
@@ -268,16 +271,18 @@ class TestNewUpdate(base.BaseTestCase):
     def test_new_module_update(self, publish, *args):
         # Ensure there are no module packages in the DB to begin with.
         self.assertEquals(self.db.query(ModulePackage).count(), 0)
-
+        self.create_release(u'27M')
         # Then, create an update for one.
         data = self.get_update('nginx-master-20170523')
+
         r = self.app.post_json('/updates/', data)
+
         up = r.json_body
         self.assertEquals(up['title'], u'nginx-master-20170523')
         self.assertEquals(up['status'], u'pending')
         self.assertEquals(up['request'], u'testing')
         self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
+        self.assertEquals(up['release']['name'], u'F27M')
         self.assertEquals(up['type'], u'bugfix')
         self.assertEquals(up['content_type'], u'module')
         self.assertEquals(up['severity'], u'unspecified')
@@ -318,9 +323,11 @@ class TestNewUpdate(base.BaseTestCase):
         update['bugs'] = ['1234', '5678']
         r = self.app.post_json('/updates/', update)
         up = r.json_body
-        self.assertEquals(len(up['bugs']), 2)
+        # This Update inherits one bug from the Update it obsoleted.
+        self.assertEquals(len(up['bugs']), 3)
         self.assertEquals(up['bugs'][0]['bug_id'], 1234)
         self.assertEquals(up['bugs'][1]['bug_id'], 5678)
+        self.assertEquals(up['bugs'][2]['bug_id'], 12345)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
@@ -330,9 +337,11 @@ class TestNewUpdate(base.BaseTestCase):
         update['bugs'] = '1234, 5678'
         r = self.app.post_json('/updates/', update)
         up = r.json_body
-        self.assertEquals(len(up['bugs']), 2)
+        # This Update inherits one bug from the Update it obsoleted.
+        self.assertEquals(len(up['bugs']), 3)
         self.assertEquals(up['bugs'][0]['bug_id'], 1234)
         self.assertEquals(up['bugs'][1]['bug_id'], 5678)
+        self.assertEquals(up['bugs'][2]['bug_id'], 12345)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
@@ -1072,7 +1081,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], alias)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(up['url'],
@@ -1197,7 +1206,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
         self.assertEquals(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
@@ -1251,7 +1260,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
         self.assertEquals(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
@@ -1286,7 +1295,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
@@ -1325,7 +1334,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1358,7 +1367,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1415,7 +1424,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1456,11 +1465,13 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
     def test_list_updates_by_locked(self):
+        Update.query.one().locked = True
+        self.db.flush()
         res = self.app.get('/updates/', {"locked": "true"})
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
@@ -1536,7 +1547,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], now.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
@@ -1587,7 +1598,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], now.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
@@ -1622,7 +1633,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1650,7 +1661,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1679,7 +1690,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(up['pushed'], False)
@@ -1726,7 +1737,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
@@ -1776,7 +1787,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
         self.assertEquals(len(up['bugs']), 1)
@@ -1811,7 +1822,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1839,7 +1850,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1863,7 +1874,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1895,7 +1906,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1929,7 +1940,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1962,7 +1973,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -1996,7 +2007,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -2029,7 +2040,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -2062,7 +2073,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['date_modified'], None)
         self.assertEquals(up['date_approved'], None)
         self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
+        self.assertEquals(up['locked'], False)
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
@@ -2163,7 +2174,7 @@ class TestUpdatesService(base.BaseTestCase):
         Karma has been reset.
         """).strip()
         self.assertMultiLineEqual(up['comments'][-2]['text'], comment)
-        self.assertEquals(up['comments'][-3]['text'],
+        self.assertEquals(up['comments'][-4]['text'],
                           u'This update has been submitted for testing by guest. ')
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
@@ -2209,7 +2220,7 @@ class TestUpdatesService(base.BaseTestCase):
         Karma has been reset.
         """).strip()
         self.assertMultiLineEqual(up['comments'][-2]['text'], comment)
-        self.assertEquals(up['comments'][-3]['text'],
+        self.assertEquals(up['comments'][-4]['text'],
                           u'This update has been submitted for testing by guest. ')
         self.assertEquals(len(up['builds']), 1)
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
@@ -3113,9 +3124,12 @@ class TestUpdatesService(base.BaseTestCase):
         data = r.json_body
 
         self.assertIn('caveats', data)
-        self.assertEquals(len(data['caveats']), 1)
+        self.assertEquals(len(data['caveats']), 2)
         self.assertEquals(data['caveats'][0]['description'],
                           "Your update is being split into 2, one for each release.")
+        self.assertEquals(
+            data['caveats'][1]['description'],
+            "This update has obsoleted bodhi-2.0-1.fc17, and has inherited its bugs and notes.")
 
         self.assertIn('updates', data)
         self.assertEquals(len(data['updates']), 2)
@@ -3131,7 +3145,8 @@ class TestUpdatesService(base.BaseTestCase):
         args = self.get_update(u'bodhi-2.0.0-2.fc17')
         args['bugs'] = '56789'
         r = self.app.post_json('/updates/', args)
-        self.assertEquals(len(r.json['bugs']), 1)
+        # This has two bugs because it obsoleted another update and inherited its bugs.
+        self.assertEquals(len(r.json['bugs']), 2)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         # Pretend it was pushed to testing and tested
@@ -3744,7 +3759,7 @@ class TestUpdatesService(base.BaseTestCase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
         expected_comment = config.get('disable_automatic_push_to_stable')
-        self.assertEquals(up.comments[2].text, expected_comment)
+        self.assertEquals(up.comments[3].text, expected_comment)
 
         up.comment(self.db, u'LGTM Now', author=u'ralph', karma=1)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()

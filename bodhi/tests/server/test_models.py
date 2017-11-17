@@ -19,6 +19,7 @@ import json
 import pickle
 import time
 import unittest
+import uuid
 
 from pyramid.testing import DummyRequest
 from sqlalchemy.exc import IntegrityError
@@ -335,6 +336,185 @@ class TestEnumSymbol(unittest.TestCase):
 
         self.assertEqual(six.text_type(s), 'value')
         self.assertEqual(type(six.text_type(s)), six.text_type)
+
+
+class TestCompose(BaseTestCase):
+    """Test the :class:`Compose` model."""
+    def _generate_compose(self, request, security):
+        """
+        Create and return a Compose.
+
+        Args:
+            request (UpdateRequest): The request you would like the compose for.
+            security (bool): Whether you want the compose to be a security Compose.
+        Returns:
+            Compose: The created compose.
+        """
+        uid = uuid.uuid4()
+        release = model.Release(
+            name=u'F27-{}'.format(uid), long_name=u'Fedora 27 {}'.format(uid),
+            id_prefix=u'FEDORA', version=u'27',
+            dist_tag=u'f27', stable_tag=u'f27-updates',
+            testing_tag=u'f27-updates-testing',
+            candidate_tag=u'f27-updates-candidate',
+            pending_signing_tag=u'f27-updates-testing-signing',
+            pending_testing_tag=u'f27-updates-testing-pending',
+            pending_stable_tag=u'f27-updates-pending',
+            override_tag=u'f27-override',
+            state=ReleaseState.current,
+            branch=u'f27-{}'.format(uid))
+        self.db.add(release)
+        update = self.create_update([u'bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update.release = release
+        update.request = request
+        update.locked = True
+        if security:
+            update.type = model.UpdateType.security
+        compose = model.Compose(request=request, release=update.release)
+        self.db.add(compose)
+        self.db.flush()
+        return compose
+
+    def test_content_type_no_updates(self):
+        """The content_type should be None if there are no updates."""
+        compose = self._generate_compose(model.UpdateRequest.stable, False)
+        compose.updates[0].locked = False
+        self.db.flush()
+        self.db.refresh(compose)
+
+        self.assertIsNone(compose.content_type)
+
+    def test_content_type_with_updates(self):
+        """The content_type should match the first update."""
+        compose = self._generate_compose(model.UpdateRequest.stable, False)
+
+        self.assertEqual(compose.content_type, model.ContentType.rpm)
+
+    def test_from_dict(self):
+        """Assert that from_dict() returns a Compose."""
+        compose = self._generate_compose(model.UpdateRequest.stable, False)
+
+        reloaded_compose = model.Compose.from_dict(self.db, compose.__json__())
+
+        self.assertEqual(reloaded_compose.request, compose.request)
+        self.assertEqual(reloaded_compose.release, compose.release)
+
+    def test_from_updates(self):
+        """Assert that from_updates() correctly generates Composes."""
+        update_1 = self.create_update([u'bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        # This update should be ignored.
+        update_2 = self.create_update([u'bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_2.request = None
+        release = model.Release(
+            name=u'F27', long_name=u'Fedora 27',
+            id_prefix=u'FEDORA', version=u'27',
+            dist_tag=u'f27', stable_tag=u'f27-updates',
+            testing_tag=u'f27-updates-testing',
+            candidate_tag=u'f27-updates-candidate',
+            pending_signing_tag=u'f27-updates-testing-signing',
+            pending_testing_tag=u'f27-updates-testing-pending',
+            pending_stable_tag=u'f27-updates-pending',
+            override_tag=u'f27-override',
+            state=ReleaseState.current,
+            branch=u'f27')
+        self.db.add(release)
+        update_3 = self.create_update([u'bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_3.release = release
+        update_3.type = model.UpdateType.security
+        update_4 = self.create_update([u'bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update_4.status = model.UpdateStatus.testing
+        update_4.request = model.UpdateRequest.stable
+
+        composes = model.Compose.from_updates([update_1, update_2, update_3, update_4])
+
+        for c in composes:
+            self.db.add(c)
+            self.db.flush()
+            self.db.refresh(c)
+        composes = sorted(composes)
+        self.assertEqual(len(composes), 3)
+
+        def assert_compose_has_update(compose, update):
+            self.assertEqual(compose.updates, [update])
+            self.assertEqual(compose.release, update.release)
+            self.assertEqual(compose.request, update.request)
+
+        assert_compose_has_update(composes[0], update_3)
+        assert_compose_has_update(composes[1], update_4)
+        assert_compose_has_update(composes[2], update_1)
+
+    def test_security_false(self):
+        """Assert that security is False if none of the Updates are security updates."""
+        compose = self._generate_compose(model.UpdateRequest.stable, False)
+
+        self.assertFalse(compose.security)
+
+    def test_security_true(self):
+        """Assert that security is True if one of the Updates is a security update."""
+        compose = self._generate_compose(model.UpdateRequest.stable, True)
+
+        self.assertTrue(compose.security)
+
+    def test_update_state_date(self):
+        """Ensure that the state_date attribute gets automatically set when state changes."""
+        compose = self._generate_compose(model.UpdateRequest.stable, True)
+        before = datetime.utcnow()
+        compose.state = model.ComposeState.notifying
+
+        self.assertTrue(compose.state_date > before)
+        self.assertTrue(datetime.utcnow() > compose.state_date)
+
+    def test___lt___false_fallthrough(self):
+        """__lt__() should return False if the other conditions tested don't catch anything."""
+        compose_1 = self._generate_compose(model.UpdateRequest.stable, True)
+        compose_2 = self._generate_compose(model.UpdateRequest.stable, True)
+
+        self.assertFalse(compose_1 < compose_2)
+        self.assertFalse(compose_2 < compose_1)
+        self.assertFalse(compose_1 > compose_2)
+        self.assertFalse(compose_2 > compose_1)
+
+    def test___lt___security_prioritized(self):
+        """__lt__() should return True if other is security and self is not."""
+        compose_1 = self._generate_compose(model.UpdateRequest.testing, True)
+        compose_2 = self._generate_compose(model.UpdateRequest.testing, False)
+
+        self.assertTrue(compose_1 < compose_2)
+        self.assertFalse(compose_2 < compose_1)
+        self.assertFalse(compose_1 > compose_2)
+        self.assertTrue(compose_2 > compose_1)
+        self.assertEqual(sorted([compose_1, compose_2]), [compose_1, compose_2])
+
+    def test___lt___security_prioritized_over_stable(self):
+        """
+        __lt__() should return True if other is security and self is not, even if self is
+        stable.
+        """
+        compose_1 = self._generate_compose(model.UpdateRequest.testing, True)
+        compose_2 = self._generate_compose(model.UpdateRequest.stable, False)
+
+        self.assertTrue(compose_1 < compose_2)
+        self.assertFalse(compose_2 < compose_1)
+        self.assertFalse(compose_1 > compose_2)
+        self.assertTrue(compose_2 > compose_1)
+        self.assertEqual(sorted([compose_1, compose_2]), [compose_1, compose_2])
+
+    def test___lt___stable_prioritized(self):
+        """__lt__() should return True if self is stable and other is not."""
+        compose_1 = self._generate_compose(model.UpdateRequest.testing, False)
+        compose_2 = self._generate_compose(model.UpdateRequest.stable, False)
+
+        self.assertFalse(compose_1 < compose_2)
+        self.assertTrue(compose_2 < compose_1)
+        self.assertTrue(compose_1 > compose_2)
+        self.assertFalse(compose_2 > compose_1)
+        self.assertEqual(sorted([compose_1, compose_2]), [compose_2, compose_1])
+
+    def test___str__(self):
+        """Ensure __str__() returns the right string."""
+        compose = self._generate_compose(model.UpdateRequest.stable, False)
+
+        self.assertEqual(str(compose), '<Compose: {} stable>'.format(compose.release.name))
 
 
 class TestRelease(ModelTest):
@@ -1022,8 +1202,70 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.builds[0].release.name, u'F11')
         self.assertEqual(self.obj.builds[0].package.name, u'TurboGears')
 
+    def test_compose_relationship(self):
+        """Assert the compose relationship works correctly when the update is locked."""
+        compose = model.Compose(release=self.obj.release, request=self.obj.request)
+        self.obj.locked = True
+        self.db.add(compose)
+        self.db.flush()
+
+        compose = model.Compose.query.one()
+        self.assertEqual(compose.updates, [self.obj])
+        self.assertEqual(self.obj.compose, compose)
+
+    def test_compose_relationship_delete(self):
+        """The Compose should not mess with the Update's state when deleted."""
+        compose = model.Compose(release=self.obj.release, request=self.obj.request)
+        self.obj.locked = True
+        self.db.add(compose)
+        self.db.flush()
+
+        self.db.delete(compose)
+        self.db.flush()
+
+        self.assertIsNone(self.obj.compose)
+        self.assertEqual(self.obj.request, model.UpdateRequest.testing)
+        self.assertEqual(self.obj.release, model.Release.query.one())
+
+    def test_compose_relationship_none(self):
+        """Assert that the compose relationship is None when the update is not locked."""
+        compose = model.Compose(release=self.obj.release, request=self.obj.request)
+        self.db.add(compose)
+        self.db.flush()
+
+        self.assertIsNone(self.obj.compose)
+        self.assertFalse(self.obj.locked)
+        self.assertEqual(model.Compose.query.one().updates, [])
+
     def test_content_type(self):
         self.assertEqual(self.obj.content_type, model.ContentType.rpm)
+
+    def test_date_locked_no_compose(self):
+        """Test that date_locked is None if there is no Compose."""
+        self.obj.locked = True
+
+        self.assertIsNone(self.obj.date_locked)
+
+    def test_date_locked_not_locked(self):
+        """Test that date_locked is None if the Update isn't locked."""
+        compose = model.Compose(release=self.obj.release, request=self.obj.request)
+        self.db.add(compose)
+        self.db.flush()
+
+        self.assertIsNone(self.obj.date_locked)
+
+    def test_date_locked_not_locked_and_no_compose(self):
+        """Test that date_locked is None if the Update isn't locked and there is no Compose."""
+        self.assertIsNone(self.obj.date_locked)
+
+    def test_date_locked_with_compose(self):
+        """Test that date_locked is the Compose's creation date."""
+        compose = model.Compose(release=self.obj.release, request=self.obj.request)
+        self.obj.locked = True
+        self.db.add(compose)
+        self.db.flush()
+
+        self.assertEqual(self.obj.date_locked, compose.date_created)
 
     def test_greenwave_subject(self):
         """Ensure that the greenwave_subject property returns the correct value."""
@@ -2035,15 +2277,6 @@ class TestUpdate(ModelTest):
         publish.assert_called_once_with(
             topic='update.request.obsolete', msg=mock.ANY)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_request_complete(self, publish):
-        self.obj.request = None
-        self.assertEqual(self.obj.date_pushed, None)
-        self.obj.request = UpdateRequest.testing
-        self.obj.request_complete()
-        assert self.obj.date_pushed
-        self.assertEqual(self.obj.status, UpdateStatus.testing)
-
     def test_status_comment(self):
         self.obj.status = UpdateStatus.testing
         self.obj.status_comment(self.db)
@@ -2272,6 +2505,102 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(len(test_names), len(expected_names))
         self.assertEqual(sorted(test_names), sorted(expected_names))
+
+    def test_validate_release_failure(self):
+        """Test the validate_release() method for the failure case."""
+        user = self.db.query(model.User).first()
+
+        release = model.Release(
+            name=u'F18M', long_name=u'Fedora 18 Modular',
+            id_prefix=u'FEDORA-MODULE', version=u'18',
+            dist_tag=u'f18m', stable_tag=u'f18-modular-updates',
+            testing_tag=u'f18-modular-updates-testing',
+            candidate_tag=u'f18-modular-updates-candidate',
+            pending_signing_tag=u'f18-modular-updates-testing-signing',
+            pending_testing_tag=u'f18-modular-updates-testing-pending',
+            pending_stable_tag=u'f18-modular-updates-pending',
+            override_tag=u'f18-modular-override',
+            state=ReleaseState.current,
+            branch=u'f18m')
+        self.db.add(release)
+        package = model.Package(name=u'testmodule',
+                                type=model.ContentType.module)
+        self.db.add(package)
+        build = model.ModuleBuild(nvr=u'testmodule-master-2',
+                                  release=release, signed=True,
+                                  package=package)
+        self.db.add(build)
+        update = model.Update(
+            title=u'testmodule-master-2',
+            builds=[build], user=user,
+            status=UpdateStatus.testing,
+            request=UpdateRequest.stable,
+            notes=u'Useful details!', release=release,
+            test_gating_status=TestGatingStatus.passed)
+        self.db.add(update)
+
+        # We should not be allowed to add our RPM Update to the Module release.
+        with self.assertRaises(ValueError) as exc:
+            self.obj.release = release
+
+        self.assertEqual(str(exc.exception), 'A release must contain updates of the same type.')
+
+    def test_validate_release_none(self):
+        """Test validate_release() with the release set to None."""
+        # This should not raise an Exception.
+        self.obj.release = None
+        self.db.flush()
+
+        self.assertIsNone(self.obj.release)
+
+    def test_validate_release_success(self):
+        """Test validate_release() for the success case."""
+        user = self.db.query(model.User).first()
+
+        release = model.Release(
+            name=u'F18M', long_name=u'Fedora 18 Modular',
+            id_prefix=u'FEDORA-MODULE', version=u'18',
+            dist_tag=u'f18m', stable_tag=u'f18-modular-updates',
+            testing_tag=u'f18-modular-updates-testing',
+            candidate_tag=u'f18-modular-updates-candidate',
+            pending_signing_tag=u'f18-modular-updates-testing-signing',
+            pending_testing_tag=u'f18-modular-updates-testing-pending',
+            pending_stable_tag=u'f18-modular-updates-pending',
+            override_tag=u'f18-modular-override',
+            state=ReleaseState.current,
+            branch=u'f18m')
+        self.db.add(release)
+        package = model.Package(name=u'testmodule',
+                                type=model.ContentType.module)
+        self.db.add(package)
+        build1 = model.ModuleBuild(nvr=u'testmodule-master-1',
+                                   release=release, signed=True,
+                                   package=package)
+        self.db.add(build1)
+        build2 = model.ModuleBuild(nvr=u'testmodule-master-2',
+                                   release=release, signed=True,
+                                   package=package)
+        self.db.add(build2)
+        update1 = model.Update(
+            title=u'testmodule-master-2',
+            builds=[build1], user=user,
+            status=UpdateStatus.testing,
+            request=UpdateRequest.stable,
+            notes=u'Useful details!', release=release,
+            test_gating_status=TestGatingStatus.passed)
+        self.db.add(update1)
+
+        # This should not raise an Exception.
+        update2 = model.Update(
+            title=u'testmodule-master-2',
+            builds=[build2], user=user,
+            status=UpdateStatus.testing,
+            request=UpdateRequest.stable,
+            notes=u'Useful details!', release=release,
+            test_gating_status=TestGatingStatus.passed)
+        self.db.add(update2)
+
+        self.assertEqual(update2.release, release)
 
 
 class TestUser(ModelTest):
