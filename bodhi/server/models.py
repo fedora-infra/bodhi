@@ -32,15 +32,15 @@ import uuid
 
 from pkgdb2client import PkgDB
 from simplemediawiki import MediaWiki
-from sqlalchemy import (and_, Boolean, Column, DateTime, ForeignKey, Integer, or_, Table, Unicode,
-                        UnicodeText, UniqueConstraint)
+from six.moves.urllib.parse import quote
+from sqlalchemy import (and_, Boolean, Column, DateTime, event, ForeignKey,
+                        Integer, or_, Table, Unicode, UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.sql import text
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
-from six.moves.urllib.parse import quote
 import six
 
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session
@@ -690,6 +690,33 @@ class ReleaseState(DeclEnum):
     pending = 'pending', 'pending'
     current = 'current', 'current'
     archived = 'archived', 'archived'
+
+
+class ComposeState(DeclEnum):
+    """
+    Define the various states that a :class:`Compose` can be in.
+
+    Attributes:
+        requested (EnumSymbol): A compose has been requested, but it has not started yet.
+        pending (EnumSymbol): The request for the compose has been received by the backend worker,
+            but the compose has not started yet.
+        initializing (EnumSymbol): The compose is initializing.
+        updateinfo (EnumSymbol): The updateinfo.xml is being generated.
+        punging (EnumSymbol): A Pungi soldier has been deployed to deal with the situation.
+        notifying (EnumSymbol): Pungi has finished successfully, and we are now sending out various
+            forms of notifications, such as e-mail, fedmsgs, and bugzilla.
+        success (EnumSymbol): The Compose has completed successfully.
+        failed (EnumSymbol): The compose has failed, abandon hope.
+    """
+
+    requested = 'requested', 'Requested'
+    pending = 'pending', 'Pending'
+    initializing = 'initializing', 'Initializing'
+    updateinfo = 'updateinfo', 'Generating updateinfo.xml'
+    punging = 'punging', 'Waiting for Pungi to finish'
+    notifying = 'notifying', 'Sending notifications'
+    success = 'success', 'Success'
+    failed = 'failed', 'Failed'
 
 
 ##
@@ -1421,7 +1448,6 @@ class Update(Base):
             or ``None``.
         date_stable (DateTime): The date the update was placed into the stable repository or
             ``None``.
-        date_locked (DateTime): The date the update was locked or ``None``.
         alias (unicode): The update alias (e.g. FEDORA-EPEL-2009-12345).
         old_updateid (unicode): The legacy update ID which has been deprecated.
         release_id (int): A foreign key to the releases ``id``.
@@ -1440,6 +1466,8 @@ class Update(Base):
             Greenwave integration was not enabled when the update was created.
         greenwave_summary_string (unicode): A short summary of the outcome from Greenwave
             (e.g. 2 of 32 required tests failed).
+        compose (Compose): The :class:`Compose` that this update is currently being mashed in. The
+            update is locked if this is defined.
     """
 
     __tablename__ = 'updates'
@@ -1482,7 +1510,6 @@ class Update(Base):
     date_pushed = Column(DateTime)
     date_testing = Column(DateTime)
     date_stable = Column(DateTime)
-    date_locked = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(32), unique=True, nullable=True)
@@ -1492,13 +1519,21 @@ class Update(Base):
 
     # One-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'))
-    release = relationship('Release', lazy='joined')
+    release = relationship('Release', lazy='joined', backref='updates')
 
     # One-to-many relationships
     comments = relationship('Comment', backref=backref('update', lazy='joined'), lazy='joined',
                             order_by='Comment.timestamp')
     builds = relationship('Build', backref=backref('update', lazy='joined'), lazy='joined',
                           order_by='Build.nvr')
+    # If the update is locked and a Compose exists for the same release and request, this will be
+    # set to that Compose.
+    compose = relationship(
+        'Compose',
+        primaryjoin=("and_(Update.release_id==Compose.release_id, Update.request==Compose.request, "
+                     "Update.locked==True)"),
+        foreign_keys=(release_id, request),
+        backref=backref('updates', passive_deletes=True))
 
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table, backref='updates')
@@ -1528,6 +1563,37 @@ class Update(Base):
         if not all([isinstance(b, type(build)) for b in self.builds]):
             raise ValueError(u'An update must contain builds of the same type.')
         return build
+
+    @validates('release')
+    def validate_release(self, key, release):
+        """
+        Make sure the release is the same content type as this update.
+
+        Args:
+            key (str): The field's key, which is un-used in this validator.
+            release (Release): The release object which is being associated with this update.
+        Raises:
+            ValueError: If the release being associated is not the same content type as the
+                update.
+        """
+        if release and self.content_type is not None:
+            if len(release.updates):
+                u = release.updates[0]
+                if u.content_type and u.content_type != self.content_type:
+                    raise ValueError(u'A release must contain updates of the same type.')
+        return release
+
+    @property
+    def date_locked(self):
+        """
+        Return the time that this update became locked.
+
+        Returns:
+            datetime.datetime or None: The time this update became locked, or None if it is not
+                locked.
+        """
+        if self.locked and self.compose is not None:
+            return self.compose.date_created
 
     @property
     def mandatory_days_in_testing(self):
@@ -1700,7 +1766,9 @@ class Update(Base):
 
         # Create the update
         log.debug("Creating new Update(**data) object.")
+        release = data.pop('release', None)
         up = Update(**data)
+        up.release = release
 
         # Assign the alias before setting the request.
         # Setting the request publishes a fedmsg message, and it is nice to
@@ -2326,24 +2394,6 @@ class Update(Base):
             koji.untagBuild(tag, build.nvr, force=True)
         if return_multicall:
             return koji.multiCall()
-
-    def request_complete(self):
-        """
-        Perform post-request actions.
-
-        This sets the appropriate timestamps on the update, marks its request as ``None``, and marks
-        it as pushed.
-        """
-        now = datetime.utcnow()
-        if self.request is UpdateRequest.testing:
-            self.status = UpdateStatus.testing
-            self.date_testing = now
-        elif self.request is UpdateRequest.stable:
-            self.status = UpdateStatus.stable
-            self.date_stable = now
-        self.request = None
-        self.date_pushed = now
-        self.pushed = True
 
     def modify_bugs(self):
         """
@@ -3251,6 +3301,193 @@ class Update(Base):
         ]
 
         return result
+
+
+class Compose(Base):
+    """
+    Express the status of an in-progress compose job.
+
+    This object is used in a few ways:
+
+        * It ensures that only one compose process runs per repo, serving as a compose "lock".
+        * It marks which updates are part of a compose, serving as an update "lock".
+        * It gives the compose process a place to log which step it is in, which will allow us to
+          provide compose monitoring tools.
+
+    Attributes:
+        __exclude_columns__ (tuple): A tuple of columns to exclude when __json__() is called.
+        __include_extras__ (tuple): A tuple of attributes to add when __json__() is called.
+        __tablename__ (str): The name of the table in the database.
+        checkpoints (unicode): A JSON serialized object describing the checkpoints the masher has
+            reached.
+        date_created (datetime.datetime): The time this Compose was created.
+        error_message (unicode): An error message indicating what happened if the Compose failed.
+        id (None): We don't want the superclass's primary key since we will use a natural primary
+            key for this model.
+        release_id (int): The primary key of the :class:`Release` that is being composed. Forms half
+            of the primary key, with the other half being the ``request``.
+        request (UpdateRequest): The request of the release that is being composed. Forms half of
+            the primary key, with the other half being the ``release_id``.
+        release (Release): The release that is being composed.
+        state_date (datetime.datetime): The time of the most recent change to the state attribute.
+        state (ComposeState): The state of the compose.
+        updates (sqlalchemy.orm.collections.InstrumentedList): An iterable of updates included in
+            this compose.
+    """
+
+    __exclude_columns__ = ('checkpoints', 'error_message', 'date_created', 'state_date', 'release',
+                           'state', 'updates')
+    # We need to include these so the masher can collate the Composes and so it can pick the right
+    # masher class to use.
+    __include_extras__ = ('content_type', 'security',)
+    __tablename__ = 'composes'
+
+    # These together form the primary key.
+    release_id = Column(Integer, ForeignKey('releases.id'), primary_key=True, nullable=False)
+    request = Column(UpdateRequest.db_type(), primary_key=True, nullable=False)
+
+    # The parent class gives us an id primary key, but we'd rather have a "natural" primary key, so
+    # let's override it and set to None.
+    id = None
+    # We could use the JSON type here, but that would require PostgreSQL >= 9.2.0. We don't really
+    # need the ability to query inside this so the JSONB type probably isn't useful.
+    checkpoints = Column(UnicodeText, nullable=False, default=u'{}')
+    error_message = Column(UnicodeText)
+    date_created = Column(DateTime, nullable=False, default=datetime.utcnow)
+    state_date = Column(DateTime, nullable=False, default=datetime.utcnow)
+
+    release = relationship('Release', backref='composes')
+    state = Column(ComposeState.db_type(), nullable=False, default=ComposeState.requested)
+
+    @property
+    def content_type(self):
+        """
+        Return the content_type of this compose.
+
+        Returns:
+            (ContentType or None): The content type of this compose, or None if there are no
+                associated :class:`Updates <Update>`.
+        """
+        if self.updates:
+            return self.updates[0].content_type
+
+    @classmethod
+    def from_dict(cls, db, compose):
+        """
+        Return a :class:`Compose` instance from the given dict representation of it.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session to use to query for the compose.
+            compose (dict): A dictionary representing the compose, in the format returned by
+                :meth:`Compose.__json__`.
+        Returns:
+            bodhi.server.models.Compose: The requested compose instance.
+        """
+        return db.query(cls).filter_by(
+            release_id=compose['release_id'],
+            request=UpdateRequest.from_string(compose['request'])).one()
+
+    @classmethod
+    def from_updates(cls, updates):
+        """
+        Return a list of Compose objects to compose the given updates.
+
+        The updates will be collated by release, request, and content type, and will be added to
+        new Compose objects that match those groupings.
+
+        Note that calling this will cause each of the updates to become locked once the transaction
+        is committed.
+
+        Args:
+            updates (list): A list of :class:`Updates <Update>` that you wish to Compose.
+        Returns:
+            list: A list of new compose objects for the given updates.
+        """
+        work = {}
+        for update in updates:
+            if not update.request:
+                log.info('%s request was revoked', update.title)
+                continue
+            # ASSUMPTION: For now, updates can only be of a single type.
+            ctype = None
+            for build in update.builds:
+                if ctype is None:
+                    ctype = build.type
+                elif ctype is not build.type:  # pragma: no cover
+                    # This branch is not covered because the Update.validate_builds validator
+                    # catches the same assumption breakage. This check here is extra for the
+                    # time when someone adds multitype updates and forgets to update this.
+                    raise ValueError('Builds of multiple types found in %s'
+                                     % update.title)
+            # This key is just to insert things in the same place in the "work"
+            # dict.
+            key = '%s-%s' % (update.release.name, update.request.value)
+            if key not in work:
+                work[key] = cls(request=update.request, release_id=update.release.id,
+                                release=update.release)
+            # Lock the Update. This implicity adds it to the Compose because the Update.compose
+            # relationship joins on the Compose's compound pk for locked Updates.
+            update.locked = True
+
+        return work.values()
+
+    @property
+    def security(self):
+        """
+        Return whether this compose is a security related compose or not.
+
+        Returns:
+            bool: ``True`` if any of the :class:`Updates <Update>` in this compose are marked as
+                security updates.
+        """
+        for update in self.updates:
+            if update.type is UpdateType.security:
+                return True
+        return False
+
+    @staticmethod
+    def update_state_date(target, value, old, initiator):
+        """
+        Update the ``state_date`` when the state changes.
+
+        Args:
+            target (Compose): The compose that has had a change to its state attribute.
+            value (EnumSymbol): The new value of the state.
+            old (EnumSymbol): The old value of the state
+            initiator (sqlalchemy.orm.attributes.Event): The event object that is initiating this
+                transition.
+        """
+        if value != old:
+            target.state_date = datetime.utcnow()
+
+    def __lt__(self, other):
+        """
+        Return ``True`` if this compose has a higher priority than the other.
+
+        Args:
+            other (Compose): Another compose we are comparing this compose to for sorting.
+        Return:
+            bool: ``True`` if this compose has a higher priority than the other, else ``False``.
+        """
+        if self.security and not other.security:
+            return True
+        if other.security and not self.security:
+            return False
+        if self.request == UpdateRequest.stable and other.request != UpdateRequest.stable:
+            return True
+        return False
+
+    def __str__(self):
+        """
+        Return a human-readable representation of this compose.
+
+        Returns:
+            basestring: A string to be displayed to users decribing this compose.
+        """
+        return '<Compose: {} {}>'.format(self.release.name, self.request.description)
+
+
+event.listen(Compose.state, 'set', Compose.update_state_date, active_history=True)
 
 
 # Used for many-to-many relationships between karma and a bug

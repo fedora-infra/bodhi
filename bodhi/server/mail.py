@@ -409,7 +409,11 @@ def get_template(update, use_template='fedora_errata_template'):
             info['references'] += line
 
         # Find the most recent update for this package, other than this one
-        lastpkg = build.get_latest()
+        try:
+            lastpkg = build.get_latest()
+        except AttributeError:
+            # Not all build types have the get_latest() method, such as ModuleBuilds.
+            lastpkg = None
 
         # Grab the RPM header of the previous update, and generate a ChangeLog
         info['changelog'] = u""

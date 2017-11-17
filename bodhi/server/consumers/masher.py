@@ -46,7 +46,7 @@ from bodhi.server import bugs, initialize_db, log, buildsys, notifications, mail
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
-from bodhi.server.models import (Update, UpdateRequest, UpdateType, Release,
+from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
 from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
 
@@ -64,13 +64,13 @@ def checkpoint(method):
 
     @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
-        if not self.resume or not self.state.get(key):
+        if not self.resume or not self._checkpoints.get(key):
             # Call it
             retval = method(self, *args, **kwargs)
             if retval is not None:
                 raise ValueError("checkpointed functions may not return stuff")
             # if it didn't raise an exception, mark the checkpoint
-            self.state[key] = True
+            self._checkpoints[key] = True
             self.save_state()
         else:
             # cool!  we don't need to do anything, since we ran last time
@@ -80,7 +80,7 @@ def checkpoint(method):
     return wrapper
 
 
-def request_order_key(requestblob):
+def request_order_key(compose):
     """
     Generate a sort key for the updates documents in generate_batches.
 
@@ -97,9 +97,9 @@ def request_order_key(requestblob):
         Testing: 0
     """
     value = 0
-    if requestblob['has_security']:
+    if compose['security']:
         value -= 2
-    if requestblob['phase'] == 'stable':
+    if compose['request'] == UpdateRequest.stable.value:
         value -= 1
     return value
 
@@ -110,7 +110,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
 
     A fedmsg consumer that listens for messages from releng members.
 
-    An updates "push" consists of::
+    An updates "compose" consists of::
 
     - Verify that the message was sent by someone in releng
     - Determine which updates to push
@@ -204,66 +204,41 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
 
         self.work(msg)
 
-    def generate_batches(self, session, update_titles):
-        """Generate a sorted list of batches to perform.
+    def _get_composes(self, msg):
+        """
+        Return a list of dictionaries that represent the :class:`Composes <Compose>` we should run.
+
+        This method is compatible with the unversioned masher.start message, and also version 2.
+        If no version is found, it will use the updates listed in the message to create new Compose
+        objects and return dictionary representations of them.
+
+        This method also marks the Composes as pending, which acknowledges the receipt of the
+        message.
 
         Args:
-            session: Database transaction
-            update_titles: List of models.Update.title
-
+            msg (munch.Munch): The body of the received fedmsg.
         Returns:
-            list: A list of dictionaries with the following keys:
-                title: Name of the "batch" ("f27-stable")
-                contenttype: instance of models.ContentType
-                updates: list of models.Update instances
-                phase: "stable" | "testing"
-                has_security: bool
-
-        Raises:
-            ValueError: If a submitted update could not be found
-            ValueError: if updates exist with multiple types of builds
+            list: A list of dictionaries, as returned from :meth:`Compose.__json__`.
         """
-        work = {}
-        for title in update_titles:
-            update = session.query(Update).filter_by(title=title).one()
-            if not update.request:
-                self.log.info('%s request was revoked', update.title)
-                continue
-            update.locked = True
-            update.date_locked = datetime.utcnow()
-            # ASSUMPTION: For now, updates can only be of a single type.
-            ctype = None
-            for build in update.builds:
-                if ctype is None:
-                    ctype = build.type
-                elif ctype is not build.type:  # pragma: no cover
-                    # This branch is not covered because the Update.validate_builds validator
-                    # catches the same assumption breakage. This check here is extra for the
-                    # time when someone adds multitype updates and forgets to update this.
-                    raise ValueError('Builds of multiple types found in %s'
-                                     % title)
-            # This key is just to insert things in the same place in the "work"
-            # dict.
-            key = '%s-%s-%s' % (update.release.name, update.request.value,
-                                ctype.value)
-            if key in work:
-                work[key]['updates'].append(title)
-                work[key]['has_security'] = (
-                    work[key]['has_security'] or (update.type is UpdateType.security))
+        with self.db_factory() as db:
+            if 'api_version' in msg and msg['api_version'] == 2:
+                composes = [Compose.from_dict(db, c) for c in msg['composes']]
+            elif 'updates' in msg:
+                updates = [db.query(Update).filter(Update.title == t).one() for t in msg['updates']]
+                composes = Compose.from_updates(updates)
+                for c in composes:
+                    db.add(c)
+                    # This flush is necessary so the compose finds its updates, which gives it a
+                    # content_type when it is serialized later.
+                    db.flush()
             else:
-                work[key] = {'title': '%s-%s' % (update.release.name,
-                                                 update.request.value),
-                             'contenttype': ctype,
-                             'updates': [title],
-                             'phase': update.request.value,
-                             'release': update.release.name,
-                             'request': update.request.value,
-                             'has_security': update.type is UpdateType.security}
+                raise ValueError('Unable to process fedmsg: {}'.format(msg))
 
-        # Now that we have a full list of all the release-request-ctype requests, let's sort them
-        batches = list(work.values())
-        batches.sort(key=request_order_key)
-        return batches
+            for c in composes:
+                # Acknowledge that we've received the command to run these composes.
+                c.state = ComposeState.pending
+
+            return [c.__json__() for c in composes]
 
     def work(self, msg):
         """Begin the push process.
@@ -279,15 +254,12 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         agent = body.get('agent')
         notifications.publish(topic="mashtask.start", msg=dict(agent=agent), force=True)
 
-        with self.db_factory() as session:
-            batches = self.generate_batches(session, body['updates'])
-
         results = []
         # Important repos first, then normal
         last_key = None
         threads = []
-        for batch in batches:
-            if ((last_key is not None and request_order_key(batch) != last_key) or
+        for compose in self._get_composes(body):
+            if ((last_key is not None and request_order_key(compose) != last_key) or
                     (len(threads) >= config.get('max_concurrent_mashes'))):
                 # This means that after we submit all Stable+Security updates, we wait with kicking
                 # off the next series of mashes until that finishes.
@@ -298,19 +270,16 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
                         results.append(result)
                 threads = []
 
-            last_key = request_order_key(batch)
+            last_key = request_order_key(compose)
             self.log.info('Now starting mashes for priority %s', last_key)
 
-            masher = get_masher(batch['contenttype'])
+            masher = get_masher(ContentType.from_string(compose['content_type']))
             if not masher:
                 self.log.error('Unsupported content type %s submitted for mashing. SKIPPING',
-                               batch['contenttype'].value)
+                               compose['content_type'])
                 continue
 
-            self.log.info('Starting masher type %s for %s with %d updates',
-                          masher, batch['title'], len(batch['updates']))
-            thread = masher(batch['release'], batch['request'], batch['updates'], agent, self.log,
-                            self.db_factory, self.mash_dir, resume)
+            thread = masher(compose, agent, self.log, self.db_factory, self.mash_dir, resume)
             threads.append(thread)
             thread.start()
 
@@ -347,15 +316,13 @@ class MasherThread(threading.Thread):
     ctype = None
     pungi_template_config_key = None
 
-    def __init__(self, release, request, updates, agent,
-                 log, db_factory, mash_dir, resume=False):
+    def __init__(self, compose, agent, log, db_factory, mash_dir, resume=False):
         """
         Initialize the MasherThread.
 
         Args:
-            release (basestring): The long_name of the Release being mashed.
-            request (basestring): The name of the UpdateRequest being mashed.
-            updates (list): A list of Update titles (basestrings) being mashed.
+            compose (dict): A dictionary representation of the Compose to run, formatted like the
+                output of :meth:`Compose.__json__`.
             agent (basestring): The user who is executing the mash.
             log (logging.Logger): A logger to use for this mash.
             db_factory (bodhi.server.util.TransactionalSessionMaker): A DB session to use while
@@ -368,20 +335,14 @@ class MasherThread(threading.Thread):
         self.log = log
         self.agent = agent
         self.mash_dir = mash_dir
-        self.request = UpdateRequest.from_string(request)
-        self.release = release
+        self._compose = compose
         self.resume = resume
-        self.updates = set()
         self.add_tags_async = []
         self.move_tags_async = []
         self.add_tags_sync = []
         self.move_tags_sync = []
         self.testing_digest = {}
         self.path = None
-        self.state = {
-            'updates': updates,
-            'completed_repos': []
-        }
         self.success = False
         self.devnull = None
         self._startyear = None
@@ -391,10 +352,23 @@ class MasherThread(threading.Thread):
         try:
             with self.db_factory() as session:
                 self.db = session
+                self.compose = Compose.from_dict(session, self._compose)
+                self._checkpoints = json.loads(self.compose.checkpoints)
+                self.log.info('Starting masher type %s for %s with %d updates',
+                              self, str(self.compose), len(self.compose.updates))
+                self.save_state(ComposeState.initializing)
                 self.work()
-                self.db = None
-        except Exception:
+        except Exception as e:
+            with self.db_factory() as session:
+                self.db = session
+                self.compose = Compose.from_dict(session, self._compose)
+                self.compose.error_message = unicode(e)
+                self.save_state(ComposeState.failed)
+
             self.log.exception('MasherThread failed. Transaction rolled back.')
+        finally:
+            self.compose = None
+            self.db = None
 
     def results(self):
         """
@@ -410,9 +384,7 @@ class MasherThread(threading.Thread):
 
     def work(self):
         """Perform the various high-level tasks for the mash."""
-        self.release = self.db.query(Release)\
-                              .filter_by(name=self.release).one()
-        self.id = getattr(self.release, '%s_tag' % self.request.value)
+        self.id = getattr(self.compose.release, '%s_tag' % self.compose.request.value)
 
         # Set our thread's "name" so it shows up nicely in the logs.
         # https://docs.python.org/2/library/threading.html#thread-objects
@@ -423,8 +395,8 @@ class MasherThread(threading.Thread):
         # dist_tag and do everything else other than mashing/updateinfo, since
         # the nightly build-branched cron job mashes for us.
         self.skip_mash = False
-        if (self.release.state is ReleaseState.pending and
-                self.request is UpdateRequest.stable):
+        if (self.compose.release.state is ReleaseState.pending and
+                self.compose.request is UpdateRequest.stable):
             self.skip_mash = True
 
         self.log.info('Running MasherThread(%s)' % self.id)
@@ -433,7 +405,7 @@ class MasherThread(threading.Thread):
         notifications.publish(
             topic="mashtask.mashing",
             msg=dict(repo=self.id,
-                     updates=self.state['updates'],
+                     updates=[u.title for u in self.compose.updates],
                      agent=self.agent,
                      ctype=self.ctype.value),
             force=True,
@@ -445,10 +417,7 @@ class MasherThread(threading.Thread):
             else:
                 self.save_state()
 
-            self.load_updates()
-            self.verify_updates()
-
-            if self.request is UpdateRequest.stable:
+            if self.compose.request is UpdateRequest.stable:
                 self.perform_gating()
 
             self.determine_and_perform_tag_actions()
@@ -462,7 +431,6 @@ class MasherThread(threading.Thread):
                 mash_process = self.mash()
 
             # Things we can do while we're mashing
-            self.complete_requests()
             self.generate_testing_digest()
 
             if not self.skip_mash:
@@ -479,6 +447,8 @@ class MasherThread(threading.Thread):
                 # Wait for the repo to hit the master mirror
                 self.wait_for_sync()
 
+            self._mark_status_changes()
+            self.save_state(ComposeState.notifying)
             # Send fedmsg notifications
             self.send_notifications()
 
@@ -494,12 +464,14 @@ class MasherThread(threading.Thread):
             # Email updates-testing digest
             self.send_testing_digest()
 
-            self.success = True
-            self.remove_state()
-            self.unlock_updates()
+            self._unlock_updates()
 
             self.check_all_karma_thresholds()
             self.obsolete_older_updates()
+
+            self.save_state(ComposeState.success)
+            self.success = True
+            self.remove_state()
 
         except Exception:
             self.log.exception('Exception in MasherThread(%s)' % self.id)
@@ -508,32 +480,12 @@ class MasherThread(threading.Thread):
         finally:
             self.finish(self.success)
 
-    def load_updates(self):
-        """For each title we are to mash, get the Update from the DB, placing it in self.updates."""
-        self.log.debug('Loading updates')
-        updates = []
-        for title in self.state['updates']:
-            update = self.db.query(Update).filter_by(title=title).one()
-            updates.append(update)
-        if not updates:
-            raise Exception('Unable to load updates: %r' %
-                            self.state['updates'])
-        self.updates = updates
-
-    def unlock_updates(self):
-        """Mark all updates in this mash as unlocked."""
-        self.log.debug('Unlocking updates')
-        for update in self.updates:
-            update.locked = False
-            update.date_locked = None
-        self.db.flush()
-
     def check_all_karma_thresholds(self):
         """Run check_karma_thresholds() on testing Updates."""
-        if self.request is UpdateRequest.testing:
+        if self.compose.request is UpdateRequest.testing:
             self.log.info('Determing if any testing updates reached the karma '
                           'thresholds during the push')
-            for update in self.updates:
+            for update in self.compose.updates:
                 try:
                     update.check_karma_thresholds(self.db, agent=u'bodhi')
                 except BodhiException:
@@ -542,28 +494,13 @@ class MasherThread(threading.Thread):
     def obsolete_older_updates(self):
         """Obsolete any older updates that may still be lying around."""
         self.log.info('Checking for obsolete updates')
-        for update in self.updates:
+        for update in self.compose.updates:
             update.obsolete_older_updates(self.db)
-
-    def verify_updates(self):
-        """Look for updates that don't match the mash request or release, and eject them."""
-        for update in list(self.updates):
-            if update.request is not self.request:
-                reason = "Request %s inconsistent with mash request %s" % (
-                    update.request, self.request)
-                self.eject_from_mash(update, reason)
-                continue
-
-            if update.release is not self.release:
-                reason = "Release %s inconsistent with mash release %s" % (
-                    update.release, self.release)
-                self.eject_from_mash(update, reason)
-                continue
 
     def perform_gating(self):
         """Look for Updates that don't meet testing requirements, and eject them from the mash."""
         self.log.debug('Performing gating.')
-        for update in list(self.updates):
+        for update in self.compose.updates:
             result, reason = update.check_requirements(self.db, config)
             if not result:
                 self.log.warn("%s failed gating: %s" % (update.title, reason))
@@ -590,65 +527,54 @@ class MasherThread(threading.Thread):
             update.remove_tag(update.release.pending_testing_tag,
                               koji=buildsys.get_session())
         update.request = None
-        if update.title in self.state['updates']:
-            self.state['updates'].remove(update.title)
-        if update in self.updates:
-            self.updates.remove(update)
         notifications.publish(
             topic="update.eject",
             msg=dict(
                 repo=self.id,
                 update=update,
                 reason=reason,
-                request=self.request,
-                release=self.release,
+                request=self.compose.request,
+                release=self.compose.release,
                 agent=self.agent,
             ),
             force=True,
         )
 
     def init_state(self):
-        """
-        Create the mash_dir if it doesn't exist, and generate the lock file path within it.
-
-        This does not create the lock file itself, only the path that will be used for the lock
-        file, which is stored on self.mash_lock.
-
-        Raises:
-            Execption: If a lock file already exists and we are not resuming.
-        """
+        """Create the mash_dir if it doesn't exist."""
         if not os.path.exists(self.mash_dir):
             self.log.info('Creating %s' % self.mash_dir)
             os.makedirs(self.mash_dir)
-        self.mash_lock = os.path.join(self.mash_dir, 'MASHING-%s' % self.id)
-        if os.path.exists(self.mash_lock) and not self.resume:
-            self.log.error('Trying to do a fresh push and masher lock already '
-                           'exists: %s' % self.mash_lock)
-            raise Exception
 
-    def save_state(self):
-        """Save the state of this push so it can be resumed later if necessary."""
-        with open(self.mash_lock, 'w') as lock:
-            json.dump(self.state, lock)
-        self.log.info('Masher lock saved: %s', self.mash_lock)
+    def save_state(self, state=None):
+        """
+        Save the state of this push so it can be resumed later if necessary.
+
+        Args:
+            state (bodhi.server.models.ComposeState): If not ``None``, set the Compose's state
+                attribute to the given state. Defaults to ``None``.
+        """
+        self.compose.checkpoints = json.dumps(self._checkpoints).decode('utf-8')
+        if state is not None:
+            self.compose.state = state
+        self.db.commit()
+        self.log.info('Compose object updated.')
 
     def load_state(self):
         """Load the state of this push so it can be resumed later if necessary."""
-        with open(self.mash_lock) as lock:
-            self.state = json.load(lock)
-        self.log.info('Masher state loaded from %s', self.mash_lock)
-        self.log.info(self.state)
-        for path in self.state['completed_repos']:
-            if self.id in path:
-                self.path = path
-                self.log.info('Resuming push with completed repo: %s' % self.path)
-                return
+        self._checkpoints = json.loads(self.compose.checkpoints)
+        self.log.info('Masher state loaded from %s', self.compose)
+        self.log.info(self.compose.state)
+        if 'completed_repo' in self._checkpoints:
+            self.path = self._checkpoints['completed_repo']
+            self.log.info('Resuming push with completed repo: %s' % self.path)
+            return
         self.log.info('Resuming push without any completed repos')
 
     def remove_state(self):
         """Remove the mash lock file."""
-        self.log.info('Removing state: %s', self.mash_lock)
-        os.remove(self.mash_lock)
+        self.log.info('Removing state: %s', self.compose)
+        self.db.delete(self.compose)
 
     def finish(self, success):
         """
@@ -671,7 +597,7 @@ class MasherThread(threading.Thread):
     def update_security_bugs(self):
         """Update the bug titles for security updates."""
         self.log.info('Updating bug titles for security updates')
-        for update in self.updates:
+        for update in self.compose.updates:
             if update.type is UpdateType.security:
                 for bug in update.bugs:
                     bug.update_details()
@@ -685,7 +611,7 @@ class MasherThread(threading.Thread):
     def _determine_tag_actions(self):
         tag_types, tag_rels = Release.get_tags(self.db)
         # sync & async tagging batches
-        for i, batch in enumerate(sorted_updates(self.updates)):
+        for i, batch in enumerate(sorted_updates(self.compose.updates)):
             for update in batch:
                 add_tags = []
                 move_tags = []
@@ -749,7 +675,7 @@ class MasherThread(threading.Thread):
 
     def expire_buildroot_overrides(self):
         """Expire any buildroot overrides that are in this push."""
-        for update in self.updates:
+        for update in self.compose.updates:
             if update.request is UpdateRequest.stable:
                 for build in update.builds:
                     if build.override:
@@ -763,7 +689,7 @@ class MasherThread(threading.Thread):
         self.log.debug("Removing pending tags from builds")
         koji = buildsys.get_session()
         koji.multicall = True
-        for update in self.updates:
+        for update in self.compose.updates:
             if update.request is UpdateRequest.stable:
                 update.remove_tag(update.release.pending_stable_tag,
                                   koji=koji)
@@ -801,9 +727,9 @@ class MasherThread(threading.Thread):
                                  comment_end_string='#]')
 
         env.globals['id'] = self.id
-        env.globals['release'] = self.release
-        env.globals['request'] = self.request
-        env.globals['updates'] = self.updates
+        env.globals['release'] = self.compose.release
+        env.globals['request'] = self.compose.request
+        env.globals['updates'] = self.compose.updates
 
         config_template = config.get(self.pungi_template_config_key)
         template = env.get_template(config_template)
@@ -824,7 +750,7 @@ class MasherThread(threading.Thread):
         Raises:
             Exception: If the child Pungi process exited with a non-0 exit code within 3 seconds.
         """
-        if self.path and self.path in self.state['completed_repos']:
+        if self.path:
             self.log.info('Skipping completed repo: %s', self.path)
             return
 
@@ -884,6 +810,7 @@ class MasherThread(threading.Thread):
             Exception: If pungi's exit code is not 0, or if it is unable to find the directory that
                 Pungi created.
         """
+        self.save_state(ComposeState.punging)
         if mash_process is None:
             self.log.info('Not waiting for mash thread, as there was no mash')
             return
@@ -899,12 +826,12 @@ class MasherThread(threading.Thread):
 
         # Find the path Pungi just created
         requesttype = 'updates'
-        if self.request is UpdateRequest.testing:
+        if self.compose.request is UpdateRequest.testing:
             requesttype = 'updates-testing'
         # The year here is used so that we can correctly find the latest updates mash, so that we
         # find updates-20420101.1 instead of updates-testing-20420506.5
-        prefix = '%s-%d-%s-%s*' % (self.release.id_prefix.title(),
-                                   int(self.release.version),
+        prefix = '%s-%d-%s-%s*' % (self.compose.release.id_prefix.title(),
+                                   int(self.compose.release.version),
                                    requesttype,
                                    self._startyear)
 
@@ -913,17 +840,28 @@ class MasherThread(threading.Thread):
             raise Exception('We were unable to find a path with prefix %s in mashdir' % prefix)
         self.log.debug('Paths: %s', paths)
         self.path = paths[-1]
-        self.state['completed_repos'].append(self.path)
-        self.save_state()
+        self._checkpoints['completed_repo'] = self.path
 
-    def complete_requests(self):
-        """Mark all the updates as pushed using Update.request_complete()."""
-        self.log.info("Running post-request actions on updates")
-        for update in self.updates:
-            if update.request:
-                update.request_complete()
-            else:
-                self.log.warn('Update %s missing request', update.title)
+    def _mark_status_changes(self):
+        """Mark each update's status as fulfilling its request."""
+        self.log.info('Updating update statuses.')
+        for update in self.compose.updates:
+            now = datetime.utcnow()
+            if update.request is UpdateRequest.testing:
+                update.status = UpdateStatus.testing
+                update.date_testing = now
+            elif update.request is UpdateRequest.stable:
+                update.status = UpdateStatus.stable
+                update.date_stable = now
+            update.date_pushed = now
+            update.pushed = True
+
+    def _unlock_updates(self):
+        """Unlock all the updates and clear their requests."""
+        self.log.info("Unlocking updates.")
+        for update in self.compose.updates:
+            update.request = None
+            update.locked = False
 
     def add_to_digest(self, update):
         """Add an package to the digest dictionary.
@@ -942,11 +880,11 @@ class MasherThread(threading.Thread):
 
     def generate_testing_digest(self):
         """Generate a testing digest message for this release."""
-        self.log.info('Generating testing digest for %s' % self.release.name)
-        for update in self.updates:
-            if update.status is UpdateStatus.testing:
+        self.log.info('Generating testing digest for %s' % self.compose.release.name)
+        for update in self.compose.updates:
+            if update.request is UpdateRequest.testing:
                 self.add_to_digest(update)
-        self.log.info('Testing digest generation for %s complete' % self.release.name)
+        self.log.info('Testing digest generation for %s complete' % self.compose.release.name)
 
     def generate_updateinfo(self):
         """
@@ -956,10 +894,11 @@ class MasherThread(threading.Thread):
             bodhi.server.metadata.UpdateInfoMetadata: The updateinfo model that was created for this
                 repository.
         """
-        self.log.info('Generating updateinfo for %s' % self.release.name)
-        uinfo = UpdateInfoMetadata(self.release, self.request,
+        self.log.info('Generating updateinfo for %s' % self.compose.release.name)
+        self.save_state(ComposeState.updateinfo)
+        uinfo = UpdateInfoMetadata(self.compose.release, self.compose.request,
                                    self.db, self.mash_dir)
-        self.log.info('Updateinfo generation for %s complete' % self.release.name)
+        self.log.info('Updateinfo generation for %s complete' % self.compose.release.name)
         return uinfo
 
     def sanity_check_repo(self):
@@ -1098,8 +1037,8 @@ class MasherThread(threading.Thread):
             agent = os.getlogin()
         except OSError:  # this can happen when building on koji
             agent = u'masher'
-        for update in self.updates:
-            topic = u'update.complete.%s' % update.status
+        for update in self.compose.updates:
+            topic = u'update.complete.%s' % update.request
             notifications.publish(
                 topic=topic,
                 msg=dict(update=update, agent=agent),
@@ -1110,7 +1049,7 @@ class MasherThread(threading.Thread):
     def modify_bugs(self):
         """Mark bugs on each Update as modified."""
         self.log.info('Updating bugs')
-        for update in self.updates:
+        for update in self.compose.updates:
             self.log.debug('Modifying bugs for %s', update.title)
             update.modify_bugs()
 
@@ -1118,15 +1057,15 @@ class MasherThread(threading.Thread):
     def status_comments(self):
         """Add bodhi system comments to each update."""
         self.log.info('Commenting on updates')
-        for update in self.updates:
+        for update in self.compose.updates:
             update.status_comment(self.db)
 
     @checkpoint
     def send_stable_announcements(self):
         """Send the stable announcement e-mails out."""
         self.log.info('Sending stable update announcements')
-        for update in self.updates:
-            if update.status is UpdateStatus.stable:
+        for update in self.compose.updates:
+            if update.request is UpdateRequest.stable:
                 update.send_update_notice()
 
     @checkpoint
@@ -1250,14 +1189,14 @@ class MasherThread(threading.Thread):
         Returns:
             basestring: A URL on the master mirror where the repomd.xml file should be synchronized.
         """
-        release = self.release.id_prefix.lower().replace('-', '_')
-        request = self.request.value
+        release = self.compose.release.id_prefix.lower().replace('-', '_')
+        request = self.compose.request.value
 
         # If the release has primary_arches defined in the config, we need to consider whether to
         # use the release's *alt_master_repomd setting.
         primary_arches = config.get(
             '{release}_{version}_primary_arches'.format(
-                release=release, version=self.release.version))
+                release=release, version=self.compose.release.version))
         if primary_arches and arch not in primary_arches.split():
             key = '%s_%s_alt_master_repomd'
         else:
@@ -1268,7 +1207,7 @@ class MasherThread(threading.Thread):
         if not master_repomd:
             raise ValueError("Could not find %s in the config file" % key)
 
-        return master_repomd % (self.release.version, arch)
+        return master_repomd % (self.compose.release.version, arch)
 
 
 class RPMMasherThread(MasherThread):
@@ -1336,7 +1275,7 @@ class ModuleMasherThread(MasherThread):
         newest_builds = {}
         # we loop through builds so we get rid of older builds and get only
         # a dict with the newest builds
-        for build in self.release.builds:
+        for build in self.compose.release.builds:
             nsv = build.nvr.rsplit('-', 1)
             ns = nsv[0]
             version = nsv[1]
@@ -1349,7 +1288,7 @@ class ModuleMasherThread(MasherThread):
                 newest_builds[ns] = version
 
         # make sure that the modules we want to update get their correct versions
-        for update in self.updates:
+        for update in self.compose.updates:
             for build in update.builds:
                 nsv = build.nvr.rsplit('-', 1)
                 ns = nsv[0]

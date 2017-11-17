@@ -231,6 +231,32 @@ class BaseTestCase(unittest.TestCase):
         """
         return create_update(self.db, build_nvrs, release_name)
 
+    def create_release(self, version):
+        """
+        Create and return a :class:`Release` with the given version.
+
+        Args:
+            version (basestring): A string of the version of the release, such as 27.
+        Returns:
+            bodhi.server.models.Release: A new release.
+        """
+        release = models.Release(
+            name=u'F{}'.format(version), long_name=u'Fedora {}'.format(version),
+            id_prefix=u'FEDORA', version=u'{}'.format(version.replace('M', '')),
+            dist_tag=u'f{}'.format(version), stable_tag=u'f{}-updates'.format(version),
+            testing_tag=u'f{}-updates-testing'.format(version),
+            candidate_tag=u'f{}-updates-candidate'.format(version),
+            pending_signing_tag=u'f{}-updates-testing-signing'.format(version),
+            pending_testing_tag=u'f{}-updates-testing-pending'.format(version),
+            pending_stable_tag=u'f{}-updates-pending'.format(version),
+            override_tag=u'f{}-override'.format(version),
+            branch=u'f{}'.format(version), state=models.ReleaseState.current)
+        self.db.add(release)
+        models.Release._all_releases = None
+        models.Release._tag_cache = None
+        self.db.flush()
+        return release
+
 
 class TransactionalSessionMaker(object):
     """

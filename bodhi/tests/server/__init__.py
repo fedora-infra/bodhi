@@ -35,7 +35,7 @@ def create_update(session, build_nvrs, release_name=u'F17'):
             session.add(testcase)
             package.test_cases.append(testcase)
 
-        builds.append(RpmBuild(nvr=nvr, release=release, package=package,))
+        builds.append(RpmBuild(nvr=nvr, release=release, package=package, signed=True))
         session.add(builds[-1])
 
         # Add a buildroot override for this build
@@ -48,10 +48,11 @@ def create_update(session, build_nvrs, release_name=u'F17'):
 
     update = Update(
         title=', '.join(build_nvrs), builds=builds, user=user, request=UpdateRequest.testing,
-        notes=u'Useful details!', release=release, date_submitted=datetime(1984, 11, 2),
+        notes=u'Useful details!', type=UpdateType.bugfix, date_submitted=datetime(1984, 11, 2),
         requirements=u'rpmlint', stable_karma=3, unstable_karma=-3,
-        type=UpdateType.bugfix, test_gating_status=TestGatingStatus.passed)
+        test_gating_status=TestGatingStatus.passed)
     session.add(update)
+    update.release = release
 
     return update
 
@@ -101,7 +102,5 @@ def populate(db):
     with mock.patch(target='uuid.uuid4', return_value='wat'):
         update.assign_alias()
     db.add(update)
-
-    update.locked = True
 
     db.commit()
