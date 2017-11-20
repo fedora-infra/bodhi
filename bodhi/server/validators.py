@@ -756,28 +756,6 @@ def validate_bugs(request, **kwargs):
                                "Invalid bug ID specified: {}".format(bugs))
 
 
-def validate_username(request, **kwargs):
-    """
-    Make sure the referenced user exists.
-
-    Args:
-        request (pyramid.util.Request): The current request.
-        kwargs (dict): The kwargs of the related service definition. Unused.
-    """
-    username = request.validated.get("user")
-    if username is None:
-        return
-
-    db = request.db
-    user = db.query(User).filter_by(name=username).first()
-
-    if user:
-        request.validated["user"] = user
-    else:
-        request.errors.add("querystring", "user",
-                           "Invalid user specified: {}".format(username))
-
-
 def validate_update(request, **kwargs):
     """
     Make sure the requested update exists.
@@ -797,6 +775,40 @@ def validate_update(request, **kwargs):
         request.errors.status = HTTPNotFound.code
 
 
+def ensure_user_exists(param, request):
+    """
+    Ensure the user referenced by param exists and if it does replace it with the User object
+
+    Args:
+        param (string): Request parameter that references a username to be validated.
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    username = request.validated.get(param)
+    if username is None:
+        return
+
+    db = request.db
+    user = db.query(User).filter_by(name=username).first()
+
+    if user:
+        request.validated[param] = user
+    else:
+        request.errors.add("querystring", param,
+                           "Invalid user specified: {}".format(username))
+
+
+def validate_username(request, **kwargs):
+    """
+    Make sure the referenced user exists.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    return ensure_user_exists("user", request)
+
+
 def validate_update_owner(request, **kwargs):
     """
     Make sure the referenced update owner is an existing user.
@@ -805,18 +817,7 @@ def validate_update_owner(request, **kwargs):
         request (pyramid.util.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
-    username = request.validated.get("update_owner")
-    if username is None:
-        return
-
-    db = request.db
-    user = db.query(User).filter_by(name=username).first()
-
-    if user:
-        request.validated["update_owner"] = user
-    else:
-        request.errors.add("querystring", "update_owner",
-                           "Invalid user specified: {}".format(username))
+    return ensure_user_exists("update_owner", request)
 
 
 def validate_ignore_user(request, **kwargs):
@@ -827,18 +828,7 @@ def validate_ignore_user(request, **kwargs):
         request (pyramid.util.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
-    username = request.validated.get("ignore_user")
-    if username is None:
-        return
-
-    db = request.db
-    user = db.query(User).filter_by(name=username).first()
-
-    if user:
-        request.validated["ignore_user"] = user
-    else:
-        request.errors.add("querystring", "ignore_user",
-                           "Invalid user specified: {}".format(username))
+    return ensure_user_exists("ignore_user", request)
 
 
 def validate_update_id(request, **kwargs):
