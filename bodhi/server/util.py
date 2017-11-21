@@ -1167,7 +1167,8 @@ def get_critpath_components_from_pdc(branch, component_type='rpm', components=No
         'critical_path': 'true',
         'name': branch,
         'page_size': 100,
-        'type': component_type
+        'type': component_type,
+        'fields': 'global_component'
     }
 
     critpath_pkgs_set = set()
