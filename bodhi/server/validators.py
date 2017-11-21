@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2007-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""A collection of validators for Bodhi requests."""
 
 from datetime import datetime, timedelta
 
@@ -94,6 +100,7 @@ def _generate_colander_validator(location):
 
         class RequestSchemaMeta(type):
             """A metaclass that will inject a location class attribute into RequestSchema."""
+
             def __new__(cls, name, bases, class_attrs):
                 """
                 Instantiate the RequestSchema class.
@@ -110,6 +117,7 @@ def _generate_colander_validator(location):
 
         class RequestSchema(colander.MappingSchema):
             """A schema to validate the request's location attributes."""
+
             __metaclass__ = RequestSchemaMeta
 
         _colander.validator(request, RequestSchema(), deserializer, **kwargs)
@@ -124,6 +132,15 @@ colander_querystring_validator = _generate_colander_validator('querystring')
 # This one is a colander validator which is different from the cornice
 # validators defined elsehwere.
 def validate_csrf_token(node, value):
+    """
+    Ensure that the value is the expected CSRF token.
+
+    Args:
+        node (colander.SchemaNode): The Colander Schema Node that validates the token.
+        value (basestring): The value of the CSRF to be validated.
+    Raises:
+        colander.Invalid: If the CSRF token does not match the expected value.
+    """
     request = pyramid.threadlocal.get_current_request()
     expected = request.session.get_csrf_token()
     if value != expected:
@@ -131,6 +148,15 @@ def validate_csrf_token(node, value):
 
 
 def cache_nvrs(request, build):
+    """
+    Cache the NVR from the given build on the request, and the koji getBuild() response.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        build (basestring): The NVR of the build to cache.
+    Raises:
+        ValueError: If any of the name, version, or release in build are found to be ''.
+    """
     if build in request.buildinfo and 'nvr' in request.buildinfo[build]:
         return
     if build not in request.buildinfo:
@@ -586,7 +612,7 @@ def validate_enums(request, **kwargs):
 
 def validate_packages(request, **kwargs):
     """
-    Make sure referenced packages exist
+    Make sure referenced packages exist.
 
     Args:
         request (pyramid.util.Request): The current request.
@@ -1035,7 +1061,16 @@ def validate_override_builds(request, **kwargs):
 
 
 def _validate_override_build(request, nvr, db):
-    """ Workhorse function for validate_override_builds """
+    """
+    Workhorse function for validate_override_builds.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        nvr (basestring): The NVR for a :class:`Build`.
+        db (sqlalchemy.orm.session.Session): A database session.
+    Returns:
+        bodhi.server.models.Build: A build that matches the given nvr.
+    """
     build = Build.get(nvr, db)
     if build is not None:
         if not build.release:
@@ -1207,10 +1242,14 @@ def validate_stack(request, **kwargs):
 
 
 def _get_valid_requirements(request, requirements):
-    """ Returns a list of valid testcases from taskotron.
-    :param requirements: requested requirements (testcases)
-    :type requirements: list of str
-    :returns: subset of requested requirements which actually exist in taskotron
+    """
+    Return a list of valid testcases from taskotron.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        requirements (list): A list of strings that identify test cases.
+    Returns:
+        generator: An iterator over the test case names that exist in taskotron.
     """
     if not requirements:
         return
