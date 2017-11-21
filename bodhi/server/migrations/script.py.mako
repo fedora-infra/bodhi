@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) YEAR AUTHOR
 #
 # This file is part of Bodhi.
