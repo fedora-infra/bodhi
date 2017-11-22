@@ -116,4 +116,4 @@
             git_repo: bodhi
             ci_project: '{name}'
             ci_cmd: "devel/ci/run_tests.sh"
-            timeout: '64m'
+            timeout: '128m'
