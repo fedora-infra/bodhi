@@ -38,7 +38,7 @@ class TestCheckPolicies(BaseTestCase):
         self.db.commit()
         with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
-                'policies_satisified': True,
+                'policies_satisfied': True,
                 'summary': 'All tests passed',
                 'applicable_policies': ['taskotron_release_critical_tasks'],
                 'unsatisfied_requirements': []
@@ -68,7 +68,7 @@ class TestCheckPolicies(BaseTestCase):
         self.db.commit()
         with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
-                'policies_satisified': True,
+                'policies_satisfied': True,
                 'summary': 'All tests passed',
                 'applicable_policies': ['taskotron_release_critical_tasks'],
                 'unsatisfied_requirements': []
@@ -97,7 +97,7 @@ class TestCheckPolicies(BaseTestCase):
         self.db.commit()
         with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
-                'policies_satisified': False,
+                'policies_satisfied': False,
                 'summary': '1 of 2 tests are failed',
                 'applicable_policies': ['taskotron_release_critical_tasks'],
                 'unsatisfied_requirements': [{
@@ -160,7 +160,7 @@ class TestCheckPolicies(BaseTestCase):
         self.db.commit()
         with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
-                'policies_satisified': True,
+                'policies_satisfied': True,
                 'summary': 'no tests are required',
                 'applicable_policies': ['bodhi-unrestricted'],
             }

@@ -495,7 +495,7 @@ class TestUtils(base.BaseTestCase):
         """
         session.post.return_value.status_code = 200
         expected_json = {
-            'policies_satisified': True,
+            'policies_satisfied': True,
             'summary': 'All tests passed',
             'applicable_policies': ['taskotron_release_critical_tasks'],
             'unsatisfied_requirements': []
