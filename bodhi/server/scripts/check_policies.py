@@ -59,7 +59,7 @@ def check():
 
         try:
             decision = greenwave_api_post(api_url, data)
-            if decision['policies_satisified']:
+            if decision['policies_satisfied']:
                 # If an unrestricted policy is applied and no tests are required
                 # on this update, let's set the test gating as ignored in Bodhi.
                 if decision['summary'] == 'no tests are required':
