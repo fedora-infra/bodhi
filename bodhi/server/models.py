@@ -48,7 +48,8 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_critpath_components,
-    get_nvr, get_rpm_header, header, packagename_from_nvr, tokenize, pagure_api_get)
+    get_nvr, get_rpm_header, header, packagename_from_nvr, tokenize, pagure_api_get,
+    greenwave_api_post, waiverdb_api_post)
 import bodhi.server.util
 
 
@@ -2350,6 +2351,51 @@ class Update(Base):
             action.description, username, notes), author=u'bodhi')
         topic = u'update.request.%s' % action
         notifications.publish(topic=topic, msg=dict(update=self, agent=username))
+
+    def waive_test_results(self, username, comment=None):
+        """
+        Attempt to waive test results for this update.
+
+        Args:
+            username (basestring): The name of the user who is waiving the test results.
+            comment (basestring): A comment from the user describing their decision.
+        Raises:
+            LockedUpdateException: If the Update is locked.
+            BodhiException: If test gating is not enabled in this Bodhi instance,
+                            or if the tests have passed.
+        """
+        log.debug('Attempting to waive test results for this update %s' % self.alias)
+
+        if self.locked:
+            raise LockedUpdateException("Can't waive test results on a "
+                                        "locked update")
+
+        if not config.get('test_gating.required'):
+            raise BodhiException('Test gating is not enabled')
+
+        if self.test_gating_passed:
+            raise BodhiException("Can't waive test resuts on an update that passes test gating")
+
+        decision_context = u'bodhi_update_push_testing'
+        if self.status == UpdateStatus.testing:
+            decision_context = u'bodhi_update_push_stable'
+        data = {
+            'product_version': self.product_version,
+            'decision_context': decision_context,
+            'subject': self.greenwave_subject
+        }
+        decision = greenwave_api_post('{}/decision'.format(config.get('greenwave_api_url')), data)
+        results = [dict(subject=req['item'], testcase=req['testcase']) for req in
+                   decision['unsatisfied_requirements']]
+        log.debug('Waiving test results: %s' % results)
+        data = {
+            'results': results,
+            'product_version': self.product_version,
+            'waived': True,
+            'proxy_user': username,
+            'comment': comment
+        }
+        waiverdb_api_post('{}/waivers/'.format(config.get('waiverdb_api_url')), data)
 
     def add_tag(self, tag):
         """

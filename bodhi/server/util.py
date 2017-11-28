@@ -1145,7 +1145,7 @@ def get_critpath_components_from_pdc(branch, component_type='rpm'):
     return list(critpath_pkgs_set)
 
 
-def call_api(api_url, service_name, error_key=None, method='GET', data=None):
+def call_api(api_url, service_name, error_key=None, method='GET', data=None, headers=None):
     """
     Perform an HTTP request with response type and error handling.
 
@@ -1164,13 +1164,14 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None):
     """
     if data is None:
         data = dict()
-
     if method == 'POST':
+        if headers is None:
+            headers = {'Content-Type': 'application/json'}
         base_error_msg = (
             'Bodhi failed to send POST request to {0} at the following URL '
             '"{1}". The status code was "{2}".')
         rv = http_session.post(api_url,
-                               headers={'Content-Type': 'application/json'},
+                               headers=headers,
                                data=json.dumps(data),
                                timeout=60)
     else:
@@ -1248,3 +1249,24 @@ def greenwave_api_post(greenwave_api_url, data):
     # based on the error message
     return call_api(greenwave_api_url, service_name='Greenwave', method='POST',
                     data=data)
+
+
+def waiverdb_api_post(waiverdb_api_url, data):
+    """
+    Post a request to WaiverDB.
+
+    Args:
+        waiverdb_api_url (basestring): The URL to query.
+        data (dict): The parameters to send along with the request.
+    Returns:
+        dict: A dictionary response representing the API response's JSON.
+    Raises:
+        RuntimeError: If the server did not give us a 200 code.
+    """
+    # There is no error_key specified because the error key is not consistent
+    # based on the error message
+    return call_api(waiverdb_api_url, service_name='WaiverDB', method='POST',
+                    data=data, headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer %s' % config.get('waiverdb.access_token')
+                    })

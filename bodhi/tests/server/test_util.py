@@ -586,6 +586,35 @@ class TestUtils(base.BaseTestCase):
             'The error was "".')
         assert actual_error == expected_error, actual_error
 
+    @mock.patch('bodhi.server.util.http_session')
+    def test_waiverdb_api_post(self, session):
+        """ Ensure that a POST request to WaiverDB works as expected.
+        """
+        session.post.return_value.status_code = 200
+        expected_json = {
+            'comment': 'this is not true!',
+            'id': 15,
+            'product_version': 'fedora-26',
+            'result_subject': {'productmd.compose.id': 'Fedora-9000-19700101.n.18'},
+            'result_testcase': 'compose.install_no_user',
+            'timestamp': '2017-11-28T17:42:04.209638',
+            'username': 'foo',
+            'waived': True,
+            'proxied_by': 'bodhi'
+        }
+        session.post.return_value.json.return_value = expected_json
+        data = {
+            'product_version': 'fedora-26',
+            'waived': True,
+            'proxy_user': 'foo',
+            'result_subject': {'productmd.compose.id': 'Fedora-9000-19700101.n.18'},
+            'result_testcase': 'compose.install_no_user',
+            'comment': 'this is not true!'
+        }
+        waiver = util.waiverdb_api_post('http://domain.local/api/v1.0/waivers/',
+                                        data)
+        assert waiver == expected_json, waiver
+
     def test_markup_escapes(self):
         """Ensure we correctly parse markdown & escape HTML"""
         text = (

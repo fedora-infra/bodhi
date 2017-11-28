@@ -85,6 +85,14 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
                          factory=security.PackagerACLFactory,
                          cors_origins=bodhi.server.security.cors_origins_rw)
 
+update_waive_test_results = Service(
+    name='update_waive_test_results',
+    path='/updates/{id}/waive-test-results',
+    description='Waive test results that block transitioning the update to next state',
+    factory=security.PackagerACLFactory,
+    cors_origins=bodhi.server.security.cors_origins_rw
+)
+
 
 @update.get(accept=('application/json', 'text/json'), renderer='json',
             error_handler=bodhi.server.services.errors.json_handler)
@@ -541,3 +549,35 @@ def new_update(request):
     result['caveats'] = caveats
 
     return result
+
+
+@update_waive_test_results.post(schema=bodhi.server.schemas.WaiveTestResultsSchema,
+                                validators=(colander_body_validator,
+                                            validate_update_id,
+                                            validate_acls),
+                                permission='edit', renderer='json',
+                                error_handler=bodhi.server.services.errors.json_handler)
+def waive_test_results(request):
+    """
+    Waive test results on a given update when gating is on.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary mapping the key "update" to the update.
+    """
+    update = request.validated['update']
+    comment = request.validated.pop('comment', None)
+
+    try:
+        update.waive_test_results(request.user.name, comment)
+    except LockedUpdateException as e:
+        request.errors.add('body', 'request', str(e))
+    except BodhiException as e:
+        log.exception("Failed to waive the test results")
+        request.errors.add('body', 'request', str(e))
+    except Exception as e:
+        log.exception("Unhandled exception in waive_test_results")
+        request.errors.add('body', 'request', str(e))
+
+    return dict(update=update)

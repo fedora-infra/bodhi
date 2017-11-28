@@ -33,7 +33,7 @@ import six
 
 from bodhi.server import models as model, buildsys, mail, util, Session
 from bodhi.server.config import config
-from bodhi.server.exceptions import BodhiException
+from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
     BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
     UpdateSuggestion, UpdateType, TestGatingStatus)
@@ -2622,6 +2622,68 @@ class TestUpdate(ModelTest):
         self.db.add(update2)
 
         self.assertEqual(update2.release, release)
+
+    def test_cannot_waive_test_results_of_an_update_when_test_gating_is_off(self):
+        update = self.obj
+        with self.assertRaises(BodhiException) as exc:
+            update.waive_test_results('foo')
+        self.assertEqual(
+            str(exc.exception),
+            ("Test gating is not enabled"))
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_cannot_waive_test_results_of_an_update_which_passes_gating(self):
+        update = self.obj
+        with self.assertRaises(BodhiException) as exc:
+            update.waive_test_results('foo')
+        self.assertEqual(
+            str(exc.exception),
+            ("Can't waive test resuts on an update that passes test gating"))
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_cannot_waive_test_results_of_an_update_which_is_locked(self):
+        update = self.obj
+        update.locked = True
+        with self.assertRaises(LockedUpdateException) as exc:
+            update.waive_test_results('foo')
+        self.assertEqual(
+            str(exc.exception),
+            ("Can't waive test results on a locked update"))
+
+    @mock.patch('bodhi.server.models.greenwave_api_post')
+    @mock.patch('bodhi.server.models.waiverdb_api_post')
+    def test_can_waive_test_results_of_an_update(self, mock_waiverdb, mock_greenwave):
+        update = self.obj
+        update.status = UpdateStatus.testing
+        update.test_gating_status = TestGatingStatus.failed
+        decision = {
+            "policies_satisfied": False,
+            "summary": "1 of 15 required tests failed",
+            "applicable_policies": ["1"],
+            "unsatisfied_requirements": [
+                {
+                    'item': {"item": "%s" % update.alias, "type": "koji_build"},
+                    'result_id': "123",
+                    'testcase': 'dist.depcheck',
+                    'type': 'test-result-failed'
+                }
+            ]
+        }
+        mock_greenwave.return_value = decision
+        with mock.patch.dict('bodhi.server.config.config',
+                             {'test_gating.required': True,
+                              'waiverdb.access_token': 'abc'}):
+            update.waive_test_results('foo', 'this is not true!')
+            wdata = {
+                'results': [{'subject': {"item": "%s" % update.alias, "type": "koji_build"},
+                             'testcase': 'dist.depcheck'}],
+                'product_version': update.product_version,
+                'waived': True,
+                'proxy_user': 'foo',
+                'comment': 'this is not true!'
+            }
+            mock_waiverdb.assert_called_once_with(
+                '{}/waivers/'.format(config.get('waiverdb_api_url')), wdata)
 
 
 class TestUser(ModelTest):
