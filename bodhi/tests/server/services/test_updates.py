@@ -4545,3 +4545,60 @@ class TestUpdatesService(base.BaseTestCase):
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         self.assertEquals(up.request, UpdateRequest.stable)
+
+
+class TestWaiveTestResults(base.BaseTestCase):
+    """
+    This class contains tests for the waive_test_results() function.
+    """
+    def test_cannot_waive_test_results_on_locked_update(self, *args):
+        """Ensure that we get an error if trying to waive test results of a locked update"""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = True
+
+        post_data = dict(update=nvr,
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=400)
+
+        self.assertEquals(res.json_body['status'], 'error')
+        self.assertEquals(res.json_body[u'errors'][0][u'description'],
+                          "Can't waive test results on a locked update")
+
+    def test_cannot_waive_test_results_when_test_gating_is_off(self, *args):
+        """
+        Ensure that we get an error if trying to waive test results of an update
+        when test gating is off.
+        """
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        post_data = dict(update=nvr,
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=400)
+
+        self.assertEquals(res.json_body['status'], 'error')
+        self.assertEquals(res.json_body[u'errors'][0][u'description'],
+                          "Test gating is not enabled")
+
+    @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
+                side_effect=IOError('IOError. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.exception')
+    def test_unexpected_exception(self, log_exception, waive_test_results, *args):
+        """Ensure that an unexpected Exception is handled by waive_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=400)
+
+        self.assertEquals(res.json_body['status'], 'error')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          u'IOError. oops!')
+        log_exception.assert_called_once_with("Unhandled exception in waive_test_results")

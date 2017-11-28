@@ -412,7 +412,13 @@ class BodhiConfig(dict):
             'value': '%s has been submitted as an update to %s. %s',
             'validator': six.text_type},
         'greenwave_api_url': {
-            'value': 'https://greenwave.fedoraproject.org/api/v1.0',
+            'value': 'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0',
+            'validator': six.text_type},
+        'waiverdb_api_url': {
+            'value': 'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0',
+            'validator': six.text_type},
+        'waiverdb.access_token': {
+            'value': None,
             'validator': six.text_type},
         'koji_hub': {
             'value': 'https://koji.stg.fedoraproject.org/kojihub',

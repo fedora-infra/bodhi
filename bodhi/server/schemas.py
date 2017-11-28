@@ -790,3 +790,12 @@ class SaveOverrideSchema(CSRFProtectedSchema, colander.MappingSchema):
         colander.String(),
         missing=None,
     )
+
+
+class WaiveTestResultsSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.updates.waive_test_results()."""
+
+    comment = colander.SchemaNode(
+        colander.String(),
+        missing=None,
+    )
