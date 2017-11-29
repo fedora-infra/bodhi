@@ -266,14 +266,26 @@ class DevBuildsys(Buildsystem):
         return rpms
 
     def listTags(self, build, *args, **kw):
-        if 'el5' in build:
+        if 'el5' in build or 'el6' in build:
+            release = build.split('.')[-1].replace('el', '')
             result = [
                 {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                 'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
+                 'name': 'dist-%sE-epel-testing-candidate' % release, 'perm': None,
+                 'perm_id': None},
                 {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
-                 'name': 'dist-5E-epel-testing-candidate', 'perm': None, 'perm_id': None},
-                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True, 'name': 'dist-5E-epel',
-                 'perm': None, 'perm_id': None}]
+                 'name': 'dist-%sE-epel-testing-candidate' % release, 'perm': None,
+                 'perm_id': None},
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                 'name': 'dist-%sE-epel' % release, 'perm': None, 'perm_id': None}]
+        elif 'el7' in build:
+            release = build.split('.')[-1].replace('el', 'epel')
+            result = [
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
+                 'name': '%s-testing-candidate' % release, 'perm': None, 'perm_id': None},
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True, 'name': '%s' % release,
+                 'perm': None, 'perm_id': None},
+                {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
+                 'name': '%s-testing' % release, 'perm': None, 'perm_id': None}]
         elif '-master-' in build:
             # Hardcoding for modules in the dev buildsys
             result = [
