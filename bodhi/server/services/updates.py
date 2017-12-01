@@ -26,7 +26,7 @@ from cornice.validators import colander_body_validator
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-from bodhi.server import log
+from bodhi.server import log, notifications
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
     Update,
@@ -85,6 +85,11 @@ update_request = Service(name='update_request', path='/updates/{id}/request',
                          description='Update request service',
                          acl=bodhi.server.security.packagers_allowed_acl,
                          cors_origins=bodhi.server.security.cors_origins_rw)
+
+update_rerun_test = Service(
+    name='update_rerun_test', path='/updates/{id}/rerun_test', validators=(validate_update_id,),
+    description='Update test rerun service', acl=bodhi.server.security.packagers_allowed_acl,
+    cors_origins=bodhi.server.security.cors_origins_rw)
 
 
 @update.get(accept=('application/json', 'text/json'), renderer='json',
@@ -190,6 +195,36 @@ def set_request(request):
         request.errors.add('body', 'request', str(e))
 
     return dict(update=update)
+
+
+@update_rerun_test.post(schema=bodhi.server.schemas.RerunTestSchema,
+                     validators=(
+                         validate_update_id,
+                         validate_acls,
+                     ),
+                     permission='edit', renderer='json',
+                     error_handler=bodhi.server.services.errors.json_handler)
+def rerun_test(request):
+    """
+    Send fedmsg request that a specific test for a specific update be re-run.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary with at least the following key mappings:
+            update: The update for which the rerun was requested.
+            test: The test for which the rerun was requested.
+            scenario: The scenario for which the rerun was requested.
+    """
+    data = request.validated
+    update = data['update']
+    test = data['test']
+    scenario = data['scenario']
+    log.info("Requesting rerun of test %s, scenario %s for update %s",
+             test, scenario, update)
+    msgdict = {'update': update, 'test': test, 'scenario': scenario}
+    notifications.publish(topic="test.rerun", msg=msgdict, force=True)
+    return msgdict
 
 
 validators = (

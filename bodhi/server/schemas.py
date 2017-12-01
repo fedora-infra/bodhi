@@ -680,6 +680,14 @@ class UpdateRequestSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
 
 
+class RerunTestSchema(CSRFProtectedSchema, colander.MappingSchema):
+    test = colander.SchemaNode(
+        colander.String(),
+    )
+    scenario = colander.SchemaNode(
+        colander.String(),
+    )
+
 class ListCommentSchema(PaginatedSchema, SearchableSchema):
     """An API schema for bodhi.server.services.comments.query_comments()."""
 

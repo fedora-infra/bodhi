@@ -127,6 +127,10 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       if (note == null){
         note = '';
       }
+
+      var rerun = '<span data-toggle="tooltip" data-placement="top" ' +
+        'title="Rerun test"' + 'class="fa fa-refresh">' + '</span>';
+
       html = '<tr class="row-automatedtests table-' + classes[outcome];
       if (outcome == 'ABSENT') {
           html += ' absent-automatedtest"';
@@ -138,7 +142,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         '<td>' + icon + '</td>' +
         '<td class="nowrap">' + testcase + '</td>' +
         '<td class="stretch-table-column text-xs-right">' + note + '</td>' +
-        '<td class="nowrap">' + age + '</td>' +
+        '<td class="nowrap">' + age + '</td>' + '<td>' + rerun + '<td/>' +
         '</tr>';
       return html;
     };
