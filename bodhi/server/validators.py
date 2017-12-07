@@ -395,13 +395,7 @@ def validate_acls(request, **kwargs):
         # previously associated with an update, we can just look it up no prob.
         if 'builds' in request.validated:
             # Split out NVR data unless its already done.
-            try:
-                cache_nvrs(request, build)
-            except ValueError:
-                error = 'Problem caching NVRs when validating ACLs.'
-                log.exception(error)
-                request.errors.add('body', 'builds', error)
-                return
+            cache_nvrs(request, build)
 
             buildinfo = request.buildinfo[build]
 
