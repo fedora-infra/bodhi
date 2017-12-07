@@ -25,6 +25,41 @@ from bodhi.tests.server.base import BaseTestCase
 from bodhi.server import models
 
 
+class TestValidateCSRFToken(BaseTestCase):
+    """Test the validate_csrf_token() function."""
+    def test_invalid_token(self):
+        update = models.Update.query.one()
+        """colander.Invalid should be raised if the CSRF token doesn't match."""
+        comment = {'update': update.title, 'text': 'invalid CSRF', 'karma': 0,
+                   'csrf_token': 'wrong_token'}
+
+        # Surprisingly, using the wrong CSRF token gives a 404 code because it thinks the update is
+        # also not found.
+        r = self.app.post_json('/comments/', comment, status=404)
+
+        expected_reponse = {
+            u'status': u'error',
+            u'errors': [
+                {u'description':
+                 (u'CSRF tokens do not match.  This happens if you have the page open for a long '
+                  u'time. Please reload the page and try to submit your data again. Make sure to '
+                  u'save your input somewhere before reloading. '),
+                 u'location': u'body', u'name': u'csrf_token'},
+                {u'description': u'Invalid update specified: None', u'location': u'url',
+                 u'name': u'update'}]}
+        self.assertEqual(r.json, expected_reponse)
+
+    def test_valid_token(self):
+        """No exception should be raised with a valid token."""
+        update = models.Update.query.one()
+        """colander.Invalid should be raised if the CSRF token doesn't match."""
+        comment = {'update': update.title, 'text': 'invalid CSRF', 'karma': 0,
+                   'csrf_token': self.get_csrf_token()}
+
+        # This should not cause any error.
+        self.app.post_json('/comments/', comment, status=200)
+
+
 class TestGetValidRequirements(unittest.TestCase):
     """Test the _get_valid_requirements() function."""
     @mock.patch('bodhi.server.util.requests.get')

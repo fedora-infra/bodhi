@@ -25,6 +25,7 @@ import urlparse
 
 from mock import ANY
 from webtest import TestApp
+import koji
 import mock
 
 from bodhi.server import main
@@ -633,6 +634,129 @@ class TestUpdatesService(base.BaseTestCase):
         resp = self.app.get('/', headers={'Accept': 'text/html'})
         self.assertIn('Fedora Updates System', resp)
         self.assertIn('&copy;', resp)
+
+    def test_edit_add_build_from_different_release(self):
+        """Editing an update that references builds from other releases should raise an error."""
+        update = self.db.query(Update).one()
+        update_json = self.get_update(update.title)
+        update_json['csrf_token'] = self.get_csrf_token()
+        update_json['notes'] = u'testing!!!'
+        update_json['edited'] = update.title
+        update_json['builds'] = update_json['builds'] + ',bodhi-3.2.0-1.fc27'
+        # This will cause an extra error in the output that we aren't testing here, so delete it.
+        del update_json['requirements']
+
+        res = self.app.post_json('/updates/', update_json, status=400)
+
+        expected_json = {
+            u'status': u'error',
+            u'errors': [
+                {u'description': (
+                    u"Cannot find release associated with build: bodhi-3.2.0-1.fc27, "
+                    u"tags: [u'f27-updates-candidate', u'f27', u'f27-updates-testing']"),
+                 u'location': u'body', u'name': u'builds'},
+                {u'description': u'Unable to determine release from build: bodhi-3.2.0-1.fc27',
+                 u'location': u'body', u'name': u'builds'}]}
+        self.assertEqual(res.json, expected_json)
+
+    def test_edit_invalidly_tagged_build(self):
+        """Editing an update that references invalidly tagged builds should raise an error."""
+        update = self.db.query(Update).one()
+        update_json = self.get_update(update.title)
+        update_json['csrf_token'] = self.get_csrf_token()
+        update_json['notes'] = u'testing!!!'
+        update_json['edited'] = update.title
+        # This will cause an extra error in the output that we aren't testing here, so delete it.
+        del update_json['requirements']
+
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
+                        return_value=[{'name': 'f17-updates'}]) as listTags:
+            res = self.app.post_json('/updates/', update_json, status=400)
+
+        expected_json = {
+            u'status': u'error',
+            u'errors': [
+                {u'description': (
+                    u"Invalid tag: bodhi-2.0-1.fc17 not tagged with any of the following tags "
+                    u"[u'f17-updates-candidate', u'f17-updates-testing']"),
+                 u'location': u'body', u'name': u'builds'}]}
+        self.assertEqual(res.json, expected_json)
+        listTags.assert_called_once_with('bodhi-2.0-1.fc17')
+
+    def test_edit_koji_error(self):
+        """Editing an update that references missing builds should raise an error."""
+        update = self.db.query(Update).one()
+        update_json = self.get_update(update.title)
+        update_json['csrf_token'] = self.get_csrf_token()
+        update_json['notes'] = u'testing!!!'
+        update_json['edited'] = update.title
+        # This will cause an extra error in the output that we aren't testing here, so delete it.
+        del update_json['requirements']
+
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
+                        side_effect=koji.GenericError()) as listTags:
+            res = self.app.post_json('/updates/', update_json, status=400)
+
+        expected_json = {
+            u'status': u'error',
+            u'errors': [
+                {u'description': u'Invalid koji build: bodhi-2.0-1.fc17', u'location': u'body',
+                 u'name': u'builds'},
+                {u'description': (u'Cannot find release associated with build: bodhi-2.0-1.fc17, '
+                                  u'tags: []'),
+                 u'location': u'body', u'name': u'builds'}]}
+        self.assertEqual(res.json, expected_json)
+        listTags.assert_called_once_with(update.title)
+
+    def test_edit_missing_release(self):
+        """Editing an update that is missing a release should report an error."""
+        update = self.db.query(Update).one()
+        update.release = None
+        update_json = self.get_update(update.title)
+        update_json['csrf_token'] = self.get_csrf_token()
+        update_json['notes'] = u'testing!!!'
+        update_json['edited'] = update.title
+        # This will cause an extra error in the output that we aren't testing here, so delete it.
+        del update_json['requirements']
+
+        res = self.app.post_json('/updates/', update_json, status=400)
+
+        expected_json = {
+            u'status': u'error',
+            u'errors': [
+                {u'description': (u'Pre-existing update bodhi-2.0-1.fc17 has no associated '
+                                  u'"release" object.  Please submit a ticket to resolve this.'),
+                 u'location': u'body', u'name': u'edited'},
+                {u'description': (u'Cannot find release associated with build: bodhi-2.0-1.fc17, '
+                                  u'tags: []'),
+                 u'location': u'body', u'name': u'builds'}]}
+        self.assertEqual(res.json, expected_json)
+
+    def test_edit_untagged_build(self):
+        """Editing an update that references untagged builds should raise an error."""
+        update = self.db.query(Update).one()
+        update_json = self.get_update(update.title)
+        update_json['csrf_token'] = self.get_csrf_token()
+        update_json['notes'] = u'testing!!!'
+        update_json['edited'] = update.title
+        # This will cause an extra error in the output that we aren't testing here, so delete it.
+        del update_json['requirements']
+
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
+                        return_value=[]) as listTags:
+            res = self.app.post_json('/updates/', update_json, status=400)
+
+        expected_json = {
+            u'status': u'error',
+            u'errors': [
+                {u'description': u'Cannot find any tags associated with build: bodhi-2.0-1.fc17',
+                 u'location': u'body', u'name': u'builds'},
+                {u'description': (
+                    u"Cannot find release associated with build: bodhi-2.0-1.fc17, "
+                    u"tags: []"),
+                 u'location': u'body', u'name': u'builds'}]}
+        self.assertEqual(res.json, expected_json)
+        listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
