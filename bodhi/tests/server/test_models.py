@@ -923,6 +923,15 @@ class TestBuild(ModelTest):
     klass = model.Build
     attrs = dict(nvr=u"TurboGears-1.0.8-3.fc11")
 
+    def do_get_dependencies(self):
+        """
+        A Build needs a package to be associated with.
+
+        Returns:
+            dict: A dictionary specifying a package to associate with this Build.
+        """
+        return {'package': model.Package(name='TurboGears')}
+
 
 class TestRpmBuild(ModelTest):
     """Unit test case for the ``RpmBuild`` model."""

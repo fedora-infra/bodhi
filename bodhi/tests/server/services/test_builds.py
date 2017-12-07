@@ -1,3 +1,8 @@
+# # -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -12,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from bodhi.server.models import RpmBuild
+from bodhi.server.models import RpmBuild, RpmPackage
 from bodhi.tests.server import base
 
 
@@ -37,7 +42,8 @@ class TestBuildsService(base.BaseTestCase):
 
         # First, stuff a second build in there
         session = self.db
-        build = RpmBuild(nvr=u'bodhi-3.0-1.fc21')
+        build = RpmBuild(nvr=u'bodhi-3.0-1.fc21',
+                         package=RpmPackage.query.filter_by(name=u'bodhi').one())
         session.add(build)
         session.flush()
 

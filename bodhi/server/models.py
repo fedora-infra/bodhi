@@ -1191,7 +1191,7 @@ class Build(Base):
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
-    package_id = Column(Integer, ForeignKey('packages.id'))
+    package_id = Column(Integer, ForeignKey('packages.id'), nullable=False)
     release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
     update_id = Column(Integer, ForeignKey('updates.id'))
