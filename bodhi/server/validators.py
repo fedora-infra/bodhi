@@ -453,13 +453,6 @@ def validate_acls(request, **kwargs):
             package = build.package
             release = build.update.release
 
-            # Some sanity checking..
-            if not package:
-                msg = build.nvr + ' has no package associated with it in ' + \
-                    'our DB, so we cannot verify that you\'re in the ACL.'
-                log.error(msg)
-                request.errors.add('body', 'builds', msg)
-                return
             if not release:
                 msg = build.nvr + ' has no release associated with it in ' + \
                     'our DB, so we cannot verify that you\'re in the ACL.'

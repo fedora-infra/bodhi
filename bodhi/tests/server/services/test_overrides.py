@@ -408,7 +408,8 @@ class TestOverridesService(base.BaseTestCase):
         expiration_date = o['expiration_date']
         old_build_id = o['build_id']
 
-        build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', release=release)
+        build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', release=release,
+                         package=RpmPackage.query.filter_by(name='bodhi').one())
         self.db.add(build)
         self.db.flush()
 
@@ -455,7 +456,8 @@ class TestOverridesService(base.BaseTestCase):
     def test_edit_unexisting_override(self):
         release = Release.get(u'F17', self.db)
 
-        build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', release=release)
+        build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', release=release,
+                         package=RpmPackage.query.filter_by(name='bodhi').one())
         self.db.add(build)
         self.db.flush()
 
