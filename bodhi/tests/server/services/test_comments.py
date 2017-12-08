@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -419,6 +424,7 @@ class TestCommentsService(base.BaseTestCase):
             stable_karma=3,
             unstable_karma=-3,
         )
+        update.release = Release.query.one()
         self.db.add(update)
         self.db.flush()
 

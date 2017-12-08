@@ -2558,7 +2558,6 @@ class TestUpdate(ModelTest):
         """Test validate_release() with the release set to None."""
         # This should not raise an Exception.
         self.obj.release = None
-        self.db.flush()
 
         self.assertIsNone(self.obj.release)
 
