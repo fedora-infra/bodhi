@@ -448,13 +448,6 @@ def validate_acls(request, **kwargs):
             # with a pre-stored Build obj.
             package = build.package
             release = build.update.release
-
-            if not release:
-                msg = build.nvr + ' has no release associated with it in ' + \
-                    'our DB, so we cannot verify that you\'re in the ACL.'
-                log.error(msg)
-                request.errors.add('body', 'builds', msg)
-                return
         else:
             raise NotImplementedError()  # Should never get here.
 

@@ -1518,7 +1518,7 @@ class Update(Base):
     old_updateid = Column(Unicode(32), default=None)
 
     # One-to-one relationships
-    release_id = Column(Integer, ForeignKey('releases.id'))
+    release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)
     release = relationship('Release', lazy='joined', backref='updates')
 
     # One-to-many relationships
