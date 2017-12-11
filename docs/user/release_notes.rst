@@ -9,7 +9,7 @@ Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
 * Bodhi now requires ``cornice>=3``.
-* Bodhi now formally documents that it requires PostgreSQL >= 9.2.0 in :doc:`administration`.
+* Bodhi now formally documents that it requires PostgreSQL >= 9.2.0 in :doc:`../administration`.
 
 
 v3.1.0
@@ -51,8 +51,8 @@ Features
 * The documentation now uses the Alabaster theme (:commit:`f15351e2`).
 * The CLI now has a ``--arch`` flag that can be used when downloading updates to specify which
   architecture is desired (:commit:`6538c9e9`).
-* Bodhi's documentation now includes an :doc:`administration` section which includes documentation
-  on its various settings (:commit:`310f56d4`).
+* Bodhi's documentation now includes an :doc:`../administration` section which includes
+  documentation on its various settings (:commit:`310f56d4`).
 
 
 Bugs
