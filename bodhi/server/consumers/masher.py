@@ -380,7 +380,7 @@ class MasherThread(threading.Thread):
         self.path = None
         self.state = {
             'updates': updates,
-            'completed_repos': []
+            'completed_repo': None
         }
         self.success = False
         self.devnull = None
@@ -638,11 +638,10 @@ class MasherThread(threading.Thread):
             self.state = json.load(lock)
         self.log.info('Masher state loaded from %s', self.mash_lock)
         self.log.info(self.state)
-        for path in self.state['completed_repos']:
-            if self.id in path:
-                self.path = path
-                self.log.info('Resuming push with completed repo: %s' % self.path)
-                return
+        if self.state['completed_repo']:
+            self.path = self.state['completed_repo']
+            self.log.info('Resuming push with completed repo: %s' % self.path)
+            return
         self.log.info('Resuming push without any completed repos')
 
     def remove_state(self):
@@ -824,7 +823,7 @@ class MasherThread(threading.Thread):
         Raises:
             Exception: If the child Pungi process exited with a non-0 exit code within 3 seconds.
         """
-        if self.path and self.path in self.state['completed_repos']:
+        if self.path:
             self.log.info('Skipping completed repo: %s', self.path)
             return
 
@@ -913,7 +912,7 @@ class MasherThread(threading.Thread):
             raise Exception('We were unable to find a path with prefix %s in mashdir' % prefix)
         self.log.debug('Paths: %s', paths)
         self.path = paths[-1]
-        self.state['completed_repos'].append(self.path)
+        self.state['completed_repo'] = self.path
         self.save_state()
 
     def complete_requests(self):
