@@ -31,12 +31,13 @@ User Guide
 .. toctree::
    :maxdepth: 2
 
-   man_pages/index
+   user/update_states
+   user/man_pages/index
 
 .. toctree::
    :maxdepth: 1
 
-   release_notes
+   user/release_notes
 
 
 API Guide
