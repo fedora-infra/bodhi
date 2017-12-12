@@ -183,7 +183,7 @@ def new(user, password, url, **kwargs):
     Create a new update.
 
     BUILDS: a comma separated list of Builds to be added to the update
-    (e.g. 0ad-0.0.21-4.fc26, 2ping-3.2.1-4.fc26)
+    (e.g. 0ad-0.0.21-4.fc26,2ping-3.2.1-4.fc26)
     """
 
     # Developer Docs
