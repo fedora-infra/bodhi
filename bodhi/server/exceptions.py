@@ -17,10 +17,6 @@ class BodhiException(Exception):
     pass
 
 
-class MashTaskException(Exception):
-    pass
-
-
 class RepodataException(Exception):
     pass
 
