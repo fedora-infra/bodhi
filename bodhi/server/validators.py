@@ -260,17 +260,6 @@ def validate_build_tags(request, **kwargs):
             return
 
         release = update.release
-        if not release:
-            # If the edited update has no release, something went wrong a while
-            # ago.  We're already in a corrupt state.  We can't perform the
-            # check further down as to whether or not the user is submitting
-            # builds that do or do not match the release of this update...
-            # because we don't know the release of this update.
-            request.errors.add('body', 'edited',
-                               'Pre-existing update %s has no associated '
-                               '"release" object.  Please submit a ticket to '
-                               'resolve this.' % edited)
-            return
     else:
         valid_tags = tag_types['candidate']
 
