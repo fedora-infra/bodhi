@@ -16,7 +16,9 @@ Fedora 26 or newer system and pointing your browser at
     $ sudo dnf install bodhi-docs && firefox /usr/share/doc/bodhi-docs/html/index.html
 
 If you are interested in contributing to Bodhi, you can read the
-`developer documentation <https://github.com/fedora-infra/bodhi/blob/develop/docs/developer_docs.rst>`_.
+`developer documentation`_.
+
+.. _developer documentation: https://bodhi.fedoraproject.org/docs/developer/index.html
 
 
 Meetings
