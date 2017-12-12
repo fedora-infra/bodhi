@@ -81,6 +81,15 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
   `mailing list <https://lists.fedoraproject.org/archives/list/bodhi@lists.fedorahosted.org/>`_.
 
 
+Easy Fix
+========
+
+If you are looking for some easy tasks to get started with Bodhi development, have a look at Bodhi's
+`EasyFix`_ tickets.
+
+.. _EasyFix: https://github.com/fedora-infra/bodhi/issues?q=is%3Aopen+is%3Aissue+label%3AEasyFix
+
+
 CI Tests
 ========
 
