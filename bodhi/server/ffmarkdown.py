@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -12,8 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 # USA.
-
-""" Fedora-flavored Markdown
+"""
+Fedora-flavored Markdown.
 
 Author: Ralph Bean <rbean@redhat.com>
 """
@@ -25,11 +30,31 @@ import pyramid.threadlocal
 
 
 def user_url(name):
+    """
+    Return a URL to the given username.
+
+    Args:
+        name (basestring): The username of the user we want a URL for.
+    Returns:
+        basestring: A URL to the requested user.
+    """
     request = pyramid.threadlocal.get_current_request()
     return request.route_url('user', name=name)
 
 
 def bug_url(tracker, idx):
+    """
+    Return the URL for the given bug.
+
+    Args:
+        tracker (basestring): Which bug tracker is being referenced. May be any of 'fedora',
+            'gnome', 'kde', 'mozilla', 'pear', 'perl', 'php', 'python', 'rh', or 'rhbz'.
+        idx (basestring or int): The bug number.
+    Returns:
+        basestring: The URL of the given bug.
+    Raises:
+        KeyError: If the given tracker is not supported by this function.
+    """
     try:
         return {
             'fedora': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
@@ -48,8 +73,7 @@ def bug_url(tracker, idx):
 
 
 def inject():
-    """ Hack out python-markdown to do the autolinking that we want. """
-
+    """Hack out python-markdown to do the autolinking that we want."""
     # build some Pattern objects for @mentions, #bugs, etc...
     class MentionPattern(markdown.inlinepatterns.Pattern):
         def handleMatch(self, m):
