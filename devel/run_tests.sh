@@ -51,7 +51,7 @@ for r in $RELEASES; do
         cat rpm-packages >> Dockerfile-$r
     else
         # Let's use F26 for the pip tests.
-        sed -i "s/FEDORA_RELEASE/26/" Dockerfile-$r
+        sed -i "s/FEDORA_RELEASE/27/" Dockerfile-$r
     fi
     cat $r-packages Dockerfile-footer >> Dockerfile-$r
     echo "COPY . /bodhi" >> Dockerfile-$r
