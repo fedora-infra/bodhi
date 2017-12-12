@@ -10,7 +10,7 @@ Documentation
 
 You can read Bodhi's documentation
 `online <https://bodhi.fedoraproject.org/docs>`_, or by installing it on your
-Fedora 26 or newer system and pointing your browser at
+Fedora system and pointing your browser at
 ``/usr/share/doc/bodhi-docs/html/index.html``::
 
     $ sudo dnf install bodhi-docs && firefox /usr/share/doc/bodhi-docs/html/index.html
