@@ -718,30 +718,6 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEqual(res.json, expected_json)
         listTags.assert_called_once_with(update.title)
 
-    def test_edit_missing_release(self):
-        """Editing an update that is missing a release should report an error."""
-        update = self.db.query(Update).one()
-        update.release = None
-        update_json = self.get_update(update.title)
-        update_json['csrf_token'] = self.get_csrf_token()
-        update_json['notes'] = u'testing!!!'
-        update_json['edited'] = update.title
-        # This will cause an extra error in the output that we aren't testing here, so delete it.
-        del update_json['requirements']
-
-        res = self.app.post_json('/updates/', update_json, status=400)
-
-        expected_json = {
-            u'status': u'error',
-            u'errors': [
-                {u'description': (u'Pre-existing update bodhi-2.0-1.fc17 has no associated '
-                                  u'"release" object.  Please submit a ticket to resolve this.'),
-                 u'location': u'body', u'name': u'edited'},
-                {u'description': (u'Cannot find release associated with build: bodhi-2.0-1.fc17, '
-                                  u'tags: []'),
-                 u'location': u'body', u'name': u'builds'}]}
-        self.assertEqual(res.json, expected_json)
-
     def test_edit_untagged_build(self):
         """Editing an update that references untagged builds should raise an error."""
         update = self.db.query(Update).one()
