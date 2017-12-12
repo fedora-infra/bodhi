@@ -13,7 +13,8 @@
     python2-kitchen \
     python2-pyramid-mako \
     python2-pyramid-tm \
-    python2-sqlalchemy
+    python2-sqlalchemy \
+    python3-diff-cover
 
-RUN pip-2 install cornice diff_cover
+RUN pip-2 install cornice
 RUN pip-2 install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
