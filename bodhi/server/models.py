@@ -1519,7 +1519,7 @@ class Update(Base):
 
     # One-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)
-    release = relationship('Release', lazy='joined', backref='updates')
+    release = relationship('Release', lazy='joined')
 
     # One-to-many relationships
     comments = relationship('Comment', backref=backref('update', lazy='joined'), lazy='joined',
@@ -1577,10 +1577,9 @@ class Update(Base):
                 update.
         """
         if release and self.content_type is not None:
-            if len(release.updates):
-                u = release.updates[0]
-                if u.content_type and u.content_type != self.content_type:
-                    raise ValueError(u'A release must contain updates of the same type.')
+            u = Update.query.filter(Update.release_id == release.id, Update.id != self.id).first()
+            if u and u.content_type and u.content_type != self.content_type:
+                raise ValueError(u'A release must contain updates of the same type.')
         return release
 
     @property
