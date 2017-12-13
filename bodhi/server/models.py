@@ -523,11 +523,13 @@ class ContentType(DeclEnum):
             content types.
         rpm (EnumSymbol): Used to represent RPM related objects.
         module (EnumSymbol): Used to represent Module related objects.
+        container (EnumSymbol): Used to represent Container related objects.
     """
 
     base = 'base', 'Base'
     rpm = 'rpm', 'RPM'
     module = 'module', 'Module'
+    container = 'container', 'Container'
 
     @classmethod
     def infer_content_class(cls, base, build):
@@ -1145,6 +1147,14 @@ class Package(Base):
         return x
 
 
+class ContainerPackage(Package):
+    """Represents a Container package."""
+
+    __mapper_args__ = {
+        'polymorphic_identity': ContentType.container,
+    }
+
+
 class ModulePackage(Package):
     """Represents a Module package."""
 
@@ -1271,6 +1281,18 @@ class Build(Base):
                     'Moving %s from %s to %s' % (
                         self.nvr, tag, release.candidate_tag))
                 koji.moveBuild(tag, release.candidate_tag, self.nvr)
+
+
+class ContainerBuild(Build):
+    """
+    Represents a Container build.
+
+    Note that this model uses single-table inheritance with its Build superclass.
+    """
+
+    __mapper_args__ = {
+        'polymorphic_identity': ContentType.container,
+    }
 
 
 class ModuleBuild(Build):
