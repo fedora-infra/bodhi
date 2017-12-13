@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+# Copyright © 2011-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -1327,6 +1330,13 @@ class TestUpdate(ModelTest):
         The Update.mandatory_days_in_testing method should be 0 if the
         mandatory_days_in_testing attribute of release is not truthy.
         """
+        update = self.obj
+
+        self.assertEqual(update.mandatory_days_in_testing, 0)
+
+    @mock.patch.dict('bodhi.server.models.config', {}, clear=True)
+    def test_mandatory_days_in_testing_release_not_configured(self):
+        """mandatory_days_in_testing() should return 0 if there is no config for the release."""
         update = self.obj
 
         self.assertEqual(update.mandatory_days_in_testing, 0)
