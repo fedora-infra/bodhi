@@ -2554,9 +2554,12 @@ class TestUpdate(ModelTest):
             builds=[build], user=user,
             status=UpdateStatus.testing,
             request=UpdateRequest.stable,
-            notes=u'Useful details!', release=release,
+            type=UpdateType.enhancement,
+            notes=u'Useful details!',
             test_gating_status=TestGatingStatus.passed)
+        update.release = release
         self.db.add(update)
+        self.db.flush()
 
         # We should not be allowed to add our RPM Update to the Module release.
         with self.assertRaises(ValueError) as exc:
