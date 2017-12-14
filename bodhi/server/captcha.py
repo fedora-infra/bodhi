@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2017 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -14,6 +19,7 @@
 # 02110-1301, USA.
 #
 # Authors:  Ralph Bean <rbean@redhat.com>
+"""Define utilities and a view pertaining to captcha images for unauthenticated users."""
 
 from __future__ import division
 import base64
@@ -28,8 +34,18 @@ import six
 
 
 def math_generator(plainkey, settings):
-    """ Given a plainkey, return its expected value.
-    If plainkey is None, return a random one. settings is not used.
+    """
+    Given a plainkey, return its expected value.
+
+    Args:
+        plainkey (basestring or None): The key to encrypt as ciphertext. If None, a random key is
+            generated.
+        settings (bodhi.server.config.BodhiConfig): Bodhi's settings, unsued.
+    Returns:
+        tuple: A 2-tuple is returned. The first element is the plainkey, and the second is its
+            encrypted value.
+    Raises:
+        ValueError: If the plainkey is not valid.
     """
     if not plainkey:
         x = random.randint(1, 100)
@@ -50,6 +66,15 @@ def math_generator(plainkey, settings):
 
 
 def jpeg_generator(plainkey, settings):
+    """
+    Generate an image with plainkey written in it.
+
+    Args:
+        plainkey (basestring): The text to include in the generated image.
+        settings (bodhi.server.config.BodhiConfig): Bodhi's settings.
+    Returns:
+        PIL.Image.Image: An image containing the given text.
+    """
     image_size = image_width, image_height = (
         settings.get('captcha.image_width'),
         settings.get('captcha.image_height'),
@@ -78,6 +103,17 @@ def jpeg_generator(plainkey, settings):
 
 
 def warp_image(image):
+    """
+    Apply some random bending operations to the given image.
+
+    This function attempts to make it harder for bots to read the text inside the image, while
+    allowing humans to read it.
+
+    Args:
+        image (PIL.Image.Image): The image to warp.
+    Returns:
+        PIL.Image.Image: A warped transformation of the given image.
+    """
     r = 10  # individually warp a bunch of 10x10 tiles.
     mesh_x = (image.size[0] // r) + 2
     mesh_y = (image.size[1] // r) + 2
@@ -91,14 +127,14 @@ def warp_image(image):
     )
 
     def _sine(x, y, a=amplitude, p=period, o=offset):
-        """ Given a single point, warp it.  """
+        """Given a single point, warp it."""
         return (
             math.sin((y + o[0]) * p) * a + x,
             math.sin((x + o[1]) * p) * a + y,
         )
 
     def _clamp(x, y):
-        """ Don't warp things outside the bounds of the image. """
+        """Don't warp things outside the bounds of the image."""
         return (
             max(0, min(image.size[0] - 1, x)),
             max(0, min(image.size[1] - 1, y)),
@@ -113,11 +149,12 @@ def warp_image(image):
     ]
 
     def _destination_rectangle(i, j):
-        """ Return a happy tile from the original space. """
+        """Return a happy tile from the original space."""
         return (i * r, j * r, (i + 1) * r, (j + 1) * r)
 
     def _source_quadrilateral(i, j):
-        """ Return the set of warped corners for a given tile.
+        """
+        Return the set of warped corners for a given tile.
 
         Specified counter-clockwise as a tuple.
         """
@@ -142,6 +179,17 @@ def warp_image(image):
 
 
 def validate(request, cipherkey, value):
+    """
+    Return whether the value matches the expected value, based on the cipherkey.
+
+    Args:
+        request (pyramid.util.Request): The current web request.
+        cipherkey (basestring): The encrypted Fernet key.
+        value (basestring): The value to be validated.
+    Returns:
+        bool: True if value matches the expected value based on the cipherkey, False otherwise.
+            False is also returned if the cipherkey is not found to be a valid Fernet token.
+    """
     settings = request.registry.settings
 
     try:
@@ -154,6 +202,16 @@ def validate(request, cipherkey, value):
 
 
 def generate_captcha(context, request):
+    """
+    Generate a key and a URL to a captcha image that matches the key.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        request (pyramid.util.Request): The current web request.
+    Returns:
+        tuple: A 2-tuple of strings. The first is the ciphertext key for a captcha, and the second
+            is a URL to the captcha image that matches that key.
+    """
     settings = request.registry.settings
     plainkey, value = math_generator(plainkey=None, settings=settings)
     cipherkey = encrypt(plainkey, settings)
@@ -163,6 +221,15 @@ def generate_captcha(context, request):
 
 
 def encrypt(plaintext, settings):
+    """
+    Calculate and return the ciphertext key from the given plaintext key.
+
+    Args:
+        plaintext (basestring): A key you wish you encrypt.
+        settings (bodhi.server.config.BodhiConfig): Bodhi's settings.
+    Returns:
+        str: The ciphertext version of the given captcha key.
+    """
     secret = settings['captcha.secret']
     engine = cryptography.fernet.Fernet(secret)
     ciphertext = engine.encrypt(plaintext.encode('utf-8'))
@@ -171,6 +238,18 @@ def encrypt(plaintext, settings):
 
 
 def decrypt(ciphertext, settings):
+    """
+    Calculate and return the plaintext key from the given ciphertext.
+
+    Args:
+        ciphertext (str): The encrypted secret for a captcha image.
+        settings (bodhi.server.config.BodhiConfig): Bodhi's settings.
+    Returns:
+        unicode: The plaintext secret for a captcha image.
+    Raises:
+        pyramid.httpexceptions.HTTPNotFound: If the ciphertext can not be decoded as base64.
+        pyramid.httpexceptions.HTTPGone: If the captcha token has expired.
+    """
     ttl = settings['captcha.ttl']
     secret = settings['captcha.secret']
     engine = cryptography.fernet.Fernet(secret)
@@ -193,6 +272,14 @@ def decrypt(ciphertext, settings):
 
 @view_config(route_name='captcha_image', renderer='jpeg')
 def captcha_image(request):
+    """
+    Generate and return a captcha image.
+
+    Args:
+        request (pyramid.util.Request): The current web request.
+    Returns:
+        PIL.Image.Image: The generated captcha image.
+    """
     cipherkey = request.matchdict['cipherkey']
     plainkey = decrypt(cipherkey, request.registry.settings)
     image = jpeg_generator(plainkey, request.registry.settings)
