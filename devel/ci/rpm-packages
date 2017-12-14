@@ -1,12 +1,19 @@
     python2-arrow \
     python2-bleach \
     python2-dogpile-cache \
+    python2-fedmsg \
+    python2-feedgen \
     python2-flake8 \
     python2-iniparse \
+    python2-kitchen \
     python2-markdown \
     python2-mock \
     python2-pillow \
+    python2-pyramid-mako \
+    python2-pyramid-tm \
     python2-pytest-cov \
+    python2-sqlalchemy \
     python2-sqlalchemy_schemadisplay \
+    python3-diff-cover \
     python3-pydocstyle \
     python3-tox \

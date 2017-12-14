@@ -24,7 +24,7 @@
 # It is intended to be run with sudo, since it needs to use docker.
 
 BUILD_PARALLEL=${BUILD_PARALLEL:=""}
-RELEASES=${RELEASES:="f25 f26 f27 rawhide pip"}
+RELEASES=${RELEASES:="f26 f27 rawhide pip"}
 
 if [[ $@ == *"-x"* ]]; then
     FAILFAST="--halt now,fail=1"

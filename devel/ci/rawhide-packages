@@ -2,16 +2,9 @@
     python2-bugzilla \
     python2-cornice \
     python2-cornice-sphinx \
-    python2-fedmsg \
-    python2-feedgen \
-    python2-kitchen \
     python2-munch \
     python2-openid \
     python2-pylibravatar \
     python2-pyramid-fas-openid \
-    python2-pyramid-mako \
-    python2-pyramid-tm \
     python2-simplemediawiki \
-    python2-sqlalchemy \
-    python2-webtest \
-    python3-diff-cover
+    python2-webtest
