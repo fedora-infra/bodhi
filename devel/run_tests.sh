@@ -23,6 +23,7 @@
 # like. You can pass a -x flag to it to get it to exit early if a build or test run fails.
 # It is intended to be run with sudo, since it needs to use docker.
 
+BUILD_PARALLEL=${BUILD_PARALLEL:=""}
 RELEASES=${RELEASES:="f25 f26 f27 rawhide pip"}
 
 if [[ $@ == *"-x"* ]]; then
@@ -63,7 +64,7 @@ popd
 # tags.
 $PARALLEL sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $RELEASES
 # Build the containers.
-$PARALLEL -j 1 "docker build --pull -t test/{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
+$PARALLEL $BUILD_PARALLEL "docker build --pull -t test/{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
 
 # Make individual folders for each release to drop its test results and docs.
 $PARALLEL mkdir -p $(pwd)/test_results/{} ::: $RELEASES
