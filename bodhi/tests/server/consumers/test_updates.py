@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+# Copyright © 2016-2017 Red Hat, Inc. and Caleigh Runge-Hotman
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -82,6 +85,68 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(fetch_test_cases.call_count, 1)
         self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][1],
                                    sqlalchemy.orm.session.Session))
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
+    def test_gating_required_false(self):
+        """Assert that test_gating_status is not updated if test_gating is not enabled."""
+        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        update.test_gating_status = None
+        hub = mock.MagicMock()
+        hub.config = {'environment': 'environment',
+                      'topic_prefix': 'topic_prefix'}
+        h = updates.UpdatesHandler(hub)
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        # Throw a bogus bug id in there to ensure it doesn't raise AssertionError.
+        message = {
+            'topic': 'bodhi.update.request.testing',
+            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
+                             'new_bugs': []}}}
+
+        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            greenwave_response = {
+                'policies_satisfied': False,
+                'summary': u'what have you done‽',
+                'applicable_policies': ['taskotron_release_critical_tasks'],
+                'unsatisfied_requirements': ['some arbitrary test you disagree with']
+            }
+            mock_greenwave.return_value = greenwave_response
+
+            h.consume(message)
+
+        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        self.assertIsNone(update.test_gating_status)
+        self.assertIsNone(update.greenwave_summary_string)
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_gating_required_true(self):
+        """Assert that test_gating_status is updated when test_gating is enabled."""
+        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        update.test_gating_status = None
+        hub = mock.MagicMock()
+        hub.config = {'environment': 'environment',
+                      'topic_prefix': 'topic_prefix'}
+        h = updates.UpdatesHandler(hub)
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        # Throw a bogus bug id in there to ensure it doesn't raise AssertionError.
+        message = {
+            'topic': 'bodhi.update.request.testing',
+            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
+                             'new_bugs': []}}}
+
+        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            greenwave_response = {
+                'policies_satisfied': False,
+                'summary': u'what have you done‽',
+                'applicable_policies': ['taskotron_release_critical_tasks'],
+                'unsatisfied_requirements': ['some arbitrary test you disagree with']
+            }
+            mock_greenwave.return_value = greenwave_response
+
+            h.consume(message)
+
+        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
+        self.assertEqual(update.greenwave_summary_string, u'what have you done‽')
 
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
     # can ensure that we aren't raising Exceptions from them, while allowing us to only assert that

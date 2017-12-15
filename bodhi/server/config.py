@@ -221,6 +221,19 @@ def _validate_path(value):
     return six.text_type(value)
 
 
+def _validate_rstripped_str(value):
+    """
+    Ensure that value is a str that is rstripped of the / character.
+
+    Args:
+        value (six.text_type): The value to be validated and rstripped.
+    Returns:
+        six.text_type: The rstripped value.
+    """
+    value = six.text_type(value)
+    return value.rstrip('/')
+
+
 def _validate_secret(value):
     """Ensure that the value is not CHANGEME and convert it to unicode.
 
@@ -413,10 +426,10 @@ class BodhiConfig(dict):
             'validator': six.text_type},
         'greenwave_api_url': {
             'value': 'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0',
-            'validator': six.text_type},
+            'validator': _validate_rstripped_str},
         'waiverdb_api_url': {
             'value': 'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0',
-            'validator': six.text_type},
+            'validator': _validate_rstripped_str},
         'waiverdb.access_token': {
             'value': None,
             'validator': six.text_type},
