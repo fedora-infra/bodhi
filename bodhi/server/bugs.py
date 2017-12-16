@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2013-2017 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Defines utilities for accessing Bugzilla."""
 
 import logging
 
@@ -29,37 +35,60 @@ FakeBug = namedtuple('FakeBug', ['bug_id'])
 
 
 class BugTracker(object):
+    """A superclass to share between FakeBugTracker and Bugzilla."""
 
     def _(self, *args, **kw):  # pragma: no cover
+        """
+        Raise NotImplementedError.
+
+        Raises:
+            NotImplementedError: Always.
+        """
         raise NotImplementedError
 
     getbug = update_details = modified = on_qa = close = update_details = _
 
 
 class FakeBugTracker(BugTracker):
+    """Provide an API similar to bugzilla.base.Bugzilla without doing anything."""
 
     def getbug(self, bug_id, *args, **kw):
+        """
+        Return a FakeBug representing the requested bug id.
+
+        Args:
+            bug_id (basestring or int): The requested bug id.
+            args (list): Unused.
+            kwargs (dict): Unused.
+        """
         return FakeBug(bug_id=int(bug_id))
 
     def __noop__(self, *args, **kw):
+        """
+        Log the method call at debug.
+
+        Args:
+            args (list): The list of args passed to the method.
+            kwargs (dict): The kwargs passed to the method.
+        """
         log.debug('__noop__(%s)' % str(args))
 
     comment = update_details = modified = close = on_qa = __noop__
 
 
 class InvalidComment(Exception):
-    """ Exception thrown when the comment posted is invalid (for example
-    too long.
-    """
-    pass
+    """Exception thrown when the comment posted is invalid (for example too long)."""
 
 
 class Bugzilla(BugTracker):
+    """Provide methods for Bodhi's frequent Bugzilla operations."""
 
     def __init__(self):
+        """Initialize self._bz as None."""
         self._bz = None
 
     def _connect(self):
+        """Create a Bugzilla client instance and store it on self._bz."""
         user = config.get('bodhi_email')
         password = config.get('bodhi_password')
         url = config.get("bz_server")
@@ -74,17 +103,46 @@ class Bugzilla(BugTracker):
 
     @property
     def bz(self):
+        """
+        Ensure we have connected to Bugzilla and return the client instance.
+
+        Returns:
+            bugzilla.base.Bugzilla: A client Bugzilla instance.
+        """
         if self._bz is None:
             self._connect()
         return self._bz
 
     def get_url(self, bug_id):
+        """
+        Generate and return a URL to the given bug.
+
+        Args:
+            bug_id (basestring or int): The id of the bug you want a URl for.
+        Returns:
+            basestring: The requested URL.
+        """
         return "%s/show_bug.cgi?id=%s" % (config['bz_baseurl'], bug_id)
 
     def getbug(self, bug_id):
+        """
+        Retrieve a bug from Bugzilla.
+
+        Args:
+            bug_id (int): The id of the bug you wish to retreive.
+        Returns:
+            bugzilla.bug.Bug: A Bug instance representing the bug in Bugzilla.
+        """
         return self.bz.getbug(bug_id)
 
     def comment(self, bug_id, comment):
+        """
+        Add a comment to the given bug.
+
+        Args:
+            bug_id (int): The id of the bug you wish to comment on.
+            comment (basestring): The comment to add to the bug.
+        """
         try:
             if len(comment) > 65535:
                 raise InvalidComment("Comment is too long: %s" % comment)
@@ -107,8 +165,14 @@ class Bugzilla(BugTracker):
 
     def on_qa(self, bug_id, comment):
         """
-        Change the status of this bug to ON_QA, and comment on the bug with
-        some details on how to test and provide feedback for this update.
+        Change the status of this bug to ON_QA.
+
+        This will also comment on the bug with some details on how to test and provide feedback for
+        this update.
+
+        Args:
+            bug_id (int): The bug id you wish to set to ON_QA.
+            comment (basestring): The comment to be included with the state change.
         """
         log.debug("Setting Bug #%d to ON_QA" % bug_id)
         try:
@@ -119,8 +183,7 @@ class Bugzilla(BugTracker):
 
     def close(self, bug_id, versions, comment):
         """
-        Close the bug given by bug_id, mark it as fixed in the given versions,
-        and add a comment.
+        Close the bug given by bug_id, mark it as fixed in the given versions, and add a comment.
 
         Args:
             bug_id (int): The ID of the bug you wish to close.
@@ -153,6 +216,15 @@ class Bugzilla(BugTracker):
             log.exception("Unable to close bug #%d" % bug_id)
 
     def update_details(self, bug, bug_entity):
+        """
+        Update the details on bug_entity to match what is found in Bugzilla.
+
+        Args:
+            bug (bugzilla.bug.Bug or None): The Bugzilla Bug we will use to update our own Bug
+                object from. If None, bug_entity.bug_id will be used to fetch the object from
+                Bugzilla.
+            bug_entity(bodhi.server.models.Bug): The bug we wish to update.
+        """
         if not bug:
             try:
                 bug = self.bz.getbug(bug_entity.bug_id)
@@ -174,6 +246,14 @@ class Bugzilla(BugTracker):
             bug_entity.security = True
 
     def modified(self, bug_id):
+        """
+        Mark the given bug as MODIFIED.
+
+        The bug will only be marked MODIFIED if it is not already MODIFIED, VERIFIED, or CLOSED.
+
+        Args:
+            bug_id (basestring or int): The bug you wish to mark MODIFIED.
+        """
         try:
             bug = self.bz.getbug(bug_id)
             if bug.product not in config.get('bz_products'):
@@ -187,9 +267,7 @@ class Bugzilla(BugTracker):
 
 
 def set_bugtracker():
-    """
-    Set the module-level bugtracker attribute to the correct bugtracker, based on the config.
-    """
+    """Set the module-level bugtracker attribute to the correct bugtracker, based on the config."""
     global bugtracker
     if config.get('bugtracker') == 'bugzilla':
         log.info('Using python-bugzilla')
