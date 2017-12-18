@@ -98,7 +98,7 @@
                         % endif
                           <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                             <span class="glyphicon glyphicon-tags"></span>
-                            Releases
+                            Stats
                           </a>
                           <div class="dropdown-menu">
                             <a class="dropdown-item" href="${request.route_url('metrics')}">
@@ -106,6 +106,9 @@
                             </a>
                             <a class="dropdown-item" href="${request.route_url('masher_status')}">
                               Masher Status
+                            </a>
+                            <a class="dropdown-item" href="${request.route_url('collection_compose')}">
+                              Composes
                             </a>
                             % for state in request.releases:
                             <div class="dropdown-divider"></div>

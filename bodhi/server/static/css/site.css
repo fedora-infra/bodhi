@@ -258,6 +258,18 @@ ul.updateslist li {
   visibility: hidden !important;
 }
 
+.compose {
+  border:1px solid #ddd;
+  padding:1em;
+  text-align: left!important;
+  background-color: #f7f7f7;
+}
+
+.compose-box{
+  padding:1em;
+  background-color: #ffffff;
+}
+
 .front-count{
   border:1px solid #ddd;
   padding:1em;

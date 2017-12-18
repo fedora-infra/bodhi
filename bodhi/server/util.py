@@ -486,6 +486,30 @@ def markup(context, text):
     return bleach.clean(markdown_text, tags=markdown_tags, attributes=markdown_attrs)
 
 
+def composestate2html(context, state):
+    """
+    Render the given UpdateStatus as a span containing text.
+
+    Args:
+        context (mako.runtime.Context): Unused.
+        state (bodhi.server.models.ComposeState): The ComposeState to render as a span
+            tag.
+    Returns:
+        basestring: An HTML span tag representing the ComposeState.
+    """
+    cls = {
+        'requested': 'primary',
+        'pending': 'primary',
+        'initializing': 'warning',
+        'updateinfo': 'warning',
+        'punging': 'warning',
+        'notifying': 'warning',
+        'success': 'success',
+        'failed': 'danger',
+    }[state.value]
+    return "<span class='label label-%s'>%s</span>" % (cls, state.description)
+
+
 def status2html(context, status):
     """
     Render the given UpdateStatus as a span containing text.

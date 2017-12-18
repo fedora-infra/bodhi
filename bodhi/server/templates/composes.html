@@ -1,0 +1,25 @@
+<%inherit file="master.html"/>
+<div class="row page-header">
+  <div class="col-md-6 col-md-offset-3">
+    <h1>Composes</h1>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6 col-md-offset-3" id="container">
+    % for compose in composes:
+      <div class="col-md-4">
+        <div class="compose-box">
+        <div class="compose">
+            <h4>
+                <a class="notblue" href="${request.route_url('compose', release_name=compose.release.name, request=compose.request.value)}">${ compose.release.name } ${ compose.request.description }</a>
+                % if compose.security:
+                    <span class="fa fa-shield text-danger" title="This compose contains security updates." data-toggle="tooltip"></span>
+                % endif
+            </h4>
+            ${ self.util.composestate2html(compose.state) | n }
+        </div>
+        </div>
+      </div>
+    % endfor
+  </div>
+</div>
