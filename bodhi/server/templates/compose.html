@@ -1,0 +1,118 @@
+<%inherit file="master.html"/>
+
+<%block name="pagetitle">
+${ compose.release.name } ${ compose.request.description }
+&mdash; Fedora Updates System
+</%block>
+
+<div class="subheader p-t-2">
+<div class="container">
+<div class="row">
+  <div class="col-md-12">
+    <h1>
+      ${ compose.release.name } ${ compose.request.description }
+      % if compose.security:
+        <span class="fa fa-shield text-danger" title="This compose contains security updates." data-toggle="tooltip"></span>
+      % endif
+    </h1>
+    <div>
+      Status: ${self.util.status2html(compose.request) | n}
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div class="container p-t-2">
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div class="tab-pane active" id="details" role="tabpanel">
+      <div class="row">
+        <div class="col-md-9">
+
+          <div class="p-t-3">
+            <h4>Updates <span class="label label-default">${len(compose.updates)}</span></h4>
+            <div id="updates">
+              % for update in compose.updates:
+              <div>
+                <a href=${ request.route_url('update', id=update.alias) }>${ update.beautify_title(amp=True, nvr=True) | n}</a>
+              </div>
+              % endfor
+            </div>
+
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card">
+            <div class="card-block">
+
+              % if compose.content_type:
+              <div class="p-b-1">
+                <div>
+                  <strong>Content type</strong>
+                </div>
+                <div>
+                  ${ compose.content_type.description | n }
+                </div>
+              </div>
+              % endif
+
+              <div class="p-b-1">
+                <div>
+                  <strong>State</strong>
+                </div>
+                <div>
+                  ${ self.util.composestate2html(compose.state) | n }
+                </div>
+              </div>
+
+              % if compose.error_message:
+              <div class="p-b-1">
+                <div>
+                  <strong>Error message</strong>
+                </div>
+                <div>
+                  ${ compose.error_message | n }
+                </div>
+              </div>
+              % endif
+
+              <div class="p-b-1">
+                <div>
+                  <strong>Dates</strong>
+                </div>
+                <div>
+                  <table class="table table-sm">
+                    <tr>
+                      <td>submitted</td>
+                      <td class="text-muted">
+                        <span data-toggle='tooltip' title='${ (compose.date_created).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>${self.util.age(compose.date_created) }
+                      </td>
+                    </tr>
+
+                    % if compose.state_date:
+                    <tr>
+                      <td>last state transition</td>
+                      <td class="text-muted">
+                        <span data-toggle='tooltip' title='${ (compose.state_date).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>${self.util.age(compose.state_date) }</span>
+                      </td>
+                    </tr>
+                    % endif
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+
+<div class="row">
+
+</div>
+</div> <!-- end container -->

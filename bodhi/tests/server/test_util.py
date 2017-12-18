@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import subprocess
+import unittest
 
 import mock
 import pkgdb2client
@@ -25,7 +26,8 @@ import six
 from bodhi.server import util
 from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
-from bodhi.server.models import TestGatingStatus, Update, UpdateRequest, UpdateSeverity
+from bodhi.server.models import (ComposeState, TestGatingStatus, Update, UpdateRequest,
+                                 UpdateSeverity)
 from bodhi.tests.server import base
 
 
@@ -153,6 +155,49 @@ class TestPushToBatchedOrStableButton(base.BaseTestCase):
 
         self.assertTrue('id="stable"' in a)
         self.assertTrue('</span> Push to Stable</a>' in a)
+
+
+class TestComposeState2HTML(unittest.TestCase):
+    """Assert correct behavior from the composestate2html() function."""
+    def test_requested(self):
+        """Assert correct return value with the requested state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.requested),
+                         "<span class='label label-primary'>Requested</span>")
+
+    def test_pending(self):
+        """Assert correct return value with the pending state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.pending),
+                         "<span class='label label-primary'>Pending</span>")
+
+    def test_initializing(self):
+        """Assert correct return value with the initializing state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.initializing),
+                         "<span class='label label-warning'>Initializing</span>")
+
+    def test_updateinfo(self):
+        """Assert correct return value with the updateinfo state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.updateinfo),
+                         "<span class='label label-warning'>Generating updateinfo.xml</span>")
+
+    def test_punging(self):
+        """Assert correct return value with the punging state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.punging),
+                         "<span class='label label-warning'>Waiting for Pungi to finish</span>")
+
+    def test_notifying(self):
+        """Assert correct return value with the notifying state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.notifying),
+                         "<span class='label label-warning'>Sending notifications</span>")
+
+    def test_success(self):
+        """Assert correct return value with the success state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.success),
+                         "<span class='label label-success'>Success</span>")
+
+    def test_failed(self):
+        """Assert correct return value with the failed state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.failed),
+                         "<span class='label label-danger'>Failed</span>")
 
 
 class TestUtils(base.BaseTestCase):
