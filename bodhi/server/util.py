@@ -936,6 +936,21 @@ def testcase_link(context, test, short=False):
     return link
 
 
+def can_waive_test_results(context, update):
+    """
+    Return True or False if the test results can be waived on an update.
+
+    Args:
+        context (mako.runtime.Context): The current template rendering context. Unused.
+        update (bodhi.server.models.Update): The Update on which we are going to waive test results.
+    Returns:
+        bool: Indicating if the test results can be waived on the given update.
+    """
+    return (config.get('test_gating.required') and
+            not update.test_gating_passed and
+            update.status.description != 'stable')
+
+
 def sorted_builds(builds):
     """
     Sort the given builds by their NVRs.
