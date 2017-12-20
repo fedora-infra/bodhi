@@ -23,7 +23,7 @@ import mock
 import pkgdb2client
 import six
 
-from bodhi.server import util
+from bodhi.server import util, models
 from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
 from bodhi.server.models import (ComposeState, TestGatingStatus, Update, UpdateRequest,
@@ -270,6 +270,49 @@ class TestComposeState2HTML(unittest.TestCase):
         """Assert correct return value with the failed state."""
         self.assertEqual(util.composestate2html(None, ComposeState.failed),
                          "<span class='label label-danger'>Failed</span>")
+
+
+class TestCanWaiveTestResults(base.BaseTestCase):
+    """Test the can_waive_test_results() function."""
+    @mock.patch.dict('bodhi.server.util.config', {'test_gating.required': True})
+    def test_can_waive_test_results(self):
+        u = Update.query.all()[0]
+        u.test_gating_status = TestGatingStatus.failed
+        u.status = models.UpdateStatus.testing
+        self.assertTrue(util.can_waive_test_results(None, u))
+
+    @mock.patch.dict('bodhi.server.util.config', {'test_gating.required': False})
+    def test_gating_required_false(self):
+        """
+        Assert that it should return false if test_gating is not enabled, even if
+        other conditions are met.
+        """
+        u = Update.query.all()[0]
+        u.test_gating_status = TestGatingStatus.failed
+        u.status = models.UpdateStatus.testing
+        self.assertFalse(util.can_waive_test_results(None, u))
+
+    @mock.patch.dict('bodhi.server.util.config', {'test_gating.required': True})
+    def test_all_tests_passed(self):
+        """
+        Assert that it should return false if all tests passed, even if
+        other conditions are met.
+        """
+        u = Update.query.all()[0]
+        u.test_gating_status = TestGatingStatus.passed
+        u.status = models.UpdateStatus.testing
+        self.assertFalse(util.can_waive_test_results(None, u))
+
+    @mock.patch.dict('bodhi.server.util.config', {'test_gating.required': True})
+    def test_update_is_stable(self):
+        """
+        Assert that it should return false if the update is stable, even if
+        other conditions are met.
+        """
+        u = Update.query.all()[0]
+        u.test_gating_status = TestGatingStatus.failed
+        u.status = models.UpdateStatus.stable
+        self.assertFalse(util.can_waive_test_results(None, u))
 
 
 class TestUtils(base.BaseTestCase):
