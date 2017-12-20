@@ -5,6 +5,15 @@ Release notes
 develop
 -------
 
+Config change
+^^^^^^^^^^^^^
+
+The default value for ``greenwave_api_url`` was changed from
+``https://greenwave.fedoraproject.org/api/v1.0`` to
+``https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0`` as the old value was a
+non-extant domain.
+
+
 Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
