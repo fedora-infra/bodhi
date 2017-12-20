@@ -24,7 +24,6 @@ Ideally, this should be done in a fedmsg consumer but we currently do not have a
 messages in the message bus yet.
 """
 import click
-from sqlalchemy.sql.expression import false
 
 from bodhi.server import config, initialize_db, models, Session
 
@@ -36,9 +35,8 @@ def check():
     initialize_db(config.config)
     session = Session()
 
-    updates = models.Update.query.filter(models.Update.pushed == false())\
-        .filter(models.Update.status.in_(
-                [models.UpdateStatus.pending, models.UpdateStatus.testing]))
+    updates = models.Update.query.filter(models.Update.status.in_(
+        [models.UpdateStatus.pending, models.UpdateStatus.testing]))
     for update in updates:
         try:
             update.update_test_gating_status()
