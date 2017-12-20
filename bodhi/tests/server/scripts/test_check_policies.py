@@ -152,6 +152,37 @@ class TestCheckPolicies(BaseTestCase):
                                                expected_query)
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
+    def test_pushed_update(self):
+        """Assert that check() operates on pushed updates."""
+        runner = testing.CliRunner()
+        update = self.db.query(models.Update).all()[0]
+        update.status = models.UpdateStatus.testing
+        update.pushed = True
+        self.db.commit()
+        with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
+            greenwave_response = {
+                'policies_satisfied': False,
+                'summary': 'it broke',
+                'applicable_policies': ['bodhi-unrestricted'],
+            }
+            mock_greenwave.return_value = greenwave_response
+
+            result = runner.invoke(check_policies.check, [])
+
+        self.assertEqual(result.exit_code, 0)
+        update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
+        self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
+        self.assertEqual(update.greenwave_summary_string, 'it broke')
+        expected_query = {
+            'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
+            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                        {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                        {'item': u'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                         'type': 'bodhi_update'}]}
+        mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
+                                               expected_query)
+
+    @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_unrestricted_policy(self):
         """Assert correct behavior when an unrestricted policy is applied"""
         runner = testing.CliRunner()
