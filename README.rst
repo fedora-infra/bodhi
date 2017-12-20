@@ -18,7 +18,7 @@ Fedora system and pointing your browser at
 If you are interested in contributing to Bodhi, you can read the
 `developer documentation`_.
 
-.. _developer documentation: https://bodhi.fedoraproject.org/docs/developer/index.html
+.. _developer documentation: https://bodhi.fedoraproject.org/docs/developer_docs.html
 
 
 Meetings
