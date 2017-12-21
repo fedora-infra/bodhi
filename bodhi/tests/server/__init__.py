@@ -5,7 +5,7 @@ import sqlalchemy
 
 from bodhi.server.models import (
     Bug, BuildrootOverride, Comment, CVE, Group, RpmPackage, Release, ReleaseState, RpmBuild,
-    Update, TestGatingStatus, UpdateRequest, UpdateType, User, TestCase)
+    Update, TestGatingStatus, UpdateRequest, UpdateSeverity, UpdateType, User, TestCase)
 
 
 def create_update(session, build_nvrs, release_name=u'F17'):
@@ -82,6 +82,7 @@ def populate(db):
     db.flush()
     update = create_update(db, [u'bodhi-2.0-1.fc17'])
     update.type = UpdateType.bugfix
+    update.severity = UpdateSeverity.medium
     bug = Bug(bug_id=12345)
     db.add(bug)
     update.bugs.append(bug)

@@ -27,6 +27,7 @@ from kitchen.text.converters import to_bytes
 import createrepo_c as cr
 import six
 
+from bodhi.server import util
 from bodhi.server.buildsys import get_session
 from bodhi.server.config import config
 from bodhi.server.models import Build, UpdateStatus, UpdateRequest, UpdateSuggestion
@@ -184,6 +185,7 @@ class UpdateInfoMetadata(object):
         rec.type = update.type.value
         rec.id = to_bytes(update.alias)
         rec.title = to_bytes(update.title)
+        rec.severity = util.severity_updateinfo_str(update.severity.value)
         rec.summary = to_bytes('%s %s update' % (update.get_title(),
                                                  update.type.value))
         rec.description = to_bytes(update.notes)
