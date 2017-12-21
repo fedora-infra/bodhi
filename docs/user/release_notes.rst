@@ -19,6 +19,7 @@ Dependency changes
 
 * Bodhi now requires ``cornice>=3``.
 * Bodhi now formally documents that it requires PostgreSQL >= 9.2.0 in :doc:`../administration`.
+* Bodhi no longer requires ``progressbar``.
 
 
 v3.1.0

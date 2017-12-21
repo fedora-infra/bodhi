@@ -2,7 +2,6 @@
     python-bugzilla \
     python-munch \
     python-openid \
-    python-progressbar \
     python-pylibravatar \
     python-pyramid-fas-openid \
     python-pytest \

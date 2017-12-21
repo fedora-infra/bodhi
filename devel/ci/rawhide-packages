@@ -5,7 +5,6 @@
     python2-kitchen \
     python2-munch \
     python2-openid \
-    python2-progressbar \
     python2-pylibravatar \
     python2-pyramid-fas-openid \
     python2-pyramid-mako \
