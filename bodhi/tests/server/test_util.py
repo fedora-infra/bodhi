@@ -103,6 +103,53 @@ class TestBugLink(base.BaseTestCase):
              "#1234567</a>"))
 
 
+@mock.patch('bodhi.server.util.time.sleep')
+class TestCallAPI(unittest.TestCase):
+    """Test the call_api() function."""
+
+    @mock.patch('bodhi.server.util.http_session.get')
+    def test_retries_failure(self, get, sleep):
+        """Assert correct operation of the retries argument when they never succeed."""
+        class FakeResponse(object):
+            def __init__(self, status_code):
+                self.status_code = status_code
+
+            def json(self):
+                return {'some': 'stuff'}
+
+        get.side_effect = [FakeResponse(503), FakeResponse(503)]
+
+        with self.assertRaises(RuntimeError) as exc:
+            util.call_api('url', 'service_name', retries=1)
+
+        self.assertEqual(
+            str(exc.exception),
+            ('Bodhi failed to get a resource from service_name at the following URL "url". The '
+             'status code was "503". The error was "{\'some\': \'stuff\'}".'))
+        self.assertEqual(get.mock_calls,
+                         [mock.call('url', timeout=60), mock.call('url', timeout=60)])
+        sleep.assert_called_once_with(1)
+
+    @mock.patch('bodhi.server.util.http_session.get')
+    def test_retries_success(self, get, sleep):
+        """Assert correct operation of the retries argument when they succeed eventually."""
+        class FakeResponse(object):
+            def __init__(self, status_code):
+                self.status_code = status_code
+
+            def json(self):
+                return {'some': 'stuff'}
+
+        get.side_effect = [FakeResponse(503), FakeResponse(200)]
+
+        res = util.call_api('url', 'service_name', retries=1)
+
+        self.assertEqual(res, {'some': 'stuff'})
+        self.assertEqual(get.mock_calls,
+                         [mock.call('url', timeout=60), mock.call('url', timeout=60)])
+        sleep.assert_called_once_with(1)
+
+
 class TestPushToBatchedOrStableButton(base.BaseTestCase):
     """Test the push_to_batched_or_stable_button() function."""
     def test_request_is_batched(self):
@@ -167,12 +214,12 @@ class TestUtils(base.BaseTestCase):
         assert config.get('sqlalchemy.url'), config
         assert config['sqlalchemy.url'], config
 
+    @mock.patch.dict(util.config, {'critpath.type': None, 'critpath_pkgs': ['kernel', 'glibc']})
     def test_get_critpath_components_dummy(self):
         """ Ensure that critpath packages can be found using the hardcoded
         list.
         """
-        pkgs = util.get_critpath_components()
-        assert 'kernel' in pkgs, pkgs
+        self.assertEqual(util.get_critpath_components(), ['kernel', 'glibc'])
 
     @mock.patch.object(pkgdb2client.PkgDB, 'get_critpath_packages')
     @mock.patch.dict(util.config, {
@@ -220,9 +267,7 @@ class TestUtils(base.BaseTestCase):
         assert 'The status code was "500".' in actual_error
 
     @mock.patch('bodhi.server.util.log')
-    @mock.patch.dict(util.config, {
-        'critpath.type': 'dummy',
-    })
+    @mock.patch.dict(util.config, {'critpath.type': None, 'critpath_pkgs': ['kernel', 'glibc']})
     def test_get_critpath_components_not_pdc_not_rpm(self, mock_log):
         """ Ensure a warning is logged when the critpath system is not pdc
         and the type of components to search for is not rpm.
@@ -232,6 +277,70 @@ class TestUtils(base.BaseTestCase):
         warning = ('The critpath.type of "module" does not support searching '
                    'for non-RPM components')
         mock_log.warning.assert_called_once_with(warning)
+
+    @mock.patch('bodhi.server.util.http_session')
+    @mock.patch.dict(util.config, {'critpath.type': 'pdc', 'pdc_url': 'http://domain.local'})
+    def test_get_critpath_components_pdc_paging_exception(self, session):
+        """Ensure that an Exception is raised if components are used and the response is paged."""
+        pdc_url = 'http://domain.local/rest_api/v1/component-branches/?page_size=1'
+        pdc_next_url = '{0}&page=2'.format(pdc_url)
+        session.get.return_value.status_code = 200
+        session.get.return_value.json.side_effect = [
+            {
+                'count': 2,
+                'next': pdc_next_url,
+                'previous': None,
+                'results': [
+                    {
+                        'active': True,
+                        'critical_path': True,
+                        'global_component': 'gcc',
+                        'id': 6,
+                        'name': 'f26',
+                        'slas': [],
+                        'type': 'rpm'
+                    }]}]
+
+        with self.assertRaises(Exception) as exc:
+            util.get_critpath_components('f26', 'rpm', frozenset(['gcc']))
+
+        self.assertEqual(str(exc.exception), 'We got paging when requesting a single component?!')
+        self.assertEqual(
+            session.get.mock_calls,
+            [mock.call(
+                ('http://domain.local/rest_api/v1/component-branches/?name=f26&global_component=gcc'
+                 '&page_size=100&critical_path=true&active=true&type=rpm'),
+                timeout=60),
+             mock.call().json()])
+
+    @mock.patch('bodhi.server.util.http_session')
+    @mock.patch.dict(util.config, {'critpath.type': 'pdc', 'pdc_url': 'http://domain.local'})
+    def test_get_critpath_pdc_with_components(self, session):
+        """Test the components argument to get_critpath_components()."""
+        session.get.return_value.status_code = 200
+        session.get.return_value.json.return_value = {
+            'count': 1,
+            'next': None,
+            'previous': None,
+            'results': [{
+                'active': True,
+                'critical_path': True,
+                'global_component': 'gcc',
+                'id': 6,
+                'name': 'f26',
+                'slas': [],
+                'type': 'rpm'}]}
+
+        pkgs = util.get_critpath_components('f26', 'rpm', frozenset(['gcc']))
+
+        self.assertEqual(pkgs, ['gcc'])
+        self.assertEqual(
+            session.get.mock_calls,
+            [mock.call(
+                ('http://domain.local/rest_api/v1/component-branches/?name=f26&global_component=gcc'
+                 '&page_size=100&critical_path=true&active=true&type=rpm'),
+                timeout=60),
+             mock.call().json()])
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch.dict(util.config, {
