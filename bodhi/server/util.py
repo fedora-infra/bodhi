@@ -29,6 +29,7 @@ import pkg_resources
 import socket
 import subprocess
 import tempfile
+import time
 import urllib
 
 from kitchen.iterutils import iterate
@@ -243,14 +244,16 @@ class memoized(object):
 
 
 @memoized
-def get_critpath_components(collection='master', component_type='rpm'):
+def get_critpath_components(collection='master', component_type='rpm', components=None):
     """
-    Return a list of critical path packages for a given collection.
+    Return a list of critical path packages for a given collection, filtered by components.
 
     Args:
-    collection (basestring): The collection/branch to search. Defaults to 'master'.
-    component_type (basestring): The component type to search for. This only affects PDC queries.
-        Defaults to 'rpm'.
+        collection (basestring): The collection/branch to search. Defaults to 'master'.
+        component_type (basestring): The component type to search for. This only affects PDC
+            queries. Defaults to 'rpm'.
+        components (frozenset or None): The list of components we are interested in. If None (the
+            default), all components for the given collection and type are returned.
     Returns:
         list: The critpath components for the given collection and type.
     """
@@ -268,9 +271,15 @@ def get_critpath_components(collection='master', component_type='rpm'):
             critpath_components = results['pkgs'][collection]
     elif critpath_type == 'pdc':
         critpath_components = get_critpath_components_from_pdc(
-            collection, component_type)
+            collection, component_type, components)
     else:
         critpath_components = config.get('critpath_pkgs')
+
+    # Filter the list of components down to what was requested, in case the specific path did
+    # not take our request into account.
+    if components is not None:
+        critpath_components = [c for c in critpath_components if c in components]
+
     return critpath_components
 
 
@@ -1133,43 +1142,63 @@ def sort_severity(value):
     return value_map.get(value, 99)
 
 
-def get_critpath_components_from_pdc(branch, component_type='rpm'):
+# If we need to know about more components than this constant, we will just get the full
+# list, rather than a query per package. This is because at some point, just going through
+# paging becomes more performant than getting the page for every component.
+PDC_CRITPATH_COMPONENTS_GETALL_LIMIT = 10
+
+
+def get_critpath_components_from_pdc(branch, component_type='rpm', components=None):
     """
     Search PDC for critical path packages based on the specified branch.
 
     Args:
         branch (basestring): The branch name to search by.
         component_type (basestring): The component type to search by. Defaults to ``rpm``.
+        components (frozenset or None): The list of components we are interested in. If None (the
+            default), all components for the given branch and type are returned.
     Returns:
         list: Critical path package names.
     """
     pdc_api_url = '{}/rest_api/v1/component-branches/'.format(
         config.get('pdc_url').rstrip('/'))
-    query_args = urllib.urlencode({
+    query_args = {
         'active': 'true',
         'critical_path': 'true',
         'name': branch,
         'page_size': 100,
         'type': component_type
-    })
-    pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, query_args)
+    }
 
     critpath_pkgs_set = set()
-    while True:
-        pdc_request_json = pdc_api_get(pdc_api_url_with_args)
+    if components and len(components) < PDC_CRITPATH_COMPONENTS_GETALL_LIMIT:
+        # Do a query for every single component
+        for component in components:
+            query_args['global_component'] = component
+            pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, urllib.urlencode(query_args))
+            pdc_request_json = pdc_api_get(pdc_api_url_with_args)
+            for branch_rv in pdc_request_json['results']:
+                critpath_pkgs_set.add(branch_rv['global_component'])
+            if pdc_request_json['next']:
+                raise Exception('We got paging when requesting a single component?!')
+    else:
+        pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, urllib.urlencode(query_args))
+        while True:
+            pdc_request_json = pdc_api_get(pdc_api_url_with_args)
 
-        for branch_rv in pdc_request_json['results']:
-            critpath_pkgs_set.add(branch_rv['global_component'])
+            for branch_rv in pdc_request_json['results']:
+                critpath_pkgs_set.add(branch_rv['global_component'])
 
-        if pdc_request_json['next']:
-            pdc_api_url_with_args = pdc_request_json['next']
-        else:
-            # There are no more results to iterate through
-            break
+            if pdc_request_json['next']:
+                pdc_api_url_with_args = pdc_request_json['next']
+            else:
+                # There are no more results to iterate through
+                break
     return list(critpath_pkgs_set)
 
 
-def call_api(api_url, service_name, error_key=None, method='GET', data=None, headers=None):
+def call_api(api_url, service_name, error_key=None, method='GET', data=None, headers=None,
+             retries=0):
     """
     Perform an HTTP request with response type and error handling.
 
@@ -1181,6 +1210,8 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
             service. If this is set to None, the JSON response will be used as the error message.
         method (basestring): The HTTP method to use for the request. Defaults to ``GET``.
         data (dict): Query string parameters that will be sent along with the request to the server.
+        retries (int): The number of times to retry, each after a 1 second sleep, if we get a
+            non-200 HTTP code. Defaults to 3.
     Returns:
         dict: A dictionary representing the JSON response from the remote service.
     Raises:
@@ -1205,6 +1236,9 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
         rv = http_session.get(api_url, timeout=60)
     if rv.status_code == 200:
         return rv.json()
+    elif retries:
+        time.sleep(1)
+        return call_api(api_url, service_name, error_key, method, data, headers, retries - 1)
     elif rv.status_code == 500:
         # There will be no JSON with an error message here
         error_msg = base_error_msg.format(
@@ -1238,7 +1272,7 @@ def pagure_api_get(pagure_api_url):
     Raises:
         RuntimeError: If the server did not give us a 200 code.
     """
-    return call_api(pagure_api_url, service_name='Pagure', error_key='error')
+    return call_api(pagure_api_url, service_name='Pagure', error_key='error', retries=3)
 
 
 def pdc_api_get(pdc_api_url):
@@ -1254,7 +1288,7 @@ def pdc_api_get(pdc_api_url):
     """
     # There is no error_key specified because the error key is not consistent
     # based on the error message
-    return call_api(pdc_api_url, service_name='PDC')
+    return call_api(pdc_api_url, service_name='PDC', retries=3)
 
 
 def greenwave_api_post(greenwave_api_url, data):
@@ -1272,7 +1306,7 @@ def greenwave_api_post(greenwave_api_url, data):
     # There is no error_key specified because the error key is not consistent
     # based on the error message
     return call_api(greenwave_api_url, service_name='Greenwave', method='POST',
-                    data=data)
+                    data=data, retries=3)
 
 
 def waiverdb_api_post(waiverdb_api_url, data):
