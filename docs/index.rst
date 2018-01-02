@@ -31,6 +31,7 @@ User Guide
 .. toctree::
    :maxdepth: 2
 
+   user/testing
    user/update_states
    user/man_pages/index
 
