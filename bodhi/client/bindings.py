@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2007-2016  Red Hat, Inc.
-# This file is part of bodhi
+# Copyright © 2007-2018 Red Hat, Inc. and others.
+#
+# This file is part of bodhi.
 #
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -15,10 +16,8 @@
 #
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, see <http://www.gnu.org/licenses/>
-#
 """
 This module provides Python bindings to the Bodhi REST API.
-
 
 .. moduleauthor:: Luke Macken <lmacken@redhat.com>
 .. moduleauthor:: Toshio Kuratomi <tkuratom@redhat.com>
@@ -62,19 +61,28 @@ UPDATE_TITLE_RE = r'(\.el|\.fc)\d\d?'
 
 
 class BodhiClientException(FedoraClientError):
-    pass
+    """Used to indicate there was an error in the client."""
 
 
 class UpdateNotFound(BodhiClientException):
+    """Used to indicate that a referenced Exception is not found on the server."""
+
     def __init__(self, update):
+        """Initialize the Exception."""
         self.update = six.text_type(update)
 
     def __unicode__(self):
+        """
+        Return a human readable error message.
+
+        Returns:
+            unicode: An error message.
+        """
         return u'Update not found: {}'.format(self.update)
 
 
 def errorhandled(method):
-    """ A decorator for BodhiClient that raises exceptions on failure. """
+    """Raise exceptions on failure. Used as a decorator for BodhiClient methods."""
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
         try:
@@ -119,6 +127,7 @@ def errorhandled(method):
 
 
 class BodhiClient(OpenIdBaseClient):
+    """Python bindings to the Bodhi server REST API."""
 
     def __init__(self, base_url=BASE_URL, username=None, password=None, staging=False, **kwargs):
         """
@@ -148,50 +157,61 @@ class BodhiClient(OpenIdBaseClient):
 
     @property
     def password(self):
+        """
+        Return the user's password.
+
+        If the user's password is not known, prompt the user for their password.
+
+        Returns:
+            basestring: The user's password.
+        """
         if not self._password:
             self._password = getpass.getpass()
         return self._password
 
     @errorhandled
     def save(self, **kwargs):
-        """ Save an update.
+        """
+        Save an update.
 
         This entails either creating a new update, or editing an existing one.
         To edit an existing update, you must specify the update title in
         the ``edited`` keyword argument.
 
-        :kwarg builds: A list of koji builds for this update.
-        :kwarg type: The type of this update: ``security``, ``bugfix``,
-            ``enhancement``, and ``newpackage``.
-        :kwarg bugs: A list of Red Hat Bugzilla ID's associated with this
-            update.
-        :kwarg notes: Details as to why this update exists.
-        :kwarg request: Request for this update to change state, either to
-            ``testing``, ``stable``, ``unpush``, ``obsolete`` or None.
-        :kwarg close_bugs: Close bugs when update is stable
-        :kwarg suggest: Suggest that the user reboot or logout after update.
-            (``reboot``, ``logout``)
-        :kwarg inheritance: Follow koji build inheritance, which may result in
-            this update being pushed out to additional releases.
-        :kwarg autokarma: Allow bodhi to automatically change the state of this
-            update based on the ``karma`` from user feedback.  It will
-            push your update to ``stable`` once it reaches the ``stable_karma``
-            and unpush your update when reaching ``unstable_karma``.
-        :kwarg stable_karma: The upper threshold for marking an update as
-            ``stable``.
-        :kwarg unstable_karma: The lower threshold for unpushing an update.
-        :kwarg edited: The update title of the existing update that we are
-            editing.
-        :kwarg severity: The severity of this update (``urgent``, ``high``,
-            ``medium``, ``low``)
-        :kwarg requirements: A list of required Taskotron tests that must pass
-            for this update to reach stable. (e.g. ``dist.rpmdeplint``,
-            ``dist.upgradepath``, ``dist.rpmlint``, etc)
-        :kwarg require_bugs: A boolean to require that all of the bugs in your
-            update have been confirmed by testers.
-        :kwarg require_testcases: A boolean to require that this update passes
-            all test cases before reaching stable.
-
+        Args:
+            builds (basestring): A list of koji builds for this update.
+            type (basestring): The type of this update: ``security``, ``bugfix``,
+                ``enhancement``, and ``newpackage``.
+            bugs (basestring): A list of Red Hat Bugzilla ID's associated with this
+                update.
+            notes (basestring): Details as to why this update exists.
+            request (basestring): Request for this update to change state, either to
+                ``testing``, ``stable``, ``unpush``, ``obsolete`` or None.
+            close_bugs (bool): Close bugs when update is stable.
+            suggest (basestring): Suggest that the user reboot or logout after update.
+                (``reboot``, ``logout``).
+            inheritance (bool): Follow koji build inheritance, which may result in
+                this update being pushed out to additional releases.
+            autokarma (bool): Allow bodhi to automatically change the state of this
+                update based on the ``karma`` from user feedback.  It will
+                push your update to ``stable`` once it reaches the ``stable_karma``
+                and unpush your update when reaching ``unstable_karma``.
+            stable_karma (int): The upper threshold for marking an update as
+                ``stable``.
+            unstable_karma (int): The lower threshold for unpushing an update.
+            edited (basestring): The update title of the existing update that we are
+                editing.
+            severity (basestring): The severity of this update (``urgent``, ``high``,
+                ``medium``, ``low``).
+            requirements (basestring): A list of required Taskotron tests that must pass
+                for this update to reach stable. (e.g. ``dist.rpmdeplint``,
+                ``dist.upgradepath``, ``dist.rpmlint``, etc).
+            require_bugs (bool): A boolean to require that all of the bugs in your
+                update have been confirmed by testers.
+            require_testcases (bool): A boolean to require that this update passes
+                all test cases before reaching stable.
+        Returns:
+            munch.Munch: The Bodhi server's response to the request.
         """
         kwargs['csrf_token'] = self.csrf()
         if 'type_' in kwargs:
@@ -202,11 +222,17 @@ class BodhiClient(OpenIdBaseClient):
 
     @errorhandled
     def request(self, update, request):
-        """ Request an update state change.
+        """
+        Request an update state change.
 
-        :arg update: The title of the update
-        :arg request: The request (``testing``, ``stable``, ``obsolete``,
-                                   ``unpush``, ``revoke``)
+        Args:
+            update (basestring): The title of the update.
+            request (basestring): The request (``testing``, ``batched``, ``stable``, ``obsolete``,
+                ``unpush``, ``revoke``).
+        Returns:
+            munch.Munch: The response from Bodhi to the request.
+        Raises:
+            UpdateNotFound: If the server returns a 404 error code.
         """
         try:
             return self.send_request('updates/{0}/request'.format(update),
@@ -222,49 +248,53 @@ class BodhiClient(OpenIdBaseClient):
 
     @errorhandled
     def query(self, **kwargs):
-        """ Query bodhi for a list of updates.
+        """
+        Query bodhi for a list of updates.
 
-        :kwarg content_type: A content type (rpm, module) to limit the query to.
-        :kwarg releases: A list of releases that you wish to query updates for.
-        :kwarg status: The update status (``pending``, ``testing``, ``stable``,
-            ``obsolete``, ``unpushed``, ``processing``)
-        :kwarg type: The type of this update: ``security``, ``bugfix``,
-            ``enhancement``, and ``newpackage``.
-        :kwarg bugs: A list of Red Hat Bugzilla ID's
-        :kwarg request: An update request to query for
-            ``testing``, ``stable``, ``unpush``, ``obsolete`` or None.
-        :kwarg mine: If True, only query the users updates.  Default: False.
-        :kwarg packages: A space or comma delimited list of package names
-        :kwarg limit: A deprecated argument, sets ``rows_per_page``. See its docstring for more
-                      info.
-        :kwarg approved_before: A datetime string
-        :kwarg approved_since: A datetime string
-        :kwarg builds: A space or comma delimited string of build nvrs
-        :kwarg critpath: A boolean to query only critical path updates
-        :kwarg cves: Filter by CVE IDs
-        :kwarg locked: A boolean to filter only locked updates
-        :kwarg modified_before: A datetime string to query updates that have
-            been modified before a certain time.
-        :kwarg modified_since: A datetime string to query updates that have
-            been modified since a certain time.
-        :kwarg pushed: A boolean to filter only pushed updates
-        :kwarg pushed_before: A datetime string to filter updates pushed before a
-            certain time.
-        :kwarg pushed_since: A datetime string to filter updates pushed since a
-            certain time.
-        :kwarg severity: A severity type to filter by (``unspecified``,
-            ``urgent``, ``high``, ``medium``, ``low``)
-        :kwarg submitted_before: A datetime string to filter updates submitted
-            before a certain time.
-        :kwarg submitted_since: A datetime string to filter updates submitted
-            after a certain time.
-        :kwarg suggest: Query for updates that suggest a user restart
-            (``logout``, ``reboot``)
-        :kwarg user: Query for updates submitted by a specific user.
-        :kwarg rows_per_page: Limit the results to a certain number of rows per
-                    page (min:1 max: 100 default: 20)
-        :kwarg page: Return a specific page of results
-
+        Args:
+            content_type (basestring): A content type (rpm, module) to limit the query to.
+            releases (basestring): A comma separated list of releases that you wish to query updates
+                for.
+            status (basestring): The update status (``pending``, ``testing``, ``stable``,
+                ``obsolete``, ``unpushed``, ``processing``)
+            type (basestring): The type of the update: ``security``, ``bugfix``,
+                ``enhancement``, and ``newpackage``.
+            bugs (basestring): A comma separated list of Red Hat Bugzilla IDs.
+            request (basestring): An update request to query for
+                ``testing``, ``stable``, ``unpush``, ``obsolete`` or None.
+            mine (bool): If True, only query the users updates. Default: False.
+            packages (basestring): A space or comma delimited list of package names.
+            limit (int): A deprecated argument, sets ``rows_per_page``. See its docstring for more
+                info.
+            approved_before (basestring): A datetime string.
+            approved_since (basestring): A datetime string.
+            builds (basestring): A space or comma delimited string of build nvrs.
+            critpath (bool): A boolean to query only critical path updates.
+            cves (basestring): Filter by CVE IDs.
+            locked (bool): A boolean to filter only locked updates.
+            modified_before (basestring): A datetime string to query updates that have been modified
+                before a certain time.
+            modified_since (basestring): A datetime string to query updates that have been modified
+                since a certain time.
+            pushed (bool): A boolean to filter only pushed updates.
+            pushed_before (basestring): A datetime string to filter updates pushed before a certain
+                time.
+            pushed_since (basestring): A datetime string to filter updates pushed since a
+                certain time.
+            severity (basestring): A severity type to filter by (``unspecified``,
+                ``urgent``, ``high``, ``medium``, ``low``).
+            submitted_before (basestring): A datetime string to filter updates submitted
+                before a certain time.
+            submitted_since (basestring): A datetime string to filter updates submitted
+                after a certain time.
+            suggest (basestring): Query for updates that suggest a user restart
+                (``logout``, ``reboot``).
+            user (basestring): Query for updates submitted by a specific user.
+            rows_per_page (int): Limit the results to a certain number of rows per page
+                (min:1 max: 100 default: 20).
+            page (int): Return a specific page of results.
+        Returns:
+            munch.Munch: The response from Bodhi describing the query results.
         """
         # bodhi1 compat
         if 'limit' in kwargs:
@@ -300,14 +330,17 @@ class BodhiClient(OpenIdBaseClient):
 
     @errorhandled
     def comment(self, update, comment, karma=0, email=None):
-        """ Add a comment to an update.
+        """
+        Add a comment to an update.
 
-        :arg update: The title of the update comment on.
-        :arg comment: The text of the comment.
-        :kwarg karma: The karma of this comment (-1, 0, 1)
-        :kwarg email: Email address for an anonymous user. if an email address is
-            supplied here, the comment is added as anonymous (i.e. not a logged in user)
-
+        Args:
+            update (basestring): The title of the update comment on.
+            comment (basestring): The text of the comment to add to the update.
+            karma (int): The amount of karma to leave. May be -1, 0, or 1. Defaults to 0.
+            email (basestring or None): Email address for an anonymous user. If an email address is
+                supplied here, the comment is added as anonymous (i.e. not a logged in user).
+        Returns:
+            munch.Munch: The response from the post to comments/.
         """
         return self.send_request(
             'comments/', verb='POST', auth=True,
@@ -316,18 +349,22 @@ class BodhiClient(OpenIdBaseClient):
 
     @errorhandled
     def save_override(self, nvr, duration, notes, edit=False, expired=False):
-        """ Save a buildroot override.
+        """
+        Save a buildroot override.
 
         This entails either creating a new buildroot override, or editing an
         existing one.
 
-        :kwarg nvr: A nvr of a koji build.
-        :kwarg duration: Number of days from now that this override should
-            expire.
-        :kwarg notes: Notes about why this override is in place.
-        :kwargs edit: A boolean to edit an existing override.
-        :kwargs expired: A boolean to expire an override.
-
+        Args:
+            nvr (basestring): The nvr of a koji build.
+            duration (int): Number of days from now that this override should
+                expire.
+            notes (basestring): Notes about why this override is in place.
+            edit (bool): True if we are editing an existing override, False otherwise. Defaults to
+                False.
+            expired (bool): Set to True to expire an override. Defaults to False.
+        Returns:
+            munch.Munch: A dictionary-like representation of the saved override.
         """
         expiration_date = datetime.datetime.utcnow() + \
             datetime.timedelta(days=duration)
@@ -345,13 +382,17 @@ class BodhiClient(OpenIdBaseClient):
     @errorhandled
     def list_overrides(self, user=None, packages=None,
                        expired=None, releases=None, builds=None):
-        """ List buildroot overrides.
+        """
+        List buildroot overrides.
 
-        :kwarg user: A username whose buildroot overrides you want returned.
-        :kwarg package: package name to filter buildroot overrides by.
-        :kwarg expired: True to return only expired overrides, False for only Active.
-        :kwarg releases: release shortnames to filter buildroot overrides by.
-
+        Args:
+            user (basestring): A username whose buildroot overrides you want returned.
+            packages (basestring): Comma separated package names to filter buildroot overrides by.
+            expired (bool): If True, only return expired overrides. If False, only return active
+                overrides.
+            releases (basestring): Comma separated Release shortnames to filter buildroot overrides
+                by.
+            builds (basestring): Comma separated build NVRs to filter overrides by.
         """
         params = {}
         if user:
@@ -415,13 +456,16 @@ class BodhiClient(OpenIdBaseClient):
         return self.csrf_token
 
     def parse_file(self, input_file):
-        """ Parse an update template file.
+        """
+        Parse an update template file.
 
-        :arg input_file: The filename of the update template.
-
-        Returns an array of dictionaries of parsed update values which
-        can be directly passed to the ``save`` method.
-
+        Args:
+            input_file (basestring): The filename of the update template.
+        Returns:
+            list: A list of dictionaries of parsed update values which
+                can be directly passed to the ``save`` method.
+        Raises:
+            ValueError: If the ``input_file`` does not exist, or if it cannot be parsed.
         """
         if not os.path.exists(input_file):
             raise ValueError("No such file or directory: %s" % input_file)
@@ -457,22 +501,31 @@ class BodhiClient(OpenIdBaseClient):
 
     @errorhandled
     def latest_builds(self, package):
-        """ Get the latest builds for a package.
+        """
+        Get the latest builds for a package.
 
-        :arg package: The package name, for example "kernel".
-
-        Returns a Munch (dict-like) object of the release dist tag to the
-        latest build.
+        Args:
+            package (basestring): The package name, for example "kernel".
+        Returns:
+            munch.Munch: A dict-like object of the release dist tag to the
+                latest build.
         """
         return self.send_request('latest_builds', params={'package': package})
 
     def testable(self):
-        """ Get a list of installed testing updates.
+        """
+        Return a generator that iterates installed testing updates.
 
-        This method is a generate that yields packages that you currently
+        This method is a generator that yields packages that you currently
         have installed that you have yet to test and provide feedback for.
 
         Only works on systems with dnf.
+
+        Returns:
+            generator: An iterable of dictionaries describing updates that match builds installed on
+                the local system.
+        Raises:
+            RuntimeError: If the dnf Python bindings are not installed.
         """
         if dnf is None:
             raise RuntimeError('dnf is required by this method and is not installed.')
@@ -495,11 +548,15 @@ class BodhiClient(OpenIdBaseClient):
 
     @staticmethod
     def override_str(override, minimal=True):
-        """ Return a string representation of a given override dictionary.
+        """
+        Return a string representation of a given override dictionary.
 
-        :arg override: An override dictionary.
-        :kwarg minimal: Return a minimal one-line representation of the update.
-
+        Args:
+            override (dict): An override dictionary.
+            minimal (bool): If True, return a minimal one-line representation of the override.
+                Otherwise, return a more verbose string. Defaults to True.
+        Returns:
+            basestring: A human readable string describing the given override.
         """
         if isinstance(override, six.string_types):
             return override
@@ -522,11 +579,15 @@ class BodhiClient(OpenIdBaseClient):
         return val
 
     def update_str(self, update, minimal=False):
-        """ Return a string representation of a given update dictionary.
+        """
+        Return a string representation of a given update dictionary.
 
-        :arg update: An update dictionary, acquired by the ``list`` method.
-        :kwarg minimal: Return a minimal one-line representation of the update.
-
+        Args:
+            update (dict): An update dictionary, acquired by the ``list`` method.
+            minimal (bool): If True, return a minimal one-line representation of the update.
+                Otherwise, return a more verbose representation. Defaults to False.
+        Returns:
+            basestring: A human readable string describing the given update.
         """
         if isinstance(update, six.string_types):
             return update
@@ -634,18 +695,29 @@ class BodhiClient(OpenIdBaseClient):
 
     @errorhandled
     def get_releases(self, **kwargs):
-        """ Return a list of bodhi releases.
+        """
+        Return a list of bodhi releases.
 
         This method returns a dictionary in the following format::
 
             {"releases": [
                 {"dist_tag": "dist-f12", "id_prefix": "FEDORA",
                  "locked": false, "name": "F12", "long_name": "Fedora 12"}]}
+
+        Args:
+            kwargs (dict): A dictionary of extra parameters to pass along with the request.
+        Returns:
+            dict: A dictionary describing Bodhi's release objects.
         """
         return self.send_request('releases/', verb='GET', params=kwargs)
 
     def get_koji_session(self):
-        """ Return an authenticated koji session """
+        """
+        Return an authenticated koji session.
+
+        Returns:
+            koji.ClientSession: An intialized authenticated koji client.
+        """
         config = ConfigParser()
         if os.path.exists(os.path.join(os.path.expanduser('~'), '.koji', 'config')):
             config.readfp(open(os.path.join(os.path.expanduser('~'), '.koji', 'config')))
@@ -657,10 +729,12 @@ class BodhiClient(OpenIdBaseClient):
     koji_session = property(fget=get_koji_session)
 
     def candidates(self):
-        """ Get a list list of update candidates.
+        """
+        Get a list list of update candidates.
 
-        This method is a generator that returns a list of koji builds that
-        could potentially be pushed as updates.
+        Returns:
+            list: A list of koji builds (dictionaries returned by koji.listTagged()) that are tagged
+            as candidate builds and are owned by the current user.
         """
         self.init_username()
         builds = []
