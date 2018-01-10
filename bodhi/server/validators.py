@@ -777,7 +777,7 @@ def validate_update(request, **kwargs):
 
 def ensure_user_exists(param, request):
     """
-    Ensure the user referenced by param exists and if it does replace it with the User object
+    Ensure the user referenced by param exists and if it does replace it with the User object.
 
     Args:
         param (string): Request parameter that references a username to be validated.
