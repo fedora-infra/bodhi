@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for the bodhi.server.scripts.check_policies module."""
+import datetime
 
 from click import testing
 from mock import patch
@@ -52,9 +53,11 @@ class TestCheckPolicies(BaseTestCase):
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
-            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                        {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                        {'item': u'FEDORA-2017-a3bbe1a8f2', 'type': 'bodhi_update'}]}
+            'subject': [
+                {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                {'item': u'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                 'type': 'bodhi_update'}]}
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
 
@@ -82,9 +85,11 @@ class TestCheckPolicies(BaseTestCase):
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_testing',
-            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                        {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                        {'item': u'FEDORA-2017-a3bbe1a8f2', 'type': 'bodhi_update'}]}
+            'subject': [
+                {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                {'item': u'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                 'type': 'bodhi_update'}]}
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
 
@@ -116,9 +121,11 @@ class TestCheckPolicies(BaseTestCase):
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
-            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                        {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                        {'item': u'FEDORA-2017-a3bbe1a8f2', 'type': 'bodhi_update'}]}
+            'subject': [
+                {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                {'item': u'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                 'type': 'bodhi_update'}]}
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
 
@@ -145,9 +152,11 @@ class TestCheckPolicies(BaseTestCase):
         self.assertTrue(update.test_gating_status is None)
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
-            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                        {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                        {'item': u'FEDORA-2017-a3bbe1a8f2', 'type': 'bodhi_update'}]}
+            'subject': [
+                {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                {'item': u'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                 'type': 'bodhi_update'}]}
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
 
@@ -204,8 +213,10 @@ class TestCheckPolicies(BaseTestCase):
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
-            'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                        {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                        {'item': u'FEDORA-2017-a3bbe1a8f2', 'type': 'bodhi_update'}]}
+            'subject': [
+                {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                {'item': u'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                 'type': 'bodhi_update'}]}
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
