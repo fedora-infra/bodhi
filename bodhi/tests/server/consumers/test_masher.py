@@ -574,8 +574,10 @@ References:
                 t.wait_for_mash(fake_popen)
                 assert False, "Mash without generated dirs did not crash"
             except Exception as ex:
-                assert str(ex) == 'We were unable to find a path with prefix ' + \
-                                  'Fedora-17-updates-testing-2017* in mashdir'
+                expected_error = ('We were unable to find a path with prefix '
+                                  'Fedora-17-updates-testing-{}* in mashdir')
+                expected_error = expected_error.format(datetime.datetime.utcnow().year)
+                assert str(ex) == expected_error
             t.db = None
 
     @mock.patch('bodhi.server.consumers.masher.MasherThread.save_state')
