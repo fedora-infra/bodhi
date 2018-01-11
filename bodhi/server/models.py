@@ -1703,7 +1703,6 @@ class Update(Base):
             release_name (basestring): The name of the release, such as "f25".
         Returns:
             bool: ``True`` if the update contains a critical path package, ``False`` otherwise.
-        component
         """
         relname = release_name.lower()
         components = defaultdict(list)
