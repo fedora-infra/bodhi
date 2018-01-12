@@ -258,6 +258,9 @@ man_pages = [
     ('user/man_pages/bodhi-push', 'bodhi-push', u'push Fedora updates', ['Randy Barlow'], 1),
     ('user/man_pages/initialize_bodhi_db', 'initialize_bodhi_db', u'intialize bodhi\'s database',
      ['Randy Barlow'], 1),
+    ('user/man_pages/bodhi-expire-overrides', 'bodhi-expire-overrides',
+     'Look for overrides that are past their expiration dates and mark them expired',
+     ['Randy Barlow'], 1),
 ]
 
 # If true, show URL addresses after external links.

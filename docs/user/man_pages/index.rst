@@ -10,6 +10,7 @@ Man pages
    bodhi-check-policies
    bodhi-clean-old-mashes
    bodhi-dequeue-stable
+   bodhi-expire-overrides
    bodhi-monitor-composes
    bodhi-push
    initialize_bodhi_db
