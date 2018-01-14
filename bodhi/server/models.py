@@ -43,7 +43,7 @@ from sqlalchemy.sql import text
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 import six
 
-from bodhi.server import bugs, buildsys, log, mail, notifications, Session
+from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
@@ -1742,6 +1742,35 @@ class Update(Base):
                 API subject field for a decision about this Update.
         """
         return json.dumps(self.greenwave_subject)
+
+    def update_test_gating_status(self):
+        """Query Greenwave about this update and set the test_gating_status as appropriate."""
+        # We retrieve updates going to testing (status=pending) and updates
+        # (status=testing) going to stable.
+        # If the update is pending, we want to know if it can go to testing
+        decision_context = u'bodhi_update_push_testing'
+        if self.status == UpdateStatus.testing:
+            # Update is already in testing, let's ask if it can go to stable
+            decision_context = u'bodhi_update_push_stable'
+
+        data = {
+            'product_version': self.product_version,
+            'decision_context': decision_context,
+            'subject': self.greenwave_subject
+        }
+        api_url = '{}/decision'.format(config.get('greenwave_api_url'))
+
+        decision = util.greenwave_api_post(api_url, data)
+        if decision['policies_satisfied']:
+            # If an unrestricted policy is applied and no tests are required
+            # on this update, let's set the test gating as ignored in Bodhi.
+            if decision['summary'] == 'no tests are required':
+                self.test_gating_status = TestGatingStatus.ignored
+            else:
+                self.test_gating_status = TestGatingStatus.passed
+        else:
+            self.test_gating_status = TestGatingStatus.failed
+        self.greenwave_summary_string = decision['summary']
 
     @classmethod
     def new(cls, request, data):

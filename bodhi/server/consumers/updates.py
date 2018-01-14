@@ -135,6 +135,11 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
             self.work_on_bugs(session, update, bugs)
             self.fetch_test_cases(session, update)
 
+        if config['test_gating.required']:
+            with self.db_factory() as session:
+                update = Update.get(alias, session)
+                update.update_test_gating_status()
+
         log.info("Updates Handler done with %s, %s" % (alias, topic))
 
     def fetch_test_cases(self, session, update):

@@ -410,6 +410,21 @@ class ValidatePathTests(unittest.TestCase):
         self.assertTrue(isinstance(result, six.text_type))
 
 
+class ValidateRstrippedStrTests(unittest.TestCase):
+    """Test the _validate_rstripped_str() function."""
+    def test_with_trailing_slash(self):
+        """Ensure that a trailing slash is removed."""
+        result = config._validate_rstripped_str('this/should/be/rstripped/')
+
+        self.assertEqual(result, 'this/should/be/rstripped')
+
+    def test_without_trailing_slash(self):
+        """With no trailing slash, the string should be returned as is."""
+        result = config._validate_rstripped_str('this/should/stay/the/same')
+
+        self.assertEqual(result, 'this/should/stay/the/same')
+
+
 class ValidateSecretTests(unittest.TestCase):
     """Test the _validate_secret() function."""
     def test_with_changeme(self):

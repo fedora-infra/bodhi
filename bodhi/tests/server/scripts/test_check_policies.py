@@ -37,7 +37,7 @@ class TestCheckPolicies(BaseTestCase):
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
         self.db.commit()
-        with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
+        with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': True,
                 'summary': 'All tests passed',
@@ -69,7 +69,7 @@ class TestCheckPolicies(BaseTestCase):
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.pending
         self.db.commit()
-        with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
+        with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': True,
                 'summary': 'All tests passed',
@@ -100,7 +100,7 @@ class TestCheckPolicies(BaseTestCase):
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
         self.db.commit()
-        with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
+        with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': False,
                 'summary': '1 of 2 tests are failed',
@@ -141,7 +141,7 @@ class TestCheckPolicies(BaseTestCase):
         update.status = models.UpdateStatus.testing
         update.test_gating_status = None
         self.db.commit()
-        with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
+        with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             mock_greenwave.return_value = RuntimeError('The error was blablabla')
 
             result = runner.invoke(check_policies.check, [])
@@ -167,7 +167,7 @@ class TestCheckPolicies(BaseTestCase):
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
         self.db.commit()
-        with patch('bodhi.server.scripts.check_policies.greenwave_api_post') as mock_greenwave:
+        with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': True,
                 'summary': 'no tests are required',

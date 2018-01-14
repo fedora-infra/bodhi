@@ -27,7 +27,6 @@ import click
 from sqlalchemy.sql.expression import false
 
 from bodhi.server import config, initialize_db, models, Session
-from bodhi.server.util import greenwave_api_post
 
 
 @click.command()
@@ -41,34 +40,8 @@ def check():
         .filter(models.Update.status.in_(
                 [models.UpdateStatus.pending, models.UpdateStatus.testing]))
     for update in updates:
-        # We retrieve updates going to testing (status=pending) and updates
-        # (status=testing) going to stable.
-        # If the update is pending, we want to know if it can go to testing
-        decision_context = u'bodhi_update_push_testing'
-        if update.status == models.UpdateStatus.testing:
-            # Update is already in testing, let's ask if it can go to stable
-            decision_context = u'bodhi_update_push_stable'
-
-        data = {
-            'product_version': update.product_version,
-            'decision_context': decision_context,
-            'subject': update.greenwave_subject
-        }
-        api_url = '{}/decision'.format(
-            config.config.get('greenwave_api_url').rstrip('/'))
-
         try:
-            decision = greenwave_api_post(api_url, data)
-            if decision['policies_satisfied']:
-                # If an unrestricted policy is applied and no tests are required
-                # on this update, let's set the test gating as ignored in Bodhi.
-                if decision['summary'] == 'no tests are required':
-                    update.test_gating_status = models.TestGatingStatus.ignored
-                else:
-                    update.test_gating_status = models.TestGatingStatus.passed
-            else:
-                update.test_gating_status = models.TestGatingStatus.failed
-            update.greenwave_summary_string = decision['summary']
+            update.update_test_gating_status()
             session.commit()
         except Exception as e:
             # If there is a problem talking to Greenwave server, print the error.
