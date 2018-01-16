@@ -2614,8 +2614,9 @@ class Update(Base):
         val += u"""    Release: %s
      Status: %s
        Type: %s
+   Severity: %s
       Karma: %d""" % (self.release.long_name, self.status.description,
-                      self.type.description, self.karma)
+                      self.type.description, self.severity, self.karma)
         if self.critpath:
             val += u"\n   Critpath: %s" % self.critpath
         if self.request is not None:

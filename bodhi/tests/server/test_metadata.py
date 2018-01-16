@@ -80,6 +80,7 @@ class TestAddUpdate(base.BaseTestCase):
         self.assertEquals(md.uinfo.updates[0].rights, config.get('updateinfo_rights'))
         self.assertEquals(md.uinfo.updates[0].description, update.notes)
         self.assertEquals(md.uinfo.updates[0].id, update.alias)
+        self.assertEquals(md.uinfo.updates[0].severity, 'Moderate')
         self.assertEqual(len(md.uinfo.updates[0].references), 2)
         bug = md.uinfo.updates[0].references[0]
         self.assertEquals(bug.href, update.bugs[0].url)
@@ -248,6 +249,7 @@ class TestUpdateInfoMetadata(base.BaseTestCase):
         self.assertEquals(notice.rights, config.get('updateinfo_rights'))
         self.assertEquals(notice.description, update.notes)
         self.assertEquals(notice.id, update.alias)
+        self.assertEquals(notice.severity, 'Moderate')
         bug = notice.references[0]
         self.assertEquals(bug.href, update.bugs[0].url)
         self.assertEquals(bug.id, '12345')

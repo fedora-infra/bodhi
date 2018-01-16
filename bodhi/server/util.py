@@ -1142,6 +1142,28 @@ def sort_severity(value):
     return value_map.get(value, 99)
 
 
+def severity_updateinfo_str(value):
+    """
+    Convert a severity level into one apt for inclusion in the updateinfo XML.
+
+    These values are compatible with RHEL repodata to make it easier to write
+    portable clients.
+
+    Args:
+        value (basestring): The Bodhi severity to be mapped to a repodata severity string.
+    Returns:
+        basestring: A severity string to be included in repodata.
+    """
+    severity_map = {
+        'unspecified': "None",
+        'low': "Low",
+        'medium': "Moderate",
+        'high': "Important",
+        'urgent': "Critical",
+    }
+    return severity_map.get(value, "None")
+
+
 # If we need to know about more components than this constant, we will just get the full
 # list, rather than a query per package. This is because at some point, just going through
 # paging becomes more performant than getting the page for every component.
