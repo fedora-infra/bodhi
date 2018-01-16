@@ -1,5 +1,6 @@
     python2-alembic \
     python2-bugzilla \
+    python2-cornice \
     python2-fedmsg \
     python2-feedgen \
     python2-kitchen \
@@ -14,5 +15,4 @@
     python2-webtest \
     python3-diff-cover
 
-RUN pip-2 install cornice
 RUN pip-2 install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
