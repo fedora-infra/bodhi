@@ -1705,12 +1705,16 @@ class Update(Base):
             bool: ``True`` if the update contains a critical path package, ``False`` otherwise.
         component
         """
+        relname = release_name.lower()
+        components = defaultdict(list)
+        # Get the mess down to a dict of ptype -> [pname]
         for build in builds:
-            # This function call is cached, so there is no need to optimize
-            # it here.
-            critpath_components = get_critpath_components(
-                release_name.lower(), build.package.type.value)
-            if build.package.name in critpath_components:
+            ptype = build.package.type.value
+            pname = build.package.name
+            components[ptype].append(pname)
+
+        for ptype in components:
+            if get_critpath_components(relname, ptype, frozenset(components[ptype])):
                 return True
 
         return False
