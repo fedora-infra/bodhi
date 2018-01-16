@@ -11,6 +11,7 @@ bshell:      Get a handy python shell initialized with Bodhi models.
 bstart:      Start the Bodhi service.
 bstop:       Stop the Bodhi service.
 btest:       Run Bodhi's test suite.
+btest3:      Run Bodhi's test suite with Python 3.
 bteststyle:  Run just the flake8 code style tests.
 
 
