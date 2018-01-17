@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-from cStringIO import StringIO
 import datetime
 import dummy_threading
 import errno
@@ -26,12 +25,13 @@ import shutil
 import tempfile
 import time
 import unittest
-import urllib2
-import urlparse
 
 from click import testing
 import mock
 import six
+import six.moves.urllib.parse as urlparse
+from six.moves.urllib.error import HTTPError, URLError
+from six import StringIO
 
 from bodhi.server import buildsys, exceptions, log, push
 from bodhi.server.config import config
@@ -2247,7 +2247,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch(
         'bodhi.server.consumers.masher.urllib2.urlopen',
-        side_effect=[urllib2.HTTPError('url', 404, 'Not found', {}, None),
+        side_effect=[HTTPError('url', 404, 'Not found', {}, None),
                      StringIO('---\nyaml: rules')])
     def test_httperror(self, urlopen, sleep, publish):
         """
@@ -2350,7 +2350,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch(
         'bodhi.server.consumers.masher.urllib2.urlopen',
-        side_effect=[urllib2.URLError('it broke'),
+        side_effect=[URLError('it broke'),
                      StringIO('---\nyaml: rules')])
     def test_urlerror(self, urlopen, sleep, publish):
         """

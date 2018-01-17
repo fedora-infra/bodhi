@@ -20,9 +20,9 @@
 This module contains tests for the bodhi.server.scripts.approve_testing module.
 """
 from datetime import datetime, timedelta
-from cStringIO import StringIO
 
 from mock import patch
+from six import StringIO
 
 from bodhi.server.config import config
 from bodhi.server import models

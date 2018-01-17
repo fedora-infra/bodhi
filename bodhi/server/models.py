@@ -30,7 +30,6 @@ import rpm
 import time
 import uuid
 
-from pkgdb2client import PkgDB
 from simplemediawiki import MediaWiki
 from six.moves.urllib.parse import quote
 from sqlalchemy import (and_, Boolean, Column, DateTime, event, ForeignKey,
@@ -51,6 +50,9 @@ from bodhi.server.util import (
     get_nvr, get_rpm_header, header, packagename_from_nvr, tokenize, pagure_api_get,
     greenwave_api_post, waiverdb_api_post)
 import bodhi.server.util
+
+if six.PY2:
+    from pkgdb2client import PkgDB
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe

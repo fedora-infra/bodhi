@@ -20,10 +20,10 @@
 import copy
 import datetime
 import re
-import StringIO
 
 from webtest import TestApp
 import PIL.Image
+from six import StringIO
 
 from bodhi.server import main
 from bodhi.tests.server import base
@@ -58,6 +58,6 @@ class TestRenderers(base.BaseTestCase):
         captcha_url = re.search(r'"http://localhost(/captcha/[^"]*)"', str(res)).groups()[0]
         resp = app.get(captcha_url, status=200)
         self.assertIn('image/jpeg', resp.headers['Content-Type'])
-        jpegdata = StringIO.StringIO(resp.body)
+        jpegdata = StringIO(resp.body)
         img = PIL.Image.open(jpegdata)
         self.assertEqual(img.size, (300, 80))

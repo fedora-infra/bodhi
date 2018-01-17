@@ -19,10 +19,10 @@
 """
 This module contains tests for the bodhi.server.scripts.untag_branched module.
 """
-from cStringIO import StringIO
 from datetime import datetime, timedelta
 
 from mock import call, patch
+from six import StringIO
 
 from bodhi.server import models
 from bodhi.server.scripts import untag_branched

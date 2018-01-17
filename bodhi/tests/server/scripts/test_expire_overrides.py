@@ -15,10 +15,10 @@
 This module contains tests for the bodhi.server.scripts.expire_overrides module.
 """
 import unittest
-from cStringIO import StringIO
 from datetime import timedelta
 
 import mock
+from six import StringIO
 
 from bodhi.server import models
 from bodhi.server.scripts import expire_overrides

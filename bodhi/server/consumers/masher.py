@@ -33,12 +33,13 @@ import subprocess
 import tempfile
 import threading
 import time
-import urllib2
 from datetime import datetime
 
 import fedmsg.consumers
 import jinja2
 from six.moves import zip
+from six.moves.urllib import request as urllib2
+from six.moves.urllib.error import HTTPError, URLError
 import six
 
 from bodhi.server import bugs, initialize_db, log, buildsys, notifications, mail
@@ -363,7 +364,7 @@ class ComposerThread(threading.Thread):
             with self.db_factory() as session:
                 self.db = session
                 self.compose = Compose.from_dict(session, self._compose)
-                self.compose.error_message = unicode(e)
+                self.compose.error_message = str(e)
                 self.save_state(ComposeState.failed)
 
             self.log.exception('ComposerThread failed. Transaction rolled back.')
@@ -1234,7 +1235,7 @@ class PungiComposerThread(ComposerThread):
             try:
                 self.log.info('Polling %s' % master_repomd_url)
                 masterrepomd = urllib2.urlopen(master_repomd_url)
-            except (urllib2.URLError, urllib2.HTTPError):
+            except (URLError, HTTPError):
                 self.log.exception('Error fetching repomd.xml')
                 time.sleep(200)
                 continue

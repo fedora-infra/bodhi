@@ -20,7 +20,6 @@ import subprocess
 import unittest
 
 import mock
-import pkgdb2client
 import six
 
 from bodhi.server import util, models
@@ -29,6 +28,9 @@ from bodhi.server.config import config
 from bodhi.server.models import (ComposeState, TestGatingStatus, Update, UpdateRequest,
                                  UpdateSeverity)
 from bodhi.tests.server import base
+
+if six.PY2:
+    import pkgdb2client
 
 
 class TestBugLink(base.BaseTestCase):

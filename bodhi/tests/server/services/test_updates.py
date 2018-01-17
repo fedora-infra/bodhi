@@ -21,13 +21,13 @@ from datetime import datetime, timedelta
 import copy
 import textwrap
 import time
-import urlparse
 
 from mock import ANY
 from webtest import TestApp
 import koji
 import mock
 import six
+from six.moves.urllib import parse as urlparse
 
 from bodhi.server import main
 from bodhi.server.config import config

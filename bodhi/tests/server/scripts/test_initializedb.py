@@ -17,10 +17,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Contains tests for the bodhi.server.scripts.initializedb module."""
-from cStringIO import StringIO
 import unittest
 
 import mock
+from six import StringIO
 
 from bodhi.server.scripts import initializedb
 
