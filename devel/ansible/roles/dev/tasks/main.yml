@@ -63,9 +63,28 @@
       - python2-sqlalchemy_schemadisplay
       - python2-waitress
       - python2-yaml
+      - python3-arrow
+      - python3-bleach
+      - python3-click
+      - python3-colander
+      - python3-createrepo_c
       - python3-diff-cover
+      - python3-dogpile-cache
+      - python3-fedmsg
+      - python3-fedora
+      - python3-kitchen
+      - python3-markdown
+      - python3-mock
+      - python3-munch
+      - python3-pillow
       - python3-pydocstyle
+      - python3-pylibravatar
+      - python3-pytest
+      - python3-pytest-cov
+      - python3-simplemediawiki
+      - python3-sqlalchemy
       - python3-tox
+      - python3-webtest
       - redhat-rpm-config
       - vim-enhanced
       - zlib-devel
@@ -74,6 +93,11 @@
 - name: pip install cornice
   pip:
       name: cornice
+
+- name: pip install cornice for Python 3
+  pip:
+      name: cornice
+      executable: pip3
 
 # cornice_sphinx is not packaged in Fedora yet, but won't be available until Fedora 28 is released.
 - name: pip install cornice_sphinx
@@ -84,6 +108,11 @@
 - name: pip install debugtoolbar
   pip:
       name: pyramid_debugtoolbar
+
+- name: pip install debugtoolbar
+  pip:
+      name: pyramid_debugtoolbar
+      executable: pip3
 
 - name: Install bodhi in developer mode
   command: python /home/vagrant/bodhi/setup.py develop
