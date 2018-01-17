@@ -27,7 +27,6 @@
       - python-alembic
       - python-bugzilla
       - python-openid
-      - python-progressbar
       - python-pylibravatar
       - python-pyramid-fas-openid
       - python-simplemediawiki

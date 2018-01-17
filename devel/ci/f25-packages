@@ -4,7 +4,6 @@
     python-moksha-hub \
     python-munch \
     python-openid \
-    python-progressbar \
     python-pylibravatar \
     python-pyramid-fas-openid \
     python-pyramid-mako \

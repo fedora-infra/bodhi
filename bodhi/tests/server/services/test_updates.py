@@ -594,7 +594,7 @@ class TestEditUpdateForm(base.BaseTestCase):
         """
         Test a logged in User with permissions on the update can see the form
         """
-        resp = self.app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit')
+        resp = self.app.get('/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year))
         self.assertIn('Editing an update requires JavaScript', resp)
 
     def test_edit_without_permission(self):
@@ -602,7 +602,8 @@ class TestEditUpdateForm(base.BaseTestCase):
         Test a logged in User without permissions on the update can't see the form
         """
         app = TestApp(main({}, testing=u'anonymous', session=self.db, **self.app_settings))
-        resp = app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit', status=400)
+        resp = app.get(
+            '/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year), status=400)
         self.assertIn(
             'anonymous is not a member of "packager", which is a mandatory packager group', resp)
 
@@ -1245,7 +1246,8 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(len(body['updates']), 0)
 
         # test a search for an alias
-        res = self.app.get('/updates/', {'search': 'FEDORA-2017-a3bbe1a8f2'})
+        res = self.app.get(
+            '/updates/', {'search': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.utcnow().year)})
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
         up = body['updates'][0]
