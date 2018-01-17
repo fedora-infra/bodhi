@@ -120,11 +120,15 @@
       chdir: /home/vagrant/bodhi
       creates: /usr/lib/python2.7/site-packages/bodhi.egg-link
 
+- name: Get Python 3 version
+  command: python3 -c "import sys; print('%s.%s' % sys.version_info[0:2])"
+  register: python3_version
+
 - name: Install bodhi in developer mode for Python 3
   command: python3 /home/vagrant/bodhi/setup.py develop
   args:
       chdir: /home/vagrant/bodhi
-      creates: /usr/lib/python3.6/site-packages/bodhi.egg-link
+      creates: /usr/lib/python{{ python3_version.stdout }}/site-packages/bodhi.egg-link
 
 - name: Retrieve database dump
   get_url:
