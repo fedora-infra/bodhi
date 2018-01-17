@@ -351,28 +351,29 @@ class TestUtils(base.BaseTestCase):
         """
         self.assertEqual(util.get_critpath_components(), ['kernel', 'glibc'])
 
-    @mock.patch.object(pkgdb2client.PkgDB, 'get_critpath_packages')
-    @mock.patch.dict(util.config, {
-        'critpath.type': 'pkgdb',
-        'pkgdb_url': 'http://domain.local'
-    })
-    def test_get_critpath_components_pkgdb_success(self, mock_get_critpath):
-        """ Ensure that critpath packages can be found using PkgDB.
-        """
-        # A subset of critpath packages
-        critpath_pkgs = [
-            'pth',
-            'xorg-x11-server-utils',
-            'giflib',
-            'basesystem'
-        ]
-        mock_get_critpath.return_value = {
-            'pkgs': {
-                'f20': critpath_pkgs
+    if six.PY2:
+        @mock.patch.object(pkgdb2client.PkgDB, 'get_critpath_packages')
+        @mock.patch.dict(util.config, {
+            'critpath.type': 'pkgdb',
+            'pkgdb_url': 'http://domain.local'
+        })
+        def test_get_critpath_components_pkgdb_success(self, mock_get_critpath):
+            """ Ensure that critpath packages can be found using PkgDB.
+            """
+            # A subset of critpath packages
+            critpath_pkgs = [
+                'pth',
+                'xorg-x11-server-utils',
+                'giflib',
+                'basesystem'
+            ]
+            mock_get_critpath.return_value = {
+                'pkgs': {
+                    'f20': critpath_pkgs
+                }
             }
-        }
-        pkgs = util.get_critpath_components('f20')
-        assert critpath_pkgs == pkgs, pkgs
+            pkgs = util.get_critpath_components('f20')
+            assert critpath_pkgs == pkgs, pkgs
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch.dict(util.config, {
