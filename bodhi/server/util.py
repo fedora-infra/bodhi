@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2007-2017 Red Hat, Inc. and others.
+# Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -1351,3 +1351,29 @@ def waiverdb_api_post(waiverdb_api_url, data):
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer %s' % config.get('waiverdb.access_token')
                     })
+
+
+class no_autoflush(object):
+    """
+    A content manager that disables sqlalchemy's autoflush, restoring it afterwards.
+
+    Adapted from https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/DisableAutoflush
+    """
+
+    def __init__(self, session):
+        """
+        Store the session and remember its entrant state.
+
+        Args:
+            session (sqlalchemy.orm.session.Session): The session to disable autoflush on.
+        """
+        self.session = session
+        self.autoflush = session.autoflush
+
+    def __enter__(self):
+        """Disable autoflush."""
+        self.session.autoflush = False
+
+    def __exit__(self, *args, **kwargs):
+        """Restore autoflush to its entrant state. Args unused."""
+        self.session.autoflush = self.autoflush

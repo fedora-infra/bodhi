@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2007-2017 Red Hat, Inc. and others.
+# Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -150,6 +150,31 @@ class TestCallAPI(unittest.TestCase):
         self.assertEqual(get.mock_calls,
                          [mock.call('url', timeout=60), mock.call('url', timeout=60)])
         sleep.assert_called_once_with(1)
+
+
+class TestNoAutoflush(unittest.TestCase):
+    """Test the no_autoflush context manager."""
+    def test_autoflush_disabled(self):
+        """Test correct behavior when autoflush is disabled."""
+        session = mock.MagicMock()
+        session.autoflush = False
+
+        with util.no_autoflush(session):
+            self.assertFalse(session.autoflush)
+
+        # autoflush should still be False since that was the starting condition.
+        self.assertFalse(session.autoflush)
+
+    def test_autoflush_enabled(self):
+        """Test correct behavior when autoflush is enabled."""
+        session = mock.MagicMock()
+        session.autoflush = True
+
+        with util.no_autoflush(session):
+            self.assertFalse(session.autoflush)
+
+        # autoflush should again be True since that was the starting condition.
+        self.assertTrue(session.autoflush)
 
 
 class TestPushToBatchedOrStableButton(base.BaseTestCase):
