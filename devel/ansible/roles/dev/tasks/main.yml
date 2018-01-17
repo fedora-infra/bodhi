@@ -120,6 +120,12 @@
       chdir: /home/vagrant/bodhi
       creates: /usr/lib/python2.7/site-packages/bodhi.egg-link
 
+- name: Install bodhi in developer mode for Python 3
+  command: python3 /home/vagrant/bodhi/setup.py develop
+  args:
+      chdir: /home/vagrant/bodhi
+      creates: /usr/lib/python3.6/site-packages/bodhi.egg-link
+
 - name: Retrieve database dump
   get_url:
       url: https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz
