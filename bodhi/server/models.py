@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2011-2017 Red Hat, Inc. and others.
+# Copyright © 2011-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -48,7 +48,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_critpath_components,
-    get_nvr, get_rpm_header, header, packagename_from_nvr, tokenize, pagure_api_get)
+    get_nvr, get_rpm_header, header, packagename_from_nvr, tokenize, pagure_api_get, no_autoflush)
 import bodhi.server.util
 
 
@@ -1773,7 +1773,10 @@ class Update(Base):
         log.debug("Creating new Update(**data) object.")
         release = data.pop('release', None)
         up = Update(**data)
-        up.release = release
+        # Autoflush will cause a problem for Update.validate_release().
+        # https://github.com/fedora-infra/bodhi/issues/2117
+        with no_autoflush(db):
+            up.release = release
 
         # Assign the alias before setting the request.
         # Setting the request publishes a fedmsg message, and it is nice to
