@@ -253,6 +253,8 @@ man_pages = [
      ['Randy Barlow'], 1),
     ('user/man_pages/bodhi-dequeue-stable', 'bodhi-dequeue-stable',
      u'move batched updates to stable', ['Randy Barlow'], 1),
+    ('user/man_pages/bodhi-manage-releases', 'bodhi-manage-releases', u'manage releases',
+     ['Randy Barlow'], 1),
     ('user/man_pages/bodhi-monitor-composes', 'bodhi-monitor-composes', u'display a compose report',
      ['Randy Barlow'], 1),
     ('user/man_pages/bodhi-push', 'bodhi-push', u'push Fedora updates', ['Randy Barlow'], 1),
