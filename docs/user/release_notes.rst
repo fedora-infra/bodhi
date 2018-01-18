@@ -47,7 +47,7 @@ Bugs
 * The CLI help text was corrected to remove spaces between the list of builds in the example for
   creating multi-build updates (:issue:`2071`).
 * Releases with no configured days in testing no longer crash Bodhi (:issue:`2076`).
-* :doc:`man_pages/bodhi-check-policies` now also operated on pushed updates (:issue:`2085`).
+* :doc:`man_pages/bodhi-check-policies` now also operates on pushed updates (:issue:`2085`).
 * The client bindings' ``update_str()`` method was refactored and now does cleaner line wrapping
   (:commit:`3ef05fa9`).
 * Do not fail the compose if there is an error when writing the changelog (:commit:`88fc8405`).
