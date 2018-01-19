@@ -222,3 +222,25 @@ class TestCheckPolicies(BaseTestCase):
                  'type': 'bodhi_update'}]}
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
+
+    @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
+    def test_archived_release_updates(self):
+        """Assert that updates for archived releases isn't being considered
+        by the script.
+        """
+        # Archive the F17 release
+        rel = self.db.query(models.Release).filter_by(name='F17').one()
+        rel.state = models.ReleaseState.archived
+        self.db.commit()
+
+        runner = testing.CliRunner()
+        update = self.db.query(models.Update).all()[0]
+        update.status = models.UpdateStatus.testing
+        self.db.commit()
+        with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            mock_greenwave.side_effect = Exception(
+                'Greenwave should not be accessed for archived releases.')
+            result = runner.invoke(check_policies.check, [])
+            self.assertEqual(result.exit_code, 0)
+
+        self.assertEqual(mock_greenwave.call_count, 0)
