@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2017 Red Hat, Inc. and others.
+# Copyright 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Define tools for interacting with the build system and a fake build system for development."""
 
 from threading import Lock
 import logging
@@ -32,9 +33,23 @@ _koji_hub = None
 
 
 def multicall_enabled(func):
-    '''Decorator to enable multicall handling for DevBuildsys methods'''
+    """
+    Decorate the given callable to enable multicall handling.
+
+    This is used by DevBuildsys methods.
+
+    Args:
+        func (callable): The function to wrap.
+    Returns:
+        callable: A wrapped version of func.
+    """
     @wraps(func)
     def wrapper(self, *args, **kwargs):
+        """
+        If multicall is enabled, store the results from func on self.
+
+        If multicall is not enabled, just call func and return its results as per usual.
+        """
         if not self.multicall:
             return func(self, *args, **kwargs)
 
@@ -49,52 +64,65 @@ def multicall_enabled(func):
 
 class Buildsystem(object):
     """
-    The parent for our buildsystem.  Not only does this help us keep track of
-    the functionality that we expect from our buildsystem, but it also alows
-    us to create a development subclass of this object to use during
-    development so we don't alter any production data.
+    The parent for our buildsystem.
+
+    Not only does this help us keep track of the functionality that we expect from our buildsystem,
+    but it also alows us to create a development subclass of this object to use during development
+    so we don't alter any production data.
     """
+
     def getBuild(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def getLatestBuilds(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def moveBuild(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def ssl_login(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def listBuildRPMs(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def listTags(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def listTagged(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def taskFinished(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def tagBuild(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def untagBuild(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def multiCall(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
     def getTag(self, *args, **kw):
+        """Raise NotImplementedError."""
         raise NotImplementedError
 
 
 class DevBuildsys(Buildsystem):
-    """
-    A dummy buildsystem instance used during development and testing
-    """
+    """A dummy buildsystem instance used during development and testing."""
+
     __untag__ = []
     __moved__ = []
     __added__ = []
@@ -102,20 +130,34 @@ class DevBuildsys(Buildsystem):
     __rpms__ = []
 
     def __init__(self):
+        """Initialize the DevBuildsys."""
         self._multicall = False
         self.multicall_result = []
 
     @property
     def multicall(self):
+        """
+        Return the value of self._multicall.
+
+        Returns:
+            object: The value of self._multicall.
+        """
         return self._multicall
 
     @multicall.setter
     def multicall(self, value):
+        """
+        Set the _multicall attribute to the given value.
+
+        Args:
+            value (object): The value to set the _multicall attribute to.
+        """
         self._multicall = value
         self.multicall_result = []
 
     @classmethod
     def clear(cls):
+        """Clear the state of the class variables."""
         cls.__untag__ = []
         cls.__moved__ = []
         cls.__added__ = []
@@ -123,43 +165,53 @@ class DevBuildsys(Buildsystem):
         cls.__rpms__ = []
 
     def multiCall(self):
+        """Emulate Koji's multiCall."""
         result = self.multicall_result
         self.multicall = False
         return result
 
     def moveBuild(self, from_tag, to_tag, build, *args, **kw):
+        """Emulate Koji's moveBuild."""
         log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
         DevBuildsys.__moved__.append((from_tag, to_tag, build))
 
     def tagBuild(self, tag, build, *args, **kw):
+        """Emulate Koji's tagBuild."""
         log.debug("tagBuild(%s, %s)" % (tag, build))
         DevBuildsys.__added__.append((tag, build))
 
     def untagBuild(self, tag, build, *args, **kw):
+        """Emulate Koji's untagBuild."""
         log.debug("untagBuild(%s, %s)" % (tag, build))
         DevBuildsys.__untag__.append((tag, build))
 
     def ssl_login(self, *args, **kw):
+        """Emulate Koji's ssl_login."""
         log.debug("ssl_login(%s, %s)" % (args, kw))
 
     def taskFinished(self, task):
+        """Emulate Koji's taskFinished."""
         return True
 
     def getTaskInfo(self, task):
+        """Emulate Koji's getTaskInfo."""
         return {'state': koji.TASK_STATES['CLOSED']}
 
     def getTaskRequest(self, task_id):
+        """Emulate Koji's getTaskRequest."""
         return [
             u'git://pkgs.fedoraproject.org/rpms/bodhi?#2e994ca8b3296e62e8b0aadee1c5c0649559625a',
             'f17-candidate', {}]
 
     def listPackages(self):
+        """Emulate Koji's listPackages."""
         return [
             {'package_id': 2625, 'package_name': 'nethack'},
         ]
 
     @multicall_enabled
     def getBuild(self, build='TurboGears-1.0.2.2-2.fc17', other=False, testing=False):
+        """Emulate Koji's getBuild."""
         theid = 16058
         if other and not testing:
             theid = 16059
@@ -234,6 +286,7 @@ class DevBuildsys(Buildsystem):
         return data
 
     def listBuildRPMs(self, id, *args, **kw):
+        """Emulate Koji's listBuildRPMs."""
         rpms = [{'arch': 'src',
                  'build_id': 6475,
                  'buildroot_id': 1883,
@@ -266,6 +319,7 @@ class DevBuildsys(Buildsystem):
         return rpms
 
     def listTags(self, build, *args, **kw):
+        """Emulate Koji's listTags."""
         if 'el5' in build or 'el6' in build:
             release = build.split('.')[-1].replace('el', '')
             result = [
@@ -312,6 +366,7 @@ class DevBuildsys(Buildsystem):
 
     @multicall_enabled
     def listTagged(self, tag, *args, **kw):
+        """List updates tagged with teh given tag."""
         builds = []
         for build in [self.getBuild(),
                       self.getBuild(other=True),
@@ -329,9 +384,27 @@ class DevBuildsys(Buildsystem):
         return builds
 
     def getLatestBuilds(self, *args, **kw):
+        """
+        Return a list of the output from self.getBuild().
+
+        Returns:
+            list: A list of the latest builds from getBuild().
+        """
         return [self.getBuild()]
 
     def getTag(self, taginfo, **kw):
+        """
+        Retrieve the given tag from koji.
+
+        Args:
+            taginfo (int or basestring): The tag you want info about.
+            strict (bool): If True, raise an Exception if epel tags are queried. Defaults to False.
+        Returns:
+            dict or None: A dictionary of tag information, or None if epel is requested and strict
+                is False.
+        Raises:
+            koji.GenericError: If strict is True and epel is requested.
+        """
         if isinstance(taginfo, int):
             taginfo = "f%d" % taginfo
 
@@ -347,6 +420,15 @@ class DevBuildsys(Buildsystem):
                 'maven_include_all': False, 'perm_id': None}
 
     def getRPMHeaders(self, rpmID, headers):
+        """
+        Return headers for the given RPM.
+
+        Args:
+            rpmID (basestring): The RPM you want headers for.
+            headers (object): Unused.
+        Returns:
+            dict: A dictionary of RPM headers.
+        """
         if rpmID == 'raise-exception.src':
             raise Exception
         elif rpmID == 'do-not-find-anything.src':
@@ -392,8 +474,14 @@ class DevBuildsys(Buildsystem):
 
 
 def koji_login(config):
-    """ Login to Koji and return the session """
+    """
+    Login to Koji and return the session.
 
+    Args:
+        config (bodhi.server.config.BodhiConfig): Bodhi's configuration dictionary.
+    Returns:
+        koji.ClientSession: An authenticated Koji ClientSession that is ready to use.
+    """
     koji_options = {
         'krb_rdns': False,
         'max_retries': 30,
@@ -410,7 +498,17 @@ def koji_login(config):
 
 
 def get_krb_conf(config):
-    """ Return arguments for krb_login. """
+    """
+    Return arguments for krb_login.
+
+    Args:
+        config (bodhi.server.config.BodhiConfig): Bodhi's configuration dictionary.
+    Returns:
+        dict: A dictionary containing three keys:
+            principal: The kerberos principal to use.
+            keytab: The kerberos keytab to use.
+            ccache: The kerberos ccache to use.
+    """
     principal = config.get('krb_principal')
     keytab = config.get('krb_keytab')
     ccache = config.get('krb_ccache')
@@ -425,7 +523,14 @@ def get_krb_conf(config):
 
 
 def get_session():
-    """ Get a new buildsystem instance """
+    """
+    Get a new buildsystem instance.
+
+    Returns:
+        koji.ClientSession or DevBuildsys: A buildsystem client instance.
+    Raises:
+        RuntimeError: If the build system has not been initialized. See setup_buildsystem().
+    """
     global _buildsystem, _buildsystem_login_lock
     if _buildsystem is None:
         raise RuntimeError('Buildsys needs to be setup')
@@ -434,12 +539,21 @@ def get_session():
 
 
 def teardown_buildsystem():
+    """Tear down the build system."""
     global _buildsystem
     _buildsystem = None
     DevBuildsys.clear()
 
 
 def setup_buildsystem(settings):
+    """
+    Initialize the buildsystem client.
+
+    Args:
+        settings (bodhi.server.config.BodhiConfig): Bodhi's config.
+    Raises:
+        ValueError: If the buildsystem is configured to an invalid value.
+    """
     global _buildsystem, _koji_hub, _buildsystem_login_lock
     if _buildsystem:
         return
