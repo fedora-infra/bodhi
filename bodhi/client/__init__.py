@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2018 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""The bodhi CLI client."""
 
 import os
 import platform
@@ -29,14 +35,14 @@ from fedora.client import AuthError
 
 def _warn_if_url_and_staging_set(ctx, param, value):
     """
-    This function will print a warning to stderr if the user has set both the --url and --staging
-    flags, so that the user is aware that --staging supercedes --url.
+    Print a warning to stderr if the user has set both the --url and --staging flags.
+
+    This ensures that the user is aware that --staging supersedes --url.
 
     Args:
         ctx (click.core.Context): The Click context, used to find out if the --staging flag is set.
         param (click.core.Option): The option being handled. Unused.
         value (unicode): The value of the --url flag.
-
     Returns:
         unicode: The value of the --url flag.
     """
@@ -89,14 +95,28 @@ save_edit_options = [
 
 
 def add_options(options):
-    """ Given a list of click options this creates a decorator that
+    """
+    Generate a click.option decorator with the given options.
+
+    Given a list of click options this creates a decorator that
     will return a function used to add the options to a click command.
-    :param options: a list of click.options decorator.
+
+    Args:
+        options (list): A list of click.options decorators.
+    Returns:
+        callable: A decorator that applies the given options to it decorated function.
     """
     def _add_options(func):
-        """ Given a click command and a list of click options this will
+        """
+        Decorate func with the given click options.
+
+        Given a click command and a list of click options this will
         return the click command decorated with all the options in the list.
-        :param func: a click command function.
+
+        Args:
+            func (callable): A click command function.
+        Returns:
+            callable: A wrapped version of func with added options.
         """
         for option in reversed(options):
             func = option(func)
@@ -105,9 +125,26 @@ def add_options(options):
 
 
 def handle_errors(method):
-    """ A decorator that echoes neat error messages on AuthError or BodhiClientException. """
+    """
+    Echo neat error messages on AuthError or BodhiClientException.
+
+    This is intended to be used as a decorator on method.
+
+    Args:
+        method (callable): The method we wish to handle errors from.
+    Returns:
+        callable: A wrapped version of method that handles errors.
+    """
     @functools.wraps(method)
     def wrapper(*args, **kwargs):
+        """
+        Call method with given args and kwargs, handling errors and exit if any are raised.
+
+        AuthErrors will cause an exit code of 1. BodhiClientExceptions will result in 2.
+        Args:
+            args: Positional arguments to pass to method.
+            kwargs: Keyword arguments to pass to method.
+        """
         try:
             method(*args, **kwargs)
         except AuthError as e:
@@ -121,7 +158,7 @@ def handle_errors(method):
 
 def _save_override(url, user, password, staging, edit=False, **kwargs):
     """
-    Helper function to create or edit a buildroot override.
+    Create or edit a buildroot override.
 
     Args:
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
@@ -132,7 +169,6 @@ def _save_override(url, user, password, staging, edit=False, **kwargs):
         edit (bool): Set to True to edit an existing buildroot override.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-
     client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging)
     resp = client.save_override(nvr=kwargs['nvr'],
                                 duration=kwargs['duration'],
@@ -146,28 +182,18 @@ def _save_override(url, user, password, staging, edit=False, **kwargs):
 @click.version_option(message='%(version)s')
 def cli():
     # Docs that show in the --help
-    """
-    Command line tool for interacting with Bodhi
-    """
-
+    """Command line tool for interacting with Bodhi."""
     # Developer Docs
-    """
-    Create the main CLI group
-    """
+    """Create the main CLI group."""
     pass  # pragma: no cover
 
 
 @cli.group()
 def updates():
     # Docs that show in the --help
-    """
-    Interact with updates on Bodhi.
-    """
-
+    """Interact with updates on Bodhi."""
     # Developer Docs
-    """
-    Create the updates group.
-    """
+    """Create the updates group."""
     pass  # pragma: no cover
 
 
@@ -185,7 +211,6 @@ def new(user, password, url, **kwargs):
     BUILDS: a comma separated list of Builds to be added to the update
     (e.g. 0ad-0.0.21-4.fc26,2ping-3.2.1-4.fc26)
     """
-
     # Developer Docs
     """
     Args:
@@ -219,8 +244,17 @@ def new(user, password, url, **kwargs):
 
 def _validate_edit_update(ctx, param, value):
     """
-    Callback used by click to validate the update argument given to the updates edit command.
-    the update argument can only be update id or update title
+    Validate the update argument given to the updates edit command.
+
+    The update argument can only be update id or update title
+
+    Args:
+        param (basestring): The name of the parameter being validated. Unused.
+        value (basestring): The value of the value being validated.
+    Returns:
+        basestring: The value if it passes validation.
+    Raises:
+        click.BadParameter: If the value is invalid.
     """
     if re.search(bindings.UPDATE_ID_RE, value)\
        or re.search(bindings.UPDATE_TITLE_RE, value):
@@ -241,7 +275,6 @@ def edit(user, password, url, **kwargs):
 
     UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
     """
-
     # Developer Docs
     """
     The update argument can be an update id or the update title.
@@ -312,10 +345,7 @@ def edit(user, password, url, **kwargs):
 @handle_errors
 def query(url, mine=False, **kwargs):
     # User Docs that show in the --help
-    """
-    Query updates on Bodhi
-    """
-
+    """Query updates on Bodhi."""
     # Developer Docs
     """
     Query updates based on flags.
@@ -350,10 +380,9 @@ def request(update, state, user, password, url, **kwargs):
 
     UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
 
-    STATE: The state you wish to change the update\'s request to. Valid options are
+    STATE: The state you wish to change the update's request to. Valid options are
     testing, stable, obsolete, unpush, batched, and revoke.
     """
-
     # Developer Docs
     """
     Change an update's request to the given state.
@@ -399,7 +428,6 @@ def comment(update, text, karma, user, password, url, **kwargs):
 
     TEXT: the comment to be added to the update
     """
-
     # Developer Docs
     """
     Comment on an update.
@@ -434,10 +462,7 @@ def comment(update, text, karma, user, password, url, **kwargs):
 @handle_errors
 def download(url, **kwargs):
     # User Docs that show in the --help
-    """
-    Download the builds in one or more updates
-    """
-
+    """Download the builds in one or more updates."""
     # Developer Docs
     """
     Download the builds for an update.
@@ -497,6 +522,8 @@ def download(url, **kwargs):
 
 def _get_notes(**kwargs):
     """
+    Return notes for the update.
+
     If the user provides a --notes-file, _get_notes processes the contents of the notes-file.
     If the user does not provide a --notes-file, _get_notes() returns the notes from the kwargs.
     One cannot specify both --notes and --notesfile. Doing so will result in an error.
@@ -521,14 +548,9 @@ def _get_notes(**kwargs):
 @cli.group()
 def overrides():
     # Docs that show in the --help
-    """
-    Interact with overrides on Bodhi.
-    """
-
+    """Interact with overrides on Bodhi."""
     # Developer Docs
-    """
-    Create the overrides CLI group.
-    """
+    """Create the overrides CLI group."""
     pass  # pragma: no cover
 
 
@@ -552,10 +574,7 @@ def overrides():
 def query_buildroot_overrides(url, user=None, mine=False, packages=None,
                               expired=None, releases=None, builds=None, **kwargs):
     # Docs that show in the --help
-    """
-    Query the buildroot overrides.
-    """
-
+    """Query the buildroot overrides."""
     # Developer Docs
     """
     Query the buildroot overrides.
@@ -591,7 +610,6 @@ def save_buildroot_overrides(user, password, url, staging, **kwargs):
 
     NVR: the NVR (name-version-release) of the buildroot override to create
     """
-
     # Developer Docs
     """
     Create a buildroot override.
@@ -627,7 +645,6 @@ def edit_buildroot_overrides(user, password, url, staging, **kwargs):
 
     NVR: the NVR (name-version-release) of the buildroot override to edit
     """
-
     # Developer Docs
     """
     Edit a buildroot override.
@@ -666,6 +683,13 @@ def _print_override_koji_hint(override, client):
 
 
 def print_resp(resp, client):
+    """
+    Print a human readable rendering of the given server response to the terminal.
+
+    Args:
+        resp (munch.Munch): The response from the server.
+        client (bodhi.client.bindings.BodhiClient): A BodhiClient.
+    """
     if 'updates' in resp:
         if len(resp.updates) == 1:
             click.echo(client.update_str(resp.updates[0]))
