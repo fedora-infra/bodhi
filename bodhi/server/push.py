@@ -20,12 +20,31 @@
 from sqlalchemy.sql import or_
 import click
 
-from bodhi.server import initialize_db
+from bodhi.server import (initialize_db, get_koji, setup_buildsys)
 from bodhi.server.config import config
 from bodhi.server.models import (Compose, ComposeState, Release, ReleaseState, Build, Update,
                                  UpdateRequest)
 from bodhi.server.util import transactional_session_maker
 import bodhi.server.notifications
+
+
+_koji = None
+
+
+def update_sig_status(update):
+    """Update build signature status for builds in update."""
+    global _koji
+    if _koji is None:
+        setup_buildsys()
+        _koji = get_koji(None)
+    for build in update.builds:
+        if not build.signed:
+            build_tags = build.get_tags(_koji)
+            if update.release.pending_signing_tag not in build_tags:
+                click.echo('Build %s was refreshed as signed' % build.nvr)
+                build.signed = True
+            else:
+                click.echo('Build %s still unsigned' % build.nvr)
 
 
 @click.command()
@@ -93,6 +112,8 @@ def push(username, cert_prefix, **kwargs):
 
             for update in query.all():
                 # Skip unsigned updates (this checks that all builds in the update are signed)
+                update_sig_status(update)
+
                 if not update.signed:
                     click.echo('Warning: %s has unsigned builds and has been skipped' %
                                update.title)

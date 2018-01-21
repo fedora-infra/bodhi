@@ -139,6 +139,11 @@ def groupfinder(userid, request):
         return ['group:' + group.name for group in user.groups]
 
 
+def setup_buildsys():
+    """Initialize buildsystem instance from bodhi_config."""
+    buildsys.setup_buildsystem(bodhi_config)
+
+
 def get_koji(request):
     """
     Return a Koji client, or a duck-type of a Koji client, depending on config.
@@ -252,7 +257,7 @@ def main(global_config, testing=None, session=None, **settings):
 
     # Setup our bugtracker and buildsystem
     bugs.set_bugtracker()
-    buildsys.setup_buildsystem(bodhi_config)
+    setup_buildsys()
 
     # Sessions & Caching
     from pyramid.session import SignedCookieSessionFactory
