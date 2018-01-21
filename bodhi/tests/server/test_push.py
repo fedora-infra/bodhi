@@ -227,13 +227,6 @@ Locking updates...
 Sending masher.start fedmsg
 """
 
-TEST_NO_UPDATES_TO_PUSH_EXPECTED_OUTPUT = """Warning: python-nose-1.3.7-11.fc17 has unsigned builds and has been skipped
-Warning: python-paste-deploy-1.5.2-8.fc17 has unsigned builds and has been skipped
-Warning: bodhi-2.0-1.fc17 has unsigned builds and has been skipped
-
-There are no updates to push.
-"""
-
 TEST_RELEASES_FLAG_EXPECTED_OUTPUT = """
 
 ===== <Compose: F25 testing> =====
@@ -309,22 +302,6 @@ ejabberd-16.09-4.fc17
 
 
 Push these 1 updates? [y/N]: y
-
-Locking updates...
-
-Sending masher.start fedmsg
-"""
-
-TEST_UNSIGNED_UPDATES_SKIPPED_EXPECTED_OUTPUT = """Warning: python-nose-1.3.7-11.fc17 has unsigned builds and has been skipped
-
-
-===== <Compose: F17 testing> =====
-
-python-paste-deploy-1.5.2-8.fc17
-bodhi-2.0-1.fc17
-
-
-Push these 2 updates? [y/N]: y
 
 Locking updates...
 
@@ -513,10 +490,12 @@ class TestPush(base.BaseTestCase):
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
+            # Note: this IS the signing-pending tag
+            with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
+                            return_value=[{'name': 'f17-updates-testing-signing'}]):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
 
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_NO_UPDATES_TO_PUSH_EXPECTED_OUTPUT)
         self.assertEqual(publish.call_count, 0)
 
         # The updates should not be locked
@@ -810,7 +789,7 @@ class TestPush(base.BaseTestCase):
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_unsigned_updates_skipped(self, publish, mock_init):
+    def test_unsigned_updates_unsigned_skipped(self, publish, mock_init):
         """
         Unsigned updates should get skipped.
         """
@@ -823,11 +802,15 @@ class TestPush(base.BaseTestCase):
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
+            # Note: this IS the signing-pending tag
+            with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
+                            return_value=[{'name': 'f17-updates-testing-signing'}]):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs'],
+                                    input='y')
 
+        self.assertEqual(result.exception, None)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_UNSIGNED_UPDATES_SKIPPED_EXPECTED_OUTPUT)
         python_nose = self.db.query(models.Update).filter_by(
             title=u'python-nose-1.3.7-11.fc17').one()
         python_paste_deploy = self.db.query(models.Update).filter_by(
@@ -839,6 +822,48 @@ class TestPush(base.BaseTestCase):
             force=True)
         self.assertFalse(python_nose.locked)
         self.assertIsNone(python_nose.date_locked)
+        self.assertTrue(python_paste_deploy.locked)
+        self.assertTrue(python_paste_deploy.date_locked <= datetime.utcnow())
+        self.assertEqual(python_paste_deploy.compose.release, python_paste_deploy.release)
+        self.assertEqual(python_paste_deploy.compose.request, python_paste_deploy.request)
+
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
+    def test_unsigned_updates_signed_updated(self, publish, mock_init):
+        """
+        Unsigned updates should get marked signed.
+        """
+        cli = CliRunner()
+        # Let's mark nose unsigned so it gets marked signed.
+        python_nose = self.db.query(models.Update).filter_by(
+            title=u'python-nose-1.3.7-11.fc17').one()
+        python_nose.builds[0].signed = False
+        self.db.commit()
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            # Note: this is NOT the signing-pending tag
+            with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
+                            return_value=[{'name': 'f17-updates-testing'}]):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs'],
+                                    input='y')
+
+        self.assertEqual(result.exception, None)
+        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
+        self.assertEqual(result.exit_code, 0)
+        python_nose = self.db.query(models.Update).filter_by(
+            title=u'python-nose-1.3.7-11.fc17').one()
+        python_paste_deploy = self.db.query(models.Update).filter_by(
+            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        publish.assert_called_once_with(
+            topic='masher.start',
+            msg={'composes': [python_paste_deploy.compose.__json__()],
+                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
+            force=True)
+        self.assertTrue(python_nose.locked)
+        self.assertTrue(python_nose.date_locked <= datetime.utcnow())
+        self.assertEqual(python_nose.compose.release, python_paste_deploy.release)
+        self.assertEqual(python_nose.compose.request, python_paste_deploy.request)
         self.assertTrue(python_paste_deploy.locked)
         self.assertTrue(python_paste_deploy.date_locked <= datetime.utcnow())
         self.assertEqual(python_paste_deploy.compose.release, python_paste_deploy.release)
