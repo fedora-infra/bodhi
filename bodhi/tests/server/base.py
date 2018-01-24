@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2016-2018 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,10 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""
-This module contains a useful base test class that helps with common testing needs when testing
-bodhi.server modules.
-"""
+"""Contains a useful base test class that helps with common testing needs for bodhi.server."""
 from contextlib import contextmanager
 import os
 import unittest
@@ -36,7 +38,7 @@ DEFAULT_DB = 'sqlite:///' + os.path.join(PROJECT_PATH, 'bodhi-tests.sqlite')
 
 def _configure_test_db(db_uri=DEFAULT_DB):
     """
-    Creates and configures a test database for Bodhi.
+    Create and configure a test database for Bodhi.
 
     .. note::
         For some reason, this fails on the in-memory version of SQLite with an error
@@ -45,6 +47,8 @@ def _configure_test_db(db_uri=DEFAULT_DB):
     Args:
         db_uri (str): The URI to use when creating the database engine. Defaults to an
             in-memory SQLite database.
+    Returns:
+        sqlalchemy.engine: The database engine.
     """
     if db_uri.startswith('sqlite:////'):
         # Clean out any old file
@@ -61,7 +65,7 @@ def _configure_test_db(db_uri=DEFAULT_DB):
         # #serializable-isolation-savepoints-transactional-ddl
         @event.listens_for(engine, "connect")
         def connect_event(dbapi_connection, connection_record):
-            """Stop pysqlite from emitting 'BEGIN'"""
+            """Stop pysqlite from emitting 'BEGIN'."""
             # disable pysqlite's emitting of the BEGIN statement entirely.
             # also stops it from emitting COMMIT before any DDL.
             dbapi_connection.isolation_level = None
@@ -90,6 +94,7 @@ class BaseTestCase(unittest.TestCase):
     slate for each test. Tests may call both ``commit`` and ``rollback``
     on the database session they acquire from ``bodhi.server.Session``.
     """
+
     _populate_db = True
 
     app_settings = {
@@ -132,6 +137,7 @@ class BaseTestCase(unittest.TestCase):
     }
 
     def setUp(self):
+        """Set up Bodhi for testing."""
         # Ensure "cached" objects are cleared before each test.
         models.Release._all_releases = None
         models.Release._tag_cache = None
@@ -184,11 +190,30 @@ class BaseTestCase(unittest.TestCase):
         self.app = _app
 
     def get_csrf_token(self, app=None):
+        """
+        Return a CSRF token that can be used by tests as they test the REST API.
+
+        Args:
+            app (webtest.TestApp): The app to use to get the token. Defaults to None, which will use
+                self.app.
+        Returns:
+            basestring: A CSRF token.
+        """
         if not app:
             app = self.app
         return app.get('/csrf').json_body['csrf_token']
 
     def get_update(self, builds='bodhi-2.0-1.fc17', stable_karma=3, unstable_karma=-3):
+        """
+        Return a dict describing an update.
+
+        This is useful for tests that want to POST to the API to create an update.
+
+        Args:
+            builds (basestring): A comma-separated list of NVRs to include in the update.
+            stable_karma (int): The stable karma threshold to use on the update.
+            unstable_karma (int): The unstable karma threshold to use on the update.
+        """
         if isinstance(builds, list):
             builds = ','.join(builds)
         if not isinstance(builds, str):
@@ -217,9 +242,10 @@ class BaseTestCase(unittest.TestCase):
 
     def create_update(self, build_nvrs, release_name=u'F17'):
         """
-        Create and return an Update with the given iterable of build_nvrs. Each build_nvr should be
-        a tuple of strings describing the name, version, and release for the build. For example,
-        build_nvrs might look like this:
+        Create and return an Update with the given iterable of build_nvrs.
+
+        Each build_nvr should be a tuple of strings describing the name, version, and release for
+        the build. For example, build_nvrs might look like this:
 
         ((u'bodhi', u'2.3.3', u'1.fc24'), (u'python-fedora-atomic-composer', u'2016.3', u'1.fc24'))
 
@@ -228,6 +254,13 @@ class BaseTestCase(unittest.TestCase):
 
         This is a convenience wrapper around bodhi.tests.server.create_update so that tests can just
         call self.create_update() and not have to pass self.db.
+
+        Args:
+            build_nvrs (iterable): An iterable of 3-tuples. Each 3-tuple is strings that express
+                the name, version, and release of the desired build.
+            release_name (basestring): The name of the release to associate with the new updates.
+        Returns:
+            bodhi.server.models.Update: The new update.
         """
         return create_update(self.db, build_nvrs, release_name)
 
@@ -260,17 +293,29 @@ class BaseTestCase(unittest.TestCase):
 
 class TransactionalSessionMaker(object):
     """
-    Mimic the behavior of bodhi.server.utils.TransactionalSessionMaker, but allow tests to inject
-    the test database Session.
+    Mimic the behavior of bodhi.server.utils.TransactionalSessionMaker.
+
+    This allows tests to inject the test database Session.
     """
+
     def __init__(self, Session):
         """
         Store the Session for later retrieval.
+
+        Args:
+            Session (sqlalchemy.orm.scoping.scoped_session): A Session class that can be used to
+                create a session.
         """
         self._Session = Session
 
     @contextmanager
     def __call__(self):
+        """
+        Enter and exit the context, committing or rolling back the transaction as appropriate.
+
+        Yields:
+            sqlalchemy.orm.session.Session: A database session.
+        """
         session = self._Session()
         try:
             yield session
