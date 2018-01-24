@@ -1,3 +1,23 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2007-2018 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Test the bodhi.server package."""
+
 from datetime import datetime, timedelta
 
 import mock
@@ -10,14 +30,21 @@ from bodhi.server.models import (
 
 def create_update(session, build_nvrs, release_name=u'F17'):
     """
-    Use the given session to create and return an Update with the given iterable of build_nvrs. Each
-    build_nvr should be a string describing the name, version, and release for the build separated
-    by dashes. For example, build_nvrs might look like this:
+    Use the given session to create and return an Update with the given iterable of build_nvrs.
+
+    Each build_nvr should be a string describing the name, version, and release for the build
+    separated by dashes. For example, build_nvrs might look like this:
 
     (u'bodhi-2.3.3-1.fc24', u'python-fedora-atomic-composer-2016.3-1.fc24')
 
     You can optionally pass a release_name to select a different release than the default F17, but
     the release must already exist in the database.
+
+    Args:
+        build_nvrs (iterable): An iterable of strings of NVRs to put into the update.
+        release_name (basestring): The name of the release to associate with the update.
+    Returns:
+        bodhi.server.models.Update: The generated update.
     """
     release = session.query(Release).filter_by(name=release_name).one()
     user = session.query(User).filter_by(name=u'guest').one()
@@ -58,6 +85,12 @@ def create_update(session, build_nvrs, release_name=u'F17'):
 
 
 def populate(db):
+    """
+    Create some data for tests to use.
+
+    Args:
+        db (sqlalchemy.orm.session.Session): The database session.
+    """
     user = User(name=u'guest')
     db.add(user)
     anonymous = User(name=u'anonymous')
