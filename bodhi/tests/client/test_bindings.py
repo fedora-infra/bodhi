@@ -28,6 +28,8 @@ import six
 from bodhi.client import bindings
 from bodhi.tests import client as client_test_data
 
+builtin_module_name = 'builtins' if six.PY3 else '__builtin__'
+
 
 class TestBodhiClient___init__(unittest.TestCase):
     """
@@ -99,7 +101,7 @@ class TestBodhiClient_init_username(unittest.TestCase):
     TEST_HOT_SESSION_CACHE = '{"https://bodhi.fedoraproject.org/:bowlofeggs": [["stuff", "login"]]}'
     TEST_OTHER_SESSION_CACHE = '{"https://other_domain/:bowlofeggs": [["stuff", "login"]]}'
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
@@ -121,7 +123,7 @@ class TestBodhiClient_init_username(unittest.TestCase):
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(client.username, 'pongou')
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
@@ -143,7 +145,7 @@ class TestBodhiClient_init_username(unittest.TestCase):
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(client.username, 'pongou')
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
@@ -165,7 +167,7 @@ class TestBodhiClient_init_username(unittest.TestCase):
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(client.username, 'pongou')
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
@@ -186,7 +188,7 @@ class TestBodhiClient_init_username(unittest.TestCase):
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(client.username, 'bowlofeggs')
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.json.loads')
@@ -216,7 +218,7 @@ class TestBodhiClient_init_username(unittest.TestCase):
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(client.username, 'correct')
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
@@ -236,7 +238,7 @@ class TestBodhiClient_init_username(unittest.TestCase):
         self.assertEqual(mock_open.call_count, 0)
         self.assertEqual(client.username, 'pongou')
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
@@ -258,7 +260,7 @@ class TestBodhiClient_init_username(unittest.TestCase):
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(client.username, 'pongou')
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
@@ -297,7 +299,7 @@ class TestBodhiClient_csrf(unittest.TestCase):
         # No need to init the username since we already have a token.
         self.assertEqual(init_username.call_count, 0)
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
@@ -328,7 +330,7 @@ class TestBodhiClient_csrf(unittest.TestCase):
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         self.assertEqual(client.username, 'bowlofeggs')
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
@@ -1322,7 +1324,7 @@ class TestBodhiClient_parse_file(unittest.TestCase):
 
         self.assertEqual(six.text_type(exc.exception), 'Invalid input file: sad')
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
     def test_parsing_valid_file(self, exists, _load_cookies, mock_open):
@@ -1392,7 +1394,7 @@ class TestBodhiClient_testable(unittest.TestCase):
     """
     Test the BodhiClient.testable() method.
     """
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
     @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')
     @mock.patch('bodhi.client.bindings.dnf')
@@ -1440,7 +1442,7 @@ class TestGetKojiSession(unittest.TestCase):
     """
     This class tests the get_koji_session method.
     """
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.ConfigParser.readfp')
     @mock.patch("os.path.exists")
     @mock.patch("os.path.expanduser", return_value="/home/dudemcpants/")
@@ -1458,7 +1460,7 @@ class TestGetKojiSession(unittest.TestCase):
         exists.assert_called_once_with("/home/dudemcpants/.koji/config")
         mock_open.assert_called_once_with("/home/dudemcpants/.koji/config")
 
-    @mock.patch('__builtin__.open', create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), create=True)
     @mock.patch('bodhi.client.bindings.ConfigParser.readfp')
     @mock.patch("os.path.exists")
     @mock.patch("os.path.expanduser", return_value="/home/dudemcpants/")

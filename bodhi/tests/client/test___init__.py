@@ -27,11 +27,13 @@ from click import testing
 import fedora.client
 import mock
 import munch
+import six
 
 from bodhi import client
 from bodhi.client import bindings, AuthError
 from bodhi.tests import client as client_test_data
 
+builtin_module_name = 'builtins' if six.PY3 else '__builtin__'
 
 EXPECTED_DEFAULT_BASE_URL = os.environ.get('BODHI_URL', bindings.BASE_URL)
 
@@ -522,7 +524,7 @@ class TestQuery(unittest.TestCase):
         mock_input.return_value = 'dudemcpants'
 
         with mock.patch.dict('os.environ'):
-            with mock.patch('__builtin__.open', create=True) as mock_open:
+            with mock.patch('{}.open'.format(builtin_module_name), create=True) as mock_open:
                 mock_open.side_effect = fake_open_no_session_cache
                 runner = testing.CliRunner()
                 res = runner.invoke(client.query, ['--mine'])
@@ -578,7 +580,7 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
         mock_input.return_value = 'dudemcpants'
 
         with mock.patch.dict('os.environ'):
-            with mock.patch('__builtin__.open', create=True) as mock_open:
+            with mock.patch('{}.open'.format(builtin_module_name), create=True) as mock_open:
                 mock_open.side_effect = fake_open_no_session_cache
                 runner = testing.CliRunner()
                 res = runner.invoke(client.query_buildroot_overrides, ['--mine'])
