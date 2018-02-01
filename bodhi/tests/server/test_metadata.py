@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2017 Red Hat, Inc. and others.
+# Copyright 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -64,6 +64,9 @@ class TestAddUpdate(base.BaseTestCase):
         koji.getBuild() is called instead.
         """
         update = self.db.query(Update).one()
+        now = datetime(year=2018, month=2, day=8, hour=12, minute=41, second=4)
+        update.date_pushed = now
+        update.date_modified = now
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
                                 close_shelf=False)
 
@@ -119,6 +122,32 @@ class TestAddUpdate(base.BaseTestCase):
         self.assertFalse(pkg.reboot_suggested)
         self.assertEquals(pkg.arch, 'noarch')
         self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.noarch.rpm')
+
+    def test_date_modified_none(self):
+        """The metadata should use utcnow() if an update's date_modified is None."""
+        update = self.db.query(Update).one()
+        update.date_modified = None
+        md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                                close_shelf=False)
+
+        md.add_update(update)
+
+        md.shelf.close()
+        self.assertEqual(len(md.uinfo.updates), 1)
+        self.assertTrue(abs((datetime.utcnow() - md.uinfo.updates[0].updated_date).seconds) < 1)
+
+    def test_date_pushed_none(self):
+        """The metadata should use utcnow() if an update's date_pushed is None."""
+        update = self.db.query(Update).one()
+        update.date_pushed = None
+        md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                                close_shelf=False)
+
+        md.add_update(update)
+
+        md.shelf.close()
+        self.assertEqual(len(md.uinfo.updates), 1)
+        self.assertTrue(abs((datetime.utcnow() - md.uinfo.updates[0].issued_date).seconds) < 1)
 
 
 class TestUpdateInfoMetadata(base.BaseTestCase):
