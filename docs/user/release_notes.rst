@@ -2,6 +2,56 @@
 Release notes
 =============
 
+v3.3.0
+------
+
+Features
+^^^^^^^^
+
+* Test gating status is now polled whenever an update is created or edited (:issue:`1514`).
+* Check the state of updates when they are missing signatures during ``bodhi-push`` (:issue:`1781`).
+* There is now a web interface that displays the status of running composes (:issue:`2022`).
+* There is now an API for waiving test results (:commit:`d52cc1a6`).
+* The :doc:`update_states` are now documented (:commit:`6f4a48a4`).
+* A :doc:`testing` doc was written (:commit:`f1f2d011`).
+* A man page for :doc:`man_pages/bodhi-expire-overrides` was written (:commit:`e4402a32`).
+* A man page for :doc:`man_pages/bodhi-manage-releases` was written (:commit:`84d01668`).
+* Update status and request fields are now indexed for more performant searching
+  (:commit:`768ccb6c`).
+* ``updateinfo.xml`` now includes the severity level on security updates (:commit:`8c9c1bf9`).
+* Only request the global_component field for critpath PDC lookups (:commit:`46f35882`).
+* Newer updates are checked first by ``bodhi-check-policies`` (:commit:`c8942556`).
+
+
+Bugs
+^^^^
+
+* Ensure that issued_date and updated_date are always present in metadata (:issue:`2137`).
+* A link describing ffmarkdown syntax was fixed (:commit:`70895e52`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Some validation code was cleaned up to share code (:issue:`9f17b6cf`).
+* The database now has a content type enum for containers (:issue:`2026`).
+* Docblocks were written for more code.
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.3.0:
+
+* Matt Jia
+* Jonathan Lebon
+* Yadnyawalkya Tale
+* Patrick Uiterwijk
+* Till Maas
+* Ken Dreyer
+* Randy Barlow
+
+
 v3.2.0
 ------
 
