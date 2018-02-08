@@ -36,7 +36,8 @@ def check():
     session = Session()
 
     updates = models.Update.query.filter(models.Update.status.in_(
-        [models.UpdateStatus.pending, models.UpdateStatus.testing]))
+        [models.UpdateStatus.pending, models.UpdateStatus.testing])).order_by(
+        models.Update.id.desc())
     for update in updates:
         try:
             update.update_test_gating_status()
