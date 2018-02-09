@@ -134,7 +134,7 @@ class TestAddUpdate(base.BaseTestCase):
 
         md.shelf.close()
         self.assertEqual(len(md.uinfo.updates), 1)
-        self.assertTrue(abs((datetime.utcnow() - md.uinfo.updates[0].updated_date).seconds) < 1)
+        self.assertTrue(abs((datetime.utcnow() - md.uinfo.updates[0].updated_date).seconds) < 2)
 
     def test_date_pushed_none(self):
         """The metadata should use utcnow() if an update's date_pushed is None."""
@@ -147,7 +147,7 @@ class TestAddUpdate(base.BaseTestCase):
 
         md.shelf.close()
         self.assertEqual(len(md.uinfo.updates), 1)
-        self.assertTrue(abs((datetime.utcnow() - md.uinfo.updates[0].issued_date).seconds) < 1)
+        self.assertTrue(abs((datetime.utcnow() - md.uinfo.updates[0].issued_date).seconds) < 2)
 
 
 class TestUpdateInfoMetadata(base.BaseTestCase):
