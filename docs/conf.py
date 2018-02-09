@@ -263,6 +263,9 @@ man_pages = [
     ('user/man_pages/bodhi-expire-overrides', 'bodhi-expire-overrides',
      'Look for overrides that are past their expiration dates and mark them expired',
      ['Randy Barlow'], 1),
+    ('user/man_pages/bodhi-untag-branched', 'bodhi-untag-branched',
+     'Remove the pending and testing tags from updates in a branched release.',
+     ['Randy Barlow'], 1),
 ]
 
 # If true, show URL addresses after external links.
