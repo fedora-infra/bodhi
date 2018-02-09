@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2016-2017 Red Hat, Inc.
+# Copyright © 2016-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -62,5 +62,5 @@ def clean_up():
         print('Deleting the following directories:')
         for d in dirs_to_delete:
             d = os.path.join(mash_dir, d)
-            shutil.rmtree(d)
             print(d)
+            shutil.rmtree(d)
