@@ -26,4 +26,4 @@ sudo yum install -y bzip2 docker parallel
 
 sudo systemctl start docker
 
-BUILD_PARALLEL="-j 2" ./devel/run_tests.sh
+BUILD_PARALLEL="-j 4" ./devel/run_tests.sh
