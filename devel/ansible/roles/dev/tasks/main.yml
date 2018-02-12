@@ -77,6 +77,7 @@
       - python3-mock
       - python3-munch
       - python3-pillow
+      - python3-psycopg2
       - python3-pydocstyle
       - python3-pylibravatar
       - python3-pytest
