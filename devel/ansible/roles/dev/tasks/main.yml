@@ -149,6 +149,12 @@
     regexp: "^sqlalchemy.url = sqlite.*$"
     replace: "sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2"
 
+# Bug in zope.interface filled here https://github.com/zopefoundation/zope.interface/issues/114
+- name: Fix namespace-package bug in zope.interface
+  copy:
+      content: "__import__('pkg_resources').declare_namespace(__name__)"
+      dest: "/usr/lib64/python{{ python3_version.stdout }}/site-packages/zope/__init__.py"
+
 - name: Apply database migrations
   shell: PYTHONPATH=. alembic upgrade head
   args:
