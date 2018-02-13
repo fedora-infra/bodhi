@@ -2,6 +2,18 @@
 Release notes
 =============
 
+Bugs
+^^^^
+
+* The CLI --close-bugs flag does not work (:issue:`1818`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+* Clément Verna
+
+
 v3.4.0
 ------
 

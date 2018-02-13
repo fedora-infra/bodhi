@@ -66,7 +66,7 @@ new_edit_options = [
     click.option('--notes', help='Update description'),
     click.option('--notes-file', help='Update description from a file'),
     click.option('--bugs', help='Comma-separated list of bug numbers', default=''),
-    click.option('--close-bugs', default=True, is_flag=True, help='Automatically close bugs'),
+    click.option('--close-bugs', is_flag=True, help='Automatically close bugs'),
     click.option('--request', help='Requested repository',
                  type=click.Choice(['testing', 'stable', 'unpush', 'batched'])),
     click.option('--autokarma', is_flag=True, help='Enable karma automatism'),
