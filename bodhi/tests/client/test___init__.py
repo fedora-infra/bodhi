@@ -251,7 +251,7 @@ class TestNew(unittest.TestCase):
         send_request.assert_called_once_with(
             bindings_client, 'updates/', auth=True, verb='POST',
             data={
-                'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                 'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
                 'suggest': None, 'notes': None, 'request': None, 'bugs': u'', 'requirements': None,
                 'unstable_karma': None, 'file': None, 'notes_file': None, 'type': 'bugfix'})
@@ -311,6 +311,36 @@ class TestNew(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertIn("Traceback (most recent call last):", result.output)
         self.assertIn("Exception: This is an Exception message", result.output)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_close_bugs_flag(self, send_request):
+        """
+        Assert correct behavior with the --close-bugs flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
+             '--bugs', '1234567', '--close-bugs', '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 0)
+        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
+                                                                          'localhost:6543')
+        self.assertEqual(result.output, expected_output + '\n')
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'updates/', auth=True, verb='POST',
+            data={
+                'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
+                'suggest': None, 'notes': None, 'request': None, 'bugs': u'1234567',
+                'requirements': None, 'unstable_karma': None, 'file': None,
+                'notes_file': None, 'type': 'bugfix'})
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
 
 class TestPrintOverrideKojiHint(unittest.TestCase):
@@ -798,7 +828,7 @@ class TestEdit(unittest.TestCase):
         send_request.assert_called_with(
             bindings_client, 'updates/', auth=True, verb='POST',
             data={
-                'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                 'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'autokarma': False,
                 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'suggest': None,
                 'notes': u'this is an edited note', 'notes_file': None, 'requirements': None,
@@ -834,7 +864,7 @@ class TestEdit(unittest.TestCase):
             send_request.assert_called_with(
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'suggest': None, 'notes': 'This is a --notes-file note!',
@@ -880,7 +910,7 @@ class TestEdit(unittest.TestCase):
         send_request.assert_called_with(
             bindings_client, 'updates/', auth=True, verb='POST',
             data={
-                'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                 'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26', 'autokarma': False,
                 'edited': u'drupal7-i18n-1.17-1.fc26', 'suggest': None, 'requirements': None,
                 'notes': u'this is an edited note', 'notes_file': None,
@@ -949,7 +979,7 @@ class TestEdit(unittest.TestCase):
         send_request.assert_called_with(
             bindings_client, 'updates/', auth=True, verb='POST',
             data={
-                'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                 'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                 'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                 'suggest': None, 'notes': u'testing required tasks', 'notes_file': None,
