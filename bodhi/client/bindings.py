@@ -474,7 +474,7 @@ class BodhiClient(OpenIdBaseClient):
             raise ValueError("No such file or directory: %s" % input_file)
 
         defaults = dict(severity='unspecified', suggest='unspecified')
-        config = configparser.SafeConfigParser(defaults=defaults)
+        config = configparser.ConfigParser(defaults=defaults)
         read = config.read(input_file)
 
         if len(read) != 1 or read[0] != input_file:
