@@ -112,6 +112,8 @@ class EnumSymbol(object):
         """
         return six.text_type(self.value)
 
+    __str__ = __unicode__
+
     def __json__(self, request=None):
         """
         Return a JSON representation of this EnumSymbol.
