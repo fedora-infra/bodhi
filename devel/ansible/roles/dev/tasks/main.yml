@@ -22,7 +22,7 @@
       - pcaro-hermit-fonts
       - postgresql-devel
       - pungi
-      - python
+      - python2
       - python-alembic
       - python-bugzilla
       - python-openid
