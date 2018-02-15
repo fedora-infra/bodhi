@@ -2140,10 +2140,9 @@ class TestUpdate(ModelTest):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             assert False
         except BodhiException as e:
-            pass
-        self.assertEqual(self.obj.request, UpdateRequest.testing)
-        self.assertEqual(self.obj.status, UpdateStatus.pending)
-        self.assertEqual(str(e), config.get('not_yet_tested_msg'))
+            self.assertEqual(self.obj.request, UpdateRequest.testing)
+            self.assertEqual(self.obj.status, UpdateStatus.pending)
+            self.assertEqual(str(e), config.get('not_yet_tested_msg'))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_set_request_stable_after_week_in_testing(self, publish):
@@ -2187,21 +2186,20 @@ class TestUpdate(ModelTest):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             assert False
         except BodhiException as e:
-            pass
-        expected_msg = (
-            'This critical path update has not yet been approved for pushing to the '
-            'stable repository.  It must first reach a karma of %s, consisting of %s '
-            'positive karma from proventesters, along with %d additional karma from '
-            'the community. Or, it must spend %s days in testing without any negative '
-            'feedback')
-        expected_msg = expected_msg % (
-            config.get('critpath.min_karma'),
-            config.get('critpath.num_admin_approvals'),
-            (config.get('critpath.min_karma') -
-                config.get('critpath.num_admin_approvals')),
-            config.get('critpath.stable_after_days_without_negative_karma'))
-        expected_msg += ' Additionally, it must pass automated tests.'
-        self.assertEqual(str(e), expected_msg)
+            expected_msg = (
+                'This critical path update has not yet been approved for pushing to the '
+                'stable repository.  It must first reach a karma of %s, consisting of %s '
+                'positive karma from proventesters, along with %d additional karma from '
+                'the community. Or, it must spend %s days in testing without any negative '
+                'feedback')
+            expected_msg = expected_msg % (
+                config.get('critpath.min_karma'),
+                config.get('critpath.num_admin_approvals'),
+                (config.get('critpath.min_karma') -
+                    config.get('critpath.num_admin_approvals')),
+                config.get('critpath.stable_after_days_without_negative_karma'))
+            expected_msg += ' Additionally, it must pass automated tests.'
+            self.assertEqual(str(e), expected_msg)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_met_testing_requirements_at_7_days_after_bodhi_comment(self, publish):
