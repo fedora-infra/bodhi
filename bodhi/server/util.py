@@ -30,7 +30,6 @@ import socket
 import subprocess
 import tempfile
 import time
-import urllib
 
 from kitchen.iterutils import iterate
 from pyramid.i18n import TranslationStringFactory
@@ -43,6 +42,7 @@ import markdown
 import requests
 import rpm
 from six.moves import map
+from six.moves.urllib.parse import urlencode
 import six
 
 from bodhi.server import log, buildsys, Session
@@ -378,7 +378,7 @@ def avatar(context, username, size):
                     default='retro',
                 )
             else:
-                query = urllib.urlencode({'s': size, 'd': 'retro'})
+                query = urlencode({'s': size, 'd': 'retro'})
                 hash = hashlib.sha256(openid).hexdigest()
                 template = "https://seccdn.libravatar.org/avatar/%s?%s"
                 return template % (hash, query)
@@ -864,7 +864,7 @@ def page_url(context, page):
     request = context.get('request')
     params = dict(request.params)
     params['page'] = page
-    return request.path_url + "?" + urllib.urlencode(params)
+    return request.path_url + "?" + urlencode(params)
 
 
 def bug_link(context, bug, short=False):
@@ -1079,7 +1079,7 @@ def taskotron_results(settings, entity='results/latest', max_queries=10, **kwarg
     max_queries = max_queries or 0
     url = settings['resultsdb_api_url'] + "/api/v2.0/" + entity
     if kwargs:
-        url = url + "?" + urllib.urlencode(kwargs)
+        url = url + "?" + urlencode(kwargs)
     data = True
     queries = 0
 
@@ -1214,14 +1214,14 @@ def get_critpath_components_from_pdc(branch, component_type='rpm', components=No
         # Do a query for every single component
         for component in components:
             query_args['global_component'] = component
-            pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, urllib.urlencode(query_args))
+            pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, urlencode(query_args))
             pdc_request_json = pdc_api_get(pdc_api_url_with_args)
             for branch_rv in pdc_request_json['results']:
                 critpath_pkgs_set.add(branch_rv['global_component'])
             if pdc_request_json['next']:
                 raise Exception('We got paging when requesting a single component?!')
     else:
-        pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, urllib.urlencode(query_args))
+        pdc_api_url_with_args = '{0}?{1}'.format(pdc_api_url, urlencode(query_args))
         while True:
             pdc_request_json = pdc_api_get(pdc_api_url_with_args)
 
