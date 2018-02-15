@@ -273,7 +273,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         assert len(updateinfos) == 1, "We generated %d updateinfo metadata" % len(updateinfos)
         updateinfo = updateinfos[0]
         hash = basename(updateinfo).split("-", 1)[0]
-        hashed = sha256(open(updateinfo).read()).hexdigest()
+        hashed = sha256(open(updateinfo, 'rb').read()).hexdigest()
         assert hash == hashed, "File: %s\nHash: %s" % (basename(updateinfo), hashed)
         return updateinfo
 
