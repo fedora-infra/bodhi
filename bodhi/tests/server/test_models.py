@@ -1074,7 +1074,7 @@ class TestRpmBuild(ModelTest):
             changelog,
             ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1\n- Added '
              'a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo> - 2.0.1-2\n- Make '
-             'users \xe2\x98\xba\n'))
+             'users ☺\n'))
         # No exception should have been logged.
         self.assertEqual(exception.call_count, 0)
         get_rpm_header.assert_called_once_with(self.obj.nvr)
