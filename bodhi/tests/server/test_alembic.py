@@ -43,5 +43,5 @@ class TestAlembic(unittest.TestCase):
             stdin=proc1.stdout, stdout=subprocess.PIPE)
 
         stdout = proc2.communicate()[0]
-        stdout = stdout.strip().split('\n')
+        stdout = stdout.strip().split(b'\n')
         self.assertEqual(len(stdout), 1)
