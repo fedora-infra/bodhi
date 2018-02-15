@@ -897,10 +897,12 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
 
         rv = self.package.get_pkg_committers_from_pagure()
 
-        self.assertEqual(
-            rv,
-            (['ignatenkobrain', 'releng', 'dmach', 'jsilhan', 'mluscon', 'jmracek', 'mhatina'],
-             ['rpm-software-management-sig']))
+        committers, groups = rv
+
+        self.assertEqual(sorted(committers),
+                         ['dmach', 'ignatenkobrain', 'jmracek', 'jsilhan',
+                          'mhatina', 'mluscon', 'releng'])
+        self.assertEqual(groups, ['rpm-software-management-sig'])
         session.get.assert_called_once_with(
             'https://src.fedoraproject.org/pagure/api/0/rpms/the-greatest-package?expand_group=1',
             timeout=60)
