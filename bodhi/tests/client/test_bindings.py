@@ -27,6 +27,7 @@ import six
 
 from bodhi.client import bindings
 from bodhi.tests import client as client_test_data
+from bodhi.tests.utils import compare_output
 
 builtin_module_name = 'builtins' if six.PY3 else '__builtin__'
 
@@ -918,10 +919,10 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertEqual(
+        self.assertTrue(compare_output(
             text,
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-                '[-3, 3]', '[-3, 3]\n        Bugs: 1234 - it broke\n            : 1235 - halp'))
+                '[-3, 3]', '[-3, 3]\n        Bugs: 1234 - it broke\n            : 1235 - halp')))
 
     def test_minimal(self):
         """Ensure correct output when minimal is True."""
@@ -955,10 +956,10 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertEqual(
+        self.assertTrue(compare_output(
             text,
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-                '[-3, 3]', '[-3, 3]\n     Request: stable'))
+                '[-3, 3]', '[-3, 3]\n     Request: stable')))
 
     def test_severity(self):
         """Test that severity is rendered."""
@@ -978,7 +979,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertEqual(text, client_test_data.EXPECTED_UPDATE_OUTPUT)
+        self.assertTrue(compare_output(text, client_test_data.EXPECTED_UPDATE_OUTPUT))
 
     def test_with_autokarma_unset(self):
         """
@@ -996,7 +997,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
             'Autokarma: True  [-3, 3]', 'Autokarma: False  [None, None]')
-        self.assertEqual(text, expected_output)
+        self.assertTrue(compare_output(text, expected_output))
 
     def test_update_as_string(self):
         """Ensure we return a string if update is a string"""
@@ -1018,9 +1019,11 @@ class TestBodhiClient_update_str(unittest.TestCase):
                 client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0], {u'anonymous': True}):
             text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertEqual(text, client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-            "Comments: bodhi ",
-            "Comments: bodhi (unauthenticated) "))
+        self.assertTrue(compare_output(
+            text,
+            client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
+                "Comments: bodhi ",
+                "Comments: bodhi (unauthenticated) ")))
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH, {u'alias': None})
@@ -1037,7 +1040,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
         expected_output = expected_output.replace(
             "   Update ID: FEDORA-EPEL-2016-3081a94111\n",
             "")
-        self.assertEqual(text, expected_output)
+        self.assertTrue(compare_output(text, expected_output))
 
 
 class TestErrorhandled(unittest.TestCase):

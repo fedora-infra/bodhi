@@ -32,6 +32,7 @@ import six
 from bodhi import client
 from bodhi.client import bindings, AuthError
 from bodhi.tests import client as client_test_data
+from bodhi.tests.utils import compare_output
 
 builtin_module_name = 'builtins' if six.PY3 else '__builtin__'
 
@@ -277,7 +278,7 @@ class TestNew(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
                                                                           'localhost:6543')
-        self.assertEqual(result.output, expected_output + '\n')
+        self.assertTrue(compare_output(result.output, expected_output))
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'updates/', auth=True, verb='POST',
@@ -646,7 +647,7 @@ class TestRequest(unittest.TestCase):
                                                 'some_user', '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_UPDATE_OUTPUT + '\n')
+        self.assertTrue(compare_output(result.output, client_test_data.EXPECTED_UPDATE_OUTPUT))
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
@@ -672,10 +673,10 @@ class TestRequest(unittest.TestCase):
                                                 'some_user', '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 2)
-        self.assertEqual(
+        self.assertTrue(compare_output(
             result.output,
             (u'Usage: request [OPTIONS] UPDATE STATE\n\nError: Invalid value for UPDATE: Update not'
-             u' found: bodhi-2.2.4-99.el7\n'))
+             u' found: bodhi-2.2.4-99.el7\n')))
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
@@ -701,7 +702,7 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
                                                                           'localhost:6543')
-        self.assertEqual(result.output, expected_output + '\n')
+        self.assertTrue(compare_output(result.output, expected_output))
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
@@ -1168,7 +1169,7 @@ class TestPrintResp(unittest.TestCase):
 
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
                                                                           'localhost:6543')
-        self.assertEqual(result.output, expected_output + '\n')
+        self.assertTrue(compare_output(result.output, expected_output))
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
