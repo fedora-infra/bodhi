@@ -2596,7 +2596,8 @@ class TestUpdate(ModelTest):
         expected_names = [u"Test 1", u"Test 2"]
 
         self.assertEqual(len(tests), len(expected))
-        self.assertEqual(sorted(tests), sorted(expected))
+        self.assertEqual(sorted(tests, key=lambda testcase: testcase.name),
+                         sorted(expected, key=lambda testcase: testcase.name))
 
         self.assertEqual(len(test_names), len(expected_names))
         self.assertEqual(sorted(test_names), sorted(expected_names))

@@ -3370,7 +3370,7 @@ class Update(Base):
                 if test.name not in test_names:
                     test_names.add(test.name)
                     tests.add(test)
-        return sorted(list(tests))
+        return sorted(list(tests), key=lambda testcase: testcase.name)
 
     @property
     def requested_tag(self):
