@@ -625,10 +625,14 @@ $(document).ready(function(){
       % endif
 
     </h1>
-    <h4>
+    <h4 id='shortdesc'>
       ${update.type} update
-      in ${update.release.long_name}
-      for ${update.beautify_title(amp=True) | n}
+      in ${update.release.long_name} for
+      <a href="${request.route_url('updates') + '?packages=' + build.package.name}">
+        ${update.beautify_title(amp=True) | n}
+      </a>
+      
+      
     </h4>
     <div>
       Status: ${self.util.status2html(update.status) | n}
