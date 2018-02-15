@@ -89,6 +89,7 @@
       - python3-tox
       - python3-webtest
       - redhat-rpm-config
+      - skopeo
       - vim-enhanced
       - zlib-devel
 

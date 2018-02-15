@@ -35,12 +35,13 @@ from six import StringIO
 
 from bodhi.server import buildsys, exceptions, log, push
 from bodhi.server.config import config
-from bodhi.server.consumers.masher import (checkpoint, Masher, ComposerThread, RPMComposerThread,
-                                           ModuleComposerThread, PungiComposerThread)
+from bodhi.server.consumers.masher import (
+    checkpoint, Masher, ComposerThread, ContainerComposerThread, RPMComposerThread,
+    ModuleComposerThread, PungiComposerThread)
 from bodhi.server.exceptions import LockedUpdateException
 from bodhi.server.models import (
-    Build, BuildrootOverride, Compose, ComposeState, Release, ReleaseState, RpmBuild,
-    TestGatingStatus, Update, UpdateRequest, UpdateStatus, UpdateType, User, ModuleBuild,
+    Build, BuildrootOverride, Compose, ComposeState, ContainerBuild, Release, ReleaseState,
+    RpmBuild, TestGatingStatus, Update, UpdateRequest, UpdateStatus, UpdateType, User, ModuleBuild,
     ContentType, Package)
 from bodhi.server.util import mkmetadatadir
 from bodhi.tests.server import base
@@ -1758,10 +1759,8 @@ testmodule:master:20172:2
 
 
 class ComposerThreadBaseTestCase(base.BaseTestCase):
-    """
-    This test class has common setUp() and tearDown() methods that are useful for testing the
-    ComposerThread class.
-    """
+    """Methods that are useful for testing ComposerThread subclasses."""
+
     def setUp(self):
         """
         Set up the test conditions.
@@ -1798,6 +1797,149 @@ class ComposerThreadBaseTestCase(base.BaseTestCase):
             dict: A dictionary of the fedmsg that bodhi-push sends.
         """
         return _make_msg(base.TransactionalSessionMaker(self.Session), extra_push_args)
+
+
+class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
+    """Test ContainerComposerThread._compose_update()."""
+
+    def setUp(self):
+        super(TestContainerComposerThread__compose_updates, self).setUp()
+
+        user = self.db.query(User).first()
+        release = self.create_release('28C')
+        release.branch = 'f28'
+        package1 = Package(name=u'testcontainer1',
+                           type=ContentType.container)
+        self.db.add(package1)
+        package2 = Package(name=u'testcontainer2',
+                           type=ContentType.container)
+        self.db.add(package2)
+        build1 = ContainerBuild(nvr=u'testcontainer1-2.0.1-71.fc28', release=release, signed=True,
+                                package=package1)
+        self.db.add(build1)
+        build2 = ContainerBuild(nvr=u'testcontainer2-1.0.1-1.fc28', release=release, signed=True,
+                                package=package2)
+        self.db.add(build2)
+        update = Update(
+            title=u'testcontainer1-2.0.1-71.fc28, testcontainer2-1.0.1-1.fc28',
+            builds=[build1, build2], user=user,
+            status=UpdateStatus.pending,
+            request=UpdateRequest.testing,
+            notes=u'Neat I can compose containers now', release=release,
+            test_gating_status=TestGatingStatus.passed)
+        update.type = UpdateType.bugfix
+        self.db.add(update)
+        # Wipe out the tag cache so it picks up our new release
+        Release._tag_cache = None
+        self.db.flush()
+
+    @mock.patch('bodhi.server.consumers.masher.subprocess.Popen')
+    def test_request_not_stable(self, Popen):
+        """Ensure that the correct destination tag is used for non-stable updates."""
+        Popen.return_value.communicate.return_value = ('out', 'err')
+        Popen.return_value.returncode = 0
+        msg = self._make_msg(['--releases', 'F28C'])
+        t = ContainerComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                                    'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+
+        t._compose_updates()
+
+        # Popen should have been called three times per build, once for each of the destination
+        # tags. With two builds that is a total of 6 calls to Popen.
+        expected_mock_calls = []
+        for source in ('testcontainer1:2.0.1-71.fc28', 'testcontainer2:1.0.1-1.fc28'):
+            for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'testing']:
+                mock_call = mock.call(
+                    [config['skopeo.cmd'], 'copy',
+                     'docker://{}/f28/{}'.format(config['container.source_registry'], source),
+                     'docker://{}/f28/{}:{}'.format(config['container.destination_registry'],
+                                                    source.split(':')[0], dtag)],
+                    shell=False, stderr=-1, stdout=-1)
+                expected_mock_calls.append(mock_call)
+                expected_mock_calls.append(mock.call().communicate())
+        self.assertEqual(Popen.mock_calls, expected_mock_calls)
+
+    @mock.patch('bodhi.server.consumers.masher.subprocess.Popen')
+    def test_request_stable(self, Popen):
+        """Ensure that the correct destination tag is used for stable updates."""
+        Popen.return_value.communicate.return_value = ('out', 'err')
+        Popen.return_value.returncode = 0
+        ContainerBuild.query.first().update.request = UpdateRequest.stable
+        msg = self._make_msg(['--releases', 'F28C'])
+        t = ContainerComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                                    'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+
+        t._compose_updates()
+
+        # Popen should have been called three times per build, once for each of the destination
+        # tags. With two builds that is a total of 6 calls to Popen.
+        expected_mock_calls = []
+        for source in ('testcontainer1:2.0.1-71.fc28', 'testcontainer2:1.0.1-1.fc28'):
+            for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'latest']:
+                mock_call = mock.call(
+                    [config['skopeo.cmd'], 'copy',
+                     'docker://{}/f28/{}'.format(config['container.source_registry'], source),
+                     'docker://{}/f28/{}:{}'.format(config['container.destination_registry'],
+                                                    source.split(':')[0], dtag)],
+                    shell=False, stderr=-1, stdout=-1)
+                expected_mock_calls.append(mock_call)
+                expected_mock_calls.append(mock.call().communicate())
+        self.assertEqual(Popen.mock_calls, expected_mock_calls)
+
+    @mock.patch('bodhi.server.consumers.masher.subprocess.Popen')
+    def test_skopeo_error_code(self, Popen):
+        """Assert that a RuntimeError is raised if skopeo returns a non-0 exit code."""
+        Popen.return_value.communicate.return_value = ('out', 'err')
+        Popen.return_value.returncode = 1
+        ContainerBuild.query.first().update.request = UpdateRequest.stable
+        msg = self._make_msg(['--releases', 'F28C'])
+        t = ContainerComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                                    'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+
+        with self.assertRaises(RuntimeError) as exc:
+            t._compose_updates()
+
+        # Popen should have been called once.
+        skopeo_cmd = [
+            config['skopeo.cmd'], 'copy',
+            'docker://{}/f28/testcontainer1:2.0.1-71.fc28'.format(
+                config['container.source_registry']),
+            'docker://{}/f28/testcontainer1:2.0.1-71.fc28'.format(
+                config['container.destination_registry'])]
+        Popen.assert_called_once_with(skopeo_cmd, shell=False, stderr=-1, stdout=-1)
+        self.assertEqual(str(exc.exception),
+                         '{} returned a non-0 exit code: 1'.format(' '.join(skopeo_cmd)))
+
+    @mock.patch.dict(config, {'skopeo.extra_copy_flags': '--dest-tls-verify=false'})
+    @mock.patch('bodhi.server.consumers.masher.subprocess.Popen')
+    def test_skopeo_extra_copy_flags(self, Popen):
+        """Test the skopeo.extra_copy_flags setting."""
+        Popen.return_value.communicate.return_value = ('out', 'err')
+        Popen.return_value.returncode = 0
+        msg = self._make_msg(['--releases', 'F28C'])
+        t = ContainerComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                                    'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+
+        t._compose_updates()
+
+        # Popen should have been called three times per build, once for each of the destination
+        # tags. With two builds that is a total of 6 calls to Popen.
+        expected_mock_calls = []
+        for source in ('testcontainer1:2.0.1-71.fc28', 'testcontainer2:1.0.1-1.fc28'):
+            for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'testing']:
+                mock_call = mock.call(
+                    [config['skopeo.cmd'], 'copy', '--dest-tls-verify=false',
+                     'docker://{}/f28/{}'.format(config['container.source_registry'], source),
+                     'docker://{}/f28/{}:{}'.format(config['container.destination_registry'],
+                                                    source.split(':')[0], dtag)],
+                    shell=False, stderr=-1, stdout=-1)
+                expected_mock_calls.append(mock_call)
+                expected_mock_calls.append(mock.call().communicate())
+        self.assertEqual(Popen.mock_calls, expected_mock_calls)
 
 
 class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase):

@@ -359,6 +359,12 @@ class BodhiConfig(dict):
         'captcha.ttl': {
             'value': 300,
             'validator': int},
+        'container.destination_registry': {
+            'value': 'registry.fedoraproject.org',
+            'validator': six.text_type},
+        'container.source_registry': {
+            'value': 'candidate-registry.fedoraproject.org',
+            'validator': six.text_type},
         'cors_connect_src': {
             'value': 'https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/',
             'validator': six.text_type},
@@ -548,6 +554,14 @@ class BodhiConfig(dict):
         'site_requirements': {
             'value': 'dist.rpmdeplint dist.upgradepath',
             'validator': six.text_type},
+        'skopeo.cmd': {
+            'value': '/usr/bin/skopeo',
+            'validator': six.text_type,
+        },
+        'skopeo.extra_copy_flags': {
+            'value': '',
+            'validator': six.text_type,
+        },
         'smtp_server': {
             'value': None,
             'validator': _validate_none_or(six.text_type)},
