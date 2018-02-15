@@ -175,11 +175,11 @@ class TestSend(base.BaseTestCase):
         SMTP.assert_called_once_with('smtp.example.com')
         sendmail = SMTP.return_value.sendmail
         self.assertEqual(sendmail.call_count, 1)
-        self.assertEqual(sendmail.mock_calls[0][1][0], 'updates@fedoraproject.org')
-        self.assertEqual(sendmail.mock_calls[0][1][1], ['fake@news.com'])
-        self.assertTrue('X-Bodhi-Update-Title: bodhi-2.0-1.fc17' in sendmail.mock_calls[0][1][2])
+        self.assertEqual(sendmail.mock_calls[0][1][0], b'updates@fedoraproject.org')
+        self.assertEqual(sendmail.mock_calls[0][1][1], [b'fake@news.com'])
+        self.assertTrue(b'X-Bodhi-Update-Title: bodhi-2.0-1.fc17' in sendmail.mock_calls[0][1][2])
         self.assertTrue(
-            'Subject: [Fedora Update] [comment] bodhi-2.0-1.fc17' in sendmail.mock_calls[0][1][2])
+            b'Subject: [Fedora Update] [comment] bodhi-2.0-1.fc17' in sendmail.mock_calls[0][1][2])
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.example.com'})
     @mock.patch('bodhi.server.mail.smtplib.SMTP', side_effect=Exception())

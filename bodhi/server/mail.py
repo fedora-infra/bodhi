@@ -494,13 +494,13 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     subject = to_bytes(subject)
     body_text = to_bytes(body_text)
 
-    msg = ['From: %s' % from_addr, 'To: %s' % to_addr]
+    msg = [b'From: %s' % from_addr, b'To: %s' % to_addr]
     if headers:
         for key, value in headers.items():
-            msg.append('%s: %s' % (key, to_bytes(value)))
-    msg.append('X-Bodhi: %s' % to_bytes(config.get('default_email_domain')))
-    msg += ['Subject: %s' % subject, '', body_text]
-    body = to_bytes('\r\n'.join(msg))
+            msg.append(b'%s: %s' % (to_bytes(key), to_bytes(value)))
+    msg.append(b'X-Bodhi: %s' % to_bytes(config.get('default_email_domain')))
+    msg += [b'Subject: %s' % subject, b'', body_text]
+    body = b'\r\n'.join(msg)
 
     log.info('Sending mail to %s: %s', to_addr, subject)
     _send_mail(from_addr, to_addr, body)
