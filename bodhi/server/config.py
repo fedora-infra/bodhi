@@ -20,6 +20,7 @@
 from datetime import datetime
 import os
 import logging
+import binascii
 
 from pyramid import settings
 from pyramid.paster import get_appsettings
@@ -175,8 +176,8 @@ def _validate_fernet_key(value):
     try:
         engine = cryptography.fernet.Fernet(value)
         # This will raise a ValueError if value is not suitable as a Fernet key.
-        engine.encrypt('a secret test string')
-    except TypeError:
+        engine.encrypt(b'a secret test string')
+    except (TypeError, binascii.Error):
         raise ValueError('Fernet key must be 32 url-safe base64-encoded bytes.')
 
     return value

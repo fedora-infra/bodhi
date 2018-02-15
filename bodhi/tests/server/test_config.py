@@ -363,7 +363,7 @@ class ValidateFernetKey(unittest.TestCase):
 
     def test_valid_key(self):
         """A valid key should be a string, even if we pass it a unicode"""
-        key = six.text_type('gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA=')
+        key = b'gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA='
         result = config._validate_fernet_key(key)
 
         self.assertEqual(result, key)
