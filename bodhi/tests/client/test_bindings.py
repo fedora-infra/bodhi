@@ -1327,7 +1327,7 @@ class TestBodhiClient_parse_file(unittest.TestCase):
 
         self.assertEqual(six.text_type(exc.exception), 'Invalid input file: sad')
 
-    @mock.patch('{}.open'.format(builtin_module_name), create=True)
+    @mock.patch('{}.open'.format(builtin_module_name), new_callable=mock.mock_open)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.os.path.exists')
     def test_parsing_valid_file(self, exists, _load_cookies, mock_open):
@@ -1361,6 +1361,8 @@ class TestBodhiClient_parse_file(unittest.TestCase):
             ""]
         exists.return_value = True
         mock_open.return_value.readline.side_effect = s
+        # Workaround for Python bug https://bugs.python.org/issue21258
+        mock_open.return_value.__iter__ = lambda self: iter(self.readline, '')
 
         client = bindings.BodhiClient()
         updates = client.parse_file("sad")
