@@ -340,7 +340,7 @@ class TestEnumMeta(unittest.TestCase):
         expected_values = ['testing', 'stable']
 
         for v in iter(m):
-            self.assertEqual(str(v), '<{}>'.format(expected_values.pop(0)))
+            self.assertEqual(repr(v), '<{}>'.format(expected_values.pop(0)))
             self.assertEqual(type(v), model.EnumSymbol)
 
         self.assertEqual(expected_values, [])
