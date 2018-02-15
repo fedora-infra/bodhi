@@ -22,12 +22,10 @@ import os
 import platform
 import subprocess
 import sys
-import traceback
 import re
 import functools
 
 import click
-import six
 
 from bodhi.client import bindings
 from fedora.client import AuthError
@@ -152,7 +150,12 @@ def handle_errors(method):
         except AuthError as e:
             click.secho("%s: Check your FAS username & password" % (e), fg='red', bold=True)
             sys.exit(1)
-        except bindings.BodhiClientException as e:
+        except EOFError as e:
+            # This error could be raised if user presses Ctrl+D while entering
+            # password. Treat this event as a normal thing that user wants
+            # instead of error. So, just ignore raised error and keep quiet.
+            pass
+        except Exception as e:
             click.secho(str(e), fg='red', bold=True)
             sys.exit(2)
     return wrapper
@@ -268,13 +271,8 @@ def new(user, password, url, **kwargs):
     kwargs['notes'] = _get_notes(**kwargs)
 
     for update in updates:
-        try:
-            resp = client.save(**update)
-            print_resp(resp, client)
-        except bindings.BodhiClientException as e:
-            click.echo(str(e))
-        except Exception as e:
-            traceback.print_exc()
+        resp = client.save(**update)
+        print_resp(resp, client)
 
 
 def _validate_edit_update(ctx, param, value):
@@ -440,11 +438,7 @@ def request(update, state, user, password, url, **kwargs):
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
 
-    try:
-        resp = client.request(update, state)
-    except bindings.UpdateNotFound as exc:
-        raise click.BadParameter(six.text_type(exc), param_hint='UPDATE')
-
+    resp = client.request(update, state)
     print_resp(resp, client)
 
 
