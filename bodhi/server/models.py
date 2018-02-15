@@ -2247,11 +2247,11 @@ class Update(Base):
         If the "nvr" parameter is specified it will include name, version and
         release information in package labels.
         """
-        def build_label():
+        def build_label(build):
             return build.nvr if nvr else packagename_from_nvr(self, build.nvr)
 
         if len(self.builds) > 2:
-            title = ", ".join([build_label() for build in self.builds[:2]])
+            title = ", ".join([build_label(build) for build in self.builds[:2]])
 
             if amp:
                 title += ", &amp; "
@@ -2261,7 +2261,7 @@ class Update(Base):
             title += " more"
             return title
         else:
-            return " and ".join([build_label() for build in self.builds])
+            return " and ".join([build_label(build) for build in self.builds])
 
     def assign_alias(self):
         """Return a randomly-suffixed update ID.
