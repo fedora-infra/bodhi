@@ -80,6 +80,9 @@ class UpdateNotFound(BodhiClientException):
         """
         return u'Update not found: {}'.format(self.update)
 
+    # Use __unicode__ method under __str__ name for Python 3
+    __str__ = __unicode__
+
 
 def errorhandled(method):
     """Raise exceptions on failure. Used as a decorator for BodhiClient methods."""
