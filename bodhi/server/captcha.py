@@ -25,6 +25,7 @@ from __future__ import division
 import base64
 import math
 import random
+import binascii
 
 from PIL import Image, ImageDraw, ImageFont
 from pyramid.httpexceptions import HTTPGone, HTTPNotFound
@@ -259,8 +260,8 @@ def decrypt(ciphertext, settings):
 
     try:
         ciphertext = base64.urlsafe_b64decode(ciphertext)
-    except TypeError:
-        raise HTTPNotFound("%s is garbage" % ciphertext)
+    except (TypeError, binascii.Error):
+        raise HTTPNotFound("%s is garbage" % ciphertext.decode('utf-8'))
 
     try:
         plaintext = engine.decrypt(ciphertext, ttl=ttl)

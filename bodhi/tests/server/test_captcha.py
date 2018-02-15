@@ -20,6 +20,7 @@ import unittest
 import mock
 import PIL.Image
 from pyramid.httpexceptions import HTTPGone, HTTPNotFound
+import six
 
 from bodhi.server import captcha
 from bodhi.server.config import config
@@ -44,7 +45,7 @@ class TestDecrypt(unittest.TestCase):
         with self.assertRaises(HTTPNotFound) as exc:
             captcha.decrypt(base64_unsafe_message, config)
 
-        self.assertEqual(str(exc.exception), '$@#his3##d*f is garbage')
+        self.assertEqual(six.text_type(exc.exception), '$@#his3##d*f is garbage')
 
     @mock.patch.dict(config, {'captcha.secret': 'gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA='})
     def test_invalid_token(self):
