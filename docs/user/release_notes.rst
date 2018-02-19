@@ -2,6 +2,41 @@
 Release notes
 =============
 
+v3.4.0
+------
+
+Features
+^^^^^^^^
+
+* A UI for waiving failed test results has been added to the update page (:commit:`7f7472b6`).
+* A man page was written for :doc:`man_pages/bodhi-untag-branched` (:commit:`2b83aeca`).
+* ``bodhi-clean-old-mashes`` now prints directories before deleting them (:commit:`1cfa8a61`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* The mouseover text for severity was fixed on the new update form (:commit:`fe40e387`).
+* It was made clearer in ``production.ini`` that some settings don't have defaults
+  (:commit:`c865af96`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* All of Bodhi's public code now has docblocks that follow PEP-257.
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.4.0:
+
+* Matt Jia
+* Lubomír Sedlář
+* Randy Barlow
+
+
 v3.3.0
 ------
 
