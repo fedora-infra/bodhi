@@ -201,15 +201,17 @@ class Bugzilla(BugTracker):
                 fixedin = [v.strip() for v in bug.fixed_in.split()]
                 # Strip out any empty strings (already stripped)
                 fixedin = [v for v in fixedin if v]
-                # And add our build if its not already there
-                if version not in fixedin:
-                    fixedin.append(version)
 
                 # There are Red Hat preferences to how this field should be
                 # structured.  We should use:
                 # - the full NVR as it appears in koji
                 # - space-separated if there's more than one.
-                args['fixedin'] = " ".join(fixedin)
+                fixedinString = " ".join(fixedin)
+                
+                # Add our build if its not already there
+                # but only if resultant string length is lower than 256 chars
+                if (version not in fixedin) and (len(fixedinString)+len(version) < 255):
+                    args['fixedin'] = fixedinString + " " + version
 
             bug.close('ERRATA', **args)
         except xmlrpc_client.Fault:
