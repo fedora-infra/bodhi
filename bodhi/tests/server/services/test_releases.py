@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2018 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -11,11 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+import mock
 import webtest
 
 from bodhi import server
 from bodhi.server.models import Release, ReleaseState, Update
-from bodhi.tests.server import base
+from bodhi.tests.server import base, create_update
 
 
 class TestReleasesService(base.BaseTestCase):
@@ -188,6 +194,32 @@ class TestReleasesService(base.BaseTestCase):
 
         self.assertEquals(r.state, ReleaseState.disabled)
 
+    @mock.patch('bodhi.server.services.releases.log.info', side_effect=IOError('BOOM!'))
+    def test_save_release_exception_handler(self, info):
+        """Test the exception handler in save_release()."""
+        attrs = {"name": u"F42", "long_name": "Fedora 42", "version": "42",
+                 "id_prefix": "FEDORA", "branch": "f42", "dist_tag": "f42",
+                 "stable_tag": "f42-updates",
+                 "testing_tag": "f42-updates-testing",
+                 "candidate_tag": "f42-updates-candidate",
+                 "pending_stable_tag": "f42-updates-pending",
+                 "pending_signing_tag": "f42-updates-testing-signing",
+                 "pending_testing_tag": "f42-updates-testing-pending",
+                 "override_tag": "f42-override",
+                 "csrf_token": self.get_csrf_token(),
+                 }
+
+        res = self.app.post("/releases/", attrs, status=400)
+
+        self.assertEqual(
+            res.json,
+            {"status": "error", "errors": [
+                {"location": "body", "name": "release",
+                 "description": "Unable to create update: BOOM!"}]})
+        # The release should not have been created.
+        self.assertEqual(self.db.query(Release).filter(Release.name == attrs["name"]).count(), 0)
+        info.assert_called_once_with('Creating a new release: F42')
+
     def test_new_release_invalid_tags(self):
         attrs = {"name": "EL42", "long_name": "EPEL 42", "version": "42",
                  "id_prefix": "FEDORA EPEL", "branch": "f42",
@@ -223,6 +255,21 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEquals(res.content_type, 'text/html')
         self.assertIn('f17-updates-testing', res)
 
+    def test_get_single_release_html_two_same_updates_same_month(self):
+        """Test the HTML view with two updates of the same type from the same month."""
+        create_update(self.db, ['bodhi-3.4.0-1.fc27'])
+        create_update(self.db, ['rust-chan-0.3.1-1.fc27'])
+        self.db.flush()
+
+        res = self.app.get('/releases/f17', headers={'Accept': 'text/html'})
+
+        self.assertEquals(res.content_type, 'text/html')
+        self.assertIn('f17-updates-testing', res)
+        # Since the updates are the same type and from the same month, we should see a count of 2 in
+        # the graph data.
+        graph_data = 'data : [\n                2,\n              ]'
+        self.assertTrue(graph_data in res)
+
     def test_get_non_existent_release_html(self):
         self.app.get('/releases/x', headers={'Accept': 'text/html'}, status=404)
 
@@ -230,3 +277,24 @@ class TestReleasesService(base.BaseTestCase):
         res = self.app.get('/releases/', headers={'Accept': 'text/html'})
         self.assertEquals(res.content_type, 'text/html')
         self.assertIn('Fedora 22', res)
+
+    def test_query_releases_html_two_releases_same_state(self):
+        """Test query_releases_html() with two releases in the same state."""
+        attrs = {
+            "name": u"F42", "long_name": "Fedora 42", "version": "42",
+            "id_prefix": "FEDORA", "branch": "f42", "dist_tag": "f42",
+            "stable_tag": "f42-updates",
+            "testing_tag": "f42-updates-testing",
+            "candidate_tag": "f42-updates-candidate",
+            "pending_stable_tag": "f42-updates-pending",
+            "pending_signing_tag": "f42-updates-testing-signing",
+            "pending_testing_tag": "f42-updates-testing-pending",
+            "override_tag": "f42-override",
+            "csrf_token": self.get_csrf_token()}
+        self.app.post("/releases/", attrs, status=200)
+
+        res = self.app.get('/releases/', headers={'Accept': 'text/html'})
+
+        self.assertEquals(res.content_type, 'text/html')
+        self.assertIn('Fedora 22', res)
+        self.assertIn('Fedora 42', res)
