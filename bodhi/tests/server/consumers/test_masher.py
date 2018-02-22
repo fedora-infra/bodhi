@@ -1185,16 +1185,16 @@ That was the actual one'''
             package = Package(name=u'testmodule',
                               type=ContentType.module)
             db.add(package)
-            build1 = ModuleBuild(nvr=u'testmodule-master-1',
+            build1 = ModuleBuild(nvr=u'testmodule-master-20171',
                                  release=release, signed=True,
                                  package=package)
             db.add(build1)
-            build2 = ModuleBuild(nvr=u'testmodule-master-2',
+            build2 = ModuleBuild(nvr=u'testmodule-master-20172',
                                  release=release, signed=True,
                                  package=package)
             db.add(build2)
             update = Update(
-                title=u'testmodule-master-2',
+                title=u'testmodule-master-20172',
                 builds=[build2], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
@@ -1247,6 +1247,38 @@ That was the actual one'''
              'send_stable_announcements': True,
              'send_testing_digest': True,
              'status_comments': True})
+
+    def test_mash_module_koji_multicall_result_empty_list(self):
+        release = self.create_release('27M')
+        package = Package(name=u'testmodule',
+                          type=ContentType.module)
+        build = ModuleBuild(nvr=u'testmodule-master-20171',
+                            release=release, signed=True,
+                            package=package)
+        t = ModuleMasherThread({}, 'puiterwijk', log, self.db_factory,
+                               self.tempdir)
+        with self.assertRaises(Exception) as exc:
+            t._raise_on_get_build_multicall_error([], build)
+
+        self.assertEqual(
+            six.text_type(exc.exception),
+            'Empty list returned for getBuild("%s").' % (build.nvr))
+
+    def test_mash_module_koji_multicall_result_dict(self):
+        release = self.create_release('27M')
+        package = Package(name=u'testmodule',
+                          type=ContentType.module)
+        build = ModuleBuild(nvr=u'testmodule-master-20171',
+                            release=release, signed=True,
+                            package=package)
+        t = ModuleMasherThread({}, 'puiterwijk', log, self.db_factory,
+                               self.tempdir)
+        with self.assertRaises(Exception) as exc:
+            t._raise_on_get_build_multicall_error({}, build)
+
+        self.assertEqual(
+            six.text_type(exc.exception),
+            'Unexpected data returned for getBuild("%s"): {}.' % (build.nvr))
 
     @mock.patch(**mock_failed_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
