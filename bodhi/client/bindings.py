@@ -383,6 +383,16 @@ class BodhiClient(OpenIdBaseClient):
             'overrides/', verb='POST', auth=True, data=data)
 
     @errorhandled
+    def list_composes(self):
+        """
+        List composes.
+
+        Returns:
+            munch.Munch: A dictionary-like representation of the Composes.
+        """
+        return self.send_request('composes/', verb='GET')
+
+    @errorhandled
     def list_overrides(self, user=None, packages=None,
                        expired=None, releases=None, builds=None):
         """
@@ -548,6 +558,51 @@ class BodhiClient(OpenIdBaseClient):
                 update_list = self.query(builds=build['nvr'])['updates']
                 for update in update_list:
                     yield update
+
+    @staticmethod
+    def compose_str(compose, minimal=True):
+        """
+        Return a string representation of a compose.
+
+        Args:
+            compose (dict): A dictionary representation of a Compose.
+            minimal (bool): If True, return a minimal one-line representation of the compose.
+                Otherwise, return a more verbose string. Defaults to True.
+        Returns:
+            basestring: A human readable string describing the compose.
+        """
+        line_formatter = '{0:<16}: {1}'
+        security = '*' if compose['security'] else ' '
+        title = "{security}{release}-{request}".format(
+            security=security,
+            release=compose['release']['name'], request=compose['request'])
+        details = "{count:3d} updates ({state}) ".format(state=compose['state'],
+                                                         count=len(compose['update_summary']))
+        minimal_repr = line_formatter.format(title, details)
+
+        if minimal:
+            return minimal_repr
+
+        line_formatter = '{0:>12}: {1}\n'
+
+        compose_lines = ['{:=^80}\n'.format('='), '     {}\n'.format(minimal_repr)]
+        compose_lines.append('{:=^80}\n'.format('='))
+
+        compose_lines += [
+            line_formatter.format('Content Type', compose['content_type']),
+            line_formatter.format('Started', compose['date_created']),
+            line_formatter.format('Updated', compose['state_date']),
+        ]
+
+        if 'error_message' in compose and compose['error_message']:
+            compose_lines.append(line_formatter.format('Error', compose['error_message']))
+
+        compose_lines += ['\nUpdates:\n\n']
+        line_formatter = '\t{}'.format(line_formatter)
+        for s in compose['update_summary']:
+            compose_lines.append(line_formatter.format(s['alias'], s['title']))
+
+        return ''.join(compose_lines)
 
     @staticmethod
     def override_str(override, minimal=True):

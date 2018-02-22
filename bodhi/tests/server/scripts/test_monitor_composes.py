@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2017 Red Hat, Inc.
+# Copyright © 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -42,7 +42,10 @@ class TestMonitor(BaseTestCase):
         r = runner.invoke(monitor_composes.monitor)
 
         self.assertEqual(r.exit_code, 0)
-        self.assertEqual(r.output, 'Locked updates: 0\n\n')
+        self.assertEqual(
+            r.output,
+            ("This utility has been deprecated. Please use 'bodhi composes list' instead.\nLocked "
+             "updates: 0\n\n"))
 
     def test_monitor_with_composes(self):
         """Ensure correct output from the monitor function."""
@@ -70,6 +73,7 @@ class TestMonitor(BaseTestCase):
 
         self.assertEqual(r.exit_code, 0)
         EXPECTED_OUTPUT = (
+            "This utility has been deprecated. Please use 'bodhi composes list' instead.\n"
             'Locked updates: 2\n\n<Compose: F17 stable>\n\tstate: failed\n\tstate_date: {}\n\t'
             'security: True\n\terror_message: y r u so mean nfs\n\tcheckpoints: \n\t'
             'len(updates): 1\n\n<Compose: F17 testing>\n\tstate: notifying\n\tstate_date: {}\n\t'

@@ -227,6 +227,60 @@ class TestDownload(unittest.TestCase):
             'nodejs-grunt-wrap-0.3.0-2.fc25'))
 
 
+class TestListComposes(unittest.TestCase):
+    """Test the list_composes() function."""
+    @mock.patch.dict(client_test_data.EXAMPLE_COMPOSES_MUNCH,
+                     {'composes': [client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0]]})
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_COMPOSES_MUNCH, autospec=True)
+    def test_single_compose(self, send_request):
+        """Test without the -v flag."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.list_composes)
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('*EPEL-7-stable  :   2 updates (requested)', result.output)
+        self.assertNotIn(' EPEL-7-testing :   1 updates (requested)', result.output)
+        bodhi_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(bodhi_client, 'composes/', verb='GET')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_COMPOSES_MUNCH, autospec=True)
+    def test_short(self, send_request):
+        """Test without the -v flag."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.list_composes)
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('*EPEL-7-stable  :   2 updates (requested)', result.output)
+        self.assertIn(' EPEL-7-testing :   1 updates (requested)', result.output)
+        bodhi_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(bodhi_client, 'composes/', verb='GET')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_COMPOSES_MUNCH, autospec=True)
+    def test_verbose(self, send_request):
+        """Test with the -v flag."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.list_composes, ['-v'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('*EPEL-7-stable  :   2 updates (requested)', result.output)
+        self.assertIn('Content Type: rpm', result.output)
+        self.assertIn('Started: 2018-03-15 17:25:22', result.output)
+        self.assertIn('Updated: 2018-03-15 17:25:22', result.output)
+        self.assertIn('Updates:', result.output)
+        self.assertIn('FEDORA-EPEL-2018-50566f0a39: uwsgi-2.0.16-1.el7', result.output)
+        self.assertIn('FEDORA-EPEL-2018-328e2b8c27: qtpass-1.2.1-3.el7', result.output)
+        self.assertIn('FEDORA-EPEL-2018-32f78e466c: libmodulemd-1.1.0-1.el7', result.output)
+        self.assertIn(' EPEL-7-testing :   1 updates (requested)', result.output)
+        bodhi_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(bodhi_client, 'composes/', verb='GET')
+
+
 class TestNew(unittest.TestCase):
     """
     Test the new() function.
@@ -1153,6 +1207,7 @@ class TestPrintResp(unittest.TestCase):
     """
     Test the print_resp() method.
     """
+
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',

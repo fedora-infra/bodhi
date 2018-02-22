@@ -5,6 +5,13 @@ Release notes
 develop
 -------
 
+Deprecation
+^^^^^^^^^^^
+
+* ``bodhi-monitor-composes`` has been deprecated and will be removed in a future release. Please use
+  ``bodhi composes list`` instead (:issue:`2170`).
+
+
 Dependency changes
 ^^^^^^^^^^^^^^^^^^
 

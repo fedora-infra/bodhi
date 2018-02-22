@@ -69,6 +69,42 @@ i found $10000
 """
 
 
+EXAMPLE_COMPOSES_MUNCH = Munch({
+    'composes': [
+        Munch({
+            u'release_id': 8, u'content_type': u'rpm',
+            u'update_summary': [
+                Munch({u'alias': u'FEDORA-EPEL-2018-50566f0a39', u'title': u'uwsgi-2.0.16-1.el7'}),
+                Munch({u'alias': u'FEDORA-EPEL-2018-328e2b8c27', u'title': u'qtpass-1.2.1-3.el7'})],
+            u'error_message': None, u'request': u'stable', u'state': u'requested',
+            u'state_date': u'2018-03-15 17:25:22', u'checkpoints': u'{}',
+            u'release': Munch({
+                u'dist_tag': u'epel7', u'name': u'EPEL-7', u'testing_tag': u'epel7-testing',
+                u'pending_stable_tag': u'epel7-pending',
+                u'pending_signing_tag': u'epel7-signing-pending', u'long_name': u'Fedora EPEL 7',
+                u'state': u'current', u'version': u'7', u'override_tag': u'epel7-override',
+                u'branch': u'epel7', u'id_prefix': u'FEDORA-EPEL',
+                u'pending_testing_tag': u'epel7-testing-pending', u'stable_tag': u'epel7',
+                u'candidate_tag': u'epel7-testing-candidate'}),
+            u'date_created': u'2018-03-15 17:25:22', u'security': True}),
+        Munch({
+            u'release_id': 8, u'content_type': u'rpm',
+            u'update_summary': [
+                Munch({u'alias': u'FEDORA-EPEL-2018-32f78e466c',
+                       u'title': u'libmodulemd-1.1.0-1.el7'})],
+            u'error_message': None, u'request': u'testing', u'state': u'requested',
+            u'state_date': u'2018-03-15 17:25:22', u'checkpoints': u'{}',
+            u'release': Munch({
+                u'dist_tag': u'epel7', u'name': u'EPEL-7', u'testing_tag': u'epel7-testing',
+                u'pending_stable_tag': u'epel7-pending',
+                u'pending_signing_tag': u'epel7-signing-pending', u'long_name': u'Fedora EPEL 7',
+                u'state': u'current', u'version': u'7', u'override_tag': u'epel7-override',
+                u'branch': u'epel7', u'id_prefix': u'FEDORA-EPEL',
+                u'pending_testing_tag': u'epel7-testing-pending', u'stable_tag': u'epel7',
+                u'candidate_tag': u'epel7-testing-candidate'}),
+            u'date_created': u'2018-03-15 17:25:22', u'security': False})]})
+
+
 EXAMPLE_OVERRIDE_MUNCH = Munch({
     u'build_id': 108570, u'submission_date': u'2017-02-28 23:05:32', u'caveats': [],
     u'nvr': u'js-tag-it-2.0-1.fc25', u'expiration_date': u'2017-03-07 23:05:31',

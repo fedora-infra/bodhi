@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2017 Red Hat, Inc.
+# Copyright © 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -30,6 +30,8 @@ def monitor():
     """Print a simple human-readable report about existing Compose objects."""
     initialize_db(config.config)
     buildsys.setup_buildsystem(config.config)
+
+    click.echo("This utility has been deprecated. Please use 'bodhi composes list' instead.")
 
     click.echo('Locked updates: %s\n' % models.Update.query.filter_by(locked=True).count())
 

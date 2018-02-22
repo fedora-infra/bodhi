@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2008-2017 Red Hat, Inc. and others.
+# Copyright 2008-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -93,6 +93,56 @@ class TestBodhiClient_comment(unittest.TestCase):
             'comments/', verb='POST', auth=True,
             data={'update': 'bodhi-2.4.0-1.fc25', 'text': 'It ate my cat!', 'karma': -1,
                   'email': True, 'csrf_token': 'a token'})
+
+
+class TestBodhiClient_compose_str(unittest.TestCase):
+    """Test the BodhiClient.compose_str() method."""
+
+    def test_error_message(self):
+        """Assert that an error message gets rendered in the long form."""
+        with mock.patch.dict(client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0],
+                             {'error_message': 'some error'}):
+            s = bindings.BodhiClient.compose_str(
+                client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=False)
+
+        self.assertIn('*EPEL-7-stable  :   2 updates (requested)', s)
+        self.assertIn('Content Type: rpm', s)
+        self.assertIn('Started: 2018-03-15 17:25:22', s)
+        self.assertIn('Updated: 2018-03-15 17:25:22', s)
+        self.assertIn('Updates:', s)
+        self.assertIn('FEDORA-EPEL-2018-50566f0a39: uwsgi-2.0.16-1.el7', s)
+        self.assertIn('FEDORA-EPEL-2018-328e2b8c27: qtpass-1.2.1-3.el7', s)
+        self.assertIn('Error: some error', s)
+
+    def test_minimal_false(self):
+        """Test with minimal False."""
+        s = bindings.BodhiClient.compose_str(
+            client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=False)
+
+        self.assertIn('*EPEL-7-stable  :   2 updates (requested)', s)
+        self.assertIn('Content Type: rpm', s)
+        self.assertIn('Started: 2018-03-15 17:25:22', s)
+        self.assertIn('Updated: 2018-03-15 17:25:22', s)
+        self.assertIn('Updates:', s)
+        self.assertIn('FEDORA-EPEL-2018-50566f0a39: uwsgi-2.0.16-1.el7', s)
+        self.assertIn('FEDORA-EPEL-2018-328e2b8c27: qtpass-1.2.1-3.el7', s)
+        self.assertNotIn('Error', s)
+
+    def test_minimal_true(self):
+        """Test with minimal True."""
+        s = bindings.BodhiClient.compose_str(
+            client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=True)
+
+        self.assertEqual(s, '*EPEL-7-stable  :   2 updates (requested) ')
+
+    def test_non_security_update(self):
+        """Non-security updates should not have a leading *."""
+        with mock.patch.dict(client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0],
+                             {'security': False}):
+            s = bindings.BodhiClient.compose_str(
+                client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=True)
+
+        self.assertEqual(s, ' EPEL-7-stable  :   2 updates (requested) ')
 
 
 class TestBodhiClient_init_username(unittest.TestCase):
@@ -375,6 +425,20 @@ class TestBodhiClient_latest_builds(unittest.TestCase):
 
         self.assertEqual(latest_builds, 'bodhi-2.4.0-1.fc25')
         client.send_request.assert_called_once_with('latest_builds', params={'package': 'bodhi'})
+
+
+class TestBodhiClient_list_composes(unittest.TestCase):
+    """Test the BodhiClient.list_composes() method."""
+
+    def test_list_composes(self):
+        """Assert a correct call to send_request() from list_composes()."""
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='some_composes')
+
+        composes = client.list_composes()
+
+        self.assertEqual(composes, 'some_composes')
+        client.send_request.assert_called_once_with('composes/', verb='GET')
 
 
 class TestBodhiClient_list_overrides(unittest.TestCase):

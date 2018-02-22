@@ -56,6 +56,8 @@ url_option = click.option('--url', envvar='BODHI_URL', default=bindings.BASE_URL
                           help=('URL of a Bodhi server. Ignored if --staging is set. Can be set '
                                 'with BODHI_URL environment variable'),
                           callback=_warn_if_url_and_staging_set)
+staging_option = click.option('--staging', help='Use the staging bodhi instance',
+                              is_flag=True, default=False)
 
 
 new_edit_options = [
@@ -78,8 +80,7 @@ new_edit_options = [
                  help='Space or comma-separated list of required Taskotron tasks'),
     click.option('--suggest', help='Post-update user suggestion',
                  type=click.Choice(['logout', 'reboot'])),
-    click.option('--staging', help='Use the staging bodhi instance',
-                 is_flag=True, default=False)]
+    staging_option]
 
 
 # Common options for the overrides save and edit command
@@ -91,8 +92,7 @@ save_edit_options = [
                  help='Notes on why this override is in place.'),
     click.option('--user'),
     click.option('--password', hide_input=True),
-    click.option('--staging', help='Use the staging bodhi instance',
-                 is_flag=True, default=False),
+    staging_option,
     url_option]
 
 
@@ -188,6 +188,39 @@ def cli():
     # Developer Docs
     """Create the main CLI group."""
     pass  # pragma: no cover
+
+
+@cli.group()
+def composes():
+    # Docs that show in the --help
+    """Interact with composes."""
+    # Developer Docs
+    """Create the composes group."""
+    pass  # pragma: no cover
+
+
+@composes.command(name='list')
+@handle_errors
+@staging_option
+@click.option('-v', '--verbose', is_flag=True, default=False, help='Display more information.')
+@url_option
+def list_composes(url, staging, verbose):
+    # User docs for the CLI
+    """
+    List composes.
+
+    Asterisks next to composes indicate that they contain security updates.
+    """
+    # developer docs
+    """
+    Args:
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        staging (bool): Whether to use the staging server or not.
+        verbose (bool): Whether to show verbose output or not.
+    """
+    client = bindings.BodhiClient(base_url=url, staging=staging)
+    print_resp(client.list_composes(), client, verbose)
 
 
 @cli.group()
@@ -341,8 +374,7 @@ def edit(user, password, url, **kwargs):
               type=click.Choice(['newpackage', 'security', 'bugfix', 'enhancement']))
 @click.option('--user', help='Updates submitted by a specific user')
 @click.option('--mine', is_flag=True, help='Show only your updates')
-@click.option('--staging', help='Use the staging bodhi instance',
-              is_flag=True, default=False)
+@staging_option
 @url_option
 @handle_errors
 def query(url, mine=False, **kwargs):
@@ -371,8 +403,7 @@ def query(url, mine=False, **kwargs):
 @click.argument('state')
 @click.option('--user')
 @click.option('--password', hide_input=True)
-@click.option('--staging', help='Use the staging bodhi instance',
-              is_flag=True, default=False)
+@staging_option
 @url_option
 @handle_errors
 def request(update, state, user, password, url, **kwargs):
@@ -417,8 +448,7 @@ def request(update, state, user, password, url, **kwargs):
 @click.option('--karma', default=0, type=click.INT, help='The karma for this comment (+1/0/-1)')
 @click.option('--user')
 @click.option('--password', hide_input=True)
-@click.option('--staging', help='Use the staging bodhi instance',
-              is_flag=True, default=False)
+@staging_option
 @url_option
 @handle_errors
 def comment(update, text, karma, user, password, url, **kwargs):
@@ -453,8 +483,7 @@ def comment(update, text, karma, user, password, url, **kwargs):
 
 
 @updates.command()
-@click.option('--staging', help='Use the staging bodhi instance',
-              is_flag=True, default=False)
+@staging_option
 @click.option('--arch', help='Specify arch of packages to download, ' +
               '"all" will retrieve packages from all architectures')
 @click.option('--cves', help='Download update(s) by CVE(s) (comma-separated list)')
@@ -559,8 +588,7 @@ def overrides():
 @overrides.command('query')
 @click.option('--user', default=None,
               help='Overrides submitted by a specific user')
-@click.option('--staging', help='Use the staging bodhi instance',
-              is_flag=True, default=False)
+@staging_option
 @click.option('--mine', is_flag=True,
               help='Show only your overrides.')
 @click.option('--packages', default=None,
@@ -684,13 +712,14 @@ def _print_override_koji_hint(override, client):
                 release.dist_tag, override.build.nvr))
 
 
-def print_resp(resp, client):
+def print_resp(resp, client, verbose=False):
     """
     Print a human readable rendering of the given server response to the terminal.
 
     Args:
         resp (munch.Munch): The response from the server.
         client (bodhi.client.bindings.BodhiClient): A BodhiClient.
+        verbose (bool): If True, show more detailed output. Defaults to False.
     """
     if 'updates' in resp:
         if len(resp.updates) == 1:
@@ -720,6 +749,15 @@ def print_resp(resp, client):
     elif 'comment' in resp:
         click.echo('The following comment was added to %s' % resp.comment['update'].title)
         click.echo(resp.comment.text)
+    elif 'composes' in resp:
+        if len(resp['composes']) == 1:
+            click.echo(client.compose_str(resp['composes'][0], minimal=(not verbose)))
+        else:
+            for compose in resp['composes']:
+                click.echo(client.compose_str(compose, minimal=(not verbose)))
+                if verbose:
+                    # Let's add a little more spacing
+                    click.echo()
     else:
         click.echo(resp)
     if resp.get('caveats', None):
