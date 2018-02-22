@@ -1306,6 +1306,25 @@ class ModuleComposerThread(PungiComposerThread):
         """
         pass
 
+    def _raise_on_get_build_multicall_error(self, result, build):
+        """
+        Raise an Exception if multicall result contains an error element.
+
+        Args:
+            result (list): Child list from the koji.multiCall() result.
+            build (bodhi.server.models.Build): build for which the koji.multiCall() returned
+                this result.
+        """
+        if type(result) == list and not result:
+            err = 'Empty list returned for getBuild("%s").' % build.nvr
+            self.log.error(err)
+            raise Exception(err)
+        elif type(result) != list:
+            err = 'Unexpected data returned for getBuild("%s"): %r.' \
+                % (build.nvr, result)
+            self.log.error(err)
+            raise Exception(err)
+
     def _generate_module_list(self):
         """
         Generate a list of NSVs which should be used for pungi modular compose.
@@ -1313,13 +1332,25 @@ class ModuleComposerThread(PungiComposerThread):
         Returns:
             list: list of NSV string which should be composed.
         """
-        newest_builds = {}
+        # For modules, both name and version can contain dashes. This makes it
+        # impossible to distinguish between name and version from "nvr". We
+        # therefore have to ask for Koji build here and get that information
+        # from there.
+        koji = buildsys.get_session()
+        koji.multicall = True
+        for build in self.compose.release.builds:
+            koji.getBuild(build.nvr)
+        results = koji.multiCall()
+
         # we loop through builds so we get rid of older builds and get only
         # a dict with the newest builds
-        for build in self.compose.release.builds:
-            nsv = build.nvr.rsplit('-', 1)
-            ns = nsv[0]
-            version = nsv[1]
+        newest_builds = {}
+        for result, build in zip(results, self.compose.release.builds):
+            self._raise_on_get_build_multicall_error(result, build)
+            koji_build = result[0]
+            # name:stream:version maps to Koji's name-version-release.
+            ns = "%s:%s" % (koji_build["name"], koji_build["version"])
+            version = koji_build["release"]
 
             if ns in newest_builds:
                 curr_version = newest_builds[ns]
@@ -1330,10 +1361,18 @@ class ModuleComposerThread(PungiComposerThread):
 
         # make sure that the modules we want to update get their correct versions
         for update in self.compose.updates:
-            for build in update.builds:
-                nsv = build.nvr.rsplit('-', 1)
-                ns = nsv[0]
-                version = nsv[1]
+            # We need to get the Koji builds also for the updates.
+            koji.multicall = True
+            for update in self.compose.updates:
+                for build in update.builds:
+                    koji.getBuild(build.nvr)
+            results = koji.multiCall()
+            for result, build in zip(results, update.builds):
+                self._raise_on_get_build_multicall_error(result, build)
+                koji_build = result[0]
+                # name:stream:version maps to Koji's name-version-release.
+                ns = "%s:%s" % (koji_build["name"], koji_build["version"])
+                version = koji_build["release"]
                 newest_builds[ns] = version
 
-        return ["%s-%s" % (nstream, v) for nstream, v in six.iteritems(newest_builds)]
+        return ["%s:%s" % (nstream, v) for nstream, v in six.iteritems(newest_builds)]
