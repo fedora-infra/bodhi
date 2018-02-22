@@ -22,6 +22,7 @@ sections of the API by following the links below:
    admin
    builds
    comments
+   composes
    csrf
    markdown
    overrides

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2017 Red Hat, Inc.
+# Copyright © 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -28,9 +28,14 @@ from bodhi.server.services import errors
 
 
 @resource(collection_path='/composes/', path='/composes/{release_name}/{request}',
-          description='Compose service', error_handler=errors.html_handler)
+          description='Compose service')
 class Composes(object):
-    """Defines resources for interacting with Compose objects."""
+    """
+    Defines resources for interacting with Compose objects.
+
+    Operations acting on the collection are served at ``/composes/`` and operations acting on a
+    single compose are served at ``/composes/<release_name>/<request>``.
+    """
 
     def __init__(self, request, context=None):
         """
@@ -51,22 +56,33 @@ class Composes(object):
         """
         return [(Allow, Everyone, 'view_composes')]
 
+    @view(
+        accept=('application/json', 'text/json'), renderer='json',
+        cors_origins=security.cors_origins_ro, error_handler=errors.json_handler,
+        permission='view_composes')
     @view(accept=('text/html',), renderer='composes.html', cors_origins=security.cors_origins_ro,
-          permission='view_composes')
+          permission='view_composes', error_handler=errors.html_handler)
     def collection_get(self):
         """
         List composes.
+
+        This method responds to the ``/composes/`` endpoint.
 
         Returns:
             dict: A dictionary mapping the key 'composes' to an iterable of all Compose objects.
         """
         return {'composes': sorted(models.Compose.query.all())}
 
-    @view(accept=('text/html',), renderer='compose.html', cors_origins=security.cors_origins_ro,
+    @view(accept=('application/json', 'text/json'), renderer='json',
+          cors_origins=security.cors_origins_ro, error_handler=errors.json_handler,
           permission='view_composes')
+    @view(accept=('text/html',), renderer='compose.html', cors_origins=security.cors_origins_ro,
+          permission='view_composes', error_handler=errors.html_handler)
     def get(self):
         """
         Retrieve and render a single compose.
+
+        This API responses to the ``/composes/<release_name>/<request>`` endpoint.
 
         Returns:
             dict: A dictionary mapping the key 'compose' to a single Compose object.

@@ -154,7 +154,7 @@ def push(username, cert_prefix, **kwargs):
         else:
             click.echo('\nThere are no updates to push.')
 
-        composes = [c.__json__() for c in composes]
+        composes = [c.__json__(composer=True) for c in composes]
 
     if composes:
         click.echo('\nSending masher.start fedmsg')

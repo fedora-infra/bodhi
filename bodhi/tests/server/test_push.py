@@ -453,7 +453,7 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.output, TEST_LOCKED_UPDATES_EXPECTED_OUTPUT)
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'composes': [ejabberd.compose.__json__()],
+            msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
         ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
@@ -568,8 +568,8 @@ class TestPush(base.BaseTestCase):
         publish.assert_called_once_with(
             topic='masher.start',
             msg={
-                'composes': [f25_python_nose.compose.__json__(),
-                             f26_python_paste_deploy.compose.__json__()],
+                'composes': [f25_python_nose.compose.__json__(composer=True),
+                             f26_python_paste_deploy.compose.__json__(composer=True)],
                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
 
@@ -624,7 +624,7 @@ class TestPush(base.BaseTestCase):
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'composes': [python_paste_deploy.compose.__json__()],
+            msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
                  'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
         self.assertFalse(python_nose.locked)
@@ -667,7 +667,7 @@ class TestPush(base.BaseTestCase):
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'composes': [ejabberd.compose.__json__()],
+            msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
         # ejabberd should be locked still
@@ -716,7 +716,7 @@ class TestPush(base.BaseTestCase):
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'composes': [ejabberd.compose.__json__()],
+            msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
         # ejabberd should still be locked.
@@ -773,7 +773,7 @@ class TestPush(base.BaseTestCase):
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'composes': [ejabberd.compose.__json__()],
+            msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
         # These should still be locked.
@@ -817,7 +817,7 @@ class TestPush(base.BaseTestCase):
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'composes': [python_paste_deploy.compose.__json__()],
+            msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
                  'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
         self.assertFalse(python_nose.locked)
@@ -857,7 +857,7 @@ class TestPush(base.BaseTestCase):
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
             topic='masher.start',
-            msg={'composes': [python_paste_deploy.compose.__json__()],
+            msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
                  'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
         self.assertTrue(python_nose.locked)

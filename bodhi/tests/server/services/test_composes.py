@@ -51,15 +51,21 @@ class TestCompose__acl__(base.BaseTestCase):
 
 class TestComposeCollectionGet(base.BaseTestCase):
     """This class contains tests for the Compose.collection_get() method."""
-    def test_no_composes(self):
-        """Assert correct behavior when there are no composes."""
+    def test_no_composes_html(self):
+        """Assert correct behavior for html interface when there are no composes."""
         response = self.app.get('/composes/', status=200, headers={'Accept': 'text/html'})
 
         # The Composes header should still appear in the page
         self.assertTrue('<h1>Composes</h1>' in response)
 
-    def test_with_compose(self):
-        """Assert correct behavior when there is a compose."""
+    def test_no_composes_json(self):
+        """Assert correct behavior for json interface when there are no composes."""
+        response = self.app.get('/composes/', status=200)
+
+        self.assertEqual(response.json, {'composes': []})
+
+    def test_with_compose_html(self):
+        """Assert correct behavior for the html interface when there is a compose."""
         update = models.Update.query.first()
         compose = models.Compose(release=update.release, request=update.request)
         self.db.add(compose)
@@ -72,6 +78,17 @@ class TestComposeCollectionGet(base.BaseTestCase):
         self.assertTrue(
             '/composes/{}/{}'.format(compose.release.name, compose.request.value) in response)
         self.assertTrue(compose.state.description in response)
+
+    def test_with_compose_json(self):
+        """Assert correct behavior for the json interface when there is a compose."""
+        update = models.Update.query.first()
+        compose = models.Compose(release=update.release, request=update.request)
+        self.db.add(compose)
+        self.db.flush()
+
+        response = self.app.get('/composes/', status=200)
+
+        self.assertEqual(response.json, {'composes': [compose.__json__()]})
 
 
 class TestComposeGet(base.BaseTestCase):
@@ -94,8 +111,8 @@ class TestComposeGet(base.BaseTestCase):
         self.app.get('/composes/{}/hahahwhatisthis'.format(release.name), status=404,
                      headers={'Accept': 'text/html'})
 
-    def test_with_compose(self):
-        """Assert correct behavior when there is a compose."""
+    def test_with_compose_html(self):
+        """Assert correct behavior from the html renderer when there is a compose."""
         update = models.Update.query.first()
         update.locked = True
         compose = models.Compose(release=update.release, request=update.request)
@@ -109,3 +126,17 @@ class TestComposeGet(base.BaseTestCase):
         self.assertTrue(compose.state.description in response)
         self.assertTrue('{} {}'.format(compose.release.name, compose.request.value) in response)
         self.assertTrue(update.beautify_title(amp=True, nvr=True) in response)
+
+    def test_with_compose_json(self):
+        """Assert correct behavior from the json renderer when there is a compose."""
+        update = models.Update.query.first()
+        update.locked = True
+        compose = models.Compose(release=update.release, request=update.request)
+        self.db.add(compose)
+        self.db.flush()
+
+        response = self.app.get(
+            '/composes/{}/{}'.format(compose.release.name, compose.request.value),
+            status=200)
+
+        self.assertEqual(response.json, {'compose': compose.__json__()})

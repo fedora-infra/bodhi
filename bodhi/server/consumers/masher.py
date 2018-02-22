@@ -238,7 +238,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
                 # Acknowledge that we've received the command to run these composes.
                 c.state = ComposeState.pending
 
-            return [c.__json__() for c in composes]
+            return [c.__json__(composer=True) for c in composes]
 
     def work(self, msg):
         """Begin the push process.

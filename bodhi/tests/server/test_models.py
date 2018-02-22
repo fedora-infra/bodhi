@@ -114,6 +114,33 @@ class TestBodhiBase(BaseTestCase):
 
         self.assertEqual(b._expand(b, b.package, [type(b.package)], mock.MagicMock()), b.package.id)
 
+    def test__json__exclude(self):
+        """Test __json__()'s exclude flag."""
+        c = model.Comment.query.all()[0]
+        j_with_text = c.__json__()
+        self.assertTrue('text' in j_with_text)
+
+        j = c.__json__(exclude=['text'])
+
+        self.assertTrue('text' not in j)
+        # If we remove the 'text' attribute from j_with_text, j should be equal to what remains.
+        del j_with_text['text']
+        self.assertEqual(j, j_with_text)
+
+    def test___json___include(self):
+        """Test __json__()'s include flag."""
+        c = model.Comment.query.all()[0]
+        j_with_text = c.__json__()
+        self.assertTrue('unique_testcase_feedback' not in j_with_text)
+
+        j = c.__json__(include=['unique_testcase_feedback'])
+
+        self.assertTrue('unique_testcase_feedback' in j)
+        self.assertEqual(j['unique_testcase_feedback'], [])
+        # If we add unique_testcase_feedback to j_with_text, it should be identical.
+        j_with_text['unique_testcase_feedback'] = j['unique_testcase_feedback']
+        self.assertEqual(j, j_with_text)
+
     def test__to_json_anonymize_false(self):
         """Test _to_json with anonymize set to False."""
         c = model.Comment.query.all()[0]
@@ -135,6 +162,33 @@ class TestBodhiBase(BaseTestCase):
         j = c._to_json(c, anonymize=True)
 
         self.assertEqual(j['user'], 'anonymous')
+
+    def test__to_json_exclude(self):
+        """Test _to_json()'s exclude flag."""
+        c = model.Comment.query.all()[0]
+        j_with_text = c._to_json(c)
+        self.assertTrue('text' in j_with_text)
+
+        j = model.Comment._to_json(c, exclude=['text'])
+
+        self.assertTrue('text' not in j)
+        # If we remove the 'text' attribute from j_with_text, j should be equal to what remains.
+        del j_with_text['text']
+        self.assertEqual(j, j_with_text)
+
+    def test__to_json_include(self):
+        """Test _to_json()'s include flag."""
+        c = model.Comment.query.all()[0]
+        j_with_text = c._to_json(c)
+        self.assertTrue('unique_testcase_feedback' not in j_with_text)
+
+        j = model.Comment._to_json(c, include=['unique_testcase_feedback'])
+
+        self.assertTrue('unique_testcase_feedback' in j)
+        self.assertEqual(j['unique_testcase_feedback'], [])
+        # If we add unique_testcase_feedback to j_with_text, it should be identical.
+        j_with_text['unique_testcase_feedback'] = j['unique_testcase_feedback']
+        self.assertEqual(j, j_with_text)
 
     def test__to_json_falsey_object(self):
         """Assert that _to_json() returns None when handed a Falsey object."""
@@ -364,6 +418,7 @@ class TestCompose(BaseTestCase):
             branch=u'f27-{}'.format(uid))
         self.db.add(release)
         update = self.create_update([u'bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update.assign_alias()
         update.release = release
         update.request = request
         update.locked = True
@@ -462,6 +517,29 @@ class TestCompose(BaseTestCase):
 
         self.assertTrue(compose.state_date > before)
         self.assertTrue(datetime.utcnow() > compose.state_date)
+
+    def test_update_summary(self):
+        """Test the update_summary() property."""
+        compose = self._generate_compose(model.UpdateRequest.stable, True)
+        update = compose.updates[0]
+
+        self.assertEqual(compose.update_summary,
+                         [{'alias': update.alias, 'title': update.beautify_title(nvr=True)}])
+
+    def test___json___composer_flag(self):
+        """The composer flag should reduce the number of serialized fields."""
+        compose = self._generate_compose(model.UpdateRequest.stable, True)
+        normal_json = compose.__json__()
+
+        j = compose.__json__(composer=True)
+
+        self.assertEqual(j.keys(), ['security', 'release_id', 'request', 'content_type'])
+        # If we remove the extra keys from normal_json, the remaining dictionary should be the same
+        # as j.
+        for k in normal_json.keys():
+            if k not in j.keys():
+                del(normal_json[k])
+        self.assertEqual(j, normal_json)
 
     def test___lt___false_fallthrough(self):
         """__lt__() should return False if the other conditions tested don't catch anything."""

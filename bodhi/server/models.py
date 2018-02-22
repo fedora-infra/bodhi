@@ -331,7 +331,7 @@ class BodhiBase(object):
         """
         return '<{0} {1}>'.format(self.__class__.__name__, self.__json__())
 
-    def __json__(self, request=None, anonymize=False):
+    def __json__(self, request=None, anonymize=False, exclude=None, include=None):
         """
         Return a JSON representation of this model.
 
@@ -339,27 +339,56 @@ class BodhiBase(object):
             request (pyramid.util.Request or None): The current web request, or None.
             anonymize (bool): If True, scrub out some information from the JSON blob using
                 the model's ``__anonymity_map__``. Defaults to False.
+            exclude (iterable or None): An iterable of strings naming the attributes to exclude from
+                the JSON representation of the model. If None (the default), the class's
+                __exclude_columns__ attribute will be used.
+            include (iterable or None): An iterable of strings naming the extra attributes to
+                include in the JSON representation of the model. If None (the default), the class's
+                __include_extras__ attribute will be used.
         Returns:
             dict: A dict representation of the model suitable for serialization as JSON.
         """
-        return self._to_json(self, request=request, anonymize=anonymize)
+        return self._to_json(self, request=request, anonymize=anonymize, exclude=exclude,
+                             include=include)
 
     @classmethod
-    def _to_json(cls, obj, seen=None, request=None, anonymize=False):
+    def _to_json(cls, obj, seen=None, request=None, anonymize=False, exclude=None, include=None):
+        """
+        Return a JSON representation of obj.
+
+        Args:
+            obj (BodhiBase): The model to serialize.
+            seen (list or None): A list of attributes we have already serialized. Used by this
+                method to keep track of its state, as it uses recursion.
+            request (pyramid.util.Request or None): The current web request, or None.
+            anonymize (bool): If True, scrub out some information from the JSON blob using
+                the model's ``__anonymity_map__``. Defaults to False.
+            exclude (iterable or None): An iterable of strings naming the attributes to exclude from
+                the JSON representation of the model. If None (the default), the class's
+                __exclude_columns__ attribute will be used.
+            include (iterable or None): An iterable of strings naming the extra attributes to
+                include in the JSON representation of the model. If None (the default), the class's
+                __include_extras__ attribute will be used.
+        Returns:
+            dict: A dict representation of the model suitable for serialization.
+        """
         if not seen:
             seen = []
         if not obj:
             return
 
-        exclude = getattr(obj, '__exclude_columns__', [])
+        if exclude is None:
+            exclude = getattr(obj, '__exclude_columns__', [])
         properties = list(class_mapper(type(obj)).iterate_properties)
         rels = [p.key for p in properties if isinstance(p, RelationshipProperty)]
         attrs = [p.key for p in properties if p.key not in rels]
         d = dict([(attr, getattr(obj, attr)) for attr in attrs
                   if attr not in exclude and not attr.startswith('_')])
 
-        extras = getattr(obj, '__include_extras__', [])
-        for name in extras:
+        if include is None:
+            include = getattr(obj, '__include_extras__', [])
+
+        for name in include:
             attribute = getattr(obj, name)
             if callable(attribute):
                 attribute = attribute(request)
@@ -3437,11 +3466,10 @@ class Compose(Base):
             this compose.
     """
 
-    __exclude_columns__ = ('checkpoints', 'error_message', 'date_created', 'state_date', 'release',
-                           'state', 'updates')
-    # We need to include these so the masher can collate the Composes and so it can pick the right
-    # masher class to use.
-    __include_extras__ = ('content_type', 'security',)
+    __exclude_columns__ = ('updates')
+    # We need to include content_type and security so the masher can collate the Composes and so it
+    # can pick the right masher class to use.
+    __include_extras__ = ('content_type', 'security', 'update_summary')
     __tablename__ = 'composes'
 
     # These together form the primary key.
@@ -3561,6 +3589,42 @@ class Compose(Base):
         """
         if value != old:
             target.state_date = datetime.utcnow()
+
+    @property
+    def update_summary(self):
+        """
+        Return a summary of the updates attribute, suitable for transmitting via the API.
+
+        Returns:
+            list: A list of dictionaries with keys 'alias' and 'title', indexing each update alias
+                and title associated with this Compose.
+        """
+        return [{'alias': u.alias, 'title': u.beautify_title(nvr=True)} for u in self.updates]
+
+    def __json__(self, request=None, anonymize=False, exclude=None, include=None, composer=False):
+        """
+        Serialize this compose in JSON format.
+
+        Args:
+            request (pyramid.util.Request or None): The current web request, or None.
+            anonymize (bool): If True, scrub out some information from the JSON blob using
+                the model's ``__anonymity_map__``. Defaults to False.
+            exclude (iterable or None): See superclass docblock.
+            include (iterable or None): See superclass docblock.
+            composer (bool): If True, increase the number of excluded attributes so that only the
+                attributes required by the Composer to identify Composes are included. Defaults to
+                False. If used, overrides exclude and include.
+        Returns:
+            basestring: A JSON representation of the Compose.
+        """
+        if composer:
+            exclude = ('checkpoints', 'error_message', 'date_created', 'state_date', 'release',
+                       'state', 'updates')
+            # We need to include content_type and security so the masher can collate the Composes
+            # and so it can pick the right masher class to use.
+            include = ('content_type', 'security')
+        return super(Compose, self).__json__(request=request, anonymize=anonymize, exclude=exclude,
+                                             include=include)
 
     def __lt__(self, other):
         """
