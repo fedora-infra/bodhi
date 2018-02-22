@@ -165,7 +165,7 @@ class Bugzilla(BugTracker):
 
     def on_qa(self, bug_id, comment):
         """
-        Change the status of this bug to ON_QA.
+        Change the status of this bug to ON_QA if it is not already ON_QA, VERIFIED, or CLOSED.
 
         This will also comment on the bug with some details on how to test and provide feedback for
         this update.
@@ -174,10 +174,13 @@ class Bugzilla(BugTracker):
             bug_id (int): The bug id you wish to set to ON_QA.
             comment (basestring): The comment to be included with the state change.
         """
-        log.debug("Setting Bug #%d to ON_QA" % bug_id)
         try:
             bug = self.bz.getbug(bug_id)
-            bug.setstatus('ON_QA', comment=comment)
+            if bug.bug_status not in ('ON_QA', 'VERIFIED', 'CLOSED'):
+                log.debug("Setting Bug #%d to ON_QA" % bug_id)
+                bug.setstatus('ON_QA', comment=comment)
+            else
+                bug.addcomment(comment)
         except Exception:
             log.exception("Unable to alter bug #%d" % bug_id)
 
