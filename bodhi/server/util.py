@@ -379,7 +379,7 @@ def avatar(context, username, size):
                 )
             else:
                 query = urlencode({'s': size, 'd': 'retro'})
-                hash = hashlib.sha256(openid).hexdigest()
+                hash = hashlib.sha256(openid.encode('utf-8')).hexdigest()
                 template = "https://seccdn.libravatar.org/avatar/%s?%s"
                 return template % (hash, query)
 
