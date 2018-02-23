@@ -961,8 +961,9 @@ def sorted_builds(builds):
     Returns:
         list: A list of Builds sorted by NVR.
     """
+    key_function = functools.cmp_to_key(rpm.labelCompare)
     return sorted(builds,
-                  cmp=lambda x, y: rpm.labelCompare(get_nvr(x), get_nvr(y)),
+                  key=lambda x: key_function(get_nvr(x)),
                   reverse=True)
 
 
