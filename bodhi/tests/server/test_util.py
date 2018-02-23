@@ -274,14 +274,27 @@ class TestComposeState2HTML(unittest.TestCase):
 
 class TestCanWaiveTestResults(base.BaseTestCase):
     """Test the can_waive_test_results() function."""
-    @mock.patch.dict('bodhi.server.util.config', {'test_gating.required': True})
+
+    @mock.patch.dict('bodhi.server.util.config',
+                     {'test_gating.required': True, 'waiverdb.access_token': None})
+    def test_access_token_undefined(self):
+        """If Bodhi is not configured with an access token, the result should be False."""
+        u = Update.query.all()[0]
+        u.test_gating_status = TestGatingStatus.failed
+        u.status = models.UpdateStatus.testing
+
+        self.assertFalse(util.can_waive_test_results(None, u))
+
+    @mock.patch.dict('bodhi.server.util.config',
+                     {'test_gating.required': True, 'waiverdb.access_token': 'secret'})
     def test_can_waive_test_results(self):
         u = Update.query.all()[0]
         u.test_gating_status = TestGatingStatus.failed
         u.status = models.UpdateStatus.testing
         self.assertTrue(util.can_waive_test_results(None, u))
 
-    @mock.patch.dict('bodhi.server.util.config', {'test_gating.required': False})
+    @mock.patch.dict('bodhi.server.util.config',
+                     {'test_gating.required': False, 'waiverdb.access_token': 'secret'})
     def test_gating_required_false(self):
         """
         Assert that it should return false if test_gating is not enabled, even if
@@ -292,7 +305,8 @@ class TestCanWaiveTestResults(base.BaseTestCase):
         u.status = models.UpdateStatus.testing
         self.assertFalse(util.can_waive_test_results(None, u))
 
-    @mock.patch.dict('bodhi.server.util.config', {'test_gating.required': True})
+    @mock.patch.dict('bodhi.server.util.config',
+                     {'test_gating.required': True, 'waiverdb.access_token': 'secret'})
     def test_all_tests_passed(self):
         """
         Assert that it should return false if all tests passed, even if
@@ -303,7 +317,8 @@ class TestCanWaiveTestResults(base.BaseTestCase):
         u.status = models.UpdateStatus.testing
         self.assertFalse(util.can_waive_test_results(None, u))
 
-    @mock.patch.dict('bodhi.server.util.config', {'test_gating.required': True})
+    @mock.patch.dict('bodhi.server.util.config',
+                     {'test_gating.required': True, 'waiverdb.access_token': 'secret'})
     def test_update_is_stable(self):
         """
         Assert that it should return false if the update is stable, even if

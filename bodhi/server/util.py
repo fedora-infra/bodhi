@@ -948,6 +948,7 @@ def can_waive_test_results(context, update):
     """
     return (config.get('test_gating.required') and
             not update.test_gating_passed and
+            config.get('waiverdb.access_token') and
             update.status.description != 'stable')
 
 
