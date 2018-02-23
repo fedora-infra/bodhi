@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Random functions that don't fit elsewhere."""
 
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from contextlib import contextmanager
 import collections
 import functools
@@ -1209,6 +1209,8 @@ def get_critpath_components_from_pdc(branch, component_type='rpm', components=No
         'type': component_type,
         'fields': 'global_component'
     }
+    # Create ordered dictionary with sorted query args to be able to compare URLs
+    query_args = OrderedDict(sorted(query_args.items(), key=lambda x: x[0]))
 
     critpath_pkgs_set = set()
     if components and len(components) < PDC_CRITPATH_COMPONENTS_GETALL_LIMIT:

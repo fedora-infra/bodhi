@@ -439,9 +439,9 @@ class TestUtils(base.BaseTestCase):
         self.assertEqual(
             session.get.mock_calls,
             [mock.call(
-                ('http://domain.local/rest_api/v1/component-branches/?name=f26'
-                 '&fields=global_component&global_component=gcc&page_size=100&critical_path=true'
-                 '&active=true&type=rpm'),
+                ('http://domain.local/rest_api/v1/component-branches/?active=true'
+                 '&critical_path=true&fields=global_component&name=f26&page_size=100&type=rpm'
+                 '&global_component=gcc'),
                 timeout=60),
              mock.call().json()])
 
@@ -469,9 +469,9 @@ class TestUtils(base.BaseTestCase):
         self.assertEqual(
             session.get.mock_calls,
             [mock.call(
-                ('http://domain.local/rest_api/v1/component-branches/?name=f26'
-                 '&fields=global_component&global_component=gcc&page_size=100&critical_path=true'
-                 '&active=true&type=rpm'),
+                ('http://domain.local/rest_api/v1/component-branches/?active=true'
+                 '&critical_path=true&fields=global_component&name=f26&page_size=100&type=rpm'
+                 '&global_component=gcc'),
                 timeout=60),
              mock.call().json()])
 
