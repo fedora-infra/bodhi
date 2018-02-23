@@ -92,8 +92,9 @@ def send_fedmsgs_after_commit(session):
                 _log.debug('Emitted a fedmsg, %r, on the "%s" topic, queued by %r',
                            msg, topic, session)
             # Tidy up after ourselves so a second call to commit on this session won't
-            # send the same messages again.
-            del session.info['fedmsg'][topic]
+            # send the same messages again. We cannot delete topic from fedmsg dict
+            # because we cannot change dictionary size during iteration
+            session.info['fedmsg'][topic] = []
 
 
 def publish(topic, msg, force=False):
