@@ -432,7 +432,7 @@ class BodhiConfig(dict):
             'validator': _validate_rstripped_str},
         'waiverdb.access_token': {
             'value': None,
-            'validator': six.text_type},
+            'validator': _validate_none_or(six.text_type)},
         'koji_hub': {
             'value': 'https://koji.stg.fedoraproject.org/kojihub',
             'validator': str},
