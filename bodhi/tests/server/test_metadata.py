@@ -26,6 +26,7 @@ import shutil
 import tempfile
 
 import createrepo_c
+import mock
 
 from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
                                    DevBuildsys)
@@ -33,30 +34,34 @@ from bodhi.server.config import config
 from bodhi.server.models import Release, Update, UpdateRequest, UpdateStatus
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.util import mkmetadatadir
-from bodhi.tests.server import base
+from bodhi.tests.server import base, create_update
 
 
-class TestAddUpdate(base.BaseTestCase):
-    """
-    This class contains tests for the UpdateInfoMetadata.add_update() method.
-    """
+class UpdateInfoMetadataTestCase(base.BaseTestCase):
     def setUp(self):
         """
         Initialize our temporary repo.
         """
-        super(TestAddUpdate, self).setUp()
+        super(UpdateInfoMetadataTestCase, self).setUp()
         setup_buildsystem({'buildsystem': 'dev'})
         self.tempdir = tempfile.mkdtemp('bodhi')
-        self.temprepo = join(self.tempdir, 'f17-updates-testing')
+        self.tempcompdir = join(self.tempdir, 'f17-updates-testing')
+        self.temprepo = join(self.tempcompdir, 'compose', 'Everything', 'i386', 'os')
         mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
 
     def tearDown(self):
         """
         Clean up the tempdir.
         """
-        super(TestAddUpdate, self).tearDown()
+        super(UpdateInfoMetadataTestCase, self).tearDown()
         teardown_buildsystem()
         shutil.rmtree(self.tempdir)
+
+
+class TestAddUpdate(UpdateInfoMetadataTestCase):
+    """
+    This class contains tests for the UpdateInfoMetadata.add_update() method.
+    """
 
     def test_build_not_in_builds(self):
         """
@@ -149,8 +154,76 @@ class TestAddUpdate(base.BaseTestCase):
         self.assertEqual(len(md.uinfo.updates), 1)
         self.assertTrue(abs((datetime.utcnow() - md.uinfo.updates[0].issued_date).seconds) < 2)
 
+    def test_rpm_with_arch(self):
+        """Ensure that an RPM with a non 386 arch gets handled correctly."""
+        update = self.db.query(Update).one()
+        md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                                close_shelf=False)
+        # Set the arch to aarch64
+        fake_rpms = [{
+            'nvr': 'TurboGears-1.0.2.2-2.fc17', 'buildtime': 1178868422, 'arch': 'aarch64',
+            'id': 62330, 'size': 761742, 'build_id': 6475, 'name': 'TurboGears', 'epoch': None,
+            'version': '1.0.2.2', 'release': '2.fc17', 'buildroot_id': 1883,
+            'payloadhash': '6787febe92434a9be2a8f309d0e2014e'}]
 
-class TestUpdateInfoMetadata(base.BaseTestCase):
+        with mock.patch.object(md, 'get_rpms', mock.MagicMock(return_value=fake_rpms)):
+            md.add_update(update)
+
+        md.shelf.close()
+        col = md.uinfo.updates[0].collections[0]
+        self.assertEqual(len(col.packages), 1)
+        pkg = col.packages[0]
+        self.assertEquals(
+            pkg.src,
+            ('https://download.fedoraproject.org/pub/fedora/linux/updates/17/aarch64/T/'
+             'TurboGears-1.0.2.2-2.fc17.aarch64.rpm'))
+
+    def test_rpm_with_epoch(self):
+        """Ensure that an RPM with an Epoch gets handled correctly."""
+        update = self.db.query(Update).one()
+        md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                                close_shelf=False)
+        # We'll fake the return of get_rpms so we can inject an epoch of 42.
+        fake_rpms = [{
+            'nvr': 'TurboGears-1.0.2.2-2.fc17', 'buildtime': 1178868422, 'arch': 'src', 'id': 62330,
+            'size': 761742, 'build_id': 6475, 'name': 'TurboGears', 'epoch': 42,
+            'version': '1.0.2.2', 'release': '2.fc17', 'buildroot_id': 1883,
+            'payloadhash': '6787febe92434a9be2a8f309d0e2014e'}]
+
+        with mock.patch.object(md, 'get_rpms', mock.MagicMock(return_value=fake_rpms)):
+            md.add_update(update)
+
+        md.shelf.close()
+        col = md.uinfo.updates[0].collections[0]
+        self.assertEqual(len(col.packages), 1)
+        pkg = col.packages[0]
+        self.assertEquals(pkg.epoch, '42')
+
+
+class TestFetchUpdates(UpdateInfoMetadataTestCase):
+    """Test the UpdateInfoMetadata._fetch_updates() method."""
+
+    @mock.patch('bodhi.server.metadata.log.warn')
+    def test_build_unassociated(self, warn):
+        """A warning should be logged if the Bodhi Build object is not associated with an Update."""
+        update = self.db.query(Update).one()
+        update.date_pushed = None
+        u = create_update(self.db, [u'TurboGears-1.0.2.2-4.fc17'])
+        u.builds[0].update = None
+        self.db.flush()
+
+        # _fetch_updates() is called as part of UpdateInfoMetadata.__init__() so we'll just
+        # instantiate one.
+        md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
+                                close_shelf=False)
+
+        warn.assert_called_once_with(
+            'TurboGears-1.0.2.2-4.fc17 does not have a corresponding update')
+        # Since the Build didn't have an Update, no Update should have been added to md.updates.
+        self.assertEqual(md.updates, set([]))
+
+
+class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
 
     def setUp(self):
         super(TestUpdateInfoMetadata, self).setUp()
@@ -163,9 +236,6 @@ class TestUpdateInfoMetadata(base.BaseTestCase):
         os.makedirs(os.path.join(config['mash_dir'], 'f17-updates-testing'))
 
         # Initialize our temporary repo
-        self.tempdir = tempfile.mkdtemp('bodhi')
-        self.tempcompdir = join(self.tempdir, 'f17-updates-testing')
-        self.temprepo = join(self.tempcompdir, 'compose', 'Everything', 'i386', 'os')
         mkmetadatadir(self.temprepo)
         mkmetadatadir(join(self.tempcompdir, 'compose', 'Everything', 'source', 'tree'))
         self.repodata = join(self.temprepo, 'repodata')
