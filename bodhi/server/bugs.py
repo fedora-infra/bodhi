@@ -179,7 +179,7 @@ class Bugzilla(BugTracker):
             if bug.bug_status not in ('ON_QA', 'VERIFIED', 'CLOSED'):
                 log.debug("Setting Bug #%d to ON_QA" % bug_id)
                 bug.setstatus('ON_QA', comment=comment)
-            else
+            else:
                 bug.addcomment(comment)
         except Exception:
             log.exception("Unable to alter bug #%d" % bug_id)

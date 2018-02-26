@@ -282,6 +282,22 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.return_value.setstatus.assert_called_once_with('ON_QA', comment='A message.')
         self.assertEqual(exception.call_count, 0)
 
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_on_qa_skipped(self, exception):
+        """
+        Test the on_qa() method when the bug is already closed - it must not change bug state.
+        """
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.bug_status = 'CLOSED'
+
+        bz.on_qa(1411188, 'A message.')
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
+        bz._bz.getbug.return_value.setstatus.assert_not_called()
+        self.assertEqual(exception.call_count, 0)
+
 
 class TestFakeBugTracker(unittest.TestCase):
     """This test class contains tests for the FakeBugTracker class."""
