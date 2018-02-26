@@ -24,7 +24,7 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
 * New code must follow `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`_. You can use the
   ``flake8`` utility to automatically check your code. There is a
   ``bodhi.tests.test_style.TestStyle.test_code_with_flake8`` to enforce this style.
-* Add an entry to ``docs/release_notes.rst`` for any changes you make that should be in release
+* Add an entry to `docs/user/release_notes.rst`_ for any changes you make that should be in release
   notes.
 * Make sure your commits are atomic. Each commit should focus on one improvement or bug fix. If you
   need to build upon changes that are related but aren't atomic, feel free to send more than one
@@ -127,5 +127,6 @@ working system more quickly and with less effort. If you would like to use Vagra
 :doc:`Bodhi Vagrant Guide <vagrant>`. If you would like to use Virtualenv, see the
 :doc:`Bodhi Virtualenv Guide <virtualenv>`.
 
+.. _docs/user/release_notes.rst: https://github.com/fedora-infra/bodhi/blob/develop/docs/user/release_notes.rst#release-notes
 .. _Vagrant: https://www.vagrantup.com
 .. _Virtualenv: https://virtualenv.pypa.io/en/stable/
