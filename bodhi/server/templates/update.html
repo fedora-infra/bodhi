@@ -81,10 +81,6 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         });
     };
 
-    // data
-    ${ request.registry.settings.get("test_gating.required") }
-    ${ update.test_gating_passed }
-    ${ update.greenwave_summary_string }
     % if request.registry.settings.get("test_gating.required") is True and \
             not update.test_gating_passed and update.greenwave_summary_string:
         var summary = '${update.greenwave_summary_string}';
