@@ -2,6 +2,47 @@
 Release notes
 =============
 
+v3.5.0
+------
+
+Feature
+^^^^^^^
+
+* Allow version-specific repomd url overrides (:issue:`2199`).
+
+
+Bugs
+^^^^
+
+* The location of the release notes was fixed in the developer docs (:issue:`2154`).
+* Use ":"'s instead of "-"'s as the NSV separator for Modules (:issue:`2167`).
+* ``bodhi-push`` no longer authenticates to Koji (:issue:`2190`).
+* Two tag references were fixed in ``bodhi-untag-branched`` (:commit:`59c83fc7`).
+* Ensure there is a Greenwave summary to display before displaying it (:commit:`c07daf96`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The composer was refactored to split Pungi-specific code out into a new intermediate base class,
+  to prepare the way for a coming container composer. This way the future container composer can
+  share code with the RPM and Module composer code, while only using Pungi for the latter two
+  (:issue:`2152`).
+* The Vagrant development environment was upgraded to Fedora 27 (:issue:`2158`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.5.0:
+
+* Patrick Uiterwijk
+* Jan Kaluza
+* Pierre-Yves Chibon
+* Anatoli Babenia
+* Randy Barlow
+
+
 v3.4.0
 ------
 
