@@ -1107,7 +1107,7 @@ That was the actual one'''
 
         with self.db_factory() as session:
             with tempfile.NamedTemporaryFile(delete=False) as script:
-                script.write('#!/bin/bash\nsleep 5\nexit 1\n')
+                script.write(b'#!/bin/bash\nsleep 5\nexit 1\n')
                 script.close()
                 os.chmod(script.name, 0o755)
 
