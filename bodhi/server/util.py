@@ -307,7 +307,7 @@ def sanity_check_repodata(myurl):
     try:
         h.perform()
     except librepo.LibrepoException as e:
-        rc, msg, general_msg = e
+        rc, msg, general_msg = e.args
         raise RepodataException(msg)
 
     updateinfo = os.path.join(myurl, 'updateinfo.xml.gz')
