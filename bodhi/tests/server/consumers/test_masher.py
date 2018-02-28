@@ -175,10 +175,21 @@ class TestMasher(base.BaseTestCase):
         Release._all_releases = None
         Release._tag_cache = None
 
+        self.expected_sems = 0
+        self.semmock = mock.MagicMock()
+        self.masher.max_mashes_sem = self.semmock
+
     def tearDown(self):
         super(TestMasher, self).tearDown()
+
+        self.assert_sems(self.expected_sems)
+
         shutil.rmtree(self.tempdir)
         shutil.rmtree(self._new_mash_stage_dir)
+
+    def assert_sems(self, nr_expected):
+        assert self.semmock.acquire.call_count == nr_expected
+        assert self.semmock.release.call_count == self.semmock.acquire.call_count
 
     def set_stable_request(self, title):
         with self.db_factory() as session:
@@ -365,6 +376,8 @@ That was the actual one''' % mash_dir
     @mock.patch.object(ComposerThread, 'determine_and_perform_tag_actions', mock_exc)
     @mock.patch('bodhi.server.notifications.publish')
     def test_update_locking(self, publish, *args):
+        self.expected_sems = 1
+
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.locked = False
@@ -403,6 +416,8 @@ That was the actual one''' % mash_dir
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_tags(self, publish, *args):
+        self.expected_sems = 2
+
         # Make the build a buildroot override as well
         with self.db_factory() as session:
             release = session.query(Update).one().release
@@ -475,6 +490,7 @@ That was the actual one''' % mash_dir
         Test pushing a batch of updates with multiple builds for the same package.
         Ensure that the latest version is tagged last.
         """
+        self.expected_sems = 1
         otherbuild = u'bodhi-2.0-2.fc17'
 
         with self.db_factory() as session:
@@ -521,7 +537,9 @@ That was the actual one''' % mash_dir
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.mail._send_mail')
     def test_testing_digest(self, mail, *args):
-        t = RPMComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        self.expected_sems = 1
+
+        t = RPMComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
 
         t.run()
@@ -566,7 +584,7 @@ References:
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_mash_invalid_dir(self, save_state):
         msg = self._make_msg()
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
@@ -596,7 +614,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_mash_no_found_dirs(self, save_state):
         msg = self._make_msg()
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
@@ -624,7 +642,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_sanity_check_no_arches(self, save_state):
         msg = self._make_msg()
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
@@ -646,7 +664,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_sanity_check_valid(self, save_state):
         msg = self._make_msg()
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
@@ -681,7 +699,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_sanity_check_broken_repodata(self, save_state):
         msg = self._make_msg()
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
@@ -717,7 +735,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_sanity_check_symlink(self, save_state):
         msg = self._make_msg()
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
@@ -751,7 +769,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_sanity_check_directories_missing(self, save_state):
         msg = self._make_msg()
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
         t.devnull = mock.MagicMock()
         t.id = 'f17-updates-testing'
@@ -785,6 +803,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_security_update_priority(self, publish, *args):
+        self.expected_sems = 2
+
         with self.db_factory() as db:
             up = db.query(Update).one()
             user = db.query(User).first()
@@ -869,6 +889,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_security_update_priority_testing(self, publish, *args):
+        self.expected_sems = 2
+
         with self.db_factory() as db:
             up = db.query(Update).one()
             up.type = UpdateType.security
@@ -946,6 +968,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_security_updates_parallel(self, publish, *args):
+        self.expected_sems = 2
+
         with self.db_factory() as db:
             up = db.query(Update).one()
             up.type = UpdateType.security
@@ -1029,8 +1053,8 @@ That was the actual one'''
 
     def test_base_masher_pungi_not_implemented(self, *args):
         msg = self._make_msg()
-        t = PungiComposerThread(msg['body']['msg']['composes'][0], 'ralph', log, self.db_factory,
-                                self.tempdir)
+        t = PungiComposerThread(self.semmock, msg['body']['msg']['composes'][0], 'ralph', log,
+                                self.db_factory, self.tempdir)
 
         with self.assertRaises(NotImplementedError):
             t._copy_additional_pungi_files(None, None)
@@ -1045,10 +1069,12 @@ That was the actual one'''
         config,
         {'pungi.cmd': '/usr/bin/false'})
     def test_mash_early_exit(self, publish, *args):
+        self.expected_sems = 1
+
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
         msg = self._make_msg()
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
 
         t.run()
@@ -1067,10 +1093,12 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_mash_late_exit(self, publish, *args):
+        self.expected_sems = 1
+
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
         msg = self._make_msg()
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
@@ -1094,11 +1122,13 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_mash(self, publish, *args):
+        self.expected_sems = 1
+
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
         msg = self._make_msg()
         mash_dir = os.path.join(self.tempdir, 'cool_dir')
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, mash_dir)
 
         with self.db_factory() as session:
@@ -1146,6 +1176,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_mash_module(self, publish, *args):
+        self.expected_sems = 1
+
         with self.db_factory() as db:
             user = db.query(User).first()
 
@@ -1175,7 +1207,7 @@ That was the actual one'''
             Release._tag_cache = None
 
         msg = self._make_msg(['--releases', 'F27M'])
-        t = ModuleComposerThread(msg['body']['msg']['composes'][0],
+        t = ModuleComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                                  'puiterwijk', log, self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
@@ -1223,12 +1255,14 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_failed_gating(self, publish, *args):
+        self.expected_sems = 1
 
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
         msg = self._make_msg()
         t = RPMComposerThread(
-            msg['body']['msg']['composes'][0], 'ralph', log, self.db_factory, self.tempdir)
+            self.semmock, msg['body']['msg']['composes'][0], 'ralph', log, self.db_factory,
+            self.tempdir)
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
@@ -1273,11 +1307,13 @@ That was the actual one'''
     @mock.patch('bodhi.server.notifications.publish')
     def test_absent_gating(self, publish, *args):
         # Set the request to stable right out the gate so we can test gating
+        self.expected_sems = 1
+
         self.set_stable_request(u'bodhi-2.0-1.fc17')
         msg = self._make_msg()
 
-        t = RPMComposerThread(msg['body']['msg']['composes'][0], 'ralph', log, self.db_factory,
-                              self.tempdir)
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0], 'ralph', log,
+                              self.db_factory, self.tempdir)
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
@@ -1324,6 +1360,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.bugs.bugtracker.modified')
     @mock.patch('bodhi.server.bugs.bugtracker.on_qa')
     def test_modify_testing_bugs(self, on_qa, modified, *args):
+        self.expected_sems = 1
+
         self.masher.consume(self._make_msg())
 
         expected_message = (
@@ -1347,9 +1385,12 @@ That was the actual one'''
     @mock.patch('bodhi.server.bugs.bugtracker.comment')
     @mock.patch('bodhi.server.bugs.bugtracker.close')
     def test_modify_stable_bugs(self, close, comment, *args):
+        self.expected_sems = 1
+
         self.set_stable_request(u'bodhi-2.0-1.fc17')
         msg = self._make_msg()
-        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
 
         t.run()
@@ -1369,6 +1410,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_status_comment_testing(self, *args):
+        self.expected_sems = 1
+
         with self.db_factory() as session:
             up = session.query(Update).one()
             self.assertEquals(len(up.comments), 2)
@@ -1389,6 +1432,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_status_comment_stable(self, *args):
+        self.expected_sems = 1
+
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.request = UpdateRequest.stable
@@ -1410,7 +1455,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.notifications.publish')
     def test_get_security_updates(self, *args):
         msg = self._make_msg()
-        t = ComposerThread(msg['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                            'ralph', log, self.db_factory, self.tempdir)
         with self.db_factory() as session:
             t.db = session
@@ -1435,6 +1480,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_unlock_updates(self, *args):
+        self.expected_sems = 1
+
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.request = UpdateRequest.stable
@@ -1456,6 +1503,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_resume_push(self, *args):
+        self.expected_sems = 2
+
         with mock.patch.object(ComposerThread, 'generate_testing_digest', mock_exc):
             with self.db_factory() as session:
                 up = session.query(Update).one()
@@ -1494,6 +1543,8 @@ That was the actual one'''
         Test reaching the stablekarma threshold while the update is being
         pushed to testing
         """
+        self.expected_sems = 2
+
         # Simulate a failed push
         with mock.patch.object(ComposerThread, 'determine_and_perform_tag_actions', mock_exc):
             with self.db_factory() as session:
@@ -1545,6 +1596,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_timestamps(self, publish, *args):
+        self.expected_sems = 2
+
         with self.db_factory() as session:
             release = session.query(Update).one().release
             pending_testing_tag = release.pending_testing_tag
@@ -1590,6 +1643,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsolete_older_updates(self, publish, *args):
+        self.expected_sems = 1
         otherbuild = u'bodhi-2.0-2.fc17'
 
         with self.db_factory() as session:
@@ -1633,6 +1687,8 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.log.exception')
     @mock.patch('bodhi.server.models.BuildrootOverride.expire', side_effect=Exception())
     def test_expire_buildroot_overrides_exception(self, expire, exception_log, publish, *args):
+        self.expected_sems = 1
+
         with self.db_factory() as db:
             release = db.query(Update).one().release
             pending_testing_tag = release.pending_testing_tag
@@ -1647,112 +1703,6 @@ That was the actual one'''
 
         exception_log.assert_called_once_with("Problem expiring override")
 
-    def _ensure_three_mashes_in_same_batch(self):
-        """
-        Ensure there are three mashes that would go into the same batch.
-
-        This helps us to test the max_concurrent_mashes setting.
-        """
-        with self.db_factory() as db:
-            up = db.query(Update).one()
-            user = db.query(User).first()
-            # Create two more releases.
-            release = Release(
-                name=u'F18', long_name=u'Fedora 18',
-                id_prefix=u'FEDORA', version=u'18',
-                dist_tag=u'f18', stable_tag=u'f18-updates',
-                testing_tag=u'f18-updates-testing',
-                candidate_tag=u'f18-updates-candidate',
-                pending_signing_tag=u'f18-updates-testing-signing',
-                pending_testing_tag=u'f18-updates-testing-pending',
-                pending_stable_tag=u'f18-updates-pending',
-                override_tag=u'f18-override',
-                state=ReleaseState.current,
-                branch=u'f18')
-            db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
-                             signed=True)
-            db.add(build)
-            update = Update(
-                title=u'bodhi-2.0-1.fc18',
-                builds=[build], user=user,
-                status=UpdateStatus.pending,
-                request=UpdateRequest.testing,
-                notes=u'Useful details!', release=release,
-                test_gating_status=TestGatingStatus.passed)
-            update.type = UpdateType.enhancement
-            db.add(update)
-            release = Release(
-                name=u'F27', long_name=u'Fedora 27',
-                id_prefix=u'FEDORA', version=u'27',
-                dist_tag=u'f27', stable_tag=u'f27-updates',
-                testing_tag=u'f27-updates-testing',
-                candidate_tag=u'f27-updates-candidate',
-                pending_signing_tag=u'f27-updates-testing-signing',
-                pending_testing_tag=u'f27-updates-testing-pending',
-                pending_stable_tag=u'f27-updates-pending',
-                override_tag=u'f27-override',
-                state=ReleaseState.current,
-                branch=u'f27')
-            db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc27', release=release, package=up.builds[0].package,
-                             signed=True)
-            db.add(build)
-            update = Update(
-                title=u'bodhi-2.0-1.fc27',
-                builds=[build], user=user,
-                status=UpdateStatus.pending,
-                request=UpdateRequest.testing,
-                notes=u'Useful details!', release=release,
-                test_gating_status=TestGatingStatus.passed)
-            update.type = UpdateType.enhancement
-            db.add(update)
-            # Wipe out the tag cache so it picks up our new releases
-            Release._tag_cache = None
-
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
-    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
-    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
-    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
-    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_work_max_concurrent_mashes_1(self, publish, *args):
-        """Assert that we don't launch more than 1 max_concurrent_mashes."""
-        self._ensure_three_mashes_in_same_batch()
-        self.masher.log.info = mock.MagicMock()
-
-        with mock.patch.dict(config, {'max_concurrent_mashes': 1}):
-            self.masher.work(self._make_msg())
-
-        info_log_messages = [c[1] for c in self.masher.log.info.mock_calls]
-        waiting_messages = [m for m in info_log_messages if 'Waiting on' in m[0]]
-        # Since we have max_concurrent_mashes set to 1 and there are 3 mashes to be done, we should
-        # see two log messages that say it's waiting on 1 mash to finish.
-        self.assertEqual(waiting_messages, [('Waiting on %d mashes for priority %s', 1, 0),
-                                            ('Waiting on %d mashes for priority %s', 1, 0)])
-
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
-    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
-    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
-    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
-    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_work_max_concurrent_mashes_2(self, publish, *args):
-        """Assert that we don't launch more than 2 max_concurrent_mashes."""
-        self._ensure_three_mashes_in_same_batch()
-        self.masher.log.info = mock.MagicMock()
-
-        with mock.patch.dict(config, {'max_concurrent_mashes': 2}):
-            self.masher.work(self._make_msg())
-
-        info_log_messages = [c[1] for c in self.masher.log.info.mock_calls]
-        waiting_messages = [m for m in info_log_messages if 'Waiting on' in m[0]]
-        # Since we have max_concurrent_mashes set to 2 and there are 3 mashes to be done, we should
-        # see one log message that says we are waiting on the first two to finish.
-        self.assertEqual(waiting_messages, [('Waiting on %d mashes for priority %s', 2, 0)])
-
 
 class ComposerThreadBaseTestCase(base.BaseTestCase):
     """
@@ -1766,6 +1716,7 @@ class ComposerThreadBaseTestCase(base.BaseTestCase):
         super(ComposerThreadBaseTestCase, self).setUp()
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
         self.tempdir = tempfile.mkdtemp()
+        self.semmock = mock.MagicMock()
 
     def tearDown(self):
         """
@@ -1774,6 +1725,17 @@ class ComposerThreadBaseTestCase(base.BaseTestCase):
         super(ComposerThreadBaseTestCase, self).tearDown()
         shutil.rmtree(self.tempdir)
         buildsys.teardown_buildsystem()
+
+    def assert_sems(self, nr_expected):
+        if nr_expected == 0:
+            self.semmock.acquire.assert_not_called()
+            self.semmock.release.assert_not_called()
+        else:
+            self.semmock.acquire.assert_called()
+            self.semmock.release.assert_called()
+
+        assert self.semmock.acquire.call_count == nr_expected
+        assert self.semmock.acquire.call_count == self.semmock.release.call_count
 
     def _make_msg(self, extra_push_args=None):
         """
@@ -1800,7 +1762,7 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
         arches and the arch being looked up is not in the primary arch list.
         """
         msg = self._make_msg()
-        t = PungiComposerThread(msg['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
 
@@ -1810,6 +1772,8 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
             url,
             'http://example.com/pub/fedora-secondary/updates/testing/17/aarch64/repodata.repomd.xml'
         )
+
+        self.assert_sems(0)
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
@@ -1822,7 +1786,8 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
         the release.
         """
         msg = self._make_msg()
-        t = PungiComposerThread(msg['body']['msg']['composes'][0],
+
+        t = PungiComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
 
@@ -1831,6 +1796,8 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
 
         self.assertEqual(six.text_type(exc.exception),
                          'Could not find fedora_testing_alt_master_repomd in the config file')
+
+        self.assert_sems(0)
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
@@ -1845,7 +1812,8 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
         arches and the arch being looked up is primary.
         """
         msg = self._make_msg()
-        t = PungiComposerThread(msg['body']['msg']['composes'][0],
+
+        t = PungiComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
 
@@ -1855,6 +1823,8 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
             url,
             'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml'
         )
+
+        self.assert_sems(0)
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
@@ -1868,7 +1838,7 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
         arches defined in the config file.
         """
         msg = self._make_msg()
-        t = PungiComposerThread(msg['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
 
@@ -1878,6 +1848,8 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
             url,
             'http://example.com/pub/fedora/linux/updates/testing/17/aarch64/repodata.repomd.xml'
         )
+
+        self.assert_sems(0)
 
 
 class TestComposerThread__perform_tag_actions(ComposerThreadBaseTestCase):
@@ -1889,7 +1861,7 @@ class TestComposerThread__perform_tag_actions(ComposerThreadBaseTestCase):
         """
         wait_for_tasks.return_value = ['failed_task_1']
         msg = self._make_msg()
-        t = ComposerThread(msg['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
         t.move_tags_async.append(
@@ -1904,6 +1876,8 @@ class TestComposerThread__perform_tag_actions(ComposerThreadBaseTestCase):
         self.assertEqual(buildsys.DevBuildsys.__moved__,
                          [('f26-updates-candidate', 'f26-updates-testing', 'bodhi-2.3.2-1.fc26')])
 
+        self.assert_sems(0)
+
 
 class TestComposerThread_check_all_karma_thresholds(ComposerThreadBaseTestCase):
     """Test the ComposerThread.check_all_karma_thresholds() method."""
@@ -1912,7 +1886,7 @@ class TestComposerThread_check_all_karma_thresholds(ComposerThreadBaseTestCase):
     def test_BodhiException(self):
         """Assert that a raised BodhiException gets caught and logged."""
         msg = self._make_msg()
-        t = ComposerThread(msg['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
         t.db = self.db
@@ -1921,6 +1895,8 @@ class TestComposerThread_check_all_karma_thresholds(ComposerThreadBaseTestCase):
         t.check_all_karma_thresholds()
 
         t.log.exception.assert_called_once_with('Problem checking karma thresholds')
+
+        self.assert_sems(0)
 
 
 class TestComposerThread_eject_from_mash(ComposerThreadBaseTestCase):
@@ -1934,7 +1910,7 @@ class TestComposerThread_eject_from_mash(ComposerThreadBaseTestCase):
         up.request = UpdateRequest.testing
         self.db.commit()
         msg = self._make_msg()
-        t = ComposerThread(msg['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         # t.work() would normally set these up for us, so we'll just fake it
         t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
@@ -1956,12 +1932,14 @@ class TestComposerThread_eject_from_mash(ComposerThreadBaseTestCase):
         # The update should have been removed from t.updates
         self.assertEqual(len(t.compose.updates), 0)
 
+        self.assert_sems(0)
+
 
 class TestComposerThread_load_state(ComposerThreadBaseTestCase):
     """This test class contains tests for the ComposerThread.load_state() method."""
     def test_with_completed_repo(self):
         """Test when there is a completed_repo in the checkpoints."""
-        t = ComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t._checkpoints = {'cool': 'checkpoint'}
         t.compose = self.db.query(Compose).one()
@@ -1972,12 +1950,14 @@ class TestComposerThread_load_state(ComposerThreadBaseTestCase):
 
         self.assertEqual(t._checkpoints, {'other': 'checkpoint', 'completed_repo': '/path/to/it'})
 
+        self.assert_sems(0)
+
 
 class TestPungiComposerThread_load_state(ComposerThreadBaseTestCase):
     """This test class contains tests for the PungiComposerThread.load_state() method."""
     def test_with_completed_repo(self):
         """Test when there is a completed_repo in the checkpoints."""
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t._checkpoints = {'cool': 'checkpoint'}
         t.compose = self.db.query(Compose).one()
@@ -1989,9 +1969,11 @@ class TestPungiComposerThread_load_state(ComposerThreadBaseTestCase):
         self.assertEqual(t._checkpoints, {'other': 'checkpoint', 'completed_repo': '/path/to/it'})
         self.assertEqual(t.path, '/path/to/it')
 
+        self.assert_sems(0)
+
     def test_without_completed_repo(self):
         """Test when there is not a completed_repo in the checkpoints."""
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t._checkpoints = {'cool': 'checkpoint'}
         t.compose = self.db.query(Compose).one()
@@ -2003,12 +1985,14 @@ class TestPungiComposerThread_load_state(ComposerThreadBaseTestCase):
         self.assertEqual(t._checkpoints, {'other': 'checkpoint'})
         self.assertEqual(t.path, None)
 
+        self.assert_sems(0)
+
 
 class TestComposerThread_remove_state(ComposerThreadBaseTestCase):
     """Test the remove_state() method."""
     def test_remove_state(self):
         """Assert that remove_state() deletes the Compose."""
-        t = ComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         t.db = self.db
@@ -2018,12 +2002,14 @@ class TestComposerThread_remove_state(ComposerThreadBaseTestCase):
         self.db.flush()
         self.assertEqual(self.db.query(Compose).count(), 0)
 
+        self.assert_sems(0)
+
 
 class TestComposerThread_save_state(ComposerThreadBaseTestCase):
     """This test class contains tests for the ComposerThread.save_state() method."""
     def test_with_state(self):
         """Test the optional state parameter."""
-        t = ComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t._checkpoints = {'cool': 'checkpoint'}
         t.compose = self.db.query(Compose).one()
@@ -2039,7 +2025,7 @@ class TestComposerThread_save_state(ComposerThreadBaseTestCase):
 
     def test_without_state(self):
         """Test without the optional state parameter."""
-        t = ComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t._checkpoints = {'cool': 'checkpoint'}
         t.compose = self.db.query(Compose).one()
@@ -2069,7 +2055,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert correct operation when the repomd checksum matches immediately.
         """
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
@@ -2112,7 +2098,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert error when no checkarch is found.
         """
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
@@ -2142,7 +2128,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert correct operation when the repomd checksum matches on the third try.
         """
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
@@ -2186,7 +2172,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert that an HTTPError is properly caught and logged, and that the algorithm continues.
         """
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
@@ -2230,7 +2216,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert that a ValueError is raised when the needed *_master_repomd config is missing.
         """
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
@@ -2258,7 +2244,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert that an error is logged when the local repomd is missing.
         """
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
@@ -2288,7 +2274,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert that a URLError is properly caught and logged, and that the algorithm continues.
         """
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         t.id = 'f26-updates-testing'
@@ -2328,7 +2314,7 @@ class TestComposerThread__mark_status_changes(ComposerThreadBaseTestCase):
         update = Update.query.one()
         update.status = UpdateStatus.testing
         update.request = UpdateRequest.stable
-        t = ComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
 
@@ -2350,7 +2336,7 @@ class TestComposerThread__mark_status_changes(ComposerThreadBaseTestCase):
         update = Update.query.one()
         update.status = UpdateStatus.pending
         update.request = UpdateRequest.testing
-        t = ComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
 
@@ -2374,7 +2360,7 @@ class TestComposerThread_send_notifications(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     def test_getlogin_raising_oserror(self, publish):
         """Assert that "masher" is used as the agent if getlogin() raises OSError."""
-        t = ComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
 
@@ -2391,7 +2377,7 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
     def test_security_updates(self, SMTP):
         """If there are security updates, the maildata should mention it."""
-        t = ComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         update = t.compose.updates[0]
@@ -2421,7 +2407,7 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.log.warn')
     def test_test_list_not_configured(self, warn):
         """If a test_announce_list setting is not found, a warning should be logged."""
-        t = ComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         t.testing_digest = {'Fedora 17': {'fake': 'content'}}
@@ -2441,7 +2427,7 @@ class TestComposerThread__unlock_updates(ComposerThreadBaseTestCase):
         """Assert that _unlock_updates() works correctly."""
         update = Update.query.one()
         update.request = UpdateRequest.testing
-        t = ComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
 
@@ -2458,7 +2444,7 @@ class TestPungiComposerThread__punge(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.subprocess.Popen')
     def test_skips_if_path_defined(self, Popen):
         """_punge should log a message and skip running if path is truthy."""
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.log.info = mock.MagicMock()
         t.path = '/some/path'
@@ -2475,7 +2461,7 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
 
     def test_old_link_present(self):
         """If a link from the last run is still present, no error should be raised."""
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'ralph', log, self.Session, self.tempdir)
         t.id = 'f17-updates-testing'
         t.log.info = mock.MagicMock()
@@ -2497,7 +2483,7 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
 
     def test_stage_dir_de(self):
         """Test for when stage_dir does exist."""
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'ralph', log, self.Session, self.tempdir)
         t.id = 'f17-updates-testing'
         t.log.info = mock.MagicMock()
@@ -2518,7 +2504,7 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
 
     def test_stage_dir_dne(self):
         """Test for when stage_dir does not exist."""
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'ralph', log, self.Session, self.tempdir)
         t.id = 'f17-updates-testing'
         t.log.info = mock.MagicMock()
@@ -2543,7 +2529,7 @@ class TestPungiComposerThread__wait_for_pungi(ComposerThreadBaseTestCase):
 
     def test_pungi_process_None(self):
         """If pungi_process is None, a log should be written and the method should return."""
-        t = PungiComposerThread(self._make_msg()['body']['msg']['composes'][0],
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'ralph', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
         t.db = self.Session

@@ -182,6 +182,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         if not self.valid_signer:
             log.warn('No releng_fedmsg_certname defined'
                      'Cert validation disabled')
+        self.max_mashes_sem = threading.BoundedSemaphore(config.get('max_concurrent_mashes'))
         super(Masher, self).__init__(hub, *args, **kw)
         log.info('Bodhi masher listening on topic: %s' % self.topic)
 
@@ -258,8 +259,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         last_key = None
         threads = []
         for compose in self._get_composes(body):
-            if ((last_key is not None and request_order_key(compose) != last_key) or
-                    (len(threads) >= config.get('max_concurrent_mashes'))):
+            if (last_key is not None and request_order_key(compose) != last_key):
                 # This means that after we submit all Stable+Security updates, we wait with kicking
                 # off the next series of mashes until that finishes.
                 self.log.info('Waiting on %d mashes for priority %s', len(threads), last_key)
@@ -278,7 +278,8 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
                                compose['content_type'])
                 continue
 
-            thread = masher(compose, agent, self.log, self.db_factory, self.mash_dir, resume)
+            thread = masher(self.max_mashes_sem, compose, agent, self.log, self.db_factory,
+                            self.mash_dir, resume)
             threads.append(thread)
             thread.start()
 
@@ -314,11 +315,13 @@ class ComposerThread(threading.Thread):
 
     ctype = None
 
-    def __init__(self, compose, agent, log, db_factory, mash_dir, resume=False):
+    def __init__(self, max_concur_sem, compose, agent, log, db_factory, mash_dir, resume=False):
         """
         Initialize the ComposerThread.
 
         Args:
+            max_concur_sem (threading.BoundedSemaphore): Semaphore making sure only a limited
+                number of ComposerThreads run at the same time.
             compose (dict): A dictionary representation of the Compose to run, formatted like the
                 output of :meth:`Compose.__json__`.
             agent (basestring): The user who is executing the mash.
@@ -332,6 +335,7 @@ class ComposerThread(threading.Thread):
         self.db_factory = db_factory
         self.log = log
         self.agent = agent
+        self.max_concur_sem = max_concur_sem
         self._compose = compose
         self.resume = resume
         self.add_tags_async = []
@@ -343,6 +347,9 @@ class ComposerThread(threading.Thread):
 
     def run(self):
         """Run the thread by managing a db transaction and calling work()."""
+        self.log.info('Grabbing semaphore')
+        self.max_concur_sem.acquire()
+        self.log.info('Acquired semaphore, starting')
         try:
             with self.db_factory() as session:
                 self.db = session
@@ -363,6 +370,8 @@ class ComposerThread(threading.Thread):
         finally:
             self.compose = None
             self.db = None
+            self.max_concur_sem.release()
+            self.log.info('Released semaphore')
 
     def results(self):
         """
@@ -855,11 +864,13 @@ class PungiComposerThread(ComposerThread):
 
     pungi_template_config_key = None
 
-    def __init__(self, compose, agent, log, db_factory, mash_dir, resume=False):
+    def __init__(self, max_concur_sem, compose, agent, log, db_factory, mash_dir, resume=False):
         """
         Initialize the ComposerThread.
 
         Args:
+            max_concur_sem (threading.BoundedSemaphore): Semaphore making sure only a limited
+                number of ComposerThreads run at the same time.
             compose (dict): A dictionary representation of the Compose to run, formatted like the
                 output of :meth:`Compose.__json__`.
             agent (basestring): The user who is executing the mash.
@@ -869,7 +880,8 @@ class PungiComposerThread(ComposerThread):
             mash_dir (basestring): A path to a directory to generate the mash in.
             resume (bool): Whether or not we are resuming a previous failed mash. Defaults to False.
         """
-        super(PungiComposerThread, self).__init__(compose, agent, log, db_factory, mash_dir, resume)
+        super(PungiComposerThread, self).__init__(max_concur_sem, compose, agent, log, db_factory,
+                                                  mash_dir, resume)
         self.devnull = None
         self.mash_dir = mash_dir
         self.path = None
