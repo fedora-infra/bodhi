@@ -237,8 +237,17 @@ class TestMasher(base.BaseTestCase):
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write(fake_repodata)
 
+            os.makedirs(os.path.join(mash_dir, 'compose', 'metadata'))
+            with open(os.path.join(mash_dir, 'compose', 'metadata', 'composeinfo.json'), 'w') as f:
+                f.write('{}')
+
+            fake_stdout = '''Some output
+Some more output ...... This is not a Compose dir: ....
+Compose dir: %s
+That was the actual one''' % mash_dir
+
             fake_popen = mock.MagicMock()
-            fake_popen.communicate = lambda: (mock.MagicMock(), 'hello')
+            fake_popen.communicate = lambda: (fake_stdout, 'hello')
             fake_popen.poll.return_value = None
             fake_popen.returncode = 0
             return fake_popen
@@ -555,6 +564,36 @@ References:
                 config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
 
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
+    def test_mash_invalid_dir(self, save_state):
+        msg = self._make_msg()
+        t = RPMComposerThread(msg['body']['msg']['composes'][0],
+                              'ralph', log, self.db_factory, self.tempdir)
+        t.devnull = mock.MagicMock()
+        t.id = 'f17-updates-testing'
+        with self.db_factory() as session:
+            t.db = session
+            t.compose = Compose.from_dict(session, msg['body']['msg']['composes'][0])
+            t.release = session.query(Release).filter_by(name=u'F17').one()
+            try:
+                fake_popen = mock.MagicMock()
+                fake_stdout = '''Some output
+Some more output ...... This is not a Compose dir: ....
+Compose dir: /tmp/nonsensical_directory
+That was the actual one'''
+                fake_popen.communicate = lambda: (fake_stdout, 'hello')
+                fake_popen.poll.return_value = None
+                fake_popen.returncode = 0
+                t._startyear = datetime.datetime.utcnow().year
+                t._wait_for_pungi(fake_popen)
+                assert False, "Mash with invalid directory did not crash"
+            except Exception as ex:
+                expected_error = ('Directory at /tmp/nonsensical_directory does not look like a '
+                                  'compose')
+                expected_error = expected_error.format(datetime.datetime.utcnow().year)
+                assert str(ex) == expected_error
+            t.db = None
+
+    @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_mash_no_found_dirs(self, save_state):
         msg = self._make_msg()
         t = RPMComposerThread(msg['body']['msg']['composes'][0],
@@ -567,15 +606,17 @@ References:
             t.release = session.query(Release).filter_by(name=u'F17').one()
             try:
                 fake_popen = mock.MagicMock()
-                fake_popen.communicate = lambda: (mock.MagicMock(), 'hello')
+                fake_stdout = '''Some output
+    Some more output ...... This is not a Compose dir: ....
+    That was the actual one'''
+                fake_popen.communicate = lambda: (fake_stdout, 'hello')
                 fake_popen.poll.return_value = None
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year
                 t._wait_for_pungi(fake_popen)
                 assert False, "Mash without generated dirs did not crash"
             except Exception as ex:
-                expected_error = ('We were unable to find a path with prefix '
-                                  'Fedora-17-updates-testing-{}* in mashdir')
+                expected_error = ('Unable to find the path to the compose')
                 expected_error = expected_error.format(datetime.datetime.utcnow().year)
                 assert str(ex) == expected_error
             t.db = None
@@ -1081,8 +1122,8 @@ References:
             Popen.mock_calls,
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--quiet', '--target-dir', t.mash_dir, '--old-composes', t.mash_dir,
-                 '--no-latest-link', '--label', t._label],
+                 '--quiet', '--print-output-dir', '--target-dir', t.mash_dir, '--old-composes',
+                 t.mash_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
@@ -1158,8 +1199,8 @@ References:
             Popen.mock_calls,
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--quiet', '--target-dir', t.mash_dir, '--old-composes', t.mash_dir,
-                 '--no-latest-link', '--label', t._label],
+                 '--quiet', '--print-output-dir', '--target-dir', t.mash_dir, '--old-composes',
+                 t.mash_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
@@ -1208,8 +1249,8 @@ References:
             Popen.mock_calls,
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--quiet', '--target-dir', t.mash_dir, '--old-composes', t.mash_dir,
-                 '--no-latest-link', '--label', t._label],
+                 '--quiet', '--print-output-dir', '--target-dir', t.mash_dir, '--old-composes',
+                 t.mash_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])
@@ -1257,8 +1298,8 @@ References:
             Popen.mock_calls,
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
-                 '--quiet', '--target-dir', t.mash_dir, '--old-composes', t.mash_dir,
-                 '--no-latest-link', '--label', t._label],
+                 '--quiet', '--print-output-dir', '--target-dir', t.mash_dir, '--old-composes',
+                 t.mash_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.mash_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
                 stdout=mock.ANY)])

@@ -27,7 +27,6 @@ mashed.
 import functools
 import hashlib
 import json
-import glob
 import os
 import shutil
 import subprocess
@@ -874,7 +873,6 @@ class PungiComposerThread(ComposerThread):
         self.devnull = None
         self.mash_dir = mash_dir
         self.path = None
-        self._startyear = None
 
     def finish(self, success):
         """
@@ -1037,6 +1035,7 @@ class PungiComposerThread(ComposerThread):
         pungi_cmd = [config.get('pungi.cmd'),
                      '--config', config_file,
                      '--quiet',
+                     '--print-output-dir',
                      '--target-dir', self.mash_dir,
                      '--old-composes', self.mash_dir,
                      '--no-latest-link',
@@ -1049,8 +1048,8 @@ class PungiComposerThread(ComposerThread):
                                         shell=False,
                                         # Should be useless, but just to set something predictable
                                         cwd=self.mash_dir,
-                                        # Pungi will logs its stdout into pungi.global.log
-                                        stdout=self.devnull,
+                                        # Pungi will log the output compose dir to stdout
+                                        stdout=subprocess.PIPE,
                                         # Stderr should also go to pungi.global.log if it starts
                                         stderr=subprocess.PIPE,
                                         # We will never have additional input
@@ -1065,11 +1064,6 @@ class PungiComposerThread(ComposerThread):
             self.log.error('Stderr: %s', err)
             self.devnull.close()
             raise Exception('Pungi returned error, aborting!')
-
-        # This is used to find the generated directory post-mash.
-        # This is stored at the time of start so that even if the update run crosses the year
-        # border, we can still find it back.
-        self._startyear = datetime.utcnow().year
 
         return mash_process
 
@@ -1162,7 +1156,7 @@ class PungiComposerThread(ComposerThread):
             self.log.info('Not waiting for pungi thread, as there was no pungi')
             return
         self.log.info('Waiting for pungi thread to finish')
-        _, err = pungi_process.communicate()
+        out, err = pungi_process.communicate()
         self.devnull.close()
         if pungi_process.returncode != 0:
             self.log.error('Pungi exited with exit code %d', pungi_process.returncode)
@@ -1172,21 +1166,17 @@ class PungiComposerThread(ComposerThread):
             self.log.info('Pungi finished')
 
         # Find the path Pungi just created
-        requesttype = 'updates'
-        if self.compose.request is UpdateRequest.testing:
-            requesttype = 'updates-testing'
-        # The year here is used so that we can correctly find the latest updates mash, so that we
-        # find updates-20420101.1 instead of updates-testing-20420506.5
-        prefix = '%s-%d-%s-%s*' % (self.compose.release.id_prefix.title(),
-                                   int(self.compose.release.version),
-                                   requesttype,
-                                   self._startyear)
+        prefix = 'Compose dir: '
+        for line in out.split('\n'):
+            if line.startswith(prefix):
+                self.path = line[len(prefix):]
+        if not self.path:
+            self.log.error('Stdout: %s', out)
+            raise Exception('Unable to find the path to the compose')
+        if not os.path.exists(os.path.join(self.path, 'compose', 'metadata', 'composeinfo.json')):
+            raise Exception('Directory at %s does not look like a compose' % self.path)
 
-        paths = sorted(glob.glob(os.path.join(self.mash_dir, prefix)))
-        if len(paths) < 1:
-            raise Exception('We were unable to find a path with prefix %s in mashdir' % prefix)
-        self.log.debug('Paths: %s', paths)
-        self.path = paths[-1]
+        self.log.debug('Path: %s', self.path)
         self._checkpoints['completed_repo'] = self.path
 
     def _wait_for_sync(self):
