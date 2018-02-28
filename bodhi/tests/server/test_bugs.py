@@ -282,6 +282,57 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.return_value.setstatus.assert_called_once_with('ON_QA', comment='A message.')
         self.assertEqual(exception.call_count, 0)
 
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_on_qa_skipped_because_closed(self, exception):
+        """
+        Test the on_qa() method when the bug is already CLOSED.
+        It must not change bug state, only post the comment.
+        """
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.bug_status = 'CLOSED'
+
+        bz.on_qa(1411188, 'A message.')
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
+        bz._bz.getbug.return_value.setstatus.assert_not_called()
+        self.assertEqual(exception.call_count, 0)
+
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_on_qa_skipped_because_verified(self, exception):
+        """
+        Test the on_qa() method when the bug is already VERIFIED.
+        It must not change bug state, only post the comment.
+        """
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.bug_status = 'VERIFIED'
+
+        bz.on_qa(1411188, 'A message.')
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
+        bz._bz.getbug.return_value.setstatus.assert_not_called()
+        self.assertEqual(exception.call_count, 0)
+
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_on_qa_skipped_because_already_set(self, exception):
+        """
+        Test the on_qa() method when the bug is already ON_QA.
+        It must not be set again ON_QA, only post the comment.
+        """
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.bug_status = 'ON_QA'
+
+        bz.on_qa(1411188, 'A message.')
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
+        bz._bz.getbug.return_value.setstatus.assert_not_called()
+        self.assertEqual(exception.call_count, 0)
+
 
 class TestFakeBugTracker(unittest.TestCase):
     """This test class contains tests for the FakeBugTracker class."""
