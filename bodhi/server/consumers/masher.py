@@ -533,7 +533,7 @@ class ComposerThread(threading.Thread):
             state (bodhi.server.models.ComposeState): If not ``None``, set the Compose's state
                 attribute to the given state. Defaults to ``None``.
         """
-        self.compose.checkpoints = json.dumps(self._checkpoints).decode('utf-8')
+        self.compose.checkpoints = json.dumps(self._checkpoints)
         if state is not None:
             self.compose.state = state
         self.db.commit()
