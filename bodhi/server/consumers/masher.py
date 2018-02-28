@@ -364,7 +364,7 @@ class ComposerThread(threading.Thread):
             with self.db_factory() as session:
                 self.db = session
                 self.compose = Compose.from_dict(session, self._compose)
-                self.compose.error_message = str(e)
+                self.compose.error_message = six.text_type(e)
                 self.save_state(ComposeState.failed)
 
             self.log.exception('ComposerThread failed. Transaction rolled back.')
