@@ -291,6 +291,29 @@ class BaseTestCase(unittest.TestCase):
         return release
 
 
+class DummyUser(object):
+    """
+    A fake user, suitable for passing to pyramid.testing.DummyRequest.
+
+    If you want to fake a Pyramid Request as being made by a particular user, you can instantiate
+    one of these bad boys and pass it like this::
+
+        request = pyramid.testing.DummyRequest(user=DummyUser('bowlofeggs'))
+
+    Attributes:
+        name (basestring): The name of the user. Defaults to 'guest'.
+    """
+
+    def __init__(self, name='guest'):
+        """
+        Set the name attribute.
+
+        Args:
+            name (basestring): The user name.
+        """
+        self.name = name
+
+
 class TransactionalSessionMaker(object):
     """
     Mimic the behavior of bodhi.server.utils.TransactionalSessionMaker.
