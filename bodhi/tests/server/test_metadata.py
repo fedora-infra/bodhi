@@ -48,6 +48,8 @@ class UpdateInfoMetadataTestCase(base.BaseTestCase):
         self.tempcompdir = join(self.tempdir, 'f17-updates-testing')
         self.temprepo = join(self.tempcompdir, 'compose', 'Everything', 'i386', 'os')
         mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
+        config['cache_dir'] = os.path.join(self.tempdir, 'cache')
+        os.makedirs(config['cache_dir'])
 
     def tearDown(self):
         """
@@ -56,6 +58,7 @@ class UpdateInfoMetadataTestCase(base.BaseTestCase):
         super(UpdateInfoMetadataTestCase, self).tearDown()
         teardown_buildsystem()
         shutil.rmtree(self.tempdir)
+        config['cache_dir'] = None
 
 
 class TestAddUpdate(UpdateInfoMetadataTestCase):
@@ -233,6 +236,8 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         self._mash_dir = config['mash_dir']
         config['mash_stage_dir'] = self._new_mash_stage_dir
         config['mash_dir'] = os.path.join(config['mash_stage_dir'], 'mash')
+        config['cache_dir'] = os.path.join(config['mash_stage_dir'], 'cache')
+        os.makedirs(config['cache_dir'])
         os.makedirs(os.path.join(config['mash_dir'], 'f17-updates-testing'))
 
         # Initialize our temporary repo
@@ -259,6 +264,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         shutil.rmtree(self.tempdir)
         config['mash_stage_dir'] = self._mash_stage_dir
         config['mash_dir'] = self._mash_dir
+        config['cache_dir'] = None
         shutil.rmtree(self._new_mash_stage_dir)
         super(TestUpdateInfoMetadata, self).setUp()
 
