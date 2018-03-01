@@ -108,7 +108,12 @@ class UpdateInfoMetadata(object):
         self.updates = set()
         self.builds = {}
         self._from = config.get('bodhi_email')
-        self.shelf = shelve.open(os.path.join(mashdir, '%s.shelve' % self.tag))
+        if config.get('cache_dir'):
+            self.shelf = shelve.open(os.path.join(config.get('cache_dir'), '%s.shelve' % self.tag))
+        else:
+            # If we have no cache dir, let's at least cache in-memory.
+            self.shelf = {}
+            close_shelf = False
         self._fetch_updates()
 
         self.uinfo = cr.UpdateInfo()

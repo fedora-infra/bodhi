@@ -328,6 +328,9 @@ class BodhiConfig(dict):
         'bz_server': {
             'value': 'https://bugzilla.redhat.com/xmlrpc.cgi',
             'validator': six.text_type},
+        'cache_dir': {
+            'value': None,
+            'validator': _validate_none_or(_validate_path)},
         'captcha.background_color': {
             'value': '#ffffff',
             'validator': _validate_color},
