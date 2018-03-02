@@ -206,12 +206,13 @@ class Bugzilla(BugTracker):
                 # structured.  We should use:
                 # - the full NVR as it appears in koji
                 # - space-separated if there's more than one.
-                fixedinString = " ".join(fixedin)
-                
+                fixedin_str = " ".join(fixedin)
+
                 # Add our build if its not already there
                 # but only if resultant string length is lower than 256 chars
-                if (version not in fixedin) and (len(fixedinString)+len(version) < 255):
-                    args['fixedin'] = fixedinString + " " + version
+                # See https://github.com/fedora-infra/bodhi/issues/1430
+                if (version not in fixedin) and (len(fixedin_str) + len(version) < 255):
+                    args['fixedin'] = " ".join([fixedin_str, version])
 
             bug.close('ERRATA', **args)
         except xmlrpc_client.Fault:
