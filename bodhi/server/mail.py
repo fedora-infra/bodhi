@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2007-2017 Red Hat, Inc. and others.
+# Copyright 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -260,8 +260,8 @@ Description :
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)s
 This update can be installed with the "dnf" update program. Use
-su -c 'dnf%(yum_repository)s upgrade %(name)s' at the command line.
-For more information, refer to the dnf documentation available at
+su -c 'dnf%(yum_repository)s upgrade --advisory %(updateid)s' at the command
+line. For more information, refer to the dnf documentation available at
 http://dnf.readthedocs.io/en/latest/command_ref.html#upgrade-command-label
 
 All packages are signed with the Fedora Project GPG key. More details on the

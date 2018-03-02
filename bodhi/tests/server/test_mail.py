@@ -123,6 +123,8 @@ class TestGetTemplate(base.BaseTestCase):
         t = '\n'.join([l for l in t[0]])
         self.assertFalse('--enablerepo=updates-testing' in t)
         self.assertFalse('Fedora Test Update Notification' in t)
+        # The advisory flag should be included in the dnf instructions.
+        self.assertTrue('dnf upgrade --advisory {}'.format(u.alias) in t)
 
     def test_testing_update(self):
         """Testing updates should include --enablerepo=updates-testing in the notice."""
@@ -135,6 +137,9 @@ class TestGetTemplate(base.BaseTestCase):
         t = '\n'.join([l for l in t[0]])
         self.assertTrue('--enablerepo=updates-testing' in t)
         self.assertTrue('Fedora Test Update Notification' in t)
+        # The advisory flag should be included in the dnf instructions.
+        self.assertTrue(
+            'dnf --enablerepo=updates-testing upgrade --advisory {}'.format(u.alias) in t)
 
 
 class TestSend(base.BaseTestCase):
