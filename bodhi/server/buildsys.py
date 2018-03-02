@@ -443,7 +443,7 @@ class DevBuildsys(Buildsystem):
         elif rpmID == 'do-not-find-anything.src':
             return None
         else:
-            return {
+            headers = {
                 'description': (
                     "The libseccomp library provides an easy to use interface to the "
                     "Linux Kernel's\nsyscall filtering mechanism, seccomp. The "
@@ -480,6 +480,13 @@ class DevBuildsys(Buildsystem):
                 'release': '1.fc20',
                 'name': 'libseccomp'
             }
+            if rpmID == "TurboGears-2.0.0.0-1.fc17.src":
+                headers['changelogname'].insert(0, 'Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1')
+                headers['changelogtext'].insert(0, '- Added some bowlofeggs charm.')
+                headers['changelogtime'].insert(0, 1375531201)
+            elif rpmID == 'TurboGears-1.9.1-1.fc17.src':
+                headers['changelogtext'] = []
+            return headers
 
 
 def koji_login(config, authenticate):
