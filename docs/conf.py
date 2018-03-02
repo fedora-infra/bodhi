@@ -215,7 +215,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
     ('index', 'bodhi.tex', u'bodhi Documentation',
-     u'Luke Macken', 'manual'),
+     u'Randy Barlow, Luke Macken', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -279,7 +279,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     ('index', 'bodhi', u'bodhi Documentation',
-     u'Luke Macken', 'bodhi', 'One line description of project.',
+     u'Randy Barlow, Luke Macken', 'bodhi', 'One line description of project.',
      'Miscellaneous'),
 ]
 
