@@ -553,6 +553,9 @@ Update Information:
 
 Useful details!
 --------------------------------------------------------------------------------
+ChangeLog:
+
+--------------------------------------------------------------------------------
 References:
 
   [ 1 ] Bug #12345 - None
@@ -575,10 +578,11 @@ References:
              'libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)\n Enhanced seccomp library\n----------'
              '----------------------------------------------------------------------\nUpdate '
              'Information:\n\nUseful details!\n----------------------------------------------------'
-             '----------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None\n        '
-             'https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110\n        '
-             'http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n--------------------'
-             '------------------------------------------------------------\n\n') % (
+             '----------------------------\nChangeLog:\n\n-----------------------------------------'
+             '---------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None'
+             '\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110'
+             '\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n----------'
+             '----------------------------------------------------------------------\n\n') % (
                 config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
 
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')

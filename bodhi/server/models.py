@@ -1370,8 +1370,8 @@ class RpmBuild(Build):
 
             # Find the first build that is older than us
             for build in builds:
-                new_evr = build_evr(build)
-                if rpm.labelCompare(evr, new_evr) < 0:
+                old_evr = build_evr(build)
+                if rpm.labelCompare(evr, old_evr) > 0:
                     latest = build['nvr']
                     break
             if latest:
