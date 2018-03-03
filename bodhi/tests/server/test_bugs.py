@@ -97,9 +97,44 @@ class TestBugzilla(unittest.TestCase):
             410, 'You must log in before using this part of Red Hat Bugzilla.')
 
         # This should not raise an Exception.
-        bz.close(12345, {'bodhi': ['bodhi-3.1.0-1.fc27']}, 'whabam!')
+        bz.close(12345, {'bodhi': 'bodhi-3.1.0-1.fc27'}, 'whabam!')
 
         exception.assert_called_once_with('Unable to close bug #12345')
+
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_close_successful(self, exception):
+        """Test the close() method with a success case."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.component = 'bodhi'
+
+        bz.close(12345, {'bodhi': 'bodhi-3.1.0-1.fc27'},
+                 'Fixed. Closing bug and adding version to fixed_in field.')
+
+        bz._bz.getbug.assert_called_once_with(12345)
+        bz._bz.getbug.return_value.close.assert_called_once_with(
+            'ERRATA',
+            comment='Fixed. Closing bug and adding version to fixed_in field.',
+            fixedin='bodhi-3.1.0-1.fc27')
+        self.assertEqual(exception.call_count, 0)
+
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_close_fixedin_maxlength(self, exception):
+        """Test the close() method when fixed_in field may go over 255 chars."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.component = 'bodhi'
+        fill_text = ' '.join([u'exactly-10', ] * 23)
+        bz._bz.getbug.return_value.fixed_in = fill_text
+
+        bz.close(12345, {'bodhi': 'bodhi-3.1.0-1.fc27'},
+                 'Closing, but don\'t modify fixed_in field to not cross 255 chars limit.')
+
+        bz._bz.getbug.assert_called_once_with(12345)
+        bz._bz.getbug.return_value.close.assert_called_once_with(
+            'ERRATA',
+            comment='Closing, but don\'t modify fixed_in field to not cross 255 chars limit.')
+        self.assertEqual(exception.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_comment_successful(self, exception):

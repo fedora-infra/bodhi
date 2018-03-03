@@ -211,8 +211,8 @@ class Bugzilla(BugTracker):
                 # Add our build if its not already there
                 # but only if resultant string length is lower than 256 chars
                 # See https://github.com/fedora-infra/bodhi/issues/1430
-                if (version not in fixedin) and (len(fixedin_str) + len(version) < 255):
-                    args['fixedin'] = " ".join([fixedin_str, version])
+                if (version not in fixedin) and ((len(fixedin_str) + len(version)) < 255):
+                    args['fixedin'] = " ".join([fixedin_str, version]).strip()
 
             bug.close('ERRATA', **args)
         except xmlrpc_client.Fault:
