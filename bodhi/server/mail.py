@@ -564,17 +564,3 @@ def send_releng(subject, body):
     """
     send_mail(config.get('bodhi_email'), config.get('release_team_address'),
               subject, body)
-
-
-def send_admin(msg_type, update, sender=None):
-    """
-    Send an update notification to the admins/release team.
-
-    Args:
-        msg_type (basestring): The type of the message. Should match one of the keys from the
-            MESSAGES dict.
-        update (bodhi.server.models.Update): The Update we are mailing about.
-        sender (basestring or None): The sender to use for the mail. If None, defaults to the
-            "bodhi_email" setting.
-    """
-    send(config.get('release_team_address'), msg_type, update, sender)
