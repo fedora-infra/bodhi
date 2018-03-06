@@ -1160,14 +1160,14 @@ def validate_captcha(request, **kwargs):
             return
 
         if 'captcha' not in request.session:
-            request.errors.add('session', 'captcha',
+            request.errors.add('cookies', 'captcha',
                                'Captcha cipher not in the session (replay).')
             request.errors.status = HTTPBadRequest.code
             return
 
         if request.session['captcha'] != key:
             request.errors.add(
-                'session', 'captcha', 'No captcha session cipher match (replay). %r %r' % (
+                'cookies', 'captcha', 'No captcha session cipher match (replay). %r %r' % (
                     request.session['captcha'], key))
             request.errors.status = HTTPBadRequest.code
             return
