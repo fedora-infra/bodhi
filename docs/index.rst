@@ -33,6 +33,7 @@ User Guide
 
    user/testing
    user/update_states
+   user/buildroot_overrides
    user/man_pages/index
 
 .. toctree::
