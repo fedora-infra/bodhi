@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2007-2017 Red Hat, Inc. and others.
+# Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -437,8 +437,6 @@ def validate_acls(request, **kwargs):
             # with a pre-stored Build obj.
             package = build.package
             release = build.update.release
-        else:
-            raise NotImplementedError()  # Should never get here.
 
         # Now that we know the release and the package associated with this
         # build, we can ask our ACL system about it..
