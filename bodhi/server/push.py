@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2007-2017 Red Hat, Inc.
+# Copyright © 2007-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -20,7 +20,7 @@
 from sqlalchemy.sql import or_
 import click
 
-from bodhi.server import (initialize_db, get_koji, setup_buildsys)
+from bodhi.server import (buildsys, initialize_db, get_koji)
 from bodhi.server.config import config
 from bodhi.server.models import (Compose, ComposeState, Release, ReleaseState, Build, Update,
                                  UpdateRequest)
@@ -35,7 +35,10 @@ def update_sig_status(update):
     """Update build signature status for builds in update."""
     global _koji
     if _koji is None:
-        setup_buildsys()
+        # We don't want to authenticate to the buildsystem, because this script is often mistakenly
+        # run as root and this can cause the ticket cache to become root owned with 0600 perms,
+        # which will cause the compose to fail when it tries to use it to authenticate to Koji.
+        buildsys.setup_buildsystem(config, authenticate=False)
         _koji = get_koji(None)
     for build in update.builds:
         if not build.signed:

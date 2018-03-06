@@ -473,12 +473,13 @@ class DevBuildsys(Buildsystem):
             }
 
 
-def koji_login(config):
+def koji_login(config, authenticate):
     """
     Login to Koji and return the session.
 
     Args:
         config (bodhi.server.config.BodhiConfig): Bodhi's configuration dictionary.
+        authenticate (bool): If True, establish an authenticated client session.
     Returns:
         koji.ClientSession: An authenticated Koji ClientSession that is ready to use.
     """
@@ -492,7 +493,7 @@ def koji_login(config):
     }
 
     koji_client = koji.ClientSession(_koji_hub, koji_options)
-    if not koji_client.krb_login(**get_krb_conf(config)):
+    if authenticate and not koji_client.krb_login(**get_krb_conf(config)):
         log.error('Koji krb_login failed')
     return koji_client
 
@@ -545,12 +546,13 @@ def teardown_buildsystem():
     DevBuildsys.clear()
 
 
-def setup_buildsystem(settings):
+def setup_buildsystem(settings, authenticate=True):
     """
     Initialize the buildsystem client.
 
     Args:
         settings (bodhi.server.config.BodhiConfig): Bodhi's config.
+        authenticate (bool): If True, establish an authenticated Koji session. Defaults to True.
     Raises:
         ValueError: If the buildsystem is configured to an invalid value.
     """
@@ -567,7 +569,7 @@ def setup_buildsystem(settings):
 
         def get_koji_login():
             """Call koji_login with settings and return the result."""
-            return koji_login(config=settings)
+            return koji_login(config=settings, authenticate=authenticate)
 
         _buildsystem = get_koji_login
     elif buildsys in ('dev', 'dummy', None):
