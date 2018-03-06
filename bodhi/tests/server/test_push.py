@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2016-2017 Red Hat, Inc. and others.
+# Copyright © 2016-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -868,3 +868,23 @@ class TestPush(base.BaseTestCase):
         self.assertTrue(python_paste_deploy.date_locked <= datetime.utcnow())
         self.assertEqual(python_paste_deploy.compose.release, python_paste_deploy.release)
         self.assertEqual(python_paste_deploy.compose.request, python_paste_deploy.request)
+
+
+class TetUpdateSigStatus(base.BaseTestCase):
+    """Test the update_sig_status() function."""
+
+    @mock.patch.dict('bodhi.server.push.config',
+                     {'buildsystem': 'koji', 'koji_hub': 'https://example.com/koji'})
+    @mock.patch('bodhi.server.buildsys._buildsystem', None)
+    @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
+    def test_sets_up_buildsys_without_auth(self, krb_login):
+        """
+        bodhi-push should not set up authentication for the build system.
+
+        https://github.com/fedora-infra/bodhi/issues/2190
+        """
+        u = self.db.query(models.Update).first()
+
+        push.update_sig_status(u)
+
+        self.assertEqual(krb_login.call_count, 0)
