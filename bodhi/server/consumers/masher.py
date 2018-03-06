@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2007-2017 Red Hat, Inc. and others.
+# Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -296,29 +296,28 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
 
 def get_masher(content_type):
     """
-    Return the correct MasherThread subclass for content_type.
+    Return the correct ComposerThread subclass for content_type.
 
     Args:
         content_type (bodhi.server.models.EnumSymbol): The content type we seek a masher for.
     Return:
-        MasherThread or None: Either an RPMMasherThread or a ModuleMasherThread, as appropriate, or
-            None if no masher is found.
+        ComposerThread or None: Either a ContainerComposerThread, RPMComposerThread, or a
+            ModuleComposerThread, as appropriate, or None if no masher is found.
     """
-    mashers = [RPMMasherThread, ModuleMasherThread]
+    mashers = [RPMComposerThread, ModuleComposerThread]
     for possible in mashers:
         if possible.ctype is content_type:
             return possible
 
 
-class MasherThread(threading.Thread):
-    """The base class that defines common things for all mashings."""
+class ComposerThread(threading.Thread):
+    """The base class that defines common things for all composes."""
 
     ctype = None
-    pungi_template_config_key = None
 
     def __init__(self, compose, agent, log, db_factory, mash_dir, resume=False):
         """
-        Initialize the MasherThread.
+        Initialize the ComposerThread.
 
         Args:
             compose (dict): A dictionary representation of the Compose to run, formatted like the
@@ -330,11 +329,10 @@ class MasherThread(threading.Thread):
             mash_dir (basestring): A path to a directory to generate the mash in.
             resume (bool): Whether or not we are resuming a previous failed mash. Defaults to False.
         """
-        super(MasherThread, self).__init__()
+        super(ComposerThread, self).__init__()
         self.db_factory = db_factory
         self.log = log
         self.agent = agent
-        self.mash_dir = mash_dir
         self._compose = compose
         self.resume = resume
         self.add_tags_async = []
@@ -342,10 +340,7 @@ class MasherThread(threading.Thread):
         self.add_tags_sync = []
         self.move_tags_sync = []
         self.testing_digest = {}
-        self.path = None
         self.success = False
-        self.devnull = None
-        self._startyear = None
 
     def run(self):
         """Run the thread by managing a db transaction and calling work()."""
@@ -365,7 +360,7 @@ class MasherThread(threading.Thread):
                 self.compose.error_message = unicode(e)
                 self.save_state(ComposeState.failed)
 
-            self.log.exception('MasherThread failed. Transaction rolled back.')
+            self.log.exception('ComposerThread failed. Transaction rolled back.')
         finally:
             self.compose = None
             self.db = None
@@ -394,13 +389,12 @@ class MasherThread(threading.Thread):
         # tasks for testing updates. For stable updates, we should just add the
         # dist_tag and do everything else other than mashing/updateinfo, since
         # the nightly build-branched cron job mashes for us.
-        self.skip_mash = False
+        self.skip_compose = False
         if (self.compose.release.state is ReleaseState.pending and
                 self.compose.request is UpdateRequest.stable):
-            self.skip_mash = True
+            self.skip_compose = True
 
-        self.log.info('Running MasherThread(%s)' % self.id)
-        self.init_state()
+        self.log.info('Running ComposerThread(%s)' % self.id)
 
         notifications.publish(
             topic="mashtask.mashing",
@@ -427,25 +421,7 @@ class MasherThread(threading.Thread):
             self.expire_buildroot_overrides()
             self.remove_pending_tags()
 
-            if not self.skip_mash:
-                mash_process = self.mash()
-
-            # Things we can do while we're mashing
-            self.generate_testing_digest()
-
-            if not self.skip_mash:
-                uinfo = self.generate_updateinfo()
-
-                self.wait_for_mash(mash_process)
-
-                uinfo.insert_updateinfo(self.path)
-
-            if not self.skip_mash:
-                self.sanity_check_repo()
-                self.stage_repo()
-
-                # Wait for the repo to hit the master mirror
-                self.wait_for_sync()
+            self._compose_updates()
 
             self._mark_status_changes()
             self.save_state(ComposeState.notifying)
@@ -474,7 +450,7 @@ class MasherThread(threading.Thread):
             self.remove_state()
 
         except Exception:
-            self.log.exception('Exception in MasherThread(%s)' % self.id)
+            self.log.exception('Exception in ComposerThread(%s)' % self.id)
             self.save_state()
             raise
         finally:
@@ -540,12 +516,6 @@ class MasherThread(threading.Thread):
             force=True,
         )
 
-    def init_state(self):
-        """Create the mash_dir if it doesn't exist."""
-        if not os.path.exists(self.mash_dir):
-            self.log.info('Creating %s' % self.mash_dir)
-            os.makedirs(self.mash_dir)
-
     def save_state(self, state=None):
         """
         Save the state of this push so it can be resumed later if necessary.
@@ -565,14 +535,9 @@ class MasherThread(threading.Thread):
         self._checkpoints = json.loads(self.compose.checkpoints)
         self.log.info('Masher state loaded from %s', self.compose)
         self.log.info(self.compose.state)
-        if 'completed_repo' in self._checkpoints:
-            self.path = self._checkpoints['completed_repo']
-            self.log.info('Resuming push with completed repo: %s' % self.path)
-            return
-        self.log.info('Resuming push without any completed repos')
 
     def remove_state(self):
-        """Remove the mash lock file."""
+        """Remove the Compose object from the database."""
         self.log.info('Removing state: %s', self.compose)
         self.db.delete(self.compose)
 
@@ -583,10 +548,6 @@ class MasherThread(threading.Thread):
         Args:
             success (bool): True if the mash had been successful, False otherwise.
         """
-        if hasattr(self, '_pungi_conf_dir') and os.path.exists(self._pungi_conf_dir) and success:
-            # Let's clean up the pungi configs we wrote
-            shutil.rmtree(self._pungi_conf_dir)
-
         self.log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
         notifications.publish(
             topic="mashtask.complete",
@@ -634,7 +595,7 @@ class MasherThread(threading.Thread):
                         self.eject_from_mash(update, reason)
                         break
 
-                    if self.skip_mash:
+                    if self.skip_compose:
                         add_tags.append((update.requested_tag, build.nvr))
                     else:
                         move_tags.append((from_tag, update.requested_tag,
@@ -700,148 +661,6 @@ class MasherThread(threading.Thread):
         self.log.debug('remove_pending_tags koji.multiCall result = %r',
                        result)
 
-    def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
-        """
-        Child classes should override this to place type-specific Pungi files in the config dir.
-
-        Args:
-            pungi_conf_dir (basestring): A path to the directory that Pungi's configs are being
-                written to.
-            template_env (jinja2.Environment): The jinja2 environment to be used while rendering the
-                variants.xml template.
-        raises:
-            NotImplementedError: The parent class does not implement this method.
-        """
-        raise NotImplementedError
-
-    def create_pungi_config(self):
-        """Create a temp dir and render the Pungi config templates into the dir."""
-        loader = jinja2.FileSystemLoader(searchpath=config.get('pungi.basepath'))
-        env = jinja2.Environment(loader=loader,
-                                 autoescape=False,
-                                 block_start_string='[%',
-                                 block_end_string='%]',
-                                 variable_start_string='[[',
-                                 variable_end_string=']]',
-                                 comment_start_string='[#',
-                                 comment_end_string='#]')
-
-        env.globals['id'] = self.id
-        env.globals['release'] = self.compose.release
-        env.globals['request'] = self.compose.request
-        env.globals['updates'] = self.compose.updates
-
-        config_template = config.get(self.pungi_template_config_key)
-        template = env.get_template(config_template)
-
-        self._pungi_conf_dir = tempfile.mkdtemp(prefix='bodhi-pungi-%s-' % self.id)
-
-        with open(os.path.join(self._pungi_conf_dir, 'pungi.conf'), 'w') as conffile:
-            conffile.write(template.render())
-
-        self.copy_additional_pungi_files(self._pungi_conf_dir, env)
-
-    def mash(self):
-        """
-        Launch the Pungi child process to "punge" the repository.
-
-        Returns:
-            subprocess.Popen: A process handle to the child Pungi process.
-        Raises:
-            Exception: If the child Pungi process exited with a non-0 exit code within 3 seconds.
-        """
-        if self.path:
-            self.log.info('Skipping completed repo: %s', self.path)
-            return
-
-        # We have a thread-local devnull FD so that we can close them after the mash is done
-        self.devnull = open(os.devnull, 'wb')
-
-        self.create_pungi_config()
-        config_file = os.path.join(self._pungi_conf_dir, 'pungi.conf')
-        self._label = '%s-%s' % (config.get('pungi.labeltype'),
-                                 datetime.utcnow().strftime('%Y%m%d.%H%M'))
-        pungi_cmd = [config.get('pungi.cmd'),
-                     '--config', config_file,
-                     '--quiet',
-                     '--target-dir', self.mash_dir,
-                     '--old-composes', self.mash_dir,
-                     '--no-latest-link',
-                     '--label', self._label]
-        pungi_cmd += config.get('pungi.extracmdline')
-
-        self.log.info('Running the pungi command: %s', pungi_cmd)
-        mash_process = subprocess.Popen(pungi_cmd,
-                                        # Nope. No shell for you
-                                        shell=False,
-                                        # Should be useless, but just to set something predictable
-                                        cwd=self.mash_dir,
-                                        # Pungi will logs its stdout into pungi.global.log
-                                        stdout=self.devnull,
-                                        # Stderr should also go to pungi.global.log if it starts
-                                        stderr=subprocess.PIPE,
-                                        # We will never have additional input
-                                        stdin=self.devnull)
-        self.log.info('Pungi running as PID: %s', mash_process.pid)
-        # Since the mash process takes a long time, we can safely just wait 3 seconds to abort the
-        # entire mash early if Pungi fails to start up correctly.
-        time.sleep(3)
-        if mash_process.poll() not in [0, None]:
-            self.log.error('Pungi process terminated with error within 3 seconds! Abandoning!')
-            _, err = mash_process.communicate()
-            self.log.error('Stderr: %s', err)
-            self.devnull.close()
-            raise Exception('Pungi returned error, aborting!')
-
-        # This is used to find the generated directory post-mash.
-        # This is stored at the time of start so that even if the update run crosses the year
-        # border, we can still find it back.
-        self._startyear = datetime.utcnow().year
-
-        return mash_process
-
-    def wait_for_mash(self, mash_process):
-        """
-        Wait for the pungi process to exit and find the path of the repository that it produced.
-
-        Args:
-            mash_process (subprocess.Popen): The Popen handle of the running child process.
-        Raises:
-            Exception: If pungi's exit code is not 0, or if it is unable to find the directory that
-                Pungi created.
-        """
-        self.save_state(ComposeState.punging)
-        if mash_process is None:
-            self.log.info('Not waiting for mash thread, as there was no mash')
-            return
-        self.log.info('Waiting for mash thread to finish')
-        _, err = mash_process.communicate()
-        self.devnull.close()
-        if mash_process.returncode != 0:
-            self.log.error('Mashing process exited with exit code %d', mash_process.returncode)
-            self.log.error('Stderr: %s', err)
-            raise Exception('Pungi exited with status %d' % mash_process.returncode)
-        else:
-            self.log.info('Mashing finished')
-
-        # Find the path Pungi just created
-        requesttype = 'updates'
-        if self.compose.request is UpdateRequest.testing:
-            requesttype = 'updates-testing'
-        # The year here is used so that we can correctly find the latest updates mash, so that we
-        # find updates-20420101.1 instead of updates-testing-20420506.5
-        prefix = '%s-%d-%s-%s*' % (self.compose.release.id_prefix.title(),
-                                   int(self.compose.release.version),
-                                   requesttype,
-                                   self._startyear)
-
-        paths = sorted(glob.glob(os.path.join(self.mash_dir, prefix)))
-        if len(paths) < 1:
-            raise Exception('We were unable to find a path with prefix %s in mashdir' % prefix)
-        self.log.debug('Paths: %s', paths)
-        self.path = paths[-1]
-        self._checkpoints['completed_repo'] = self.path
-
     def _mark_status_changes(self):
         """Mark each update's status as fulfilling its request."""
         self.log.info('Updating update statuses.')
@@ -885,150 +704,6 @@ class MasherThread(threading.Thread):
             if update.request is UpdateRequest.testing:
                 self.add_to_digest(update)
         self.log.info('Testing digest generation for %s complete' % self.compose.release.name)
-
-    def generate_updateinfo(self):
-        """
-        Create the updateinfo.xml file for this repository.
-
-        Returns:
-            bodhi.server.metadata.UpdateInfoMetadata: The updateinfo model that was created for this
-                repository.
-        """
-        self.log.info('Generating updateinfo for %s' % self.compose.release.name)
-        self.save_state(ComposeState.updateinfo)
-        uinfo = UpdateInfoMetadata(self.compose.release, self.compose.request,
-                                   self.db, self.mash_dir)
-        self.log.info('Updateinfo generation for %s complete' % self.compose.release.name)
-        return uinfo
-
-    def sanity_check_repo(self):
-        """Sanity check our repo.
-
-            - make sure we didn't compose a repo full of symlinks
-            - sanity check our repodata
-
-        This basically checks that pungi was run with gather_method='hardlink-or-copy' so that
-        we get a repository with either hardlinks or copied files.
-        This means that we when we go and sync generated repositories out, we do not need to take
-        special case to copy the target files rather than symlinks.
-        """
-        self.log.info("Running sanity checks on %s" % self.path)
-
-        arches = os.listdir(os.path.join(self.path, 'compose', 'Everything'))
-        for arch in arches:
-            # sanity check our repodata
-            try:
-                if arch == 'source':
-                    repodata = os.path.join(self.path, 'compose',
-                                            'Everything', arch, 'tree', 'repodata')
-                else:
-                    repodata = os.path.join(self.path, 'compose',
-                                            'Everything', arch, 'os', 'repodata')
-                sanity_check_repodata(repodata)
-            except Exception:
-                self.log.exception("Repodata sanity check failed!")
-                raise
-
-            # make sure that pungi didn't symlink our packages
-            try:
-                if arch == 'source':
-                    dirs = [('tree', 'Packages')]
-                else:
-                    dirs = [('debug', 'tree', 'Packages'), ('os', 'Packages')]
-
-                # Example of full path we are checking:
-                # self.path/compose/Everything/os/Packages/s/something.rpm
-                for checkdir in dirs:
-                    checkdir = os.path.join(self.path, 'compose', 'Everything', arch, *checkdir)
-                    subdirs = os.listdir(checkdir)
-                    # subdirs is the self.path/compose/Everything/os/Packages/{a,b,c,...}/ dirs
-                    #
-                    # Let's check the first file in each subdir. If they are correct, we'll assume
-                    # the rest is correct
-                    # This is to avoid tons and tons of IOPS for a bunch of files put in in the
-                    # same way
-                    for subdir in subdirs:
-                        for checkfile in os.listdir(os.path.join(checkdir, subdir)):
-                            if not checkfile.endswith('.rpm'):
-                                continue
-                            if os.path.islink(os.path.join(checkdir, subdir, checkfile)):
-                                self.log.error('Pungi out directory contains at least one '
-                                               'symlink at %s', checkfile)
-                                raise Exception('Symlinks found')
-                            # We have checked the first rpm in the subdir
-                            break
-            except Exception:
-                self.log.exception('Unable to check pungi mashed repositories')
-                raise
-
-        return True
-
-    def stage_repo(self):
-        """Symlink our updates repository into the staging directory."""
-        stage_dir = config.get('mash_stage_dir')
-        if not os.path.isdir(stage_dir):
-            self.log.info('Creating mash_stage_dir %s', stage_dir)
-            os.mkdir(stage_dir)
-        link = os.path.join(stage_dir, self.id)
-        if os.path.islink(link):
-            os.unlink(link)
-        self.log.info("Creating symlink: %s => %s" % (link, self.path))
-        os.symlink(self.path, link)
-
-    def wait_for_sync(self):
-        """
-        Block until our repomd.xml hits the master mirror.
-
-        Raises:
-            Exception: If no folder other than "source" was found in the mash_path.
-        """
-        self.log.info('Waiting for updates to hit the master mirror')
-        notifications.publish(
-            topic="mashtask.sync.wait",
-            msg=dict(repo=self.id, agent=self.agent),
-            force=True,
-        )
-        mash_path = os.path.join(self.path, 'compose', 'Everything')
-        checkarch = None
-        # Find the first non-source arch to check against
-        for arch in os.listdir(mash_path):
-            if arch == 'source':
-                continue
-            checkarch = arch
-            break
-        if not checkarch:
-            raise Exception('Not found an arch to wait_for_sync with')
-
-        repomd = os.path.join(mash_path, arch, 'os', 'repodata', 'repomd.xml')
-        if not os.path.exists(repomd):
-            self.log.error('Cannot find local repomd: %s', repomd)
-            return
-
-        master_repomd_url = self._get_master_repomd_url(arch)
-
-        with open(repomd) as repomdf:
-            checksum = hashlib.sha1(repomdf.read()).hexdigest()
-        while True:
-            try:
-                self.log.info('Polling %s' % master_repomd_url)
-                masterrepomd = urllib2.urlopen(master_repomd_url)
-            except (urllib2.URLError, urllib2.HTTPError):
-                self.log.exception('Error fetching repomd.xml')
-                time.sleep(200)
-                continue
-            newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
-            if newsum == checksum:
-                self.log.info("master repomd.xml matches!")
-                notifications.publish(
-                    topic="mashtask.sync.done",
-                    msg=dict(repo=self.id, agent=self.agent),
-                    force=True,
-                )
-                return
-
-            self.log.debug("master repomd.xml doesn't match! %s != %s for %r",
-                           checksum, newsum, self.id)
-            time.sleep(200)
 
     def send_notifications(self):
         """Send fedmsgs to announce completion of mashing for each update."""
@@ -1175,12 +850,142 @@ class MasherThread(threading.Thread):
         updates.sort(key=lambda update: update.days_in_testing, reverse=True)
         return updates
 
+
+class PungiComposerThread(ComposerThread):
+    """Compose update with Pungi."""
+
+    pungi_template_config_key = None
+
+    def __init__(self, compose, agent, log, db_factory, mash_dir, resume=False):
+        """
+        Initialize the ComposerThread.
+
+        Args:
+            compose (dict): A dictionary representation of the Compose to run, formatted like the
+                output of :meth:`Compose.__json__`.
+            agent (basestring): The user who is executing the mash.
+            log (logging.Logger): A logger to use for this mash.
+            db_factory (bodhi.server.util.TransactionalSessionMaker): A DB session to use while
+                mashing.
+            mash_dir (basestring): A path to a directory to generate the mash in.
+            resume (bool): Whether or not we are resuming a previous failed mash. Defaults to False.
+        """
+        super(PungiComposerThread, self).__init__(compose, agent, log, db_factory, mash_dir, resume)
+        self.devnull = None
+        self.mash_dir = mash_dir
+        self.path = None
+        self._startyear = None
+
+    def finish(self, success):
+        """
+        Clean up pungi configs if the mash was successful, and send logs and fedmsgs.
+
+        Args:
+            success (bool): True if the mash had been successful, False otherwise.
+        """
+        if hasattr(self, '_pungi_conf_dir') and os.path.exists(self._pungi_conf_dir) and success:
+            # Let's clean up the pungi configs we wrote
+            shutil.rmtree(self._pungi_conf_dir)
+
+        # The superclass will handle the logs and fedmsg.
+        super(PungiComposerThread, self).finish(success)
+
+    def load_state(self):
+        """Set self.path if completed_repo is found in checkpoints."""
+        super(PungiComposerThread, self).load_state()
+        if 'completed_repo' in self._checkpoints:
+            self.path = self._checkpoints['completed_repo']
+            self.log.info('Resuming push with completed repo: %s' % self.path)
+            return
+        self.log.info('Resuming push without any completed repos')
+
+    def _compose_updates(self):
+        """Start pungi, generate updateinfo, wait for pungi, and wait for the mirrors."""
+        if not os.path.exists(self.mash_dir):
+            self.log.info('Creating %s' % self.mash_dir)
+            os.makedirs(self.mash_dir)
+
+        if not self.skip_compose:
+            pungi_process = self._punge()
+
+        # Things we can do while Pungi is running
+        self.generate_testing_digest()
+
+        if not self.skip_compose:
+            uinfo = self._generate_updateinfo()
+
+            self._wait_for_pungi(pungi_process)
+
+            uinfo.insert_updateinfo(self.path)
+
+            self._sanity_check_repo()
+            self._stage_repo()
+
+            # Wait for the repo to hit the master mirror
+            self._wait_for_sync()
+
+    def _copy_additional_pungi_files(self, pungi_conf_dir, template_env):
+        """
+        Child classes should override this to place type-specific Pungi files in the config dir.
+
+        Args:
+            pungi_conf_dir (basestring): A path to the directory that Pungi's configs are being
+                written to.
+            template_env (jinja2.Environment): The jinja2 environment to be used while rendering the
+                variants.xml template.
+        raises:
+            NotImplementedError: The parent class does not implement this method.
+        """
+        raise NotImplementedError
+
+    def _create_pungi_config(self):
+        """Create a temp dir and render the Pungi config templates into the dir."""
+        loader = jinja2.FileSystemLoader(searchpath=config.get('pungi.basepath'))
+        env = jinja2.Environment(loader=loader,
+                                 autoescape=False,
+                                 block_start_string='[%',
+                                 block_end_string='%]',
+                                 variable_start_string='[[',
+                                 variable_end_string=']]',
+                                 comment_start_string='[#',
+                                 comment_end_string='#]')
+
+        env.globals['id'] = self.id
+        env.globals['release'] = self.compose.release
+        env.globals['request'] = self.compose.request
+        env.globals['updates'] = self.compose.updates
+
+        config_template = config.get(self.pungi_template_config_key)
+        template = env.get_template(config_template)
+
+        self._pungi_conf_dir = tempfile.mkdtemp(prefix='bodhi-pungi-%s-' % self.id)
+
+        with open(os.path.join(self._pungi_conf_dir, 'pungi.conf'), 'w') as conffile:
+            conffile.write(template.render())
+
+        self._copy_additional_pungi_files(self._pungi_conf_dir, env)
+
+    def _generate_updateinfo(self):
+        """
+        Create the updateinfo.xml file for this repository.
+
+        Returns:
+            bodhi.server.metadata.UpdateInfoMetadata: The updateinfo model that was created for this
+                repository.
+        """
+        self.log.info('Generating updateinfo for %s' % self.compose.release.name)
+        self.save_state(ComposeState.updateinfo)
+        uinfo = UpdateInfoMetadata(self.compose.release, self.compose.request,
+                                   self.db, self.mash_dir)
+        self.log.info('Updateinfo generation for %s complete' % self.compose.release.name)
+        return uinfo
+
     def _get_master_repomd_url(self, arch):
         """
         Return the master repomd URL for the given arch.
 
         Look up the correct *_master_repomd setting in the config and use it to form the URL that
-        wait_for_sync() will use to determine when the repository has been synchronized to the
+        _wait_for_sync() will use to determine when the repository has been synchronized to the
         master mirror.
 
         Args:
@@ -1209,14 +1014,244 @@ class MasherThread(threading.Thread):
 
         return master_repomd % (self.compose.release.version, arch)
 
+    def _punge(self):
+        """
+        Launch the Pungi child process to "punge" the repository.
 
-class RPMMasherThread(MasherThread):
+        Returns:
+            subprocess.Popen: A process handle to the child Pungi process.
+        Raises:
+            Exception: If the child Pungi process exited with a non-0 exit code within 3 seconds.
+        """
+        if self.path:
+            self.log.info('Skipping completed repo: %s', self.path)
+            return
+
+        # We have a thread-local devnull FD so that we can close them after the mash is done
+        self.devnull = open(os.devnull, 'wb')
+
+        self._create_pungi_config()
+        config_file = os.path.join(self._pungi_conf_dir, 'pungi.conf')
+        self._label = '%s-%s' % (config.get('pungi.labeltype'),
+                                 datetime.utcnow().strftime('%Y%m%d.%H%M'))
+        pungi_cmd = [config.get('pungi.cmd'),
+                     '--config', config_file,
+                     '--quiet',
+                     '--target-dir', self.mash_dir,
+                     '--old-composes', self.mash_dir,
+                     '--no-latest-link',
+                     '--label', self._label]
+        pungi_cmd += config.get('pungi.extracmdline')
+
+        self.log.info('Running the pungi command: %s', pungi_cmd)
+        mash_process = subprocess.Popen(pungi_cmd,
+                                        # Nope. No shell for you
+                                        shell=False,
+                                        # Should be useless, but just to set something predictable
+                                        cwd=self.mash_dir,
+                                        # Pungi will logs its stdout into pungi.global.log
+                                        stdout=self.devnull,
+                                        # Stderr should also go to pungi.global.log if it starts
+                                        stderr=subprocess.PIPE,
+                                        # We will never have additional input
+                                        stdin=self.devnull)
+        self.log.info('Pungi running as PID: %s', mash_process.pid)
+        # Since the mash process takes a long time, we can safely just wait 3 seconds to abort the
+        # entire mash early if Pungi fails to start up correctly.
+        time.sleep(3)
+        if mash_process.poll() not in [0, None]:
+            self.log.error('Pungi process terminated with error within 3 seconds! Abandoning!')
+            _, err = mash_process.communicate()
+            self.log.error('Stderr: %s', err)
+            self.devnull.close()
+            raise Exception('Pungi returned error, aborting!')
+
+        # This is used to find the generated directory post-mash.
+        # This is stored at the time of start so that even if the update run crosses the year
+        # border, we can still find it back.
+        self._startyear = datetime.utcnow().year
+
+        return mash_process
+
+    def _sanity_check_repo(self):
+        """Sanity check our repo.
+
+            - make sure we didn't compose a repo full of symlinks
+            - sanity check our repodata
+
+        This basically checks that pungi was run with gather_method='hardlink-or-copy' so that
+        we get a repository with either hardlinks or copied files.
+        This means that we when we go and sync generated repositories out, we do not need to take
+        special case to copy the target files rather than symlinks.
+        """
+        self.log.info("Running sanity checks on %s" % self.path)
+
+        arches = os.listdir(os.path.join(self.path, 'compose', 'Everything'))
+        for arch in arches:
+            # sanity check our repodata
+            try:
+                if arch == 'source':
+                    repodata = os.path.join(self.path, 'compose',
+                                            'Everything', arch, 'tree', 'repodata')
+                else:
+                    repodata = os.path.join(self.path, 'compose',
+                                            'Everything', arch, 'os', 'repodata')
+                sanity_check_repodata(repodata)
+            except Exception:
+                self.log.exception("Repodata sanity check failed!")
+                raise
+
+            # make sure that pungi didn't symlink our packages
+            try:
+                if arch == 'source':
+                    dirs = [('tree', 'Packages')]
+                else:
+                    dirs = [('debug', 'tree', 'Packages'), ('os', 'Packages')]
+
+                # Example of full path we are checking:
+                # self.path/compose/Everything/os/Packages/s/something.rpm
+                for checkdir in dirs:
+                    checkdir = os.path.join(self.path, 'compose', 'Everything', arch, *checkdir)
+                    subdirs = os.listdir(checkdir)
+                    # subdirs is the self.path/compose/Everything/os/Packages/{a,b,c,...}/ dirs
+                    #
+                    # Let's check the first file in each subdir. If they are correct, we'll assume
+                    # the rest is correct
+                    # This is to avoid tons and tons of IOPS for a bunch of files put in in the
+                    # same way
+                    for subdir in subdirs:
+                        for checkfile in os.listdir(os.path.join(checkdir, subdir)):
+                            if not checkfile.endswith('.rpm'):
+                                continue
+                            if os.path.islink(os.path.join(checkdir, subdir, checkfile)):
+                                self.log.error('Pungi out directory contains at least one '
+                                               'symlink at %s', checkfile)
+                                raise Exception('Symlinks found')
+                            # We have checked the first rpm in the subdir
+                            break
+            except Exception:
+                self.log.exception('Unable to check pungi mashed repositories')
+                raise
+
+        return True
+
+    def _stage_repo(self):
+        """Symlink our updates repository into the staging directory."""
+        stage_dir = config.get('mash_stage_dir')
+        if not os.path.isdir(stage_dir):
+            self.log.info('Creating mash_stage_dir %s', stage_dir)
+            os.mkdir(stage_dir)
+        link = os.path.join(stage_dir, self.id)
+        if os.path.islink(link):
+            os.unlink(link)
+        self.log.info("Creating symlink: %s => %s" % (link, self.path))
+        os.symlink(self.path, link)
+
+    def _wait_for_pungi(self, pungi_process):
+        """
+        Wait for the pungi process to exit and find the path of the repository that it produced.
+
+        Args:
+            pungi_process (subprocess.Popen): The Popen handle of the running child process.
+        Raises:
+            Exception: If pungi's exit code is not 0, or if it is unable to find the directory that
+                Pungi created.
+        """
+        self.save_state(ComposeState.punging)
+        if pungi_process is None:
+            self.log.info('Not waiting for pungi thread, as there was no pungi')
+            return
+        self.log.info('Waiting for pungi thread to finish')
+        _, err = pungi_process.communicate()
+        self.devnull.close()
+        if pungi_process.returncode != 0:
+            self.log.error('Pungi exited with exit code %d', pungi_process.returncode)
+            self.log.error('Stderr: %s', err)
+            raise Exception('Pungi exited with status %d' % pungi_process.returncode)
+        else:
+            self.log.info('Pungi finished')
+
+        # Find the path Pungi just created
+        requesttype = 'updates'
+        if self.compose.request is UpdateRequest.testing:
+            requesttype = 'updates-testing'
+        # The year here is used so that we can correctly find the latest updates mash, so that we
+        # find updates-20420101.1 instead of updates-testing-20420506.5
+        prefix = '%s-%d-%s-%s*' % (self.compose.release.id_prefix.title(),
+                                   int(self.compose.release.version),
+                                   requesttype,
+                                   self._startyear)
+
+        paths = sorted(glob.glob(os.path.join(self.mash_dir, prefix)))
+        if len(paths) < 1:
+            raise Exception('We were unable to find a path with prefix %s in mashdir' % prefix)
+        self.log.debug('Paths: %s', paths)
+        self.path = paths[-1]
+        self._checkpoints['completed_repo'] = self.path
+
+    def _wait_for_sync(self):
+        """
+        Block until our repomd.xml hits the master mirror.
+
+        Raises:
+            Exception: If no folder other than "source" was found in the mash_path.
+        """
+        self.log.info('Waiting for updates to hit the master mirror')
+        notifications.publish(
+            topic="mashtask.sync.wait",
+            msg=dict(repo=self.id, agent=self.agent),
+            force=True,
+        )
+        mash_path = os.path.join(self.path, 'compose', 'Everything')
+        checkarch = None
+        # Find the first non-source arch to check against
+        for arch in os.listdir(mash_path):
+            if arch == 'source':
+                continue
+            checkarch = arch
+            break
+        if not checkarch:
+            raise Exception('Not found an arch to _wait_for_sync with')
+
+        repomd = os.path.join(mash_path, arch, 'os', 'repodata', 'repomd.xml')
+        if not os.path.exists(repomd):
+            self.log.error('Cannot find local repomd: %s', repomd)
+            return
+
+        master_repomd_url = self._get_master_repomd_url(arch)
+
+        with open(repomd) as repomdf:
+            checksum = hashlib.sha1(repomdf.read()).hexdigest()
+        while True:
+            try:
+                self.log.info('Polling %s' % master_repomd_url)
+                masterrepomd = urllib2.urlopen(master_repomd_url)
+            except (urllib2.URLError, urllib2.HTTPError):
+                self.log.exception('Error fetching repomd.xml')
+                time.sleep(200)
+                continue
+            newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
+            if newsum == checksum:
+                self.log.info("master repomd.xml matches!")
+                notifications.publish(
+                    topic="mashtask.sync.done",
+                    msg=dict(repo=self.id, agent=self.agent),
+                    force=True,
+                )
+                return
+
+            self.log.debug("master repomd.xml doesn't match! %s != %s for %r",
+                           checksum, newsum, self.id)
+            time.sleep(200)
+
+
+class RPMComposerThread(PungiComposerThread):
     """Run Pungi with configs that produce RPM repositories (yum/dnf and OSTrees)."""
 
     ctype = ContentType.rpm
     pungi_template_config_key = 'pungi.conf.rpm'
 
-    def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
+    def _copy_additional_pungi_files(self, pungi_conf_dir, template_env):
         """
         Generate and write the variants.xml file for this Pungi run.
 
@@ -1232,13 +1267,13 @@ class RPMMasherThread(MasherThread):
             variantsfile.write(variants_template.render())
 
 
-class ModuleMasherThread(MasherThread):
+class ModuleComposerThread(PungiComposerThread):
     """Run Pungi with configs that produce module repositories."""
 
     ctype = ContentType.module
     pungi_template_config_key = 'pungi.conf.module'
 
-    def copy_additional_pungi_files(self, pungi_conf_dir, template_env):
+    def _copy_additional_pungi_files(self, pungi_conf_dir, template_env):
         """
         Generate and write the variants.xml file for this Pungi run.
 

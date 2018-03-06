@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2015-2018 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -80,8 +85,8 @@ def main(argv=sys.argv):
                         tags = build.get_tags()
                         stable_tag = release.dist_tag
                         testing_tag = release.testing_tag
-                        pending_signing_tag = Release.pending_signing_tag
-                        pending_testing_tag = Release.pending_testing_tag
+                        pending_signing_tag = release.pending_signing_tag
+                        pending_testing_tag = release.pending_testing_tag
                         if stable_tag not in tags:
                             log.error('%s not tagged as stable %s' % (build.nvr, tags))
                             continue

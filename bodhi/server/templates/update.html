@@ -81,9 +81,8 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         });
     };
 
-    var test_gating_passed = '${update.test_gating_passed}';
-    var test_gating_required = '${request.registry.settings.get("test_gating.required")}';
-    if (test_gating_required == 'True' && test_gating_passed == 'False') {
+    % if request.registry.settings.get("test_gating.required") is True and \
+            not update.test_gating_passed and update.greenwave_summary_string:
         var summary = '${update.greenwave_summary_string}';
         $('#resultsdb h3').after(
            '<div class="alert alert-danger">The update can not be pushed: ' + summary + '</div>');
@@ -92,7 +91,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             'decision_context': 'bodhi_update_push_stable',
             'subject': ${ update.greenwave_subject_json | n }
         });
-    }
+    % endif
 
     var make_row = function(outcome, testcase, note, arch, time, url, flavor) {
       var icon = '<span data-toggle="tooltip" data-placement="top" ' +
