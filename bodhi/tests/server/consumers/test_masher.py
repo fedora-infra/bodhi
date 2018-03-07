@@ -1789,7 +1789,8 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
             t._get_master_repomd_url('aarch64')
 
         self.assertEqual(six.text_type(exc.exception),
-                         'Could not find fedora_testing_alt_master_repomd in the config file')
+                         'Could not find any of fedora_17_testing_alt_master_repomd,'
+                         'fedora_testing_alt_master_repomd in the config file')
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
@@ -1814,6 +1815,36 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
             url,
             'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml'
         )
+
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_17_primary_arches': 'armhfp x86_64',
+         'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml',
+         'fedora_testing_alt_master_repomd':
+         'http://example.com/pub/fedora-secondary/updates/testing/%s/%s/repodata.repomd.xml',
+         'fedora_17_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/Everything/'
+            '%s/repodata.repomd.xml'})
+    def test_primary_arch_version_override(self):
+        """
+        Assert that if a release_version_request setting exists, that overrides release_request.
+        """
+        msg = self._make_msg()
+
+        t = PungiComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                                'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+
+        url = t._get_master_repomd_url('x86_64')
+
+        self.assertEqual(
+            url,
+            'http://example.com/pub/fedora/linux/updates/testing/17/Everything/'
+            'x86_64/repodata.repomd.xml'
+        )
+
+        self.assert_sems(0)
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
@@ -2204,7 +2235,8 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             t._wait_for_sync()
 
         self.assertEqual(six.text_type(exc.exception),
-                         'Could not find fedora_testing_master_repomd in the config file')
+                         'Could not find any of fedora_17_testing_master_repomd,'
+                         'fedora_testing_master_repomd in the config file')
         publish.assert_called_once_with(topic='mashtask.sync.wait',
                                         msg={'repo': t.id, 'agent': 'bowlofeggs'}, force=True)
 
