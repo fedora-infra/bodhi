@@ -350,6 +350,15 @@ class DevBuildsys(Buildsystem):
                 {'arches': 'x86_64', 'id': 17, 'locked': True,
                  'name': 'f27M'},
             ]
+        elif 'container' in build:
+            result = [
+                {'arches': 'x86_64', 'id': 15, 'locked': True,
+                 'name': 'f28C-updates-candidate'},
+                {'arches': 'x86_64', 'id': 16, 'locked': True,
+                 'name': 'f28C-updates-testing'},
+                {'arches': 'x86_64', 'id': 17, 'locked': True,
+                 'name': 'f28C'},
+            ]
         else:
             release = build.split('.')[-1].replace('fc', 'f')
             result = [

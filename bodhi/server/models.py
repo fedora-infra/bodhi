@@ -556,8 +556,7 @@ class ContentType(DeclEnum):
         if 'module' in extra.get('typeinfo', {}):
             identity = cls.module
         elif 'container_koji_task_id' in extra:
-            # TODO - implement containers as yet another content type someday.
-            raise NotImplementedError("Inferred type 'container' is unhandled.")
+            identity = cls.container
 
         return base.find_polymorphic_child(identity)
 
