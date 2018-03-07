@@ -1005,24 +1005,30 @@ class PungiComposerThread(ComposerThread):
             basestring: A URL on the master mirror where the repomd.xml file should be synchronized.
         """
         release = self.compose.release.id_prefix.lower().replace('-', '_')
+        version = self.compose.release.version
         request = self.compose.request.value
 
+        # First check to see if there's an override for the current version, if not, fall back.
+        # This will first try fedora_28_stable_(suffix), and then fedora_stable_(suffix).
+        key_prefixes = ['%s_%s_%s' % (release, version, request),
+                        '%s_%s' % (release, request)]
         # If the release has primary_arches defined in the config, we need to consider whether to
         # use the release's *alt_master_repomd setting.
         primary_arches = config.get(
             '{release}_{version}_primary_arches'.format(
                 release=release, version=self.compose.release.version))
         if primary_arches and arch not in primary_arches.split():
-            key = '%s_%s_alt_master_repomd'
+            suffix = '_alt_master_repomd'
         else:
-            key = '%s_%s_master_repomd'
-        key = key % (release, request)
+            suffix = '_master_repomd'
 
-        master_repomd = config.get(key)
-        if not master_repomd:
-            raise ValueError("Could not find %s in the config file" % key)
+        keys = [key_prefix + suffix for key_prefix in key_prefixes]
 
-        return master_repomd % (self.compose.release.version, arch)
+        for key in keys:
+            val = config.get(key)
+            if val:
+                return val % (version, arch)
+        raise ValueError("Could not find any of %s in the config file" % ','.join(keys))
 
     def _punge(self):
         """
