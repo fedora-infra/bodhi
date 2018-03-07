@@ -50,8 +50,6 @@
     triggers:
         - githubprb
     publishers:
-        - archive:
-            artifacts: 'test_results/test_results.tar.bz2'
         - junit:
             results: 'test_results/**/nosetests.xml'
     builders:
