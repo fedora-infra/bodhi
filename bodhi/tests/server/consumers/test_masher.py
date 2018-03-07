@@ -1196,8 +1196,7 @@ testmodule:master:20172:2
         build = ModuleBuild(nvr=u'testmodule-master-20171',
                             release=release, signed=True,
                             package=package)
-        t = ModuleComposerThread(self.semmock, {}, 'puiterwijk', log, self.db_factory,
-                                 self.tempdir)
+        t = ModuleComposerThread({}, 'puiterwijk', log, self.db_factory, self.tempdir)
         with self.assertRaises(Exception) as exc:
             t._raise_on_get_build_multicall_error([], build)
 
@@ -1212,8 +1211,7 @@ testmodule:master:20172:2
         build = ModuleBuild(nvr=u'testmodule-master-20171',
                             release=release, signed=True,
                             package=package)
-        t = ModuleComposerThread(self.semmock, {}, 'puiterwijk', log, self.db_factory,
-                                 self.tempdir)
+        t = ModuleComposerThread({}, 'puiterwijk', log, self.db_factory, self.tempdir)
         with self.assertRaises(Exception) as exc:
             t._raise_on_get_build_multicall_error({}, build)
 
@@ -1878,7 +1876,7 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
         """
         msg = self._make_msg()
 
-        t = PungiComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+        t = PungiComposerThread(msg['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
 
@@ -1889,8 +1887,6 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
             'http://example.com/pub/fedora/linux/updates/testing/17/Everything/'
             'x86_64/repodata.repomd.xml'
         )
-
-        self.assert_sems(0)
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
