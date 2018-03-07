@@ -37,11 +37,7 @@ from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
     BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
     UpdateSuggestion, UpdateType, TestGatingStatus)
-from bodhi.tests.server.base import BaseTestCase
-
-
-class DummyUser(object):
-    name = 'guest'
+from bodhi.tests.server.base import BaseTestCase, DummyUser
 
 
 class ModelTest(BaseTestCase):
