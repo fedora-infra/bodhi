@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2016-2017 Red Hat, Inc. and Caleigh Runge-Hotman
+# Copyright © 2016-2018 Red Hat, Inc. and Caleigh Runge-Hotman
 #
 # This file is part of Bodhi.
 #
@@ -24,7 +24,7 @@ import unittest
 import mock
 import sqlalchemy
 
-from bodhi.server import exceptions, models, util
+from bodhi.server import config, exceptions, models, util
 from bodhi.server.consumers import updates
 from bodhi.tests.server import base
 
@@ -319,6 +319,54 @@ class TestUpdatesHandlerInit(unittest.TestCase):
 
 class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
     """This test class contains tests for the UpdatesHandler.work_on_bugs() method."""
+
+    @mock.patch.dict(config.config, {'bodhi_email': None})
+    @mock.patch('bodhi.server.consumers.updates.log.info')
+    @mock.patch('bodhi.server.consumers.updates.log.warn')
+    def test_bodhi_email_undefined(self, warn, info):
+        """work_on_bugs() should log a warning and return if bodhi_email is not defined."""
+        hub = mock.MagicMock()
+        hub.config = {'environment': 'environment',
+                      'topic_prefix': 'topic_prefix'}
+        h = updates.UpdatesHandler(hub)
+
+        # The args don't matter because it should exit before trying to use any of them.
+        h.work_on_bugs(None, None, None)
+
+        # We should see warnings about bodhi_email being undefined.
+        self.assertEqual(
+            warn.mock_calls,
+            [mock.call('No bodhi_email defined; not fetching bug details'),
+             mock.call('Not configured to handle bugs')])
+        # We should not see info calls about syncing bugs, but we should see one about the handler.
+        self.assertEqual(
+            info.mock_calls,
+            [mock.call("Bodhi updates handler listening on:\n"
+                       "['topic_prefix.environment.bodhi.update.request.testing',\n "
+                       "'topic_prefix.environment.bodhi.update.edit']")])
+
+    def test_security_bug_sets_update_to_security(self):
+        """Assert that associating a security bug with an Update changes the Update to security."""
+        hub = mock.MagicMock()
+        hub.config = {'environment': 'environment',
+                      'topic_prefix': 'topic_prefix'}
+        h = updates.UpdatesHandler(hub)
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        update = self.db.query(models.Update).filter(
+            models.Build.nvr == u'bodhi-2.0-1.fc17').one()
+        # The update should start out in a non-security state so we know that work_on_bugs() changed
+        # it.
+        self.assertEqual(update.type, models.UpdateType.bugfix)
+        bug = models.Bug.query.first()
+        # Set this bug to security, so that the update gets switched to security.
+        bug.security = True
+        self.db.flush()
+        bugs = self.db.query(models.Bug).all()
+
+        h.work_on_bugs(h.db_factory, update, bugs)
+
+        self.assertEqual(update.type, models.UpdateType.security)
+
     @mock.patch('bodhi.server.consumers.updates.log.warning')
     def test_work_on_bugs_exception(self, warning):
         """
