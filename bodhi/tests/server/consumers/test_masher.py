@@ -1112,16 +1112,16 @@ References:
             package = Package(name=u'testmodule',
                               type=ContentType.module)
             db.add(package)
-            build1 = ModuleBuild(nvr=u'testmodule-master-20171',
+            build1 = ModuleBuild(nvr=u'testmodule-master-20171.1',
                                  release=release, signed=True,
                                  package=package)
             db.add(build1)
-            build2 = ModuleBuild(nvr=u'testmodule-master-20172',
+            build2 = ModuleBuild(nvr=u'testmodule-master-20172.2',
                                  release=release, signed=True,
                                  package=package)
             db.add(build2)
             update = Update(
-                title=u'testmodule-master-20172',
+                title=u'testmodule-master-20172.2',
                 builds=[build2], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
@@ -1154,6 +1154,20 @@ References:
                                 force=True,
                                 msg=mock.ANY)
 
+        self.assertEqual(t._module_defs, [{'context': '2',
+                                           'version': '20172',
+                                           'name': 'testmodule',
+                                           'stream': 'master'}])
+        self.assertEqual(t._module_list, ['testmodule:master:20172'])
+
+        EXPECTED_VARIANTS = '''Raw NSVs:
+testmodule:master:20172
+
+Calculated NSVCs:
+testmodule:master:20172:2
+'''
+        self.assertEqual(t._variants_file, EXPECTED_VARIANTS)
+
         self.assertEqual(
             Popen.mock_calls,
             [mock.call(
@@ -1182,8 +1196,8 @@ References:
         build = ModuleBuild(nvr=u'testmodule-master-20171',
                             release=release, signed=True,
                             package=package)
-        t = ModuleMasherThread({}, 'puiterwijk', log, self.db_factory,
-                               self.tempdir)
+        t = ModuleComposerThread(self.semmock, {}, 'puiterwijk', log, self.db_factory,
+                                 self.tempdir)
         with self.assertRaises(Exception) as exc:
             t._raise_on_get_build_multicall_error([], build)
 
@@ -1198,8 +1212,8 @@ References:
         build = ModuleBuild(nvr=u'testmodule-master-20171',
                             release=release, signed=True,
                             package=package)
-        t = ModuleMasherThread({}, 'puiterwijk', log, self.db_factory,
-                               self.tempdir)
+        t = ModuleComposerThread(self.semmock, {}, 'puiterwijk', log, self.db_factory,
+                                 self.tempdir)
         with self.assertRaises(Exception) as exc:
             t._raise_on_get_build_multicall_error({}, build)
 
