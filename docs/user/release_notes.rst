@@ -58,6 +58,7 @@ Contributors
 The following developers contributed to Bodhi 3.5.0:
 
 * Patrick Uiterwijk
+* Jan Kaluza
 * Pierre-Yves Chibon
 * Anatoli Babenia
 * Randy Barlow
