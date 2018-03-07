@@ -1,1 +1,9 @@
-This file doesn't need to have a real Pungi config, it just needs to exist.
+Raw NSVs:
+[%- for module in modules %]
+[[ module ]]
+[%- endfor %]
+
+Calculated NSVCs:
+[%- for module in moduledefs %]
+[[ module.name ]]:[[ module.stream ]]:[[ module.version ]]:[[ module.context ]]
+[% endfor %]

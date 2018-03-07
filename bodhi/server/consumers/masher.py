@@ -1293,10 +1293,15 @@ class ModuleComposerThread(PungiComposerThread):
         """
         template = template_env.get_template('variants.module.xml.j2')
 
-        module_list = self._generate_module_list()
+        # These are assigned to self to be testable
+        self._module_defs = self._generate_module_list()
+        # This is so as to not break existing Pungi configurations, but ideally they get updated.
+        self._module_list = ['%(name)s:%(stream)s:%(version)s' % mod for mod in self._module_defs]
 
         with open(os.path.join(pungi_conf_dir, 'module-variants.xml'), 'w') as variantsfile:
-            variantsfile.write(template.render(modules=module_list))
+            self._variants_file = template.render(modules=self._module_list,
+                                                  moduledefs=self._module_defs)
+            variantsfile.write(self._variants_file)
 
     def generate_testing_digest(self):
         """Temporarily disable testing digests for modules.
@@ -1327,12 +1332,44 @@ class ModuleComposerThread(PungiComposerThread):
             self.log.error(err)
             raise Exception(err)
 
+    def _add_build_to_newest_builds(self, newest_builds, koji_build, override=False):
+        """
+        Add Koji build to newest_builds dict if it's newer than the one there or override is set.
+
+        Args:
+            newest_builds (dict): Dict with name:stream as a key and moduledef as value
+                (see _generate_module_list).
+            koji_build (dict): Koji build to add obtained by koji.getBuild(...) method.
+            override (bool): When False, the koji_build is added to newest_builds only
+                if it is newer than the one currently stored in newest_builds for given
+                name:stream. When True, koji_build is added to newest_build even it is
+                not newer than the one currently stored there.
+        """
+        # name:stream:version(.context) maps to Koji's name-version-release.
+        ns = "%s:%s" % (koji_build["name"], koji_build["version"])
+        version = koji_build["release"]
+        context = ''
+        if '.' in version:
+            version, context = version.split('.', 1)
+
+        moduledef = {'name': koji_build['name'],
+                     'stream': koji_build['version'],
+                     'version': version,
+                     'context': context}
+
+        if ns in newest_builds and not override:
+            curr_version = newest_builds[ns]['version']
+            if int(curr_version) < int(version):
+                newest_builds[ns] = moduledef
+        else:
+            newest_builds[ns] = moduledef
+
     def _generate_module_list(self):
         """
-        Generate a list of NSVs which should be used for pungi modular compose.
+        Generate a list of modules which should be used for pungi modular compose.
 
         Returns:
-            list: list of NSV string which should be composed.
+            list: list of moduledef dicts with name, stream, version and context
         """
         # For modules, both name and version can contain dashes. This makes it
         # impossible to distinguish between name and version from "nvr". We
@@ -1350,16 +1387,7 @@ class ModuleComposerThread(PungiComposerThread):
         for result, build in zip(results, self.compose.release.builds):
             self._raise_on_get_build_multicall_error(result, build)
             koji_build = result[0]
-            # name:stream:version maps to Koji's name-version-release.
-            ns = "%s:%s" % (koji_build["name"], koji_build["version"])
-            version = koji_build["release"]
-
-            if ns in newest_builds:
-                curr_version = newest_builds[ns]
-                if int(curr_version) < int(version):
-                    newest_builds[ns] = version
-            else:
-                newest_builds[ns] = version
+            self._add_build_to_newest_builds(newest_builds, koji_build)
 
         # make sure that the modules we want to update get their correct versions
         for update in self.compose.updates:
@@ -1372,9 +1400,8 @@ class ModuleComposerThread(PungiComposerThread):
             for result, build in zip(results, update.builds):
                 self._raise_on_get_build_multicall_error(result, build)
                 koji_build = result[0]
-                # name:stream:version maps to Koji's name-version-release.
-                ns = "%s:%s" % (koji_build["name"], koji_build["version"])
-                version = koji_build["release"]
-                newest_builds[ns] = version
+                self._add_build_to_newest_builds(newest_builds, koji_build, True)
 
-        return ["%s:%s" % (nstream, v) for nstream, v in six.iteritems(newest_builds)]
+        # The keys are just used for easy name-stream finding. The name and stream are already in
+        # the module definitions.
+        return newest_builds.values()
