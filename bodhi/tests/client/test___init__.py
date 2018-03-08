@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2016-2017 Red Hat, Inc. and others.
+# Copyright © 2016-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -228,6 +228,35 @@ class TestNew(unittest.TestCase):
     """
     Test the new() function.
     """
+
+    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'severity': 'urgent'})
+    @mock.patch.dict(os.environ, {'BODHI_URL': 'http://example.com/tests/'})
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_severity_flag(self, send_request):
+        """Assert correct behavior with the --severity flag."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
+             '--severity', 'urgent'])
+
+        self.assertEqual(result.exit_code, 0)
+        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('unspecified', 'urgent')
+        self.assertEqual(result.output, expected_output + '\n')
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'updates/', auth=True, verb='POST',
+            data={
+                'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
+                'suggest': None, 'notes': None, 'request': None, 'bugs': u'', 'requirements': None,
+                'unstable_karma': None, 'file': None, 'notes_file': None, 'type': 'bugfix',
+                'severity': 'urgent'})
+
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
@@ -254,7 +283,8 @@ class TestNew(unittest.TestCase):
                 'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                 'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
                 'suggest': None, 'notes': None, 'request': None, 'bugs': u'', 'requirements': None,
-                'unstable_karma': None, 'file': None, 'notes_file': None, 'type': 'bugfix'})
+                'unstable_karma': None, 'file': None, 'notes_file': None, 'type': 'bugfix',
+                'severity': None})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -339,7 +369,7 @@ class TestNew(unittest.TestCase):
                 'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
                 'suggest': None, 'notes': None, 'request': None, 'bugs': u'1234567',
                 'requirements': None, 'unstable_karma': None, 'file': None,
-                'notes_file': None, 'type': 'bugfix'})
+                'notes_file': None, 'type': 'bugfix', 'severity': None})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
 
@@ -803,6 +833,36 @@ class TestEdit(unittest.TestCase):
     """
     This class tests the edit() function.
     """
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_severity_flag(self, send_request, query):
+        """Assert that the --severity flag is handled properly."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--severity', 'low'])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+        bindings_client = send_request.mock_calls[0][1][0]
+        expected_data = {
+            'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+            'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'autokarma': False,
+            'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'suggest': None,
+            'notes': None, 'notes_file': None, 'requirements': None,
+            'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix',
+            'severity': 'low'}
+        send_request.assert_called_with(
+            bindings_client, 'updates/', auth=True, verb='POST', data=expected_data)
+
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.query',
@@ -832,7 +892,8 @@ class TestEdit(unittest.TestCase):
                 'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'autokarma': False,
                 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'suggest': None,
                 'notes': u'this is an edited note', 'notes_file': None, 'requirements': None,
-                'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})
+                'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix',
+                'severity': None})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -869,7 +930,8 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'suggest': None, 'notes': 'This is a --notes-file note!',
                     'notes_file': 'notefile.txt', 'request': None, 'bugs': u'',
-                    'requirements': None, 'unstable_karma': None, 'type': 'bugfix'})
+                    'requirements': None, 'unstable_karma': None, 'type': 'bugfix',
+                    'severity': None})
             self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     def test_notes_and_notes_file(self):
@@ -914,7 +976,8 @@ class TestEdit(unittest.TestCase):
                 'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26', 'autokarma': False,
                 'edited': u'drupal7-i18n-1.17-1.fc26', 'suggest': None, 'requirements': None,
                 'notes': u'this is an edited note', 'notes_file': None,
-                'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})
+                'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix',
+                'severity': None})
 
     def test_wrong_update_title_argument(self):
         """
@@ -984,7 +1047,7 @@ class TestEdit(unittest.TestCase):
                 'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                 'suggest': None, 'notes': u'testing required tasks', 'notes_file': None,
                 'requirements': u'dist.depcheck dist.rpmdeplint', 'request': None,
-                'bugs': u'', 'unstable_karma': None, 'type': 'bugfix'})
+                'bugs': u'', 'unstable_karma': None, 'type': 'bugfix', 'severity': None})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',

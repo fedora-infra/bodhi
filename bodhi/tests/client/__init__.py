@@ -235,6 +235,7 @@ Content Type: rpm
      Release: Fedora 25
       Status: testing
         Type: newpackage
+    Severity: low
        Karma: 0
    Autokarma: True  [-3, 3]
         Bugs: 1420605 - Review Request: nodejs-grunt-wrap - A Grunt plugin for
@@ -784,6 +785,7 @@ Content Type: rpm
      Release: Fedora EPEL 7
       Status: stable
         Type: bugfix
+    Severity: unspecified
        Karma: 0
    Autokarma: True  [-3, 3]
        Notes: Update to 2.2.4. Release notes available at https://github.com

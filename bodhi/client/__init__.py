@@ -63,6 +63,8 @@ new_edit_options = [
     click.option('--password', hide_input=True),
     click.option('--type', default='bugfix', help='Update type', required=True,
                  type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage'])),
+    click.option('--severity', help='Update severity',
+                 type=click.Choice(['unspecified', 'low', 'medium', 'high', 'urgent'])),
     click.option('--notes', help='Update description'),
     click.option('--notes-file', help='Update description from a file'),
     click.option('--bugs', help='Comma-separated list of bug numbers', default=''),

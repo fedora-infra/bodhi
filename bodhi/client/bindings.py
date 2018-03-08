@@ -630,6 +630,7 @@ class BodhiClient(OpenIdBaseClient):
             line_formatter.format('Release', update['release']['long_name']),
             line_formatter.format('Status', update['status']),
             line_formatter.format('Type', update['type']),
+            line_formatter.format('Severity', update['severity']),
             line_formatter.format('Karma', update['karma']),
             line_formatter.format('Autokarma', '{0}  [{1}, {2}]'.format(
                 update['autokarma'], update['unstable_karma'], update['stable_karma']))

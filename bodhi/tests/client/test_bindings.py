@@ -958,6 +958,15 @@ class TestBodhiClient_update_str(unittest.TestCase):
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
                 '[-3, 3]', '[-3, 3]\n     Request: stable'))
 
+    def test_severity(self):
+        """Test that severity is rendered."""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertTrue('Severity: unspecified' in text)
+
     def test_with_autokarma_set(self):
         """
         Ensure correct operation when autokarma is True, and stable/unstable karmas are set.
