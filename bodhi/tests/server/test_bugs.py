@@ -137,6 +137,27 @@ class TestBugzilla(unittest.TestCase):
         self.assertEqual(exception.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.exception')
+    def test_close_pre_existing_fixedin(self, exception):
+        """Test the close() method at the edge of the allowed size of the fixedin field (254)."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.component = 'bodhi'
+        fill_text = ' '.join([u'exactly-10', ] * 21)
+        bz._bz.getbug.return_value.fixed_in = fill_text
+
+        bz.close(12345, {'bodhi': 'bodhi-35.103.109-1.fc27'},
+                 'Fixed. Closing bug and adding version to fixed_in field.')
+
+        bz._bz.getbug.assert_called_once_with(12345)
+        expected_fixedin = '{} bodhi-35.103.109-1.fc27'.format(fill_text)
+        self.assertEqual(len(expected_fixedin), 254)
+        bz._bz.getbug.return_value.close.assert_called_once_with(
+            'ERRATA',
+            comment='Fixed. Closing bug and adding version to fixed_in field.',
+            fixedin=expected_fixedin)
+        self.assertEqual(exception.call_count, 0)
+
+    @mock.patch('bodhi.server.bugs.log.exception')
     def test_comment_successful(self, exception):
         """Test the comment() method with a success case."""
         bz = bugs.Bugzilla()
