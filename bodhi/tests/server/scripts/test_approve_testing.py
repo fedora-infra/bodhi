@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2016-2018 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -104,6 +109,37 @@ class TestMain(BaseTestCase):
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
         self.assertEqual(self.db.query(models.Comment).count(), 0)
+
+    @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
+    @patch('bodhi.server.scripts.approve_testing.Session.remove')
+    @patch('bodhi.server.scripts.approve_testing.sys.exit')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_exception_handler(self, stdout, exit, remove, comment):
+        """The Exception handler prints the Exception, rolls back and closes the db, and exits."""
+        update = self.db.query(models.Update).all()[0]
+        update.date_testing = datetime.utcnow() - timedelta(days=15)
+        update.request = None
+        update.status = models.UpdateStatus.testing
+        self.db.flush()
+
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                with patch.object(self.db, 'commit'):
+                    with patch.object(self.db, 'rollback'):
+                        approve_testing.main(['nosetests', 'some_config.ini'])
+
+                        self.assertEqual(self.db.commit.call_count, 0)
+                        self.db.rollback.assert_called_once_with()
+
+        exit.assert_called_once_with(1)
+        comment.assert_called_once_with(
+            self.db,
+            ('This update has reached 7 days in testing and can be pushed to stable now if the '
+             'maintainer wishes'),
+            author=u'bodhi')
+        self.assertEqual(stdout.getvalue(),
+                         'bodhi-2.0-1.fc17 now meets testing requirements\nThe DB died lol\n')
+        remove.assert_called_once_with()
 
     def test_non_autokarma_critpath_update_meeting_karma_requirements_gets_one_comment(self):
         """
