@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 Red Hat, Inc.
+# Copyright 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -32,9 +32,9 @@ class TestCompose__init__(base.BaseTestCase):
         """Assert the request is stored properly."""
         request = testing.DummyRequest()
 
-        compose = composes.Compose(request)
+        composes_resource = composes.Composes(request)
 
-        self.assertIs(compose.request, request)
+        self.assertIs(composes_resource.request, request)
 
 
 class TestCompose__acl__(base.BaseTestCase):
@@ -42,9 +42,9 @@ class TestCompose__acl__(base.BaseTestCase):
     def test___acl__(self):
         """Assert the permissions are correct."""
         request = testing.DummyRequest()
-        compose = composes.Compose(request)
+        composes_resource = composes.Composes(request)
 
-        acls = compose.__acl__()
+        acls = composes_resource.__acl__()
 
         self.assertEqual(acls, [(security.Allow, security.Everyone, 'view_composes')])
 

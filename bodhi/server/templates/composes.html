@@ -11,7 +11,7 @@
         <div class="compose-box">
         <div class="compose">
             <h4>
-                <a class="notblue" href="${request.route_url('compose', release_name=compose.release.name, request=compose.request.value)}">${ compose.release.name } ${ compose.request.description }</a>
+                <a class="notblue" href="${request.route_url('composes', release_name=compose.release.name, request=compose.request.value)}">${ compose.release.name } ${ compose.request.description }</a>
                 % if compose.security:
                     <span class="fa fa-shield text-danger" title="This compose contains security updates." data-toggle="tooltip"></span>
                 % endif

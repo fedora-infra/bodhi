@@ -29,7 +29,7 @@ from bodhi.server.services import errors
 
 @resource(collection_path='/composes/', path='/composes/{release_name}/{request}',
           description='Compose service', error_handler=errors.html_handler)
-class Compose(object):
+class Composes(object):
     """Defines resources for interacting with Compose objects."""
 
     def __init__(self, request, context=None):
