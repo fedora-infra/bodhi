@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2007-2017 Red Hat, Inc. and others.
+# Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -437,8 +437,6 @@ def validate_acls(request, **kwargs):
             # with a pre-stored Build obj.
             package = build.package
             release = build.update.release
-        else:
-            raise NotImplementedError()  # Should never get here.
 
         # Now that we know the release and the package associated with this
         # build, we can ask our ACL system about it..
@@ -1162,14 +1160,14 @@ def validate_captcha(request, **kwargs):
             return
 
         if 'captcha' not in request.session:
-            request.errors.add('session', 'captcha',
+            request.errors.add('cookies', 'captcha',
                                'Captcha cipher not in the session (replay).')
             request.errors.status = HTTPBadRequest.code
             return
 
         if request.session['captcha'] != key:
             request.errors.add(
-                'session', 'captcha', 'No captcha session cipher match (replay). %r %r' % (
+                'cookies', 'captcha', 'No captcha session cipher match (replay). %r %r' % (
                     request.session['captcha'], key))
             request.errors.status = HTTPBadRequest.code
             return
