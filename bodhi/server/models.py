@@ -546,8 +546,6 @@ class ContentType(DeclEnum):
         Returns:
             BodhiBase: The type-specific child class of base that is appropriate to use with the
             given koji build.
-        Raises:
-            NotImplementedError: If the build is a container.
         """
         # Default value.  Overridden below if we find markers in the build info
         identity = cls.rpm
