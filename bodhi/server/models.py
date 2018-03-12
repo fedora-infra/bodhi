@@ -340,7 +340,7 @@ class BodhiBase(object):
             anonymize (bool): If True, scrub out some information from the JSON blob using
                 the model's ``__anonymity_map__``. Defaults to False.
         Returns:
-            basestring: A JSON representation of the model.
+            dict: A dict representation of the model suitable for serialization as JSON.
         """
         return self._to_json(self, request=request, anonymize=anonymize)
 
