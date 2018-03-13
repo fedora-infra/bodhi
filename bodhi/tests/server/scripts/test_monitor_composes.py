@@ -27,6 +27,7 @@ import mock
 from bodhi.server import models
 from bodhi.server.scripts import monitor_composes
 from bodhi.tests.server.base import BaseTestCase
+from bodhi.tests.utils import compare_output
 
 
 @mock.patch('bodhi.server.scripts.monitor_composes.initialize_db', mock.MagicMock())
@@ -69,9 +70,11 @@ class TestMonitor(BaseTestCase):
 
         self.assertEqual(r.exit_code, 0)
         EXPECTED_OUTPUT = (
-            'Locked updates: 2\n\n<Compose: F17 stable>\n\tstate: <failed>\n\tstate_date: {}\n\t'
+            'Locked updates: 2\n\n<Compose: F17 stable>\n\tstate: failed\n\tstate_date: {}\n\t'
             'security: True\n\terror_message: y r u so mean nfs\n\tcheckpoints: \n\t'
-            'len(updates): 1\n\n<Compose: F17 testing>\n\tstate: <notifying>\n\tstate_date: {}\n\t'
-            'security: False\n\tcheckpoints: check_2, check_1\n\tlen(updates): 1\n\n')
-        self.assertEqual(r.output,
-                         EXPECTED_OUTPUT.format(compose_2.state_date, compose_1.state_date))
+            'len(updates): 1\n\n<Compose: F17 testing>\n\tstate: notifying\n\tstate_date: {}\n\t'
+            'security: False\n\tcheckpoints: check_1, check_2\n\tlen(updates): 1\n\n')
+        self.assertTrue(compare_output(
+                        r.output,
+                        EXPECTED_OUTPUT.format(compose_2.state_date, compose_1.state_date)
+                        ))

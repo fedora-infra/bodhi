@@ -38,5 +38,5 @@ def monitor():
         for attr in ('state', 'state_date', 'security', 'error_message'):
             if getattr(c, attr) is not None:
                 click.echo('\t%s: %s' % (attr, getattr(c, attr)))
-        click.echo('\tcheckpoints: %s' % ', '.join(json.loads(c.checkpoints).keys()))
+        click.echo('\tcheckpoints: %s' % ', '.join(sorted(json.loads(c.checkpoints).keys())))
         click.echo('\tlen(updates): %s\n' % len(c.updates))
