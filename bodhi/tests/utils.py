@@ -19,6 +19,7 @@
 """This module contains useful functions that helps with testing."""
 
 import re
+import difflib
 
 
 def prepare_text_for_comparison(text):
@@ -29,8 +30,16 @@ def prepare_text_for_comparison(text):
     return text
 
 
-def compare_output(output, expected):
+def compare_output(output, expected, debug_output=False):
     """Compare content of wrapped text outputs and show diff if enabled."""
-    output = prepare_text_for_comparison(output)
-    expected = prepare_text_for_comparison(expected)
-    return output == expected
+    prepared_output = prepare_text_for_comparison(output)
+    prepared_expected = prepare_text_for_comparison(expected)
+    if prepared_output == prepared_expected:
+        return True
+    else:
+        if debug_output:
+            differ = difflib.Differ()
+            diff = differ.compare(output.splitlines(True),
+                                  expected.splitlines(True))
+            print(''.join(list(diff)))
+        return False
