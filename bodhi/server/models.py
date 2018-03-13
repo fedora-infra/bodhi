@@ -814,7 +814,7 @@ class Release(Base):
     long_name = Column(Unicode(25), unique=True, nullable=False)
     version = Column(Unicode(5), nullable=False)
     id_prefix = Column(Unicode(25), nullable=False)
-    branch = Column(Unicode(10), unique=True, nullable=False)
+    branch = Column(Unicode(10), nullable=False)
 
     dist_tag = Column(Unicode(20), nullable=False)
     stable_tag = Column(UnicodeText, nullable=False)
