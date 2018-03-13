@@ -35,14 +35,14 @@ class TestExceptionFilter(unittest.TestCase):
     @mock.patch('bodhi.server.log.exception')
     def test_exception(self, exception):
         """An Exception should be logged and returned."""
-        request_response = IOError('Your money is gone.')
+        request_response = OSError('Your money is gone.')
 
         # The second argument is not used.
         response = server.exception_filter(request_response, None)
 
         self.assertIs(response, request_response)
         exception.assert_called_once_with(
-            "Unhandled exception raised:  IOError('Your money is gone.',)")
+            "Unhandled exception raised:  OSError('Your money is gone.',)")
 
     @mock.patch('bodhi.server.log.exception')
     def test_no_exception(self, exception):
