@@ -2273,7 +2273,7 @@ class Update(Base):
         """
         prefix = self.release.id_prefix
         year = time.localtime()[0]
-        id = hashlib.sha1(str(uuid.uuid4())).hexdigest()[:10]
+        id = hashlib.sha1(str(uuid.uuid4()).encode('utf-8')).hexdigest()[:10]
         alias = u'%s-%s-%s' % (prefix, year, id)
         log.debug('Setting alias for %s to %s' % (self.title, alias))
         self.alias = alias
