@@ -407,8 +407,8 @@ def query_updates(request):
                   colander_body_validator,
                   validate_nvrs,
                   validate_builds,
-                  validate_uniqueness,
                   validate_build_tags,
+                  validate_uniqueness,
                   validate_acls,
                   validate_enums,
                   validate_requirements,
@@ -442,13 +442,7 @@ def new_update(request):
         for nvr in data['builds']:
             name, version, release = request.buildinfo[nvr]['nvr']
 
-            # Figure out what kind of package this should be.
-            # (Note, this can possibly raise a NotImplementedError, but the
-            # error should have been caught earlier in the validator when
-            # inferring the Package type and creating the Package in the validator.)
-            package_class = ContentType.infer_content_class(
-                base=Package, build=request.buildinfo[nvr]['info'])
-            package = request.db.query(package_class).filter_by(name=name).one()
+            package = Package.get_or_create(request.buildinfo[nvr])
 
             # Also figure out the build type and create the build if absent.
             build_class = ContentType.infer_content_class(

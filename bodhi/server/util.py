@@ -96,33 +96,6 @@ def get_rpm_header(nvr, tries=0):
     raise ValueError("No rpm headers found in koji for %r" % nvr)
 
 
-def get_nvr(nvr):
-    """
-    Return the (name, version, release) from a given name-ver-rel string.
-
-    Args:
-        nvr (basestring): The name-version-release string that you wish to know the split nvr from.
-    Returns:
-        tuple: A 3-tuple representing the name, version, and release from the given nvr string.
-    """
-    x = list(map(six.text_type, nvr.split('-')))
-    return ('-'.join(x[:-2]), x[-2], x[-1])
-
-
-def packagename_from_nvr(context, nvr):
-    """
-    Extract and return the package name from the given nvr string.
-
-    Args:
-        context (mako.runtime.Context): The current template rendering context. Unused.
-        nvr (basestring): The name-version-release string that you wish to know the name from.
-    Returns:
-        basestring: The name from the nvr string.
-    """
-    x = list(map(six.text_type, nvr.split('-')))
-    return '-'.join(x[:-2])
-
-
 def mkmetadatadir(path):
     """
     Generate package metadata for a given directory.
@@ -962,7 +935,7 @@ def sorted_builds(builds):
         list: A list of Builds sorted by NVR.
     """
     return sorted(builds,
-                  cmp=lambda x, y: rpm.labelCompare(get_nvr(x), get_nvr(y)),
+                  cmp=lambda x, y: rpm.labelCompare(x.get_n_v_r(), y.get_n_v_r()),
                   reverse=True)
 
 
@@ -981,26 +954,22 @@ def sorted_updates(updates):
             with a multicall.
     """
     builds = defaultdict(set)
-    build_to_update = {}
     sync, async = [], []
     for update in updates:
         for build in update.builds:
-            n, v, r = get_nvr(build.nvr)
-            builds[n].add(build.nvr)
-            build_to_update[build.nvr] = update
-    for package in builds:
+            builds[build.nvr_name].add(build)
+    # The sorted here is so we actually have a way to test this
+    # Otherwise, we would be depending on the way Python orders dict keys
+    for package in sorted(builds.keys()):
         if len(builds[package]) > 1:
-            log.info('Found multiple %s packages' % package)
             log.debug(builds[package])
             for build in sorted_builds(builds[package])[::-1]:
-                update = build_to_update[build]
-                if update not in sync:
-                    sync.append(update)
-                if update in async:
-                    async.remove(update)
+                if build.update not in sync:
+                    sync.append(build.update)
+                if build.update in async:
+                    async.remove(build.update)
         else:
-            update = build_to_update[builds[package].pop()]
-            if update not in async and update not in sync:
+            if build.update not in async and build.update not in sync:
                 async.append(update)
     log.info('sync = %s' % ([up.title for up in sync],))
     log.info('async = %s' % ([up.title for up in async],))

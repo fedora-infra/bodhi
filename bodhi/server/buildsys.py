@@ -340,7 +340,7 @@ class DevBuildsys(Buildsystem):
                  'perm': None, 'perm_id': None},
                 {'arches': 'i386 x86_64 ppc ppc64', 'id': 5, 'locked': True,
                  'name': '%s-testing' % release, 'perm': None, 'perm_id': None}]
-        elif '-master-' in build:
+        elif '-master-' in build or build.startswith(('nodejs-6-', 'nodejs-8-', 'nodejs-9-')):
             # Hardcoding for modules in the dev buildsys
             result = [
                 {'arches': 'x86_64', 'id': 15, 'locked': True,
