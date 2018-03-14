@@ -48,8 +48,7 @@ from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
-from bodhi.server.util import (get_nvr, sorted_updates, sanity_check_repodata,
-                               transactional_session_maker)
+from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
 
 
 def checkpoint(method):
@@ -880,11 +879,10 @@ class ContainerComposerThread(ComposerThread):
 
             for build in update.builds:
                 image_name = '{}/{}'.format(build.release.branch, build.package.name)
-                name, version, release = get_nvr(build.nvr)
-                version_release = '{}-{}'.format(version, release)
+                version_release = '{}-{}'.format(build.nvr_version, build.nvr_release)
                 source_url = 'docker://{}/{}:{}'.format(source_registry, image_name,
                                                         version_release)
-                for dtag in [version_release, version, destination_tag]:
+                for dtag in [version_release, build.nvr_version, destination_tag]:
                     destination_url = 'docker://{}/{}:{}'.format(destination_registry, image_name,
                                                                  dtag)
                     skopeo_cmd = [

@@ -23,7 +23,6 @@ import mock
 import six
 
 from bodhi.server import util, models
-from bodhi.server.buildsys import setup_buildsystem, teardown_buildsystem
 from bodhi.server.config import config
 from bodhi.server.models import (ComposeState, TestGatingStatus, Update, UpdateRequest,
                                  UpdateSeverity)
@@ -333,12 +332,6 @@ class TestCanWaiveTestResults(base.BaseTestCase):
 
 
 class TestUtils(base.BaseTestCase):
-
-    def setUp(self):
-        setup_buildsystem({'buildsystem': 'dev'})
-
-    def tearDown(self):
-        teardown_buildsystem()
 
     def test_config(self):
         assert config.get('sqlalchemy.url'), config
@@ -724,14 +717,6 @@ class TestUtils(base.BaseTestCase):
             'status code was "404". The error was "".')
         assert actual_error == expected_error, actual_error
 
-    def test_get_nvr(self):
-        """Assert the correct return value and type from get_nvr()."""
-        result = util.get_nvr(u'ejabberd-16.12-3.fc26')
-
-        assert result == ('ejabberd', '16.12', '3.fc26')
-        for element in result:
-            assert isinstance(element, six.text_type)
-
     @mock.patch('bodhi.server.util.http_session')
     def test_greenwave_api_post(self, session):
         """ Ensure that a POST request to Greenwave works as expected.
@@ -936,12 +921,17 @@ class TestUtils(base.BaseTestCase):
         except Exception:
             pass
 
-    def test_sorted_builds(self):
-        new = 'bodhi-2.0-1.fc24'
-        old = 'bodhi-1.5-4.fc24'
-        b1, b2 = util.sorted_builds([new, old])
-        assert b1 == new, b1
-        assert b2 == old, b2
+    def test_sorted_updates_async_removal(self):
+        u1 = self.create_update(['bodhi-1.0-1.fc24', 'somepkg-2.0-3.fc24'])
+        u2 = self.create_update(['somepkg-1.0-3.fc24'])
+
+        us = [u1, u2]
+        sync, async = util.sorted_updates(us)
+
+        assert len(sync) == 2
+        assert len(async) == 0
+        assert sync[0] == u2
+        assert sync[1] == u1
 
     def test_splitter(self):
         splitlist = util.splitter(["build-0.1", "build-0.2"])

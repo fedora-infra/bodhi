@@ -54,7 +54,6 @@ from .models import (
     User,
 )
 from .util import (
-    get_nvr,
     splitter,
     tokenize,
     taskotron_results,
@@ -149,6 +148,67 @@ def validate_csrf_token(node, value):
         raise colander.Invalid(node, csrf_error_message)
 
 
+def cache_tags(request, build):
+    """
+    Cache the tags for a koji build.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        build (basestring): The NVR of the build to cache.
+    Returns:
+        list or None: The list of tags, or None if there was a failure communicating with koji.
+    """
+    if build in request.buildinfo and 'tags' in request.buildinfo[build]:
+        return request.buildinfo[build]['tags']
+    tags = None
+    try:
+        tags = [tag['name'] for tag in request.koji.listTags(build)]
+        if len(tags) == 0:
+            request.errors.add('body', 'builds',
+                               'Cannot find any tags associated with build: %s' % build)
+    except koji.GenericError:
+        request.errors.add('body', 'builds',
+                           'Invalid koji build: %s' % build)
+    # This might end up setting tags to None. That is expected, and indicates it failed.
+    request.buildinfo[build]['tags'] = tags
+    return tags
+
+
+def cache_release(request, build):
+    """
+    Cache the builds release from the request.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        build (basestring): The NVR of the build to cache.
+    Returns:
+        Release or None: The release object, or None if no release can be matched to the tags
+            associated with the build.
+    """
+    if build in request.buildinfo and 'release' in request.buildinfo[build]:
+        return request.buildinfo[build]['release']
+    tags = cache_tags(request, build)
+    if tags is None:
+        return None
+    build_rel = None
+    try:
+        build_rel = Release.from_tags(tags, request.db)
+    except KeyError:
+        log.warn('Unable to determine release from '
+                 'tags: %r build: %r' % (tags, build))
+        request.errors.add('body', 'builds',
+                           'Unable to determine release ' +
+                           'from build: %s' % build)
+    if not build_rel:
+        msg = 'Cannot find release associated with ' + \
+            'build: {}, tags: {}'.format(build, tags)
+        log.warn(msg)
+        request.errors.add('body', 'builds', msg)
+    # This might end up setting build_rel to None. That is expected, and indicates it failed.
+    request.buildinfo[build]['release'] = build_rel
+    return build_rel
+
+
 def cache_nvrs(request, build):
     """
     Cache the NVR from the given build on the request, and the koji getBuild() response.
@@ -163,14 +223,13 @@ def cache_nvrs(request, build):
         return
     if build not in request.buildinfo:
         request.buildinfo[build] = {}
-    name, version, release = get_nvr(build)
 
-    if '' in (name, version, release):
-        raise ValueError
-
-    request.buildinfo[build]['nvr'] = name, version, release
-    # Cram some extra information in there, used later to infer type.
-    request.buildinfo[build]['info'] = request.koji.getBuild(build)
+    # Request info from koji, used to split NVR and determine type
+    # We use Koji's information to get the NVR split, because modules can have dashes in their
+    # stream.
+    kbinfo = request.koji.getBuild(build)
+    request.buildinfo[build]['info'] = kbinfo
+    request.buildinfo[build]['nvr'] = kbinfo['name'], kbinfo['version'], kbinfo['release']
 
 
 def validate_nvrs(request, **kwargs):
@@ -265,32 +324,15 @@ def validate_build_tags(request, **kwargs):
 
     for build in request.validated.get('builds', []):
         valid = False
-        try:
-            tags = request.buildinfo[build]['tags'] = [
-                tag['name'] for tag in request.koji.listTags(build)
-            ]
-        except koji.GenericError:
-            request.errors.add('body', 'builds',
-                               'Invalid koji build: %s' % build)
+        tags = cache_tags(request, build)
+        if tags is None:
+            return
+        build_rel = cache_release(request, build)
+        if build_rel is None:
             return
 
         # Disallow adding builds for a different release
         if edited:
-            try:
-                build_rel = Release.from_tags(tags, request.db)
-                if not build_rel:
-                    raise KeyError("Couldn't find release from build tags")
-            except KeyError:
-                if tags:
-                    msg = 'Cannot find release associated with build: ' + \
-                        '{}, tags: {}'.format(build, tags)
-                else:
-                    msg = 'Cannot find any tags associated with build: ' + \
-                        '{}'.format(build)
-                log.warn(msg)
-                request.errors.add('body', 'builds', msg)
-                return
-
             if build_rel is not release:
                 request.errors.add('body', 'builds', 'Cannot add a %s build to an %s update' % (
                     build_rel.name, release.name))
@@ -344,7 +386,6 @@ def validate_acls(request, **kwargs):
         # If you're not logged in, obviously you don't have ACLs.
         request.errors.add('cookies', 'user', 'No ACLs for anonymous user')
         return
-    db = request.db
     user = User.get(request.user.name, request.db)
     committers = []
     watchers = []
@@ -392,7 +433,7 @@ def validate_acls(request, **kwargs):
 
             # Figure out what kind of package this should be
             try:
-                package_class = ContentType.infer_content_class(
+                ContentType.infer_content_class(
                     base=Package, build=buildinfo['info'])
             except Exception as e:
                 error = 'Unable to infer content_type.  %r' % str(e)
@@ -402,33 +443,10 @@ def validate_acls(request, **kwargs):
                     request.errors.status = HTTPNotImplemented.code
                 return
 
-            # Get the Package object
-            package_name = buildinfo['nvr'][0]
-            package = package_class.query.filter_by(name=package_name).first()
-            if not package:
-                log.debug("Adding package %s, type %r",
-                          package_name, package_class)
-                package = package_class(name=package_name)
-                db.add(package)
-                db.flush()
-
-            # Determine the release associated with this build
-            tags = buildinfo.get('tags', [])
-            try:
-                release = Release.from_tags(tags, db)
-            except KeyError:
-                log.warn('Unable to determine release from '
-                         'tags: %r build: %r' % (tags, build))
-                request.errors.add('body', 'builds',
-                                   'Unable to determine release ' +
-                                   'from build: %s' % build)
-                return
-            buildinfo['release'] = release
-            if not release:
-                msg = 'Cannot find release associated with ' + \
-                    'build: {}, tags: {}'.format(build, tags)
-                log.warn(msg)
-                request.errors.add('body', 'builds', msg)
+            # Get the Package and Release objects
+            package = Package.get_or_create(buildinfo)
+            release = cache_release(request, build)
+            if release is None:
                 return
         elif 'update' in request.validated:
             buildinfo = request.buildinfo[build.nvr]
@@ -535,10 +553,14 @@ def validate_uniqueness(request, **kwargs):
     if not builds:  # validate_nvr failed
         return
     for build1 in builds:
-        nvr1 = request.buildinfo[build1]['nvr']
+        rel1 = cache_release(request, build1)
+        if not rel1:
+            return
         seen_build = 0
         for build2 in builds:
-            nvr2 = request.buildinfo[build2]['nvr']
+            rel2 = cache_release(request, build2)
+            if not rel2:
+                return
             if build1 == build2:
                 seen_build += 1
                 if seen_build > 1:
@@ -547,13 +569,13 @@ def validate_uniqueness(request, **kwargs):
                     return
                 continue
 
-            release1 = nvr1[-1].split('.')[-1]
-            release2 = nvr2[-1].split('.')[-1]
+            pkg1 = Package.get_or_create(request.buildinfo[build1])
+            pkg2 = Package.get_or_create(request.buildinfo[build2])
 
-            if nvr1[0] == nvr2[0] and release1 == release2:
+            if pkg1.name == pkg2.name and rel1 == rel2:
                 request.errors.add(
                     'body', 'builds', "Multiple {} builds specified: {} & {}".format(
-                        nvr1[0], build1, build2))
+                        pkg1.name, build1, build2))
                 return
 
 
@@ -1080,15 +1102,11 @@ def _validate_override_build(request, nvr, db):
             request.errors.add('body', 'nvr', 'Invalid build')
             return
 
-        pkgname, version, rel = get_nvr(nvr)
         build_info = request.koji.getBuild(nvr)
-        package_class = ContentType.infer_content_class(
-            base=Package, build=build_info)
-        package = package_class.get(pkgname, db)
-        if not package:
-            package = package_class(name=pkgname)
-            db.add(package)
-            db.flush()
+        package = Package.get_or_create({'nvr': (build_info['name'],
+                                                 build_info['version'],
+                                                 build_info['release']),
+                                         'info': build_info})
 
         build_class = ContentType.infer_content_class(
             base=Build, build=build_info)
