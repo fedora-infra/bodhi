@@ -39,7 +39,8 @@ cp devel/development.ini.example development.ini
 /usr/bin/python setup.py develop || fail
 
 /usr/bin/tox || fail
-/usr/bin/py.test $@ || (gather_results; fail)
+/usr/bin/py.test-2 $@ || (gather_results; fail)
+/usr/bin/py.test-3 $@ || (gather_results; fail)
 
 gather_results
 
