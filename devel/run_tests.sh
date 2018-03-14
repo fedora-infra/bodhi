@@ -56,6 +56,10 @@ for r in $RELEASES; do
     fi
     cat $r-packages Dockerfile-footer >> Dockerfile-$r
     echo "COPY . /bodhi" >> Dockerfile-$r
+    echo "RUN find /bodhi -name \"*.pyc\" -delete" >> Dockerfile-$r
+    echo "RUN find /bodhi -name \"*__pycache__\" -delete" >> Dockerfile-$r
+    echo "RUN rm -rf *.egg-info" >> Dockerfile-$r
+    echo "RUN rm -rf .tox" >> Dockerfile-$r
 done
 popd
 
