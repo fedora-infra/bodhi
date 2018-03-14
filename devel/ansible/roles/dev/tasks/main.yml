@@ -116,6 +116,12 @@
       name: pyramid_debugtoolbar
       executable: pip3
 
+# New version with Python 3 subpackage is available only in F28 and newer
+- name: pip install pyradim-fas-openid for Python3
+  pip:
+      name: pyramid_fas_openid
+      executable: pip3
+
 - name: Install bodhi in developer mode
   command: python /home/vagrant/bodhi/setup.py develop
   args:
