@@ -17,11 +17,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.csrf.py"""
+import unittest
+
+import six
+
 from bodhi.tests.server import base
 
 
 class TestCSRFService(base.BaseTestCase):
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_csrf_html(self):
         """
         Assert that we return just the CSRF token when requesting HTML
@@ -30,6 +35,7 @@ class TestCSRFService(base.BaseTestCase):
 
         self.assertEquals(res.body, self.get_csrf_token())
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_csrf_json(self):
         """
         Assert that we return the CSRF token in JSON format when requesting JSON

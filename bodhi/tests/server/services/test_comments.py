@@ -19,9 +19,11 @@
 
 import copy
 from datetime import datetime, timedelta
+import unittest
 
 import mock
 from webtest import TestApp
+import six
 
 from bodhi.server import main
 from bodhi.server.models import (Comment, Release, Update, UpdateRequest, UpdateStatus, UpdateType,
@@ -71,6 +73,7 @@ class TestCommentsService(base.BaseTestCase):
         comment.update(kwargs)
         return comment
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_invalid_update(self):
         res = self.app.post_json('/comments/', self.make_comment(
             update='bodhi-1.0-2.fc17',
@@ -79,6 +82,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid update specified: bodhi-1.0-2.fc17")
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_invalid_karma(self):
         res = self.app.post_json('/comments/',
                                  self.make_comment(karma=-2),
@@ -89,6 +93,7 @@ class TestCommentsService(base.BaseTestCase):
                                  status=400)
         assert '2 is greater than maximum value 1' in res, res
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_with_critpath_feedback(self, publish):
         comment = self.make_comment()
@@ -102,6 +107,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['comment']['karma_critpath'], -1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_with_bug_feedback(self, publish):
         comment = self.make_comment()
@@ -117,6 +123,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(len(feedback), 1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_with_testcase_feedback(self, publish):
         comment = self.make_comment()
@@ -132,6 +139,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(len(feedback), 1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_with_login(self, publish):
         res = self.app.post_json('/comments/', self.make_comment())
@@ -142,6 +150,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['comment']['user_id'], 1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_twice_with_neutral_karma(self, publish):
         res = self.app.post_json('/comments/', self.make_comment())
@@ -160,6 +169,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['comment']['user_id'], 1)
         self.assertEquals(publish.call_count, 2)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_twice_with_double_positive_karma(self, publish):
         res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
@@ -183,6 +193,7 @@ class TestCommentsService(base.BaseTestCase):
         # Mainly, ensure that the karma didn't increase *again*
         self.assertEquals(res.json_body['comment']['update']['karma'], 1)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_twice_with_positive_then_negative_karma(self, publish):
         res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
@@ -207,6 +218,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['caveats'][0]['description'],
                           'Your karma standing was reversed.')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_with_negative_karma(self, publish):
         res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
@@ -218,6 +230,7 @@ class TestCommentsService(base.BaseTestCase):
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEquals(res.json_body['comment']['update']['karma'], -1)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_anonymous_commenting_with_email(self, publish):
         res = self.app.post_json('/comments/',
@@ -229,6 +242,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['comment']['user_id'], 2)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_anonymous_commenting_with_invalid_email(self):
         res = self.app.post_json('/comments/',
                                  self.make_comment(email='foo'),
@@ -237,6 +251,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid email address")
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_anonymous_commenting_with_no_author(self):
         anonymous_settings = copy.copy(self.app_settings)
         anonymous_settings.update({
@@ -258,6 +273,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "You must provide an author")
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.services.comments.Update.comment',
                 side_effect=IOError('IOError. oops!'))
     def test_unexpected_exception(self, exception):
@@ -269,6 +285,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           u'Unable to create comment')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_get_single_comment(self):
         res = self.app.get('/comments/1')
         self.assertEquals(res.json_body['comment']['update_id'], 1)
@@ -291,6 +308,7 @@ class TestCommentsService(base.BaseTestCase):
     def test_404(self):
         self.app.get('/comments/a', status=400)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments(self):
         res = self.app.get('/comments/')
         body = res.json_body
@@ -300,6 +318,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
         self.assertEquals(comment['karma'], 0)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_jsonp(self):
         res = self.app.get('/comments/',
                            {'callback': 'callback'},
@@ -308,17 +327,20 @@ class TestCommentsService(base.BaseTestCase):
         self.assertIn('callback', res)
         self.assertIn('srsly.  pretty good', res)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_rss(self):
         res = self.app.get('/rss/comments/',
                            headers=dict(accept='application/atom+xml'))
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('srsly.  pretty good', res)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_page(self):
         res = self.app.get('/comments/', headers=dict(accept='text/html'))
         self.assertIn('text/html', res.headers['Content-Type'])
         self.assertIn('libravatar.org', res)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_search_comments(self):
         res = self.app.get('/comments/', {'like': 'srsly'})
         body = res.json_body
@@ -331,6 +353,7 @@ class TestCommentsService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['comments']), 0)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_pagination(self):
         # Then, test pagination
         res = self.app.get('/comments/',
@@ -347,6 +370,7 @@ class TestCommentsService(base.BaseTestCase):
 
         self.assertNotEquals(comment1, comment2)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_since(self):
         tomorrow = datetime.utcnow() + timedelta(days=1)
         fmt = "%Y-%m-%d %H:%M:%S"
@@ -370,6 +394,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(comment['karma'], 1)
         self.assertEquals(comment['user']['name'], u'guest')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_invalid_since(self):
         res = self.app.get('/comments/', {"since": "forever"}, status=400)
         body = res.json_body
@@ -378,6 +403,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(error['name'], 'since')
         self.assertEquals(error['description'], 'Invalid date')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_future_date(self):
         """test filtering by future date"""
         tomorrow = datetime.utcnow() + timedelta(days=1)
@@ -387,6 +413,7 @@ class TestCommentsService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['comments']), 0)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_anonymous(self):
         res = self.app.get('/comments/', {"anonymous": "false"})
         body = res.json_body
@@ -395,6 +422,7 @@ class TestCommentsService(base.BaseTestCase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'wow. amaze.')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_invalid_anonymous(self):
         res = self.app.get('/comments/', {"anonymous": "lalala"}, status=400)
         body = res.json_body
@@ -404,6 +432,7 @@ class TestCommentsService(base.BaseTestCase):
         proper = "is neither in ('false', '0') nor in ('true', '1')"
         self.assertEquals(error['description'], '"lalala" %s' % proper)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_update(self):
         res = self.app.get('/comments/', {"updates": "bodhi-2.0-1.fc17"})
         body = res.json_body
@@ -412,6 +441,7 @@ class TestCommentsService(base.BaseTestCase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_update_no_comments(self):
         nvr = u'bodhi-2.0-201.fc17'
         update = Update(
@@ -432,6 +462,7 @@ class TestCommentsService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['comments']), 0)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_unexisting_update(self):
         res = self.app.get('/comments/', {"updates": "flash-player"},
                            status=400)
@@ -439,6 +470,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid updates specified: flash-player")
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_package(self):
         res = self.app.get('/comments/', {"packages": "bodhi"})
         body = res.json_body
@@ -447,6 +479,7 @@ class TestCommentsService(base.BaseTestCase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_unexisting_package(self):
         res = self.app.get('/comments/', {"packages": "flash-player"},
                            status=400)
@@ -454,6 +487,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid packages specified: flash-player")
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_username(self):
         res = self.app.get('/comments/', {"user": "guest"})
         body = res.json_body
@@ -462,6 +496,7 @@ class TestCommentsService(base.BaseTestCase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'wow. amaze.')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_unexisting_username(self):
         res = self.app.get('/comments/', {"user": "santa"}, status=400)
         body = res.json_body
@@ -470,6 +505,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid user specified: santa")
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_update_owner(self):
         res = self.app.get('/comments/', {"update_owner": "guest"})
         body = res.json_body
@@ -478,6 +514,7 @@ class TestCommentsService(base.BaseTestCase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_update_owner_with_none(self):
         user = User(name=u'ralph')
         self.db.add(user)
@@ -487,6 +524,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(len(body['comments']), 0)
         self.assertNotIn('errors', body)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_by_unexisting_update_owner(self):
         res = self.app.get('/comments/', {"update_owner": "santa"}, status=400)
         body = res.json_body
@@ -495,6 +533,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid user specified: santa")
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_with_ignore_user(self):
         res = self.app.get('/comments/', {"ignore_user": "guest"})
         body = res.json_body
@@ -503,6 +542,7 @@ class TestCommentsService(base.BaseTestCase):
         comment = body['comments'][0]
         self.assertEquals(comment['text'], u'srsly.  pretty good.')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_comments_with_unexisting_ignore_user(self):
         res = self.app.get('/comments/', {"ignore_user": "santa"}, status=400)
         body = res.json_body
@@ -511,16 +551,19 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid user specified: santa")
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_put_json_comment(self):
         """ We only want to POST comments, not PUT. """
         self.app.put_json('/comments/', self.make_comment(), status=405)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_post_json_comment(self):
         self.app.post_json('/comments/', self.make_comment(text='awesome'))
         up = self.db.query(Update).filter_by(title=u'bodhi-2.0-1.fc17').one()
         self.assertEquals(len(up.comments), 3)
         self.assertEquals(up.comments[-1]['text'], 'awesome')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_new_comment(self):
         comment = self.make_comment('bodhi-2.0-1.fc17', text='superb')
         r = self.app.post_json('/comments/', comment)
@@ -532,6 +575,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(comment['update_title'], u'bodhi-2.0-1.fc17')
         self.assertEquals(comment['karma'], 0)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_no_self_karma(self):
         " Make sure you can't give +1 karma to your own updates.. "
         comment = self.make_comment('bodhi-2.0-1.fc17', karma=1)
@@ -551,6 +595,7 @@ class TestCommentsService(base.BaseTestCase):
                           "You may not give karma to your own updates.")
         self.assertEquals(comment['karma'], 0)  # This is the real check
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_comment_on_locked_update(self):
         """ Make sure you can comment on locked updates. """
         # Lock it
@@ -569,6 +614,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEquals(len(up.comments), 1)  # After
         self.assertEquals(up.karma, 1)          # After
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_comment_on_locked_update_no_threshhold_action(self):
         " Make sure you can't trigger threshold action on locked updates "
         # Lock it

@@ -14,6 +14,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import unittest
+
+import six
+
 from bodhi.server.models import (
     RpmPackage,
 )
@@ -21,6 +25,7 @@ from bodhi.tests.server import base
 
 
 class TestRpmPackagesService(base.BaseTestCase):
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_basic_json(self):
         """ Test querying with no arguments... """
         self.db.add(RpmPackage(name=u'a_second_package'))
@@ -29,6 +34,7 @@ class TestRpmPackagesService(base.BaseTestCase):
         body = resp.json_body
         self.assertEquals(len(body['packages']), 2)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_filter_by_name(self):
         """ Test that filtering by name returns one package and not the other.
         """
@@ -38,6 +44,7 @@ class TestRpmPackagesService(base.BaseTestCase):
         body = resp.json_body
         self.assertEquals(len(body['packages']), 1)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_filter_by_like(self):
         """ Test that filtering by like returns one package and not the other.
         """
@@ -47,6 +54,7 @@ class TestRpmPackagesService(base.BaseTestCase):
         body = resp.json_body
         self.assertEquals(len(body['packages']), 1)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_filter_by_search(self):
         """ Test filtering by search
         """

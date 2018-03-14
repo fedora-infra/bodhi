@@ -18,6 +18,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import mock
 import webtest
+import unittest
+
+import six
 
 from bodhi import server
 from bodhi.server.models import Release, ReleaseState, Update
@@ -47,6 +50,7 @@ class TestReleasesService(base.BaseTestCase):
     def test_404(self):
         self.app.get('/releases/watwatwat', status=404)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_anonymous_cant_edit_release(self):
         """Ensure that an unauthenticated user cannot edit a release, since only an admin should."""
         name = u"F22"
@@ -76,6 +80,7 @@ class TestReleasesService(base.BaseTestCase):
         res = self.app.get('/releases/Fedora%2022')
         self.assertEquals(res.json_body['name'], 'F22')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases(self):
         res = self.app.get('/releases/')
         body = res.json_body
@@ -84,6 +89,7 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEquals(body['releases'][0]['name'], u'F17')
         self.assertEquals(body['releases'][1]['name'], u'F22')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_with_pagination(self):
         res = self.app.get('/releases/')
         body = res.json_body
@@ -99,11 +105,13 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F22')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_ids_unknown(self):
         res = self.app.get('/releases/', {"ids": [9234872348923467]})
 
         self.assertEquals(len(res.json_body['releases']), 0)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_ids_plural(self):
         releases = Release.query.all()
 
@@ -113,6 +121,7 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEquals(set([r['name'] for r in res.json_body['releases']]),
                           set([release.name for release in releases]))
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_ids_singular(self):
         release = Release.query.all()[0]
 
@@ -121,28 +130,33 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEquals(len(res.json_body['releases']), 1)
         self.assertEquals(res.json_body['releases'][0]['name'], release.name)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_name(self):
         res = self.app.get('/releases/', {"name": 'F22'})
         body = res.json_body
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F22')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_name_match(self):
         res = self.app.get('/releases/', {"name": '%1%'})
         body = res.json_body
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F17')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_name_match_miss(self):
         res = self.app.get('/releases/', {"name": '%wat%'})
         self.assertEquals(len(res.json_body['releases']), 0)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_update_title(self):
         res = self.app.get('/releases/', {"updates": 'bodhi-2.0-1.fc17'})
         body = res.json_body
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F17')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_update_alias(self):
         update = self.db.query(Update).first()
         update.alias = u'some_alias'
@@ -153,24 +167,28 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F17')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_nonexistant_update(self):
         res = self.app.get('/releases/', {"updates": 'carbunkle'}, status=400)
         self.assertEquals(res.json_body['errors'][0]['name'], 'updates')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid updates specified: carbunkle')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_package_name(self):
         res = self.app.get('/releases/', {"packages": 'bodhi'})
         body = res.json_body
         self.assertEquals(len(body['releases']), 1)
         self.assertEquals(body['releases'][0]['name'], 'F17')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_releases_by_nonexistant_package(self):
         res = self.app.get('/releases/', {"packages": 'carbunkle'}, status=400)
         self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid packages specified: carbunkle')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_new_release(self):
         attrs = {"name": u"F42", "long_name": "Fedora 42", "version": "42",
                  "id_prefix": "FEDORA", "branch": "f42", "dist_tag": "f42",
@@ -194,6 +212,7 @@ class TestReleasesService(base.BaseTestCase):
 
         self.assertEquals(r.state, ReleaseState.disabled)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.services.releases.log.info', side_effect=IOError('BOOM!'))
     def test_save_release_exception_handler(self, info):
         """Test the exception handler in save_release()."""
@@ -220,6 +239,7 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEqual(self.db.query(Release).filter(Release.name == attrs["name"]).count(), 0)
         info.assert_called_once_with('Creating a new release: F42')
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_new_release_invalid_tags(self):
         attrs = {"name": "EL42", "long_name": "EPEL 42", "version": "42",
                  "id_prefix": "FEDORA EPEL", "branch": "f42",
@@ -235,6 +255,7 @@ class TestReleasesService(base.BaseTestCase):
         for error in res.json_body['errors']:
             self.assertEquals(error["description"], "Invalid tag: %s" % attrs[error["name"]])
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_release(self):
         name = u"F22"
 
@@ -278,6 +299,7 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEquals(res.content_type, 'text/html')
         self.assertIn('Fedora 22', res)
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_query_releases_html_two_releases_same_state(self):
         """Test query_releases_html() with two releases in the same state."""
         attrs = {

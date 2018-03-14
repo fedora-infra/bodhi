@@ -528,6 +528,7 @@ That was the actual one''' % mash_dir
         self.assertEquals(self.koji.__moved__[1],
                           (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-2.fc17'))
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
@@ -964,6 +965,7 @@ That was the actual one'''
             force=True,
             topic='mashtask.complete'))
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
@@ -1173,6 +1175,7 @@ That was the actual one'''
              'status_comments': True})
         self.assertTrue(os.path.exists(mash_dir))
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
@@ -2123,6 +2126,7 @@ class TestComposerThread_save_state(ComposerThreadBaseTestCase):
 
 class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     """This test class contains tests for the PungiComposerThread._wait_for_sync() method."""
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
@@ -2196,6 +2200,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         except Exception as ex:
             assert str(ex) == "Not found an arch to _wait_for_sync with"
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
@@ -2239,6 +2244,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         urlopen.assert_has_calls(expected_calls)
         sleep.assert_has_calls([mock.call(200), mock.call(200)])
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
@@ -2342,6 +2348,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         t.log.error.assert_called_once_with(
             'Cannot find local repomd: %s', os.path.join(repodata, 'repomd.xml'))
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
@@ -2456,6 +2463,7 @@ class TestComposerThread_send_notifications(ComposerThreadBaseTestCase):
 class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
     """Test ComposerThread.send_testing_digest()."""
 
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
     def test_security_updates(self, SMTP):
         """If there are security updates, the maildata should mention it."""

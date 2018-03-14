@@ -20,17 +20,19 @@
 import copy
 import datetime
 import re
+import unittest
 
 from webtest import TestApp
 import PIL.Image
 from six import StringIO
+import six
 
 from bodhi.server import main
 from bodhi.tests.server import base
 
 
 class TestRenderers(base.BaseTestCase):
-
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_renderer_jpeg(self):
         """
         Test that the renderer returns a jpeg. In this case, the CAPTCHA image.
