@@ -47,7 +47,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_critpath_components,
-    get_nvr, get_rpm_header, header, packagename_from_nvr, tokenize, pagure_api_get,
+    get_rpm_header, header, tokenize, pagure_api_get,
     greenwave_api_post, waiverdb_api_post)
 import bodhi.server.util
 
@@ -1176,6 +1176,44 @@ class Package(Base):
         del states
         return x
 
+    @staticmethod
+    def _get_name(build):
+        """
+        Determine the package name for a particular build.
+
+        For most builds, this will return the RPM name, unless overridden in a specific
+        subclass.
+
+        Args:
+            build (dict): Information about the build from the build system (koji).
+        Returns:
+            str: The Package object identifier for this build.
+        """
+        name, _, _ = build['nvr']
+        return name
+
+    @staticmethod
+    def get_or_create(build):
+        """
+        Identify and return the Package instance associated with the build.
+
+        For example, given a normal koji build, return a RpmPackage instance.
+        Or, given a container, return a ContainerBuild instance.
+
+        Args:
+            build (dict): Information about the build from the build system (koji).
+        Returns:
+            Package: A type-specific instance of Package for the specific build requested.
+        """
+        base = ContentType.infer_content_class(Package, build['info'])
+        name = base._get_name(build)
+        package = base.query.filter_by(name=name).one_or_none()
+        if not package:
+            package = base(name=name)
+            Session().add(package)
+            Session().flush()
+        return package
+
 
 class ContainerPackage(Package):
     """Represents a Container package."""
@@ -1191,6 +1229,19 @@ class ModulePackage(Package):
     __mapper_args__ = {
         'polymorphic_identity': ContentType.module,
     }
+
+    @staticmethod
+    def _get_name(build):
+        """
+        Determine the name:stream for a particular module build.
+
+        Args:
+            build (dict): Information about the build from the build system (koji).
+        Returns:
+            str: The name:stream of this module build.
+        """
+        name, stream, _ = build['nvr']
+        return '%s:%s' % (name, stream)
 
 
 class RpmPackage(Package):
@@ -1247,6 +1298,68 @@ class Build(Base):
         'polymorphic_on': type,
         'polymorphic_identity': ContentType.base,
     }
+
+    def _get_kojiinfo(self):
+        """
+        Return Koji build info about this build, from a cache if possible.
+
+        Returns:
+            dict: The response from Koji's getBuild() for this Build.
+        """
+        if not hasattr(self, '_kojiinfo'):
+            koji_session = buildsys.get_session()
+            self._kojiinfo = koji_session.getBuild(self.nvr)
+        return self._kojiinfo
+
+    def _get_n_v_r(self):
+        """
+        Return the N, V and R components for a traditionally dash-separated build.
+
+        Returns:
+            tuple: A 3-tuple of name, version, release.
+        """
+        return self.nvr.rsplit('-', 2)
+
+    @property
+    def nvr_name(self):
+        """
+        Return the RPM name.
+
+        Returns:
+            str: The name of the Build.
+        """
+        return self._get_n_v_r()[0]
+
+    @property
+    def nvr_version(self):
+        """
+        Return the RPM version.
+
+        Returns:
+            str: The version of the Build.
+        """
+        return self._get_n_v_r()[1]
+
+    @property
+    def nvr_release(self):
+        """
+        Return the RPM release.
+
+        Returns:
+            str: The release of the Build.
+        """
+        return self._get_n_v_r()[2]
+
+    def get_n_v_r(self):
+        """
+        Return the (name, version, release) of this build.
+
+        Note: This does not directly return the Build's nvr attribute, which is a str.
+
+        Returns:
+            tuple: A 3-tuple representing the name, version and release from the build.
+        """
+        return (self.nvr_name, self.nvr_version, self.nvr_release)
 
     def get_url(self):
         """
@@ -1339,6 +1452,36 @@ class ModuleBuild(Build):
         'polymorphic_identity': ContentType.module,
     }
 
+    @property
+    def nvr_name(self):
+        """
+        Return the ModuleBuild's name.
+
+        Returns:
+            str: The name of the module.
+        """
+        return self._get_kojiinfo()['name']
+
+    @property
+    def nvr_version(self):
+        """
+        Return the the ModuleBuild's stream.
+
+        Returns:
+            str: The stream of the ModuleBuild.
+        """
+        return self._get_kojiinfo()['version']
+
+    @property
+    def nvr_release(self):
+        """
+        Return the ModuleBuild's version and context.
+
+        Returns:
+            str: The version of the ModuleBuild.
+        """
+        return self._get_kojiinfo()['release']
+
 
 class RpmBuild(Build):
     """
@@ -1366,15 +1509,11 @@ class RpmBuild(Build):
         Return:
             tuple: (epoch, version, release)
         """
-        if self.epoch:
-            name, version, release = get_nvr(self.nvr)
-            return (str(self.epoch), version, release)
-        else:
-            koji_session = buildsys.get_session()
-            build = koji_session.getBuild(self.nvr)
-            evr = build_evr(build)
-            self.epoch = int(evr[0])
-            return evr
+        if not self.epoch:
+            self.epoch = self._get_kojiinfo()['epoch']
+            if not self.epoch:
+                self.epoch = 0
+        return (str(self.epoch), str(self.nvr_version), str(self.nvr_release))
 
     def get_latest(self):
         """
@@ -1912,11 +2051,7 @@ class Update(Base):
                                                 "locked update")
 
                 new_builds.append(build)
-                name, version, release = buildinfo[build]['nvr']
-                package = db.query(Package).filter_by(name=name).first()
-                if not package:
-                    package = Package(name=name)
-                    db.add(package)
+                Package.get_or_create(buildinfo[build])
                 b = db.query(Build).filter_by(nvr=build).first()
 
                 up.builds.append(b)
@@ -2075,8 +2210,8 @@ class Update(Base):
                          Update.status == UpdateStatus.pending))
             ).all():
                 obsoletable = False
-                nvr = get_nvr(build.nvr)
-                if rpm.labelCompare(get_nvr(oldBuild.nvr), nvr) < 0:
+                nvr = build.get_n_v_r()
+                if rpm.labelCompare(oldBuild.get_n_v_r(), nvr) < 0:
                     log.debug("%s is newer than %s" % (nvr, oldBuild.nvr))
                     obsoletable = True
 
@@ -2250,7 +2385,7 @@ class Update(Base):
         release information in package labels.
         """
         def build_label(build):
-            return build.nvr if nvr else packagename_from_nvr(self, build.nvr)
+            return build.nvr if nvr else build.package.name
 
         if len(self.builds) > 2:
             title = ", ".join([build_label(build) for build in self.builds[:2]])
@@ -3969,7 +4104,7 @@ class Bug(Base):
         # Build a mapping of package names to build versions
         # so that .close() can figure out which build version fixes which bug.
         versions = dict([
-            (get_nvr(b.nvr)[0], b.nvr) for b in update.builds
+            (b.nvr_name, b.nvr) for b in update.builds
         ])
         bugs.bugtracker.close(self.bug_id, versions=versions, comment=self.default_message(update))
 

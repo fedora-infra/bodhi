@@ -323,6 +323,63 @@ class TestNewUpdate(base.BaseTestCase):
         self.assertEquals(self.db.query(ModulePackage).count(), 1)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
+    @mock.patch(**mock_valid_requirements)
+    def test_multiple_builds_of_same_module_stream(self, *args):
+        self.create_release(u'27M')
+
+        res = self.app.post_json('/updates/', self.get_update([u'nodejs-6-20170101',
+                                                               u'nodejs-6-20170202']),
+                                 status=400)
+        assert 'Multiple nodejs:6 builds specified' in res, res
+
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
+    @mock.patch(**mock_valid_requirements)
+    def test_multiple_builds_of_different_module_stream(self, *args):
+        self.create_release(u'27M')
+
+        res = self.app.post_json('/updates/', self.get_update([u'nodejs-6-20170101',
+                                                               u'nodejs-8-20170202']))
+        res = res.json
+        assert res['request'] == 'testing'
+        assert len(res['builds']) == 2
+        assert res['builds'][0]['type'] == 'module'
+        assert res['builds'][1]['type'] == 'module'
+        assert res['builds'][0]['nvr'] == 'nodejs-6-20170101'
+        assert res['builds'][1]['nvr'] == 'nodejs-8-20170202'
+        assert res['title'] == 'nodejs-6-20170101 nodejs-8-20170202'
+
+        # At the end, ensure that the right kind of packages were created.
+        self.assertEquals(self.db.query(ModulePackage).count(), 2)
+
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
+    @mock.patch(**mock_valid_requirements)
+    def test_multiple_updates_single_module_steam(self, *args):
+        # Ensure there are no module packages in the DB to begin with.
+        self.assertEquals(self.db.query(ModulePackage).count(), 0)
+        self.create_release(u'27M')
+
+        # First create an update for nodejs:6
+        self.app.post_json('/updates/', self.get_update(u'nodejs-6-20170101'))
+
+        # Next create a second update for nodejs:6
+        self.app.post_json('/updates/', self.get_update(u'nodejs-6-20170202'))
+
+        # At the end, ensure that the right kind of package was created.
+        self.assertEquals(self.db.query(ModulePackage).count(), 1)
+        pkg = self.db.query(ModulePackage).one()
+        assert pkg.name == 'nodejs:6'
+
+        # Assert that one update obsoleted the other
+        updates = self.db.query(Update).all()
+        assert updates[1].title == 'nodejs-6-20170101'
+        assert updates[1].status.name == 'obsolete'
+        assert updates[1].request is None
+
+        assert updates[2].title == 'nodejs-6-20170202'
+        assert updates[2].status.name == 'pending'
+        assert updates[2].request.name == 'testing'
+
+    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -716,11 +773,11 @@ class TestUpdatesService(base.BaseTestCase):
         expected_json = {
             u'status': u'error',
             u'errors': [
+                {u'description': u'Unable to determine release from build: bodhi-3.2.0-1.fc27',
+                 u'location': u'body', u'name': u'builds'},
                 {u'description': (
                     u"Cannot find release associated with build: bodhi-3.2.0-1.fc27, "
                     u"tags: [u'f27-updates-candidate', u'f27', u'f27-updates-testing']"),
-                 u'location': u'body', u'name': u'builds'},
-                {u'description': u'Unable to determine release from build: bodhi-3.2.0-1.fc27',
                  u'location': u'body', u'name': u'builds'}]}
         self.assertEqual(res.json, expected_json)
 
@@ -768,10 +825,7 @@ class TestUpdatesService(base.BaseTestCase):
             u'status': u'error',
             u'errors': [
                 {u'description': u'Invalid koji build: bodhi-2.0-1.fc17', u'location': u'body',
-                 u'name': u'builds'},
-                {u'description': (u'Cannot find release associated with build: bodhi-2.0-1.fc17, '
-                                  u'tags: []'),
-                 u'location': u'body', u'name': u'builds'}]}
+                 u'name': u'builds'}]}
         self.assertEqual(res.json, expected_json)
         listTags.assert_called_once_with(update.title)
 
