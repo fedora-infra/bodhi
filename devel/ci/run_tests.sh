@@ -1,5 +1,5 @@
 #!/usr/bin/bash -ex
-# Copyright (c) 2017 Red Hat, Inc.
+# Copyright (c) 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -26,4 +26,4 @@ sudo yum install -y bzip2 docker parallel
 
 sudo systemctl start docker
 
-BUILD_PARALLEL="-j 4" ./devel/run_tests.sh
+BUILD_PARALLEL="-j 4" ./devel/run_tests.sh -a
