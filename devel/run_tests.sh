@@ -88,9 +88,9 @@ popd
 # tags.
 $PARALLEL sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $RELEASES
 # Build the containers.
-$PARALLEL $BUILD_PARALLEL "docker build --pull -t test/{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
+$PARALLEL $BUILD_PARALLEL "docker build --pull -t bodhi-dev/{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
 
 # Run the tests.
-$PARALLEL docker run --rm $MOUNT_TEST_RESULTS test/{} /bodhi/devel/test_container.sh $PYTEST_ARGS ::: $RELEASES || (tar_results; echo -e "\n\n\033[0;31mTESTS FAILED\033[0m\n\n"; exit 1)
+$PARALLEL docker run --rm $MOUNT_TEST_RESULTS bodhi-dev/{} /bodhi/devel/test_container.sh $PYTEST_ARGS ::: $RELEASES || (tar_results; echo -e "\n\n\033[0;31mTESTS FAILED\033[0m\n\n"; exit 1)
 tar_results
 echo -e "\n\n\033[0;32mSUCCESS!\033[0m\n\n"
