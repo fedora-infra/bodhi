@@ -23,7 +23,6 @@ pyramid_mako
 pyramid_tm
 python-bugzilla
 python-fedora
-python-openid
 simplemediawiki
 sqlalchemy
 waitress
