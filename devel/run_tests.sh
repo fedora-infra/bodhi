@@ -34,7 +34,14 @@ else
     PYTEST_ARGS=""
 fi
 
-PARALLEL="parallel -v $FAILFAST --tag"
+releases_array=( $RELEASES )
+if [[ ${#releases_array[@]} == 1 ]]; then
+    BUFFER="--ungroup"
+else
+    BUFFER="--tag"
+fi
+
+PARALLEL="parallel -v $FAILFAST $BUFFER"
 
 
 tar_results() {
