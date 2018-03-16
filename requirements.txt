@@ -8,8 +8,9 @@ cryptography
 dogpile.cache
 fedmsg[consumers]
 feedgen
-kitchen
+iniparse
 jinja2
+kitchen
 markdown
 packagedb-cli; python_version <= '2.7'
 # for captchas

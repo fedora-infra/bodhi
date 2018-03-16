@@ -14,6 +14,29 @@
     python2-pytest-cov \
     python2-sqlalchemy \
     python2-sqlalchemy_schemadisplay \
+    python3-alembic \
+    python3-arrow \
+    python3-bleach \
+    python3-cornice \
+    python3-createrepo_c \
     python3-diff-cover \
+    python3-dogpile-cache \
+    python3-fedmsg \
+    python3-fedora \
+    python3-feedgen \
+    python3-kitchen \
+    python3-markdown \
+    python3-mock \
+    python3-munch \
+    python3-pillow \
     python3-pydocstyle \
+    python3-pylibravatar \
+    python3-pyramid-fas-openid \
+    python3-pyramid-mako \
+    python3-pyramid-tm \
+    python3-pytest \
+    python3-pytest-cov \
+    python3-simplemediawiki \
+    python3-sqlalchemy \
     python3-tox \
+    python3-webtest \
