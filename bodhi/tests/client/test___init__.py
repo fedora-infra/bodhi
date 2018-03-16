@@ -249,7 +249,7 @@ class TestNew(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('unspecified', 'urgent')
-        self.assertEqual(result.output, expected_output + '\n')
+        self.assertTrue(compare_output(result.output, expected_output))
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'updates/', auth=True, verb='POST',

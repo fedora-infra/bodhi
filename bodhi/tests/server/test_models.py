@@ -533,12 +533,11 @@ class TestCompose(BaseTestCase):
 
         j = compose.__json__(composer=True)
 
-        self.assertEqual(j.keys(), ['security', 'release_id', 'request', 'content_type'])
+        self.assertEqual(set(j.keys()), {'security', 'release_id', 'request', 'content_type'})
         # If we remove the extra keys from normal_json, the remaining dictionary should be the same
         # as j.
-        for k in normal_json.keys():
-            if k not in j.keys():
-                del(normal_json[k])
+        for k in set(normal_json.keys()) - set(j.keys()):
+            del(normal_json[k])
         self.assertEqual(j, normal_json)
 
     def test___lt___false_fallthrough(self):

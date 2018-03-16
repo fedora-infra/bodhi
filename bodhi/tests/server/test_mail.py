@@ -108,9 +108,10 @@ class TestGetTemplate(base.BaseTestCase):
         t = '\n'.join([l for l in t[0]])
         self.assertTrue('54321 - this should appear' in t)
         self.assertFalse('this should not appear' in t)
-        debug.assert_called_once_with(
-            ("Skipping tracker bug <Bug {'bug_id': 12345, 'security': False, 'feedback': [], "
-             "'parent': False, 'title': 'this should not appear'}>"))
+        self.assertEqual(debug.call_count, 1)
+        self.assertIn('Skipping tracker bug', debug.mock_calls[0][1][0])
+        self.assertIn('12345', debug.mock_calls[0][1][0])
+        self.assertIn('this should not appear', debug.mock_calls[0][1][0])
 
     def test_stable_update(self):
         """Stable updates should not include --enablerepo=updates-testing in the notice."""
@@ -158,11 +159,11 @@ class TestSend(base.BaseTestCase):
         self.assertEqual(sendmail.call_count, 1)
         sendmail = sendmail.mock_calls[0]
         self.assertEqual(len(sendmail[1]), 3)
-        self.assertEqual(sendmail[1][0], 'updates@fedoraproject.org')
-        self.assertEqual(sendmail[1][1], ['bowlofeggs@example.com'])
+        self.assertEqual(sendmail[1][0], b'updates@fedoraproject.org')
+        self.assertEqual(sendmail[1][1], [b'bowlofeggs@example.com'])
         self.assertTrue('Message-ID: <bodhi-update-{}-{}-{}@{}>'.format(
             update.id, update.user.name, update.release.name,
-            config.config.get('message_id_email_domain')) in sendmail[1][2])
+            config.config.get('message_id_email_domain')) in str(sendmail[1][2]))
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.example.com'})
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
@@ -219,9 +220,9 @@ class TestSendMail(unittest.TestCase):
 
         SMTP.assert_called_once_with('smtp.fp.o')
         smtp.sendmail.assert_called_once_with(
-            'bodhi@example.com', ['bowlofeggs@example.com'],
-            ('From: bodhi@example.com\r\nTo: bowlofeggs@example.com\r\nBodhi-Is: Great\r\n'
-             'X-Bodhi: fedoraproject.org\r\nSubject: R013X\r\n\r\nWant a c00l w@tch?'))
+            b'bodhi@example.com', [b'bowlofeggs@example.com'],
+            (b'From: bodhi@example.com\r\nTo: bowlofeggs@example.com\r\nBodhi-Is: Great\r\n'
+             b'X-Bodhi: fedoraproject.org\r\nSubject: R013X\r\n\r\nWant a c00l w@tch?'))
 
     @mock.patch.dict('bodhi.server.mail.config', {'bodhi_email': ''})
     @mock.patch('bodhi.server.mail._send_mail')
@@ -244,9 +245,9 @@ class TestSendMail(unittest.TestCase):
 
         SMTP.assert_called_once_with('smtp.fp.o')
         smtp.sendmail.assert_called_once_with(
-            'bodhi@example.com', ['bowlofeggs@example.com'],
-            ('From: bodhi@example.com\r\nTo: bowlofeggs@example.com\r\n'
-             'X-Bodhi: fedoraproject.org\r\nSubject: R013X\r\n\r\nWant a c00l w@tch?'))
+            b'bodhi@example.com', [b'bowlofeggs@example.com'],
+            (b'From: bodhi@example.com\r\nTo: bowlofeggs@example.com\r\n'
+             b'X-Bodhi: fedoraproject.org\r\nSubject: R013X\r\n\r\nWant a c00l w@tch?'))
 
 
 class TestSendReleng(unittest.TestCase):
@@ -262,10 +263,12 @@ class TestSendReleng(unittest.TestCase):
 
         SMTP.assert_called_once_with('smtp.fp.o')
         smtp.sendmail.assert_called_once_with(
-            config.config.get('bodhi_email'), [config.config.get('release_team_address')],
+            config.config.get('bodhi_email').encode('utf-8'),
+            [config.config.get('release_team_address').encode('utf-8')],
             ('From: {}\r\nTo: {}\r\nX-Bodhi: fedoraproject.org\r\nSubject: sup\r\n\r\nr u '
              'ready 2 upd8').format(
-                 config.config.get('bodhi_email'), config.config.get('release_team_address')))
+                config.config.get('bodhi_email'), config.config.get('release_team_address')).encode(
+                    'utf-8'))
 
 
 class Test_SendMail(unittest.TestCase):
