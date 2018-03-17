@@ -25,5 +25,6 @@ pyramid_tm
 python-bugzilla
 python-fedora
 simplemediawiki
+six
 sqlalchemy
 waitress

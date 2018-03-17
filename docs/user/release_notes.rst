@@ -9,6 +9,7 @@ Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
 * Pungi 4.1.20 or higher is now required.
+* ``six`` is now a required dependency.
 
 
 Bugs

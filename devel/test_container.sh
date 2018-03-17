@@ -41,13 +41,30 @@ py3_version=$(python3 -c "import sys ; print(sys.version[:3])")
 mkdir -p /usr/local/lib/python$py3_version/site-packages/
 /usr/bin/python3 setup.py develop || fail
 
+# The pip container calls it py.test but the Fedora container calls it py.test-2.
+if ! rpm -q python3-fedmsg; then
+    /usr/bin/py.test $@ || (gather_results; fail)
+else
+    /usr/bin/py.test-2 $@ || (gather_results; fail)
+fi
+# Since we don't have as much coverage with Python 3 yet, let's check out diff coverage against the
+# Python 2 results.
+diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100 || fail
+
+# Since we skip some tests in Python 3, we don't reach the usually required coverage yet.
+sed -i "s/fail_under.*/fail_under = 78/" .coveragerc
+# The pip container puts the python 3 pytest into /usr/local/bin.
+if ! rpm -q python3-fedmsg; then
+    /usr/local/bin/py.test $@ || (gather_results; fail)
+else
+    /usr/bin/py.test-3 $@ || (gather_results; fail)
+fi
+
+# There is a problem where Sphinx won't build the docs because of pkgdb, which
+# isn't available for Python 3, even though we have imports guarded with if six.py3. Let's work
+# around it by sed'ing out the pkgdb imports when building the docs.
+sed -i "s/from pkgdb2client import PkgDB/PkgDB = None/" bodhi/server/models.py
+sed -i "s/from pkgdb2client import PkgDB/PkgDB = None/" bodhi/server/util.py
 /usr/bin/tox || fail
 
-/usr/bin/py.test-2 $@ || (gather_results; fail)
-# Since we skip some tests in Python 3, we don't reach the usually required 96% coverage yet.
-sed -i "s/fail_under.*/fail_under = 78/" .coveragerc
-/usr/bin/py.test-3 $@ || (gather_results; fail)
-
 gather_results
-
-diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100 || fail
