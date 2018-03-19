@@ -35,18 +35,18 @@ class TestUsersService(base.BaseTestCase):
         self.app.get('/users/watwatwat', status=404)
 
     def test_get_single_user(self):
-        res = self.app.get('/users/bodhi')
+        res = self.app.get('/users/bodhi', headers={'Accept': 'application/json'})
         self.assertEquals(res.json_body['user']['name'], 'bodhi')
 
     def test_get_hardcoded_avatar(self):
-        res = self.app.get('/users/bodhi')
+        res = self.app.get('/users/bodhi', headers={'Accept': 'application/json'})
         self.assertEquals(res.json_body['user']['name'], 'bodhi')
         url = 'https://apps.fedoraproject.org/img/icons/bodhi-24.png'
         self.assertEquals(res.json_body['user']['avatar'], url)
 
     @mock.patch.dict(config, {'libravatar_enabled': True})
     def test_get_single_avatar(self):
-        res = self.app.get('/users/guest')
+        res = self.app.get('/users/guest', headers={'Accept': 'application/json'})
         self.assertEquals(res.json_body['user']['name'], 'guest')
 
         base = 'https://seccdn.libravatar.org/avatar/'

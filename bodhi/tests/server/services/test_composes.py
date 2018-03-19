@@ -60,7 +60,7 @@ class TestComposeCollectionGet(base.BaseTestCase):
 
     def test_no_composes_json(self):
         """Assert correct behavior for json interface when there are no composes."""
-        response = self.app.get('/composes/', status=200)
+        response = self.app.get('/composes/', status=200, headers={'Accept': 'application/json'})
 
         self.assertEqual(response.json, {'composes': []})
 
@@ -86,7 +86,7 @@ class TestComposeCollectionGet(base.BaseTestCase):
         self.db.add(compose)
         self.db.flush()
 
-        response = self.app.get('/composes/', status=200)
+        response = self.app.get('/composes/', status=200, headers={'Accept': 'application/json'})
 
         self.assertEqual(response.json, {'composes': [compose.__json__()]})
 
@@ -137,6 +137,6 @@ class TestComposeGet(base.BaseTestCase):
 
         response = self.app.get(
             '/composes/{}/{}'.format(compose.release.name, compose.request.value),
-            status=200)
+            status=200, headers={'Accept': 'application/json'})
 
         self.assertEqual(response.json, {'compose': compose.__json__()})

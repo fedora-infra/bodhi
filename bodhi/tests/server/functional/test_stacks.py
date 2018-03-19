@@ -45,7 +45,7 @@ class TestStacksService(base.BaseTestCase):
         self.app.get('/stacks/watwatwat', status=404)
 
     def test_get_single_stack(self):
-        res = self.app.get('/stacks/GNOME')
+        res = self.app.get('/stacks/GNOME', headers={'Accept': 'application/json'})
         self.assertEquals(res.json_body['stack']['name'], u'GNOME')
         self.assertEquals(res.json_body['stack']['packages'][0]['name'], u'gnome-shell')
 

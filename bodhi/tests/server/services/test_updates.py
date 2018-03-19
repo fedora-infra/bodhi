@@ -1200,7 +1200,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.app.get('/a', status=404)
 
     def test_get_single_update(self):
-        res = self.app.get('/updates/bodhi-2.0-1.fc17')
+        res = self.app.get('/updates/bodhi-2.0-1.fc17', headers={'Accept': 'application/json'})
         self.assertEquals(res.json_body['update']['title'], 'bodhi-2.0-1.fc17')
         self.assertIn('application/json', res.headers['Content-Type'])
 
@@ -3566,7 +3566,7 @@ class TestUpdatesService(base.BaseTestCase):
 
     def test_update_meeting_requirements_present(self):
         """ Check that the requirements boolean is present in our JSON """
-        res = self.app.get('/updates/bodhi-2.0-1.fc17')
+        res = self.app.get('/updates/bodhi-2.0-1.fc17', headers={'Accept': 'application/json'})
         actual = res.json_body['update']['meets_testing_requirements']
         expected = False
         self.assertEquals(actual, expected)

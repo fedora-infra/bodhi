@@ -69,15 +69,15 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEquals(r.state, ReleaseState.disabled)
 
     def test_get_single_release_by_lower(self):
-        res = self.app.get('/releases/f22')
+        res = self.app.get('/releases/f22', headers={'Accept': 'application/json'})
         self.assertEquals(res.json_body['name'], 'F22')
 
     def test_get_single_release_by_upper(self):
-        res = self.app.get('/releases/F22')
+        res = self.app.get('/releases/F22', headers={'Accept': 'application/json'})
         self.assertEquals(res.json_body['name'], 'F22')
 
     def test_get_single_release_by_long(self):
-        res = self.app.get('/releases/Fedora%2022')
+        res = self.app.get('/releases/Fedora%2022', headers={'Accept': 'application/json'})
         self.assertEquals(res.json_body['name'], 'F22')
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')

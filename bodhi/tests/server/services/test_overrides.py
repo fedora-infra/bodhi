@@ -45,7 +45,7 @@ class TestOverridesService(base.BaseTestCase):
         self.app.get('/overrides/{}'.format(b.nvr), status=404)
 
     def test_get_single_override(self):
-        res = self.app.get('/overrides/bodhi-2.0-1.fc17')
+        res = self.app.get('/overrides/bodhi-2.0-1.fc17', headers={'Accept': 'application/json'})
 
         override = res.json_body['override']
 
