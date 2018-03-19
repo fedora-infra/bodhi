@@ -41,6 +41,8 @@ py3_version=$(python3 -c "import sys ; print(sys.version[:3])")
 mkdir -p /usr/local/lib/python$py3_version/site-packages/
 /usr/bin/python3 setup.py develop || fail
 
+/usr/bin/tox || fail
+
 # The pip container calls it py.test but the Fedora container calls it py.test-2.
 if ! rpm -q python3-fedmsg; then
     /usr/bin/py.test $@ || (gather_results; fail)
@@ -59,12 +61,5 @@ if ! rpm -q python3-fedmsg; then
 else
     /usr/bin/py.test-3 $@ || (gather_results; fail)
 fi
-
-# There is a problem where Sphinx won't build the docs because of pkgdb, which
-# isn't available for Python 3, even though we have imports guarded with if six.py3. Let's work
-# around it by sed'ing out the pkgdb imports when building the docs.
-sed -i "s/from pkgdb2client import PkgDB/PkgDB = None/" bodhi/server/models.py
-sed -i "s/from pkgdb2client import PkgDB/PkgDB = None/" bodhi/server/util.py
-/usr/bin/tox || fail
 
 gather_results

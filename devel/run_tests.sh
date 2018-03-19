@@ -78,6 +78,8 @@ for r in $RELEASES; do
     echo "RUN find /bodhi -name \"*__pycache__\" -delete" >> Dockerfile-$r
     echo "RUN rm -rf *.egg-info" >> Dockerfile-$r
     echo "RUN rm -rf .tox" >> Dockerfile-$r
+    echo "RUN rm -rf /bodhi/docs/_build" >> Dockerfile-$r
+    echo "RUN rm -rf /bodhi/docs/developer/docblocks" >> Dockerfile-$r
 done
 popd
 
