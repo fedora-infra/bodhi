@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2017 Red Hat, Inc.
+# Copyright © 2017-2018 Red Hat, Inc.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -367,7 +367,26 @@ class ValidateFernetKey(unittest.TestCase):
         result = config._validate_fernet_key(key)
 
         self.assertEqual(result, key)
-        self.assertTrue(type(result), str)
+        if six.PY2:
+            self.assertIs(type(result), str)
+        else:
+            self.assertIs(type(result), bytes)
+
+    def test_valid_key_text_type(self):
+        """Assert that we can pass a six.text_type and get the right type back."""
+        key = six.text_type('gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA=')
+
+        result = config._validate_fernet_key(key)
+
+        if six.PY3:
+            # In Python 3, this will become a byte array and the equality test later will fail.
+            # Let's encode key to assert the right thing happens there.
+            key = key.encode('utf-8')
+        self.assertEqual(result, key)
+        if six.PY2:
+            self.assertIs(type(result), str)
+        else:
+            self.assertIs(type(result), bytes)
 
     def test_wrong_length_key(self):
         """An key with wrong length should raise a ValueError."""
