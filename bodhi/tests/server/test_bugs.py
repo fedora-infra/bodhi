@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2007-2017 Red Hat, Inc. and others.
+# Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -306,6 +306,35 @@ class TestBugzilla(unittest.TestCase):
         bz.update_details(bug, bug_entity)
 
         self.assertTrue(bug_entity.security)
+
+    def test_update_details_parent_bug(self):
+        """Assert that a parent bug gets marked as such."""
+        bz = bugs.Bugzilla()
+        bug = mock.MagicMock()
+        bug.product = 'Security Response'
+        bug.short_desc = 'Fedora gets you, good job guys!'
+        bug_entity = mock.MagicMock()
+        bug_entity.bug_id = 1419157
+
+        bz.update_details(bug, bug_entity)
+
+        self.assertIs(bug_entity.parent, True)
+        self.assertEqual(bug_entity.title, 'Fedora gets you, good job guys!')
+
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_update_details_xmlrpc_fault(self, exception):
+        """Test we log an exception if update_details raises one"""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = xmlrpc_client.Fault(42, 'You found the meaning.')
+        bug = mock.MagicMock()
+        bug.bug_id = 123
+
+        bz.update_details(0, bug)
+
+        self.assertEqual(bug.title, 'Invalid bug number')
+        bz._bz.getbug.assert_called_once_with(123)
+        exception.assert_called_once_with('Got fault from Bugzilla')
 
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_on_qa_failure(self, exception):
