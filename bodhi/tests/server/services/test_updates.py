@@ -83,12 +83,6 @@ class TestNewUpdate(base.BaseTestCase):
     This class contains tests for the new_update() function.
     """
     @mock.patch(**mock_valid_requirements)
-    def test_invalid_build_name(self, *args):
-        res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-1.fc17,invalidbuild-1.0'),
-                                 status=400)
-        assert 'Build not in name-version-release format' in res, res
-
-    @mock.patch(**mock_valid_requirements)
     def test_empty_build_name(self, *args):
         res = self.app.post_json('/updates/', self.get_update([u'']), status=400)
         self.assertEquals(res.json_body['errors'][0]['name'], 'builds.0')
@@ -264,6 +258,36 @@ class TestNewUpdate(base.BaseTestCase):
         self.assertEquals(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
+
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
+    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_new_rpm_update_unknown_build(self, publish, *args):
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.getBuild',
+                        return_value=None):
+            r = self.app.post_json('/updates/', self.get_update('bodhi-2.0.0-2.fc17'),
+                                   status=400)
+            up = r.json_body
+
+        self.assertEquals(up['status'], 'error')
+        self.assertEquals(up['errors'][0]['description'],
+                          "Build does not exist: bodhi-2.0.0-2.fc17")
+
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
+    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_new_rpm_update_koji_error(self, publish, *args):
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.getBuild',
+                        side_effect=koji.GenericError()):
+            r = self.app.post_json('/updates/', self.get_update('bodhi-2.0.0-2.fc17'),
+                                   status=400)
+            up = r.json_body
+
+        self.assertEquals(up['status'], 'error')
+        self.assertEquals(up['errors'][0]['description'],
+                          "Koji error getting build: bodhi-2.0.0-2.fc17")
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
