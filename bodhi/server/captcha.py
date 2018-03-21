@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2014-2017 Red Hat, Inc.
+# Copyright © 2014-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -193,10 +193,7 @@ def validate(request, cipherkey, value):
     """
     settings = request.registry.settings
 
-    try:
-        plainkey = decrypt(cipherkey, settings)
-    except cryptography.fernet.InvalidToken:
-        return False
+    plainkey = decrypt(cipherkey, settings)
 
     _, expected_value = math_generator(plainkey=plainkey, settings=settings)
     return value == expected_value
