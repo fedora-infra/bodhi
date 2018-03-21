@@ -217,7 +217,8 @@ def cache_nvrs(request, build):
         request (pyramid.util.Request): The current request.
         build (basestring): The NVR of the build to cache.
     Raises:
-        ValueError: If any of the name, version, or release in build are found to be ''.
+        ValueError: If the build could not be found in koji.
+        koji.GenericError: If an error was thrown by koji's getBuild() call.
     """
     if build in request.buildinfo and 'nvr' in request.buildinfo[build]:
         return
@@ -228,6 +229,10 @@ def cache_nvrs(request, build):
     # We use Koji's information to get the NVR split, because modules can have dashes in their
     # stream.
     kbinfo = request.koji.getBuild(build)
+    if not kbinfo:
+        request.buildinfo[build]['info'] = None
+        request.buildinfo[build]['nvr'] = None
+        raise ValueError('Build %s did not exist' % build)
     request.buildinfo[build]['info'] = kbinfo
     request.buildinfo[build]['nvr'] = kbinfo['name'], kbinfo['version'], kbinfo['release']
 
@@ -245,8 +250,13 @@ def validate_nvrs(request, **kwargs):
             cache_nvrs(request, build)
         except ValueError:
             request.validated['builds'] = []
-            request.errors.add('body', 'builds', 'Build not in '
-                               'name-version-release format: %s' % build)
+            request.errors.add('body', 'builds', 'Build does not exist: %s' % build)
+            return
+        except koji.GenericError:
+            log.exception("Error retrieving koji build for %s" % build)
+            request.validated['builds'] = []
+            request.errors.add('body', 'builds',
+                               'Koji error getting build: %s' % build)
             return
 
 
