@@ -2,6 +2,22 @@
 Release notes
 =============
 
+v3.5.1
+------
+
+Bug fix
+^^^^^^^
+
+* Use correct N, V, R splitting for module builds and add stream support (:issue:`2226`).
+* Fixed Release.version_int for modular releases (:issue:`2232`).
+
+
+Contributor
+^^^^^^^^^^^
+
+All 3.5.1 fixes were submitted by Patrick Uiterwijk.
+
+
 v3.5.0
 ------
 
