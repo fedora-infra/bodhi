@@ -16,7 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+import gzip
+import os
+import shutil
 import subprocess
+import tempfile
 import unittest
 
 import mock
@@ -30,6 +34,59 @@ from bodhi.tests.server import base
 
 if six.PY2:
     import pkgdb2client
+
+
+class TestAvatar(unittest.TestCase):
+    """Test the avatar() function."""
+
+    @mock.patch.dict(config, {'libravatar_enabled': False})
+    def test_libravatar_disabled(self):
+        """If libravatar_enabled is False, libravatar.org should be returned."""
+        context = {'request': mock.MagicMock()}
+
+        def cache_on_arguments():
+            """A fake cache - we aren't testing this so let's just return f."""
+            return lambda x: x
+
+        context['request'].cache.cache_on_arguments = cache_on_arguments
+
+        self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'libravatar.org')
+
+    @mock.patch.dict(config,
+                     {'libravatar_enabled': True, 'libravatar_dns': True, 'prefer_ssl': False})
+    @mock.patch('bodhi.server.util.libravatar.libravatar_url', return_value='cool url')
+    def test_libravatar_dns_set_ssl_false(self, libravatar_url):
+        """Test the correct return value when libravatar_dns is set in config."""
+        context = {'request': mock.MagicMock()}
+        context['request'].registry.settings = config
+
+        def cache_on_arguments():
+            """A fake cache - we aren't testing this so let's just return f."""
+            return lambda x: x
+
+        context['request'].cache.cache_on_arguments = cache_on_arguments
+
+        self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'cool url')
+        libravatar_url.assert_called_once_with(openid='http://bowlofeggs.id.fedoraproject.org/',
+                                               https=False, size=50, default='retro')
+
+    @mock.patch.dict(config,
+                     {'libravatar_enabled': True, 'libravatar_dns': True, 'prefer_ssl': True})
+    @mock.patch('bodhi.server.util.libravatar.libravatar_url', return_value='cool url')
+    def test_libravatar_dns_set_ssl_true(self, libravatar_url):
+        """Test the correct return value when libravatar_dns is set in config."""
+        context = {'request': mock.MagicMock()}
+        context['request'].registry.settings = config
+
+        def cache_on_arguments():
+            """A fake cache - we aren't testing this so let's just return f."""
+            return lambda x: x
+
+        context['request'].cache.cache_on_arguments = cache_on_arguments
+
+        self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'cool url')
+        libravatar_url.assert_called_once_with(openid='http://bowlofeggs.id.fedoraproject.org/',
+                                               https=True, size=50, default='retro')
 
 
 class TestBugLink(base.BaseTestCase):
@@ -151,6 +208,73 @@ class TestCallAPI(unittest.TestCase):
         self.assertEqual(get.mock_calls,
                          [mock.call('url', timeout=60), mock.call('url', timeout=60)])
         sleep.assert_called_once_with(1)
+
+
+class TestKarma2HTML(unittest.TestCase):
+    """Test the karma2html() function."""
+
+    def test_karma_danger(self):
+        """If karma is less than -2, the danger class should be used."""
+        self.assertEqual(util.karma2html(mock.MagicMock(), -3),
+                         "<span class='label label-danger'>-3</span>")
+
+
+class TestMemoized(unittest.TestCase):
+    """Test the memoized class."""
+
+    def test_caching(self):
+        """Ensure that caching works for hashable parameters."""
+        return_value = True
+
+        @util.memoized
+        def some_function(arg):
+            return return_value
+
+        self.assertIs(some_function(42), True)
+        # Let's flip the value of return_value just to make sure the cached value is used and not
+        # the new value.
+        return_value = False
+        # It should still return True, indicating that some_function() was not called again.
+        self.assertIs(some_function(42), True)
+
+    def test_caching_different_args(self):
+        """Ensure that caching works for hashable parameters, but is sensitive to arguments."""
+        return_value = True
+
+        @util.memoized
+        def some_function(arg):
+            return return_value
+
+        self.assertIs(some_function(42), True)
+        # Let's flip the value of return_value just to make sure the cached value is not used.
+        return_value = False
+        # It should return False because the argument is different.
+        self.assertIs(some_function(41), False)
+
+    def test_dont_cache_lists(self):
+        """memoized should not cache calls with list arguments."""
+        return_value = True
+
+        @util.memoized
+        def some_function(arg):
+            return return_value
+
+        self.assertIs(some_function(['some', 'list']), True)
+        # Let's flip the value of return_value just to make sure it isn't cached.
+        return_value = False
+        self.assertIs(some_function(['some', 'list']), False)
+
+    def test___get__(self):
+        """__get__() should allow us to set the function as an attribute of another object."""
+        @util.memoized
+        def some_function(arg):
+            """Some docblock"""
+            return 42
+
+        class some_class(object):
+            thing = some_function
+
+        self.assertEqual(some_class().thing(), 42)
 
 
 class TestNoAutoflush(unittest.TestCase):
@@ -329,6 +453,70 @@ class TestCanWaiveTestResults(base.BaseTestCase):
         u.test_gating_status = TestGatingStatus.failed
         u.status = models.UpdateStatus.stable
         self.assertFalse(util.can_waive_test_results(None, u))
+
+
+class TestPagesList(unittest.TestCase):
+    """Test the pages_list() function."""
+
+    def test_page_in_middle(self):
+        """Test for when the current page is in the middle of the pages."""
+        val = util.pages_list(mock.MagicMock(), 6, 20)
+
+        self.assertEqual(val, range(2, 11))
+
+    def test_page_near_end(self):
+        """Test for when the current page is near the end of the pages."""
+        val = util.pages_list(mock.MagicMock(), 6, 7)
+
+        self.assertEqual(val, range(1, 8))
+
+
+class TestSanityCheckRepodata(unittest.TestCase):
+    """Test the sanity_check_repodata() function."""
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp('bodhi')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_updateinfo_empty_tags(self):
+        """RepodataException should be raised if <id/> is found in updateinfo."""
+        util.mkmetadatadir(self.tempdir)
+        updateinfo = os.path.join(self.tempdir, 'updateinfo.xml.gz')
+        with gzip.GzipFile(updateinfo, 'w') as uinfo:
+            uinfo.write('<id/>'.encode('utf-8'))
+
+        with self.assertRaises(util.RepodataException) as exc:
+            util.sanity_check_repodata(self.tempdir)
+
+        self.assertEqual(str(exc.exception), 'updateinfo.xml.gz contains empty ID tags')
+
+    def test_updateinfo_nonempty_tags(self):
+        """No Exception should be raised if <id/> is found in updateinfo."""
+        util.mkmetadatadir(self.tempdir)
+        updateinfo = os.path.join(self.tempdir, 'updateinfo.xml.gz')
+        with gzip.GzipFile(updateinfo, 'w') as uinfo:
+            uinfo.write('<id>some id</id>'.encode('utf-8'))
+
+        # No exception should be raised here.
+        util.sanity_check_repodata(self.tempdir)
+
+
+class TestUpdate2HTML(base.BaseTestCase):
+    """Test the update2html() function."""
+
+    def test_long_title(self):
+        """If the update's title is too long, it should be trimmed."""
+        context = {'request': mock.MagicMock()}
+        context['request'].registry.settings = {'max_update_length_for_ui': 10}
+        context['request'].route_url.return_value = 'https://example.com/'
+        update = models.Update.query.first()
+
+        html = util.update2html(context, update)
+
+        # The update's title gets trimmed to 10 characters and 3 dots.
+        self.assertEqual(html, '<a href="https://example.com/">bodhi-2.0-...</a>')
 
 
 class TestUtils(base.BaseTestCase):
