@@ -338,7 +338,7 @@ def avatar(context, username, size):
 
     # context is a mako context object
     request = context['request']
-    https = request.registry.settings.get('prefer_ssl'),
+    https = request.registry.settings.get('prefer_ssl')
 
     @request.cache.cache_on_arguments()
     def work(username, size):
