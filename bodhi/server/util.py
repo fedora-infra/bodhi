@@ -20,7 +20,6 @@
 
 from collections import defaultdict, OrderedDict
 from contextlib import contextmanager
-import collections
 import functools
 import hashlib
 import json
@@ -183,7 +182,9 @@ class memoized(object):
         Returns:
             object: The reponse from the wrapped function, or the cached response, if available.
         """
-        if not isinstance(args, collections.Hashable):
+        try:
+            hash(args)
+        except TypeError:
             # uncacheable. a list, for instance.
             # better to not cache than blow up.
             return self.func(*args)
