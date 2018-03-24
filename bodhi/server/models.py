@@ -1386,20 +1386,6 @@ class Build(Base):
             koji = buildsys.get_session()
         return [tag['name'] for tag in koji.listTags(self.nvr)]
 
-    def untag(self, koji, db):
-        """
-        Remove all known tags from this build.
-
-        Args:
-            koji (bodhi.server.buildsys.Buildsysem or koji.ClientSession): A koji client.
-            db (sqlalchemy.orm.session.Session): A database Session.
-        """
-        tag_types, tag_rels = Release.get_tags(db)
-        for tag in self.get_tags():
-            if tag in tag_rels:
-                log.info('Removing %s tag from %s' % (tag, self.nvr))
-                koji.untagBuild(tag, self.nvr)
-
     def unpush(self, koji):
         """
         Move this build back to the candidate tag and remove any pending tags.
