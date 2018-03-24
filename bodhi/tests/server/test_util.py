@@ -933,6 +933,43 @@ class TestUtils(base.BaseTestCase):
         assert sync[0] == u2
         assert sync[1] == u1
 
+    def test_sorted_updates_general(self):
+        u1 = self.create_update(['bodhi-1.0-1.fc24', 'somepkg-2.0-3.fc24'])
+        u2 = self.create_update(['somepkg-1.0-3.fc24'])
+        u3 = self.create_update(['pkga-1.0-3.fc24'])
+        u4 = self.create_update(['pkgb-1.0-3.fc24'])
+        u5 = self.create_update(['pkgc-1.0-3.fc24', 'pkgd-1.0-3.fc24'])
+        u6 = self.create_update(['pkgd-2.0-3.fc24'])
+
+        us = [u1, u2, u3, u4, u5, u6]
+        sync, async = util.sorted_updates(us)
+
+        # This ordering is because:
+        #  u5 contains pkgd-1.0, which is < pkgdb-2.0 from u6
+        #  u2 contains somepkg-1.0, which is < somepkg-2.0 from u1
+        self.assertEquals(sync, [u5, u6, u2, u1])
+        # This ordering is because neither u3 nor u4 overlap with other updates
+        self.assertEquals(async, [u3, u4])
+
+    def test_sorted_updates_insanity(self):
+        """
+        Test that sorted_updates is predictable in the case of insanity.
+
+        The updates as submitted should never be done, as this is a purely insane combination,
+        but we want to make sure that we at least don't crash, and produce predictable ordering.
+        """
+        u1 = self.create_update(['bodhi-1.0-1.fc24', 'somepkg-2.0-3.fc24'])
+        u2 = self.create_update(['pkga-1.0-3.fc24', 'pkgb-2.0-1.fc24'])  # Newer pkgb, thus >u3
+        u3 = self.create_update(['pkga-2.0-1.fc24', 'pkgb-1.0-3.fc24'])  # Newer pkga, thus >u2
+
+        us = [u1, u2, u3]
+        sync, async = util.sorted_updates(us)
+
+        # This ordering is actually insane, since both u2 and u3 contain a newer and an older build
+        self.assertEquals(sync, [u2, u3])
+        # This ordering is because u1 doesn't overlap with anything
+        self.assertEquals(async, [u1])
+
     def test_splitter(self):
         splitlist = util.splitter(["build-0.1", "build-0.2"])
         self.assertEqual(splitlist, ['build-0.1', 'build-0.2'])
