@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2011-2017 Red Hat, Inc. and others.
+# Copyright © 2011-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -612,6 +612,20 @@ class TestRelease(ModelTest):
         override_tag=u"dist-f11-override",
         state=model.ReleaseState.current)
 
+    def test_collection_name(self):
+        """Test the collection_name property of the Release."""
+        self.assertEqual(self.obj.collection_name, 'Fedora')
+
+    @mock.patch.dict(config, {'fedora.mandatory_days_in_testing': 42})
+    def test_mandatory_days_in_testing_status_falsy(self):
+        """Test mandatory_days_in_testing() with a value that is falsy."""
+        self.assertEqual(self.obj.mandatory_days_in_testing, 42)
+
+    @mock.patch.dict(config, {'f11.current.mandatory_days_in_testing': 42, 'f11.status': 'current'})
+    def test_mandatory_days_in_testing_status_truthy(self):
+        """Test mandatory_days_in_testing() with a value that is truthy."""
+        self.assertEqual(self.obj.mandatory_days_in_testing, 42)
+
     def test_version_int(self):
         self.assertEqual(self.obj.version_int, 11)
 
@@ -781,8 +795,61 @@ class TestModulePackage(ModelTest, unittest.TestCase):
         self.db.flush()
 
 
+class TestContainerPackage(ModelTest, unittest.TestCase):
+    """Test the Container class."""
+
+    klass = model.ContainerPackage
+    attrs = dict(name=u"docker-distribution")
+
+    @mock.patch('bodhi.server.util.http_session')
+    def test_get_pkg_committers_from_pagure(self, http_session):
+        """Ensure correct return value from get_pkg_committers_from_pagure()."""
+        json_output = {
+            "access_groups": {
+                "admin": [],
+                "commit": ['factory2'],
+                "ticket": []
+            },
+            "access_users": {
+                "admin": [],
+                "commit": [],
+                "owner": [
+                    "mprahl"
+                ],
+                "ticket": ["jsmith"]
+            },
+            "close_status": [],
+            "custom_keys": [],
+            "date_created": "1494947106",
+            "description": "Python",
+            "fullname": "rpms/python",
+            "group_details": {},
+            "id": 2,
+            "milestones": {},
+            "name": "python",
+            "namespace": "rpms",
+            "parent": None,
+            "priorities": {},
+            "tags": [],
+            "user": {
+                "fullname": "Matt Prahl",
+                "name": "mprahl"
+            }
+        }
+        http_session.get.return_value.json.return_value = json_output
+        http_session.get.return_value.status_code = 200
+
+        rv = self.obj.get_pkg_committers_from_pagure()
+
+        self.assertEqual(rv, (['mprahl'], ['factory2']))
+        http_session.get.assert_called_once_with(
+            ('https://src.fedoraproject.org/pagure/api/0/container/docker-distribution'
+             '?expand_group=1'),
+            timeout=60)
+
+
 class TestRpmPackage(ModelTest, unittest.TestCase):
-    """Unit test case for the ``Package`` model."""
+    """Unit test case for the ``RpmPackage`` model."""
     klass = model.RpmPackage
     attrs = dict(name=u"TurboGears")
 
@@ -813,6 +880,30 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
             pkg = model.RpmPackage(name=u'gnome-shell')
             pkg.fetch_test_cases(self.db)
             assert pkg.test_cases
+
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_test_cases_recursive(self, MediaWiki):
+        """Test querying the wiki for test cases when recursion is necessary."""
+        responses = [
+            {'query': {
+                'categorymembers': [
+                    {'title': u'Fake'},
+                    {'title': u'Category:Bodhi'},
+                    {'title': u'Uploading cat pictures'}]}},
+            {'query': {
+                'categorymembers': [
+                    {'title': u'Does Bodhi eat +1s'}]}}]
+        MediaWiki.return_value.call.side_effect = responses
+        config['query_wiki_test_cases'] = True
+        pkg = model.RpmPackage(name=u'gnome-shell')
+
+        pkg.fetch_test_cases(self.db)
+
+        self.assertEqual(model.TestCase.query.count(), 3)
+        self.assertEqual(len(pkg.test_cases), 3)
+        self.assertEqual({tc.name for tc in model.TestCase.query.all()},
+                         {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
+        self.assertEqual({tc.package.name for tc in model.TestCase.query.all()}, {'gnome-shell'})
 
     def test_adding_modulebuild(self):
         """Assert that validation fails when adding a ModuleBuild."""
@@ -1269,7 +1360,8 @@ class TestUpdate(ModelTest):
         notes=u'foobar',
         test_gating_status=TestGatingStatus.passed)
 
-    def do_get_dependencies(self):
+    @staticmethod
+    def do_get_dependencies():
         release = model.Release(**TestRelease.attrs)
         return dict(
             builds=[model.RpmBuild(
@@ -1785,6 +1877,27 @@ class TestUpdate(ModelTest):
         self.assertEqual(koji.__untag__, [(u'dist-f11-updates-testing-signing',
                          u'TurboGears-1.0.8-3.fc11'), (u'dist-f11-updates-testing-pending',
                                                        u'TurboGears-1.0.8-3.fc11')])
+
+    def test_unpush_pending_stable(self):
+        """Test unpush() on a pending stable tagged build."""
+        release = self.obj.release
+        build = self.obj.builds[0]
+        koji = buildsys.get_session()
+        koji.clear()
+        koji.__tagged__[build.nvr] = [
+            release.testing_tag, release.pending_signing_tag, release.pending_testing_tag,
+            release.pending_stable_tag,
+            # Add an unknown tag that we shouldn't touch
+            release.dist_tag + '-compose']
+
+        build.unpush(koji)
+
+        self.assertEqual(koji.__moved__, [(u'dist-f11-updates-testing',
+                         u'dist-f11-updates-candidate', u'TurboGears-1.0.8-3.fc11')])
+        self.assertEqual(koji.__untag__, [
+            (u'dist-f11-updates-testing-signing', u'TurboGears-1.0.8-3.fc11'),
+            (u'dist-f11-updates-testing-pending', u'TurboGears-1.0.8-3.fc11'),
+            (u'dist-f11-updates-pending', u'TurboGears-1.0.8-3.fc11')])
 
     def test_title(self):
         self.assertEqual(self.obj.title, u'TurboGears-1.0.8-3.fc11')
