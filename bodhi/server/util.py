@@ -971,10 +971,18 @@ def sorted_updates(updates):
                 if build.update in async:
                     async.remove(build.update)
         else:
+            build = list(builds[package])[0]
             if build.update not in async and build.update not in sync:
-                async.append(update)
+                async.append(build.update)
     log.info('sync = %s' % ([up.title for up in sync],))
     log.info('async = %s' % ([up.title for up in async],))
+    if not (len(set(sync) & set(async)) == 0 and
+            len(set(sync) | set(async)) == len(updates)):
+        # There should be absolutely no way to hit this code path, but let's be paranoid, and check
+        # every run, to make sure no update gets left behind.
+        # It makes sure that there is no update in sync AND async, and that the combination of
+        # sync OR async is the full set of updates.
+        raise Exception('ERROR! SYNC+ASYNC != UPDATES! sorted_updates failed')  # pragma: no cover
     return sync, async
 
 
