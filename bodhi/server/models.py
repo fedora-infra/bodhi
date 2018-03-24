@@ -500,9 +500,13 @@ class BodhiBase(object):
         error = "Found no child of %r with identity %r"
         raise NameError(error % (cls, identity))
 
-    def update_relationship(self, name, model, data, db):
+    def update_relationship(self, name, model, data, db):  # pragma: no cover
         """
         Add items to or remove items from a many-to-many relationship.
+
+        pragma: no cover is on this method because it is only used by Stacks, which is not used by
+        Fedora and will likely be removed in the future.
+        See https://github.com/fedora-infra/bodhi/issues/2241
 
         Args:
             name (basestring): The name of the relationship column on self, as well as the key in
@@ -1006,9 +1010,12 @@ class Package(Base):
         UniqueConstraint('name', 'type', name='packages_name_and_type_key'),
     )
 
-    def get_pkg_pushers(self, branch, settings):
+    def get_pkg_pushers(self, branch, settings):  # pragma: no cover
         """
         Return users who can commit and are watching a package.
+
+        pragma: no cover is used on this method because pkgdb support is planned to be dropped in
+        Bodhi. See https://github.com/fedora-infra/bodhi/issues/1970
 
         Return two two-tuples of lists:
             * The first tuple is for usernames. The second tuple is for groups.
