@@ -916,13 +916,15 @@ class PungiComposerThread(ComposerThread):
             self.log.info('Creating %s' % self.mash_dir)
             os.makedirs(self.mash_dir)
 
-        if not self.skip_compose:
+        composedone = self._checkpoints.get('compose_done')
+
+        if not self.skip_compose and not composedone:
             pungi_process = self._punge()
 
         # Things we can do while Pungi is running
         self.generate_testing_digest()
 
-        if not self.skip_compose:
+        if not self.skip_compose and not composedone:
             uinfo = self._generate_updateinfo()
 
             self._wait_for_pungi(pungi_process)
@@ -933,6 +935,10 @@ class PungiComposerThread(ComposerThread):
             self._wait_for_repo_signature()
             self._stage_repo()
 
+            self._checkpoints['compose_done'] = True
+            self.save_state()
+
+        if not self.skip_compose:
             # Wait for the repo to hit the master mirror
             self._wait_for_sync()
 
