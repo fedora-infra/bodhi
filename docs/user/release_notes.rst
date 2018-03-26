@@ -2,11 +2,35 @@
 Release notes
 =============
 
-v3.5.1
+v3.5.2
 ------
+
+3.5.2 is an important bug fix release. Users are strongly recommended to use it over 3.5.1, which
+introduced the bug.
+
 
 Bug fix
 ^^^^^^^
+
+* Fix loop variable leaking in sorted_updates, which led to packages not being tagged in Koji when
+  they are pushed to a repository (:issue:`2243`).
+
+
+Contributor
+^^^^^^^^^^^
+
+Thanks to Patrick Uiterwijk for submitting the fix for this release.
+
+
+v3.5.1
+------
+
+3.5.1 inadvertently introduced a bug that caused packages not to be tagged properly in Koji. Users
+are advised to skip this release and use 3.5.2 instead.
+
+
+Bug fixes
+^^^^^^^^^
 
 * Use correct N, V, R splitting for module builds and add stream support (:issue:`2226`).
 * Fixed Release.version_int for modular releases (:issue:`2232`).
