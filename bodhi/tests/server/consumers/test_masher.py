@@ -1244,6 +1244,7 @@ That was the actual one'''
             t._checkpoints,
             {'completed_repo': os.path.join(
                 mash_dir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+             'compose_done': True,
              'determine_and_perform_tag_actions': True,
              'modify_bugs': True,
              'send_stable_announcements': True,
@@ -1340,6 +1341,7 @@ testmodule:master:20172:2
             {'completed_repo': os.path.join(
                 self.tempdir,
                 'Fedora-27-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+             'compose_done': True,
              'determine_and_perform_tag_actions': True,
              'modify_bugs': True,
              'send_stable_announcements': True,
@@ -1424,6 +1426,7 @@ testmodule:master:20172:2
             t._checkpoints,
             {'completed_repo': os.path.join(
                 self.tempdir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+             'compose_done': True,
              'determine_and_perform_tag_actions': True,
              'modify_bugs': True,
              'send_stable_announcements': True,
@@ -1562,6 +1565,7 @@ testmodule:master:20172:2
             t._checkpoints,
             {'completed_repo': os.path.join(
                 self.tempdir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
+             'compose_done': True,
              'determine_and_perform_tag_actions': True,
              'modify_bugs': True,
              'send_stable_announcements': True,
@@ -1754,6 +1758,64 @@ testmodule:master:20172:2
             up = session.query(Update).one()
             self.assertEquals(up.status, UpdateStatus.testing)
             self.assertEquals(up.request, None)
+
+    @mock.patch(**mock_taskotron_results)
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.notifications.publish')
+    @mock.patch('bodhi.server.util.cmd')
+    def test_retry_done_compose(self, mock_cmd, mock_publish,
+                                mock_wait_for_sync, mock_generate_updateinfo,
+                                mock_wait_for_repo_signature, mock_stage_repo,
+                                mock_sanity_check_repo, mock_wait_for_pungi,
+                                mock_taskotron_results):
+        self.expected_sems = 2
+
+        # Crash during wait_for_sync. The compose itself is done.
+        mock_wait_for_sync.side_effect = Exception
+        with self.db_factory() as session:
+            up = session.query(Update).one()
+            up.request = UpdateRequest.testing
+            up.status = UpdateStatus.pending
+
+        # Simulate a failed push
+        self.masher.consume(self._make_msg())
+
+        # Assert that things were run
+        mock_wait_for_pungi.assert_called()
+        mock_sanity_check_repo.assert_called()
+        mock_stage_repo.assert_called()
+        mock_wait_for_repo_signature.assert_called()
+        mock_generate_updateinfo.assert_called()
+        mock_wait_for_sync.assert_called()
+
+        # Reset mocks
+        mock_wait_for_sync.side_effect = None
+        mock_wait_for_pungi.reset_mock()
+        mock_sanity_check_repo.reset_mock()
+        mock_stage_repo.reset_mock()
+        mock_wait_for_repo_signature.reset_mock()
+        mock_generate_updateinfo.reset_mock()
+        mock_wait_for_sync.reset_mock()
+
+        # Resume the push
+        msg = self._make_msg()
+        msg['body']['msg']['resume'] = True
+        self.masher.consume(msg)
+
+        # Assert we did not actually recompose
+        mock_wait_for_pungi.assert_not_called()
+        mock_sanity_check_repo.assert_not_called()
+        mock_stage_repo.assert_not_called()
+        mock_wait_for_repo_signature.assert_not_called()
+        mock_generate_updateinfo.assert_not_called()
+
+        # Assert that we did wait for resync
+        mock_wait_for_sync.assert_called()
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
