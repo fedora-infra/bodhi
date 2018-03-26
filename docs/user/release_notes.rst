@@ -2,8 +2,8 @@
 Release notes
 =============
 
-develop
--------
+v3.6.0
+------
 
 Deprecation
 ^^^^^^^^^^^
@@ -20,16 +20,69 @@ Dependency changes
 * Skopeo is now a required dependency for Bodhi installations that compose containers.
 
 
+Features
+^^^^^^^^
+
+* The UI no longer lists a user's updates from retired releases by default (:issue:`752`).
+* The CLI now supports update severity (:issue:`1814`).
+* There is now a REST API to find out the status of running or failed composes (:issue:`2015`).
+* The CLI now has a ``composes`` section which is able to query the server to display the status of
+  composes (:issue:`2016`).
+* Bodhi is now able to identify containers in Koji (:issue:`2027`).
+* Bodhi is now able to compose containers (:issue:`2028`).
+* There is now a ``cache_dir`` setting that can be used to direct Bodhi where to store a ``shelve``
+  while generating metadata (:commit:`9b08f7be`).
+* There is now documentation about buildroot overrides (:commit:`3450073c`).
+* Bodhi will now include RPM changelogs in e-mails (:commit:`07b27fe8`).
+* Bodhi's update e-mail now instruct ``dnf`` users to use the ``--advisory`` flag
+  (:commit:`9fd56f99`).
+* A new ``wait_for_repo_sig`` setting will allow Bodhi to work with signed repodata
+  (:commit:`eea40394`).
+
+
 Bugs
 ^^^^
 
-* The CLI --close-bugs flag does not work (:issue:`1818`).
+* Bodhi will not reopen VERIFIED or CLOSED bugs anymore
+  (:issue:`1091`, :issue:`1349`, :issue:`2168`).
+* Bugzilla tickets will no longer get too much text inserted into their fixedin field
+  (:issue:`1430`).
+* The CLI --close-bugs flag now works correctly (:issue:`1818`).
+* Captcha errors are now correctly noted on cookies instead of the session, which was incompatible
+  with Cornice 3 (:commit:`900e80a3`).
+* The ``prefer_ssl`` setting now properly works (:commit:`9f55c7d2`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Uniqueness on a release's branch column was dropped, since container releases will likely use the
+  same branch name as RPM releases (:issue:`2216`).
+* Bodhi now learns the Pungi output dir directly from Pungi (:commit:`dbc337e5`).
+* The composer now uses a semaphore to keep track of how many concurrent composes are running
+  (:commit:`66f995e1`).
+* CI tests are now also run against Fedora 28 (:issue:`2215`).
+* Bodhi is now up to 98% line test coverage, from 95% in the 3.5.0 release.
+* It is now possible to run the same tests that CI runs in the Vagrant environment by running
+  ``devel/run_tests.sh``.
+* The Bodhi CLI now supports Python 3 with 100% test coverage.
+* The Bodhi server also now supports Python 3, but only has 78% test coverage with Python 3 as many
+  tests need to be converted to pass on Python 3, thus it is not yet recommended to run Bodhi server
+  on Python 3 even though it is theoretically possible.
 
 
 Contributors
 ^^^^^^^^^^^^
 
+The following developer contributed patches to Bodhi 3.6.0:
+
+* Lumir Balhar
+* Patrick Uiterwijk
+* Mattia Verga
 * Clément Verna
+* Pierre-Yves Chibon
+* Jan Kaluza
+* Randy Barlow
 
 
 v3.5.2
