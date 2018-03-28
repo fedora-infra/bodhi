@@ -1,5 +1,7 @@
+    make \
     python2-arrow \
     python2-bleach \
+    python2-colander \
     python2-dogpile-cache \
     python2-fedmsg \
     python2-feedgen \
@@ -17,6 +19,7 @@
     python3-alembic \
     python3-arrow \
     python3-bleach \
+    python3-colander \
     python3-diff-cover \
     python3-dogpile-cache \
     python3-fedmsg \
@@ -35,5 +38,4 @@
     python3-pytest-cov \
     python3-simplemediawiki \
     python3-sqlalchemy \
-    python3-tox \
     python3-webtest \

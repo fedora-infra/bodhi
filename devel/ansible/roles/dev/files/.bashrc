@@ -16,7 +16,7 @@ alias brestart="sudo systemctl restart bodhi && echo 'The Application is running
 alias bshell="pshell /home/vagrant/bodhi/development.ini"
 alias bstart="sudo systemctl start bodhi && echo 'The Application is running on http://localhost:6543'"
 alias bstop="sudo systemctl stop bodhi"
-alias bteststyle="pushd /home/vagrant/bodhi && tox -e flake8,pydocstyle; popd"
+alias bteststyle="flake8 && pydocstyle bodhi"
 alias bfedmsg="sudo journalctl -u fedmsg-tail"
 
 
@@ -34,7 +34,7 @@ function bresetdb {
 
 function btest {
     find /home/vagrant/bodhi -name "*.pyc" -delete;
-    pushd /home/vagrant/bodhi && tox && py.test-2 $@ && py.test-3 $@; popd
+    bteststyle && bdocs && py.test-2 $@ /home/vagrant/bodhi/ && py.test-3 $@ /home/vagrant/bodhi/
 }
 
 export BODHI_URL="http://localhost:6543/"

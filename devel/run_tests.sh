@@ -77,7 +77,6 @@ for r in $RELEASES; do
     echo "RUN find /bodhi -name \"*.pyc\" -delete" >> Dockerfile-$r
     echo "RUN find /bodhi -name \"*__pycache__\" -delete" >> Dockerfile-$r
     echo "RUN rm -rf *.egg-info" >> Dockerfile-$r
-    echo "RUN rm -rf .tox" >> Dockerfile-$r
     echo "RUN rm -rf /bodhi/docs/_build" >> Dockerfile-$r
     echo "RUN rm -rf /bodhi/docs/developer/docblocks" >> Dockerfile-$r
 done
@@ -91,6 +90,6 @@ $PARALLEL sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $REL
 $PARALLEL $BUILD_PARALLEL "docker build --pull -t bodhi-dev/{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
 
 # Run the tests.
-$PARALLEL docker run --rm $MOUNT_TEST_RESULTS bodhi-dev/{} /bodhi/devel/test_container.sh $PYTEST_ARGS ::: $RELEASES || (tar_results; echo -e "\n\n\033[0;31mTESTS FAILED\033[0m\n\n"; exit 1)
+$PARALLEL docker run --network none --rm $MOUNT_TEST_RESULTS bodhi-dev/{} /bodhi/devel/test_container.sh $PYTEST_ARGS ::: $RELEASES || (tar_results; echo -e "\n\n\033[0;31mTESTS FAILED\033[0m\n\n"; exit 1)
 tar_results
 echo -e "\n\n\033[0;32mSUCCESS!\033[0m\n\n"

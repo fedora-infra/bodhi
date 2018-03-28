@@ -86,7 +86,6 @@
       - python3-pytest-cov
       - python3-simplemediawiki
       - python3-sqlalchemy
-      - python3-tox
       - python3-webtest
       - redhat-rpm-config
       - skopeo

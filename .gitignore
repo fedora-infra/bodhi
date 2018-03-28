@@ -10,7 +10,6 @@
 .coverage
 .dnf-cache/
 .idea
-.tox/
 .vagrant
 .vagrant.d
 MANIFEST

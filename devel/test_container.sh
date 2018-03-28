@@ -41,7 +41,16 @@ py3_version=$(python3 -c "import sys ; print(sys.version[:3])")
 mkdir -p /usr/local/lib/python$py3_version/site-packages/
 /usr/bin/python3 setup.py develop || fail
 
-/usr/bin/tox || fail
+# The pip container calls it flake8 but the Fedora container calls it flake8-2.
+if ! rpm -q python2-flake8; then
+    flake8 || fail
+else
+    flake8-2 || fail
+fi
+pydocstyle bodhi || fail
+make -C docs clean || fail
+make -C docs html || fail
+make -C docs man || fail
 
 # The pip container calls it py.test but the Fedora container calls it py.test-2.
 if ! rpm -q python3-fedmsg; then
