@@ -745,7 +745,7 @@ class TestModulePackage(ModelTest, unittest.TestCase):
 
     def setUp(self):
         super(TestModulePackage, self).setUp()
-        self.package = model.ModulePackage(name=u'the-greatest-package')
+        self.package = model.ModulePackage(name=u'the-greatest-package:master')
         self.db.add(self.package)
 
     def test_adding_rpmbuild(self):
@@ -823,6 +823,63 @@ class TestModulePackage(ModelTest, unittest.TestCase):
 
         # This should not raise any Exception.
         self.db.flush()
+
+    @mock.patch('bodhi.server.util.http_session')
+    def test_get_pkg_committers_from_pagure_with_group(self, session):
+        """
+        Ensure that the package committers can be found using the Pagure
+        API with a package that does have group ACLs.
+        """
+        json_output = {
+            "access_groups": {
+                "admin": [],
+                "commit": ["rpm-software-management-sig"],
+                "ticket": []},
+            "access_users": {
+                "admin": ["ignatenkobrain"],
+                "commit": ["jmracek"],
+                "owner": ["dmach"],
+                "ticket": []},
+            "close_status": [],
+            "custom_keys": [],
+            "date_created": "1501867095",
+            "date_modified": "1507272820",
+            "description": "The dnf rpms",
+            "fullname": "modules/dnf",
+            "group_details": {
+                "rpm-software-management-sig": [
+                    "releng",
+                    "ignatenkobrain",
+                    "jsilhan",
+                    "mluscon",
+                    "jmracek",
+                    "mhatina",
+                    "dmach"]},
+            "id": 2599,
+            "milestones": {},
+            "name": "dnf",
+            "namespace": "modules",
+            "parent": None,
+            "priorities": {},
+            "tags": [],
+            "user": {
+                "fullname": "Daniel Mach",
+                "name": "dmach"}}
+        session.get.return_value.json.return_value = json_output
+        session.get.return_value.status_code = 200
+
+        rv = self.package.get_pkg_committers_from_pagure()
+
+        committers, groups = rv
+
+        self.assertEqual(sorted(committers),
+                         ['dmach', 'ignatenkobrain', 'jmracek', 'jsilhan',
+                          'mhatina', 'mluscon', 'releng'])
+        self.assertEqual(groups, ['rpm-software-management-sig'])
+        session.get.assert_called_once_with(
+            'https://src.fedoraproject.org/pagure/api/0/modules/the-greatest-package?'
+            'expand_group=1',
+            timeout=60)
 
 
 class TestContainerPackage(ModelTest, unittest.TestCase):
