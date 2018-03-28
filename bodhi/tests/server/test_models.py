@@ -950,6 +950,7 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
             committers=[model.User(name=u'lmacken')]
         )
 
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
     def test_wiki_test_cases(self):
         """Test querying the wiki for test cases"""
         # Mock out mediawiki so we don't do network calls in our tests
@@ -963,11 +964,11 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
 
         # Now, our actual test.
         with mock.patch('bodhi.server.models.MediaWiki', MockWiki(response)):
-            config['query_wiki_test_cases'] = True
             pkg = model.RpmPackage(name=u'gnome-shell')
             pkg.fetch_test_cases(self.db)
             assert pkg.test_cases
 
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
     @mock.patch('bodhi.server.models.MediaWiki')
     def test_wiki_test_cases_recursive(self, MediaWiki):
         """Test querying the wiki for test cases when recursion is necessary."""
@@ -981,7 +982,6 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
                 'categorymembers': [
                     {'title': u'Does Bodhi eat +1s'}]}}]
         MediaWiki.return_value.call.side_effect = responses
-        config['query_wiki_test_cases'] = True
         pkg = model.RpmPackage(name=u'gnome-shell')
 
         pkg.fetch_test_cases(self.db)
