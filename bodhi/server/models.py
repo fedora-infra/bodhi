@@ -1012,6 +1012,18 @@ class Package(Base):
         UniqueConstraint('name', 'type', name='packages_name_and_type_key'),
     )
 
+    @property
+    def external_name(self):
+        """
+        Return the package name as it's known to external services.
+
+        For most Packages, this is self.name.
+
+        Returns:
+            str: The name of this package.
+        """
+        return self.name
+
     def get_pkg_pushers(self, branch, settings):  # pragma: no cover
         """
         Return users who can commit and are watching a package.
@@ -1066,7 +1078,7 @@ class Package(Base):
         else:
             namespace = self.type.name + 's'
         package_pagure_url = '{0}/api/0/{1}/{2}?expand_group=1'.format(
-            pagure_url.rstrip('/'), namespace, self.name)
+            pagure_url.rstrip('/'), namespace, self.external_name)
         package_json = pagure_api_get(package_pagure_url)
 
         committers = set()
@@ -1102,7 +1114,7 @@ class Package(Base):
         log.debug('Querying the wiki for test cases')
 
         wiki = MediaWiki(config.get('wiki_url'))
-        cat_page = 'Category:Package %s test cases' % self.name
+        cat_page = 'Category:Package %s test cases' % self.external_name
 
         def list_categorymembers(wiki, cat_page, limit=500):
             # Build query arguments and call wiki
@@ -1238,6 +1250,18 @@ class ModulePackage(Package):
     __mapper_args__ = {
         'polymorphic_identity': ContentType.module,
     }
+
+    @property
+    def external_name(self):
+        """
+        Return the package name as it's known to external services.
+
+        For modules, this splits the :stream portion back off.
+
+        Returns:
+            str: The name of this module package without :stream.
+        """
+        return self.name.split(':')[0]
 
     @staticmethod
     def _get_name(build):
