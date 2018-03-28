@@ -10,7 +10,7 @@ fi
 
 shopt -s expand_aliases
 alias bdiff-cover="btest; diff-cover /home/vagrant/bodhi/coverage.xml --compare-branch=develop --fail-under=100"
-alias bdocs="pushd /home/vagrant/bodhi/docs && make html && make man; popd"
+alias bdocs="make -C /home/vagrant/bodhi/docs clean && make -C /home/vagrant/bodhi/docs html && make -C /home/vagrant/bodhi/docs man"
 alias blog="sudo journalctl -u bodhi"
 alias brestart="sudo systemctl restart bodhi && echo 'The Application is running on http://localhost:6543'"
 alias bshell="pshell /home/vagrant/bodhi/development.ini"
