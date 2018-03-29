@@ -2932,6 +2932,9 @@ class Update(Base):
         """
         if not author:
             raise ValueError('You must provide a comment author')
+            
+        if not text:
+            raise ValueError('You must provide text in comment')
 
         caveats = []
 
