@@ -48,6 +48,7 @@ Bugs
 * Bugzilla tickets will no longer get too much text inserted into their fixedin field
   (:issue:`1430`).
 * The CLI --close-bugs flag now works correctly (:issue:`1818`).
+* Fix ACL lookup for Module Packages (:issue:`2251`).
 * Captcha errors are now correctly noted on cookies instead of the session, which was incompatible
   with Cornice 3 (:commit:`900e80a3`).
 * The ``prefer_ssl`` setting now properly works (:commit:`9f55c7d2`).
