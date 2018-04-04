@@ -48,7 +48,8 @@ from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
-from bodhi.server.util import sorted_updates, sanity_check_repodata, transactional_session_maker
+from bodhi.server.util import (copy_container, sorted_updates, sanity_check_repodata,
+                               transactional_session_maker)
 
 
 def checkpoint(method):
@@ -878,9 +879,6 @@ class ContainerComposerThread(ComposerThread):
 
     def _compose_updates(self):
         """Use skopeo to copy images to the correct repos and tags."""
-        source_registry = config['container.source_registry']
-        destination_registry = config['container.destination_registry']
-
         for update in self.compose.updates:
 
             if update.request is UpdateRequest.stable:
@@ -889,28 +887,10 @@ class ContainerComposerThread(ComposerThread):
                 destination_tag = 'testing'
 
             for build in update.builds:
-                image_name = '{}/{}'.format(build.release.branch, build.package.name)
-                version_release = '{}-{}'.format(build.nvr_version, build.nvr_release)
-                source_url = 'docker://{}/{}:{}'.format(source_registry, image_name,
-                                                        version_release)
-                for dtag in [version_release, build.nvr_version, destination_tag]:
-                    destination_url = 'docker://{}/{}:{}'.format(destination_registry, image_name,
-                                                                 dtag)
-                    skopeo_cmd = [
-                        config.get('skopeo.cmd'), 'copy', source_url, destination_url]
-                    if config.get('skopeo.extra_copy_flags'):
-                        skopeo_cmd.insert(2, config.get('skopeo.extra_copy_flags'))
-                    log.debug('Running {}'.format(' '.join(skopeo_cmd)))
-                    skopeo_process = subprocess.Popen(
-                        skopeo_cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    out, err = skopeo_process.communicate()
-
-                    if skopeo_process.returncode:
-                        msg = '{} returned a non-0 exit code: {}'.format(
-                            ' '.join(skopeo_cmd), skopeo_process.returncode)
-                        log.error(msg)
-                        log.error(out + err)
-                        raise RuntimeError(msg)
+                # Using None as the destination tag on the first one will default to the
+                # version-release string.
+                for dtag in [None, build.nvr_version, destination_tag]:
+                    copy_container(build, destination_tag=dtag)
 
 
 class PungiComposerThread(ComposerThread):

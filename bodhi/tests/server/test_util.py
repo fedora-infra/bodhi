@@ -1273,10 +1273,14 @@ class TestCMDFunctions(base.BaseTestCase):
         mock_popen_obj.communicate.return_value = ('output', 'error')
         mock_popen_obj.returncode = 1
         util.cmd('/bin/echo', '"home/imgs/catpix"')
-        mock_popen.assert_called_once_with(['/bin/echo'], cwd='"home/imgs/catpix"',
-                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        mock_error.assert_any_call('error')
-        mock_debug.assert_called_once_with('output')
+        mock_popen.assert_called_once_with(
+            ['/bin/echo'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            shell=False)
+
+        self.assertEqual(
+            mock_error.mock_calls,
+            [mock.call('/bin/echo returned a non-0 exit code: 1'), mock.call('output\nerror')])
+        mock_debug.assert_called_once_with('Running /bin/echo')
 
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
@@ -1291,10 +1295,13 @@ class TestCMDFunctions(base.BaseTestCase):
         mock_popen_obj.communicate.return_value = ('output', None)
         mock_popen_obj.returncode = 0
         util.cmd('/bin/echo', '"home/imgs/catpix"')
-        mock_popen.assert_called_once_with(['/bin/echo'], cwd='"home/imgs/catpix"',
-                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        mock_popen.assert_called_once_with(
+            ['/bin/echo'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            shell=False)
         mock_error.assert_not_called()
-        mock_debug.assert_called_once_with('output')
+        self.assertEqual(mock_debug.mock_calls,
+                         [mock.call('Running /bin/echo'), mock.call('output\nNone')])
 
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
@@ -1309,10 +1316,12 @@ class TestCMDFunctions(base.BaseTestCase):
         mock_popen_obj.communicate.return_value = ('output', 'error')
         mock_popen_obj.returncode = 0
         util.cmd('/bin/echo', '"home/imgs/catpix"')
-        mock_popen.assert_called_once_with(['/bin/echo'], cwd='"home/imgs/catpix"',
-                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        mock_popen.assert_called_once_with(
+            ['/bin/echo'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            shell=False)
         mock_error.assert_not_called()
-        mock_debug.assert_called_with('error')
+        mock_debug.assert_called_with('output\nerror')
 
 
 class TestTransactionalSessionMaker(base.BaseTestCase):

@@ -990,7 +990,7 @@ def sorted_updates(updates):
     return sync, async
 
 
-def cmd(cmd, cwd=None):
+def cmd(cmd, cwd=None, raise_on_error=False):
     """
     Run the given command in a subprocess.
 
@@ -1000,26 +1000,28 @@ def cmd(cmd, cwd=None):
             basestring.split() to form the list to pass to Popen().
         cwd (basestring or None): The current working directory to use when launching the
             subprocess.
+        raise_on_error (bool): If True, raise a RuntimeError if the command's exit code is non-0.
+            Defaults to False.
     Returns:
         tuple: A 3-tuple of the standard output (basestring), standard error (basestring), and the
             process's return code (int).
+    Raises:
+        RuntimeError: If exception is True and the command's exit code is non-0.
     """
-    log.info('Running %r', cmd)
     if isinstance(cmd, six.string_types):
         cmd = cmd.split()
-    p = subprocess.Popen(cmd, cwd=cwd,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
+    log.debug('Running {}'.format(' '.join(cmd)))
+    p = subprocess.Popen(cmd, cwd=cwd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
-    if out:
-        log.debug(out)
-    if err:
-        if p.returncode == 0:
-            log.debug(err)
-        else:
-            log.error(err)
+    output = '{}\n{}'.format(out, err)
     if p.returncode != 0:
-        log.error('return code %s', p.returncode)
+        msg = '{} returned a non-0 exit code: {}'.format(' '.join(cmd), p.returncode)
+        log.error(msg)
+        log.error(output)
+        if raise_on_error:
+            raise RuntimeError(msg)
+    elif out or err:
+        log.debug(output)
     return out, err, p.returncode
 
 
@@ -1378,3 +1380,58 @@ class no_autoflush(object):
     def __exit__(self, *args, **kwargs):
         """Restore autoflush to its entrant state. Args unused."""
         self.session.autoflush = self.autoflush
+
+
+def copy_container(build, destination_registry=None, destination_tag=None):
+    """
+    Copy a ContainerBuild from the source registry to a destination registry under the given tag.
+
+    Args:
+        build (bodhi.server.models.ContainerBuild): The build you wish to copy from the source tag
+            to the destination tag.
+        destination_registry (str or None): The registry to copy the build into. If None (the
+            default), the container.destination_registry setting is used.
+        destination_tag (str or None): The destination tag you wish to copy the source image to. If
+            None (the default), the build's version and release are used to form the destination
+            tag.
+    Raises:
+        RuntimeError: If skopeo returns a non-0 exit code.
+    """
+    source_registry = config['container.source_registry']
+
+    if destination_registry is None:
+        destination_registry = config['container.destination_registry']
+
+    source_url = _container_image_url(build, source_registry)
+    destination_url = _container_image_url(build, destination_registry, destination_tag)
+
+    skopeo_cmd = [
+        config.get('skopeo.cmd'), 'copy', source_url, destination_url]
+    if config.get('skopeo.extra_copy_flags'):
+        for flag in reversed(config.get('skopeo.extra_copy_flags').split(',')):
+            skopeo_cmd.insert(2, flag)
+    cmd(skopeo_cmd, raise_on_error=True)
+
+
+def _container_image_url(build, registry, tag=None):
+    """
+    Return a URL suitable for use in Skopeo for copying or deleting container images.
+
+    For example, this can return a URL like
+    docker://registry.fedoraproject.org/f27/httpd:0-3.f27container if tag is None, or
+    docker://registry.fedoraproject.org/f27/httpd:build is tag is 'build'.
+
+    Args:
+        build (bodhi.server.models.ContainerBuild): The build you want a URL to reference.
+        registry (str): The registry you want a URL for.
+        tag (str or None): If given, the tag in the registry you want to reference. If None (the
+            default), the build's version and release will be used to form a tag.
+    Returns:
+        str: A URL referencing the given build and tag in the given registry.
+    """
+    image_name = '{}/{}'.format(build.release.branch, build.package.name)
+
+    if tag is None:
+        tag = '{}-{}'.format(build.nvr_version, build.nvr_release)
+
+    return 'docker://{}/{}:{}'.format(registry, image_name, tag)

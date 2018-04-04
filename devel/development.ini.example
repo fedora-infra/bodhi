@@ -47,7 +47,7 @@ cache.long_term.expire = 3600
 # If you want to test composing containers in development, it can be handy to run your own container
 # registry locally. To do that, you can run a container registry like this:
 # 
-#   $ sudo docker run -it -d -p 5000:5000 --restart=always --name registry registry:2
+#   $ sudo docker run -e REGISTRY_STORAGE_DELETE_ENABLED=true -it -d -p 5000:5000 --restart=always --name registry registry:2
 #
 # The following settings should work with a local container registry as described above:
 container.destination_registry = localhost:5000

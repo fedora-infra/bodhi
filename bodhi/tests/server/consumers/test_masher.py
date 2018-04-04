@@ -1891,7 +1891,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                      'docker://{}/f28/{}'.format(config['container.source_registry'], source),
                      'docker://{}/f28/{}:{}'.format(config['container.destination_registry'],
                                                     source.split(':')[0], dtag)],
-                    shell=False, stderr=-1, stdout=-1)
+                    shell=False, stderr=-1, stdout=-1, cwd=None)
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
         self.assertEqual(Popen.mock_calls, expected_mock_calls)
@@ -1919,7 +1919,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                      'docker://{}/f28/{}'.format(config['container.source_registry'], source),
                      'docker://{}/f28/{}:{}'.format(config['container.destination_registry'],
                                                     source.split(':')[0], dtag)],
-                    shell=False, stderr=-1, stdout=-1)
+                    shell=False, stderr=-1, stdout=-1, cwd=None)
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
         self.assertEqual(Popen.mock_calls, expected_mock_calls)
@@ -1945,7 +1945,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                 config['container.source_registry']),
             'docker://{}/f28/testcontainer1:2.0.1-71.fc28'.format(
                 config['container.destination_registry'])]
-        Popen.assert_called_once_with(skopeo_cmd, shell=False, stderr=-1, stdout=-1)
+        Popen.assert_called_once_with(skopeo_cmd, shell=False, stderr=-1, stdout=-1, cwd=None)
         self.assertEqual(str(exc.exception),
                          '{} returned a non-0 exit code: 1'.format(' '.join(skopeo_cmd)))
 
@@ -1972,7 +1972,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                      'docker://{}/f28/{}'.format(config['container.source_registry'], source),
                      'docker://{}/f28/{}:{}'.format(config['container.destination_registry'],
                                                     source.split(':')[0], dtag)],
-                    shell=False, stderr=-1, stdout=-1)
+                    shell=False, stderr=-1, stdout=-1, cwd=None)
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
         self.assertEqual(Popen.mock_calls, expected_mock_calls)
