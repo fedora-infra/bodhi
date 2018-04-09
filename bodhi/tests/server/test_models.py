@@ -2959,6 +2959,59 @@ class TestUpdate(ModelTest):
             ("Can't waive test results on a locked update"))
 
     @mock.patch('bodhi.server.models.greenwave_api_post')
+    @mock.patch('bodhi.server.util.http_session.post')
+    def test_can_waive_multiple_test_results_of_an_update(self, post, greenwave_api_post):
+        """Multiple failed tests getting waived should cause multiple calls to waiverdb."""
+        self.obj.status = UpdateStatus.testing
+        self.obj.test_gating_status = TestGatingStatus.failed
+        greenwave_api_post.return_value = {
+            "policies_satisfied": False,
+            "summary": "3 of 15 required tests failed",
+            "applicable_policies": ["1"],
+            "unsatisfied_requirements": [
+                {'item': {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}, 'result_id': "123",
+                 'testcase': 'dist.depcheck', 'type': 'test-result-failed'},
+                {'item': {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}, 'result_id': "124",
+                 'testcase': 'dist.rpmdeplint', 'type': 'test-result-failed'},
+                {'item': {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}, 'result_id': "125",
+                 'testcase': 'dist.someothertest', 'type': 'test-result-failed'}]}
+        post.return_value.status_code = 200
+
+        with mock.patch.dict('bodhi.server.config.config',
+                             {'test_gating.required': True,
+                              'waiverdb.access_token': 'abc'}):
+            self.obj.waive_test_results('foo', 'this is not true!')
+
+        expected_calls = []
+        for test in ('dist.depcheck', 'dist.rpmdeplint', 'dist.someothertest'):
+            data = {
+                "username": "foo", "comment": "this is not true!", "waived": True,
+                "product_version": "{}".format(self.obj.product_version),
+                "testcase": "{}".format(test),
+                "subject": {"item": "bodhi-3.6.0-1.fc28", "type": "koji_build"}}
+            expected_calls.append(mock.call(
+                '{}/waivers/'.format(config.get('waiverdb_api_url')),
+                data=json.dumps(data),
+                headers={'Content-Type': 'application/json', 'Authorization': 'Bearer abc'},
+                timeout=60))
+            expected_calls.append(mock.call().json())
+        for i, v in enumerate(expected_calls):
+            # The even numbered calls have a JSON serialized data string in them, and the order of
+            # the keys is not guaranteed to be the same by Python. For these, we will just make sure
+            # that the interpreted JSON is equal rather than verifying that the strings are equal.
+            if not i % 2:
+                self.assertEqual(post.mock_calls[i][1], expected_calls[i][1])
+                self.assertEqual(post.mock_calls[i][2].keys(), v[2].keys())
+                for k in v[2].keys():
+                    if k == 'data':
+                        self.assertEqual(
+                            json.loads(post.mock_calls[i][2]['data']), json.loads(v[2]['data']))
+                    else:
+                        self.assertEqual(post.mock_calls[i][2][k], expected_calls[i][2][k])
+            else:
+                self.assertEqual(post.mock_calls[i], v)
+
+    @mock.patch('bodhi.server.models.greenwave_api_post')
     @mock.patch('bodhi.server.models.waiverdb_api_post')
     def test_can_waive_test_results_of_an_update(self, mock_waiverdb, mock_greenwave):
         update = self.obj
@@ -2983,11 +3036,11 @@ class TestUpdate(ModelTest):
                               'waiverdb.access_token': 'abc'}):
             update.waive_test_results('foo', 'this is not true!')
             wdata = {
-                'results': [{'subject': {"item": "%s" % update.alias, "type": "koji_build"},
-                             'testcase': 'dist.depcheck'}],
+                'subject': {"item": "%s" % update.alias, "type": "koji_build"},
+                'testcase': 'dist.depcheck',
                 'product_version': update.product_version,
                 'waived': True,
-                'proxy_user': 'foo',
+                'username': 'foo',
                 'comment': 'this is not true!'
             }
             mock_waiverdb.assert_called_once_with(
