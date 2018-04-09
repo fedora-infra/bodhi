@@ -2382,6 +2382,45 @@ class TestComposerThread_check_all_karma_thresholds(ComposerThreadBaseTestCase):
         self.assert_sems(0)
 
 
+class TestComposerThread__determine_tag_actions(ComposerThreadBaseTestCase):
+    """Test ComposerThread._determine_tag_actions()."""
+
+    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_from_tag_not_found(self, publish, get_session):
+        """Updates should be ejected if the from tag cannot be determined."""
+        tags = ['some', 'unknown', 'tags']
+        get_session.return_value.listTags.return_value = [{'name': n} for n in tags]
+        msg = self._make_msg()
+        t = ComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                           'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+        t.db = self.db
+        t.id = getattr(self.db.query(Release).one(), '{}_tag'.format('stable'))
+        t.skip_compose = True
+
+        t._determine_tag_actions()
+
+        # Since the update should have been ejected, no tags should get added to add_tags or
+        # move_tags.
+        for attr in ('add_tags_sync', 'move_tags_sync', 'add_tags_async', 'move_tags_async'):
+            self.assertEqual(getattr(t, attr), [])
+        up = self.db.query(Update).one()
+        expected_reason = "Cannot find relevant tag for bodhi-2.0-1.fc17.  None of {} are in {}."
+        expected_reason = expected_reason.format(tags, Release.get_tags(self.db)[0]['candidate'])
+        publish.assert_called_once_with(
+            topic='update.eject',
+            msg={'repo': 'f17-updates', 'update': up,
+                 'reason': expected_reason,
+                 'request': UpdateRequest.testing,
+                 'release': t.compose.release, 'agent': 'bowlofeggs'},
+            force=True)
+        # The update should have been removed from t.updates
+        self.db.expire(t.compose, ['updates'])
+        self.assertEqual(len(t.compose.updates), 0)
+        self.assert_sems(0)
+
+
 class TestComposerThread_eject_from_mash(ComposerThreadBaseTestCase):
     """This test class contains tests for the ComposerThread.eject_from_mash() method."""
     @mock.patch('bodhi.server.notifications.publish')
@@ -2862,7 +2901,38 @@ class TestComposerThread_send_notifications(ComposerThreadBaseTestCase):
 class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
     """Test ComposerThread.send_testing_digest()."""
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
+    @mock.patch('bodhi.server.mail.smtplib.SMTP')
+    def test_critpath_updates(self, SMTP):
+        """If there are critical path updates, the maildata should mention it."""
+        t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
+                           'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
+        update = t.compose.updates[0]
+        update.critpath = True
+        update.request = None
+        update.status = UpdateStatus.testing
+        t.testing_digest = {'Fedora 17': {'fake': 'content'}}
+        t._checkpoints = {}
+        t.db = self.Session
+        self.db.flush()
+
+        with mock.patch.dict(config, {'smtp_server': 'smtp.example.com'}):
+            t.send_testing_digest()
+
+        SMTP.assert_called_once_with('smtp.example.com')
+        sendmail = SMTP.return_value.sendmail
+        self.assertEqual(sendmail.call_count, 1)
+        args = sendmail.mock_calls[0][1]
+        self.assertEqual(args[0].decode('utf-8'), config['bodhi_email'])
+        self.assertEqual([c.decode('utf-8') for c in args[1]],
+                         [config['fedora_test_announce_list']])
+        self.assertTrue(
+            'The following Fedora 17 Critical Path updates have yet to be approved:\n Age URL\n'
+            in args[2].decode('utf-8'))
+        self.assertTrue(str(update.days_in_testing) in args[2].decode('utf-8'))
+        self.assertTrue(update.abs_url() in args[2].decode('utf-8'))
+        self.assertTrue(update.title in args[2].decode('utf-8'))
+
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
     def test_security_updates(self, SMTP):
         """If there are security updates, the maildata should mention it."""
@@ -2885,13 +2955,15 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         sendmail = SMTP.return_value.sendmail
         self.assertEqual(sendmail.call_count, 1)
         args = sendmail.mock_calls[0][1]
-        self.assertEqual(args[0], config['bodhi_email'])
-        self.assertEqual(args[1], [config['fedora_test_announce_list']])
+        self.assertEqual(args[0].decode('utf-8'), config['bodhi_email'])
+        self.assertEqual([c.decode('utf-8') for c in args[1]],
+                         [config['fedora_test_announce_list']])
         self.assertTrue(
-            'The following Fedora 17 Security updates need testing:\n Age  URL\n' in args[2])
-        self.assertTrue(str(update.days_in_testing) in args[2])
-        self.assertTrue(update.abs_url() in args[2])
-        self.assertTrue(update.title in args[2])
+            'The following Fedora 17 Security updates need testing:\n Age  URL\n'
+            in args[2].decode('utf-8'))
+        self.assertTrue(str(update.days_in_testing) in args[2].decode('utf-8'))
+        self.assertTrue(update.abs_url() in args[2].decode('utf-8'))
+        self.assertTrue(update.title in args[2].decode('utf-8'))
 
     @mock.patch('bodhi.server.consumers.masher.log.warn')
     def test_test_list_not_configured(self, warn):
