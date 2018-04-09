@@ -653,9 +653,19 @@ class BodhiClient(OpenIdBaseClient):
             val = ""
             date = update['date_pushed'] and update['date_pushed'].split()[0] \
                 or update['date_submitted'].split()[0]
-            val += ' %-37s %-6s %-11s  %-8s  %10s' % (
-                update['builds'][0]['nvr'], update['content_type'], update['type'],
-                update['status'], date)
+            # Calculate number of days in current status
+            # https://github.com/fedora-infra/bodhi/issues/2176
+            # we need to convert string to datetime object to exactly calculate with hours
+            if update['date_pushed']:
+                update_time = datetime.datetime.strptime(update['date_pushed'],
+                                                         '%Y-%m-%d %H:%M:%S')
+            else:
+                update_time = datetime.datetime.strptime(update['date_submitted'],
+                                                         '%Y-%m-%d %H:%M:%S')
+            days_in_status = (datetime.datetime.utcnow() - update_time).days
+            val += ' %-40s %-6s %-3s  %-8s  %10s (%d)' % (
+                update['builds'][0]['nvr'], update['content_type'], update['type'][:3],
+                update['status'], date, days_in_status)
             for build in update['builds'][1:]:
                 val += '\n %s' % build['nvr']
             return val

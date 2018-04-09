@@ -988,28 +988,34 @@ class TestBodhiClient_update_str(unittest.TestCase):
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
                 '[-3, 3]', '[-3, 3]\n        Bugs: 1234 - it broke\n            : 1235 - halp')))
 
-    def test_minimal(self):
+    @mock.patch('bodhi.client.bindings.datetime.datetime')
+    def test_minimal(self, mock_datetime):
         """Ensure correct output when minimal is True."""
         client = bindings.BodhiClient()
+        mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
+        mock_datetime.strptime = datetime.strptime
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
 
-        expected_output = (' bodhi-2.2.4-1.el7                     rpm    bugfix       stable    '
-                           '2016-10-21')
+        expected_output = (' bodhi-2.2.4-1.el7                        rpm    bug  stable    '
+                           '2016-10-21 (2)')
         self.assertEqual(text, expected_output)
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
         {u'builds': [{u'epoch': 0, u'nvr': u'bodhi-2.2.4-1.el7', u'signed': True},
                      {u'epoch': 0, u'nvr': u'bodhi-pants-2.2.4-1.el7', u'signed': True}]})
-    def test_minimal_with_multiple_builds(self):
+    @mock.patch('bodhi.client.bindings.datetime.datetime')
+    def test_minimal_with_multiple_builds(self, mock_datetime):
         """Ensure correct output when minimal is True, and multiple builds"""
         client = bindings.BodhiClient()
+        mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
+        mock_datetime.strptime = datetime.strptime
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
 
-        expected_output = (u' bodhi-2.2.4-1.el7                     rpm    bugfix       stable    '
-                           '2016-10-21\n bodhi-pants-2.2.4-1.el7')
+        expected_output = (' bodhi-2.2.4-1.el7                        rpm    bug  stable    '
+                           '2016-10-21 (2)\n bodhi-pants-2.2.4-1.el7')
         self.assertEqual(text, expected_output)
 
     @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {u'request': u'stable'})
