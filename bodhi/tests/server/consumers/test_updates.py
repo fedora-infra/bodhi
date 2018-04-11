@@ -139,7 +139,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                 'policies_satisfied': False,
                 'summary': u'what have you done‽',
                 'applicable_policies': ['taskotron_release_critical_tasks'],
-                'unsatisfied_requirements': ['some arbitrary test you disagree with']
+                'unsatisfied_requirements': [{'testcase': 'some arbitrary test you disagree with'}]
             }
             mock_greenwave.return_value = greenwave_response
 
@@ -147,7 +147,9 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
 
         update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
         self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
-        self.assertEqual(update.greenwave_summary_string, u'what have you done‽')
+        self.assertEqual(
+            update.greenwave_summary_string,
+            u'what have you done‽\n Missing: some arbitrary test you disagree with')
 
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
     # can ensure that we aren't raising Exceptions from them, while allowing us to only assert that
