@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2011-2017 Red Hat, Inc. and others.
+# Copyright 2011-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -2335,7 +2335,8 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['name'], 'status')
         self.assertEquals(
             res.json_body['errors'][0]['description'],
-            '"single" is not one of testing, processing, obsolete, stable, unpushed, pending')
+            ('"single" is not one of testing, side_tag_expired, processing, obsolete, '
+             'pending, stable, unpushed, side_tag_active'))
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_suggest(self):

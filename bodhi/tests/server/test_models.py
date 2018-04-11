@@ -1721,6 +1721,20 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.mandatory_days_in_testing > update.days_in_testing, True)
         self.assertEqual(update.days_to_stable, 4)
 
+    def test_side_tag_locked_false(self):
+        """Test the side_tag_locked property when it is false."""
+        self.obj.status = model.UpdateStatus.side_tag_active
+        self.obj.request = None
+
+        self.assertIs(self.obj.side_tag_locked, False)
+
+    def test_side_tag_locked_true(self):
+        """Test the side_tag_locked property when it is true."""
+        self.obj.status = model.UpdateStatus.side_tag_active
+        self.obj.request = model.UpdateRequest.stable
+
+        self.assertIs(self.obj.side_tag_locked, True)
+
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_test_gating_faild_no_testing_requirements(self):
         """
@@ -1992,6 +2006,13 @@ class TestUpdate(ModelTest):
 
     def test_title(self):
         self.assertEqual(self.obj.title, u'TurboGears-1.0.8-3.fc11')
+
+    def test_beautify_title_display_name(self):
+        """If the user has set a display_name on the update, beautify_title() should use that."""
+        update = self.get_update()
+        update.display_name = 'some human made title'
+
+        self.assertEqual(update.beautify_title(), 'some human made title')
 
     def test_beautify_title(self):
         update = self.get_update()

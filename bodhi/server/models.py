@@ -606,6 +606,8 @@ class UpdateStatus(DeclEnum):
         unpushed (EnumSymbol): The update had been in a testing repository, but has been removed.
         obsolete (EnumSymbol): The update has been obsoleted by another update.
         processing (EnumSymbol): Unused.
+        side_tag_active (EnumSymbol): The update's side tag is currently active.
+        side_tag_expired (EnumSymbol): The update's side tag has expired.
     """
 
     pending = 'pending', 'pending'
@@ -614,6 +616,8 @@ class UpdateStatus(DeclEnum):
     unpushed = 'unpushed', 'unpushed'
     obsolete = 'obsolete', 'obsolete'
     processing = 'processing', 'processing'
+    side_tag_active = 'side_tag_active', 'Side tag active'
+    side_tag_expired = 'side_tag_expired', 'Side tag expired'
 
 
 class TestGatingStatus(DeclEnum):
@@ -1625,6 +1629,7 @@ class Update(Base):
             positive feedback be given on all associated wiki test cases before the
             update can pass to stable. If the update has no associated wiki test cases,
             this option has no effect.
+        display_name (str): Allows the user to customize the name of the update.
         notes (unicode): Notes about the update. This is a human-readable field that
             describes what the update is for (e.g. the bugs it fixes).
         type (EnumSymbol): The type of the update (e.g. enhancement, bugfix, etc). It
@@ -1694,6 +1699,7 @@ class Update(Base):
     require_bugs = Column(Boolean, default=False)
     require_testcases = Column(Boolean, default=False)
 
+    display_name = Column(UnicodeText, nullable=False, default='')
     notes = Column(UnicodeText, nullable=False)  # Mandatory notes
 
     # Enumerated types
@@ -1754,6 +1760,16 @@ class Update(Base):
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
     greenwave_summary_string = Column(Unicode(255))
+
+    @property
+    def side_tag_locked(self):
+        """
+        Return the lock state of the side tag.
+
+        Returns:
+            bool: True if sidetag is locked, False otherwise.
+        """
+        return self.status == UpdateStatus.side_tag_active and self.request is not None
 
     # WARNING: consumers/masher.py assumes that this validation is performed!
     @validates('builds')
@@ -2392,7 +2408,8 @@ class Update(Base):
         return bad * -1, good
 
     def beautify_title(self, amp=False, nvr=False):
-        """Will shorten the title according to its length.
+        """
+        Return a human readable title for this update.
 
         This is used mostly in subject of a update notification email and
         displaying the title in html. If there are 3 or more builds per title
@@ -2406,6 +2423,9 @@ class Update(Base):
         If the "nvr" parameter is specified it will include name, version and
         release information in package labels.
         """
+        if self.display_name:
+            return self.display_name
+
         def build_label(build):
             return build.nvr if nvr else build.package.name
 
