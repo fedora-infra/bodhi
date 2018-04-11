@@ -1961,6 +1961,12 @@ class Update(Base):
                 self.test_gating_status = TestGatingStatus.passed
         else:
             self.test_gating_status = TestGatingStatus.failed
+            missing_reqs = [
+                req['testcase'] for req in
+                decision.get('unsatisfied_requirements', [])
+            ]
+            if missing_reqs:
+                decision['summary'] += '\n Missing: %s' % (', '.join(missing_reqs))
         self.greenwave_summary_string = decision['summary']
 
     @classmethod
