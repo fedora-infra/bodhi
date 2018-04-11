@@ -1044,6 +1044,12 @@ $(document).ready(function(){
     <div class="tab-pane" id="automatedtests" role="tabpanel">
       <div id="resultsdb">
       <h3>Automated Test Results</h3>
+      <p>
+        Test results and gating status may sometimes conflict as the gating status is retrieved
+        periodically by Bodhi's backend server, while the test results presented here are retrieved
+        upon page load. If your update is marked as gated while all the tests show green/passed, the
+        next check of gating status should open the gate.
+      </p>
       <img class='spinner' src='static/img/spinner.gif'>
       </div>
     </div>
