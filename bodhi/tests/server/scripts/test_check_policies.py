@@ -117,7 +117,9 @@ class TestCheckPolicies(BaseTestCase):
             self.assertEqual(result.exit_code, 0)
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
-            self.assertEqual(update.greenwave_summary_string, '1 of 2 tests are failed')
+            self.assertEqual(
+                update.greenwave_summary_string,
+                '1 of 2 tests are failed\n Missing: dist.depcheck')
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
