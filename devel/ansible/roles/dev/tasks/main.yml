@@ -95,11 +95,11 @@
 # cornice > 1 won't be available until Fedora 28 is released.
 - name: pip install cornice
   pip:
-      name: cornice
+      name: cornice<3.2.0
 
 - name: pip install cornice for Python 3
   pip:
-      name: cornice
+      name: cornice<3.2.0
       executable: pip3
 
 # cornice_sphinx is not packaged in Fedora yet, but won't be available until Fedora 28 is released.
