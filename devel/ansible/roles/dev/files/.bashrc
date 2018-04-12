@@ -16,7 +16,7 @@ alias brestart="sudo systemctl restart bodhi && echo 'The Application is running
 alias bshell="pshell /home/vagrant/bodhi/development.ini"
 alias bstart="sudo systemctl start bodhi && echo 'The Application is running on http://localhost:6543'"
 alias bstop="sudo systemctl stop bodhi"
-alias bteststyle="flake8 && pydocstyle bodhi"
+alias bteststyle="flake8-2 && pydocstyle bodhi"
 alias bfedmsg="sudo journalctl -u fedmsg-tail"
 
 
