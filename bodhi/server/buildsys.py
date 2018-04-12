@@ -119,6 +119,14 @@ class Buildsystem(object):
         """Raise NotImplementedError."""
         raise NotImplementedError
 
+    def addTag(self, *args, **kw):
+        """Raise NotImplementedError."""
+        raise NotImplementedError
+
+    def deleteTag(self, *args, **kw):
+        """Raise NotImplementedError."""
+        raise NotImplementedError
+
 
 class DevBuildsys(Buildsystem):
     """A dummy buildsystem instance used during development and testing."""
@@ -128,6 +136,7 @@ class DevBuildsys(Buildsystem):
     __added__ = []
     __tagged__ = {}
     __rpms__ = []
+    __tags__ = []
 
     def __init__(self):
         """Initialize the DevBuildsys."""
@@ -414,6 +423,12 @@ class DevBuildsys(Buildsystem):
         Raises:
             koji.GenericError: If strict is True and epel is requested.
         """
+        for nr in self.__tags__:
+            if taginfo == self.__tags__[nr][0]:
+                toreturn = self.__tags__[nr][1]
+                toreturn['id'] = nr
+                return toreturn
+
         if isinstance(taginfo, int):
             taginfo = "f%d" % taginfo
 
@@ -427,6 +442,26 @@ class DevBuildsys(Buildsystem):
         return {'maven_support': False, 'locked': False, 'name': taginfo,
                 'perm': None, 'id': 246, 'arches': None,
                 'maven_include_all': False, 'perm_id': None}
+
+    def addTag(self, tag, **opts):
+        """Emulate tag adding."""
+        if 'parent' not in opts:
+            raise ValueError('No parent in tag options')
+        for nr in self.__tags__:
+            if self.__tags__[0] == tag:
+                raise ValueError('Tag %s already exists' % tag)
+        opts['locked'] = False
+        opts['maven_support'] = False
+        opts['name'] = tag
+        opts['perm'] = 'admin'
+        opts['arches'] = None
+        opts['maven_include_all'] = False
+        opts['perm_id'] = 1
+        self.__tags__.append((tag, opts))
+
+    def deleteTag(self, tagid):
+        """Emulate tag deletion."""
+        del self.__tags__[tagid]
 
     def getRPMHeaders(self, rpmID, headers):
         """

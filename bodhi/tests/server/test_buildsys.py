@@ -39,7 +39,7 @@ class TestBuildsystem(unittest.TestCase):
         for method in (
                 bs.getBuild, bs.getLatestBuilds, bs.moveBuild, bs.ssl_login, bs.listBuildRPMs,
                 bs.listTags, bs.listTagged, bs.taskFinished, bs.tagBuild, bs.untagBuild,
-                bs.multiCall, bs.getTag):
+                bs.multiCall, bs.getTag, bs.addTag, bs.deleteTag):
             self.assertRaises(NotImplementedError, method)
 
     def test_raises_not_configured(self):
