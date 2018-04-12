@@ -65,7 +65,38 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             }
         });
     };
-    var get_unsatisfied_reqs = function(data) {
+
+    // Handle unstatisfied requirements
+    var handle_unsatisfied_reqs = function(data){
+        $.each(data['unsatisfied_requirements'], function(i, req) {
+            if (req.type == 'test-result-missing') {
+                if (missing_tests[req.item] === undefined)
+                    missing_tests[req.item]= [];
+                missing_tests[req.item].push(req);
+            }
+            // the user may have already specified this in the required taskotron tests
+            if ($.inArray(req.testcase, requirements) == -1) {
+                requirements.push(req.testcase);
+            }
+        });
+    };
+
+
+    // Handle showing waivers retrieved from greenwave in the UI
+    var waiverdb_api_url = '${request.registry.settings["waiverdb_api_url"]}';
+    var handle_waivers = function(data){
+        $.each(data['waivers'], function(i, req) {
+            $('#test_status_badge').after(
+                '<a href="' + waiverdb_api_url + '/waivers/' + req.id + '">'
+                + '<span class="fa fa-cloud-upload text-muted" aria-hidden="true" '
+                + 'data-toggle="tooltip" data-placement="top" title="Waiver #' + req.id + ' - ' + req.comment | '' + '"></span>'
+                + '</a>'
+            );
+        });
+    };
+
+    var get_greenwave_information = function(data) {
+        data.verbose = true;
         $.ajax({
             url: greenwave_api_url + '/decision',
             type: 'POST',
@@ -73,6 +104,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             data: JSON.stringify(data),
             success: function(data) {
                 handle_unsatisfied_reqs(data);
+                handle_waivers(data);
             },
             error: function (jqxhr, status, error) {
                $('#resultsdb h3').after(
@@ -81,12 +113,13 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         });
     };
 
-    % if request.registry.settings.get("test_gating.required") is True and \
-            not update.test_gating_passed and update.greenwave_summary_string:
-        var summary = '${update.greenwave_summary_string}';
-        $('#resultsdb h3').after(
-           '<div class="alert alert-danger">The update can not be pushed: ' + summary + '</div>');
-        get_unsatisfied_reqs({
+    % if request.registry.settings.get("test_gating.required") is True:
+        % if not update.test_gating_passed and update.greenwave_summary_string:
+          var summary = '${update.greenwave_summary_string}';
+          $('#resultsdb h3').after(
+             '<div class="alert alert-danger">The update can not be pushed: ' + summary + '</div>');
+        % endif
+        get_greenwave_information({
             'product_version': '${update.product_version}',
             'decision_context': 'bodhi_update_push_stable',
             'subject': ${ update.greenwave_subject_json | n }
@@ -828,7 +861,7 @@ $(document).ready(function(){
                     <strong>Test Gating Status</strong>
                   % endif
                 </div>
-                <div>
+                <div id="test_status_badge">
                   ${self.util.test_gating_status2html(update.test_gating_status,
                     update.greenwave_summary_string) | n}
                 </div>
