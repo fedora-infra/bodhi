@@ -997,7 +997,41 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
 
-        expected_output = (' bodhi-2.2.4-1.el7                        rpm    bug  stable    '
+        expected_output = (' bodhi-2.2.4-1.el7                        rpm        stable    '
+                           '2016-10-21 (2)')
+        self.assertEqual(text, expected_output)
+
+    @mock.patch.dict(
+        client_test_data.EXAMPLE_UPDATE_MUNCH,
+        {u'date_pushed': u'',
+         u'pushed': False,
+         u'status': u'pending'})
+    @mock.patch('bodhi.client.bindings.datetime.datetime')
+    def test_minimal_not_pushed(self, mock_datetime):
+        """Ensure correct output when minimal is True and not yet pushed."""
+        client = bindings.BodhiClient()
+        mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 5, 23, 0, 0))
+        mock_datetime.strptime = datetime.strptime
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
+
+        expected_output = (' bodhi-2.2.4-1.el7                        rpm        pending   '
+                           '2016-10-05 (0)')
+        self.assertEqual(text, expected_output)
+
+    @mock.patch.dict(
+        client_test_data.EXAMPLE_UPDATE_MUNCH,
+        {u'type': u'security'})
+    @mock.patch('bodhi.client.bindings.datetime.datetime')
+    def test_minimal_type_security(self, mock_datetime):
+        """Ensure correct output when minimal is True and type security"""
+        client = bindings.BodhiClient()
+        mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
+        mock_datetime.strptime = datetime.strptime
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
+
+        expected_output = ('*bodhi-2.2.4-1.el7                        rpm        stable    '
                            '2016-10-21 (2)')
         self.assertEqual(text, expected_output)
 
@@ -1014,7 +1048,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
 
-        expected_output = (' bodhi-2.2.4-1.el7                        rpm    bug  stable    '
+        expected_output = (' bodhi-2.2.4-1.el7                        rpm        stable    '
                            '2016-10-21 (2)\n bodhi-pants-2.2.4-1.el7')
         self.assertEqual(text, expected_output)
 

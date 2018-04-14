@@ -129,6 +129,25 @@ def errorhandled(method):
     return wrapper
 
 
+def _days_since(data_str):
+    """
+    Return number of days since the datetime passed as input in the form '%Y-%m-%d %H:%M:%S'.
+
+    This can be used to calculate how many days an update is in current state by passing
+    directly the 'date_pushed' or 'date_submitted' from the Update object.
+    This is also useful to easily mock the output, since datetime.datetime.utcnow()
+    cannot be mocked.
+
+    Args:
+        data_str (basestring): The 'date_pushed' or 'date_submitted' from the Update object.
+
+    Returns:
+        int: Number of days since the date in input.
+    """
+    update_time = datetime.datetime.strptime(data_str, '%Y-%m-%d %H:%M:%S')
+    return (datetime.datetime.utcnow() - update_time).days
+
+
 class BodhiClient(OpenIdBaseClient):
     """Python bindings to the Bodhi server REST API."""
 
@@ -651,20 +670,13 @@ class BodhiClient(OpenIdBaseClient):
             return update
         if minimal:
             val = ""
+            security = '*' if update['type'] == u'security' else ' '
             date = update['date_pushed'] and update['date_pushed'].split()[0] \
                 or update['date_submitted'].split()[0]
-            # Calculate number of days in current status
-            # https://github.com/fedora-infra/bodhi/issues/2176
-            # we need to convert string to datetime object to exactly calculate with hours
-            if update['date_pushed']:
-                update_time = datetime.datetime.strptime(update['date_pushed'],
-                                                         '%Y-%m-%d %H:%M:%S')
-            else:
-                update_time = datetime.datetime.strptime(update['date_submitted'],
-                                                         '%Y-%m-%d %H:%M:%S')
-            days_in_status = (datetime.datetime.utcnow() - update_time).days
-            val += ' %-40s %-6s %-3s  %-8s  %10s (%d)' % (
-                update['builds'][0]['nvr'], update['content_type'], update['type'][:3],
+            days_in_status = _days_since(update['date_pushed']) if update['date_pushed'] \
+                else _days_since(update['date_submitted'])
+            val += '%s%-40s %-9s  %-8s  %10s (%d)' % (
+                security, update['builds'][0]['nvr'], update['content_type'],
                 update['status'], date, days_in_status)
             for build in update['builds'][1:]:
                 val += '\n %s' % build['nvr']
