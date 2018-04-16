@@ -22,7 +22,7 @@ import copy
 import math
 
 from cornice import Service
-from cornice.validators import colander_body_validator
+from cornice.validators import colander_body_validator, colander_querystring_validator
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
@@ -43,7 +43,6 @@ import bodhi.server.schemas
 import bodhi.server.services.errors
 import bodhi.server.util
 from bodhi.server.validators import (
-    colander_querystring_validator,
     validate_nvrs,
     validate_uniqueness,
     validate_build_tags,

@@ -20,12 +20,13 @@
 import math
 
 from cornice import Service
+from cornice.validators import colander_querystring_validator
 from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
 from bodhi.server.models import Group, Package, Update, User
-from bodhi.server.validators import (colander_querystring_validator, validate_updates,
+from bodhi.server.validators import (validate_updates,
                                      validate_packages, validate_groups)
 import bodhi.server.schemas
 import bodhi.server.security

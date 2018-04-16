@@ -20,7 +20,6 @@
 
 from datetime import datetime, timedelta
 
-from cornice.validators import _colander
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 from pyramid.httpexceptions import HTTPFound, HTTPNotImplemented
 from sqlalchemy.sql import or_, and_
@@ -65,69 +64,6 @@ csrf_error_message = """CSRF tokens do not match.  This happens if you have
 the page open for a long time. Please reload the page and try to submit your
 data again. Make sure to save your input somewhere before reloading.
 """.replace('\n', ' ')
-
-
-# This has been proposed to cornice at https://github.com/Cornices/cornice/pull/465
-def _generate_colander_validator(location):
-    """
-    Generate a colander validator for data from the given location.
-
-    :param location: The location in the request to find the data to be validated, such as "body" or
-        "querystring".
-    :type location: str
-    :return: Returns a callable that will validate the request at the given location.
-    :rtype: callable
-    """
-    def _validator(request, schema=None, deserializer=None, **kwargs):
-        """
-        Validate the location against the schema defined on the service.
-
-        The content of the location is deserialized, validated and stored in the
-        ``request.validated`` attribute.
-
-        .. note::
-
-            If no schema is defined, this validator does nothing.
-
-        :param request: Current request
-        :type request: :class:`~pyramid:pyramid.request.Request`
-
-        :param schema: The Colander schema
-        :param deserializer: Optional deserializer, defaults to
-            :func:`cornice.validators.extract_cstruct`
-        """
-        if schema is None:
-            return  # pragma: no cover
-
-        class RequestSchemaMeta(type):
-            """A metaclass that will inject a location class attribute into RequestSchema."""
-
-            def __new__(cls, name, bases, class_attrs):
-                """
-                Instantiate the RequestSchema class.
-
-                :param name: The name of the class we are instantiating. Will be "RequestSchema".
-                :type name: str
-                :param bases: The class's superclasses.
-                :type bases: tuple
-                :param dct: The class's class attributes.
-                :type dct: dict
-                """
-                class_attrs[location] = _colander._ensure_instantiated(schema)
-                return type(name, bases, class_attrs)
-
-        class RequestSchema(colander.MappingSchema):
-            """A schema to validate the request's location attributes."""
-
-            __metaclass__ = RequestSchemaMeta
-
-        _colander.validator(request, RequestSchema(), deserializer, **kwargs)
-        request.validated = request.validated.get(location, {})
-
-    return _validator
-
-
-colander_querystring_validator = _generate_colander_validator('querystring')
 
 
 # This one is a colander validator which is different from the cornice

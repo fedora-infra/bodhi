@@ -21,7 +21,7 @@
 import math
 
 from cornice import Service
-from cornice.validators import colander_body_validator
+from cornice.validators import colander_body_validator, colander_querystring_validator
 from pyramid.exceptions import HTTPForbidden
 from pyramid.view import view_config
 from sqlalchemy import func, distinct
@@ -31,7 +31,7 @@ from bodhi.server import log, notifications, security
 from bodhi.server.config import config
 from bodhi.server.models import Package, Stack, Group, User
 from bodhi.server.util import tokenize
-from bodhi.server.validators import (colander_querystring_validator, validate_packages,
+from bodhi.server.validators import (validate_packages,
                                      validate_stack, validate_requirements)
 import bodhi.server.schemas
 import bodhi.server.services.errors
