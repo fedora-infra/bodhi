@@ -20,7 +20,6 @@ import unittest
 import mock
 from cornice.errors import Errors
 from pyramid import exceptions
-import six
 
 from bodhi.server import validators
 from bodhi.tests.server.base import BaseTestCase
@@ -51,7 +50,6 @@ class TestValidateCSRFToken(BaseTestCase):
                  u'name': u'update'}]}
         self.assertEqual(r.json, expected_reponse)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_valid_token(self):
         """No exception should be raised with a valid token."""
         update = models.Update.query.one()
