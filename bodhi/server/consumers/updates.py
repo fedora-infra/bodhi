@@ -120,7 +120,7 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
         with self.db_factory() as session:
             update = Update.get(alias, session)
             if not update:
-                raise BodhiException("Couldn't find alias %r in DB" % alias)
+                raise BodhiException("Couldn't find alias '%s' in DB" % alias)
 
             if topic.endswith('update.edit'):
                 bugs = [Bug.get(idx, session) for idx in msg['new_bugs']]
