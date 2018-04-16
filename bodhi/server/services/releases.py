@@ -21,7 +21,7 @@
 import math
 
 from cornice import Service
-from cornice.validators import colander_body_validator
+from cornice.validators import colander_body_validator, colander_querystring_validator
 from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
@@ -37,7 +37,6 @@ from bodhi.server.models import (
     Release,
 )
 from bodhi.server.validators import (
-    colander_querystring_validator,
     validate_tags,
     validate_enums,
     validate_updates,
