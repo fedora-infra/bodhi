@@ -3715,7 +3715,9 @@ class Compose(Base):
             # relationship joins on the Compose's compound pk for locked Updates.
             update.locked = True
 
-        return work.values()
+        # We cast to a list here because a dictionary's values() method does not return a list in
+        # Python 3 and the docblock states that a list is returned.
+        return list(work.values())
 
     @property
     def security(self):

@@ -481,6 +481,7 @@ class TestCompose(BaseTestCase):
 
         composes = model.Compose.from_updates([update_1, update_2, update_3, update_4])
 
+        self.assertTrue(isinstance(composes, list))
         for c in composes:
             self.db.add(c)
             self.db.flush()
