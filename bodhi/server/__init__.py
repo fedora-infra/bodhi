@@ -75,7 +75,12 @@ def get_db_session_for_request(request=None):
         if request.exception is not None:
             session.rollback()
         else:
-            session.commit()
+            try:
+                session.commit()
+            except:
+                session.rollback()
+                session.close()
+                raise
         session.close()
 
     request.add_finished_callback(cleanup)
