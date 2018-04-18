@@ -341,16 +341,19 @@ def avatar(context, username, size):
     https = request.registry.settings.get('prefer_ssl')
 
     @request.cache.cache_on_arguments()
+    def get_libravatar_url(openid, https, size):
+        return libravatar.libravatar_url(
+            openid=openid,
+            https=https,
+            size=size,
+            default='retro',
+        )
+
     def work(username, size):
         openid = "http://%s.id.fedoraproject.org/" % username
         if config.get('libravatar_enabled'):
             if config.get('libravatar_dns'):
-                return libravatar.libravatar_url(
-                    openid=openid,
-                    https=https,
-                    size=size,
-                    default='retro',
-                )
+                return get_libravatar_url(openid, https, size)
             else:
                 query = urlencode({'s': size, 'd': 'retro'})
                 hash = hashlib.sha256(openid.encode('utf-8')).hexdigest()
