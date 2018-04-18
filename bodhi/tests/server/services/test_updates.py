@@ -33,7 +33,7 @@ from six.moves.urllib import parse as urlparse
 from bodhi.server import main
 from bodhi.server.config import config
 from bodhi.server.models import (
-    BuildrootOverride, Group, RpmPackage, ModulePackage, Release,
+    BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
     UpdateSeverity, User, TestGatingStatus)
 from bodhi.tests.server import base
@@ -880,6 +880,21 @@ class TestUpdatesService(base.BaseTestCase):
                  u'location': u'body', u'name': u'builds'}]}
         self.assertEqual(res.json, expected_json)
         listTags.assert_called_once_with('bodhi-2.0-1.fc17')
+
+    def test_locked_update_links_to_compose_html(self):
+        """A locked update should display a link to the compose it is part of."""
+        update = Update.query.first()
+        compose = Compose.from_updates([update])[0]
+        self.db.flush()
+
+        resp = self.app.get('/updates/%s' % update.alias,
+                            headers={'Accept': 'text/html'})
+
+        locked_notice = 'This update is currently locked since {} (UTC) and cannot be modified.'
+        locked_notice = locked_notice.format(update.date_locked.strftime('%Y-%m-%d %H:%M:%S'))
+        self.assertIn(locked_notice, resp)
+        self.assertIn('<span class="sr-only">Locked</span>', resp)
+        self.assertIn('/composes/{}/{}'.format(compose.release.name, compose.request.value), resp)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
