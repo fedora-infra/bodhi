@@ -884,12 +884,10 @@ class Release(Base):
         return ' '.join(self.long_name.split()[:-1])
 
     @classmethod
-    def all_releases(cls, session):
+    def all_releases(cls):
         """
         Return a mapping of release states to a list of dictionaries describing the releases.
 
-        Args:
-            session (sqlalchemy.orm.session.Session): A database session.
         Returns:
             defaultdict: Mapping strings of :class:`ReleaseState` names to lists of dictionaries
             that describe the releases in those states.
@@ -897,7 +895,7 @@ class Release(Base):
         if cls._all_releases:
             return cls._all_releases
         releases = defaultdict(list)
-        for release in session.query(cls).order_by(cls.name.desc()).all():
+        for release in cls.query.order_by(cls.name.desc()).all():
             releases[release.state.value].append(release.__json__())
         cls._all_releases = releases
         return cls._all_releases

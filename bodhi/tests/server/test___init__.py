@@ -98,11 +98,10 @@ class TestGetReleases(base.BaseTestCase):
     def test_get_releases(self):
         """Assert correct return value from get_releases()."""
         request = testing.DummyRequest(user=base.DummyUser('guest'))
-        request.db = self.db
 
         releases = server.get_releases(request)
 
-        self.assertEqual(releases, models.Release.all_releases(self.db))
+        self.assertEqual(releases, models.Release.all_releases())
 
 
 class TestGetUser(base.BaseTestCase):
@@ -237,6 +236,16 @@ class TestMain(base.BaseTestCase):
         server.main({}, testing='guest', session=self.db, **self.app_settings)
 
         self.assertEqual(config['test'], 'setting')
+
+    def test_warms_up_releases_cache(self):
+        """main() should warm up the _all_releases cache."""
+        # Let's force the release cache to None
+        models.Release._all_releases = None
+
+        server.main({}, testing='guest', session=self.db)
+
+        # The cache should have a release in it now - let's just spot check it
+        self.assertEqual(models.Release._all_releases['current'][0]['name'], 'F17')
 
 
 class TestGetDbSessionForRequest(unittest.TestCase):

@@ -176,13 +176,13 @@ def get_releases(request):
     Return a defaultdict describing all Releases keyed by state.
 
     Args:
-        request (pyramid.request.Request): The current web request.
+        request (pyramid.request.Request): The current web request. Unused.
     Returns:
         collections.defaultdict: A dictionary mapping release states to a list of JSON strings
             that describe the Releases that are in those states.
     """
     from bodhi.server.models import Release
-    return Release.all_releases(request.db)
+    return Release.all_releases()
 
 
 def exception_filter(response, request):
@@ -355,4 +355,11 @@ def main(global_config, testing=None, session=None, **settings):
     config.scan('bodhi.server.services')
     config.scan('bodhi.server.captcha')
 
+    # Though importing in the middle of this function is the darkest of evils, we cannot do it any
+    # other way without a backwards-incompatible change. See
+    # https://github.com/fedora-infra/bodhi/issues/2294
+    from bodhi.server import models
+    # Let's warm up the Releases._all_releases cache. We can just call the function - we don't need
+    # to capture the return value.
+    models.Release.all_releases()
     return config.make_wsgi_app()
