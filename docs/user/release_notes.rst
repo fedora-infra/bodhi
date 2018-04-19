@@ -2,6 +2,35 @@
 Release notes
 =============
 
+v3.7.0
+------
+
+Features
+^^^^^^^^
+
+* Include the missing tests in the summary about greenwave's decision
+  (:issue:`2273`).
+* Show waivers about an update on its page for easier access to users and admins
+  (:issue:`2277`).
+
+
+Bugs
+^^^^
+* Properly call the WaiverDB API when waiving tests from the UI (:issue:`2272`).
+* Only ask greenwave about updates in active releases when asking their gating
+  status (:issue:`2121`).
+
+
+Contributors
+------------
+
+The following developers contributed to Bodhi 3.7.0:
+
+* Pierre-Yves Chibon
+* Patrick Uiterwijk
+* Randy Barlow
+
+
 v3.6.1
 ------
 
