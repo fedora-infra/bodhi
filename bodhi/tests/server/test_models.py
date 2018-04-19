@@ -630,11 +630,12 @@ class TestRelease(ModelTest):
         self.assertEqual(self.obj.version_int, 11)
 
     def test_all_releases(self):
-        releases = model.Release.all_releases(self.db)
+        releases = model.Release.all_releases()
+
         state = ReleaseState.from_string(list(releases.keys())[0])
         assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases(self.db)
+        assert releases is model.Release.all_releases()
 
 
 class TestReleaseModular(ModelTest):
@@ -660,11 +661,12 @@ class TestReleaseModular(ModelTest):
         self.assertEqual(self.obj.version_int, 11)
 
     def test_all_releases(self):
-        releases = model.Release.all_releases(self.db)
+        releases = model.Release.all_releases()
+
         state = ReleaseState.from_string(list(releases.keys())[0])
         assert 'long_name' in releases[state.value][0], releases
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases(self.db)
+        assert releases is model.Release.all_releases()
 
 
 class MockWiki(object):
