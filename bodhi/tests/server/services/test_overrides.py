@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2014-2017 Red Hat, Inc. and others.
+# Copyright © 2014-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -268,7 +268,7 @@ class TestOverridesService(base.BaseTestCase):
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override(self, publish):
-        release = Release.get(u'F17', self.db)
+        release = Release.get(u'F17')
 
         package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
@@ -297,7 +297,7 @@ class TestOverridesService(base.BaseTestCase):
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_duplicate_override(self, publish):
-        release = Release.get(u'F17', self.db)
+        release = Release.get(u'F17')
         package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
         build = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
@@ -330,7 +330,7 @@ class TestOverridesService(base.BaseTestCase):
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_multiple_nvr(self, publish):
-        release = Release.get(u'F17', self.db)
+        release = Release.get(u'F17')
         package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
         build1 = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
@@ -374,7 +374,7 @@ class TestOverridesService(base.BaseTestCase):
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_too_long(self, publish):
-        release = Release.get(u'F17', self.db)
+        release = Release.get(u'F17')
 
         package = RpmPackage(name=u'not-bodhi')
         self.db.add(package)
@@ -392,7 +392,7 @@ class TestOverridesService(base.BaseTestCase):
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_for_newer_build(self, publish):
-        old_build = RpmBuild.get(u'bodhi-2.0-1.fc17', self.db)
+        old_build = RpmBuild.get(u'bodhi-2.0-1.fc17')
 
         build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', package=old_build.package,
                          release=old_build.release)
@@ -417,14 +417,14 @@ class TestOverridesService(base.BaseTestCase):
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(o['expired_date'], None)
 
-        old_build = RpmBuild.get(u'bodhi-2.0-1.fc17', self.db)
+        old_build = RpmBuild.get(u'bodhi-2.0-1.fc17')
 
         self.assertNotEquals(old_build.override['expired_date'], None)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_cannot_edit_override_build(self, publish):
-        release = Release.get(u'F17', self.db)
+        release = Release.get(u'F17')
 
         old_nvr = u'bodhi-2.0-1.fc17'
 
@@ -481,7 +481,7 @@ class TestOverridesService(base.BaseTestCase):
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_unexisting_override(self):
-        release = Release.get(u'F17', self.db)
+        release = Release.get(u'F17')
 
         build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', release=release,
                          package=RpmPackage.query.filter_by(name='bodhi').one())
@@ -607,7 +607,7 @@ class TestOverridesService(base.BaseTestCase):
     def test_unexpire_override(self, publish):
         # First expire a buildroot override
         old_nvr = u'bodhi-2.0-1.fc17'
-        override = RpmBuild.get(old_nvr, self.db).override
+        override = RpmBuild.get(old_nvr).override
         override.expire()
         self.db.add(override)
         self.db.flush()

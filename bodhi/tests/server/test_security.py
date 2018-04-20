@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2014-2017 Red Hat, Inc. and others.
+# Copyright 2014-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -228,8 +228,8 @@ class TestRememberMe(base.BaseTestCase):
         }
         req.registry.settings = self.app_settings
         # Ensure the user doesn't exist yet
-        self.assertIsNone(models.User.get(u'lmacken', self.db))
-        self.assertIsNone(models.Group.get(u'releng', self.db))
+        self.assertIsNone(models.User.get(u'lmacken'))
+        self.assertIsNone(models.Group.get(u'releng'))
 
         return req, info
 
@@ -241,7 +241,7 @@ class TestRememberMe(base.BaseTestCase):
             security.remember_me(None, req, info)
 
         # The user should not exist
-        self.assertIsNone(models.User.get(u'lmacken', self.db))
+        self.assertIsNone(models.User.get(u'lmacken'))
 
     def test_empty_groups_ignored(self):
         """Test a user that has an empty string group, which should be ignored."""
@@ -253,7 +253,7 @@ class TestRememberMe(base.BaseTestCase):
 
         security.remember_me(None, req, info)
 
-        user = models.User.get(u'lmacken', self.db)
+        user = models.User.get(u'lmacken')
         self.assertEquals([g.name for g in user.groups], ['releng', 'new_group'])
 
     def test_new_email(self):
@@ -266,7 +266,7 @@ class TestRememberMe(base.BaseTestCase):
 
         security.remember_me(None, req, info)
 
-        user = models.User.get(u'lmacken', self.db)
+        user = models.User.get(u'lmacken')
         self.assertEquals(user.email, u'1337hax0r@example.com')
 
     def test_new_user(self):
@@ -276,7 +276,7 @@ class TestRememberMe(base.BaseTestCase):
         security.remember_me(None, req, info)
 
         # The user should now exist, and be a member of the releng group
-        user = models.User.get(u'lmacken', self.db)
+        user = models.User.get(u'lmacken')
         self.assertEquals(user.name, u'lmacken')
         self.assertEquals(user.email, u'lmacken@fp.o')
         self.assertEquals(len(user.groups), 1)
@@ -292,6 +292,6 @@ class TestRememberMe(base.BaseTestCase):
 
         security.remember_me(None, req, info)
 
-        user = models.User.get(u'lmacken', self.db)
+        user = models.User.get(u'lmacken')
         self.assertEquals(len(user.groups), 0)
-        self.assertEquals(len(models.Group.get(u'releng', self.db).users), 0)
+        self.assertEquals(len(models.Group.get(u'releng').users), 0)

@@ -135,7 +135,7 @@ def groupfinder(userid, request):
     """
     from bodhi.server.models import User
     if request.user:
-        user = User.get(request.user.name, request.db)
+        user = User.get(request.user.name)
         return ['group:' + group.name for group in user.groups]
 
 

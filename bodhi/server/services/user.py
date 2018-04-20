@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2014-2017 Red Hat, Inc. and others
+# Copyright 2014-2018 Red Hat, Inc. and others
 #
 # This file is part of Bodhi.
 #
@@ -65,7 +65,7 @@ def get_user(request):
             user.
     """
     id = request.matchdict.get('name')
-    user = User.get(id, request.db)
+    user = User.get(id)
 
     if not user:
         request.errors.add('body', 'name', 'No such user')

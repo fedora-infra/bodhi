@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2014-2017 Red Hat, Inc.
+# Copyright © 2014-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -140,10 +140,10 @@ def save_stack(request):
     """
     data = request.validated
     db = request.db
-    user = User.get(request.user.name, db)
+    user = User.get(request.user.name)
 
     # Fetch or create the stack
-    stack = Stack.get(data['name'], db)
+    stack = Stack.get(data['name'])
     if not stack:
         stack = Stack(name=data['name'], users=[user])
         db.add(stack)
@@ -192,7 +192,7 @@ def save_stack(request):
         additional = list(tokenize(stack.requirements))
 
         for name in new:
-            package = Package.get(name, db)
+            package = Package.get(name)
             original = package.requirements
             original = [] if not original else list(tokenize(original))
             package.requirements = " ".join(list(set(original + additional)))

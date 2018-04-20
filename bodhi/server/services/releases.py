@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2014-2017 Red Hat Inc., and others.
+# Copyright © 2014-2018 Red Hat Inc., and others.
 #
 # This file is part of Bodhi.
 #
@@ -71,7 +71,7 @@ def get_release_html(request):
         basestring: An HTML representation of the reqeusted Release.
     """
     id = request.matchdict.get('name')
-    release = Release.get(id, request.db)
+    release = Release.get(id)
     if not release:
         request.errors.add('body', 'name', 'No such release')
         request.errors.status = HTTPNotFound.code
@@ -178,7 +178,7 @@ def get_release_json(request):
         bodhi.server.models.Release: The matched Release.
     """
     id = request.matchdict.get('name')
-    release = Release.get(id, request.db)
+    release = Release.get(id)
     if not release:
         request.errors.add('body', 'name', 'No such release')
         request.errors.status = HTTPNotFound.code

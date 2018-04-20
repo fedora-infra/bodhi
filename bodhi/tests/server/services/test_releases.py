@@ -45,7 +45,7 @@ class TestReleasesService(base.BaseTestCase):
             branch=u'f22')
 
         self.db.add(release)
-        self.db.flush()
+        self.db.commit()
 
     def test_404(self):
         self.app.get('/releases/watwatwat', status=404)

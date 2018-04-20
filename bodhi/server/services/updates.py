@@ -456,7 +456,7 @@ def new_update(request):
             # Also figure out the build type and create the build if absent.
             build_class = ContentType.infer_content_class(
                 base=Build, build=request.buildinfo[nvr]['info'])
-            build = build_class.get(nvr, request.db)
+            build = build_class.get(nvr)
 
             if build is None:
                 log.debug("Adding nvr %s, type %r", nvr, build_class)
@@ -483,7 +483,7 @@ def new_update(request):
         for nvr in data['builds']:
             # At this moment, we are sure the builds are in the database (that is what the commit
             # was for actually).
-            build = Build.get(nvr, request.db)
+            build = Build.get(nvr)
             builds.append(build)
             releases.add(build.release)
 

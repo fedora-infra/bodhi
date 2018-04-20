@@ -269,7 +269,7 @@ def validate_builds(request, **kwargs):
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     edited = request.validated.get('edited')
-    user = User.get(request.user.name, request.db)
+    user = User.get(request.user.name)
 
     if not request.validated.get('builds', []):
         request.errors.add('body', 'builds', "You may not specify an empty list of builds.")
@@ -396,7 +396,7 @@ def validate_acls(request, **kwargs):
         # If you're not logged in, obviously you don't have ACLs.
         request.errors.add('cookies', 'user', 'No ACLs for anonymous user')
         return
-    user = User.get(request.user.name, request.db)
+    user = User.get(request.user.name)
     committers = []
     watchers = []
     groups = []
@@ -623,12 +623,11 @@ def validate_packages(request, **kwargs):
     if packages is None:
         return
 
-    db = request.db
     bad_packages = []
     validated_packages = []
 
     for p in packages:
-        package = Package.get(p, db)
+        package = Package.get(p)
 
         if not package:
             bad_packages.append(p)
@@ -795,7 +794,7 @@ def validate_update(request, **kwargs):
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     idx = request.validated.get('update')
-    update = Update.get(idx, request.db)
+    update = Update.get(idx)
 
     if update:
         request.validated['update'] = update
@@ -869,11 +868,11 @@ def validate_update_id(request, **kwargs):
         request (pyramid.util.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
-    update = Update.get(request.matchdict['id'], request.db)
+    update = Update.get(request.matchdict['id'])
     if update:
         request.validated['update'] = update
     else:
-        package = Package.get(request.matchdict['id'], request.db)
+        package = Package.get(request.matchdict['id'])
         if package:
             query = dict(packages=package.name)
             location = request.route_url('updates', _query=query)
@@ -893,7 +892,7 @@ def _conditionally_get_update(request):
     # responsibility to put the update object back in the request.validated
     # dict.  Note, for speed purposes, sqlalchemy should cache this for us.
     if not isinstance(update, Update) and update is not None:
-        update = Update.get(update, request.db)
+        update = Update.get(update)
 
     return update
 
@@ -963,7 +962,7 @@ def validate_testcase_feedback(request, **kwargs):
     # responsibility to put the update object back in the request.validated
     # dict.  Note, for speed purposes, sqlalchemy should cache this for us.
     if not isinstance(update, Update):
-        update = Update.get(update, request.db)
+        update = Update.get(update)
         if not update:
             request.errors.add('url', 'id', 'Invalid update')
             request.errors.status = HTTPNotFound.code
@@ -1010,7 +1009,7 @@ def validate_comment_id(request, **kwargs):
         request.errors.status = HTTPBadRequest.code
         return
 
-    comment = Comment.get(request.matchdict['id'], request.db)
+    comment = Comment.get(request.matchdict['id'])
 
     if comment:
         request.validated['comment'] = comment
@@ -1062,7 +1061,7 @@ def _validate_override_build(request, nvr, db):
     Returns:
         bodhi.server.models.Build: A build that matches the given nvr.
     """
-    build = Build.get(nvr, db)
+    build = Build.get(nvr)
     if build is not None:
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure
@@ -1219,7 +1218,7 @@ def validate_stack(request, **kwargs):
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     name = request.matchdict.get('name')
-    stack = Stack.get(name, request.db)
+    stack = Stack.get(name)
     if stack:
         request.validated['stack'] = stack
     else:

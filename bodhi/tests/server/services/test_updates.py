@@ -485,7 +485,7 @@ class TestNewUpdate(base.BaseTestCase):
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_build(self, *args):
         """Test submitting a new update with a build already in the database"""
-        package = RpmPackage.get(u'bodhi', self.db)
+        package = RpmPackage.get(u'bodhi')
         self.db.add(RpmBuild(nvr=u'bodhi-2.0.0-3.fc17', package=package))
         self.db.commit()
 
@@ -2504,7 +2504,7 @@ class TestUpdatesService(base.BaseTestCase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         # Mark it as testing
-        upd = Update.get(nvr, self.db)
+        upd = Update.get(nvr)
         upd.status = UpdateStatus.testing
         upd.request = None
         self.db.commit()
@@ -2551,7 +2551,7 @@ class TestUpdatesService(base.BaseTestCase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         # Mark it as testing
-        upd = Update.get(nvr, self.db)
+        upd = Update.get(nvr)
         upd.status = UpdateStatus.testing
         upd.request = UpdateRequest.stable
         self.db.commit()
@@ -2979,7 +2979,7 @@ class TestUpdatesService(base.BaseTestCase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_testing_request(self, publish, *args):
         """Test submitting a valid testing request"""
-        Update.get(u'bodhi-2.0-1.fc17', self.db).locked = False
+        Update.get(u'bodhi-2.0-1.fc17').locked = False
 
         args = self.get_update()
         args['request'] = None
@@ -3051,7 +3051,7 @@ class TestUpdatesService(base.BaseTestCase):
         args['unstable_karma'] = -1
 
         self.app.post_json('/updates/', args)
-        up = Update.get(nvr, self.db)
+        up = Update.get(nvr)
         up.status = UpdateStatus.pending
         up.request = UpdateRequest.testing
         up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
@@ -3077,7 +3077,7 @@ class TestUpdatesService(base.BaseTestCase):
         args['unstable_karma'] = -1
 
         self.app.post_json('/updates/', args)
-        up = Update.get(nvr, self.db)
+        up = Update.get(nvr)
         up.status = UpdateStatus.pending
         up.request = UpdateRequest.testing
         up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
@@ -3104,7 +3104,7 @@ class TestUpdatesService(base.BaseTestCase):
         args['unstable_karma'] = -2
 
         self.app.post_json('/updates/', args)
-        up = Update.get(nvr, self.db)
+        up = Update.get(nvr)
         up.status = UpdateStatus.pending
         up.request = UpdateRequest.testing
         up.comment(self.db, u'Failed to work', author=u'ralph', karma=-1)
@@ -3131,7 +3131,7 @@ class TestUpdatesService(base.BaseTestCase):
         args['unstable_karma'] = -2
 
         self.app.post_json('/updates/', args)
-        up = Update.get(nvr, self.db)
+        up = Update.get(nvr)
         up.status = UpdateStatus.testing
         up.request = UpdateRequest.stable
         self.db.commit()
@@ -3180,7 +3180,7 @@ class TestUpdatesService(base.BaseTestCase):
         """
         Test submitting a stable request for an update that has yet to meet the stable requirements.
         """
-        Update.get(u'bodhi-2.0-1.fc17', self.db).locked = False
+        Update.get(u'bodhi-2.0-1.fc17').locked = False
 
         args = self.get_update()
         resp = self.app.post_json(
@@ -3210,7 +3210,7 @@ class TestUpdatesService(base.BaseTestCase):
         args['stable_karma'] = 1
         self.app.post_json('/updates/', args)
 
-        up = Update.get(nvr, self.db)
+        up = Update.get(nvr)
         up.status = UpdateStatus.testing
         up.request = None
         self.assertEqual(len(up.builds), 1)
@@ -3223,7 +3223,7 @@ class TestUpdatesService(base.BaseTestCase):
             '/updates/%s/request' % args['builds'],
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
             status=400)
-        up = Update.get(nvr, self.db)
+        up = Update.get(nvr)
         self.assertEquals(up.request, None)
         self.assertEquals(up.status, UpdateStatus.testing)
 
@@ -3233,7 +3233,7 @@ class TestUpdatesService(base.BaseTestCase):
             '/updates/%s/request' % args['builds'],
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
             status=200)
-        up = Update.get(nvr, self.db)
+        up = Update.get(nvr)
         self.assertEquals(up.request, UpdateRequest.stable)
         self.assertEquals(up.status, UpdateStatus.testing)
 
@@ -3675,7 +3675,7 @@ class TestUpdatesService(base.BaseTestCase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         # Mark it as testing, tested and give it 2 karma
-        upd = Update.get(nvr, self.db)
+        upd = Update.get(nvr)
         upd.status = UpdateStatus.testing
         upd.request = None
         upd.comment(self.db, u'LGTM', author=u'bob', karma=1)
@@ -3710,14 +3710,14 @@ class TestUpdatesService(base.BaseTestCase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         # Mark it as testing and as tested
-        upd = Update.get(nvr, self.db)
+        upd = Update.get(nvr)
         upd.status = UpdateStatus.testing
         upd.request = None
         self.db.commit()
 
         # Have bob +1 it
         upd.comment(self.db, u'LGTM', author=u'bob', karma=1)
-        upd = Update.get(nvr, self.db)
+        upd = Update.get(nvr)
         self.assertEquals(upd.karma, 1)
 
         # Then.. edit it and change the builds!
@@ -3731,7 +3731,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['karma'], 0)
 
         # Have bob +1 it again
-        upd = Update.get(new_nvr, self.db)
+        upd = Update.get(new_nvr)
         upd.comment(self.db, u'Ship it!', author=u'bob', karma=1)
 
         # Bob should be able to give karma again since the reset
@@ -3748,7 +3748,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['karma'], 0)
 
         # Have bob +1 it again
-        upd = Update.get(newer_nvr, self.db)
+        upd = Update.get(newer_nvr)
         upd.comment(self.db, u'Ship it!', author=u'bob', karma=1)
 
         # Bob should be able to give karma again since the reset
@@ -4239,7 +4239,7 @@ class TestUpdatesService(base.BaseTestCase):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.date_stable = datetime.utcnow()
         update.status = UpdateStatus.stable
         update.pushed = True
@@ -4265,7 +4265,7 @@ class TestUpdatesService(base.BaseTestCase):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.status = UpdateStatus.testing
         update.request = None
         update.pushed = True
@@ -4294,7 +4294,7 @@ class TestUpdatesService(base.BaseTestCase):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.severity = UpdateSeverity.urgent
         update.status = UpdateStatus.testing
         update.request = None
@@ -4324,7 +4324,7 @@ class TestUpdatesService(base.BaseTestCase):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.status = UpdateStatus.testing
         update.request = UpdateRequest.batched
         update.pushed = True
@@ -4353,7 +4353,7 @@ class TestUpdatesService(base.BaseTestCase):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.status = UpdateStatus.testing
         update.request = UpdateRequest.batched
         update.pushed = True
@@ -4382,7 +4382,7 @@ class TestUpdatesService(base.BaseTestCase):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.status = UpdateStatus.testing
         update.request = None
         update.pushed = True
@@ -4410,7 +4410,7 @@ class TestUpdatesService(base.BaseTestCase):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.severity = UpdateSeverity.urgent
         update.status = UpdateStatus.testing
         update.request = None
@@ -4440,7 +4440,7 @@ class TestUpdatesService(base.BaseTestCase):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.status = UpdateStatus.testing
         update.request = UpdateRequest.batched
         update.pushed = True
@@ -4467,7 +4467,7 @@ class TestUpdatesService(base.BaseTestCase):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.status = UpdateStatus.testing
         update.request = None
         update.pushed = True
@@ -4497,7 +4497,7 @@ class TestUpdatesService(base.BaseTestCase):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.critpath = True
         update.status = UpdateStatus.testing
         update.request = UpdateRequest.batched
@@ -4537,7 +4537,7 @@ class TestUpdatesService(base.BaseTestCase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         # Marks it as batched
-        upd = Update.get(nvr, self.db)
+        upd = Update.get(nvr)
         upd.status = UpdateStatus.testing
         upd.request = UpdateRequest.batched
         upd.pushed = True
@@ -4548,7 +4548,7 @@ class TestUpdatesService(base.BaseTestCase):
         # Makes sure stable karma is not None
         # Ensures Request doesn't get set to stable automatically since autokarma is disabled
         upd.comment(self.db, u'LGTM', author=u'ralph', karma=1)
-        upd = Update.get(nvr, self.db)
+        upd = Update.get(nvr)
         self.assertEquals(upd.karma, 1)
         self.assertEquals(upd.stable_karma, 1)
         self.assertEquals(upd.status, UpdateStatus.testing)
@@ -4587,7 +4587,7 @@ class TestUpdatesService(base.BaseTestCase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         # Marks it as testing
-        upd = Update.get(nvr, self.db)
+        upd = Update.get(nvr)
         upd.status = UpdateStatus.testing
         upd.pushed = True
         upd.request = None
@@ -4598,7 +4598,7 @@ class TestUpdatesService(base.BaseTestCase):
         # Makes sure stable karma is not None
         # Ensures Request doesn't get set to stable automatically since autokarma is disabled
         upd.comment(self.db, u'LGTM', author=u'ralph', karma=1)
-        upd = Update.get(nvr, self.db)
+        upd = Update.get(nvr)
         self.assertEquals(upd.karma, 1)
         self.assertEquals(upd.stable_karma, 1)
         self.assertEquals(upd.status, UpdateStatus.testing)
@@ -4633,7 +4633,7 @@ class TestUpdatesService(base.BaseTestCase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         # Create a new expired override
-        upd = Update.get(nvr, self.db)
+        upd = Update.get(nvr)
         override = BuildrootOverride(
             build=upd.builds[0], submitter=user, notes=u'testing',
             expiration_date=datetime.utcnow(), expired_date=datetime.utcnow())
@@ -4707,7 +4707,7 @@ class TestUpdatesService(base.BaseTestCase):
         r = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
         # Mark it as testing
-        upd = Update.get(nvr1, self.db)
+        upd = Update.get(nvr1)
         upd.status = UpdateStatus.testing
         upd.request = None
         self.db.commit()
@@ -4718,7 +4718,7 @@ class TestUpdatesService(base.BaseTestCase):
         r = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
         # Mark it as testing
-        upd = Update.get(nvr2, self.db)
+        upd = Update.get(nvr2)
         upd.status = UpdateStatus.testing
         upd.request = None
         self.db.commit()
@@ -4732,14 +4732,14 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['errors'][0]['description'],
                           'Update for bodhi-2.0.0-2.fc17 already exists')
 
-        up = Update.get(nvr2, self.db)
+        up = Update.get(nvr2)
         self.assertEquals(up.title, nvr2)  # nvr1 shouldn't be able to be added
         self.assertEquals(up.status, UpdateStatus.testing)
         self.assertEquals(len(up.builds), 1)
         self.assertEquals(up.builds[0].nvr, nvr2)
 
         # nvr1 update should remain intact
-        up = Update.get(nvr1, self.db)
+        up = Update.get(nvr1)
         self.assertEquals(up.title, nvr1)
         self.assertEquals(up.status, UpdateStatus.testing)
         self.assertEquals(len(up.builds), 1)
@@ -4758,7 +4758,7 @@ class TestUpdatesService(base.BaseTestCase):
         r = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
-        update = Update.get(nvr, self.db)
+        update = Update.get(nvr)
         update.status = UpdateStatus.testing
         update.request = None
         update.critpath = True
@@ -4779,7 +4779,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
         self.assertEquals(up['karma'], 0)
 
-        update = Update.get(u'bodhi-2.0.0-3.fc17', self.db)
+        update = Update.get(u'bodhi-2.0.0-3.fc17')
         update.status = UpdateStatus.testing
         self.date_testing = update.date_testing + timedelta(days=7)
         update.comment(self.db, u'lgtm', author='friend3', karma=1)

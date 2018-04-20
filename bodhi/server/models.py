@@ -300,18 +300,17 @@ class BodhiBase(object):
     query = Session.query_property()
 
     @classmethod
-    def get(cls, id, db):
+    def get(cls, id):
         """
         Return an instance of the model by using its __get_by__ attribute with id.
 
         Args:
             id (object): An attribute to look up the model by.
-            db (sqlalchemy.orm.session.Session): A database session.
         Returns:
             BodhiBase or None: An instance of the model that matches the id, or ``None`` if no match
             was found.
         """
-        return db.query(cls).filter(or_(
+        return cls.query.filter(or_(
             getattr(cls, col) == id for col in cls.__get_by__
         )).first()
 
@@ -523,7 +522,7 @@ class BodhiBase(object):
         new, same, removed = [], copy.copy(items), []
         if items:
             for item in items:
-                obj = model.get(item, db)
+                obj = model.get(item)
                 if not obj:
                     obj = model(name=item)
                     db.add(obj)
@@ -1973,7 +1972,7 @@ class Update(Base):
             tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
         """
         db = request.db
-        user = User.get(request.user.name, request.db)
+        user = User.get(request.user.name)
         data['user'] = user
         data['title'] = ' '.join([b.nvr for b in data['builds']])
         caveats = []
@@ -2866,7 +2865,7 @@ class Update(Base):
 
         new = []
         for bug_id in bug_ids:
-            bug = Bug.get(int(bug_id), session)
+            bug = Bug.get(int(bug_id))
             if not bug:
                 bug = Bug(bug_id=int(bug_id))
                 session.add(bug)
@@ -4338,7 +4337,7 @@ class BuildrootOverride(Base):
         db = request.db
 
         edited = data.pop('edited')
-        override = cls.get(edited.id, db)
+        override = cls.get(edited.id)
 
         if override is None:
             request.errors.add('body', 'edited',

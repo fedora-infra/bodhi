@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2015-2017 Red Hat Inc., and others.
+# Copyright 2015-2018 Red Hat Inc., and others.
 #
 # This file is part of Bodhi.
 #
@@ -118,12 +118,12 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
             return
 
         with self.db_factory() as session:
-            update = Update.get(alias, session)
+            update = Update.get(alias)
             if not update:
                 raise BodhiException("Couldn't find alias '%s' in DB" % alias)
 
             if topic.endswith('update.edit'):
-                bugs = [Bug.get(idx, session) for idx in msg['new_bugs']]
+                bugs = [Bug.get(idx) for idx in msg['new_bugs']]
                 # Sanity check
                 for bug in bugs:
                     assert bug in update.bugs
@@ -137,7 +137,7 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
 
         if config['test_gating.required']:
             with self.db_factory() as session:
-                update = Update.get(alias, session)
+                update = Update.get(alias)
                 update.update_test_gating_status()
 
         log.info("Updates Handler done with %s, %s" % (alias, topic))

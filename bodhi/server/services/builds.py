@@ -52,7 +52,7 @@ def get_build(request):
             Build with the given NVR.
     """
     nvr = request.matchdict.get('nvr')
-    build = Build.get(nvr, request.db)
+    build = Build.get(nvr)
     if not build:
         request.errors.add('body', 'nvr', 'No such build')
         request.errors.status = HTTPNotFound.code

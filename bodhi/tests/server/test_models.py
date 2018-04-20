@@ -85,7 +85,7 @@ class ModelTest(BaseTestCase):
     def test_get(self):
         if type(self) != ModelTest:
             for col in self.obj.__get_by__:
-                self.assertEqual(self.klass.get(getattr(self.obj, col), self.db), self.obj)
+                self.assertEqual(self.klass.get(getattr(self.obj, col)), self.obj)
 
 
 class TestBodhiBase(BaseTestCase):

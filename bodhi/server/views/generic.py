@@ -160,7 +160,7 @@ def get_update_counts(releaseid):
     Returns:
         dict: A dictionary expressing the counts, as described above.
     """
-    release = models.Release.get(releaseid, models.Session())
+    release = models.Release.get(releaseid)
     basequery = models.Update.query.filter(models.Update.release == release)
     counts = {}
     counts.update(_get_status_counts(basequery, models.UpdateStatus.pending))

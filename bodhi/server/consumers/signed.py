@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2016-2017 Red Hat, Inc.
+# Copyright © 2016-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -108,8 +108,8 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
 
         log.info("%s tagged into %s" % (build_nvr, tag))
 
-        with self.db_factory() as session:
-            build = Build.get(build_nvr, session)
+        with self.db_factory():
+            build = Build.get(build_nvr)
             if not build:
                 log.info("Build was not submitted, skipping")
                 return

@@ -73,10 +73,9 @@ def get_override(request):
     Returns:
         dict: A dictionary with key "override" that indexes the override matching the given nvr.
     """
-    db = request.db
     nvr = request.matchdict.get('nvr')
 
-    build = Build.get(nvr, db)
+    build = Build.get(nvr)
 
     if not build:
         request.errors.add('url', 'nvr', 'No such build')
@@ -247,7 +246,7 @@ def save_override(request):
 
     caveats = []
     try:
-        submitter = User.get(request.user.name, request.db)
+        submitter = User.get(request.user.name)
         if edited is None:
             builds = data['builds']
             overrides = []
@@ -259,7 +258,7 @@ def save_override(request):
                 })
             for build in builds:
                 log.info("Creating a new buildroot override: %s" % build.nvr)
-                if BuildrootOverride.get(build.id, request.db):
+                if BuildrootOverride.get(build.id):
                     request.errors.add('body', 'builds',
                                        'Buildroot override for %s already exists' % build.nvr)
                     return
@@ -279,7 +278,7 @@ def save_override(request):
         else:
             log.info("Editing buildroot override: %s" % edited)
 
-            edited = Build.get(edited, request.db)
+            edited = Build.get(edited)
 
             if edited is None:
                 request.errors.add('body', 'edited', 'No such build')
