@@ -407,8 +407,8 @@ class BodhiConfig(dict):
             'value': 'dogpile.cache.dbm',
             'validator': six.text_type},
         'dogpile.cache.expiration_time': {
-            'value': '100',
-            'validator': six.text_type},
+            'value': 100,
+            'validator': int},
         'exclude_mail': {
             'value': ['autoqa', 'taskotron'],
             'validator': _generate_list_validator()},
