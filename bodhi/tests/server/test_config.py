@@ -238,6 +238,18 @@ class BodhiConfigValidate(unittest.TestCase):
         self.assertEqual(c['krb_keytab'], '/etc/krb5.bodhi.keytab')
         self.assertEqual(c['krb_principal'], 'bodhi/bodhi@FEDORAPROJECT.ORG')
 
+    def test_composer_paths_not_checked_for_existing(self):
+        """We don't want compose specific paths to be checked for existence."""
+        c = config.BodhiConfig()
+        c.load_config()
+        for s in ('pungi.cmd', 'mash_dir', 'mash_stage_dir'):
+            c[s] = '/does/not/exist'
+
+            # This should not raise an Exception.
+            c._validate()
+
+            self.assertEqual(c[s], '/does/not/exist')
+
     def test_valid_config(self):
         """A valid config should not raise Exceptions."""
         c = config.BodhiConfig()
@@ -429,13 +441,13 @@ class ValidatePathTests(unittest.TestCase):
     def test_path_does_not_exist(self):
         """Test with a path that does not exist."""
         with self.assertRaises(ValueError) as exc:
-            config._validate_path('/does/not/exist')
+            config.validate_path('/does/not/exist')
 
         self.assertEqual(str(exc.exception), '"/does/not/exist" does not exist.')
 
     def test_path_exists(self):
         """Test with a path that exists."""
-        result = config._validate_path(__file__)
+        result = config.validate_path(__file__)
 
         self.assertEqual(result, __file__)
         self.assertTrue(isinstance(result, six.text_type))
