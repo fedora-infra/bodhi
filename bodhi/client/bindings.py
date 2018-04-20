@@ -679,7 +679,7 @@ class BodhiClient(OpenIdBaseClient):
                 security, update['builds'][0]['nvr'], update['content_type'],
                 update['status'], date, days_in_status)
             for build in update['builds'][1:]:
-                val += '\n %s' % build['nvr']
+                val += '\n  %s' % build['nvr']
             return val
 
         # Content will be formatted as wrapped lines, each line is in format

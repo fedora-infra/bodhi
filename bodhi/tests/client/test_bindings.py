@@ -1049,7 +1049,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
 
         expected_output = (' bodhi-2.2.4-1.el7                        rpm        stable    '
-                           '2016-10-21 (2)\n bodhi-pants-2.2.4-1.el7')
+                           '2016-10-21 (2)\n  bodhi-pants-2.2.4-1.el7')
         self.assertEqual(text, expected_output)
 
     @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {u'request': u'stable'})

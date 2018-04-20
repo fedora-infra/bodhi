@@ -726,7 +726,7 @@ def print_resp(resp, client, verbose=False):
             click.echo(client.update_str(resp.updates[0]))
         else:
             for update in resp.updates:
-                click.echo(client.update_str(update, minimal=True).strip())
+                click.echo(client.update_str(update, minimal=True))
         if 'total' in resp:
             click.echo('%s updates found (%d shown)' % (
                 resp.total, len(resp.updates)))
