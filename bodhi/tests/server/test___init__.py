@@ -27,6 +27,7 @@ import munch
 from bodhi import server
 from bodhi.server import models
 from bodhi.server.config import config
+from bodhi.server.views import generic
 from bodhi.tests.server import base
 
 
@@ -236,6 +237,30 @@ class TestMain(base.BaseTestCase):
         server.main({}, testing='guest', session=self.db, **self.app_settings)
 
         self.assertEqual(config['test'], 'setting')
+
+    @mock.patch.dict(
+        'bodhi.server.config.config',
+        {'dogpile.cache.backend': 'dogpile.cache.memory', 'dogpile.cache.expiration_time': 100})
+    @mock.patch('bodhi.server.views.generic._generate_home_page_stats', autospec=True)
+    def test_sets_up_home_page_cache(self, _generate_home_page_stats):
+        """Ensure that the home page cache is configured."""
+        _generate_home_page_stats.return_value = 5
+        # Let's pull invalidate off of the mock so that main() will decorate it again as a cache.
+        del _generate_home_page_stats.invalidate
+        self.assertFalse(hasattr(_generate_home_page_stats, 'invalidate'))
+
+        server.main({}, testing='guest', session=self.db)
+
+        # main() should have given it a cache, which would give it an invalidate attribute.
+        self.assertTrue(hasattr(generic._generate_home_page_stats, 'invalidate'))
+        self.assertEqual(generic._generate_home_page_stats(), 5)
+        # Changing the return value of the mock should not affect the return value since it is
+        # cached.
+        _generate_home_page_stats.return_value = 7
+        self.assertEqual(generic._generate_home_page_stats(), 5)
+        # If we invalidate the cache, we should see the new return value.
+        generic._generate_home_page_stats.invalidate()
+        self.assertEqual(generic._generate_home_page_stats(), 7)
 
     def test_warms_up_releases_cache(self):
         """main() should warm up the _all_releases cache."""

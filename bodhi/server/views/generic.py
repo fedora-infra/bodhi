@@ -33,24 +33,21 @@ from bodhi.server.config import config
 import bodhi.server.util
 
 
-def get_top_testers(request):
+def get_top_testers():
     """
     Return a query of the 5 users that have submitted the most comments in the last 7 days.
 
-    Args:
-        request (pyramid.request): The current web request.
     Returns:
         sqlalchemy.orm.query.Query: A SQLAlchemy query that contains the
                                   5 users that have submitted the most comments
                                   in the last 7 days, and their total number of
                                   comments in bodhi.
     """
-    db = request.db
     blacklist = config.get('stats_blacklist')
     days = config.get('top_testers_timeframe')
     start_time = datetime.datetime.utcnow() - datetime.timedelta(days=days)
 
-    query = db.query(
+    query = models.Session().query(
         models.User,
         sa.func.count(models.User.comments).label(u'count_1')
     ).join(models.Comment)
@@ -67,22 +64,20 @@ def get_top_testers(request):
         .all()
 
 
-def get_latest_updates(request, critpath, security):
+def get_latest_updates(critpath, security):
     """
     Return a query of the 5 most recent updates that are in Testing status.
 
     critpath and security are optional filters for security or critical path updates.
 
     Args:
-        request (pyramid.request): The current web request.
         critpath (boolean): If True, filter results to only return updates in the Critical Path
         security (boolean): If True, filter results to only return Security updates
     Returns:
         sqlalchemy.orm.query.Query: A SQLAlchemy query that contains the
                                   5 most recent updates that are in Testing status
     """
-    db = request.db
-    query = db.query(models.Update)
+    query = models.Update.query
 
     if critpath:
         query = query.filter(
@@ -135,7 +130,7 @@ def _get_status_counts(basequery, status):
     }
 
 
-def get_update_counts(request, releaseid):
+def get_update_counts(releaseid):
     """
     Return counts for the various states and types of updates in the given release.
 
@@ -165,8 +160,8 @@ def get_update_counts(request, releaseid):
     Returns:
         dict: A dictionary expressing the counts, as described above.
     """
-    release = models.Release.get(releaseid, request.db)
-    basequery = request.db.query(models.Update).filter(models.Update.release == release)
+    release = models.Release.get(releaseid, models.Session())
+    basequery = models.Update.query.filter(models.Update.release == release)
     counts = {}
     counts.update(_get_status_counts(basequery, models.UpdateStatus.pending))
     counts.update(_get_status_counts(basequery, models.UpdateStatus.testing))
@@ -175,10 +170,9 @@ def get_update_counts(request, releaseid):
     return counts
 
 
-@view_config(route_name='home', renderer='home.html')
-def home(request):
+def _generate_home_page_stats():
     """
-    Provide the data required to present the Bodhi frontpage.
+    Generate and return a dictionary of stats for the home() function to use.
 
     This function returns a dictionary with the following 4 keys:
 
@@ -195,30 +189,39 @@ def home(request):
                                 Each dict contains key-value pairs for all the items in the
                                 Update model.
 
-    Args:
-        request (pyramid.request): The current web request.
     Returns:
         dict: A Dictionary expressing the values described above
     """
-    r = request
+    top_testers = get_top_testers()
+    critpath_updates = get_latest_updates(True, False)
+    security_updates = get_latest_updates(False, True)
+    release_updates_counts = {}
+    releases = models.Release.all_releases()
+    for release in releases['current'] + releases['pending']:
+        release_updates_counts[release["name"]] = get_update_counts(release["name"])
 
-    @request.cache.cache_on_arguments()
-    def work():
-        top_testers = get_top_testers(request)
-        critpath_updates = get_latest_updates(request, True, False)
-        security_updates = get_latest_updates(request, False, True)
-        release_updates_counts = {}
-        for release in request.releases['current'] + request.releases['pending']:
-            release_updates_counts[release["name"]] = get_update_counts(request, release["name"])
+    return {
+        "release_updates_counts": release_updates_counts,
+        "top_testers": [(obj.__json__(), n) for obj, n in top_testers],
+        "critpath_updates": [obj.__json__() for obj in critpath_updates],
+        "security_updates": [obj.__json__() for obj in security_updates],
+    }
 
-        return {
-            "release_updates_counts": release_updates_counts,
-            "top_testers": [(obj.__json__(r), n) for obj, n in top_testers],
-            "critpath_updates": [obj.__json__(r) for obj in critpath_updates],
-            "security_updates": [obj.__json__(r) for obj in security_updates],
-        }
 
-    return work()
+@view_config(route_name='home', renderer='home.html')
+def home(request):
+    """
+    Provide the data required to present the Bodhi frontpage.
+
+    See the docblock on _generate_home_page_stats() for details on the return value.
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        dict: A Dictionary expressing the values described in the docblock for
+            _generate_home_page_stats().
+    """
+    return _generate_home_page_stats()
 
 
 @view_config(route_name='new_update', renderer='new_update.html')
