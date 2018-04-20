@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2014-2017 Red Hat, Inc. and others.
+# Copyright 2014-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -28,6 +28,7 @@ import six
 from bodhi.server import main, util
 from bodhi.server.models import (
     User, Update, Release, ReleaseState, UpdateStatus, UpdateType)
+from bodhi.server.views import generic
 from bodhi.tests.server import base
 
 
@@ -483,7 +484,9 @@ class TestFrontpageView(base.BaseTestCase):
                            [UpdateType.newpackage, 4]]]]
         _add_updates(addedupdates2, user2, pendingrelease, "fc18")
         self.db.flush()
+        # Clear the caches
         Release._tag_cache = None
+        generic._generate_home_page_stats.invalidate()
 
     def test_home_counts(self):
         """Test the frontpage update counts"""
