@@ -200,6 +200,18 @@ class BodhiConfigLoadDefaultsTests(unittest.TestCase):
 
 
 class BodhiConfigValidate(unittest.TestCase):
+
+    def test_dogpile_expire_is_int(self):
+        """The dogpile.cache.expiration_time setting should be an int."""
+        c = config.BodhiConfig()
+        c.load_config()
+        c['dogpile.cache.expiration_time'] = '3600'
+
+        c._validate()
+
+        self.assertTrue(isinstance(c['dogpile.cache.expiration_time'], int))
+        self.assertEqual(c['dogpile.cache.expiration_time'], 3600)
+
     def test_koji_settings_are_strs(self):
         """
         Ensure that the koji related settings are strings.
