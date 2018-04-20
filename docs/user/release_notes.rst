@@ -2,6 +2,32 @@
 Release notes
 =============
 
+v3.6.1
+------
+
+Bug fixes
+^^^^^^^^^
+
+* The update template no longer crashes on locked updates (:issue:`2288`).
+* Do not cache calculated libravatar links (:issue:`2289`).
+* Warm the release cache at startup to avoid intermingled queries (:issue:`2296`).
+* Warm the home page cache at startup to avoid slow responses and intermingled queries
+  (:issue:`2297`).
+* Interpret the ``dogpile.cache.expiration_time`` as an ``int`` instead of a ``str``
+  (:issue:`2299`).
+* Do not cache the Koji latest composes (:issue:`2301`).
+* Do not require the web server to have Pungi installed since it does not use it (:issue:`2303`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed patches to Bodhi 3.6.1:
+
+* Patrick Uiterwijk
+* Randy Barlow
+
+
 v3.6.0
 ------
 
