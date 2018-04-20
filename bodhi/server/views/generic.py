@@ -266,7 +266,6 @@ def latest_candidates(request):
     koji = request.koji
     db = request.db
 
-    @request.cache.cache_on_arguments()
     def work(pkg, testing):
         result = []
         koji.multicall = True
