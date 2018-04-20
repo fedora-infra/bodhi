@@ -203,7 +203,7 @@ def _validate_none_or(validator):
     return _validate
 
 
-def _validate_path(value):
+def validate_path(value):
     """Ensure that value is an existing path on the local filesystem and return it.
 
     Use os.path.exists to ensure that value is an existing path. Return the value if it is, else
@@ -331,7 +331,7 @@ class BodhiConfig(dict):
             'validator': six.text_type},
         'cache_dir': {
             'value': None,
-            'validator': _validate_none_or(_validate_path)},
+            'validator': _validate_none_or(validate_path)},
         'captcha.background_color': {
             'value': '#ffffff',
             'validator': _validate_color},
@@ -340,7 +340,7 @@ class BodhiConfig(dict):
             'validator': _validate_color},
         'captcha.font_path': {
             'value': '/usr/share/fonts/liberation/LiberationMono-Regular.ttf',
-            'validator': _validate_path},
+            'validator': validate_path},
         'captcha.font_size': {
             'value': 36,
             'validator': int},
@@ -469,10 +469,10 @@ class BodhiConfig(dict):
             'validator': _generate_list_validator()},
         'mash_dir': {
             'value': None,
-            'validator': _validate_none_or(_validate_path)},
+            'validator': _validate_none_or(six.text_type)},
         'mash_stage_dir': {
             'value': None,
-            'validator': _validate_none_or(_validate_path)},
+            'validator': _validate_none_or(six.text_type)},
         'max_concurrent_mashes': {
             'value': 2,
             'validator': int},
@@ -526,7 +526,7 @@ class BodhiConfig(dict):
             'validator': six.text_type},
         'pungi.cmd': {
             'value': '/usr/bin/pungi-koji',
-            'validator': _validate_path},
+            'validator': six.text_type},
         'pungi.conf.module': {
             'value': 'pungi.module.conf',
             'validator': six.text_type},

@@ -284,6 +284,18 @@ That was the actual one''' % mash_dir
 
         set_bugtracker.assert_called_once_with()
 
+    @mock.patch.dict('bodhi.server.config.config', {'pungi.cmd': '/does/not/exist'})
+    def test___init___missing_paths(self):
+        """__init__() should raise a ValueError if configured paths do not exist."""
+        for s in ('pungi.cmd', 'mash_dir', 'mash_stage_dir'):
+            with mock.patch.dict('bodhi.server.config.config', {s: '/does/not/exist'}):
+                with self.assertRaises(ValueError) as exc:
+                    Masher(FakeHub(), db_factory=self.db_factory, mash_dir=self.tempdir)
+
+                    self.assertEqual(
+                        str(exc.exception),
+                        '"/does/not/exist" does not exist. Check the {} setting.'.format(s))
+
     @mock.patch('bodhi.server.consumers.masher.initialize_db')
     @mock.patch('bodhi.server.consumers.masher.transactional_session_maker')
     def test___init___without_db_factory(self, transactional_session_maker, initialize_db):

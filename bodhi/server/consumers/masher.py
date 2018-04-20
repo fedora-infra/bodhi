@@ -43,7 +43,7 @@ from six.moves.urllib.error import HTTPError, URLError
 import six
 
 from bodhi.server import bugs, initialize_db, log, buildsys, notifications, mail
-from bodhi.server.config import config
+from bodhi.server.config import config, validate_path
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, UpdateType, Release,
@@ -166,6 +166,8 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
                 db_factory for this Masher. If None (the default), a new TransactionalSessionMaker
                 is created and used.
             mash_dir (basestring): The directory in which to place mashes.
+        Raises:
+            ValueError: If pungi.cmd is set to a path that does not exist.
         """
         if not db_factory:
             initialize_db(config)
@@ -184,6 +186,15 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
             log.warn('No releng_fedmsg_certname defined'
                      'Cert validation disabled')
         self.max_mashes_sem = threading.BoundedSemaphore(config.get('max_concurrent_mashes'))
+
+        # This will ensure that the configured paths exist, and will raise ValueError if any does
+        # not.
+        for setting in ('pungi.cmd', 'mash_dir', 'mash_stage_dir'):
+            try:
+                validate_path(config[setting])
+            except ValueError as e:
+                raise ValueError('{} Check the {} setting.'.format(str(e), setting))
+
         super(Masher, self).__init__(hub, *args, **kw)
         log.info('Bodhi masher listening on topic: %s' % self.topic)
 
