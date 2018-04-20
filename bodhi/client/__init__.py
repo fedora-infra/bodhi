@@ -379,7 +379,13 @@ def edit(user, password, url, **kwargs):
 @handle_errors
 def query(url, mine=False, **kwargs):
     # User Docs that show in the --help
-    """Query updates on Bodhi."""
+    """Query updates on Bodhi.
+
+    A leading '*' means that this is a 'security' update.
+
+    The number between brackets next to the date indicates the number of days
+    the update is in the current state.
+    """
     # Developer Docs
     """
     Query updates based on flags.

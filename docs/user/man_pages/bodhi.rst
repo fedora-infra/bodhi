@@ -271,7 +271,16 @@ The ``updates`` command allows users to interact with bodhi updates.
 
 ``bodhi updates query [options]``
 
-    Query the bodhi server for updates. The ``query`` subcommand supports the following options:
+    Query the bodhi server for updates.
+    
+    If the query returns only one update, a detailed view of the update will be displayed.
+    
+    If more than one update is returned, the command will display a list showing the packages
+    contained in the update, the update content-type (rpm / module / ...), the current status
+    of the update (pushed / testing / ...) and the date of the last status change with
+    the number of days passed since. A leading ``*`` marks security updates.
+    
+    The ``query`` subcommand supports the following options:
 
     ``--updateid <id>``
 
