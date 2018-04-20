@@ -8,10 +8,11 @@ RUN dnf upgrade -y libsolv || echo "We are not trying to test dnf upgrade, so ig
 # upgrade bugs.
 RUN dnf upgrade -y || echo "We are not trying to test dnf upgrade, so ignoring dnf failure."
 RUN dnf install --disablerepo rawhide-modular -y \
+    createrepo_c \
+    findutils \
     git \
     liberation-mono-fonts \
     packagedb-cli \
-    pungi \
     python2-createrepo_c \
     python2-jinja2 \
     python2-koji \
