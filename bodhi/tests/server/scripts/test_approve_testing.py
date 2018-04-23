@@ -34,7 +34,8 @@ class TestMain(BaseTestCase):
     """
     This class contains tests for the main() function.
     """
-    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self):
+    @patch('bodhi.server.notifications.publish')
+    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self, publish):
         """
         Ensure that an update that meets the required time in testing gets only one comment from
         Bodhi to that effect, even on subsequent runs of main().
@@ -60,6 +61,8 @@ class TestMain(BaseTestCase):
         self.assertEqual(
             comment_q[0].text,
             config.get('testing_approval_msg') % update.release.mandatory_days_in_testing)
+        publish.assert_called_once_with(
+            topic='update.requirements_met.stable', msg=dict(update=update))
 
     # Set the release's mandatory days in testing to 0 to set up the condition for this test.
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
