@@ -31,7 +31,7 @@ import six
 
 from ..models import Update, UpdateStatus
 from ..config import config
-from bodhi.server import Session, initialize_db
+from bodhi.server import Session, initialize_db, notifications
 
 
 def usage(argv):
@@ -99,6 +99,10 @@ def main(argv=sys.argv):
                 text = six.text_type(
                     config.get('testing_approval_msg') % update.mandatory_days_in_testing)
                 update.comment(db, text, author=u'bodhi')
+
+                notifications.publish(
+                    topic='update.requirements_met.stable',
+                    msg=dict(update=update))
 
         db.commit()
     except Exception as e:
