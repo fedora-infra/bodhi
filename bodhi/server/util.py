@@ -552,7 +552,8 @@ def test_gating_status2html(context, status, reason=None):
     html = u'<span class="label label-%s">Tests %s</span>' % (label_class, description)
     from bodhi.server.models import TestGatingStatus
     if status not in [None, TestGatingStatus.ignored, TestGatingStatus.passed] and reason:
-        html += u'<p><a class="gating-summary" href="#automatedtests">%s</a></p>' % reason
+        html += u'<p><a class="gating-summary" href="#automatedtests">%s</a></p>' % (
+                reason.split('\n')[0])
     return html
 
 

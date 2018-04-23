@@ -1959,6 +1959,12 @@ class Update(Base):
                 self.test_gating_status = TestGatingStatus.passed
         else:
             self.test_gating_status = TestGatingStatus.failed
+            missing_reqs = [
+                req['testcase'] for req in
+                decision.get('unsatisfied_requirements', [])
+            ]
+            if missing_reqs:
+                decision['summary'] += '\n Missing: %s' % (', '.join(missing_reqs))
         self.greenwave_summary_string = decision['summary']
 
     @classmethod
@@ -2624,17 +2630,17 @@ class Update(Base):
             'subject': self.greenwave_subject
         }
         decision = greenwave_api_post('{}/decision'.format(config.get('greenwave_api_url')), data)
-        results = [dict(subject=req['item'], testcase=req['testcase']) for req in
-                   decision['unsatisfied_requirements']]
-        log.debug('Waiving test results: %s' % results)
-        data = {
-            'results': results,
-            'product_version': self.product_version,
-            'waived': True,
-            'proxy_user': username,
-            'comment': comment
-        }
-        waiverdb_api_post('{}/waivers/'.format(config.get('waiverdb_api_url')), data)
+        for requirement in decision['unsatisfied_requirements']:
+            data = {
+                'subject': requirement['item'],
+                'testcase': requirement['testcase'],
+                'product_version': self.product_version,
+                'waived': True,
+                'username': username,
+                'comment': comment
+            }
+            log.debug('Waiving test results: %s' % data)
+            waiverdb_api_post('{}/waivers/'.format(config.get('waiverdb_api_url')), data)
 
     def add_tag(self, tag):
         """

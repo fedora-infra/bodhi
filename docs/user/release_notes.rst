@@ -2,6 +2,21 @@
 Release notes
 =============
 
+Features
+^^^^^^^^
+
+* Include the missing tests in the summary about greenwave's decision
+  (:commit:`5855df4`).
+* Show waivers about an update on its page for easier access to users and admins
+  (:commit:`9132c90`).
+
+Bugs
+^^^^
+* Properly call the WaiverDB API when waiving tests from the UI (:issue:`2272`).
+* Only ask greenwave about updates in active releases when asking their gating
+  status (:issue:`2121`).
+
+
 v3.6.0
 ------
 
