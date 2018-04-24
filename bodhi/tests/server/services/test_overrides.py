@@ -265,7 +265,6 @@ class TestOverridesService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['overrides']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override(self, publish):
         release = Release.get(u'F17', self.db)
@@ -294,7 +293,6 @@ class TestOverridesService(base.BaseTestCase):
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(o['expired_date'], None)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_duplicate_override(self, publish):
         release = Release.get(u'F17', self.db)
@@ -327,7 +325,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Buildroot override for %s already exists' % build.nvr)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_multiple_nvr(self, publish):
         release = Release.get(u'F17', self.db)
@@ -371,7 +368,6 @@ class TestOverridesService(base.BaseTestCase):
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(o2['expired_date'], None)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_too_long(self, publish):
         release = Release.get(u'F17', self.db)
@@ -389,7 +385,6 @@ class TestOverridesService(base.BaseTestCase):
                 'csrf_token': self.get_csrf_token()}
         self.app.post('/overrides/', data, status=400)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_for_newer_build(self, publish):
         old_build = RpmBuild.get(u'bodhi-2.0-1.fc17', self.db)
@@ -421,14 +416,14 @@ class TestOverridesService(base.BaseTestCase):
 
         self.assertNotEquals(old_build.override['expired_date'], None)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_cannot_edit_override_build(self, publish):
         release = Release.get(u'F17', self.db)
 
         old_nvr = u'bodhi-2.0-1.fc17'
 
-        res = self.app.get('/overrides/%s' % old_nvr)
+        res = self.app.get('/overrides/%s' % old_nvr,
+                           headers={'Accept': 'application/json'})
         o = res.json_body['override']
         expiration_date = o['expiration_date']
         old_build_id = o['build_id']
@@ -452,7 +447,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['expired_date'], None)
         self.assertEquals(len(publish.call_args_list), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_nonexisting_build(self):
         """
         Validate the handler for an override that exists with an edit on a build that doesn't.
@@ -479,7 +473,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(errors[0]['description'],
                           'No such build')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_unexisting_override(self):
         release = Release.get(u'F17', self.db)
 
@@ -505,7 +498,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(errors[0]['description'],
                           'No buildroot override for this build')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.services.overrides.BuildrootOverride.edit',
                 mock.MagicMock(side_effect=IOError('no db for you!')))
     def test_edit_unexpected_error(self):
@@ -528,11 +520,11 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(errors[0]['description'],
                           'Unable to save buildroot override: no db for you!')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_notes(self):
         old_nvr = u'bodhi-2.0-1.fc17'
 
-        res = self.app.get('/overrides/%s' % old_nvr)
+        res = self.app.get('/overrides/%s' % old_nvr,
+                           headers={'Accept': 'application/json'})
         o = res.json_body['override']
         build_id = o['build_id']
         expiration_date = o['expiration_date']
@@ -547,11 +539,11 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['expiration_date'], expiration_date)
         self.assertEquals(override['expired_date'], None)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_expiration_date(self):
         old_nvr = u'bodhi-2.0-1.fc17'
 
-        res = self.app.get('/overrides/%s' % old_nvr)
+        res = self.app.get('/overrides/%s' % old_nvr,
+                           headers={'Accept': 'application/json'})
         o = res.json_body['override']
         expiration_date = datetime.utcnow() + timedelta(days=2)
 
@@ -567,11 +559,11 @@ class TestOverridesService(base.BaseTestCase):
                           expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEquals(override['expired_date'], None)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_fail_on_multiple(self):
         old_nvr = u'bodhi-2.0-1.fc17'
 
-        res = self.app.get('/overrides/%s' % old_nvr)
+        res = self.app.get('/overrides/%s' % old_nvr,
+                           headers={'Accept': 'application/json'})
         o = res.json_body['override']
         o.update({'nvr': old_nvr + ',wat', 'notes': 'blah blah blah blah',
                   'edited': old_nvr, 'csrf_token': self.get_csrf_token()})
@@ -582,12 +574,12 @@ class TestOverridesService(base.BaseTestCase):
             'Cannot combine multiple NVRs with editing a buildroot override.',
         )
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_expire_override(self, publish):
         old_nvr = u'bodhi-2.0-1.fc17'
 
-        res = self.app.get('/overrides/%s' % old_nvr)
+        res = self.app.get('/overrides/%s' % old_nvr,
+                           headers={'Accept': 'application/json'})
         o = res.json_body['override']
 
         o.update({'nvr': o['build']['nvr'], 'expired': True,
@@ -602,7 +594,6 @@ class TestOverridesService(base.BaseTestCase):
         publish.assert_called_once_with(
             topic='buildroot_override.untag', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_unexpire_override(self, publish):
         # First expire a buildroot override
@@ -636,7 +627,6 @@ class TestOverridesService(base.BaseTestCase):
         publish.assert_called_once_with(
             topic='buildroot_override.tag', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_with_missing_pkg(self, publish):
         nvr = u'not-bodhi-2.0-2.fc17'
@@ -645,7 +635,8 @@ class TestOverridesService(base.BaseTestCase):
         data = {'nvr': nvr, 'notes': u'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
-        res = self.app.post('/overrides/', data)
+        res = self.app.post('/overrides/', data,
+                            headers={'Accept': 'application/json'})
 
         publish.assert_called_once_with(
             topic='buildroot_override.tag', msg=mock.ANY)
