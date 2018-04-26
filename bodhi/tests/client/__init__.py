@@ -435,8 +435,8 @@ EXAMPLE_QUERY_MUNCH_MULTI = Munch({
                   u'show_popups': True}}]})
 
 EXAMPLE_QUERY_OUTPUT_MULTI = """\
-nodejs-grunt-wrap-0.3.0-2.fc25        rpm    newpackage   testing   2017-02-13
-nodejs-grunt-wrap-0.3.0-2.fc25        rpm    newpackage   testing   2017-02-13
+ nodejs-grunt-wrap-0.3.0-2.fc25           rpm        testing   2017-02-13 (17)
+ nodejs-grunt-wrap-0.3.0-2.fc25           rpm        testing   2017-02-13 (17)
 2 updates found (2 shown)
 """
 

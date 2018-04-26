@@ -379,7 +379,13 @@ def edit(user, password, url, **kwargs):
 @handle_errors
 def query(url, mine=False, **kwargs):
     # User Docs that show in the --help
-    """Query updates on Bodhi."""
+    """Query updates on Bodhi.
+
+    A leading '*' means that this is a 'security' update.
+
+    The number between brackets next to the date indicates the number of days
+    the update is in the current state.
+    """
     # Developer Docs
     """
     Query updates based on flags.
@@ -726,7 +732,7 @@ def print_resp(resp, client, verbose=False):
             click.echo(client.update_str(resp.updates[0]))
         else:
             for update in resp.updates:
-                click.echo(client.update_str(update, minimal=True).strip())
+                click.echo(client.update_str(update, minimal=True))
         if 'total' in resp:
             click.echo('%s updates found (%d shown)' % (
                 resp.total, len(resp.updates)))

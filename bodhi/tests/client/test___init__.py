@@ -512,6 +512,8 @@ class TestQuery(unittest.TestCase):
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings._days_since',
+                mock.MagicMock(return_value=17))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
                 return_value=client_test_data.EXAMPLE_QUERY_MUNCH_MULTI, autospec=True)
     def test_query_multiple_update(self, send_request):
