@@ -995,9 +995,8 @@ def cmd(cmd, cwd=None, raise_on_error=False):
     Run the given command in a subprocess.
 
     Args:
-        cmd (list or basestring): The command to be run. This may be expressed as a list to be
-            passed directly to subprocess.Popen(), or as a basestring which will be processed with
-            basestring.split() to form the list to pass to Popen().
+        cmd (list): The command to be run. This is expressed as a list to be
+            passed directly to subprocess.Popen().
         cwd (basestring or None): The current working directory to use when launching the
             subprocess.
         raise_on_error (bool): If True, raise a RuntimeError if the command's exit code is non-0.
@@ -1008,8 +1007,6 @@ def cmd(cmd, cwd=None, raise_on_error=False):
     Raises:
         RuntimeError: If exception is True and the command's exit code is non-0.
     """
-    if isinstance(cmd, six.string_types):
-        cmd = cmd.split()
     log.debug('Running {}'.format(' '.join(cmd)))
     p = subprocess.Popen(cmd, cwd=cwd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()

@@ -1272,7 +1272,9 @@ class TestCMDFunctions(base.BaseTestCase):
         mock_popen_obj = mock_popen.return_value
         mock_popen_obj.communicate.return_value = ('output', 'error')
         mock_popen_obj.returncode = 1
-        util.cmd('/bin/echo', '"home/imgs/catpix"')
+
+        util.cmd(['/bin/echo'], '"home/imgs/catpix"')
+
         mock_popen.assert_called_once_with(
             ['/bin/echo'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             shell=False)
@@ -1281,6 +1283,9 @@ class TestCMDFunctions(base.BaseTestCase):
             mock_error.mock_calls,
             [mock.call('/bin/echo returned a non-0 exit code: 1'), mock.call('output\nerror')])
         mock_debug.assert_called_once_with('Running /bin/echo')
+        self.assertEqual(
+            mock_error.mock_calls,
+            [mock.call('/bin/echo returned a non-0 exit code: 1'), mock.call('output\nerror')])
 
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
@@ -1294,7 +1299,8 @@ class TestCMDFunctions(base.BaseTestCase):
         mock_popen_obj = mock_popen.return_value
         mock_popen_obj.communicate.return_value = ('output', None)
         mock_popen_obj.returncode = 0
-        util.cmd('/bin/echo', '"home/imgs/catpix"')
+
+        util.cmd(['/bin/echo'], '"home/imgs/catpix"')
 
         mock_popen.assert_called_once_with(
             ['/bin/echo'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -1315,7 +1321,8 @@ class TestCMDFunctions(base.BaseTestCase):
         mock_popen_obj = mock_popen.return_value
         mock_popen_obj.communicate.return_value = ('output', 'error')
         mock_popen_obj.returncode = 0
-        util.cmd('/bin/echo', '"home/imgs/catpix"')
+
+        util.cmd(['/bin/echo'], '"home/imgs/catpix"')
 
         mock_popen.assert_called_once_with(
             ['/bin/echo'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
