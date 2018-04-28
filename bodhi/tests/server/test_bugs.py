@@ -89,10 +89,12 @@ class TestBugzilla(unittest.TestCase):
         self.assertEqual(_connect.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_close_fault(self, exception):
         """Assert that an xmlrpc Fault is caught and logged by close()."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.close.side_effect = xmlrpc_client.Fault(
             410, 'You must log in before using this part of Red Hat Bugzilla.')
 
@@ -102,11 +104,13 @@ class TestBugzilla(unittest.TestCase):
         exception.assert_called_once_with('Unable to close bug #12345')
 
     @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_close_successful(self, exception):
         """Test the close() method with a success case."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
         bz._bz.getbug.return_value.component = 'bodhi'
+        bz._bz.getbug.return_value.product = 'aproduct'
 
         bz.close(12345, {'bodhi': 'bodhi-3.1.0-1.fc27'},
                  'Fixed. Closing bug and adding version to fixed_in field.')
@@ -119,11 +123,13 @@ class TestBugzilla(unittest.TestCase):
         self.assertEqual(exception.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_close_fixedin_maxlength(self, exception):
         """Test the close() method when fixed_in field may go over 255 chars."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
         bz._bz.getbug.return_value.component = 'bodhi'
+        bz._bz.getbug.return_value.product = 'aproduct'
         fill_text = ' '.join([u'exactly-10', ] * 23)
         bz._bz.getbug.return_value.fixed_in = fill_text
 
@@ -137,11 +143,13 @@ class TestBugzilla(unittest.TestCase):
         self.assertEqual(exception.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_close_pre_existing_fixedin(self, exception):
         """Test the close() method at the edge of the allowed size of the fixedin field (254)."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
         bz._bz.getbug.return_value.component = 'bodhi'
+        bz._bz.getbug.return_value.product = 'aproduct'
         fill_text = ' '.join([u'exactly-10', ] * 21)
         bz._bz.getbug.return_value.fixed_in = fill_text
 
@@ -156,6 +164,20 @@ class TestBugzilla(unittest.TestCase):
             comment='Fixed. Closing bug and adding version to fixed_in field.',
             fixedin=expected_fixedin)
         self.assertEqual(exception.call_count, 0)
+
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_close_product_skipped(self, info):
+        """Test the close() method when the bug's product is not in the bz_products config."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'not fedora!'
+
+        bz.close(12345, {'bodhi': 'bodhi-35.103.109-1.fc27'},
+                 'Fixed. Closing bug and adding version to fixed_in field.')
+
+        bz._bz.getbug.assert_called_once_with(12345)
+        info.assert_called_once_with("Skipping set closed on 'not fedora!' bug #12345")
+        self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_comment_successful(self, exception):
@@ -268,7 +290,7 @@ class TestBugzilla(unittest.TestCase):
         bz.modified(1411188)
 
         bz._bz.getbug.assert_called_once_with(1411188)
-        info.assert_called_once_with("Skipping 'not fedora!' bug")
+        info.assert_called_once_with("Skipping set modified on 'not fedora!' bug #1411188")
         self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.exception')
@@ -337,12 +359,14 @@ class TestBugzilla(unittest.TestCase):
         exception.assert_called_once_with('Got fault from Bugzilla')
 
     @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_on_qa_failure(self, exception):
         """
         Test the on_qa() method with a failure case.
         """
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.setstatus.side_effect = Exception(
             'You forgot to pay your oxygen bill. Your air supply will promptly be severed.')
 
@@ -354,12 +378,14 @@ class TestBugzilla(unittest.TestCase):
         exception.assert_called_once_with('Unable to alter bug #1411188')
 
     @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_on_qa_success(self, exception):
         """
         Test the on_qa() method with a success case.
         """
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'aproduct'
 
         bz.on_qa(1411188, 'A message.')
 
@@ -368,6 +394,7 @@ class TestBugzilla(unittest.TestCase):
         self.assertEqual(exception.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_on_qa_skipped_because_closed(self, exception):
         """
         Test the on_qa() method when the bug is already CLOSED.
@@ -375,6 +402,7 @@ class TestBugzilla(unittest.TestCase):
         """
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.bug_status = 'CLOSED'
 
         bz.on_qa(1411188, 'A message.')
@@ -385,6 +413,7 @@ class TestBugzilla(unittest.TestCase):
         self.assertEqual(exception.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_on_qa_skipped_because_verified(self, exception):
         """
         Test the on_qa() method when the bug is already VERIFIED.
@@ -392,6 +421,7 @@ class TestBugzilla(unittest.TestCase):
         """
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.bug_status = 'VERIFIED'
 
         bz.on_qa(1411188, 'A message.')
@@ -402,6 +432,7 @@ class TestBugzilla(unittest.TestCase):
         self.assertEqual(exception.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_on_qa_skipped_because_already_set(self, exception):
         """
         Test the on_qa() method when the bug is already ON_QA.
@@ -409,6 +440,7 @@ class TestBugzilla(unittest.TestCase):
         """
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.bug_status = 'ON_QA'
 
         bz.on_qa(1411188, 'A message.')
@@ -417,6 +449,19 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
         bz._bz.getbug.return_value.setstatus.assert_not_called()
         self.assertEqual(exception.call_count, 0)
+
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_on_qa_product_skipped(self, info):
+        """Test the on_qa() method when the bug's product is not in the bz_products config."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'not fedora!'
+
+        bz.on_qa(1411188, 'A message.')
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        info.assert_called_once_with("Skipping set on_qa on 'not fedora!' bug #1411188")
+        self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
 
 
 class TestFakeBugTracker(unittest.TestCase):

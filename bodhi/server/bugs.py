@@ -165,7 +165,8 @@ class Bugzilla(BugTracker):
 
     def on_qa(self, bug_id, comment):
         """
-        Change the status of this bug to ON_QA if it is not already ON_QA, VERIFIED, or CLOSED.
+        Change the status of this bug to ON_QA if bug.product is in admitted products list
+        and if it is not already ON_QA, VERIFIED, or CLOSED.
 
         This will also comment on the bug with some details on how to test and provide feedback for
         this update.
@@ -176,6 +177,9 @@ class Bugzilla(BugTracker):
         """
         try:
             bug = self.bz.getbug(bug_id)
+            if bug.product not in config.get('bz_products'):
+                log.info("Skipping set on_qa on {0!r} bug #{1}".format(bug.product, bug_id))
+                return
             if bug.bug_status not in ('ON_QA', 'VERIFIED', 'CLOSED'):
                 log.debug("Setting Bug #%d to ON_QA" % bug_id)
                 bug.setstatus('ON_QA', comment=comment)
@@ -186,7 +190,8 @@ class Bugzilla(BugTracker):
 
     def close(self, bug_id, versions, comment):
         """
-        Close the bug given by bug_id, mark it as fixed in the given versions, and add a comment.
+        Close the bug given by bug_id if bug.product is in admitted products list,
+        mark it as fixed in the given versions, and add a comment.
 
         Args:
             bug_id (int): The ID of the bug you wish to close.
@@ -197,6 +202,9 @@ class Bugzilla(BugTracker):
         args = {'comment': comment}
         try:
             bug = self.bz.getbug(bug_id)
+            if bug.product not in config.get('bz_products'):
+                log.info("Skipping set closed on {0!r} bug #{1}".format(bug.product, bug_id))
+                return
             # If this bug is for one of these builds...
             if bug.component in versions:
                 version = versions[bug.component]
@@ -253,7 +261,7 @@ class Bugzilla(BugTracker):
 
     def modified(self, bug_id):
         """
-        Mark the given bug as MODIFIED.
+        Mark the given bug as MODIFIED if bug.product is in admitted products list.
 
         The bug will only be marked MODIFIED if it is not already MODIFIED, VERIFIED, or CLOSED.
 
@@ -263,7 +271,7 @@ class Bugzilla(BugTracker):
         try:
             bug = self.bz.getbug(bug_id)
             if bug.product not in config.get('bz_products'):
-                log.info("Skipping %r bug" % bug.product)
+                log.info("Skipping set modified on {0!r} bug #{1}".format(bug.product, bug_id))
                 return
             if bug.bug_status not in ('MODIFIED', 'VERIFIED', 'CLOSED'):
                 log.info('Setting bug #%d status to MODIFIED' % bug_id)
