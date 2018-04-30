@@ -7,7 +7,9 @@
           ${util.markup(comment.text) | n}
         </div>
         <div class="col-md-2 text-xs-right text-muted">
-          <a href="${comment.url()}">${util.age(comment.timestamp)}</a>
+          <a href="${comment.url()}" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
+            ${util.age(comment.timestamp)}
+          </a>
         </div>
 </div>
 % else:
@@ -33,7 +35,7 @@
         </span>
 
         <span class="pull-xs-right">
-          <a href="${comment.url()}">
+          <a href="${comment.url()}" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
             ${util.age(comment.timestamp)}
           </a>
         </span>
