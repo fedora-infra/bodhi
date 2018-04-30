@@ -81,30 +81,6 @@ def checkpoint(method):
     return wrapper
 
 
-def request_order_key(compose):
-    """
-    Generate a sort key for the updates documents in generate_batches.
-
-    Args:
-        requestblob (dict): A dictionary as described in generate_batches.
-
-    Returns:
-        int: Ordering key for this batch.
-
-    The key comes down to:
-        Stable + security: -3
-        Testing + security: -2
-        Stable: -1
-        Testing: 0
-    """
-    value = 0
-    if compose['security']:
-        value -= 2
-    if compose['request'] == UpdateRequest.stable.value:
-        value -= 1
-    return value
-
-
 class Masher(fedmsg.consumers.FedmsgConsumer):
     """
     The Bodhi Masher.
@@ -268,22 +244,9 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         notifications.publish(topic="mashtask.start", msg=dict(agent=agent), force=True)
 
         results = []
-        # Important repos first, then normal
-        last_key = None
         threads = []
         for compose in self._get_composes(body):
-            if (last_key is not None and request_order_key(compose) != last_key):
-                # This means that after we submit all Stable+Security updates, we wait with kicking
-                # off the next series of mashes until that finishes.
-                self.log.info('Waiting on %d mashes for priority %s', len(threads), last_key)
-                for thread in threads:
-                    thread.join()
-                    for result in thread.results():
-                        results.append(result)
-                threads = []
-
-            last_key = request_order_key(compose)
-            self.log.info('Now starting mashes for priority %s', last_key)
+            self.log.info('Now starting mashes')
 
             masher = get_masher(ContentType.from_string(compose['content_type']))
             if not masher:
