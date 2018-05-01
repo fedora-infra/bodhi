@@ -1377,6 +1377,92 @@ testmodule:master:20172:2
              'send_testing_digest': True,
              'status_comments': True})
 
+    @mock.patch.dict(config, {'test_gating.required': True})
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep', return_value=None)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_test_gating_status_failed(self, publish, *args):
+        """If the update's test_gating_status is failed it should be ejected."""
+        self.expected_sems = 1
+        # Set the request to stable right out the gate so we can test gating
+        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        u = Update.query.filter_by(title='bodhi-2.0-1.fc17').one()
+        u.test_gating_status = TestGatingStatus.failed
+        u.requirements = ''
+        msg = self._make_msg()
+        t = RPMComposerThread(
+            self.semmock, msg['body']['msg']['composes'][0], 'ralph', log, self.db_factory,
+            self.tempdir)
+
+        with self.db_factory() as session:
+            with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
+                release = session.query(Release).filter_by(name=u'F17').one()
+                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
+                t.run()
+
+        # Also, ensure we reported success
+        publish.assert_called_with(topic="mashtask.complete",
+                                   force=True,
+                                   msg=dict(success=True,
+                                            ctype='rpm',
+                                            repo='f17-updates',
+                                            agent='ralph'))
+        publish.assert_any_call(topic='update.eject', msg=mock.ANY, force=True)
+        u = Update.query.filter_by(title='bodhi-2.0-1.fc17').one()
+        self.assertEqual(
+            u.comments[-1].text,
+            ("bodhi-2.0-1.fc17 ejected from the push because 'Required tests did not pass on this "
+             "update'"))
+        # The request got sent back to None since it was ejected.
+        self.assertEqual(u.request, None)
+        self.assertEqual(u.status, UpdateStatus.pending)
+
+    @mock.patch.dict(config, {'test_gating.required': True})
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep', return_value=None)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_test_gating_status_passed(self, publish, *args):
+        """If the update's test_gating_status is passed it should not be ejected."""
+        self.expected_sems = 1
+        # Set the request to stable right out the gate so we can test gating
+        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        u = Update.query.filter_by(title='bodhi-2.0-1.fc17').one()
+        u.test_gating_status = TestGatingStatus.passed
+        u.requirements = ''
+        msg = self._make_msg()
+        t = RPMComposerThread(
+            self.semmock, msg['body']['msg']['composes'][0], 'ralph', log, self.db_factory,
+            self.tempdir)
+
+        with self.db_factory() as session:
+            with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
+                release = session.query(Release).filter_by(name=u'F17').one()
+                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
+                t.run()
+
+        # Also, ensure we reported success
+        publish.assert_called_with(topic="mashtask.complete",
+                                   force=True,
+                                   msg=dict(success=True,
+                                            ctype='rpm',
+                                            repo='f17-updates',
+                                            agent='ralph'))
+        topics = {c[2]['topic'] for c in publish.mock_calls}
+        self.assertNotIn('update.eject', topics)
+        u = Update.query.filter_by(title='bodhi-2.0-1.fc17').one()
+        self.assertEqual(u.comments[-1].text, 'This update has been pushed to stable.')
+        # The update should be stable.
+        self.assertEqual(u.request, None)
+        self.assertEqual(u.status, UpdateStatus.stable)
+
     @mock.patch(**mock_absent_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')

@@ -2781,6 +2781,24 @@ class TestUpdate(ModelTest):
         self.assertIn("Failed retrieving requirements results:", reason)
         self.assertIn("Error retrieving data from Koji for", reason)
 
+    def test_check_requirements_test_gating_status_failed(self):
+        """check_requirements() should return False when test_gating_status is failed."""
+        self.obj.requirements = ''
+        self.obj.test_gating_status = model.TestGatingStatus.failed
+
+        with mock.patch.dict(config, {'test_gating.required': True}):
+            self.assertEqual(self.obj.check_requirements(self.db, config),
+                             (False, 'Required tests did not pass on this update'))
+
+    def test_check_requirements_test_gating_status_passed(self):
+        """check_requirements() should return True when test_gating_status is passed."""
+        self.obj.requirements = ''
+        self.obj.test_gating_status = model.TestGatingStatus.passed
+
+        with mock.patch.dict(config, {'test_gating.required': True}):
+            self.assertEqual(self.obj.check_requirements(self.db, config),
+                             (True, 'No checks required.'))
+
     def test_test_cases_with_no_dupes(self):
         update = self.get_update(name=u"FullTestCasesWithNoDupes")
         package = update.builds[0].package
