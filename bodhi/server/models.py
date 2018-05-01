@@ -1699,7 +1699,7 @@ class Update(Base):
     require_bugs = Column(Boolean, default=False)
     require_testcases = Column(Boolean, default=False)
 
-    display_name = Column(UnicodeText, nullable=False, default='')
+    display_name = Column(UnicodeText, nullable=False, default=u'')
     notes = Column(UnicodeText, nullable=False)  # Mandatory notes
 
     # Enumerated types

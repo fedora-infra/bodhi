@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-Add a dislay_name field to the updates table.
+Add a display_name field to the updates table.
 
 Revision ID: be25565a1211
 Revises: 22858ba91115
@@ -33,7 +33,8 @@ down_revision = '22858ba91115'
 
 def upgrade():
     """Add a display_name column to the updates table."""
-    op.add_column('updates', sa.Column('display_name', sa.UnicodeText(), nullable=False))
+    op.add_column('updates', sa.Column('display_name', sa.UnicodeText(), nullable=False,
+                  server_default=u''))
 
 
 def downgrade():
