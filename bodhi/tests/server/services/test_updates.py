@@ -698,6 +698,43 @@ class TestSetRequest(base.BaseTestCase):
         self.assertEquals(res.json_body[u'errors'][0][u'description'],
                           "Can't change request for an archived release")
 
+    @mock.patch.dict(config, {'test_gating.required': True})
+    def test_test_gating_status_failed(self):
+        """If the update's test_gating_status is failed, a user should not be able to push."""
+        nvr = u'bodhi-2.0-1.fc17'
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+        up.requirements = ''
+        up.test_gating_status = TestGatingStatus.failed
+        up.date_testing = datetime.utcnow() - timedelta(days=8)
+        up.request = None
+        post_data = dict(update=nvr, request='stable', csrf_token=self.get_csrf_token())
+
+        res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertEqual(up.request, None)
+        self.assertEquals(res.json_body['status'], 'error')
+        self.assertEquals(res.json_body[u'errors'][0][u'description'],
+                          "Requirement not met Required tests did not pass on this update")
+
+    @mock.patch.dict(config, {'test_gating.required': True})
+    def test_test_gating_status_passed(self):
+        """If the update's test_gating_status is passed, a user should be able to push."""
+        nvr = u'bodhi-2.0-1.fc17'
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+        up.requirements = ''
+        up.test_gating_status = TestGatingStatus.passed
+        up.date_testing = datetime.utcnow() - timedelta(days=8)
+        post_data = dict(update=nvr, request='stable', csrf_token=self.get_csrf_token())
+
+        res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=200)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertEqual(up.request, UpdateRequest.stable)
+        self.assertEqual(res.json['update']['request'], 'stable')
+
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.set_request',
@@ -4295,6 +4332,58 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertNotIn('Push to Batched', resp)
         self.assertNotIn('Push to Stable', resp)
         self.assertNotIn('Edit', resp)
+
+    @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_batched_button_not_present_when_test_gating_status_failed(self, publish):
+        """The push to batched button should not appear if the test_gating_status is failed."""
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['requirements'] = ''
+        resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
+        update = Update.get(nvr)
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.pushed = True
+        update.autokarma = False
+        update.stable_karma = 1
+        update.test_gating_status = TestGatingStatus.failed
+        update.comment(self.db, 'works', 1, 'bowlofeggs')
+        self.db.commit()
+        self.app_settings['test_gating.required'] = True
+        app = TestApp(main({}, testing=u'guest', **self.app_settings))
+
+        resp = app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        self.assertNotIn('Push to Batched', resp)
+        self.assertNotIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
+
+    @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_push_to_batched_button_present_when_test_gating_status_passed(self, publish):
+        """The push to batched button should appear if the test_gating_status is passed."""
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args['requirements'] = ''
+        resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
+        update = Update.get(nvr)
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.pushed = True
+        update.autokarma = False
+        update.stable_karma = 1
+        update.test_gating_status = TestGatingStatus.passed
+        update.comment(self.db, 'works', 1, 'bowlofeggs')
+        self.db.commit()
+        self.app_settings['test_gating.required'] = True
+        app = TestApp(main({}, testing=u'guest', **self.app_settings))
+
+        resp = app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        self.assertIn('Push to Batched', resp)
+        self.assertNotIn('Push to Stable', resp)
+        self.assertIn('Edit', resp)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)

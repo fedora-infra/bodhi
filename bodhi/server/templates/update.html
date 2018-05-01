@@ -587,8 +587,6 @@ $(document).ready(function(){
               ${self.util.push_to_batched_or_stable_button(update) | n}
             % elif update.meets_testing_requirements:
               ${self.util.push_to_batched_or_stable_button(update) | n}
-            % elif update.stable_karma not in (0, None) and update.karma >= update.stable_karma and not update.autokarma:
-              ${self.util.push_to_batched_or_stable_button(update) | n}
             % endif
             <a id='unpush' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Unpush</a>
           % endif

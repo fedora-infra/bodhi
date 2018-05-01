@@ -3199,6 +3199,9 @@ class Update(Base):
             tuple: A tuple containing (result, reason) where result is a bool
                 and reason is a str.
         """
+        if config.get('test_gating.required') and not self.test_gating_passed:
+            return (False, "Required tests did not pass on this update")
+
         requirements = tokenize(self.requirements or '')
         requirements = list(requirements)
 
@@ -3265,9 +3268,6 @@ class Update(Base):
                 if latest['outcome'] not in ['PASSED', 'INFO']:
                     return False, "Required task %s returned %s" % (
                         latest['testcase']['name'], latest['outcome'])
-
-        if config.get('test_gating.required') and not self.test_gating_passed:
-            return (False, "Required tests did not pass on this update")
 
         # TODO - check require_bugs and require_testcases also?
 
