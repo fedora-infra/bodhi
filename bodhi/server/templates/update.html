@@ -115,7 +115,8 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
     % if request.registry.settings.get("test_gating.required") is True:
         % if not update.test_gating_passed and update.greenwave_summary_string:
-          var summary = '${update.greenwave_summary_string}';
+          var summary = '${update.greenwave_summary_string}'
+          summary += '${self.util.greenwave_unsatisfied_requirements_html(update)|n}';
           $('#resultsdb h3').after(
              '<div class="alert alert-danger">The update can not be pushed: ' + summary + '</div>');
         % endif

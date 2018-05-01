@@ -19,6 +19,7 @@
 """This test suite contains tests for the bodhi.server.consumers.updates module."""
 
 import copy
+import json
 import unittest
 
 import mock
@@ -108,8 +109,16 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                 'policies_satisfied': False,
                 'summary': u'what have you done‽',
                 'applicable_policies': ['taskotron_release_critical_tasks'],
-                'unsatisfied_requirements': ['some arbitrary test you disagree with']
-            }
+                'unsatisfied_requirements': [
+                    {u'testcase': u'dist.rpmdeplint',
+                     u'item': {u'item': u'bodhi-2.0-1.fc17', u'type': u'koji_build'},
+                     u'type': u'test-result-missing', u'scenario': None},
+                    {u'testcase': u'dist.rpmdeplint',
+                     u'item': {u'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                     u'type': u'test-result-missing', u'scenario': None},
+                    {u'testcase': u'dist.rpmdeplint',
+                     u'item': {u'item': update.alias, u'type': u'bodhi_update'},
+                     u'type': u'test-result-missing', u'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
 
             h.consume(message)
@@ -117,6 +126,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
         self.assertIsNone(update.test_gating_status)
         self.assertIsNone(update.greenwave_summary_string)
+        self.assertIsNone(update.greenwave_unsatisfied_requirements)
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_gating_required_true(self):
@@ -139,17 +149,25 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                 'policies_satisfied': False,
                 'summary': u'what have you done‽',
                 'applicable_policies': ['taskotron_release_critical_tasks'],
-                'unsatisfied_requirements': [{'testcase': 'some arbitrary test you disagree with'}]
-            }
+                'unsatisfied_requirements': [
+                    {u'testcase': u'dist.rpmdeplint',
+                     u'item': {u'item': u'bodhi-2.0-1.fc17', u'type': u'koji_build'},
+                     u'type': u'test-result-missing', u'scenario': None},
+                    {u'testcase': u'dist.rpmdeplint',
+                     u'item': {u'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                     u'type': u'test-result-missing', u'scenario': None},
+                    {u'testcase': u'dist.rpmdeplint',
+                     u'item': {u'item': update.alias, u'type': u'bodhi_update'},
+                     u'type': u'test-result-missing', u'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
 
             h.consume(message)
 
         update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
         self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
-        self.assertEqual(
-            update.greenwave_summary_string,
-            u'what have you done‽\n Missing: some arbitrary test you disagree with')
+        self.assertEqual(update.greenwave_summary_string, u'what have you done‽')
+        self.assertEqual(update.greenwave_unsatisfied_requirements,
+                         json.dumps(greenwave_response['unsatisfied_requirements']))
 
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
     # can ensure that we aren't raising Exceptions from them, while allowing us to only assert that
