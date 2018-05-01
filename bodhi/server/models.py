@@ -1681,6 +1681,9 @@ class Update(Base):
             Greenwave integration was not enabled when the update was created.
         greenwave_summary_string (unicode): A short summary of the outcome from Greenwave
             (e.g. 2 of 32 required tests failed).
+        greenwave_unsatisfied_requirements (unicode): When test_gating_status is failed, Bodhi will
+            set this to a JSON representation of the unsatisfied_requirements field from Greewave's
+            response.
         compose (Compose): The :class:`Compose` that this update is currently being mashed in. The
             update is locked if this is defined.
     """
@@ -1760,6 +1763,7 @@ class Update(Base):
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
     greenwave_summary_string = Column(Unicode(255))
+    greenwave_unsatisfied_requirements = Column(UnicodeText, nullable=True)
 
     @property
     def side_tag_locked(self):
@@ -1972,14 +1976,11 @@ class Update(Base):
                 self.test_gating_status = TestGatingStatus.ignored
             else:
                 self.test_gating_status = TestGatingStatus.passed
+            self.greenwave_unsatisfied_requirements = None
         else:
             self.test_gating_status = TestGatingStatus.failed
-            missing_reqs = [
-                req['testcase'] for req in
-                decision.get('unsatisfied_requirements', [])
-            ]
-            if missing_reqs:
-                decision['summary'] += '\n Missing: %s' % (', '.join(missing_reqs))
+            self.greenwave_unsatisfied_requirements = json.dumps(
+                decision.get('unsatisfied_requirements', []))
         self.greenwave_summary_string = decision['summary']
 
     @classmethod

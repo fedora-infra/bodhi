@@ -3044,7 +3044,7 @@ class TestUpdate(ModelTest):
             "applicable_policies": ["1"],
             "unsatisfied_requirements": [
                 {
-                    'item': {"item": "%s" % update.alias, "type": "koji_build"},
+                    'item': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
                     'result_id': "123",
                     'testcase': 'dist.depcheck',
                     'type': 'test-result-failed'
@@ -3057,7 +3057,7 @@ class TestUpdate(ModelTest):
                               'waiverdb.access_token': 'abc'}):
             update.waive_test_results('foo', 'this is not true!')
             wdata = {
-                'subject': {"item": "%s" % update.alias, "type": "koji_build"},
+                'subject': {"item": "%s" % update.builds[0].nvr, "type": "koji_build"},
                 'testcase': 'dist.depcheck',
                 'product_version': update.product_version,
                 'waived': True,

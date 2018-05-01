@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2017 Red Hat, Inc.
+# Copyright © 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for the bodhi.server.scripts.check_policies module."""
 import datetime
+import json
 
 from click import testing
 from mock import patch
@@ -50,6 +51,7 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.passed)
             self.assertEqual(update.greenwave_summary_string, 'All tests passed')
+            self.assertIsNone(update.greenwave_unsatisfied_requirements)
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
@@ -82,6 +84,7 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.passed)
             self.assertEqual(update.greenwave_summary_string, 'All tests passed')
+            self.assertIsNone(update.greenwave_unsatisfied_requirements)
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_testing',
@@ -105,21 +108,24 @@ class TestCheckPolicies(BaseTestCase):
                 'policies_satisfied': False,
                 'summary': '1 of 2 tests are failed',
                 'applicable_policies': ['taskotron_release_critical_tasks'],
-                'unsatisfied_requirements': [{
-                    'item': "glibc-1.0-1.f26",
-                    'result_id': "123",
-                    'testcase': 'dist.depcheck',
-                    'type': 'test-result-failed'
-                }]
-            }
+                'unsatisfied_requirements': [
+                    {u'testcase': u'dist.rpmdeplint',
+                     u'item': {u'item': u'glibc-1.0-1.f26', u'type': u'koji_build'},
+                     u'type': u'test-result-missing', u'scenario': None},
+                    {u'testcase': u'dist.rpmdeplint',
+                     u'item': {u'original_spec_nvr': u'glibc-1.0-1.f26'},
+                     u'type': u'test-result-missing', u'scenario': None},
+                    {u'testcase': u'dist.rpmdeplint',
+                     u'item': {u'item': update.alias, u'type': u'bodhi_update'},
+                     u'type': u'test-result-missing', u'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
             result = runner.invoke(check_policies.check, [])
             self.assertEqual(result.exit_code, 0)
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
-            self.assertEqual(
-                update.greenwave_summary_string,
-                '1 of 2 tests are failed\n Missing: dist.depcheck')
+            self.assertEqual(update.greenwave_summary_string, '1 of 2 tests are failed')
+            self.assertEqual(update.greenwave_unsatisfied_requirements,
+                             json.dumps(greenwave_response['unsatisfied_requirements']))
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
