@@ -201,7 +201,7 @@ class BaseTestCase(unittest.TestCase):
         """
         if not app:
             app = self.app
-        return app.get('/csrf').json_body['csrf_token']
+        return app.get('/csrf', headers={'Accept': 'application/json'}).json_body['csrf_token']
 
     def get_update(self, builds='bodhi-2.0-1.fc17', stable_karma=3, unstable_karma=-3):
         """
