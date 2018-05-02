@@ -608,7 +608,8 @@ class TestOverridesService(base.BaseTestCase):
         publish.reset_mock()
 
         # And now push its expiration_date into the future
-        res = self.app.get('/overrides/%s' % old_nvr)
+        res = self.app.get('/overrides/%s' % old_nvr,
+                           headers={'Accept': 'application/json'})
         o = res.json_body['override']
 
         expiration_date = datetime.now() + timedelta(days=1)
