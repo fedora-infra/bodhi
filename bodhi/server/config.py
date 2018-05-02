@@ -455,6 +455,9 @@ class BodhiConfig(dict):
         'krb_principal': {
             'value': None,
             'validator': _validate_none_or(str)},
+        'legal_link': {
+            'value': '',
+            'validator': six.text_type},
         'libravatar_dns': {
             'value': False,
             'validator': _validate_bool},
@@ -521,6 +524,9 @@ class BodhiConfig(dict):
         'prefer_ssl': {
             'value': None,
             'validator': _validate_none_or(bool)},
+        'privacy_link': {
+            'value': '',
+            'validator': six.text_type},
         'pungi.basepath': {
             'value': '/etc/bodhi',
             'validator': six.text_type},

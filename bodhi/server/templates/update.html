@@ -720,7 +720,11 @@ $(document).ready(function(){
                         <div class="alert alert-danger" for="text" style="display:none">
                           <strong></strong> <span class="error"></span>
                         </div>
-                      <p class="pull-right"><small>Comment fields support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</small></p>
+                      <p class="pull-right"><small>Comment fields support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.
+                      % if request.registry.settings.get('privacy_link'):
+                      Comments are governed under <a href="${request.registry.settings.get('privacy_link')}">this privacy policy</a>.
+                      % endif
+                      </small></p>
                     </div>
 
                     % if not request.user:

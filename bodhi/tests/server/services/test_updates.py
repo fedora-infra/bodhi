@@ -776,10 +776,26 @@ class TestUpdatesService(base.BaseTestCase):
 
         self.assertTrue('RPM' not in res.text)
 
-    def test_home_html(self):
-        resp = self.app.get('/', headers={'Accept': 'text/html'})
+    def test_home_html_legal(self):
+        """Test the home page HTML when a legal link is configured."""
+        with mock.patch.dict(
+                self.app.app.registry.settings, {'legal_link': 'http://loweringthebar.net/'}):
+            resp = self.app.get('/', headers={'Accept': 'text/html'})
+
         self.assertIn('Fedora Updates System', resp)
         self.assertIn('&copy;', resp)
+        self.assertIn('Legal</a>', resp)
+        self.assertIn('http://loweringthebar.net/', resp)
+
+    def test_home_html_no_legal(self):
+        """Test the home page HTML when no legal link is configured."""
+        with mock.patch.dict(self.app.app.registry.settings, {'legal_link': ''}):
+            resp = self.app.get('/', headers={'Accept': 'text/html'})
+
+        self.assertIn('Fedora Updates System', resp)
+        self.assertIn('&copy;', resp)
+        self.assertNotIn('Legal</a>', resp)
+        self.assertNotIn('http://loweringthebar.net/', resp)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_add_build_from_different_release(self):
@@ -1311,13 +1327,38 @@ class TestUpdatesService(base.BaseTestCase):
                      headers={'Accept': 'application/atom+xml'},
                      status=406)
 
-    def test_get_single_update_html(self):
+    def test_get_single_update_html_no_privacy_link(self):
+        """Test getting a single update via HTML when no privacy link is configured."""
         id = 'bodhi-2.0-1.fc17'
-        resp = self.app.get('/updates/%s' % id,
-                            headers={'Accept': 'text/html'})
+
+        with mock.patch.dict(self.app.app.registry.settings, {'privacy_link': ''}):
+            resp = self.app.get('/updates/%s' % id,
+                                headers={'Accept': 'text/html'})
+
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(id, resp)
         self.assertIn('&copy;', resp)
+        # The privacy policy comment should not be written on the page since by default Bodhi
+        # doesn't have a configured privacy policy.
+        self.assertNotIn('privacy', resp)
+
+    def test_get_single_update_html_privacy_link(self):
+        """Test getting a single update via HTML when a privacy link is configured."""
+        id = 'bodhi-2.0-1.fc17'
+
+        with mock.patch.dict(
+                self.app.app.registry.settings, {'privacy_link': 'https://privacyiscool.com'}):
+            resp = self.app.get('/updates/%s' % id,
+                                headers={'Accept': 'text/html'})
+
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(id, resp)
+        self.assertIn('&copy;', resp)
+        # The privacy policy comment should not be written on the page since by default Bodhi
+        # doesn't have a configured privacy policy.
+        self.assertIn('Privacy policy', resp)
+        self.assertIn('https://privacyiscool.com', resp)
+        self.assertIn('Comments are governed under', resp)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates(self):
