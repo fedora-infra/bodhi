@@ -9,9 +9,11 @@ Features
 ^^^^^^^^
 
 * Include the missing tests in the summary about greenwave's decision
-  (:issue:`2273`).
+  (:issue:`2273` and :issue:`2345`).
 * Show waivers about an update on its page for easier access to users and admins
   (:issue:`2277`).
+* New ``legal_link`` and ``privacy_link`` settings allow Bodhi to link to a legal document and
+  privacy policy (:issue:`2347`).
 
 
 Bugs
@@ -19,6 +21,7 @@ Bugs
 * Properly call the WaiverDB API when waiving tests from the UI (:issue:`2272`).
 * Only ask greenwave about updates in active releases when asking their gating
   status (:issue:`2121`).
+* Updates can no longer be pushed if they fail the gating tests (:issue:`2346`).
 
 
 Contributors
