@@ -208,6 +208,19 @@
           file issues</a>
           if you have any problems. Read the <a href="https://bodhi.fedoraproject.org/docs">documentation</a>.
         </p>
+        % if request.registry.settings.get('legal_link') or request.registry.settings.get('privacy_link'):
+        <p class="text-muted text-xs-center">
+            % if request.registry.settings.get('legal_link'):
+            <a href="${request.registry.settings.get('legal_link')}">Legal</a>
+            % endif
+            % if request.registry.settings.get('legal_link') and request.registry.settings.get('privacy_link'):
+            |
+            % endif
+            % if request.registry.settings.get('privacy_link'):
+            <a href="${request.registry.settings.get('privacy_link')}">Privacy policy</a>
+            % endif
+        </p>
+        % endif
       </div>
     </div>
 
