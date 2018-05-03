@@ -33,7 +33,8 @@ down_revision = '22858ba91115'
 
 def upgrade():
     """Add a display_name column to the updates table."""
-    op.add_column('updates', sa.Column('display_name', sa.UnicodeText(), nullable=False))
+    op.add_column('updates', sa.Column('display_name', sa.UnicodeText(), nullable=False,
+                  server_default=''))
 
 
 def downgrade():
