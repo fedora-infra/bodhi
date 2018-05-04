@@ -12,10 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import unittest
-
 import mock
-import six
 
 from bodhi.server.config import config
 from bodhi.server.models import Update, User
@@ -74,7 +71,6 @@ class TestUsersService(base.BaseTestCase):
                      headers=dict(accept='application/atom+xml'),
                      status=406)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users(self):
         res = self.app.get('/users/')
         self.assertIn('application/json', res.headers['Content-Type'])
@@ -86,7 +82,6 @@ class TestUsersService(base.BaseTestCase):
         self.assertIn(u'anonymous', users)
         self.assertIn(u'bodhi', users)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_jsonp(self):
         res = self.app.get('/users/',
                            {'callback': 'callback'},
@@ -96,7 +91,6 @@ class TestUsersService(base.BaseTestCase):
         self.assertIn('bodhi', res)
         self.assertIn('guest', res)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_rss(self):
         res = self.app.get('/rss/users/',
                            headers=dict(accept='application/atom+xml'))
@@ -104,7 +98,6 @@ class TestUsersService(base.BaseTestCase):
         self.assertIn('bodhi', res)
         self.assertIn('guest', res)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_like_users(self):
         res = self.app.get('/users/', {'like': 'odh'})
         body = res.json_body
@@ -117,7 +110,6 @@ class TestUsersService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['users']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_search_users(self):
         """
         Test that the overrides/?search= endpoint works as expected
@@ -142,7 +134,6 @@ class TestUsersService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['users']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_with_pagination(self):
         res = self.app.get('/users/')
         body = res.json_body
@@ -165,31 +156,26 @@ class TestUsersService(base.BaseTestCase):
         self.assertEquals(len(body['users']), 1)
         self.assertIn(body['users'][0]['name'], users)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_name(self):
         res = self.app.get('/users/', {"name": 'guest'})
         body = res.json_body
         self.assertEquals(len(body['users']), 1)
         self.assertEquals(body['users'][0]['name'], 'guest')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_name_match(self):
         res = self.app.get('/users/', {"name": 'gue%'})
         body = res.json_body
         self.assertEquals(len(body['users']), 1)
         self.assertEquals(body['users'][0]['name'], 'guest')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_name_match_miss(self):
         res = self.app.get('/users/', {"name": '%wat%'})
         self.assertEquals(len(res.json_body['users']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_groups(self):
         res = self.app.get('/users/', {"groups": 'packager'})
         self.assertEquals(len(res.json_body['users']), 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_nonexistant_group(self):
         res = self.app.get('/users/', {"groups": 'carbunkle'}, status=400)
         body = res.json_body
@@ -197,7 +183,6 @@ class TestUsersService(base.BaseTestCase):
         self.assertEquals(body['errors'][0]['description'],
                           'Invalid groups specified: carbunkle')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_mixed_nonexistant_group(self):
         res = self.app.get('/users/', {"groups": ['carbunkle', 'packager']}, status=400)
         body = res.json_body
@@ -205,21 +190,18 @@ class TestUsersService(base.BaseTestCase):
         self.assertEquals(body['errors'][0]['description'],
                           'Invalid groups specified: carbunkle')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_group_miss(self):
         res = self.app.get('/users/', {"groups": 'provenpackager'})
         body = res.json_body
         self.assertEquals(len(body['users']), 0)
         assert 'errors' not in res.json_body
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_update_title(self):
         res = self.app.get('/users/', {"updates": 'bodhi-2.0-1.fc17'})
         body = res.json_body
         self.assertEquals(len(body['users']), 1)
         self.assertEquals(body['users'][0]['name'], 'guest')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_update_alias(self):
         update = self.db.query(Update).first()
         update.alias = u'some_alias'
@@ -230,7 +212,6 @@ class TestUsersService(base.BaseTestCase):
         self.assertEquals(len(body['users']), 1)
         self.assertEquals(body['users'][0]['name'], 'guest')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_nonexistant_update(self):
         res = self.app.get('/users/', {"updates": 'carbunkle'}, status=400)
         body = res.json_body
@@ -238,14 +219,12 @@ class TestUsersService(base.BaseTestCase):
         self.assertEquals(body['errors'][0]['description'],
                           'Invalid updates specified: carbunkle')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_package_name(self):
         res = self.app.get('/users/', {"packages": 'bodhi'})
         body = res.json_body
         self.assertEquals(len(body['users']), 1)
         self.assertEquals(body['users'][0]['name'], 'guest')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_users_by_nonexistant_package(self):
         res = self.app.get('/users/', {"packages": 'carbunkle'}, status=400)
         body = res.json_body

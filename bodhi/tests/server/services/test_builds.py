@@ -17,10 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import unittest
-
-import six
-
 from bodhi.server.models import RpmBuild, RpmPackage
 from bodhi.tests.server import base
 
@@ -34,7 +30,6 @@ class TestBuildsService(base.BaseTestCase):
         res = self.app.get('/builds/bodhi-2.0-1.fc17')
         self.assertEquals(res.json_body['nvr'], 'bodhi-2.0-1.fc17')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_builds(self):
         res = self.app.get('/builds/')
         body = res.json_body
@@ -43,7 +38,6 @@ class TestBuildsService(base.BaseTestCase):
         up = body['builds'][0]
         self.assertEquals(up['nvr'], u'bodhi-2.0-1.fc17')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_builds_pagination(self):
 
         # First, stuff a second build in there
@@ -66,7 +60,6 @@ class TestBuildsService(base.BaseTestCase):
 
         self.assertNotEquals(build1, build2)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_builds_by_package(self):
         res = self.app.get('/builds/', {"packages": "bodhi"})
         body = res.json_body
@@ -75,14 +68,12 @@ class TestBuildsService(base.BaseTestCase):
         up = body['builds'][0]
         self.assertEquals(up['nvr'], u'bodhi-2.0-1.fc17')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_builds_by_unexisting_package(self):
         res = self.app.get('/builds/', {"packages": "flash"}, status=400)
         self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid packages specified: flash')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_builds_by_release_name(self):
         res = self.app.get('/builds/', {"releases": "F17"})
         body = res.json_body
@@ -91,7 +82,6 @@ class TestBuildsService(base.BaseTestCase):
         up = body['builds'][0]
         self.assertEquals(up['nvr'], u'bodhi-2.0-1.fc17')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_builds_by_release_version(self):
         res = self.app.get('/builds/', {"releases": "17"})
         body = res.json_body
@@ -100,26 +90,22 @@ class TestBuildsService(base.BaseTestCase):
         up = body['builds'][0]
         self.assertEquals(up['nvr'], u'bodhi-2.0-1.fc17')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_builds_by_unexisting_release(self):
         res = self.app.get('/builds/', {"releases": "WinXP"}, status=400)
         self.assertEquals(res.json_body['errors'][0]['name'], 'releases')
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid releases specified: WinXP')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_builds_by_nvr(self):
         res = self.app.get('/builds/', {"nvr": "bodhi-2.0-1.fc17"})
         up = res.json_body['builds'][0]
         self.assertEquals(up['nvr'], u'bodhi-2.0-1.fc17')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_builds_by_update_title(self):
         res = self.app.get('/builds/', {"updates": ["bodhi-2.0-1.fc17"]})
         up = res.json_body['builds'][0]
         self.assertEquals(up['nvr'], u'bodhi-2.0-1.fc17')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_builds_no_rows_per_page(self):
         res = self.app.get('/builds/', {"rows_per_page": None}, status=400)
         self.assertEquals(res.json_body['status'], 'error')
