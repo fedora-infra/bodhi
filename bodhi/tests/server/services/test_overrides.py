@@ -19,10 +19,8 @@
 
 from datetime import datetime, timedelta
 import copy
-import unittest
 
 import mock
-import six
 
 from bodhi.server.models import BuildrootOverride, RpmBuild, RpmPackage, Release, User
 from bodhi.server import main
@@ -52,7 +50,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['submitter']['name'], 'guest')
         self.assertEquals(override['notes'], 'blah blah blah')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides(self):
         res = self.app.get('/overrides/')
 
@@ -64,21 +61,18 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['submitter']['name'], 'guest')
         self.assertEquals(override['notes'], 'blah blah blah')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_rss(self):
         res = self.app.get('/rss/overrides/',
                            headers=dict(accept='application/atom+xml'))
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('blah blah blah', res)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_expired_overrides(self):
         res = self.app.get('/overrides/', {'expired': 'true'})
 
         body = res.json_body
         self.assertEquals(len(body['overrides']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_notexpired_overrides(self):
         res = self.app.get('/overrides/', {'expired': 'false'})
 
@@ -90,7 +84,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['submitter']['name'], 'guest')
         self.assertEquals(override['notes'], 'blah blah blah')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_invalid_expired(self):
         res = self.app.get('/overrides/', {"expired": "lalala"},
                            status=400)
@@ -101,7 +94,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(errors[0]['description'],
                           '"lalala" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_packages(self):
         res = self.app.get('/overrides/', {'packages': 'bodhi'})
 
@@ -113,7 +105,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['submitter']['name'], 'guest')
         self.assertEquals(override['notes'], 'blah blah blah')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_packages_without_override(self):
         self.db.add(RpmPackage(name=u'python'))
         self.db.flush()
@@ -123,7 +114,6 @@ class TestOverridesService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['overrides']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_invalid_packages(self):
         res = self.app.get('/overrides/', {'packages': 'flash-player'},
                            status=400)
@@ -135,7 +125,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(errors[0]['description'],
                           'Invalid packages specified: flash-player')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_releases(self):
         res = self.app.get('/overrides/', {'releases': 'F17'})
 
@@ -147,7 +136,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['submitter']['name'], 'guest')
         self.assertEquals(override['notes'], 'blah blah blah')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_builds(self):
         res = self.app.get('/overrides/', {'builds': 'bodhi-2.0-1.fc17'})
 
@@ -159,7 +147,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['submitter']['name'], 'guest')
         self.assertEquals(override['notes'], 'blah blah blah')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_releases_without_override(self):
         self.db.add(Release(name=u'F42', long_name=u'Fedora 42',
                             id_prefix=u'FEDORA', version=u'42',
@@ -178,7 +165,6 @@ class TestOverridesService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['overrides']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_invalid_releases(self):
         res = self.app.get('/overrides/', {'releases': 'F42'},
                            status=400)
@@ -190,7 +176,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(errors[0]['description'],
                           'Invalid releases specified: F42')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_username(self):
         res = self.app.get('/overrides/', {"user": "guest"})
         body = res.json_body
@@ -201,7 +186,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(override['submitter']['name'], 'guest')
         self.assertEquals(override['notes'], 'blah blah blah')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_username_without_override(self):
         self.db.add(User(name=u'bochecha'))
         self.db.flush()
@@ -211,7 +195,6 @@ class TestOverridesService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['overrides']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_unexisting_username(self):
         res = self.app.get('/overrides/', {"user": "santa"}, status=400)
 
@@ -222,7 +205,6 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEquals(errors[0]['description'],
                           "Invalid user specified: santa")
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_like(self):
         """
         Test that the overrides/?like= endpoint works as expected
@@ -240,7 +222,6 @@ class TestOverridesService(base.BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['overrides']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_overrides_by_search(self):
         """
         Test that the overrides/?search= endpoint works as expected
@@ -701,7 +682,6 @@ class TestOverridesWebViews(base.BaseTestCase):
                             status=200, headers={'Accept': 'text/html'})
         self.assertIn('<h2 class="pull-left m-t-3">New Override</h2>', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_overrides_list(self):
         """
         Test that the overrides list page shows, and contains the one overrides

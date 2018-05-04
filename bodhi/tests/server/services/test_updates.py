@@ -82,14 +82,12 @@ class TestNewUpdate(BaseTestCase):
     """
     This class contains tests for the new_update() function.
     """
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_empty_build_name(self, *args):
         res = self.app.post_json('/updates/', self.get_update([u'']), status=400)
         self.assertEquals(res.json_body['errors'][0]['name'], 'builds.0')
         self.assertEquals(res.json_body['errors'][0]['description'], 'Required')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_fail_on_edit_with_empty_build_list(self, *args):
         update = self.get_update()
@@ -106,7 +104,6 @@ class TestNewUpdate(BaseTestCase):
             res.json_body['errors'][1]['description'],
             'ACL validation mechanism was unable to determine ACLs.')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -123,14 +120,12 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_duplicate_build(self, *args):
         res = self.app.post_json(
             '/updates/', self.get_update([u'bodhi-2.0-2.fc17', u'bodhi-2.0-2.fc17']), status=400)
         assert 'Duplicate builds' in res, res
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_multiple_builds_of_same_package(self, *args):
         res = self.app.post_json('/updates/', self.get_update([u'bodhi-2.0-2.fc17',
@@ -138,7 +133,6 @@ class TestNewUpdate(BaseTestCase):
                                  status=400)
         assert 'Multiple bodhi builds specified' in res, res
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_invalid_autokarma(self, *args):
         res = self.app.post_json('/updates/', self.get_update(stable_karma=-1),
@@ -148,14 +142,12 @@ class TestNewUpdate(BaseTestCase):
                                  status=400)
         assert '1 is greater than maximum value -1' in res, res
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_duplicate_update(self, *args):
         res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-1.fc17'),
                                  status=400)
         assert 'Update for bodhi-2.0-1.fc17 already exists' in res, res
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_invalid_requirements(self, *args):
         update = self.get_update()
@@ -163,7 +155,6 @@ class TestNewUpdate(BaseTestCase):
         res = self.app.post_json('/updates/', update, status=400)
         assert "Required check doesn't exist" in res, res
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_no_privs(self, publish, *args):
@@ -187,7 +178,6 @@ class TestNewUpdate(BaseTestCase):
             res.json_body['errors']
         self.assertEquals(publish.call_args_list, [])
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -210,7 +200,6 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_pkgdb_outage(self, *args):
         "Test the case where our call to the pkgdb throws an exception"
@@ -223,7 +212,6 @@ class TestNewUpdate(BaseTestCase):
 
         assert "Unable to access the Package Database" in res, res
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_invalid_acl_system(self, *args):
         with mock.patch.dict(config, {'acl_system': 'null'}):
@@ -232,11 +220,9 @@ class TestNewUpdate(BaseTestCase):
 
         assert "guest does not have commit access to bodhi" in res, res
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_put_json_update(self):
         self.app.put_json('/updates/', self.get_update(), status=405)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -245,7 +231,6 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
@@ -276,7 +261,6 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
@@ -292,7 +276,6 @@ class TestNewUpdate(BaseTestCase):
         self.assertEquals(up['errors'][0]['description'],
                           "Build does not exist: bodhi-2.0.0-2.fc17")
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
@@ -308,7 +291,6 @@ class TestNewUpdate(BaseTestCase):
         self.assertEquals(up['errors'][0]['description'],
                           "Koji error getting build: bodhi-2.0.0-2.fc17")
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
@@ -348,7 +330,6 @@ class TestNewUpdate(BaseTestCase):
         # At the end, ensure that the right kind of package was created.
         self.assertEquals(self.db.query(ModulePackage).count(), 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_multiple_builds_of_same_module_stream(self, *args):
         self.create_release(u'27M')
@@ -358,7 +339,6 @@ class TestNewUpdate(BaseTestCase):
                                  status=400)
         assert 'Multiple nodejs:6 builds specified' in res, res
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_multiple_builds_of_different_module_stream(self, *args):
         self.create_release(u'27M')
@@ -377,7 +357,6 @@ class TestNewUpdate(BaseTestCase):
         # At the end, ensure that the right kind of packages were created.
         self.assertEquals(self.db.query(ModulePackage).count(), 2)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_multiple_updates_single_module_steam(self, *args):
         # Ensure there are no module packages in the DB to begin with.
@@ -405,7 +384,6 @@ class TestNewUpdate(BaseTestCase):
         assert updates[2].status.name == 'pending'
         assert updates[2].request.name == 'testing'
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -438,7 +416,6 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -453,7 +430,6 @@ class TestNewUpdate(BaseTestCase):
         self.assertEquals(up['bugs'][1]['bug_id'], 5678)
         self.assertEquals(up['bugs'][2]['bug_id'], 12345)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -481,7 +457,6 @@ class TestNewUpdate(BaseTestCase):
         self.assertEquals(up['errors'][0]['description'],
                           "Invalid bug ID specified: [u'1234', u'blargh']")
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_build(self, *args):
@@ -495,7 +470,6 @@ class TestNewUpdate(BaseTestCase):
 
         self.assertEqual(resp.json['title'], 'bodhi-2.0.0-3.fc17')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_existing_package(self, *args):
@@ -511,7 +485,6 @@ class TestNewUpdate(BaseTestCase):
         package = self.db.query(RpmPackage).filter_by(name=u'existing-package').one()
         self.assertEqual(package.name, 'existing-package')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_missing_package(self, *args):
@@ -524,7 +497,6 @@ class TestNewUpdate(BaseTestCase):
         package = self.db.query(RpmPackage).filter_by(name=u'missing-package').one()
         self.assertEqual(package.name, 'missing-package')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_cascade_package_requirements_to_update(self, publish, *args):
@@ -544,7 +516,6 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_untested_critpath_to_release(self, publish, *args):
@@ -560,7 +531,6 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsoletion(self, publish, *args):
@@ -606,7 +576,6 @@ class TestNewUpdate(BaseTestCase):
                              '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
         self.assertEquals(up.comments[-1].text, expected_comment)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.services.updates.Update.new', side_effect=IOError('oops!'))
@@ -623,7 +592,6 @@ class TestNewUpdate(BaseTestCase):
         build = self.db.query(RpmBuild).filter(RpmBuild.nvr == u'bodhi-2.3.2-1.fc17').one()
         self.assertEqual(build.package.name, 'bodhi')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.obsolete_older_updates',
                 side_effect=RuntimeError("bet you didn't see this coming!"))
@@ -665,7 +633,6 @@ class TestSetRequest(BaseTestCase):
     """
     This class contains tests for the set_request() function.
     """
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_set_request_locked_update(self, *args):
         """Ensure that we get an error if trying to set request of a locked update"""
@@ -682,7 +649,6 @@ class TestSetRequest(BaseTestCase):
         self.assertEquals(res.json_body[u'errors'][0][u'description'],
                           "Can't change request on a locked update")
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_set_request_archived_release(self, *args):
         """Ensure that we get an error if trying to setrequest of a update in an archived release"""
@@ -737,7 +703,6 @@ class TestSetRequest(BaseTestCase):
         self.assertEqual(up.request, UpdateRequest.stable)
         self.assertEqual(res.json['update']['request'], 'stable')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.set_request',
                 side_effect=IOError('IOError. oops!'))
@@ -892,7 +857,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(res.json, expected_json)
         listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_koji_error(self):
         """Editing an update that references missing builds should raise an error."""
         update = self.db.query(Update).one()
@@ -915,7 +879,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(res.json, expected_json)
         listTags.assert_called_once_with(update.title)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_untagged_build(self):
         """Editing an update that references untagged builds should raise an error."""
         update = self.db.query(Update).one()
@@ -957,7 +920,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('<span class="sr-only">Locked</span>', resp)
         self.assertIn('/composes/{}/{}'.format(compose.release.name, compose.request.value), resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -996,7 +958,6 @@ class TestUpdatesService(BaseTestCase):
         assert build.update is not None
         self.assertEquals(build.update.notes, u'testing!!!')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -1129,7 +1090,6 @@ class TestUpdatesService(BaseTestCase):
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], False)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -1165,7 +1125,6 @@ class TestUpdatesService(BaseTestCase):
             res.json_body['errors'][0]['description'],
             'Requirement not met Required tests did not pass on this update')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -1201,7 +1160,6 @@ class TestUpdatesService(BaseTestCase):
             res.json_body['errors'][0]['description'],
             'Requirement not met Required tests did not pass on this update')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -1237,7 +1195,6 @@ class TestUpdatesService(BaseTestCase):
             res.json_body['errors'][0]['description'],
             'Requirement not met Required tests did not pass on this update')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -1274,7 +1231,6 @@ class TestUpdatesService(BaseTestCase):
             res.json_body['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -1310,7 +1266,6 @@ class TestUpdatesService(BaseTestCase):
             res.json_body['errors'][0]['description'],
             'Requirement not met Required tests did not pass on this update')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -1346,7 +1301,6 @@ class TestUpdatesService(BaseTestCase):
             res.json_body['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_old_bodhi1_redirect(self, publish, *args):
@@ -1421,7 +1375,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('https://privacyiscool.com', resp)
         self.assertIn('Comments are governed under', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates(self):
         res = self.app.get('/updates/')
         body = res.json_body
@@ -1451,7 +1404,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['url'],
                           (urlparse.urljoin(config['base_address'], '/updates/%s' % alias)))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_jsonp(self):
         res = self.app.get('/updates/',
                            {'callback': 'callback'},
@@ -1460,14 +1412,12 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('callback', res)
         self.assertIn('bodhi-2.0-1.fc17', res)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_rss(self):
         res = self.app.get('/rss/updates/',
                            headers={'Accept': 'application/atom+xml'})
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('bodhi-2.0-1.fc17', res)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_html(self):
         res = self.app.get('/updates/',
                            headers={'Accept': 'text/html'})
@@ -1475,7 +1425,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('bodhi-2.0-1.fc17', res)
         self.assertIn('&copy;', res)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_updates_like(self):
         res = self.app.get('/updates/', {'like': 'odh'})
         body = res.json_body
@@ -1488,7 +1437,6 @@ class TestUpdatesService(BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_updates_search(self):
         """
         Test that the updates/?search= endpoint works as expected
@@ -1564,7 +1512,6 @@ class TestUpdatesService(BaseTestCase):
 
         self.assertNotEquals(update1, update2)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_approved_since(self):
         now = datetime.utcnow()
 
@@ -1609,7 +1556,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(up['test_cases']), 1)
         self.assertEquals(up['test_cases'][0]['name'], u'Wat')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_approved_since(self):
         res = self.app.get('/updates/', {"approved_since": "forever"},
                            status=400)
@@ -1619,7 +1565,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid date')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_approved_before(self):
         # Approve an update
         now = datetime.utcnow()
@@ -1661,7 +1606,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_approved_before(self):
         res = self.app.get('/updates/', {"approved_before": "forever"},
                            status=400)
@@ -1671,7 +1615,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid date')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_bugs(self):
         res = self.app.get('/updates/', {"bugs": '12345'})
         body = res.json_body
@@ -1707,13 +1650,11 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid bug ID specified: [u'cockroaches']")
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_bug(self):
         res = self.app.get('/updates/', {"bugs": "19850110"})
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_critpath(self):
         res = self.app.get('/updates/', {"critpath": "false"})
         body = res.json_body
@@ -1738,7 +1679,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_critpath(self):
         res = self.app.get('/updates/', {"critpath": "lalala"},
                            status=400)
@@ -1748,7 +1688,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"lalala" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_cves(self):
         res = self.app.get("/updates/", {"cves": "CVE-1985-0110"})
         body = res.json_body
@@ -1773,13 +1712,11 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_cve(self):
         res = self.app.get('/updates/', {"cves": "CVE-2013-1015"})
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_cve(self):
         res = self.app.get('/updates/', {"cves": "WTF-ZOMG-BBQ"},
                            status=400)
@@ -1789,7 +1726,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"WTF-ZOMG-BBQ" is not a valid CVE id')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_date_submitted_invalid_date(self):
         """test filtering by submitted date with an invalid date"""
         res = self.app.get('/updates/', {"submitted_since": "11-01-1984"}, status=400)
@@ -1799,7 +1735,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(body['errors'][0]['description'],
                           'Invalid date')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_date_submitted_future_date(self):
         """test filtering by submitted date with future date"""
         tomorrow = datetime.utcnow() + timedelta(days=1)
@@ -1809,7 +1744,6 @@ class TestUpdatesService(BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_date_submitted_valid(self):
         """test filtering by submitted date with valid data"""
         res = self.app.get('/updates/', {"submitted_since": "1984-11-01"})
@@ -1835,7 +1769,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_date_submitted_before_invalid_date(self):
         """test filtering by submitted before date with an invalid date"""
         res = self.app.get('/updates/', {"submitted_before": "11-01-1984"}, status=400)
@@ -1845,14 +1778,12 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(body['errors'][0]['description'],
                           'Invalid date')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_date_submitted_before_old_date(self):
         """test filtering by submitted before date with old date"""
         res = self.app.get('/updates/', {"submitted_before": "1975-01-01"})
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_date_submitted_before_valid(self):
         """test filtering by submitted before date with valid date"""
         today = datetime.utcnow().strftime("%Y-%m-%d")
@@ -1879,7 +1810,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_locked(self):
         Update.query.one().locked = True
         self.db.flush()
@@ -1906,7 +1836,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_content_type(self):
         res = self.app.get('/updates/', {"content_type": "module"})
         body = res.json_body
@@ -1916,7 +1845,6 @@ class TestUpdatesService(BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['updates']), 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_locked(self):
         res = self.app.get('/updates/', {"locked": "maybe"},
                            status=400)
@@ -1926,7 +1854,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"maybe" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_modified_since(self):
         now = datetime.utcnow()
 
@@ -1967,7 +1894,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_modified_since(self):
         res = self.app.get('/updates/', {"modified_since": "the dawn of time"},
                            status=400)
@@ -1977,7 +1903,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid date')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_modified_before(self):
         now = datetime.utcnow()
         tomorrow = now + timedelta(days=1)
@@ -2020,7 +1945,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_modified_before(self):
         res = self.app.get('/updates/', {"modified_before": "the dawn of time"},
                            status=400)
@@ -2030,7 +1954,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid date')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_package(self):
         res = self.app.get('/updates/', {"packages": "bodhi"})
         body = res.json_body
@@ -2055,7 +1978,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_builds(self):
         res = self.app.get('/updates/', {"builds": "bodhi-3.0-1.fc17"})
         body = res.json_body
@@ -2084,13 +2006,11 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_package(self):
         res = self.app.get('/updates/', {"packages": "flash-player"})
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_pushed(self):
         res = self.app.get('/updates/', {"pushed": "false"})
         body = res.json_body
@@ -2116,7 +2036,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['karma'], 1)
         self.assertEquals(up['pushed'], False)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_pushed(self):
         res = self.app.get('/updates/', {"pushed": "who knows?"},
                            status=400)
@@ -2126,7 +2045,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"who knows?" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_pushed_since(self):
         now = datetime.utcnow()
 
@@ -2166,7 +2084,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_pushed_since(self):
         res = self.app.get('/updates/', {"pushed_since": "a while ago"},
                            status=400)
@@ -2176,7 +2093,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid date')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_pushed_before(self):
         now = datetime.utcnow()
         tomorrow = now + timedelta(days=1)
@@ -2218,7 +2134,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(up['bugs']), 1)
         self.assertEquals(up['bugs'][0]['bug_id'], 12345)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_pushed_before(self):
         res = self.app.get('/updates/', {"pushed_before": "a while ago"},
                            status=400)
@@ -2228,7 +2143,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid date')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_release_name(self):
         res = self.app.get('/updates/', {"releases": "F17"})
         body = res.json_body
@@ -2253,7 +2167,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_singular_release_param(self):
         """
         Test the singular parameter "release" rather than "releases".
@@ -2282,7 +2195,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_release_version(self):
         res = self.app.get('/updates/', {"releases": "17"})
         body = res.json_body
@@ -2307,7 +2219,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_release(self):
         res = self.app.get('/updates/', {"releases": "WinXP"}, status=400)
         body = res.json_body
@@ -2316,7 +2227,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           'Invalid releases specified: WinXP')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_request(self):
         res = self.app.get('/updates/', {'request': "testing"})
         body = res.json_body
@@ -2352,7 +2262,6 @@ class TestUpdatesService(BaseTestCase):
                           u'"impossible" is not one of revoke, testing,'
                           ' obsolete, batched, stable, unpush')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_severity(self):
         res = self.app.get('/updates/', {"severity": "medium"})
         body = res.json_body
@@ -2387,7 +2296,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"schoolmaster" is not one of high, urgent, medium, low, unspecified')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_status(self):
         res = self.app.get('/updates/', {"status": "pending"})
         body = res.json_body
@@ -2412,7 +2320,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_status_active_release(self):
         res = self.app.get(
             '/updates/', {"status": "pending", "active_releases": 'true'})
@@ -2438,7 +2345,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_status_inactive_release(self):
         rel = self.db.query(Release).filter_by(name='F17').one()
         rel.state = ReleaseState.archived
@@ -2461,7 +2367,6 @@ class TestUpdatesService(BaseTestCase):
             ('"single" is not one of testing, side_tag_expired, processing, obsolete, '
              'pending, stable, unpushed, side_tag_active'))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_suggest(self):
         res = self.app.get('/updates/', {"suggest": "unspecified"})
         body = res.json_body
@@ -2496,7 +2401,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"no idea" is not one of logout, reboot, unspecified')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_type(self):
         res = self.app.get('/updates/', {"type": "bugfix"})
         body = res.json_body
@@ -2531,7 +2435,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           '"not_my" is not one of newpackage, bugfix, security, enhancement')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_username(self):
         res = self.app.get('/updates/', {"user": "guest"})
         body = res.json_body
@@ -2556,7 +2459,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEquals(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_username(self):
         res = self.app.get('/updates/', {"user": "santa"},
                            status=400)
@@ -2566,7 +2468,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           "Invalid user specified: santa")
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -2618,7 +2519,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(publish.call_args_list), 2)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_testing_update_with_new_builds(self, publish, *args):
@@ -2665,7 +2565,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_testing_update_with_new_builds_with_stable_request(self, publish, *args):
@@ -2712,7 +2611,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_update_with_different_release(self, publish, *args):
@@ -2749,7 +2647,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['errors'][0]['description'],
                           'Cannot add a F18 build to an F17 update')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_stable_update(self, publish, *args):
@@ -2776,7 +2673,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['errors'][0]['description'], "Cannot edit stable updates")
         self.assertEquals(len(publish.call_args_list), 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_locked_update(self, publish, *args):
@@ -2835,7 +2731,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(publish.call_args_list), 2)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_pending_update_on_stable_karma_reached_autopush_enabled(self, publish, *args):
@@ -2861,7 +2756,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.request, UpdateRequest.testing)
         self.assertEquals(up.status, UpdateStatus.pending)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_pending_urgent_update_on_stable_karma_reached_autopush_enabled(self, publish, *args):
@@ -2891,7 +2785,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.request, UpdateRequest.stable)
         self.assertEquals(up.status, UpdateStatus.pending)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_pending_update_on_stable_karma_not_reached(self, publish, *args):
         """ Ensure that pending update does not directly request for stable
@@ -2914,7 +2807,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.request, UpdateRequest.testing)
         self.assertEquals(up.status, UpdateStatus.pending)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_pending_update_on_stable_karma_reached_autopush_disabled(self, publish, *args):
@@ -2945,7 +2837,6 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, text, author=u'bodhi')
         self.assertIn('pushed to stable now if the maintainer wishes', up.comments[-1]['text'])
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsoletion_locked_with_open_request(self, publish, *args):
@@ -2965,7 +2856,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.status, UpdateStatus.pending)
         self.assertEquals(up.request, UpdateRequest.testing)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsoletion_unlocked_with_open_request(self, publish, *args):
@@ -2981,7 +2871,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.status, UpdateStatus.obsolete)
         self.assertEquals(up.request, None)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsoletion_unlocked_with_open_stable_request(self, publish, *args):
@@ -3001,7 +2890,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.status, UpdateStatus.pending)
         self.assertEquals(up.request, UpdateRequest.stable)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_stable_for_obsolete_update(self, publish, *args):
@@ -3045,7 +2933,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(id, resp)
         self.assertNotIn('Push to Stable', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_enabled_button_for_autopush(self, *args):
         """Test Enabled button on Update page when autopush is True"""
@@ -3059,7 +2946,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(nvr, resp)
         self.assertIn('Enabled', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_disabled_button_for_autopush(self, *args):
         """Test Disabled button on Update page when autopush is False"""
@@ -3097,7 +2983,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp['errors'][0]['name'], 'request')
         self.assertEqual(resp['errors'][0]['description'], 'Required')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3113,7 +2998,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['update']['request'], 'testing')
         self.assertEquals(publish.call_args_list, [])
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3136,7 +3020,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['update']['status'], 'testing')
         publish.assert_called_with(topic='update.request.revoke', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3159,7 +3042,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['update']['status'], 'unpushed')
         publish.assert_called_with(topic='update.request.revoke', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsolete_if_unstable_with_autopush_enabled_when_pending(self, publish, *args):
@@ -3186,7 +3068,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.status, UpdateStatus.obsolete)
         self.assertEquals(up.request, None)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsolete_if_unstable_with_autopush_disabled_when_pending(self, publish, *args):
@@ -3212,7 +3093,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.status, UpdateStatus.pending)
         self.assertEquals(up.request, UpdateRequest.testing)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsolete_if_unstable_karma_not_reached_with_autopush_enabled_when_pending(
@@ -3239,7 +3119,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.status, UpdateStatus.pending)
         self.assertEquals(up.request, UpdateRequest.testing)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsolete_if_unstable_with_autopush_enabled_when_testing(self, publish, *args):
@@ -3277,7 +3156,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.status, UpdateStatus.obsolete)
         self.assertEquals(up.request, None)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3297,7 +3175,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['update']['status'], 'unpushed')
         publish.assert_called_with(topic='update.request.unpush', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_invalid_stable_request(self, *args):
@@ -3316,7 +3193,6 @@ class TestUpdatesService(BaseTestCase):
             resp.json['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_request_to_stable_based_on_stable_karma(self, *args):
@@ -3361,7 +3237,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.request, UpdateRequest.stable)
         self.assertEquals(up.status, UpdateStatus.testing)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3389,7 +3264,6 @@ class TestUpdatesService(BaseTestCase):
         publish.assert_called_with(
             topic='update.request.stable', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3415,7 +3289,6 @@ class TestUpdatesService(BaseTestCase):
             resp.json['errors'][0]['description'],
             "Can't change request for an archived release")
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_failed_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3440,7 +3313,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('errors', resp)
         self.assertIn('Required task', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_absent_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3465,7 +3337,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('errors', resp)
         self.assertIn('No result found for', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3497,7 +3368,6 @@ class TestUpdatesService(BaseTestCase):
         except AssertionError:
             pass
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3528,7 +3398,6 @@ class TestUpdatesService(BaseTestCase):
         except AssertionError:
             pass
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_update_with_older_build_in_testing_from_diff_user(self, r):
         """
@@ -3564,14 +3433,12 @@ class TestUpdatesService(BaseTestCase):
         # Ensure the second update was created successfully
         self.db.query(Update).filter_by(title=newtitle).one()
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_updateid_alias(self, *args):
         res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0.0-3.fc17'))
         json = res.json_body
         self.assertEquals(json['alias'], json['updateid'])
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_lowercase_release_name(self):
         res = self.app.get('/updates/', {"releases": "f17"})
         body = res.json_body
@@ -3589,7 +3456,6 @@ class TestUpdatesService(BaseTestCase):
         # But be sure that we don't redirect if the package doesn't exist
         res = self.app.get('/updates/non-existant', status=404)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_alias_and_updateid(self):
         upd = self.db.query(Update).filter(Update.alias.isnot(None)).first()
         res = self.app.get('/updates/', {"alias": upd.alias})
@@ -3613,7 +3479,6 @@ class TestUpdatesService(BaseTestCase):
         body = res.json_body
         self.assertEquals(len(body['updates']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_submitting_multi_release_updates(self, publish, *args):
@@ -3656,7 +3521,6 @@ class TestUpdatesService(BaseTestCase):
         # Make sure two fedmsg messages were published
         self.assertEquals(len(publish.call_args_list), 2)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_update_bugs(self, publish, *args):
@@ -3701,7 +3565,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['status'], u'pending')
         self.assertEquals(up['request'], u'testing')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_missing_update(self, publish, *args):
@@ -3714,7 +3577,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(r['status'], 'error')
         self.assertEquals(r['errors'][0]['description'], 'Cannot find update to edit: %s' % edited)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_update_and_disable_features(self, publish, *args):
@@ -3754,7 +3616,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['stable_karma'], 3)
         self.assertEquals(up['unstable_karma'], -3)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_update_change_type(self, publish, *args):
@@ -3789,7 +3650,6 @@ class TestUpdatesService(BaseTestCase):
         expected = False
         self.assertEquals(actual, expected)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_testing_update_reset_karma(self, publish, *args):
@@ -3816,7 +3676,6 @@ class TestUpdatesService(BaseTestCase):
         # This is what we really want to test here.
         self.assertEquals(up['karma'], 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_testing_update_reset_karma_with_same_tester(self, publish, *args):
@@ -3878,7 +3737,6 @@ class TestUpdatesService(BaseTestCase):
         # Bob should be able to give karma again since the reset
         self.assertEquals(upd.karma, 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test__composite_karma_with_one_negative(self, publish, *args):
@@ -3903,7 +3761,6 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(up._composite_karma, (0, -1))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test__composite_karma_with_changed_karma(self, publish, *args):
@@ -3936,7 +3793,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up._composite_karma, (1, 0))
         self.assertEquals(up.karma, 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test__composite_karma_with_positive_karma_first(self, publish, *args):
@@ -3969,7 +3825,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up._composite_karma, (1, -1))
         self.assertEquals(up.karma, 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test__composite_karma_with_no_negative_karma(self, publish, *args):
@@ -3998,7 +3853,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up._composite_karma, (2, 0))
         self.assertEquals(up.karma, 2)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test__composite_karma_with_anonymous_comment(self, publish, *args):
@@ -4024,7 +3878,6 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(up._composite_karma, (0, 0))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test__composite_karma_with_no_feedback(self, publish, *args):
@@ -4046,7 +3899,6 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(up._composite_karma, (0, 0))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_karma_threshold_with_disabled_autopush(self, publish, *args):
@@ -4086,7 +3938,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['stable_karma'], 4)
         self.assertEquals(up['unstable_karma'], -4)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_disable_autopush_for_critical_updates(self, publish, *args):
@@ -4123,7 +3974,6 @@ class TestUpdatesService(BaseTestCase):
         # Autopush gets disabled since there is a negative karma from ralph
         self.assertEquals(up.autokarma, False)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_autopush_critical_update_with_no_negative_karma(self, publish, *args):
@@ -4160,7 +4010,6 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         self.assertEquals(up.request, UpdateRequest.batched)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_manually_push_critical_update_with_negative_karma(self, publish, *args):
@@ -4218,7 +4067,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(id, resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_manually_push_critical_update_with_autopush_turned_off(self, publish, *args):
@@ -4268,7 +4116,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(id, resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_disable_autopush_non_critical_update_with_negative_karma(self, publish, *args):
@@ -4314,7 +4161,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up.request, UpdateRequest.testing)
         self.assertEquals(up.status, UpdateStatus.testing)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_autopush_non_critical_update_with_no_negative_karma(self, publish, *args):
@@ -4353,7 +4199,6 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         self.assertEquals(up.request, UpdateRequest.batched)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_button_not_present_when_stable(self, publish, *args):
@@ -4457,7 +4302,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertNotIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_stable_button_present_when_karma_reached_urgent(self, publish, *args):
@@ -4487,7 +4331,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_stable_button_present_when_karma_reached_and_batched(self, publish, *args):
@@ -4516,7 +4359,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_stable_button_present_when_autokarma_and_batched(self, publish, *args):
@@ -4545,7 +4387,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_batched_button_present_when_time_reached(self, publish, *args):
@@ -4573,7 +4414,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertNotIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_stable_button_present_when_time_reached_and_urgent(self, publish, *args):
@@ -4603,7 +4443,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_stable_button_present_when_time_reached_and_batched(self, publish, *args):
@@ -4631,7 +4470,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_batched_button_present_when_time_reached_critpath(self, publish, *args):
@@ -4659,7 +4497,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertNotIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_stable_button_present_when_time_reached_and_batched_critpath(self, publish,
@@ -4781,7 +4618,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(nvr, resp)
         self.assertNotIn('<strong>Update Severity</strong>', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_manually_push_to_stable_based_on_karma(self, publish, *args):
@@ -4833,7 +4669,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(id, resp)
         self.assertIn('Push to Stable', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_manually_push_to_batched_based_on_karma(self, publish, *args):
@@ -4883,7 +4718,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Batched', resp)
         self.assertNotIn('Push to Stable', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_update_with_expired_override(self, publish, *args):
@@ -4921,7 +4755,6 @@ class TestUpdatesService(BaseTestCase):
         up = r.json_body
         self.assertEquals(up['title'], nvr)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4960,7 +4793,6 @@ class TestUpdatesService(BaseTestCase):
             ("Cannot submit bodhi ('0', '1.0', '1.fc17') to stable since it is older than "
              "('0', '2.0', '1.fc17')"))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_testing_update_with_build_from_different_update(self, publish, *args):
@@ -5011,7 +4843,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(len(up.builds), 1)
         self.assertEquals(up.builds[0].nvr, nvr1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_meets_testing_requirements_since_karma_reset_critpath(self, publish, *args):
@@ -5055,7 +4886,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(update.days_to_stable, 0)
         self.assertEqual(update.meets_testing_requirements, True)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -5082,7 +4912,6 @@ class TestUpdatesService(BaseTestCase):
         publish.assert_called_with(
             topic='update.request.batched', msg=mock.ANY)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_newpackage_update_bypass_batched(self, publish, *args):
@@ -5113,7 +4942,6 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         self.assertEquals(up.request, UpdateRequest.stable)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_urgent_update_bypass_batched(self, publish, *args):
@@ -5144,7 +4972,6 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
         self.assertEquals(up.request, UpdateRequest.stable)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_alert_not_displayed_if_no_summary_present(self, publish, *args):
@@ -5171,7 +4998,6 @@ class TestUpdatesService(BaseTestCase):
                 '<div class="alert alert-danger">The update can not be pushed:',
                 resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_alert_notdisplayed_if_summary_present_but_gating_off(
@@ -5199,7 +5025,6 @@ class TestUpdatesService(BaseTestCase):
             self.assertNotIn(
                 '<div class="alert alert-danger">The update can not be pushed: \' + summary ', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_alert_displayed_if_summary_present(self, publish, *args):
@@ -5230,7 +5055,6 @@ class TestWaiveTestResults(BaseTestCase):
     """
     This class contains tests for the waive_test_results() function.
     """
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_cannot_waive_test_results_on_locked_update(self, *args):
         """Ensure that we get an error if trying to waive test results of a locked update"""
         nvr = u'bodhi-2.0-1.fc17'
@@ -5246,7 +5070,6 @@ class TestWaiveTestResults(BaseTestCase):
         self.assertEquals(res.json_body[u'errors'][0][u'description'],
                           "Can't waive test results on a locked update")
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_cannot_waive_test_results_when_test_gating_is_off(self, *args):
         """
         Ensure that we get an error if trying to waive test results of an update
@@ -5265,7 +5088,6 @@ class TestWaiveTestResults(BaseTestCase):
         self.assertEquals(res.json_body[u'errors'][0][u'description'],
                           "Test gating is not enabled")
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
                 side_effect=IOError('IOError. oops!'))
     @mock.patch('bodhi.server.services.updates.log.exception')

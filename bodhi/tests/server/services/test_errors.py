@@ -17,8 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.errors.py"""
-import unittest
-
 import mock
 import six
 
@@ -27,7 +25,6 @@ from bodhi.tests.server import base
 
 class TestHTMLHandlerErrors(base.BaseTestCase):
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch('bodhi.server.services.errors.log.error')
     @mock.patch('bodhi.server.services.errors.status2summary',
                 side_effect=IOError('random error'))
