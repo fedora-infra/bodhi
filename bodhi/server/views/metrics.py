@@ -39,8 +39,7 @@ def compute_ticks_and_data(db, releases, update_types):
     """
     data, ticks = [], []
 
-    releases = sorted(releases, cmp=lambda x, y:
-                      cmp(int(x.version_int), int(y.version_int)))
+    releases = sorted(releases, key=lambda x: int(x.version_int))
 
     for i, release in enumerate(releases):
         ticks.append([i, release.name])
