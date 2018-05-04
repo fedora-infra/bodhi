@@ -539,7 +539,8 @@ class TestNewUpdate(BaseTestCase):
         r = self.app.post_json('/updates/', args)
         up = r.json_body
         self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(up['requirements'], 'upgradepath rpmlint')
+        self.assertTrue('upgradepath' in up['requirements'])
+        self.assertTrue('rpmlint' in up['requirements'])
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
