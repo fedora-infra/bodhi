@@ -23,7 +23,6 @@ import mock
 import re
 import unittest
 
-from webtest import TestApp
 import PIL.Image
 from six import StringIO
 import six
@@ -54,7 +53,7 @@ class TestRenderers(base.BaseTestCase):
             'captcha.ttl': '300',
         })
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, session=self.db, **settings))
+            app = base.BodhiTestApp(main({}, session=self.db, **settings))
 
         res = app.get('/updates/FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                       status=200,

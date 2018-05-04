@@ -85,6 +85,25 @@ def _configure_test_db(db_uri=DEFAULT_DB):
     return engine
 
 
+class BodhiTestApp(TestApp):
+    """
+    Subclass of webtest.TestApp.
+
+    This class autimaticaly adds {'accept': 'application/json'} header
+    to every GET request where 'accept' header is not specified.
+    """
+
+    def get(self, *args, **kwargs):
+        """GET call with automatic Accept headers."""
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {'Accept': 'application/json'}
+        else:
+            headers_set = set([key.lower() for key in kwargs['headers']])
+            if 'accept' not in headers_set:
+                kwargs['headers']['accept'] = 'application/json'
+        return super(BodhiTestApp, self).get(*args, **kwargs)
+
+
 class BaseTestCase(unittest.TestCase):
     """
     The base test class for Bodhi.
@@ -178,7 +197,7 @@ class BaseTestCase(unittest.TestCase):
             # trigger the restart_savepoint() callback defined above which will remove the data
             # added by populate().
             with mock.patch('bodhi.server.Session.remove'):
-                _app = TestApp(main({}, testing=u'guest', **self.app_settings))
+                _app = BodhiTestApp(main({}, testing=u'guest', **self.app_settings))
         self.app = _app
 
     def get_csrf_token(self, app=None):
@@ -186,7 +205,7 @@ class BaseTestCase(unittest.TestCase):
         Return a CSRF token that can be used by tests as they test the REST API.
 
         Args:
-            app (webtest.TestApp): The app to use to get the token. Defaults to None, which will use
+            app (BodhiTestApp): The app to use to get the token. Defaults to None, which will use
                 self.app.
         Returns:
             basestring: A CSRF token.

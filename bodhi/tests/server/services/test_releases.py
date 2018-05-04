@@ -17,7 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import mock
-import webtest
 import unittest
 
 import six
@@ -56,7 +55,7 @@ class TestReleasesService(base.BaseTestCase):
         name = u"F22"
         # Create a new app so we are the anonymous user.
         with mock.patch('bodhi.server.Session.remove'):
-            app = webtest.TestApp(server.main({}, session=self.db, **self.app_settings))
+            app = base.BodhiTestApp(server.main({}, session=self.db, **self.app_settings))
 
         res = app.get('/releases/%s' % name, status=200)
         r = res.json_body

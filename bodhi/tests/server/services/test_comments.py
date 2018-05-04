@@ -22,7 +22,6 @@ from datetime import datetime, timedelta
 import unittest
 
 import mock
-from webtest import TestApp
 import six
 
 from bodhi.server import main
@@ -259,7 +258,7 @@ class TestCommentsService(base.BaseTestCase):
             'authtkt.secure': True,
         })
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, session=self.db, **anonymous_settings))
+            app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
 
         comment = {
             u'update': 'bodhi-2.0-1.fc17',
