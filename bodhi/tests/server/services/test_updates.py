@@ -24,7 +24,6 @@ import time
 import unittest
 
 from mock import ANY
-from webtest import TestApp
 import koji
 import mock
 import six
@@ -36,7 +35,7 @@ from bodhi.server.models import (
     BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
     UpdateSeverity, User, TestGatingStatus)
-from bodhi.tests.server import base
+from bodhi.tests.server.base import BaseTestCase, BodhiTestApp
 
 
 YEAR = time.localtime().tm_year
@@ -79,7 +78,7 @@ mock_absent_taskotron_results = {
 }
 
 
-class TestNewUpdate(base.BaseTestCase):
+class TestNewUpdate(BaseTestCase):
     """
     This class contains tests for the new_update() function.
     """
@@ -172,7 +171,7 @@ class TestNewUpdate(base.BaseTestCase):
         self.db.add(user)
         self.db.commit()
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
         update_json = self.get_update(u'bodhi-2.1-1.fc17')
         update_json['csrf_token'] = self.get_csrf_token(app)
 
@@ -201,7 +200,7 @@ class TestNewUpdate(base.BaseTestCase):
         user.groups.append(group)
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
         update = self.get_update(u'bodhi-2.1-1.fc17')
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', update)
@@ -661,7 +660,7 @@ class TestNewUpdate(base.BaseTestCase):
         self.assertEquals(up.comments[-1].text, expected_comment)
 
 
-class TestSetRequest(base.BaseTestCase):
+class TestSetRequest(BaseTestCase):
     """
     This class contains tests for the set_request() function.
     """
@@ -762,13 +761,15 @@ class TestSetRequest(base.BaseTestCase):
         log_exception.assert_called_once_with("Unhandled exception in set_request")
 
 
-class TestEditUpdateForm(base.BaseTestCase):
+class TestEditUpdateForm(BaseTestCase):
 
     def test_edit_with_permission(self):
         """
         Test a logged in User with permissions on the update can see the form
         """
-        resp = self.app.get('/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year))
+        resp = self.app.get(
+            '/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year),
+            headers={'accept': 'text/html'})
         self.assertIn('Editing an update requires JavaScript', resp)
 
     def test_edit_without_permission(self):
@@ -776,10 +777,11 @@ class TestEditUpdateForm(base.BaseTestCase):
         Test a logged in User without permissions on the update can't see the form
         """
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'anonymous', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'anonymous', session=self.db, **self.app_settings))
 
         resp = app.get(
-            '/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year), status=400)
+            '/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year), status=400,
+            headers={'accept': 'text/html'})
         self.assertIn(
             'anonymous is not a member of "packager", which is a mandatory packager group', resp)
 
@@ -792,13 +794,14 @@ class TestEditUpdateForm(base.BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = TestApp(main({}, session=self.db, **anonymous_settings))
-        resp = app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit', status=403)
+        app = BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        resp = app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit', status=403,
+                       headers={'accept': 'text/html'})
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', resp)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', resp)
 
 
-class TestUpdatesService(base.BaseTestCase):
+class TestUpdatesService(BaseTestCase):
 
     def test_content_type(self):
         """Assert that the content type is displayed in the update template."""
@@ -972,7 +975,7 @@ class TestUpdatesService(base.BaseTestCase):
         user2.groups.append(group2)
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', up_data)
@@ -981,7 +984,7 @@ class TestUpdatesService(base.BaseTestCase):
             topic='update.request.testing', msg=mock.ANY)
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'lloyd', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'lloyd', session=self.db, **self.app_settings))
         update = self.get_update(nvr)
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         update['notes'] = u'testing!!!'
@@ -1011,7 +1014,7 @@ class TestUpdatesService(base.BaseTestCase):
         user2.groups.append(group2)
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', up_data)
@@ -1025,7 +1028,7 @@ class TestUpdatesService(base.BaseTestCase):
 
         # Try and submit the update to stable as a non-provenpackager
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         post_data = dict(update=nvr, request='stable',
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
@@ -1065,7 +1068,7 @@ class TestUpdatesService(base.BaseTestCase):
 
         # Try and submit the update to stable as a proventester
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
 
         res = app.post_json('/updates/%s/request' % str(nvr),
                             dict(update=nvr, request='stable',
@@ -1075,7 +1078,7 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEqual(res.json_body['update']['request'], 'stable')
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
 
         res = app.post_json('/updates/%s/request' % str(nvr),
                             dict(update=nvr, request='obsolete',
@@ -1091,14 +1094,14 @@ class TestUpdatesService(base.BaseTestCase):
 
         # Test that bob has can_edit True, provenpackager
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
 
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], True)
 
         # Test that ralph has can_edit True, they submitted it.
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
 
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], True)
@@ -1106,7 +1109,7 @@ class TestUpdatesService(base.BaseTestCase):
         # Test that someuser has can_edit False, they are unrelated
         # This check *failed* with the old acls code.
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, testing=u'someuser', session=self.db, **self.app_settings))
+            app = BodhiTestApp(main({}, testing=u'someuser', session=self.db, **self.app_settings))
 
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], False)
@@ -1120,7 +1123,7 @@ class TestUpdatesService(base.BaseTestCase):
         })
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = TestApp(main({}, session=self.db, **anonymous_settings))
+            app = BodhiTestApp(main({}, session=self.db, **anonymous_settings))
 
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], False)
@@ -5222,7 +5225,7 @@ class TestUpdatesService(base.BaseTestCase):
                 '<div class="alert alert-danger">The update can not be pushed: \' + summary ', resp)
 
 
-class TestWaiveTestResults(base.BaseTestCase):
+class TestWaiveTestResults(BaseTestCase):
     """
     This class contains tests for the waive_test_results() function.
     """
