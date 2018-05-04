@@ -43,4 +43,5 @@ class TestHTMLHandlerErrors(base.BaseTestCase):
         self.assertIn("Traceback (most recent call last):\n", error_log_message)
         self.assertIn("summary=status2summary(errors.status),\n", error_log_message)
         self.assertIn("raise effect\n", error_log_message)
-        self.assertIn("IOError: random error\n", error_log_message)
+        exception_str = 'IOError' if six.PY2 else 'OSError'
+        self.assertIn(exception_str + ": random error\n", error_log_message)
