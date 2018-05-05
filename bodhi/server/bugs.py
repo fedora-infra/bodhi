@@ -165,8 +165,10 @@ class Bugzilla(BugTracker):
 
     def on_qa(self, bug_id, comment):
         """
-        Change the status of this bug to ON_QA if bug.product is in admitted products list
-        and if it is not already ON_QA, VERIFIED, or CLOSED.
+        Change the status of this bug to ON_QA if it is not already ON_QA, VERIFIED, or CLOSED.
+
+        This method will only operate on bugs that are associated with products listed
+        in the bz_products setting.
 
         This will also comment on the bug with some details on how to test and provide feedback for
         this update.
@@ -190,8 +192,10 @@ class Bugzilla(BugTracker):
 
     def close(self, bug_id, versions, comment):
         """
-        Close the bug given by bug_id if bug.product is in admitted products list,
-        mark it as fixed in the given versions, and add a comment.
+        Close the bug given by bug_id, mark it as fixed in the given versions, and add a comment.
+
+        This method will only operate on bugs that are associated with products listed
+        in the bz_products setting.
 
         Args:
             bug_id (int): The ID of the bug you wish to close.
@@ -261,9 +265,10 @@ class Bugzilla(BugTracker):
 
     def modified(self, bug_id):
         """
-        Mark the given bug as MODIFIED if bug.product is in admitted products list.
+        Change the status of this bug to MODIFIED if not already MODIFIED, VERIFIED, or CLOSED.
 
-        The bug will only be marked MODIFIED if it is not already MODIFIED, VERIFIED, or CLOSED.
+        This method will only operate on bugs that are associated with products listed
+        in the bz_products setting.
 
         Args:
             bug_id (basestring or int): The bug you wish to mark MODIFIED.
