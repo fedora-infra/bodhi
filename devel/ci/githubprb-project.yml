@@ -15,6 +15,7 @@
               - ralphbean
               - ryanlerch
               - matt8754
+              - mattiaverga
           org-list:
               - fedora-infra
           cron: '* * * * *'
