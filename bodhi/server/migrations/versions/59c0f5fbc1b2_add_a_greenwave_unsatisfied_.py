@@ -19,7 +19,7 @@
 Add a greenwave_unsatisfied_requirements column to the updates table.
 
 Revision ID: 59c0f5fbc1b2
-Revises: be25565a1211
+Revises: c21dd18b161a
 Create Date: 2018-05-01 15:37:07.346034
 """
 from alembic import op
@@ -28,7 +28,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '59c0f5fbc1b2'
-down_revision = 'be25565a1211'
+down_revision = 'c21dd18b161a'
 
 
 def upgrade():
