@@ -19,7 +19,7 @@
 Add new side tag update states.
 
 Revision ID: 22858ba91115
-Revises: c21dd18b161a
+Revises: 59c0f5fbc1b2
 Create Date: 2018-04-10 21:49:26.209484
 """
 from alembic import op
@@ -28,7 +28,7 @@ from sqlalchemy import exc
 
 # revision identifiers, used by Alembic.
 revision = '22858ba91115'
-down_revision = 'c21dd18b161a'
+down_revision = '59c0f5fbc1b2'
 
 
 def upgrade():
