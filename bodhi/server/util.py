@@ -1297,7 +1297,8 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
             'Bodhi failed to get a resource from {0} at the following URL '
             '"{1}". The status code was "{2}".')
         rv = http_session.get(api_url, timeout=60)
-    if rv.status_code == 200:
+
+    if rv.status_code >= 200 and rv.status_code < 300:
         return rv.json()
     elif retries:
         time.sleep(1)
