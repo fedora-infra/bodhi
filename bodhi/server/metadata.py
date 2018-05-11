@@ -21,7 +21,6 @@ from datetime import datetime
 import logging
 import os
 import shelve
-import shutil
 import tempfile
 
 from kitchen.text.converters import to_bytes
@@ -57,24 +56,7 @@ def modifyrepo(comp_type, compose_path, filetype, extension, source):
             repodata = os.path.join(repo_path, arch, 'tree', 'repodata')
         else:
             repodata = os.path.join(repo_path, arch, 'os', 'repodata')
-        log.info('Inserting %s.%s into %s', filetype, extension, repodata)
-        target_fname = os.path.join(repodata, '%s.%s' % (filetype, extension))
-        shutil.copyfile(source, target_fname)
-        repomd_xml = os.path.join(repodata, 'repomd.xml')
-        repomd = cr.Repomd(repomd_xml)
-        # create a new record for our repomd.xml
-        rec = cr.RepomdRecord(filetype, target_fname)
-        # compress our metadata file with the comp_type
-        rec_comp = rec.compress_and_fill(cr.SHA256, comp_type)
-        # add hash to the compresed metadata file
-        rec_comp.rename_file()
-        # set type of metadata
-        rec_comp.type = filetype
-        # insert metadata about our metadata in repomd.xml
-        repomd.set_record(rec_comp)
-        with open(repomd_xml, 'w') as repomd_file:
-            repomd_file.write(repomd.xml_dump())
-        os.unlink(target_fname)
+        util.insert_in_repo(comp_type, repodata, filetype, extension, source)
 
 
 class UpdateInfoMetadata(object):
