@@ -47,7 +47,7 @@ class UpdateInfoMetadataTestCase(base.BaseTestCase):
         self.tempdir = tempfile.mkdtemp('bodhi')
         self.tempcompdir = join(self.tempdir, 'f17-updates-testing')
         self.temprepo = join(self.tempcompdir, 'compose', 'Everything', 'i386', 'os')
-        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'))
+        mkmetadatadir(join(self.temprepo, 'f17-updates-testing', 'i386'), updateinfo=False)
         config['cache_dir'] = os.path.join(self.tempdir, 'cache')
         os.makedirs(config['cache_dir'])
 
@@ -241,8 +241,9 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         os.makedirs(os.path.join(config['mash_dir'], 'f17-updates-testing'))
 
         # Initialize our temporary repo
-        mkmetadatadir(self.temprepo)
-        mkmetadatadir(join(self.tempcompdir, 'compose', 'Everything', 'source', 'tree'))
+        mkmetadatadir(self.temprepo, updateinfo=False)
+        mkmetadatadir(join(self.tempcompdir, 'compose', 'Everything', 'source', 'tree'),
+                      updateinfo=False)
         self.repodata = join(self.temprepo, 'repodata')
         assert exists(join(self.repodata, 'repomd.xml'))
 
@@ -312,8 +313,9 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         """
         self._test_extended_metadata(True)
         shutil.rmtree(self.temprepo)
-        mkmetadatadir(self.temprepo)
-        mkmetadatadir(join(self.tempcompdir, 'compose', 'Everything', 'source', 'tree'))
+        mkmetadatadir(self.temprepo, updateinfo=False)
+        mkmetadatadir(join(self.tempcompdir, 'compose', 'Everything', 'source', 'tree'),
+                      updateinfo=False)
         DevBuildsys.__rpms__ = []
         self._test_extended_metadata(True)
 

@@ -10,4 +10,5 @@
     python3-cornice \
     python3-cornice-sphinx \
     python2-webtest \
-    python3-pyramid-fas-openid
+    python3-pyramid-fas-openid \
+    python2-libcomps

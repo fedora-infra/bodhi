@@ -6,7 +6,8 @@
     python-pyramid-fas-openid \
     python-pytest \
     python-simplemediawiki \
-    python-webtest
+    python-webtest \
+    python2-libcomps
 
 RUN pip-2 install cornice
 RUN pip-2 install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx

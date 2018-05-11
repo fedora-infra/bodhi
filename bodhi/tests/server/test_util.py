@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-import gzip
+from xml.etree import ElementTree
 import json
 import os
 import shutil
@@ -535,27 +535,66 @@ class TestSanityCheckRepodata(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tempdir)
 
+    def test_correct_repo(self):
+        """No Exception should be raised if the repo is normal."""
+        util.mkmetadatadir(self.tempdir)
+
+        # No exception should be raised here.
+        util.sanity_check_repodata(self.tempdir)
+
     def test_updateinfo_empty_tags(self):
         """RepodataException should be raised if <id/> is found in updateinfo."""
-        util.mkmetadatadir(self.tempdir)
-        updateinfo = os.path.join(self.tempdir, 'updateinfo.xml.gz')
-        with gzip.GzipFile(updateinfo, 'w') as uinfo:
-            uinfo.write('<id/>'.encode('utf-8'))
+        updateinfo = os.path.join(self.tempdir, 'updateinfo.xml')
+        with open(updateinfo, 'w') as uinfo:
+            uinfo.write('<id/>')
+        util.mkmetadatadir(self.tempdir, updateinfo=updateinfo)
 
         with self.assertRaises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir)
 
         self.assertEqual(str(exc.exception), 'updateinfo.xml.gz contains empty ID tags')
 
-    def test_updateinfo_nonempty_tags(self):
-        """No Exception should be raised if <id/> is found in updateinfo."""
-        util.mkmetadatadir(self.tempdir)
-        updateinfo = os.path.join(self.tempdir, 'updateinfo.xml.gz')
-        with gzip.GzipFile(updateinfo, 'w') as uinfo:
-            uinfo.write('<id>some id</id>'.encode('utf-8'))
+    def test_comps_invalid_notxml(self):
+        """RepodataException should be raised if comps is invalid."""
+        comps = os.path.join(self.tempdir, 'comps.xml')
+        with open(comps, 'w') as uinfo:
+            uinfo.write('this is not even xml')
+        util.mkmetadatadir(self.tempdir, comps=comps)
 
-        # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir)
+        with self.assertRaises(util.RepodataException) as exc:
+            util.sanity_check_repodata(self.tempdir)
+
+        self.assertEqual(str(exc.exception), 'Comps file unable to be parsed')
+
+    def test_comps_invalid_nonsense(self):
+        """RepodataException should be raised if comps is invalid."""
+        comps = os.path.join(self.tempdir, 'comps.xml')
+        with open(comps, 'w') as uinfo:
+            uinfo.write('<whatever />')
+        util.mkmetadatadir(self.tempdir, comps=comps)
+
+        with self.assertRaises(util.RepodataException) as exc:
+            util.sanity_check_repodata(self.tempdir)
+
+        self.assertEqual(str(exc.exception), 'Comps file empty')
+
+    def test_repomd_missing_updateinfo(self):
+        """If the updateinfo data tag is missing in repomd.xml, an Exception should be raised."""
+        util.mkmetadatadir(self.tempdir)
+        repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
+        repomd = ElementTree.parse(repomd_path)
+        ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
+        root = repomd.getroot()
+        # Find the <data type="updateinfo"> tag and delete it
+        for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
+            if data.attrib['type'] == 'updateinfo':
+                root.remove(data)
+        repomd.write(repomd_path, encoding='UTF-8', xml_declaration=True)
+
+        with self.assertRaises(util.RepodataException) as exc:
+            util.sanity_check_repodata(self.tempdir)
+
+        self.assertEqual(str(exc.exception), 'Required part not in repomd.xml')
 
 
 class TestType2Icon(unittest.TestCase):
