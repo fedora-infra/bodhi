@@ -26,7 +26,6 @@ from munch import munchify
 from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
-from pyramid.exceptions import HTTPForbidden
 from pyramid.renderers import JSONP
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -305,7 +304,6 @@ def main(global_config, testing=None, session=None, **settings):
     # pyramid.openid
     config.add_route('login', '/login')
     config.add_view('bodhi.server.security.login', route_name='login')
-    config.add_view('bodhi.server.security.login', context=HTTPForbidden)
     config.add_route('logout', '/logout')
     config.add_view('bodhi.server.security.logout', route_name='logout')
     config.add_route('verify_openid', pattern='/dologin.html')
