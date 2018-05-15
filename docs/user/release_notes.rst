@@ -2,6 +2,65 @@
 Release notes
 =============
 
+v3.8.0
+------
+
+Features
+^^^^^^^^
+
+* Container releases may now have a trailing "C" in their name (:issue:`2250`).
+* The number of days an update has been in its current state is now displayed by the CLI
+  (:issue:`2176` and :issue:`2269`).
+* Composes are no longer batched by category (security vs. non-security, updates vs. testing)
+  as this was not found to be beneficial and did slow the compose process down (:commit:`68c7936e`).
+* A fedmsg is now transmitted when an update's time in testing is met (:commit:`99923f18`).
+* New states for updates that are related to side tags have been documented (:commit:`d7b54323`).
+
+
+Bugs
+^^^^
+
+* Bodhi no longer considers HTTP codes ``> 200`` and ``< 300`` to be errors (:issue:`2361`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The container composer has been refactored to use a cleaner helper function (:issue:`2259`).
+* Bodhi's models now support side tags, a planned feature for an upcoming Bodhi release
+  (:issue:`2275`).
+* Compose.from_updates() returns a list in Python 3 (:issue:`2291`).
+* Some silliness was removed from the universe, as ``bodhi.server.models.BodhiBase.get()`` no longer
+  requires a database session to be passed to it (:issue:`2298`).
+* The in-memory dogpile cache backend is used for development by default (:issue:`2300`).
+* The CI container no longer installs Pungi, which speeds the CI testing time up (:issue:`2306`).
+* Dropped support for ``str`` arguments from ``util.cmd()`` (:issue:`2332`).
+* Python 3 line test coverage has increased to 85%.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This update contains a migration to add two new updates states for side tags. After installing the
+new server packages, you need to run the migrations::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Contributors
+------------
+
+The following developers contributed to Bodhi 3.8.0:
+
+* Mattia Verga
+* Eli Young
+* Lumir Balhar
+* Patrick Uiterwijk
+* Ralph Bean
+* Paul W. Frields
+* Randy Barlow
+
+
 v3.7.0
 ------
 
