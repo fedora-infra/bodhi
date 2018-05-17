@@ -1087,6 +1087,14 @@ class PungiComposerThread(ComposerThread):
 
         return mash_process
 
+    def _toss_out_repo(self):
+        """Remove a repo from the completed_repo checkpoint.
+
+        This makes sure that on a next run, we redo the compose.
+        """
+        del self._checkpoints['completed_repo']
+        self.save_state()
+
     def _sanity_check_repo(self):
         """Sanity check our repo.
 
@@ -1100,7 +1108,18 @@ class PungiComposerThread(ComposerThread):
         """
         self.log.info("Running sanity checks on %s" % self.path)
 
-        arches = os.listdir(os.path.join(self.path, 'compose', 'Everything'))
+        try:
+            arches = os.listdir(os.path.join(self.path, 'compose', 'Everything'))
+        except Exception:
+            self.log.exception('Empty compose folder? Compose thrown out')
+            self._toss_out_repo()
+            raise
+
+        if len(arches) == 0:
+            self.log.error('Empty compose, compose thrown out')
+            self._toss_out_repo()
+            raise Exception('Empty compose found')
+
         for arch in arches:
             # sanity check our repodata
             try:
@@ -1112,7 +1131,8 @@ class PungiComposerThread(ComposerThread):
                                             'Everything', arch, 'os', 'repodata')
                 sanity_check_repodata(repodata)
             except Exception:
-                self.log.exception("Repodata sanity check failed!")
+                self.log.exception("Repodata sanity check failed, compose thrown out")
+                self._toss_out_repo()
                 raise
 
             # make sure that pungi didn't symlink our packages
@@ -1144,7 +1164,8 @@ class PungiComposerThread(ComposerThread):
                             # We have checked the first rpm in the subdir
                             break
             except Exception:
-                self.log.exception('Unable to check pungi mashed repositories')
+                self.log.exception('Unable to check pungi mashed repositories, compose thrown out')
+                self._toss_out_repo()
                 raise
 
         return True

@@ -199,7 +199,7 @@ class TestMasher(base.BaseTestCase):
             update.request = UpdateRequest.stable
             session.flush()
 
-    def _generate_fake_pungi(self, masher_thread, tag, release):
+    def _generate_fake_pungi(self, masher_thread, tag, release, empty=False, noarches=False):
         """
         Return a function that is suitable for mock to replace the call to Popen that run Pungi.
 
@@ -208,6 +208,8 @@ class TestMasher(base.BaseTestCase):
                 Pungi is running inside.
             tag (basestring): The type of tag you wish to mash ("stable_tag" or "testing_tag").
             release (bodhi.server.models.Release): The Release you are mashing.
+            empty (bool): Whether to make an empty folder.
+            noarches (bool): Whether to create a base compose dir without arches.
         Returns:
             method: A fake Pungi subprocess that will create some basic repo files and folders for
                 testing.
@@ -233,21 +235,25 @@ class TestMasher(base.BaseTestCase):
                                    reqtype,
                                    time.strftime("%Y%m%d")))
 
-            for arch in ('i386', 'x86_64', 'armhfp'):
-                arch_repo = os.path.join(mash_dir, 'compose', 'Everything', arch)
-                repodata = os.path.join(arch_repo, 'os', 'repodata')
+            if not empty:
+                os.makedirs(os.path.join(mash_dir, 'compose', 'Everything'))
+
+            if not noarches:
+                for arch in ('i386', 'x86_64', 'armhfp'):
+                    arch_repo = os.path.join(mash_dir, 'compose', 'Everything', arch)
+                    repodata = os.path.join(arch_repo, 'os', 'repodata')
+                    os.makedirs(repodata)
+                    os.makedirs(os.path.join(arch_repo, 'debug/tree/Packages'))
+                    os.makedirs(os.path.join(arch_repo, 'os/Packages'))
+                    with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                        repomd.write(fake_repodata)
+
+                source_repo = os.path.join(mash_dir, 'compose', 'Everything', 'source')
+                repodata = os.path.join(source_repo, 'tree', 'repodata')
                 os.makedirs(repodata)
-                os.makedirs(os.path.join(arch_repo, 'debug/tree/Packages'))
-                os.makedirs(os.path.join(arch_repo, 'os/Packages'))
+                os.makedirs(os.path.join(source_repo, 'tree', 'Packages'))
                 with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                     repomd.write(fake_repodata)
-
-            source_repo = os.path.join(mash_dir, 'compose', 'Everything', 'source')
-            repodata = os.path.join(source_repo, 'tree', 'repodata')
-            os.makedirs(repodata)
-            os.makedirs(os.path.join(source_repo, 'tree', 'Packages'))
-            with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
-                repomd.write(fake_repodata)
 
             os.makedirs(os.path.join(mash_dir, 'compose', 'metadata'))
             with open(os.path.join(mash_dir, 'compose', 'metadata', 'composeinfo.json'), 'w') as f:
@@ -662,6 +668,33 @@ That was the actual one'''
             t.db = None
 
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
+    def test_sanity_check_empty_dir(self, save_state):
+        msg = self._make_msg()
+        t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                              'ralph', log, self.db_factory, self.tempdir)
+        t.devnull = mock.MagicMock()
+        t.id = 'f17-updates-testing'
+        with self.db_factory() as session:
+            t.db = session
+            t.compose = session.query(Compose).one()
+            t._checkpoints = {}
+            t._startyear = datetime.datetime.utcnow().year
+            t._wait_for_pungi(self._generate_fake_pungi(t, 'testing_tag', t.compose.release,
+                                                        empty=True, noarches=True)())
+            t.db = None
+
+        # test without any arches
+        assert 'completed_repo' in t._checkpoints
+        try:
+            t._sanity_check_repo()
+            assert False, "Sanity check didn't fail with empty dir"
+        except Exception as ex:
+            assert '[Errno 2] No such file or directory' in str(ex)
+
+        assert 'completed_repo' not in t._checkpoints
+        save_state.assert_called()
+
+    @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_sanity_check_no_arches(self, save_state):
         msg = self._make_msg()
         t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
@@ -673,15 +706,20 @@ That was the actual one'''
             t.compose = session.query(Compose).one()
             t._checkpoints = {}
             t._startyear = datetime.datetime.utcnow().year
-            t._wait_for_pungi(self._generate_fake_pungi(t, 'testing_tag', t.compose.release)())
+            t._wait_for_pungi(self._generate_fake_pungi(t, 'testing_tag', t.compose.release,
+                                                        noarches=True)())
             t.db = None
 
         # test without any arches
+        assert 'completed_repo' in t._checkpoints
         try:
             t._sanity_check_repo()
-            assert False, "Sanity check didn't fail with empty dir"
-        except Exception:
-            pass
+            assert False, "Sanity check didn't fail with archless compose"
+        except Exception as ex:
+            assert str(ex) == "Empty compose found"
+
+        assert 'completed_repo' not in t._checkpoints
+        save_state.assert_called()
 
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_sanity_check_valid(self, save_state):
@@ -716,7 +754,11 @@ That was the actual one'''
                                'test.src.rpm'), 'w') as tf:
             tf.write('bar')
 
+        assert 'completed_repo' in t._checkpoints
+        save_state.reset_mock()
         t._sanity_check_repo()
+        assert 'completed_repo' in t._checkpoints
+        save_state.assert_not_called()
 
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_sanity_check_broken_repodata(self, save_state):
@@ -746,13 +788,16 @@ That was the actual one'''
             with open(xml, 'w') as f:
                 f.write(repomd[:-10])
 
+        save_state.assert_called_once_with(ComposeState.punging)
+        assert 'completed_repo' in t._checkpoints
+        save_state.reset_mock()
         try:
             t._sanity_check_repo()
             assert False, 'Busted metadata passed'
         except exceptions.RepodataException:
             pass
-
-        save_state.assert_called_once_with(ComposeState.punging)
+        assert 'completed_repo' not in t._checkpoints
+        save_state.assert_called()
 
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_sanity_check_symlink(self, save_state):
@@ -782,11 +827,15 @@ That was the actual one'''
         os.symlink('/dev/null', os.path.join(t.path, 'compose', 'Everything', 'source', 'tree',
                                              'Packages', 'a', 'test.src.rpm'))
 
+        assert 'completed_repo' in t._checkpoints
+        save_state.reset_mock()
         try:
             t._sanity_check_repo()
             assert False, "Symlinks passed"
         except Exception as ex:
             assert str(ex) == "Symlinks found"
+        assert 'completed_repo' not in t._checkpoints
+        save_state.assert_called()
 
     @mock.patch('bodhi.server.consumers.masher.ComposerThread.save_state')
     def test_sanity_check_directories_missing(self, save_state):
@@ -811,11 +860,15 @@ That was the actual one'''
 
         mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
 
+        assert 'completed_repo' in t._checkpoints
+        save_state.reset_mock()
         try:
             t._sanity_check_repo()
             assert False, "Missing directories passed"
         except OSError as oex:
             assert oex.errno == errno.ENOENT
+        assert 'completed_repo' not in t._checkpoints
+        save_state.assert_called()
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
