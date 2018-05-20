@@ -216,6 +216,11 @@ ul.updateslist li {
     overflow-wrap:  break-word; /* new-school */
     padding:        5px;
 }
+.markdown blockquote {
+    margin: 0 1rem;
+    color: #6a737d;
+    border-left: 0.25rem solid #dfe2e5;
+}
 
 #markdown-help strong {
     text-transform: uppercase;
