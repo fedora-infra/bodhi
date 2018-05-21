@@ -21,6 +21,7 @@ Bugs
 ^^^^
 
 * Bodhi no longer considers HTTP codes ``> 200`` and ``< 300`` to be errors (:issue:`2361`).
+* Do not apply null Koji tags to ejected updates during compose (:issue:`2368`).
 
 
 Development improvements
