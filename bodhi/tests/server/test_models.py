@@ -1721,6 +1721,16 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.mandatory_days_in_testing > update.days_in_testing, True)
         self.assertEqual(update.days_to_stable, 4)
 
+    def test_requested_tag_request_none(self):
+        """requested_tag() should raise RuntimeError if the Update's request is None."""
+        self.obj.request = None
+
+        with self.assertRaises(RuntimeError) as exc:
+            self.obj.requested_tag
+
+        self.assertEqual(str(exc.exception),
+                         'Unable to determine requested tag for {}.'.format(self.obj.title))
+
     def test_side_tag_locked_false(self):
         """Test the side_tag_locked property when it is false."""
         self.obj.status = model.UpdateStatus.side_tag_active

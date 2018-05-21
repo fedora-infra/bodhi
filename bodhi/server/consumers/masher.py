@@ -465,6 +465,10 @@ class ComposerThread(threading.Thread):
             if not result:
                 self.log.warn("%s failed gating: %s" % (update.title, reason))
                 self.eject_from_mash(update, reason)
+        # We may have removed some updates from this compose above, and do we don't want future
+        # reads on self.compose.updates to see those, so let's mark that attribute expired so
+        # sqlalchemy will requery for the composes instead of using its cached copy.
+        self.db.expire(self.compose, ['updates'])
 
     def eject_from_mash(self, update, reason):
         """

@@ -172,16 +172,22 @@ class DevBuildsys(Buildsystem):
 
     def moveBuild(self, from_tag, to_tag, build, *args, **kw):
         """Emulate Koji's moveBuild."""
+        if to_tag is None:
+            raise RuntimeError('Attempt to tag {} with None.'.format(build))
         log.debug("moveBuild(%s, %s, %s)" % (from_tag, to_tag, build))
         DevBuildsys.__moved__.append((from_tag, to_tag, build))
 
     def tagBuild(self, tag, build, *args, **kw):
         """Emulate Koji's tagBuild."""
+        if tag is None:
+            raise RuntimeError('Attempt to tag {} with None.'.format(build))
         log.debug("tagBuild(%s, %s)" % (tag, build))
         DevBuildsys.__added__.append((tag, build))
 
     def untagBuild(self, tag, build, *args, **kw):
         """Emulate Koji's untagBuild."""
+        if tag is None:
+            raise RuntimeError('Attempt to untag {} with None.'.format(build))
         log.debug("untagBuild(%s, %s)" % (tag, build))
         DevBuildsys.__untag__.append((tag, build))
 

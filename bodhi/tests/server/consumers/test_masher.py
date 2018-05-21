@@ -2200,6 +2200,26 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
         self.assert_sems(0)
 
 
+class TestComposerThread_perform_gating(ComposerThreadBaseTestCase):
+    """Test the ComposerThread.perform_gating() method."""
+
+    def test_expires_compose_updates(self):
+        """Ensure that the method expires the compose's updates attribute."""
+        msg = self._make_msg()
+        t = ComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                           'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+        t.compose.updates[0].test_gating_status = TestGatingStatus.failed
+        t.db = self.db
+        t.id = getattr(self.db.query(Release).one(), '{}_tag'.format('stable'))
+
+        t.perform_gating()
+
+        # Without the call to self.db.expire() at the end of perform_gating(), there would be 1
+        # update here.
+        self.assertEqual(len(t.compose.updates), 0)
+
+
 class TestComposerThread__perform_tag_actions(ComposerThreadBaseTestCase):
     """This test class contains tests for the ComposerThread._perform_tag_actions() method."""
     @mock.patch('bodhi.server.consumers.masher.buildsys.wait_for_tasks')

@@ -3556,8 +3556,9 @@ class Update(Base):
         Return the tag the update has requested.
 
         Returns:
-            basestring or None: The Koji tag that corresponds to the update's current request, or
-                None if the method is unable to do so.
+            basestring: The Koji tag that corresponds to the update's current request.
+        Raises:
+            RuntimeError: If a Koji tag is unable to be determined.
         """
         tag = None
         if self.request is UpdateRequest.stable:
@@ -3571,7 +3572,7 @@ class Update(Base):
         elif self.request is UpdateRequest.obsolete:
             tag = self.release.candidate_tag
         if not tag:
-            log.error(
+            raise RuntimeError(
                 'Unable to determine requested tag for %s.' % self.title)
         return tag
 
