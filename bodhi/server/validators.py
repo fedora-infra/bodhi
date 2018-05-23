@@ -513,7 +513,10 @@ def validate_uniqueness(request, **kwargs):
                     request.errors.add('body', 'builds', 'Duplicate builds: '
                                        '{}'.format(build1))
                     return
-                continue
+                # For some bizarre reason, neither coverage nor pdb think this line executes, even
+                # though it most certainly does during the unit tests. bowlofeggs verified by
+                # hand that the loop continues here and does not go to the lines below.
+                continue  # pragma: no cover
 
             pkg1 = Package.get_or_create(request.buildinfo[build1])
             pkg2 = Package.get_or_create(request.buildinfo[build2])
