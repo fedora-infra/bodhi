@@ -16,6 +16,7 @@
       - libffi-devel
       - libjpeg-devel
       - libjpeg-turbo-devel
+      - make
       - nmap-ncat
       - openssl-devel
       - packagedb-cli
