@@ -220,6 +220,13 @@ class TestMain(base.BaseTestCase):
         self.assertTrue(isinstance(policy, authorization.ACLAuthorizationPolicy))
         set_authorization_policy.assert_called_once_with(policy)
 
+    def test_calls_session_remove(self):
+        """Let's assert that main() calls Session.remove()."""
+        with mock.patch('bodhi.server.Session.remove') as remove:
+            server.main({}, **self.app_settings)
+
+        remove.assert_called_once_with()
+
     @mock.patch('bodhi.server.bugs.set_bugtracker')
     def test_calls_set_bugtracker(self, set_bugtracker):
         """
@@ -271,42 +278,3 @@ class TestMain(base.BaseTestCase):
 
         # The cache should have a release in it now - let's just spot check it
         self.assertEqual(models.Release._all_releases['current'][0]['name'], 'F17')
-
-
-class TestGetDbSessionForRequest(unittest.TestCase):
-    """Test the get_db_session_for_request() function."""
-
-    def test_cleanup_exception(self):
-        """Test cleanup() when there is an Exception."""
-        request = mock.Mock()
-        session = server.get_db_session_for_request(request)
-        cleanup = request.add_finished_callback.mock_calls[0][1][0]
-        request.exception = IOError('The Internet ran out of cats.')
-
-        cleanup(request)
-
-        # Since there was an Exception, the session should have been rolled back and closed.
-        self.assertEqual(session.rollback.mock_calls, [mock.call()])
-        self.assertEqual(session.commit.mock_calls, [])
-        self.assertEqual(session.close.mock_calls, [mock.call()])
-
-    def test_cleanup_no_exception(self):
-        """Test cleanup() when there is not an Exception."""
-        request = mock.Mock()
-        session = server.get_db_session_for_request(request)
-        cleanup = request.add_finished_callback.mock_calls[0][1][0]
-        request.exception = None
-
-        cleanup(request)
-
-        # Since there was no Exception, the session should have been committed and closed.
-        self.assertEqual(session.rollback.mock_calls, [])
-        self.assertEqual(session.commit.mock_calls, [mock.call()])
-        self.assertEqual(session.close.mock_calls, [mock.call()])
-
-    def test_session_from_registry_sessionmaker(self):
-        """Assert the session is created using the sessionmaker in the registry."""
-        mock_request = mock.Mock()
-        session = server.get_db_session_for_request(mock_request)
-        mock_request.registry.sessionmaker.assert_called_once_with()
-        self.assertEqual(session, mock_request.registry.sessionmaker.return_value)

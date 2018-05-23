@@ -25,7 +25,7 @@ from webtest import TestApp
 from sqlalchemy import event
 import mock
 
-from bodhi.server import bugs, buildsys, models, initialize_db, Session, config, main
+from bodhi.server import bugs, buildsys, models, initialize_db, Session, config, main, webapp
 from bodhi.tests.server import create_update, populate
 
 
@@ -134,6 +134,7 @@ class BaseTestCase(unittest.TestCase):
         'cors_connect_src': 'http://0.0.0.0:6543',
         'cors_origins_ro': 'http://0.0.0.0:6543',
         'cors_origins_rw': 'http://0.0.0.0:6543',
+        'sqlalchemy.url': DEFAULT_DB
     }
 
     def setUp(self):
@@ -163,21 +164,8 @@ class BaseTestCase(unittest.TestCase):
         bugs.set_bugtracker()
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
 
-        def request_db(request=None):
-            """
-            Replace the db session function with one that doesn't close the session.
-
-            This allows tests to make assertions about the database. Without it, all
-            the changes would be rolled back to when the nested transaction is started.
-            """
-            def cleanup(request):
-                if request.exception is not None:
-                    Session().rollback()
-                else:
-                    Session().commit()
-            request.add_finished_callback(cleanup)
-            return Session()
-        self._request_sesh = mock.patch('bodhi.server.get_db_session_for_request', request_db)
+        self._request_sesh = mock.patch('bodhi.server.webapp._complete_database_session',
+                                        webapp._rollback_or_commit)
         self._request_sesh.start()
 
         # Create the test WSGI app one time. We should avoid creating too many
@@ -186,7 +174,11 @@ class BaseTestCase(unittest.TestCase):
         # out how to make Pyramid forget about these.
         global _app
         if _app is None:
-            _app = TestApp(main({}, testing=u'guest', **self.app_settings))
+            # We don't want to call Session.remove() during the unit tests, because that will
+            # trigger the restart_savepoint() callback defined above which will remove the data
+            # added by populate().
+            with mock.patch('bodhi.server.Session.remove'):
+                _app = TestApp(main({}, testing=u'guest', **self.app_settings))
         self.app = _app
 
     def get_csrf_token(self, app=None):

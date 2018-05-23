@@ -661,7 +661,9 @@ class TestOverridesWebViews(base.BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = TestApp(main({}, session=self.db, **anonymous_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, session=self.db, **anonymous_settings))
+
         resp = app.get('/overrides/bodhi-2.0-1.fc17',
                        status=200, headers={'Accept': 'text/html'})
         self.assertNotIn('<span>New Buildroot Override Form Requires JavaScript</span>', resp)

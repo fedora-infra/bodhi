@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2007-2017 Red Hat, Inc. and others.
+# Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -46,42 +46,6 @@ ffmarkdown.inject()
 #
 # Request methods
 #
-
-def get_db_session_for_request(request=None):
-    """
-    Return a database session that is meant to be used for the given request.
-
-    It handles rolling back or committing the session based on whether an exception occurred or
-    not. To get a database session that's not tied to the request/response cycle, just use the
-    :data:`Session` scoped session in this module.
-
-    Args:
-        request (pyramid.request.Request): The request object to create a session for.
-
-    Returns:
-        sqlalchemy.orm.session.Session: A database session.
-    """
-    session = request.registry.sessionmaker()
-
-    def cleanup(request):
-        """
-        Commit the database changes if no exceptions occurred.
-
-        This is a post-request hook.
-
-        Args:
-            request (pyramid.request.Request): The current web request.
-        """
-        if request.exception is not None:
-            session.rollback()
-        else:
-            session.commit()
-        session.close()
-
-    request.add_finished_callback(cleanup)
-
-    return session
-
 
 def get_cacheregion(request):
     """
@@ -245,7 +209,8 @@ def main(global_config, testing=None, session=None, **settings):
     Args:
         global_config (dict): A dictionary with two keys: __file__, a path to the ini file, and
             here, the path to the code.
-        testing (bool or None): Whether or not we are in testing mode.
+        testing (str or None): If this app is contructed by the unit tests, they should set this to
+            a username.
         session (sqlalchemy.orm.session.Session or None): If given, the session will be used instead
             of building a new one.
         settings (dictionary): Unused.
@@ -286,7 +251,7 @@ def main(global_config, testing=None, session=None, **settings):
     else:
         config.registry.sessionmaker = Session
 
-    config.add_request_method(get_db_session_for_request, 'db', reify=True)
+    config.add_request_method(lambda x: Session, 'db', reify=True)
 
     config.add_request_method(get_user, 'user', reify=True)
     config.add_request_method(get_koji, 'koji', reify=True)
@@ -354,6 +319,7 @@ def main(global_config, testing=None, session=None, **settings):
     config.scan('bodhi.server.views')
     config.scan('bodhi.server.services')
     config.scan('bodhi.server.captcha')
+    config.scan('bodhi.server.webapp')
 
     # Though importing in the middle of this function is the darkest of evils, we cannot do it any
     # other way without a backwards-incompatible change. See
@@ -375,6 +341,9 @@ def main(global_config, testing=None, session=None, **settings):
     # Let's warm up the home page cache by calling _generate_home_page_stats(). We can ignore the
     # return value.
     generic._generate_home_page_stats()
+
+    # Let's close out the db session we used to warm the caches.
+    Session.remove()
 
     log.info('Bodhi ready and at your service!')
     return config.make_wsgi_app()

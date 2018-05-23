@@ -171,7 +171,8 @@ class TestNewUpdate(base.BaseTestCase):
         user = User(name=u'bodhi')
         self.db.add(user)
         self.db.commit()
-        app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
         update_json = self.get_update(u'bodhi-2.1-1.fc17')
         update_json['csrf_token'] = self.get_csrf_token(app)
 
@@ -199,7 +200,8 @@ class TestNewUpdate(base.BaseTestCase):
         group = self.db.query(Group).filter_by(name=u'provenpackager').one()
         user.groups.append(group)
 
-        app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
         update = self.get_update(u'bodhi-2.1-1.fc17')
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', update)
@@ -213,13 +215,13 @@ class TestNewUpdate(base.BaseTestCase):
     @mock.patch(**mock_valid_requirements)
     def test_pkgdb_outage(self, *args):
         "Test the case where our call to the pkgdb throws an exception"
-        settings = self.app_settings.copy()
-        settings['acl_system'] = 'pkgdb'
-        settings['pkgdb_url'] = 'invalidurl'
-        app = TestApp(main({}, testing=u'guest', session=self.db, **settings))
         update = self.get_update(u'bodhi-2.0-2.fc17')
-        update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
-        res = app.post_json('/updates/', update, status=400)
+        update['csrf_token'] = self.get_csrf_token()
+
+        with mock.patch.dict('bodhi.server.validators.config',
+                             {'acl_system': 'pkgdb', 'pkgdb_url': 'invalidurl'}):
+            res = self.app.post_json('/updates/', update, status=400)
+
         assert "Unable to access the Package Database" in res, res
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
@@ -773,7 +775,9 @@ class TestEditUpdateForm(base.BaseTestCase):
         """
         Test a logged in User without permissions on the update can't see the form
         """
-        app = TestApp(main({}, testing=u'anonymous', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'anonymous', session=self.db, **self.app_settings))
+
         resp = app.get(
             '/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year), status=400)
         self.assertIn(
@@ -967,7 +971,8 @@ class TestUpdatesService(base.BaseTestCase):
         group2 = self.db.query(Group).filter_by(name=u'packager').one()
         user2.groups.append(group2)
 
-        app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', up_data)
@@ -975,7 +980,8 @@ class TestUpdatesService(base.BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-        app = TestApp(main({}, testing=u'lloyd', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'lloyd', session=self.db, **self.app_settings))
         update = self.get_update(nvr)
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         update['notes'] = u'testing!!!'
@@ -1004,7 +1010,8 @@ class TestUpdatesService(base.BaseTestCase):
         group2 = self.db.query(Group).filter_by(name=u'packager').one()
         user2.groups.append(group2)
 
-        app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', up_data)
@@ -1017,7 +1024,8 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEqual(build.update.request, UpdateRequest.testing)
 
         # Try and submit the update to stable as a non-provenpackager
-        app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         post_data = dict(update=nvr, request='stable',
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
@@ -1056,7 +1064,9 @@ class TestUpdatesService(base.BaseTestCase):
         update.request = UpdateRequest.testing
 
         # Try and submit the update to stable as a proventester
-        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+
         res = app.post_json('/updates/%s/request' % str(nvr),
                             dict(update=nvr, request='stable',
                                  csrf_token=app.get('/csrf').json_body['csrf_token']),
@@ -1064,7 +1074,9 @@ class TestUpdatesService(base.BaseTestCase):
 
         self.assertEqual(res.json_body['update']['request'], 'stable')
 
-        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+
         res = app.post_json('/updates/%s/request' % str(nvr),
                             dict(update=nvr, request='obsolete',
                                  csrf_token=app.get('/csrf').json_body['csrf_token']),
@@ -1078,18 +1090,24 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertEqual(update.status, UpdateStatus.obsolete)
 
         # Test that bob has can_edit True, provenpackager
-        app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], True)
 
         # Test that ralph has can_edit True, they submitted it.
-        app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], True)
 
         # Test that someuser has can_edit False, they are unrelated
         # This check *failed* with the old acls code.
-        app = TestApp(main({}, testing=u'someuser', session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing=u'someuser', session=self.db, **self.app_settings))
+
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], False)
 
@@ -1101,7 +1119,9 @@ class TestUpdatesService(base.BaseTestCase):
             'authtkt.secure': True,
         })
 
-        app = TestApp(main({}, session=self.db, **anonymous_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, session=self.db, **anonymous_settings))
+
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], False)
 
@@ -4350,10 +4370,9 @@ class TestUpdatesService(base.BaseTestCase):
         update.test_gating_status = TestGatingStatus.failed
         update.comment(self.db, 'works', 1, 'bowlofeggs')
         self.db.commit()
-        self.app_settings['test_gating.required'] = True
-        app = TestApp(main({}, testing=u'guest', **self.app_settings))
+        self.app.app.registry.settings['test_gating.required'] = True
 
-        resp = app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
         self.assertNotIn('Push to Batched', resp)
         self.assertNotIn('Push to Stable', resp)
@@ -4376,10 +4395,9 @@ class TestUpdatesService(base.BaseTestCase):
         update.test_gating_status = TestGatingStatus.passed
         update.comment(self.db, 'works', 1, 'bowlofeggs')
         self.db.commit()
-        self.app_settings['test_gating.required'] = True
-        app = TestApp(main({}, testing=u'guest', **self.app_settings))
+        self.app.app.registry.settings['test_gating.required'] = True
 
-        resp = app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
         self.assertIn('Push to Batched', resp)
         self.assertNotIn('Push to Stable', resp)

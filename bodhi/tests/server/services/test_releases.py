@@ -55,7 +55,9 @@ class TestReleasesService(base.BaseTestCase):
         """Ensure that an unauthenticated user cannot edit a release, since only an admin should."""
         name = u"F22"
         # Create a new app so we are the anonymous user.
-        app = webtest.TestApp(server.main({}, session=self.db, **self.app_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = webtest.TestApp(server.main({}, session=self.db, **self.app_settings))
+
         res = app.get('/releases/%s' % name, status=200)
         r = res.json_body
         r["edited"] = name

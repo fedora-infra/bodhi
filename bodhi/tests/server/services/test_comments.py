@@ -258,7 +258,8 @@ class TestCommentsService(base.BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = TestApp(main({}, session=self.db, **anonymous_settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, session=self.db, **anonymous_settings))
 
         comment = {
             u'update': 'bodhi-2.0-1.fc17',

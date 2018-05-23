@@ -19,6 +19,7 @@
 
 import copy
 import datetime
+import mock
 import re
 import unittest
 
@@ -52,7 +53,8 @@ class TestRenderers(base.BaseTestCase):
             'captcha.padding': '5',
             'captcha.ttl': '300',
         })
-        app = TestApp(main({}, session=self.db, **settings))
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, session=self.db, **settings))
 
         res = app.get('/updates/FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                       status=200,

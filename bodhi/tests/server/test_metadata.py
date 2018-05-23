@@ -261,12 +261,11 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         }]
 
     def tearDown(self):
-        shutil.rmtree(self.tempdir)
         config['mash_stage_dir'] = self._mash_stage_dir
         config['mash_dir'] = self._mash_dir
         config['cache_dir'] = None
         shutil.rmtree(self._new_mash_stage_dir)
-        super(TestUpdateInfoMetadata, self).setUp()
+        super(TestUpdateInfoMetadata, self).tearDown()
 
     def _verify_updateinfo(self, repodata):
         updateinfos = glob.glob(join(repodata, "*-updateinfo.xml*"))
