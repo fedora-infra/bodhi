@@ -26,6 +26,7 @@ import unittest
 from mock import ANY
 import koji
 import mock
+import requests
 import six
 from six.moves.urllib import parse as urlparse
 
@@ -35,6 +36,7 @@ from bodhi.server.models import (
     BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
     UpdateSeverity, User, TestGatingStatus)
+from bodhi.server.util import call_api
 from bodhi.tests.server.base import BaseTestCase, BodhiTestApp
 
 
@@ -5074,3 +5076,263 @@ class TestWaiveTestResults(BaseTestCase):
         self.assertEquals(res.json_body['errors'][0]['description'],
                           u'IOError. oops!')
         log_exception.assert_called_once_with("Unhandled exception in waive_test_results")
+
+
+class TestGetTestResults(BaseTestCase):
+    """
+    This class contains tests for the get_test_results() function.
+    """
+    @mock.patch.dict(config, [('greenwave_api_url', None)])
+    def test_cannot_get_test_results_when_no_greenwave_url(self, *args):
+        """
+        Ensure that we get an error if trying to get test results of an update
+        when there is no greenwave_api_url defined in the configuration.
+        """
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=501)
+
+        self.assertEqual(res.status_code, 501)
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body[u'errors'][0][u'description'],
+                         "No greenwave_api_url specified")
+
+    @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
+                side_effect=IOError('IOError. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.exception')
+    def test_unexpected_exception(self, log_exception, get_test_gating_info, *args):
+        """Ensure that an unexpected Exception is handled by get_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=500)
+
+        self.assertEqual(res.status_code, 500)
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'IOError. oops!')
+        log_exception.assert_called_once_with("Unhandled exception in get_test_results")
+
+    @mock.patch.dict(config, [('greenwave_api_url', 'https://greenwave.api')])
+    @mock.patch('bodhi.server.util.call_api')
+    def test_get_test_results_erroring_on_greenwave(self, call_api, *args):
+        """
+        Ensure if all conditions are met we do try to call greenwave with the proper
+        argument but that call raises an error.
+        """
+        nvr = u'bodhi-2.0-1.fc17'
+        call_api.side_effect = requests.exceptions.HTTPError(
+            'Un-expected error foo bar')
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=502)
+
+        call_api.assert_called_once_with(
+            'https://greenwave.api/decision',
+            data={
+                'product_version': u'fedora-17',
+                'decision_context': u'bodhi_update_push_testing',
+                'subject': [
+                    {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                ]
+            },
+            method='POST',
+            retries=3,
+            service_name='Greenwave'
+        )
+
+        self.assertEqual(
+            res.json_body,
+            {
+                u'errors': [
+                    {
+                        u'description': u'Un-expected error foo bar',
+                        u'location': u'body',
+                        u'name': u'request'
+                    }
+                ],
+                u'status': u'error'}
+        )
+
+    @mock.patch.dict(config, [('greenwave_api_url', 'https://greenwave.api')])
+    @mock.patch('bodhi.server.util.call_api')
+    def test_get_test_results_timing_out_on_greenwave(self, call_api, *args):
+        """
+        Ensure if all conditions are met we do try to call greenwave with the proper
+        argument but that call raises a TimeOut error.
+        """
+        nvr = u'bodhi-2.0-1.fc17'
+        call_api.side_effect = requests.exceptions.Timeout(
+            'Request to greenwave timed out')
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=504)
+
+        call_api.assert_called_once_with(
+            'https://greenwave.api/decision',
+            data={
+                'product_version': u'fedora-17',
+                'decision_context': u'bodhi_update_push_testing',
+                'subject': [
+                    {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                ]
+            },
+            method='POST',
+            retries=3,
+            service_name='Greenwave'
+        )
+
+        self.assertEqual(
+            res.json_body,
+            {
+                u'errors': [
+                    {
+                        u'description': u'Request to greenwave timed out',
+                        u'location': u'body',
+                        u'name': u'request'
+                    }
+                ],
+                u'status': u'error'}
+        )
+
+    @mock.patch.dict(config, [('greenwave_api_url', 'https://greenwave.api')])
+    @mock.patch('bodhi.server.util.call_api')
+    def test_get_test_results_calling_greenwave(self, call_api, *args):
+        """
+        Ensure if all conditions are met we do try to call greenwave with the proper
+        argument.
+        """
+        nvr = u'bodhi-2.0-1.fc17'
+        call_api.return_value = {"foo": "bar"}
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr))
+
+        call_api.assert_called_once_with(
+            'https://greenwave.api/decision',
+            data={
+                'product_version': u'fedora-17',
+                'decision_context': u'bodhi_update_push_testing',
+                'subject': [
+                    {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                ]
+            },
+            method='POST',
+            retries=3,
+            service_name='Greenwave'
+        )
+
+        self.assertEqual(res.json_body, {u'decision': {u'foo': u'bar'}})
+
+    @mock.patch('bodhi.server.util.call_api')
+    def test_get_test_results_calling_greenwave_no_session(self, call_api, *args):
+        """
+        Ensure if all conditions are met we do try to call greenwave with the proper
+        argument.
+        """
+        nvr = u'bodhi-2.0-1.fc17'
+        call_api.return_value = {"foo": "bar"}
+
+        with mock.patch('bodhi.server.Session.remove'):
+            app = BodhiTestApp(main(
+                {}, testing=u'bodhi', session=self.db,
+                greenwave_api_url='https://greenwave.api', **self.app_settings))
+            res = app.get('/updates/%s/get-test-results' % str(nvr))
+
+        call_api.assert_called_once_with(
+            'https://greenwave.api/decision',
+            data={
+                'product_version': u'fedora-17',
+                'decision_context': u'bodhi_update_push_testing',
+                'subject': [
+                    {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                ]
+            },
+            method='POST',
+            retries=3,
+            service_name='Greenwave'
+        )
+
+        self.assertEqual(res.json_body, {u'decision': {u'foo': u'bar'}})
+
+    @mock.patch('bodhi.server.util.call_api')
+    def test_get_test_results_calling_greenwave_unauth(self, call_api, *args):
+        """
+        Ensure if all conditions are met we do try to call greenwave with the proper
+        argument unauthenticated but the db does not know the specified update.
+        """
+        nvr = u'bodhi-2.0-1.fc17'
+        call_api.return_value = {"foo": "bar"}
+
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+            'greenwave_api_url': 'https://greenwave.api',
+        })
+        # with mock.patch('bodhi.server.Session.remove'):
+        app = BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        res = app.get('/updates/%s/get-test-results' % nvr, status=404)
+
+        self.assertEqual(
+            res.json_body,
+            {
+                u'errors': [
+                    {
+                        u'description': u'Invalid update id',
+                        u'location': u'url',
+                        u'name': u'id'
+                    }
+                ],
+                u'status': u'error'
+            }
+        )
+
+    @mock.patch.dict(config, [('greenwave_api_url', 'https://greenwave.api')])
+    @mock.patch('bodhi.server.util.http_session')
+    @mock.patch('bodhi.server.util.call_api', wraps=call_api)
+    def test_get_test_results_calling_greenwave_500(self, call_api, http_session, *args):
+        """
+        Ensure if all conditions are met we do try to call greenwave with the proper
+        argument but greenwave returns a 500 error
+        """
+        nvr = u'bodhi-2.0-1.fc17'
+        request = mock.MagicMock()
+        request.status_code = 500
+        http_session.post.return_value = request
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=502)
+
+        self.assertEqual(call_api.call_count, 4)
+        self.assertEqual(
+            res.json_body,
+            {
+                u'errors': [
+                    {
+                        u'description': u'Bodhi failed to send POST request to '
+                        u'Greenwave at the following URL '
+                        u'"https://greenwave.api/decision". '
+                        u'The status code was "500".',
+                        u'location': u'body',
+                        u'name': u'request'
+                    }
+                ],
+                'status': u'error'
+            }
+        )
