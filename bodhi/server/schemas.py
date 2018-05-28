@@ -807,3 +807,12 @@ class WaiveTestResultsSchema(CSRFProtectedSchema, colander.MappingSchema):
         colander.String(),
         missing=None,
     )
+
+
+class GetTestResultsSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.updates.get_test_results()."""
+
+    alias = Builds(
+        colander.Sequence(accept_scalar=True),
+        missing=None,
+    )

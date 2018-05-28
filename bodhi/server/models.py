@@ -1958,7 +1958,14 @@ class Update(Base):
         return json.dumps(self.greenwave_subject)
 
     def get_test_gating_info(self):
-        """Query Greenwave about this update and returned the information retrieved."""
+        """
+        Query Greenwave about this update and return the information retrieved.
+
+        Returns:
+            dict: The response from Greenwave for this update.
+        Raises:
+            BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
+        """
         if not config.get('greenwave_api_url'):
             raise BodhiException('No greenwave_api_url specified')
 
