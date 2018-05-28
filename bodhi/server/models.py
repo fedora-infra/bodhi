@@ -48,7 +48,7 @@ from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get,
-    greenwave_api_post, waiverdb_api_post)
+    waiverdb_api_post)
 import bodhi.server.util
 
 if six.PY2:
@@ -1957,8 +1957,11 @@ class Update(Base):
         """
         return json.dumps(self.greenwave_subject)
 
-    def update_test_gating_status(self):
-        """Query Greenwave about this update and set the test_gating_status as appropriate."""
+    def get_test_gating_info(self):
+        """Query Greenwave about this update and returned the information retrieved."""
+        if not config.get('greenwave_api_url'):
+            raise BodhiException('No greenwave_api_url specified')
+
         # We retrieve updates going to testing (status=pending) and updates
         # (status=testing) going to stable.
         # If the update is pending, we want to know if it can go to testing
@@ -1974,7 +1977,11 @@ class Update(Base):
         }
         api_url = '{}/decision'.format(config.get('greenwave_api_url'))
 
-        decision = util.greenwave_api_post(api_url, data)
+        return util.greenwave_api_post(api_url, data)
+
+    def update_test_gating_status(self):
+        """Query Greenwave about this update and set the test_gating_status as appropriate."""
+        decision = self.get_test_gating_info()
         if decision['policies_satisfied']:
             # If an unrestricted policy is applied and no tests are required
             # on this update, let's set the test gating as ignored in Bodhi.
@@ -2647,15 +2654,7 @@ class Update(Base):
         if self.test_gating_passed:
             raise BodhiException("Can't waive test resuts on an update that passes test gating")
 
-        decision_context = u'bodhi_update_push_testing'
-        if self.status == UpdateStatus.testing:
-            decision_context = u'bodhi_update_push_stable'
-        data = {
-            'product_version': self.product_version,
-            'decision_context': decision_context,
-            'subject': self.greenwave_subject
-        }
-        decision = greenwave_api_post('{}/decision'.format(config.get('greenwave_api_url')), data)
+        decision = self.get_test_gating_info()
         for requirement in decision['unsatisfied_requirements']:
             data = {
                 'subject': requirement['item'],
