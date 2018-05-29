@@ -51,20 +51,8 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
     // show the Greenwave decision
     var greenwave_api_url = '${request.registry.settings["greenwave_api_url"]}';
     var missing_tests = {};
+
     // handle Greenwave decision
-    var handle_unsatisfied_reqs = function(data){
-        $.each(data['unsatisfied_requirements'], function(i, req) {
-            if (req.type == 'test-result-missing') {
-                if (missing_tests[req.item] === undefined)
-                    missing_tests[req.item]= [];
-                missing_tests[req.item].push(req);
-            }
-            // the user may have already specified this in the required taskotron tests
-            if ($.inArray(req.testcase, requirements) == -1) {
-                requirements.push(req.testcase);
-            }
-        });
-    };
 
     // Handle unstatisfied requirements
     var handle_unsatisfied_reqs = function(data){
@@ -80,7 +68,6 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             }
         });
     };
-
 
     // Handle showing waivers retrieved from greenwave in the UI
     var waiverdb_api_url = '${request.registry.settings["waiverdb_api_url"]}';
