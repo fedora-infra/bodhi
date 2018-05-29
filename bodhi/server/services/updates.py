@@ -561,7 +561,7 @@ def new_update(request):
                                 error_handler=bodhi.server.services.errors.json_handler)
 def waive_test_results(request):
     """
-    Waive test results on a given update when gating is on.
+    Waive all blocking test results on a given update when gating is on.
 
     Args:
         request (pyramid.request): The current request.
