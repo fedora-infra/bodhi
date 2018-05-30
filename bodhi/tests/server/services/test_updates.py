@@ -1517,6 +1517,27 @@ class TestUpdatesService(base.BaseTestCase):
         up = body['updates'][0]
         self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
 
+        # test that the search works for leading space
+        res = self.app.get('/updates/', {'search': ' bodh'})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+
+        # test that the search works for trailing space
+        res = self.app.get('/updates/', {'search': 'bodh '})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+
+        # test that the search works for both leading and trailing space
+        res = self.app.get('/updates/', {'search': ' bodh '})
+        body = res.json_body
+        self.assertEquals(len(body['updates']), 1)
+        up = body['updates'][0]
+        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_list_updates_pagination(self, *args):

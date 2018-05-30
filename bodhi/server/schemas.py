@@ -281,12 +281,14 @@ class SearchableSchema(colander.MappingSchema):
         colander.String(),
         location="querystring",
         missing=None,
+        preparer=[lambda x: x.strip() if x else x],
     )
 
     search = colander.SchemaNode(
         colander.String(),
         location="querystring",
         missing=None,
+        preparer=[lambda x: x.strip() if x else x],
     )
 
 
