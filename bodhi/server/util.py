@@ -790,6 +790,7 @@ def severity2html(context, severity):
         'high': 'warning',
         'medium': 'primary',
         'low': 'success',
+        'unspecified': 'default',
     }.get(severity)
 
     return "<span class='label label-%s'>%s</span>" % (cls, severity)
