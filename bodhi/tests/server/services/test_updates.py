@@ -4664,6 +4664,98 @@ class TestUpdatesService(base.BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
+    def assertSeverityHTML(self, severity, text):
+        """
+        Assert that the "Update Severity" label appears correctly given specific 'severity'.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr)
+        update.severity = severity
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.pushed = True
+        update.date_testing = datetime.now() - timedelta(days=30)
+        self.db.commit()
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks correct class label and text for update severity in the html page for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertIn(text, resp)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_update_severity_label_present_correctly_when_severity_is_urgent(self, publish, *args):
+        """
+        Assert that the "Update Severity" label appears correctly when the severity is urgent.
+        """
+        self.assertSeverityHTML(UpdateSeverity.urgent,
+                                '<span class=\'label label-danger\'>urgent</span>')
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_update_severity_label_present_correctly_when_severity_is_high(self, publish, *args):
+        """
+        Assert that the "Update Severity" label appears correctly when the severity is high.
+        """
+        self.assertSeverityHTML(UpdateSeverity.high,
+                                '<span class=\'label label-warning\'>high</span>')
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_update_severity_label_present_correctly_when_severity_is_medium(self, publish, *args):
+        """
+        Assert that the "Update Severity" label appears correctly when the severity is medium.
+        """
+        self.assertSeverityHTML(UpdateSeverity.medium,
+                                '<span class=\'label label-primary\'>medium</span>')
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_update_severity_label_present_correctly_when_severity_is_low(self, publish, *args):
+        """
+        Assert that the "Update Severity" label appears correctly when the severity is low.
+        """
+        self.assertSeverityHTML(UpdateSeverity.low,
+                                '<span class=\'label label-success\'>low</span>')
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_update_severity_label_present_correctly_when_severity_is_unspecified(self, publish,
+                                                                                  *args):
+        """
+        Assert that the "Update Severity" label appears correctly when the severity is unspecified.
+        """
+        self.assertSeverityHTML(UpdateSeverity.unspecified,
+                                '<span class=\'label label-default\'>unspecified</span>')
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_update_severity_label_absent_when_severity_is_None(self, publish, *args):
+        """
+        Assert that the "Update Severity" label doesn't appear when severity is None
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        resp = self.app.post_json('/updates/', args)
+        update = Update.get(nvr)
+        update.severity = None
+        update.status = UpdateStatus.testing
+        update.request = None
+        update.pushed = True
+        update.date_testing = datetime.now() - timedelta(days=30)
+        self.db.commit()
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        # Checks 'Update Severity' text is absent in the html for this update
+        self.assertIn('text/html', resp.headers['Content-Type'])
+        self.assertIn(nvr, resp)
+        self.assertNotIn('<strong>Update Severity</strong>', resp)
+
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')

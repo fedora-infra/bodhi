@@ -905,7 +905,8 @@ $(document).ready(function(){
                 </div>
               </div>
               % endif
-              % if not 'unspecified' in update.severity:
+              
+              % if update.severity:
               <div class="p-b-1">
                 <div>
                   <strong>Update Severity</strong>
