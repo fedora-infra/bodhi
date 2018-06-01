@@ -2,6 +2,15 @@
 Release notes
 =============
 
+develop
+-------
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+Cornice must now be at least version 3.1.0.
+
+
 v3.8.0
 ------
 
