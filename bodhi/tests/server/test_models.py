@@ -1261,6 +1261,26 @@ class TestRpmBuild(ModelTest):
             'Unable to add changelog entry for header %s', rpm_header)
         get_rpm_header.assert_called_once_with(self.obj.nvr)
 
+    def test_get_changelog_no_description(self):
+        """Ensure the get_changelog() returns empty string when there is no description."""
+        rpm_header = {
+            'changelogtext': [],
+            'release': '1.fc20',
+            'version': '2.1.0',
+            'changelogtime': [1375531200, 1370952000],
+            'description': 'blah blah blah',
+            'changelogname': ['Fedora Releng <rel-eng@lists.fedoraproject.org> - 2.1.0-1'],
+            'url': 'http://libseccomp.sourceforge.net',
+            'name': 'libseccomp',
+            'summary': 'Enhanced seccomp library'}
+
+        with mock.patch(
+                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+            changelog = self.obj.get_changelog()
+
+        self.assertEqual(changelog, '')
+        get_rpm_header.assert_called_once_with(self.obj.nvr)
+
     @mock.patch('bodhi.server.models.log.exception')
     def test_get_changelog_when_is_list(self, exception):
         """Test get_changelog() when the changelogtime is given as a list."""
@@ -1333,6 +1353,144 @@ class TestRpmBuild(ModelTest):
 
     def test_url(self):
         self.assertEqual(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
+
+
+class TestUpdateEdit(BaseTestCase):
+    """Tests for the Update.edit() method."""
+
+    def test_add_build_to_locked_update(self):
+        """Adding a build to a locked update should raise LockedUpdateException."""
+        data = {
+            'edited': model.Update.query.first().title, 'builds': ["can't", 'do', 'this']}
+        request = mock.MagicMock()
+        request.db = self.db
+        update = model.Update.query.first()
+        update.locked = True
+        self.db.flush()
+
+        with self.assertRaises(model.LockedUpdateException):
+            model.Update.edit(request, data)
+
+    @mock.patch('bodhi.server.models.log.warn')
+    def test_new_builds_log_when_release_has_no_signing_tag(self, warn):
+        """If new builds are added from a release with no signing tag, it should log a warning."""
+        package = model.Package(name='python-rpdb')
+        self.db.add(package)
+        build = model.Build(nvr='python-rpdb-1.3.1.fc17', package=package)
+        self.db.add(build)
+        update = model.Update.query.first()
+        data = {
+            'edited': update.title, 'builds': [update.builds[0].nvr, build.nvr], 'bugs': []}
+        request = mock.MagicMock()
+        request.buildinfo = {
+            build.nvr: {
+                'nvr': build._get_n_v_r(), 'info': buildsys.get_session().getBuild(build.nvr)}}
+        request.db = self.db
+        update.release.pending_signing_tag = ''
+        self.db.flush()
+
+        model.Update.edit(request, data)
+
+        warn.assert_called_once_with('F17 has no pending_signing_tag')
+        update = model.Update.query.first()
+        self.assertEqual(set([b.nvr for b in update.builds]),
+                         {'bodhi-2.0-1.fc17', 'python-rpdb-1.3.1.fc17'})
+
+    def test_remove_builds_from_locked_update(self):
+        """Adding a build to a locked update should raise LockedUpdateException."""
+        data = {
+            'edited': model.Update.query.first().title, 'builds': []}
+        request = mock.MagicMock()
+        request.db = self.db
+        update = model.Update.query.first()
+        update.locked = True
+        self.db.flush()
+
+        with self.assertRaises(model.LockedUpdateException):
+            model.Update.edit(request, data)
+
+
+class TestUpdateGetBugKarma(BaseTestCase):
+    """Test the get_bug_karma() method."""
+
+    def test_feedback_wrong_bug(self):
+        """Feedback for other bugs should be ignored."""
+        update = model.Update.query.first()
+        # Let's add a bug karma to the existing comment on the bug.
+        bk = model.BugKarma(karma=1, comment=update.comments[0], bug=update.bugs[0])
+        self.db.add(bk)
+        # Now let's associate a new bug with the update.
+        bug = model.Bug(bug_id=12345, title='some title')
+        update.bugs.append(bug)
+
+        bad, good = update.get_bug_karma(bug)
+
+        self.assertEqual(bad, 0)
+        self.assertEqual(good, 0)
+
+    def test_mixed_feedback(self):
+        """Make sure mixed feedback is counted correctly."""
+        update = model.Update.query.first()
+        for i, karma in enumerate([-1, 1, 1]):
+            user = model.User(name='user_{}'.format(i))
+            comment = model.Comment(text='Test comment', karma=karma, user=user)
+            self.db.add(comment)
+            update.comments.append(comment)
+            bug_karma = model.BugKarma(karma=karma, comment=comment, bug=update.bugs[0])
+            self.db.add(bug_karma)
+
+        bad, good = update.get_bug_karma(update.bugs[0])
+
+        self.assertEqual(bad, -1)
+        self.assertEqual(good, 2)
+
+
+class TestUpdateGetTestcaseKarma(BaseTestCase):
+    """Test the get_testcase_karma() method."""
+
+    def test_feedback_wrong_testcase(self):
+        """Feedback for other testcases should be ignored."""
+        update = model.Update.query.first()
+        # Let's add a testcase karma to the existing comment on the testcase.
+        tck = model.TestCaseKarma(karma=1, comment=update.comments[0],
+                                  testcase=update.builds[0].package.test_cases[0])
+        self.db.add(tck)
+        # Now let's associate a new testcase with the update.
+        testcase = model.TestCase(name='a testcase', package=update.builds[0].package)
+
+        bad, good = update.get_testcase_karma(testcase)
+
+        self.assertEqual(bad, 0)
+        self.assertEqual(good, 0)
+
+    def test_mixed_feedback(self):
+        """Make sure mixed feedback is counted correctly."""
+        update = model.Update.query.first()
+        for i, karma in enumerate([-1, 1, 1]):
+            user = model.User(name='user_{}'.format(i))
+            comment = model.Comment(text='Test comment', karma=karma, user=user)
+            self.db.add(comment)
+            update.comments.append(comment)
+            testcase_karma = model.TestCaseKarma(karma=karma, comment=comment,
+                                                 testcase=update.builds[0].package.test_cases[0])
+            self.db.add(testcase_karma)
+
+        bad, good = update.get_testcase_karma(update.builds[0].package.test_cases[0])
+
+        self.assertEqual(bad, -1)
+        self.assertEqual(good, 2)
+
+
+class TestUpdateSigned(BaseTestCase):
+    """Test the Update.signed() property."""
+
+    def test_release_without_pending_signing_tag(self):
+        """If the update's release doesn't have a pending_signing_tag, it should return True."""
+        update = model.Update.query.first()
+        update.builds[0].signed = False
+        update.release.pending_signing_tag = ''
+
+        self.assertTrue(update.signed)
 
 
 class TestUpdateValidateBuilds(BaseTestCase):
