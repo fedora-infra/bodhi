@@ -8,7 +8,7 @@ omit =
 
 [report]
 precision = 2
-fail_under = 98
+fail_under = 99
 exclude_lines =
     pragma: no cover
     class DevBuildsys
