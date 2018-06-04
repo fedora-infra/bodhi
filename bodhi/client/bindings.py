@@ -413,7 +413,8 @@ class BodhiClient(OpenIdBaseClient):
 
     @errorhandled
     def list_overrides(self, user=None, packages=None,
-                       expired=None, releases=None, builds=None):
+                       expired=None, releases=None, builds=None,
+                       rows_per_page=None, page=None):
         """
         List buildroot overrides.
 
@@ -425,6 +426,10 @@ class BodhiClient(OpenIdBaseClient):
             releases (basestring): Comma separated Release shortnames to filter buildroot overrides
                 by.
             builds (basestring): Comma separated build NVRs to filter overrides by.
+            rows_per_page (int): Limit the results to a certain number of rows per page.
+                (default:None)
+            page (int): Return a specific page of results.
+                (default:None)
         """
         params = {}
         if user:
@@ -437,6 +442,10 @@ class BodhiClient(OpenIdBaseClient):
             params['releases'] = releases
         if builds:
             params['builds'] = builds
+        if rows_per_page:
+            params['rows_per_page'] = rows_per_page
+        if page:
+            params['page'] = page
         return self.send_request('overrides/', verb='GET', params=params)
 
     def init_username(self):

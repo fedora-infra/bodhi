@@ -95,6 +95,15 @@ save_edit_options = [
     staging_option,
     url_option]
 
+# Basic options for pagination of query result
+pagination_options = [
+    click.option('--rows', default=None,
+                 type=click.IntRange(1, 100, clamp=False),
+                 help='Limits number of results shown per page'),
+    click.option('--page', default=None,
+                 type=click.IntRange(1, clamp=False),
+                 help='Go to page number')]
+
 
 def add_options(options):
     """
@@ -376,8 +385,9 @@ def edit(user, password, url, **kwargs):
 @click.option('--mine', is_flag=True, help='Show only your updates')
 @staging_option
 @url_option
+@add_options(pagination_options)
 @handle_errors
-def query(url, mine=False, **kwargs):
+def query(url, mine=False, rows=None, **kwargs):
     # User Docs that show in the --help
     """Query updates on Bodhi.
 
@@ -400,7 +410,7 @@ def query(url, mine=False, **kwargs):
     if mine:
         client.init_username()
         kwargs['user'] = client.username
-    resp = client.query(**kwargs)
+    resp = client.query(rows_per_page=rows, **kwargs)
     print_resp(resp, client)
 
 
@@ -606,9 +616,11 @@ def overrides():
 @click.option('--builds', default=None,
               help='Query by comma-separated build id(s)')
 @url_option
+@add_options(pagination_options)
 @handle_errors
 def query_buildroot_overrides(url, user=None, mine=False, packages=None,
-                              expired=None, releases=None, builds=None, **kwargs):
+                              expired=None, releases=None, builds=None,
+                              rows=None, page=None, **kwargs):
     # Docs that show in the --help
     """Query the buildroot overrides."""
     # Developer Docs
@@ -625,6 +637,8 @@ def query_buildroot_overrides(url, user=None, mine=False, packages=None,
         expired (bool): If supplied, True returns only expired overrides, False only active.
         releases (unicode): If supplied, the overrides for these releases are queried.
         builds (unicode): If supplied, the overrides for these builds are queried.
+        rows (unicode): The limit of rows displayed per page for query result.
+        page (unicode): If supplied, returns the results for a specific page number.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
@@ -632,7 +646,8 @@ def query_buildroot_overrides(url, user=None, mine=False, packages=None,
         client.init_username()
         user = client.username
     resp = client.list_overrides(user=user, packages=packages,
-                                 expired=expired, releases=releases, builds=builds)
+                                 expired=expired, releases=releases, builds=builds,
+                                 rows_per_page=rows, page=page)
     print_resp(resp, client)
 
 
