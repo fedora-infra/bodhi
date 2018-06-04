@@ -53,6 +53,17 @@ class TestGenericViews(base.BaseTestCase):
         self.assertIn('Log out', res)
         self.assertIn('Fedora Update System', res)
 
+    def test_critical_update_link_home(self):
+        update = Update.query.first()
+        update.critpath = True
+        update.status = UpdateStatus.testing
+        self.db.commit()
+
+        res = self.app.get('/', headers={'Accept': 'text/html'})
+
+        self.assertRegexpMatches(str(res), ('status=testing&critpath=True.*'
+                                 'Latest Critical Path Updates in Need of Testing'))
+
     def test_markdown(self):
         res = self.app.get('/markdown', {'text': 'wat'}, status=200)
         self.assertEquals(
