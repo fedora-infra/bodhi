@@ -535,6 +535,32 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'builds': 'python-1.5.6-3.fc26'})
 
+    def test_with_rows_per_page(self):
+        """
+        Test with the rows_per_page parameter.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='response')
+
+        response = client.list_overrides(rows_per_page=10)
+
+        self.assertEqual(response, 'response')
+        client.send_request.assert_called_once_with('overrides/', verb='GET',
+                                                    params={'rows_per_page': 10})
+
+    def test_with_page(self):
+        """
+        Test with the page parameter.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='response')
+
+        response = client.list_overrides(page=5)
+
+        self.assertEqual(response, 'response')
+        client.send_request.assert_called_once_with('overrides/', verb='GET',
+                                                    params={'page': 5})
+
 
 class TestBodhiClient_override_str(unittest.TestCase):
     """
@@ -763,6 +789,32 @@ class TestBodhiClient_query(unittest.TestCase):
         self.assertEqual(result, 'return_value')
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'type': 'security'})
+
+    def test_with_rows_per_page(self):
+        """
+        Test with the 'rows_per_page' kwarg.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='return_value')
+
+        result = client.query(packages='bodhi', rows_per_page=10)
+
+        self.assertEqual(result, 'return_value')
+        client.send_request.assert_called_once_with(
+            'updates/', verb='GET', params={'packages': 'bodhi', 'rows_per_page': 10})
+
+    def test_with_page(self):
+        """
+        Test with the 'page' kwarg.
+        """
+        client = bindings.BodhiClient()
+        client.send_request = mock.MagicMock(return_value='return_value')
+
+        result = client.query(packages='bodhi', page=5)
+
+        self.assertEqual(result, 'return_value')
+        client.send_request.assert_called_once_with(
+            'updates/', verb='GET', params={'packages': 'bodhi', 'page': 5})
 
 
 class TestBodhiClient_save(unittest.TestCase):

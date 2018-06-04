@@ -508,7 +508,7 @@ class TestQuery(unittest.TestCase):
                 'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
                 'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
                 'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
-                'cves': None})
+                'cves': None, 'rows_per_page': None, 'page': None})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -538,7 +538,7 @@ class TestQuery(unittest.TestCase):
                 'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
                 'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
                 'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
-                'cves': None})
+                'cves': None, 'rows_per_page': None, 'page': None})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -568,7 +568,7 @@ class TestQuery(unittest.TestCase):
                 'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
                 'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
                 'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
-                'cves': None})
+                'cves': None, 'rows_per_page': None, 'page': None})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -597,8 +597,62 @@ class TestQuery(unittest.TestCase):
                 'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
                 'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
                 'user': 'dudemcpants', 'critpath': None, 'updateid': None, 'packages': None,
-                'type': None, 'cves': None})
+                'type': None, 'cves': None, 'rows_per_page': None, 'page': None})
         mock_open.assert_called_with(fedora.client.openidbaseclient.b_SESSION_FILE, 'rb')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    def test_rows_flag(self, send_request):
+        """
+        Assert correct behavior with the --rows flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.query,
+            ['--rows', 10])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'updates/', verb='GET',
+            params={
+                'approved_since': None, 'status': None, 'locked': None,
+                'builds': None, 'releases': None,
+                'content_type': None,
+                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
+                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
+                'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
+                'cves': None, 'rows_per_page': 10, 'page': None})
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    def test_page_flag(self, send_request):
+        """
+        Assert correct behavior with the --page flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.query,
+            ['--page', 5])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'updates/', verb='GET',
+            params={
+                'approved_since': None, 'status': None, 'locked': None,
+                'builds': None, 'releases': None,
+                'content_type': None,
+                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
+                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
+                'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
+                'cves': None, 'rows_per_page': None, 'page': 5})
 
 
 class TestQueryBuildrootOverrides(unittest.TestCase):
@@ -680,6 +734,46 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
             send_request.mock_calls[1],
             mock.call(bindings_client, 'releases/', verb='GET',
                       params={'ids': [15]}))
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_OVERRIDES_MUNCH, autospec=True)
+    def test_rows_flag(self, send_request):
+        """
+        Assert correct behavior with the --rows flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.query_buildroot_overrides,
+            ['--rows', 10])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'overrides/', verb='GET',
+            params={'rows_per_page': 10})
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_OVERRIDES_MUNCH, autospec=True)
+    def test_page_flag(self, send_request):
+        """
+        Assert correct behavior with the --page flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.query_buildroot_overrides,
+            ['--page', 5])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'overrides/', verb='GET',
+            params={'page': 5})
 
 
 class TestRequest(unittest.TestCase):
