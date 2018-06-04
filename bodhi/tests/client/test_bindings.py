@@ -1320,11 +1320,10 @@ class TestBodhiClient_candidates(unittest.TestCase):
     """
     Test the BodhiClient.candidates() method.
     """
-    @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
     @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')
     @mock.patch('bodhi.client.bindings.log.exception')
-    def test_failure(self, exception, get_koji_session, mock_input):
+    def test_failure(self, exception, get_koji_session):
         """Ensure correct handling when talking to Koji raises an Exception."""
         get_koji_session.return_value.listTagged.side_effect = [
             [{'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc25', 'nvr': 'bodhi-2.9.0-1.fc25',
@@ -1332,8 +1331,7 @@ class TestBodhiClient_candidates(unittest.TestCase):
              {'name': 'ipsilon', 'version': '2.0.2', 'release': '1.fc25',
               'nvr': 'ipsilon-2.0.2-1.fc25', 'owner_name': 'puiterwijk'}],
             IOError("Bet you didn't expect this.")]
-        mock_input.return_value = 'bowlofeggs'
-        client = bindings.BodhiClient()
+        client = bindings.BodhiClient(username='bowlofeggs')
         client.send_request = mock.MagicMock(
             return_value={'releases': [{'candidate_tag': 'f25-updates-testing'},
                                        {'candidate_tag': 'f26-updates-testing'}]})
@@ -1353,10 +1351,9 @@ class TestBodhiClient_candidates(unittest.TestCase):
         exception.assert_called_once_with(
             "Unable to query candidate builds for {'candidate_tag': 'f26-updates-testing'}")
 
-    @mock.patch('bodhi.client.bindings.input', create=True)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
     @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')
-    def test_success(self, get_koji_session, mock_input):
+    def test_success(self, get_koji_session):
         """Ensure correct behavior when there are no errors talking to Koji."""
         get_koji_session.return_value.listTagged.side_effect = [
             [{'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc25', 'nvr': 'bodhi-2.9.0-1.fc25',
@@ -1365,8 +1362,7 @@ class TestBodhiClient_candidates(unittest.TestCase):
               'nvr': 'ipsilon-2.0.2-1.fc25', 'owner_name': 'puiterwijk'}],
             [{'name': 'bodhi', 'version': '2.9.0', 'release': '1.fc26', 'nvr': 'bodhi-2.9.0-1.fc26',
               'owner_name': 'bowlofeggs'}]]
-        mock_input.return_value = 'bowlofeggs'
-        client = bindings.BodhiClient()
+        client = bindings.BodhiClient(username='bowlofeggs')
         client.send_request = mock.MagicMock(
             return_value={'releases': [{'candidate_tag': 'f25-updates-testing'},
                                        {'candidate_tag': 'f26-updates-testing'}]})
