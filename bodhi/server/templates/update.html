@@ -355,7 +355,11 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
     get_greenwave_information({
         'product_version': '${update.product_version}',
+% if update.request == 'testing' and update.status == 'pending':
+        'decision_context': 'bodhi_update_push_testing',
+% else:
         'decision_context': 'bodhi_update_push_stable',
+% endif
         'subject': ${ update.greenwave_subject_json | n }
     });
 
