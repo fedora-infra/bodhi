@@ -45,7 +45,10 @@ mkdir -p /usr/local/lib/python$py3_version/site-packages/
 if ! rpm -q python2-flake8; then
     flake8 || fail
 else
-    flake8-2 || fail
+    # flake8 fails to run on Fedora 29 https://github.com/fedora-infra/bodhi/issues/2412
+    if ! grep 29 < /etc/redhat-release; then
+        flake8-2 || fail
+    fi
 fi
 pydocstyle bodhi || fail
 make -C docs clean || fail
