@@ -24,17 +24,14 @@
       - postgresql-devel
       - pungi
       - python2
-      - python-alembic
-      - python-bugzilla
-      - python-openid
-      - python-pylibravatar
-      - python-pyramid-fas-openid
-      - python-simplemediawiki
-      - python-webtest
+      - python2-alembic
       - python2-arrow
       - python2-bleach
+      - python2-bugzilla
       - python2-click
       - python2-colander
+      - python2-cornice
+      - python2-cornice-sphinx
       - python2-createrepo_c
       - python2-cryptography
       - python2-devel
@@ -52,22 +49,28 @@
       - python2-librepo
       - python2-markdown
       - python2-mock
+      - python2-openid
       - python2-pillow
       - python2-psycopg2
+      - python2-pylibravatar
       - python2-pyramid
+      - python2-pyramid-fas-openid
       - python2-pyramid-mako
       - python2-pyramid-tm
       - python2-pytest-cov
       - python2-rpdb
+      - python2-simplemediawiki
       - python2-sphinx
       - python2-sqlalchemy
       - python2-sqlalchemy_schemadisplay
       - python2-waitress
+      - python2-webtest
       - python2-yaml
       - python3-arrow
       - python3-bleach
       - python3-click
       - python3-colander
+      - python3-cornice
       - python3-createrepo_c
       - python3-diff-cover
       - python3-dogpile-cache
@@ -83,6 +86,7 @@
       - python3-pydocstyle
       - python3-pylibravatar
       - python3-pyramid
+      - python3-pyramid-fas-openid
       - python3-pytest
       - python3-pytest-cov
       - python3-simplemediawiki
@@ -93,21 +97,6 @@
       - vim-enhanced
       - zlib-devel
 
-# cornice > 1 won't be available until Fedora 28 is released.
-- name: pip install cornice
-  pip:
-      name: cornice
-
-- name: pip install cornice for Python 3
-  pip:
-      name: cornice
-      executable: pip3
-
-# cornice_sphinx is not packaged in Fedora yet, but won't be available until Fedora 28 is released.
-- name: pip install cornice_sphinx
-  pip:
-      name: -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
-
 # This isn't packaged in Fedora yet, but it's only a development tool (we should still add it)
 - name: pip install debugtoolbar
   pip:
@@ -116,12 +105,6 @@
 - name: pip install debugtoolbar
   pip:
       name: pyramid_debugtoolbar
-      executable: pip3
-
-# New version with Python 3 subpackage is available only in F28 and newer
-- name: pip install pyradim-fas-openid for Python3
-  pip:
-      name: pyramid_fas_openid
       executable: pip3
 
 - name: Install bodhi in developer mode

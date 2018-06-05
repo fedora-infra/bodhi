@@ -11,7 +11,7 @@ get started, simply use these commands::
     $ sudo systemctl enable libvirtd
     $ sudo systemctl start libvirtd
 
-Check out the code and run ``vagrant up ``::
+Check out the code and run ``vagrant up``::
 
     $ git clone https://github.com/fedora-infra/bodhi
     $ cd bodhi
