@@ -10,9 +10,12 @@ get started, simply use these commands::
     $ sudo dnf install ansible libvirt vagrant-libvirt vagrant-sshfs
     $ sudo systemctl enable libvirtd
     $ sudo systemctl start libvirtd
-    $ cp devel/Vagrantfile.example Vagrantfile
-    # Make sure your bodhi checkout is your shell's cwd
-    $ vagrant up
+
+Checkout the code and run ``vagrant``::
+
+    $ git clone https://github.com/fedora-infra/bodhi
+    $ cd bodhi
+    $ VAGRANT_VAGRANTFILE=devel/Vagrantfile.example vagrant up
 
 ``Vagrantfile.example`` sets up a port forward from the host machine's port 6543 into the Vagrant
 guest's port 6543, so you can now visit http://localhost:6543 with your browser to see your Bodhi
