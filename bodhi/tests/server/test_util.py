@@ -1218,44 +1218,6 @@ class TestUtils(base.BaseTestCase):
         splitspacestring = util.splitter("build-0.1 build-0.2")
         self.assertEqual(splitspacestring, ['build-0.1', 'build-0.2'])
 
-    def test_test_gating_status2html_ignored(self):
-        """ Test the test_gating_status2html method with a status: Ignored. """
-        output = util.test_gating_status2html(None, TestGatingStatus.ignored)
-        assert output == '<span class="label label-success">Tests Ignored</span>'
-
-    def test_test_gating_status2html_running(self):
-        """ Test the test_gating_status2html method with a status: Running. """
-        output = util.test_gating_status2html(None, TestGatingStatus.running)
-        assert output == '<span class="label label-warning">Tests Running</span>'
-
-    def test_test_gating_status2html_passed(self):
-        """ Test the test_gating_status2html method with a status: Passed. """
-        output = util.test_gating_status2html(None, TestGatingStatus.passed)
-        assert output == '<span class="label label-success">Tests Passed</span>'
-
-    def test_test_gating_status2html_failed(self):
-        """ Test the test_gating_status2html method with a status: Failed. """
-        output = util.test_gating_status2html(None, TestGatingStatus.failed, '1 of 3 tests failed')
-        expected = ('<span class="label label-danger">Tests Failed</span>'
-                    '<p><a class="gating-summary" href="#automatedtests">'
-                    '1 of 3 tests failed</a></p>')
-        assert output == expected
-
-    def test_test_gating_status2html_queued(self):
-        """ Test the test_gating_status2html method with a status: Queued. """
-        output = util.test_gating_status2html(None, TestGatingStatus.queued)
-        assert output == '<span class="label label-info">Tests Queued</span>'
-
-    def test_test_gating_status2html_waiting(self):
-        """ Test the test_gating_status2html method with a status: Waiting. """
-        output = util.test_gating_status2html(None, TestGatingStatus.waiting)
-        assert output == '<span class="label label-info">Tests Waiting</span>'
-
-    def test_test_gating_status2html_missing(self):
-        """ Test the test_gating_status2html method with a status: None. """
-        output = util.test_gating_status2html(None, None)
-        assert output == '<span class="label label-primary">Tests not running</span>'
-
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch('bodhi.server.util.log.exception')
     def test_taskotron_results_non_200(self, log_exception, mock_get):
