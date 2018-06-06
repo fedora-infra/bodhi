@@ -291,6 +291,52 @@ class TestNewUpdate(BaseTestCase):
         self.assertEquals(up['errors'][0]['description'],
                           "Koji error getting build: bodhi-2.0.0-2.fc17")
 
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_koji_config_url(self, publish, *args):
+        """
+        Test html rendering of default build link
+        """
+        self.app.app.registry.settings['koji_web_url'] = u'https://koji.fedoraproject.org/koji/'
+        nvr = u'bodhi-2.0.0-2.fc17'
+        resp = self.app.post_json('/updates/', self.get_update(nvr))
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        self.assertRegexpMatches(str(resp), ('https://koji.fedoraproject.org/koji'
+                                             '/search\?terms=.*\&amp;type=build\&amp;match=glob'))
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_koji_config_url_without_trailing_slash(self, publish, *args):
+        """
+        Test html rendering of default build link without trailing slash
+        """
+        self.app.app.registry.settings['koji_web_url'] = u'https://koji.fedoraproject.org/koji'
+        nvr = u'bodhi-2.0.0-2.fc17'
+        resp = self.app.post_json('/updates/', self.get_update(nvr))
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        self.assertRegexpMatches(str(resp), ('https://koji.fedoraproject.org/koji'
+                                             '/search\?terms=.*\&amp;type=build\&amp;match=glob'))
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_koji_config_mock_url_without_trailing_slash(self, publish, *args):
+        """
+        Test html rendering of build link using a mock config variable 'koji_web_url'
+        without a trailing slash in it
+        """
+        self.app.app.registry.settings['koji_web_url'] = u'https://host.org'
+        nvr = u'bodhi-2.0.0-2.fc17'
+        resp = self.app.post_json('/updates/', self.get_update(nvr))
+
+        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
+
+        self.assertRegexpMatches(str(resp), ('https://host.org'
+                                             '/search\?terms=.*\&amp;type=build\&amp;match=glob'))
+
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)

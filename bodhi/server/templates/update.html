@@ -1,6 +1,12 @@
 <%inherit file="master.html"/>
 <%namespace name="captcha" module="bodhi.server.captcha"/>
 <%namespace name="json" module="json"/>
+<%
+  try:
+    from urllib.parse import urljoin
+  except ImportError:
+    from urlparse import urljoin
+%>
 
 <%block name="pagetitle">
 % if update.alias:
@@ -1017,7 +1023,11 @@ $(document).ready(function(){
         % for build in update.builds:
         <tr class="media">
           <td>
-            <a href="https://koji.fedoraproject.org/koji/search?terms=${build.nvr}&type=build&match=glob" target="_blank">
+            <%
+              koji_web_url = request.registry.settings.get('koji_web_url').strip('/') + '/'
+              build_url = urljoin(koji_web_url, 'search?terms='+build.nvr+'&type=build&match=glob')
+            %>
+            <a href="${build_url}" target="_blank">
                 ${build.nvr}</a>
           </td>
           <td class="pull-right">
