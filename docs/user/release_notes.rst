@@ -27,6 +27,12 @@ Contributor
 
 Thanks to Miro Hrončok for fixing these issues.
 
+Deprecation
+^^^^^^^^^^^
+
+* ``bodhi-manage-releases`` has been deprecated and will be removed in a future release. Please use
+  ``bodhi releases`` instead (:issue:`2419`).
+
 
 v3.8.0
 ------
