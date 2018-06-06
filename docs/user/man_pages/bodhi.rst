@@ -368,6 +368,148 @@ The ``updates`` command allows users to interact with bodhi updates.
     update id, and ``state`` should be one of testing, stable, unpush, obsolete, or revoke.
 
 
+Releases
+=========
+
+The ``releases`` command allows users to manage update releases.
+
+``bodhi releases create [options]``
+
+    The ``create`` command allows administrators to create new releases in Bodhi:
+
+    ``--branch TEXT``
+
+        The git branch that corresponds to this release (e.g., f29).
+
+    ``--candidate-tag TEXT``
+
+        The Koji tag to use to search for update candidates (e.g., f29-updates-candidate).
+
+    ``--dist-tag TEXT``
+
+        The Koji dist tag for this release (e.g., f29).
+
+    ``--id-prefix TEXT``
+
+        The release's prefix (e.g., FEDORA).
+
+    ``--long-name TEXT``
+
+        The long name of the release (e.g., Fedora 29).
+
+    ``--name TEXT``
+
+        The name of the release (e.g., F29).
+
+    ``--override-tag TEXT``
+
+        The Koji tag to use for buildroot overrides (e.g., f29-override).
+
+    ``--password TEXT``
+
+        The password to use when authenticating to Bodhi.
+
+    ``--pending-stable-tag TEXT``
+
+        The Koji tag to use on updates that are marked stable (e.g., f29-updates-pending).
+
+    ``--pending-testing-tag TEXT``
+
+        The Koji tag to use on updates that are pending testing (e.g., f29-updates-testing-pending).
+
+    ``--stable-tag TEXT``
+
+        The Koji tag to use for stable updates (e.g., f29-updates).
+
+    ``--state [disabled|pending|current|archived]``
+
+        The state of the release.
+
+    ``--testing-tag TEXT``
+
+        The Koji tag to use for testing updates (e.g., f29-updates-testing).
+
+    ``--username TEXT``
+
+        The username to use when authenticating to Bodhi.
+
+    ``--version TEXT``
+
+        The version of the release (e.g., 29).
+
+``bodhi releases edit [options]``
+
+    The ``edit`` command allows administrators to edit existing releases:
+
+    ``--branch TEXT``
+
+        The git branch that corresponds to this release (e.g., f29).
+
+    ``--candidate-tag TEXT``
+
+        The Koji tag to use to search for update candidates (e.g., f29-updates-candidate).
+
+    ``--dist-tag TEXT``
+
+        The Koji dist tag for this release (e.g., f29).
+
+    ``--id-prefix TEXT``
+
+        The release's prefix (e.g., FEDORA).
+
+    ``--long-name TEXT``
+
+        The long name of the release (e.g., Fedora 29).
+
+    ``--name TEXT``
+
+        The name of the release (e.g., F29).
+
+    ``--new-name``
+
+        Change the release's name to a new value (e.g., F29).
+
+    ``--override-tag TEXT``
+
+        The Koji tag to use for buildroot overrides (e.g., f29-override).
+
+    ``--password TEXT``
+
+        The password to use when authenticating to Bodhi.
+
+    ``--pending-stable-tag TEXT``
+
+        The Koji tag to use on updates that are marked stable (e.g., f29-updates-pending).
+
+    ``--pending-testing-tag TEXT``
+
+        The Koji tag to use on updates that are pending testing (e.g., f29-updates-testing-pending).
+
+    ``--stable-tag TEXT``
+
+        The Koji tag to use for stable updates (e.g., f29-updates).
+
+    ``--state [disabled|pending|current|archived]``
+
+        The state of the release.
+
+    ``--testing-tag TEXT``
+
+        The Koji tag to use for testing updates (e.g., f29-updates-testing).
+
+    ``--username TEXT``
+
+        The username to use when authenticating to Bodhi.
+
+    ``--version TEXT``
+
+        The version of the release (e.g., 29).
+
+``bodhi releases info RELEASE_NAME``
+
+    The ``info`` command prints information about the given release.
+
+
 Examples
 ========
 
