@@ -443,6 +443,9 @@ class BodhiConfig(dict):
         'waiverdb.access_token': {
             'value': None,
             'validator': _validate_none_or(six.text_type)},
+        'koji_web_url': {
+            'value': 'https://koji.fedoraproject.org/koji/',
+            'validator': _validate_tls_url},
         'koji_hub': {
             'value': 'https://koji.stg.fedoraproject.org/kojihub',
             'validator': str},
