@@ -15,3 +15,4 @@ exclude_lines =
     def __repr__
     def multicall_enabled
     if __name__ == .__main__.:
+show_missing = True
