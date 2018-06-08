@@ -14,5 +14,6 @@ Man pages
    bodhi-manage-releases
    bodhi-monitor-composes
    bodhi-push
+   bodhi-skopeo-lite
    bodhi-untag-branched
    initialize_bodhi_db

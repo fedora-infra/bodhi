@@ -14,6 +14,7 @@
     python2-pyramid-mako \
     python2-pyramid-tm \
     python2-pytest-cov \
+    python2-responses \
     python2-sqlalchemy \
     python2-sqlalchemy_schemadisplay \
     python3-alembic \
@@ -36,6 +37,7 @@
     python3-pyramid-tm \
     python3-pytest \
     python3-pytest-cov \
+    python3-responses \
     python3-simplemediawiki \
     python3-sqlalchemy \
     python3-webtest \
