@@ -5077,6 +5077,151 @@ class TestWaiveTestResults(BaseTestCase):
                           u'IOError. oops!')
         log_exception.assert_called_once_with("Unhandled exception in waive_test_results")
 
+    @mock.patch.dict(config, [('test_gating.required', True)])
+    @mock.patch('bodhi.server.models.waiverdb_api_post')
+    @mock.patch('bodhi.server.models.greenwave_api_post')
+    @mock.patch('bodhi.server.models.User.openid', mock.MagicMock(return_value=None))
+    @mock.patch('bodhi.server.models.User.avatar', mock.MagicMock(return_value=None))
+    def test_waive_test_results_1_unsatisfied_requirement(
+            self, greenwave_api_post, waiverdb_api_post, *args):
+        """Ensure that waiverdb and greenwaved are properly called when greenwave returns only one
+        unsatisfied requirements."""
+        nvr = u'bodhi-2.0-1.fc17'
+        greenwave_api_post.return_value = {
+            u'unsatisfied_requirements': [
+                {
+                    u'item': {
+                        u'item': u'bodhi-2.0-1.fc17',
+                        u'type': u'koji_build'
+                    },
+                    u'scenario': None,
+                    u'testcase': u'dist.rpmdeplint',
+                    u'type': u'test-result-missing'
+                }
+            ],
+        }
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.test_gating_status = TestGatingStatus.failed
+
+        post_data = dict(update=nvr, comment="This is expected", csrf_token=self.get_csrf_token())
+        res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=200)
+
+        greenwave_api_post.assert_called_once_with(
+            'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
+            {
+                'product_version': u'fedora-17',
+                'decision_context': u'bodhi_update_push_testing',
+                'subject': [
+                    {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                ]
+            }
+        )
+
+        waiverdb_api_post.assert_called_once_with(
+            'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0/waivers/',
+            {
+                'username': u'guest',
+                'comment': u'This is expected',
+                'waived': True,
+                'product_version': u'fedora-17',
+                'testcase': u'dist.rpmdeplint',
+                'subject': {
+                    u'item': u'bodhi-2.0-1.fc17', u'type': u'koji_build'
+                }
+            }
+        )
+
+        self.assertEqual(list(res.json_body.keys()), ['update'])
+        self.assertEqual(res.json_body['update'], up.__json__())
+
+    @mock.patch.dict(config, [('test_gating.required', True)])
+    @mock.patch('bodhi.server.models.waiverdb_api_post')
+    @mock.patch('bodhi.server.models.greenwave_api_post')
+    @mock.patch('bodhi.server.models.User.openid', mock.MagicMock(return_value=None))
+    @mock.patch('bodhi.server.models.User.avatar', mock.MagicMock(return_value=None))
+    def test_waive_test_results_2_unsatisfied_requirements(
+            self, greenwave_api_post, waiverdb_api_post, *args):
+        """Ensure that waiverdb and greenwaved are properly called when greenwave returns two
+        unsatisfied requirements."""
+        nvr = u'bodhi-2.0-1.fc17'
+        greenwave_api_post.return_value = {
+            u'unsatisfied_requirements': [
+                {
+                    u'item': {
+                        u'item': u'bodhi-2.0-1.fc17',
+                        u'type': u'koji_build'
+                    },
+                    u'scenario': None,
+                    u'testcase': u'dist.rpmdeplint',
+                    u'type': u'test-result-missing'
+                },
+                {
+                    u'item': {
+                        u'item': u'bodhi-2.0-1.fc17',
+                        u'type': u'koji_build'
+                    },
+                    u'scenario': None,
+                    u'testcase': u'atomic_ci_pipeline_results',
+                    u'type': u'test-result-missing'
+                }
+            ],
+        }
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.test_gating_status = TestGatingStatus.failed
+
+        post_data = dict(update=nvr, csrf_token=self.get_csrf_token())
+        res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=200)
+
+        greenwave_api_post.assert_called_once_with(
+            'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
+            {
+                'product_version': u'fedora-17',
+                'decision_context': u'bodhi_update_push_testing',
+                'subject': [
+                    {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                    {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
+                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                ]
+            }
+        )
+
+        calls = [
+            mock.call(
+                'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0/waivers/',
+                {
+                    'username': u'guest',
+                    'comment': None,
+                    'waived': True,
+                    'product_version': u'fedora-17',
+                    'testcase': u'dist.rpmdeplint',
+                    'subject': {
+                        u'item': u'bodhi-2.0-1.fc17', u'type': u'koji_build'
+                    }
+                }
+            ),
+            mock.call(
+                'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0/waivers/',
+                {
+                    'username': u'guest',
+                    'comment': None,
+                    'waived': True,
+                    'product_version': u'fedora-17',
+                    'testcase': u'atomic_ci_pipeline_results',
+                    'subject': {
+                        u'item': u'bodhi-2.0-1.fc17', u'type': u'koji_build'
+                    }
+                }
+            )
+        ]
+        self.assertEqual(waiverdb_api_post.mock_calls, calls)
+
+        self.assertEqual(list(res.json_body.keys()), ['update'])
+        self.assertEqual(res.json_body['update'], up.__json__())
+
 
 class TestGetTestResults(BaseTestCase):
     """
