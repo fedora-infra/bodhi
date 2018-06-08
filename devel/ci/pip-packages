@@ -15,6 +15,7 @@ RUN pip-2 install \
     diff-cover \
     flake8 \
     mock \
+    responses \
     pytest \
     pytest-cov \
     sqlalchemy_schemadisplay \
@@ -22,6 +23,7 @@ RUN pip-2 install \
 RUN pip-3 install \
     diff-cover \
     mock \
+    responses \
     pydocstyle \
     pytest \
     pytest-cov \
