@@ -1033,6 +1033,57 @@ class TestContainerPackage(ModelTest, unittest.TestCase):
             timeout=60)
 
 
+class TestFlatpakPackage(ModelTest, unittest.TestCase):
+    klass = model.FlatpakPackage
+    attrs = dict(name=u"flatpak-runtime")
+
+    @mock.patch('bodhi.server.util.http_session')
+    def test_get_pkg_committers_from_pagure(self, http_session):
+        """Ensure correct return value from get_pkg_committers_from_pagure()."""
+        json_output = {
+            "access_groups": {
+                "admin": [],
+                "commit": [],
+                "ticket": []
+            },
+            "access_users": {
+                "admin": [],
+                "commit": [],
+                "owner": [
+                    "otaylor"
+                ],
+                "ticket": []
+            },
+            "close_status": [],
+            "custom_keys": [],
+            "date_created": "1494947106",
+            "description": "Flatpak Runtime",
+            "fullname": "modules/flatpak-runtime",
+            "group_details": {},
+            "id": 2,
+            "milestones": {},
+            "name": "python",
+            "namespace": "rpms",
+            "parent": None,
+            "priorities": {},
+            "tags": [],
+            "user": {
+                "fullname": "Owen Taylor",
+                "name": "otaylor"
+            }
+        }
+        http_session.get.return_value.json.return_value = json_output
+        http_session.get.return_value.status_code = 200
+
+        rv = self.obj.get_pkg_committers_from_pagure()
+
+        self.assertEqual(rv, (['otaylor'], []))
+        http_session.get.assert_called_once_with(
+            ('https://src.fedoraproject.org/pagure/api/0/modules/flatpak-runtime'
+             '?expand_group=1'),
+            timeout=60)
+
+
 class TestRpmPackage(ModelTest, unittest.TestCase):
     """Unit test case for the ``RpmPackage`` model."""
     klass = model.RpmPackage
