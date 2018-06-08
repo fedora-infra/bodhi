@@ -3262,7 +3262,7 @@ class TestUpdate(ModelTest):
                 self.assertEqual(post.mock_calls[i], v)
 
     @mock.patch('bodhi.server.util.greenwave_api_post')
-    @mock.patch('bodhi.server.models.waiverdb_api_post')
+    @mock.patch('bodhi.server.util.waiverdb_api_post')
     def test_can_waive_test_results_of_an_update(self, mock_waiverdb, mock_greenwave):
         update = self.obj
         update.status = UpdateStatus.testing

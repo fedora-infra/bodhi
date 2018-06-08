@@ -108,6 +108,12 @@ class Updates(colander.SequenceSchema):
     update = colander.SchemaNode(colander.String())
 
 
+class Tests(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Test objects."""
+
+    test = colander.SchemaNode(colander.String())
+
+
 class BugFeedback(colander.MappingSchema):
     """A schema for BugFeedback to be provided via API parameters."""
 
@@ -807,6 +813,7 @@ class WaiveTestResultsSchema(CSRFProtectedSchema, colander.MappingSchema):
         colander.String(),
         missing=None,
     )
+    tests = Tests(colander.Sequence(accept_scalar=True), missing=None, preparer=[util.splitter])
 
 
 class GetTestResultsSchema(CSRFProtectedSchema, colander.MappingSchema):
