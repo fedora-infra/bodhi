@@ -281,7 +281,8 @@ def get_masher(content_type):
         ComposerThread or None: Either a ContainerComposerThread, RPMComposerThread, or a
             ModuleComposerThread, as appropriate, or None if no masher is found.
     """
-    mashers = [ContainerComposerThread, RPMComposerThread, ModuleComposerThread]
+    mashers = [ContainerComposerThread, FlatpakComposerThread,
+               RPMComposerThread, ModuleComposerThread]
     for possible in mashers:
         if possible.ctype is content_type:
             return possible
@@ -866,6 +867,12 @@ class ContainerComposerThread(ComposerThread):
                 # version-release string.
                 for dtag in [None, build.nvr_version, destination_tag]:
                     copy_container(build, destination_tag=dtag)
+
+
+class FlatpakComposerThread(ContainerComposerThread):
+    """Use skopeo to copy and tag flatpak images."""
+
+    ctype = ContentType.flatpak
 
 
 class PungiComposerThread(ComposerThread):
