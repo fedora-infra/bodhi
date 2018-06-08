@@ -47,8 +47,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_critpath_components,
-    get_rpm_header, header, tokenize, pagure_api_get,
-    waiverdb_api_post)
+    get_rpm_header, header, tokenize, pagure_api_get)
 import bodhi.server.util
 
 if six.PY2:
@@ -1984,7 +1983,7 @@ class Update(Base):
         }
         api_url = '{}/decision'.format(config.get('greenwave_api_url'))
 
-        return util.greenwave_api_post(api_url, data)
+        return bodhi.server.util.greenwave_api_post(api_url, data)
 
     def update_test_gating_status(self):
         """Query Greenwave about this update and set the test_gating_status as appropriate."""
@@ -2637,13 +2636,16 @@ class Update(Base):
         topic = u'update.request.%s' % action
         notifications.publish(topic=topic, msg=dict(update=self, agent=username))
 
-    def waive_test_results(self, username, comment=None):
+    def waive_test_results(self, username, comment=None, tests=None):
         """
         Attempt to waive test results for this update.
 
         Args:
             username (basestring): The name of the user who is waiving the test results.
             comment (basestring): A comment from the user describing their decision.
+            tests (list of basestring): A list of testcases to be waived. Defaults to ``None``
+                If left as ``None``, all ``unsatisfied_requirements`` returned by greenwave
+                will be waived, otherwise only the testcase found in both list will be waived.
         Raises:
             LockedUpdateException: If the Update is locked.
             BodhiException: If test gating is not enabled in this Bodhi instance,
@@ -2661,8 +2663,15 @@ class Update(Base):
         if self.test_gating_passed:
             raise BodhiException("Can't waive test resuts on an update that passes test gating")
 
+        # Ensure we can always iterate over tests
+        tests = tests or []
+
         decision = self.get_test_gating_info()
         for requirement in decision['unsatisfied_requirements']:
+
+            if tests and requirement['testcase'] not in tests:
+                continue
+
             data = {
                 'subject': requirement['item'],
                 'testcase': requirement['testcase'],
@@ -2672,7 +2681,8 @@ class Update(Base):
                 'comment': comment
             }
             log.debug('Waiving test results: %s' % data)
-            waiverdb_api_post('{}/waivers/'.format(config.get('waiverdb_api_url')), data)
+            bodhi.server.util.waiverdb_api_post(
+                '{}/waivers/'.format(config.get('waiverdb_api_url')), data)
 
     def add_tag(self, tag):
         """
