@@ -1000,7 +1000,7 @@ def sorted_updates(updates):
             with a multicall.
     """
     builds = defaultdict(set)
-    sync, async = [], []
+    sync, async_ = [], []
     for update in updates:
         for build in update.builds:
             builds[build.nvr_name].add(build)
@@ -1012,22 +1012,22 @@ def sorted_updates(updates):
             for build in sorted_builds(builds[package])[::-1]:
                 if build.update not in sync:
                     sync.append(build.update)
-                if build.update in async:
-                    async.remove(build.update)
+                if build.update in async_:
+                    async_.remove(build.update)
         else:
             build = list(builds[package])[0]
-            if build.update not in async and build.update not in sync:
-                async.append(build.update)
+            if build.update not in async_ and build.update not in sync:
+                async_.append(build.update)
     log.info('sync = %s' % ([up.title for up in sync],))
-    log.info('async = %s' % ([up.title for up in async],))
-    if not (len(set(sync) & set(async)) == 0 and
-            len(set(sync) | set(async)) == len(updates)):
+    log.info('async_ = %s' % ([up.title for up in async_],))
+    if not (len(set(sync) & set(async_)) == 0 and
+            len(set(sync) | set(async_)) == len(updates)):
         # There should be absolutely no way to hit this code path, but let's be paranoid, and check
         # every run, to make sure no update gets left behind.
         # It makes sure that there is no update in sync AND async, and that the combination of
-        # sync OR async is the full set of updates.
+        # sync OR async_ is the full set of updates.
         raise Exception('ERROR! SYNC+ASYNC != UPDATES! sorted_updates failed')  # pragma: no cover
-    return sync, async
+    return sync, async_
 
 
 def cmd(cmd, cwd=None, raise_on_error=False):
