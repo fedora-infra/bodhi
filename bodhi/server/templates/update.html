@@ -11,6 +11,8 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 &mdash; Fedora Updates System
 </%block>
 
+<%  update.bugs.sort(key = lambda x: x.bug_id)  %>
+
 <link rel="alternate" type="application/atom+xml" title="New Comments on ${update.alias}" href="${request.route_url('comments_rss')}?updates=${update.alias}"/>
 
 <script type="text/javascript">
