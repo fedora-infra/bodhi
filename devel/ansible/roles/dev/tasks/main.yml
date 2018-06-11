@@ -127,6 +127,7 @@
   get_url:
       url: https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz
       dest: /tmp/bodhi2.dump.xz
+      timeout: 1000
 
 - shell: xzcat /tmp/bodhi2.dump.xz | runuser -l postgres -c 'psql bodhi2' && touch /home/vagrant/.db-imported
   args:
