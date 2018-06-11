@@ -258,13 +258,11 @@ def validate_builds(request, **kwargs):
                                    'Cannot edit stable updates')
 
         for nvr in request.validated.get('builds', []):
-            # If the build is new
-            if nvr not in edited:
-                # Ensure it doesn't already exist
-                build = request.db.query(Build).filter_by(nvr=nvr).first()
-                if build and build.update is not None:
-                    request.errors.add('body', 'builds',
-                                       "Update for {} already exists".format(nvr))
+            # Ensure it doesn't already exist in another update
+            build = request.db.query(Build).filter_by(nvr=nvr).first()
+            if build and build.update is not None and up.title != build.update.title:
+                request.errors.add('body', 'builds',
+                                   "Update for {} already exists".format(nvr))
 
         return
 
