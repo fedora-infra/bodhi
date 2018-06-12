@@ -2,6 +2,21 @@
 Release notes
 =============
 
+v3.8.1
+------
+
+Bugs
+^^^^
+
+* Fix two incompatibilities with Python 3.7 (:issue:`2436` and :issue:`2438`).
+
+
+Contributor
+^^^^^^^^^^^
+
+Thanks to Miro Hrončok for fixing these issues.
+
+
 v3.8.0
 ------
 
