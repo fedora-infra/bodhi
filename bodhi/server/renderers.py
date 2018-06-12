@@ -87,7 +87,7 @@ def rss(info):
                 'description': operator.itemgetter('name'),
             },
             'comments': {
-                'title': operator.itemgetter('text'),
+                'title': operator.itemgetter('rss_title'),
                 'link': linker('comment', 'id', 'id'),
                 'description': operator.itemgetter('text'),
                 'pubdate': lambda obj: utc.localize(obj['timestamp']),
@@ -105,7 +105,7 @@ def rss(info):
             for name, getter in getters[key].items():
                 # Because we have to use methods to fill feed entry attributes,
                 # it's done by getting methods by name and calling them
-                # on the same line
+                # on the same line.
                 getattr(feed_item, name)(getter(value))
 
         return feed.rss_str()

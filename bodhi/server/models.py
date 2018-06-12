@@ -3946,6 +3946,16 @@ class Comment(Base):
 
         return filtered_feedbacks
 
+    @property
+    def rss_title(self):
+        """
+        Return a formatted title for the comment using update alias and comment id.
+
+        Returns:
+            basestring: A string represenatation of the comment for RSS feed.
+        """
+        return "{} comment #{}".format(self.update.alias, self.id)
+
     def __json__(self, *args, **kwargs):
         """
         Return a JSON string representation of this comment.
