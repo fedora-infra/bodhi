@@ -287,7 +287,8 @@ class Test_SendMail(unittest.TestCase):
         SMTP.assert_called_once_with('smtp.fp.o')
         smtp.sendmail.assert_called_once_with('archer@spies.com', ['lana@spies.com'], 'hi')
         warn.assert_called_once_with(
-            '"recipient refused" for \'lana@spies.com\', SMTPRecipientsRefused(\'nooope!\',)')
+            '"recipient refused" for \'lana@spies.com\', {}'.format(
+                repr(smtp.sendmail.side_effect)))
         smtp.quit.assert_called_once_with()
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': ''})
