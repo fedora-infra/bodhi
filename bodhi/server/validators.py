@@ -19,6 +19,7 @@
 """A collection of validators for Bodhi requests."""
 
 from datetime import datetime, timedelta
+from functools import wraps
 
 from pyramid.exceptions import HTTPNotFound, HTTPBadRequest
 from pyramid.httpexceptions import HTTPFound, HTTPNotImplemented
@@ -64,6 +65,20 @@ csrf_error_message = """CSRF tokens do not match.  This happens if you have
 the page open for a long time. Please reload the page and try to submit your
 data again. Make sure to save your input somewhere before reloading.
 """.replace('\n', ' ')
+
+
+def postschema_validator(f):
+    """Modify a validator function, so that it is skipped if schema validation already failed."""
+    @wraps(f)
+    def validator(request, **kwargs):
+        # The check on request.errors is to make sure we don't bypass other checks without
+        # failing the request
+        if len(request.validated) == 0 and len(request.errors) > 0:
+            return
+
+        f(request, **kwargs)
+
+    return validator
 
 
 # This one is a colander validator which is different from the cornice
@@ -173,6 +188,7 @@ def cache_nvrs(request, build):
     request.buildinfo[build]['nvr'] = kbinfo['name'], kbinfo['version'], kbinfo['release']
 
 
+@postschema_validator
 def validate_nvrs(request, **kwargs):
     """
     Ensure the the given builds reference valid Build objects.
@@ -196,6 +212,7 @@ def validate_nvrs(request, **kwargs):
             return
 
 
+@postschema_validator
 def validate_builds(request, **kwargs):
     """
     Ensure that the builds parameter is valid for the request.
@@ -245,6 +262,7 @@ def validate_builds(request, **kwargs):
             return
 
 
+@postschema_validator
 def validate_build_tags(request, **kwargs):
     """
     Ensure that all of the referenced builds are tagged as candidates.
@@ -295,6 +313,7 @@ def validate_build_tags(request, **kwargs):
                     build, valid_tags))
 
 
+@postschema_validator
 def validate_tags(request, **kwargs):
     """
     Ensure that the referenced tags are valid Koji tags.
@@ -320,6 +339,7 @@ def validate_tags(request, **kwargs):
                                'Invalid tag: %s' % tag_name)
 
 
+@postschema_validator
 def validate_acls(request, **kwargs):
     """
     Ensure the user has commit privs to these builds or is an admin.
@@ -487,6 +507,7 @@ def validate_acls(request, **kwargs):
                                    "access to {}".format(user.name, package.name))
 
 
+@postschema_validator
 def validate_uniqueness(request, **kwargs):
     """
     Check for multiple builds from the same package and same release.
@@ -528,6 +549,7 @@ def validate_uniqueness(request, **kwargs):
                 return
 
 
+@postschema_validator
 def validate_enums(request, **kwargs):
     """
     Convert from strings to our enumerated types.
@@ -550,6 +572,7 @@ def validate_enums(request, **kwargs):
         request.validated[param] = enum.from_string(value)
 
 
+@postschema_validator
 def validate_packages(request, **kwargs):
     """
     Make sure referenced packages exist.
@@ -581,6 +604,7 @@ def validate_packages(request, **kwargs):
         request.validated["packages"] = validated_packages
 
 
+@postschema_validator
 def validate_updates(request, **kwargs):
     """
     Make sure referenced updates exist.
@@ -616,6 +640,7 @@ def validate_updates(request, **kwargs):
         request.validated["updates"] = validated_updates
 
 
+@postschema_validator
 def validate_groups(request, **kwargs):
     """
     Make sure the referenced groups exist.
@@ -648,6 +673,7 @@ def validate_groups(request, **kwargs):
         request.validated["groups"] = validated_groups
 
 
+@postschema_validator
 def validate_release(request, **kwargs):
     """
     Make sure the referenced release exists.
@@ -672,6 +698,7 @@ def validate_release(request, **kwargs):
                            "Invalid release specified: {}".format(releasename))
 
 
+@postschema_validator
 def validate_releases(request, **kwargs):
     """
     Make sure referenced releases exist.
@@ -707,6 +734,7 @@ def validate_releases(request, **kwargs):
         request.validated["releases"] = validated_releases
 
 
+@postschema_validator
 def validate_bugs(request, **kwargs):
     """
     Ensure that the list of bugs are all valid integers.
@@ -724,6 +752,7 @@ def validate_bugs(request, **kwargs):
                                "Invalid bug ID specified: {}".format(bugs))
 
 
+@postschema_validator
 def validate_update(request, **kwargs):
     """
     Make sure the requested update exists.
@@ -799,6 +828,7 @@ def validate_ignore_user(request, **kwargs):
     return ensure_user_exists("ignore_user", request)
 
 
+@postschema_validator
 def validate_update_id(request, **kwargs):
     """
     Ensure that a given update id exists.
@@ -836,6 +866,7 @@ def _conditionally_get_update(request):
     return update
 
 
+@postschema_validator
 def validate_bug_feedback(request, **kwargs):
     """
     Ensure that bug feedback references bugs associated with the given update.
@@ -876,6 +907,7 @@ def validate_bug_feedback(request, **kwargs):
         request.validated["bug_feedback"] = validated
 
 
+@postschema_validator
 def validate_testcase_feedback(request, **kwargs):
     """
     Ensure that the referenced test case exists and is associated with the referenced package.
@@ -957,6 +989,7 @@ def validate_comment_id(request, **kwargs):
         request.errors.status = HTTPNotFound.code
 
 
+@postschema_validator
 def validate_override_builds(request, **kwargs):
     """
     Ensure that the override builds are properly referenced.
@@ -1065,6 +1098,7 @@ def _validate_override_build(request, nvr, db):
     return build
 
 
+@postschema_validator
 def validate_expiration_date(request, **kwargs):
     """
     Ensure the expiration date is in the future.
@@ -1095,6 +1129,7 @@ def validate_expiration_date(request, **kwargs):
     request.validated['expiration_date'] = expiration_date
 
 
+@postschema_validator
 def validate_captcha(request, **kwargs):
     """
     Validate the captcha.
@@ -1148,6 +1183,7 @@ def validate_captcha(request, **kwargs):
         del request.session['captcha']
 
 
+@postschema_validator
 def validate_stack(request, **kwargs):
     """
     Make sure this singular stack exists.
@@ -1186,6 +1222,7 @@ def _get_valid_requirements(request, requirements):
         yield testcase['name']
 
 
+@postschema_validator
 def validate_requirements(request, **kwargs):
     """
     Validate the requirements parameter for the stack.
@@ -1212,6 +1249,7 @@ def validate_requirements(request, **kwargs):
             return
 
 
+@postschema_validator
 def validate_request(request, **kwargs):
     """
     Ensure that this update is newer than whatever is in the requested state.
@@ -1224,9 +1262,6 @@ def validate_request(request, **kwargs):
     update = request.validated['update']
     db = request.db
 
-    if 'request' not in request.validated:
-        # Invalid request. Let the colander error from our schemas.py bubble up.
-        return
     if request.validated['request'] in (UpdateRequest.stable, UpdateRequest.batched):
         target = UpdateStatus.stable
     elif request.validated['request'] is UpdateRequest.testing:
