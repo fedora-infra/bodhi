@@ -36,9 +36,7 @@ class TestValidateCSRFToken(BaseTestCase):
         comment = {'update': update.title, 'text': 'invalid CSRF', 'karma': 0,
                    'csrf_token': 'wrong_token'}
 
-        # Surprisingly, using the wrong CSRF token gives a 404 code because it thinks the update is
-        # also not found.
-        r = self.app.post_json('/comments/', comment, status=404)
+        r = self.app.post_json('/comments/', comment, status=400)
 
         expected_reponse = {
             u'status': u'error',
@@ -47,9 +45,7 @@ class TestValidateCSRFToken(BaseTestCase):
                  (u'CSRF tokens do not match.  This happens if you have the page open for a long '
                   u'time. Please reload the page and try to submit your data again. Make sure to '
                   u'save your input somewhere before reloading. '),
-                 u'location': u'body', u'name': u'csrf_token'},
-                {u'description': u'Invalid update specified: None', u'location': u'url',
-                 u'name': u'update'}]}
+                 u'location': u'body', u'name': u'csrf_token'}]}
         self.assertEqual(r.json, expected_reponse)
 
     def test_valid_token(self):
@@ -336,6 +332,19 @@ class TestValidateBugFeedback(BaseTestCase):
             [{'location': 'querystring', 'name': 'bug_feedback',
               'description': 'Invalid bug ids specified: invalid'}])
         self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+
+    def test_no_feedbacks(self):
+        """Nothing to do if no feedback."""
+        request = mock.Mock()
+        request.db = self.db
+        request.errors = Errors()
+        request.validated = {'update': models.Update.query.first()}
+
+        validators.validate_bug_feedback(request)
+
+        self.assertEqual(
+            request.errors,
+            [])
 
 
 class TestValidateCaptcha(BaseTestCase):
@@ -682,6 +691,19 @@ class TestValidateTestcaseFeedback(BaseTestCase):
             [{'location': 'querystring', 'name': 'testcase_feedback',
               'description': 'Invalid testcase names specified: invalid'}])
         self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+
+    def test_no_feedbacks(self):
+        """Nothing to do if no feedback."""
+        request = mock.Mock()
+        request.db = self.db
+        request.errors = Errors()
+        request.validated = {'update': models.Update.query.first()}
+
+        validators.validate_testcase_feedback(request)
+
+        self.assertEqual(
+            request.errors,
+            [])
 
     def test_update_not_found(self):
         """It should 404 if the update is not found."""
