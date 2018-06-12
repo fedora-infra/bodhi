@@ -872,8 +872,6 @@ class TestUpdatesService(BaseTestCase):
         expected_json = {
             u'status': u'error',
             u'errors': [
-                {u'description': u'Unable to determine release from build: bodhi-3.2.0-1.fc27',
-                 u'location': u'body', u'name': u'builds'},
                 {u'description': (
                     u"Cannot find release associated with build: bodhi-3.2.0-1.fc27, "
                     u"tags: [u'f27-updates-candidate', u'f27', u'f27-updates-testing']"),
