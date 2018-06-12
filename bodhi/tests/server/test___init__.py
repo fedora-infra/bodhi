@@ -43,7 +43,7 @@ class TestExceptionFilter(unittest.TestCase):
 
         self.assertIs(response, request_response)
         exception.assert_called_once_with(
-            "Unhandled exception raised:  OSError('Your money is gone.',)")
+            "Unhandled exception raised:  {}".format(repr(request_response)))
 
     @mock.patch('bodhi.server.log.exception')
     def test_no_exception(self, exception):
