@@ -228,12 +228,15 @@ class TestMasher(base.BaseTestCase):
 
             # We need to fake Pungi having run or _wait_for_pungi() will fail to find the output dir
             reqtype = 'updates' if tag == 'stable_tag' else 'updates-testing'
+            d = datetime.datetime.utcnow()
             mash_dir = os.path.join(
                 masher_thread.mash_dir,
-                '%s-%d-%s-%s.0' % (release.id_prefix.title(),
-                                   int(release.version),
-                                   reqtype,
-                                   time.strftime("%Y%m%d")))
+                '%s-%d-%s-%s%02d%02d.0' % (release.id_prefix.title(),
+                                           int(release.version),
+                                           reqtype,
+                                           d.year,
+                                           d.month,
+                                           d.day))
 
             if not empty:
                 os.makedirs(os.path.join(mash_dir, 'compose', 'Everything'))
