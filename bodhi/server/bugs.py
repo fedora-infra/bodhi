@@ -231,7 +231,7 @@ class Bugzilla(BugTracker):
 
             bug.close('ERRATA', **args)
         except xmlrpc_client.Fault:
-            log.exception("Unable to close bug #%d" % bug_id)
+            log.info("Unable to close bug #%d" % bug_id)
 
     def update_details(self, bug, bug_entity):
         """
