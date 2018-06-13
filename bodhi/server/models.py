@@ -848,7 +848,7 @@ class Release(Base):
         Returns:
             int: The version of the release.
         """
-        regex = re.compile('\D+(\d+)[CM]?$')
+        regex = re.compile(r'\D+(\d+)[CM]?$')
         return int(regex.match(self.name).groups()[0])
 
     @property
