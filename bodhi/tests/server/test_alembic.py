@@ -45,3 +45,4 @@ class TestAlembic(unittest.TestCase):
         stdout = proc2.communicate()[0]
         stdout = stdout.strip().split(b'\n')
         self.assertEqual(len(stdout), 1)
+        proc1.communicate()
