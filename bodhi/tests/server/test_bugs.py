@@ -88,9 +88,9 @@ class TestBugzilla(unittest.TestCase):
         self.assertTrue(return_value is bz._bz)
         self.assertEqual(_connect.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_close_fault(self, exception):
+    def test_close_fault(self, info):
         """Assert that an xmlrpc Fault is caught and logged by close()."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -101,7 +101,7 @@ class TestBugzilla(unittest.TestCase):
         # This should not raise an Exception.
         bz.close(12345, {'bodhi': 'bodhi-3.1.0-1.fc27'}, 'whabam!')
 
-        exception.assert_called_once_with('Unable to close bug #12345')
+        info.assert_called_once_with('Unable to close bug #12345')
 
     @mock.patch('bodhi.server.bugs.log.exception')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
