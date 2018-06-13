@@ -76,6 +76,7 @@
       - python3-dogpile-cache
       - python3-fedmsg
       - python3-fedora
+      - python3-ipdb
       - python3-kitchen
       - python3-markdown
       - python3-mock
