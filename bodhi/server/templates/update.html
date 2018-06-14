@@ -17,8 +17,6 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
 <script type="text/javascript">
   $(document).ready(function() {
-    var base_url = '${request.registry.settings["resultsdb_api_url"]}' + '/api/v2.0/';
-
     // Some handy lookups that map taskotron states to bootstrap CSS classes.
     var classes = {
       PASSED: 'success',
@@ -39,36 +37,61 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       ABSENT: 'question-circle',
     }
 
-    // XXX - For development, we typically have updates in our development
-    // bodhi DB from a snapshot from over a year ago -- before the deployment
-    // of taskotron.  As such, taskotron doesn't know about the updates that
-    // we ask about.  Therefore, it is useful sometimes to mess around here
-    // and hardcode something like this:
-    //var update = 'ugene-1.14.2-1.fc21';
     var update = '${update.title}';
     var builds = ${update.builds_json | n};
 
     // These are the required taskotron tests
     var requirements = ${update.requirements_json | n};
+    // These are the known waivers of failed testcases.
+    var waivers = {};
     // show the Greenwave decision
     var greenwave_api_url = '${request.registry.settings["greenwave_api_url"]}';
     var missing_tests = {};
 
     // handle Greenwave decision
-
-    // Handle unstatisfied requirements
-    var handle_unsatisfied_reqs = function(data){
-        $.each(data['unsatisfied_requirements'], function(i, req) {
-            if (req.type == 'test-result-missing') {
-                if (missing_tests[req.item] === undefined)
-                    missing_tests[req.item]= [];
-                missing_tests[req.item].push(req);
+    var handle_unsatisfied_requirements = function(data){
+        $.each(data['unsatisfied_requirements'], function(i, requirement) {
+            if (requirement.type == 'test-result-missing') {
+                if (missing_tests[requirement.item] === undefined)
+                    missing_tests[requirement.item] = [];
+                missing_tests[requirement.item].push(requirement);
             }
             // the user may have already specified this in the required taskotron tests
-            if ($.inArray(req.testcase, requirements) == -1) {
-                requirements.push(req.testcase);
+            if ($.inArray(requirement.testcase, requirements) == -1) {
+                requirements.push(requirement.testcase);
             }
         });
+        % if request.registry.settings.get("test_gating.required") is True:
+            if (data['policies_satisfied']) {
+              label_class = classes['PASSED'];
+              icon_class = icons['PASSED'];
+            } else if (missing_tests.length != 0) {
+              label_class = classes['ABSENT'];
+              icon_class = icons['ABSENT'];
+            } else {
+              label_class = classes['FAILED'];
+              icon_class = icons['FAILED'];
+            }
+
+            var html = '<span class="label label-' + label_class + '">' +
+              '<span class="fa fa-' + icon_class + '">' +
+              '</span></span> ';
+            html += '<a class="gating-summary notblue" href="#automatedtests">' + data['summary'];
+            if (data.waivers.length != 0) {
+                 html += '<span data-toggle="tooltip" data-placement="top" ' +
+                 'title="Some tests failures were waived." ' +
+                 'class="fa fa-asterisk">' +
+                 '</span>';
+            }
+            html += '</a>';
+            $('#test_status_badge').append(html);
+            $('#resultsdb h3').after(html);
+
+            $('.gating-summary').click(function(e){
+              e.preventDefault();
+              $('.nav-tabs a[href="#automatedtests"]').tab('show');
+            });
+        % endif
     };
 
     // Handle showing waivers retrieved from greenwave in the UI
@@ -92,38 +115,44 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             contentType: 'application/json',
             data: JSON.stringify(data),
             success: function(data) {
-                handle_unsatisfied_reqs(data);
-                handle_waivers(data);
+                $.each(data.waivers, function(i, waiver) {
+                  if (!(waiver.testcase in waivers)) { waivers[waiver.testcase] = []; }
+                  waivers[waiver.testcase].push(waiver);
+                });
+                handle_unsatisfied_requirements(data);
+                handle_results(data.results);
             },
             error: function (jqxhr, status, error) {
+               $('#resultsdb .spinner').remove();
                $('#resultsdb h3').after(
                   '<h4 class="text-danger">Failed to talk to Greenwave.</h4>');
+               $('#test_status_badge .spinner').remove();
+               $('#test_status_badge').append(
+                  '<span class="text-danger">Failed to talk to Greenwave.</span>');
             },
         });
     };
 
-    % if request.registry.settings.get("test_gating.required") is True:
-        % if not update.test_gating_passed and update.greenwave_summary_string:
-          var summary = '${update.greenwave_summary_string}'
-          summary += '${self.util.greenwave_unsatisfied_requirements_html(update)|n}';
-          $('#resultsdb h3').after(
-             '<div class="alert alert-danger">The update can not be pushed: ' + summary + '</div>');
-        % endif
-        get_greenwave_information({
-            'product_version': '${update.product_version}',
-            'decision_context': 'bodhi_update_push_stable',
-            'subject': ${ update.greenwave_subject_json | n }
-        });
-    % endif
-
     var make_row = function(outcome, testcase, note, arch, time, url, flavor) {
       var icon = '<span data-toggle="tooltip" data-placement="top" ' +
         'title="' + outcome + '" ' +
-        'class="fa fa-' + icons[outcome] + ' text-' + classes[outcome] + '">' +
+        'class="fa fa-' + icons[outcome] + ' text-' + classes[outcome] + '">'+
         '</span>';
 
       var required = '';
-      if ($.inArray(testcase, requirements) != -1) {
+      if (testcase in waivers) {
+        var reason;
+        if (waivers[testcase].length == 1) {
+          reason = "Waived by @" + waivers[testcase][0].username +
+            ": " + waivers[testcase][0].comment.replace("'", "&#39;");
+        } else {
+          reason = "Waived " + waivers[testcase].length + " different times.";
+        }
+        required = '<span data-toggle="tooltip" data-placement="top" ' +
+          'title="' + reason + '" ' +
+          'class="fa fa-thumbs-up">' +
+          '</span>';
+      } else if ($.inArray(testcase, requirements) != -1) {
         required = '<span data-toggle="tooltip" data-placement="top" ' +
           'title="' + testcase + ' is a required test" ' +
           'class="fa fa-asterisk">' +
@@ -166,14 +195,12 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
     };
 
     var latest = {};
-    var activeResultsAjaxCalls = 0;
-    var receive_resultsdb = function(data) {
-      activeResultsAjaxCalls--;
+    var handle_results = function(results) {
 
       // First, prune duplicate results.  For instance, some depcheck runs
       // happen multiple times on an update.  We only (imho) want to display
       // the latest ones for each arch.  So, prune like this:
-      $.each(data.data, function(i, result) {
+      $.each(results, function(i, result) {
 
         var testcase = result.testcase.name;
         var scenario = 'no_scenario';
@@ -189,7 +216,6 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         }
         var submit_time = new Date(result.submit_time);
 
-
         if (latest[item] === undefined)
           latest[item] = {};
         if (latest[item][testcase] === undefined)
@@ -198,44 +224,12 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
           latest[item][testcase][arch] = {};
         if (latest[item][testcase][arch][scenario] === undefined) {
           latest[item][testcase][arch][scenario] = result;
-
-          // the latest/ api endpoint doesn't take into account 'scenarios'
-          // like "same testcase different arch" (depcheck) or "same testcase
-          // different flavor" (openQA). So we have to know about these and
-          // on the first hit, query the other 'scenario'.
-          if (testcase == 'dist.depcheck'){
-            var theurl = base_url+"results?testcases=dist.depcheck&item="+item+"&type=koji_build&limit=1";
-            if (arch == 'x86_64'){
-              theurl = theurl +"&arch=i386"
-            } else {
-              theurl = theurl +"&arch=x86_64"
-            }
-            request_results(theurl);
-          }
-          else if (testcase.startsWith('update.base')) {
-            // unfortunately we don't report the flavor to rdb, so we have to
-            // do this in a silly way involving knowledge about 'scenario'
-            // and the flavors that exist for update tests. this all sucks and
-            // we need a better 'scenario' implementation.
-            var otherscen;
-            var theurl = base_url+"results?testcases="+testcase+"&item="+item+"&type=bodhi_update&limit=1";
-            if (scenario.includes("updates-server")) {
-              otherscen = scenario.replace("updates-server", "updates-workstation");
-            }
-            else {
-              otherscen = scenario.replace("updates-workstation", "updates-server");
-            }
-            theurl = theurl+"&scenario="+otherscen;
-            request_results(theurl);
-          }
         }
         if (new Date(latest[item][testcase][arch][scenario].submit_time) < submit_time) {
           latest[item][testcase][arch][scenario] = result;
         }
       });
 
-      // we have all the results. lets render them out
-      if (activeResultsAjaxCalls == 0){
       var data = [];
       var count = 0;
       // if there are no results in ResultsDB yet and we have already got the Greenwave decision
@@ -306,12 +300,12 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       }
       finish();
     };
-    };
 
     var finish = function() {
       // Furthermore, remove the spinners.
       $("#tab-automatedtests .fa-spinner").remove();
       $('#resultsdb .spinner').remove();
+      $('#test_status_badge .spinner').remove();
 
       // add the count of tests to the automated tests tab
 
@@ -354,26 +348,21 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         dataType: 'jsonp',
         cache: false,
         success: receive_resultsdb,
-        error: function(v1, v2, v3) {
-          activeResultsAjaxCalls--;
-          $('#resultsdb .spinner').remove();
-          $('#resultsdb').append(
-            '<h4 class="text-danger">Error getting results.</h4>');
-        },
       });
     };
 
     $("#tab-automatedtests").append(" <span class='fa fa-spinner fa-spin'></span>");
 
-    for (index = 0, len = builds.length; index < len; ++index) {
-      request_results(base_url+"results/latest?original_spec_nvr="
-        +builds[index]+"&testcases=org.centos.prod.ci.pipeline.complete");
-      request_results(base_url+"results/latest?item="+builds[index]+"&type=koji_build&testcases:like=dist.*");
-    }
+    get_greenwave_information({
+        'product_version': '${update.product_version}',
+% if update.request == 'testing' and update.status == 'pending':
+        'decision_context': 'bodhi_update_push_testing',
+% else:
+        'decision_context': 'bodhi_update_push_stable',
+% endif
+        'subject': ${ update.greenwave_subject_json | n }
+    });
 
-    var oqaquery = "?item=${update.alias}&type=bodhi_update&"+
-                   "testcases:like=update.*&since=${update.last_modified.isoformat()}";
-    request_results(base_url+"results/latest"+oqaquery);
   });
 </script>
 
@@ -517,12 +506,6 @@ $(document).ready(function(){
       $("#comment-textarea").hide();
     }
      $(this).button('toggle');
-  });
-
-  /*open the automated tests tab*/
-  $('.gating-summary').click(function(e){
-    e.preventDefault();
-    $('.nav-tabs a[href="' + this.getAttribute('href') + '"]').tab('show');
   });
 
 });
@@ -847,15 +830,14 @@ $(document).ready(function(){
                 <div>
                   % if request.registry.settings.get('test_gating.url'):
                     <a href="${request.registry.settings.get('test_gating.url')}" title="More information about test gating">
-                      <strong>Test Gating Status</strong>
+                      <strong>Test Gating</strong>
                     </a>
                   % else:
-                    <strong>Test Gating Status</strong>
+                    <strong>Test Gating</strong>
                   % endif
                 </div>
                 <div id="test_status_badge">
-                  ${self.util.test_gating_status2html(update.test_gating_status,
-                    update.greenwave_summary_string) | n}
+                  <img class='spinner' src='static/img/spinner.gif'>
                 </div>
               </div>
               % endif
@@ -894,7 +876,7 @@ $(document).ready(function(){
                 </div>
               </div>
               % endif
-              
+
               % if update.severity:
               <div class="p-b-1">
                 <div>
@@ -1070,12 +1052,6 @@ $(document).ready(function(){
     <div class="tab-pane" id="automatedtests" role="tabpanel">
       <div id="resultsdb">
       <h3>Automated Test Results</h3>
-      <p>
-        Test results and gating status may sometimes conflict as the gating status is retrieved
-        periodically by Bodhi's backend server, while the test results presented here are retrieved
-        upon page load. If your update is marked as gated while all the tests show green/passed, the
-        next check of gating status should open the gate.
-      </p>
       <img class='spinner' src='static/img/spinner.gif'>
       </div>
     </div>
