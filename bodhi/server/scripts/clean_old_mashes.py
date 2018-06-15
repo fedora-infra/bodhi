@@ -34,6 +34,12 @@ NUM_TO_KEEP = 10
 @click.version_option(message='%(version)s')
 def clean_up():
     """Delete any repo mashes that are older than the newest 10 from each repo series."""
+    remove_old_composes()
+
+
+# Helper function used in auto clean composes (masher.py)
+def remove_old_composes():
+    """Delete any repo mashes that are older than the newest 10 from each repo series."""
     mash_dir = config.config['mash_dir']
 
     # This data structure will map the beginning of a group of dirs for the same repo to a list of

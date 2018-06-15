@@ -1205,6 +1205,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.scripts.clean_old_mashes.NUM_TO_KEEP', 2)
     @mock.patch('bodhi.server.notifications.publish')
     def test_mash(self, publish, *args):
         self.expected_sems = 1
@@ -1213,14 +1214,62 @@ That was the actual one'''
         self.set_stable_request(u'bodhi-2.0-1.fc17')
         msg = self._make_msg()
         mash_dir = os.path.join(self.tempdir, 'cool_dir')
+
+        # Set up some directories that look similar to what might be found in production, with
+        # some directories that don't match the pattern of ending in -<timestamp>.
+        dirs = [
+            'dist-5E-epel-161003.0724', 'dist-5E-epel-161011.0458', 'dist-5E-epel-161012.1854',
+            'dist-5E-epel-161013.1711', 'dist-5E-epel-testing-161001.0424',
+            'dist-5E-epel-testing-161003.0856', 'dist-5E-epel-testing-161006.0053',
+            'dist-6E-epel-161002.2331', 'dist-6E-epel-161003.2046',
+            'dist-6E-epel-testing-161001.0528', 'epel7-161003.0724', 'epel7-161003.2046',
+            'epel7-161004.1423', 'epel7-161005.1122', 'epel7-testing-161001.0424',
+            'epel7-testing-161003.0621', 'epel7-testing-161003.2217', 'f23-updates-161002.2331',
+            'f23-updates-161003.1302', 'f23-updates-161004.1423', 'f23-updates-161005.0259',
+            'f23-updates-testing-161001.0424', 'f23-updates-testing-161003.0621',
+            'f23-updates-testing-161003.2217', 'f24-updates-161002.2331',
+            'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
+            'this_should_get_left_alone', 'f23-updates-should_be_untouched',
+            'f23-updates.repocache', 'f23-updates-testing-blank']
+        [os.makedirs(os.path.join(mash_dir, d)) for d in dirs]
+        # Now let's make a few files here and there.
+        with open(os.path.join(mash_dir, 'dist-5E-epel-161003.0724', 'oops.txt'), 'w') as oops:
+            oops.write('This mash failed to get cleaned and left this file around, oops!')
+        with open(os.path.join(mash_dir, 'COOL_FILE.txt'), 'w') as cool_file:
+            cool_file.write('This file should be allowed to hang out here because it\'s cool.')
+
         t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, mash_dir)
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.masher.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name=u'F17').one()
-                Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
-                t.run()
+                with mock.patch.dict(config, {'mash_dir': mash_dir}):
+                    release = session.query(Release).filter_by(name=u'F17').one()
+                    Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
+                    t.run()
+
+        # We expect these and only these directories to remain.
+        expected_dirs = {
+            'dist-5E-epel-161012.1854', 'dist-5E-epel-161013.1711',
+            'dist-5E-epel-testing-161003.0856', 'dist-5E-epel-testing-161006.0053',
+            'dist-6E-epel-161002.2331', 'dist-6E-epel-161003.2046',
+            'dist-6E-epel-testing-161001.0528', 'epel7-161004.1423', 'epel7-161005.1122',
+            'epel7-testing-161003.0621', 'epel7-testing-161003.2217', 'f23-updates-161004.1423',
+            'f23-updates-161005.0259', 'f23-updates-testing-161003.0621',
+            'f23-updates-testing-161003.2217', 'f24-updates-161002.2331',
+            'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
+            'this_should_get_left_alone', 'f23-updates-should_be_untouched',
+            'f23-updates.repocache', 'f23-updates-testing-blank'}
+        actual_dirs = set([d for d in os.listdir(mash_dir)
+                           if os.path.isdir(os.path.join(mash_dir, d)) and
+                           not d.startswith("Fedora-17-updates")])
+
+        # Assert that remove_old_composes removes the correct items and leaves the rest in place.
+        self.assertEqual(actual_dirs, expected_dirs)
+        # The cool file should still be here
+        actual_files = [f for f in os.listdir(mash_dir)
+                        if os.path.isfile(os.path.join(mash_dir, f))]
+        self.assertEqual(actual_files, ['COOL_FILE.txt'])
 
         # Also, ensure we reported success
         publish.assert_called_with(topic="mashtask.complete",

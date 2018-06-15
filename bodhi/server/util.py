@@ -490,6 +490,7 @@ def composestate2html(context, state):
         'updateinfo': 'warning',
         'punging': 'warning',
         'notifying': 'warning',
+        'cleaning': 'warning',
         'success': 'success',
         'failed': 'danger',
     }[state.value]

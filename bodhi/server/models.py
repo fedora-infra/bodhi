@@ -748,6 +748,7 @@ class ComposeState(DeclEnum):
         success (EnumSymbol): The Compose has completed successfully.
         failed (EnumSymbol): The compose has failed, abandon hope.
         signing_repo (EnumSymbol): Waiting for the repo to be signed.
+        cleaning (EnumSymbol): Cleaning old Composes after successful completion.
     """
 
     requested = 'requested', 'Requested'
@@ -759,6 +760,7 @@ class ComposeState(DeclEnum):
     success = 'success', 'Success'
     failed = 'failed', 'Failed'
     signing_repo = 'signing_repo', 'Signing repo'
+    cleaning = 'cleaning', 'Cleaning old composes'
 
 
 ##
