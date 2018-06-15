@@ -446,6 +446,11 @@ class TestComposeState2HTML(unittest.TestCase):
         self.assertEqual(util.composestate2html(None, ComposeState.failed),
                          "<span class='label label-danger'>Failed</span>")
 
+    def test_cleaning(self):
+        """Assert correct return value with the cleaning state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.cleaning),
+                         "<span class='label label-warning'>Cleaning old composes</span>")
+
 
 class TestCanWaiveTestResults(base.BaseTestCase):
     """Test the can_waive_test_results() function."""
