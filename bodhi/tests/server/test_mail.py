@@ -277,12 +277,13 @@ class TestSendMail(unittest.TestCase):
 
     @mock.patch.dict('bodhi.server.mail.config', {'bodhi_email': ''})
     @mock.patch('bodhi.server.mail._send_mail')
-    @mock.patch('bodhi.server.mail.log.warn')
-    def test_no_from_addr(self, warn, _send_mail):
+    @mock.patch('bodhi.server.mail.log.warning')
+    def test_no_from_addr(self, warning, _send_mail):
         """If there is no from_addr, a warning should be logged and the function should return."""
         mail.send_mail(None, 'bowlofeggs@example.com', 'R013X', 'Want a c00l w@tch?')
 
-        warn.assert_called_once_with('Unable to send mail: bodhi_email not defined in the config')
+        warning.assert_called_once_with(
+            'Unable to send mail: bodhi_email not defined in the config')
         # The mail should not have been sent
         self.assertEqual(_send_mail.call_count, 0)
 
@@ -326,9 +327,9 @@ class Test_SendMail(unittest.TestCase):
     """Test the _send_mail() function."""
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.fp.o'})
-    @mock.patch('bodhi.server.mail.log.warn')
+    @mock.patch('bodhi.server.mail.log.warning')
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
-    def test_recipients_refused(self, SMTP, warn):
+    def test_recipients_refused(self, SMTP, warning):
         """If recipients are refused, a warning should be logged and SMTP should be exited."""
         smtp = SMTP.return_value
         smtp.sendmail.side_effect = smtplib.SMTPRecipientsRefused('nooope!')
@@ -337,7 +338,7 @@ class Test_SendMail(unittest.TestCase):
 
         SMTP.assert_called_once_with('smtp.fp.o')
         smtp.sendmail.assert_called_once_with('archer@spies.com', ['lana@spies.com'], 'hi')
-        warn.assert_called_once_with(
+        warning.assert_called_once_with(
             '"recipient refused" for \'lana@spies.com\', {}'.format(
                 repr(smtp.sendmail.side_effect)))
         smtp.quit.assert_called_once_with()

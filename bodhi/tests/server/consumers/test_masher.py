@@ -3124,8 +3124,8 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         self.assertTrue(update.abs_url() in args[2].decode('utf-8'))
         self.assertTrue(update.title in args[2].decode('utf-8'))
 
-    @mock.patch('bodhi.server.consumers.masher.log.warn')
-    def test_test_list_not_configured(self, warn):
+    @mock.patch('bodhi.server.consumers.masher.log.warning')
+    def test_test_list_not_configured(self, warning):
         """If a test_announce_list setting is not found, a warning should be logged."""
         t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
@@ -3137,7 +3137,7 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         with mock.patch.dict(config, {'fedora_test_announce_list': None}):
             t.send_testing_digest()
 
-        warn.assert_called_once_with(
+        warning.assert_called_once_with(
             '%r undefined. Not sending updates-testing digest', 'fedora_test_announce_list')
 
 

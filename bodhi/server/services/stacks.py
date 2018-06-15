@@ -158,8 +158,8 @@ def save_stack(request):
                     log.info('%s is a member of the %s group', user.name, stack.name)
                     break
             else:
-                log.warn('%s is not an owner of the %s stack',
-                         user.name, stack.name)
+                log.warning('%s is not an owner of the %s stack',
+                            user.name, stack.name)
                 log.debug('owners = %s; groups = %s', stack.users, stack.groups)
                 request.errors.add('body', 'name', '%s does not have privileges'
                                    ' to modify the %s stack' % (user.name, stack.name))

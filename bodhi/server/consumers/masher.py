@@ -161,8 +161,8 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         self.topic = prefix + '.' + env + '.' + hub.config.get('masher_topic')
         self.valid_signer = hub.config.get('releng_fedmsg_certname')
         if not self.valid_signer:
-            log.warn('No releng_fedmsg_certname defined'
-                     'Cert validation disabled')
+            log.warning('No releng_fedmsg_certname defined'
+                        'Cert validation disabled')
         self.max_mashes_sem = threading.BoundedSemaphore(config.get('max_concurrent_mashes'))
 
         # This will ensure that the configured paths exist, and will raise ValueError if any does
@@ -470,7 +470,7 @@ class ComposerThread(threading.Thread):
         for update in self.compose.updates:
             result, reason = update.check_requirements(self.db, config)
             if not result:
-                self.log.warn("%s failed gating: %s" % (update.title, reason))
+                self.log.warning("%s failed gating: %s" % (update.title, reason))
                 self.eject_from_mash(update, reason)
         # We may have removed some updates from this compose above, and do we don't want future
         # reads on self.compose.updates to see those, so let's mark that attribute expired so
@@ -488,7 +488,7 @@ class ComposerThread(threading.Thread):
         """
         update.locked = False
         text = '%s ejected from the push because %r' % (update.title, reason)
-        log.warn(text)
+        log.warning(text)
         update.comment(self.db, text, author=u'bodhi')
         # Remove the pending tag as well
         if update.request is UpdateRequest.stable:
@@ -754,8 +754,8 @@ class ComposerThread(threading.Thread):
                 release.id_prefix.lower().replace('-', '_'))
             test_list = config.get(test_list_key)
             if not test_list:
-                log.warn('%r undefined. Not sending updates-testing digest',
-                         test_list_key)
+                log.warning('%r undefined. Not sending updates-testing digest',
+                            test_list_key)
                 continue
 
             log.debug("Sending digest for updates-testing %s" % prefix)

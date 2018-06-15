@@ -147,7 +147,7 @@ class UpdateInfoMetadata(object):
                 if build_obj.update:
                     self.updates.add(build_obj.update)
                 else:
-                    log.warn('%s does not have a corresponding update' % build['nvr'])
+                    log.warning('%s does not have a corresponding update' % build['nvr'])
             else:
                 nonexistent.append(build['nvr'])
         if nonexistent:
