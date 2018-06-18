@@ -1444,6 +1444,17 @@ class TestUpdateGetBugKarma(BaseTestCase):
         self.assertEqual(bad, -1)
         self.assertEqual(good, 2)
 
+        # This is a "karma reset event", so the above comments should not be counted in the karma.
+        user = model.User(name='bodhi')
+        comment = model.Comment(text=u"New build", karma=0, user=user)
+        self.db.add(comment)
+        update.comments.append(comment)
+
+        bad, good = update.get_bug_karma(update.bugs[0])
+
+        self.assertEqual(bad, 0)
+        self.assertEqual(good, 0)
+
 
 class TestUpdateGetTestcaseKarma(BaseTestCase):
     """Test the get_testcase_karma() method."""
@@ -1479,6 +1490,17 @@ class TestUpdateGetTestcaseKarma(BaseTestCase):
 
         self.assertEqual(bad, -1)
         self.assertEqual(good, 2)
+
+        # This is a "karma reset event", so the above comments should not be counted in the karma.
+        user = model.User(name='bodhi')
+        comment = model.Comment(text=u"New build", karma=0, user=user)
+        self.db.add(comment)
+        update.comments.append(comment)
+
+        bad, good = update.get_testcase_karma(update.builds[0].package.test_cases[0])
+
+        self.assertEqual(bad, 0)
+        self.assertEqual(good, 0)
 
 
 class TestUpdateSigned(BaseTestCase):
@@ -3019,6 +3041,27 @@ class TestUpdate(ModelTest):
         with mock.patch.dict(config, {'test_gating.required': True}):
             self.assertEqual(self.obj.check_requirements(self.db, config),
                              (True, 'No checks required.'))
+
+    def test_num_admin_approvals_after_karma_reset(self):
+        """Make sure number of admin approvals is counted correctly for the build."""
+        update = model.Update.query.first()
+
+        # Approval from admin 'bodhiadmin' {config.admin_groups}
+        user_group = [model.Group(name=u'bodhiadmin')]
+        user = model.User(name='bodhiadmin', groups=user_group)
+        comment = model.Comment(text='Test comment', karma=1, user=user)
+        self.db.add(comment)
+        update.comments.append(comment)
+
+        self.assertEqual(update.num_admin_approvals, 1)
+
+        # This is a "karma reset event", so the above comments should not be counted in the karma.
+        user = model.User(name='bodhi')
+        comment = model.Comment(text=u"New build", karma=0, user=user)
+        self.db.add(comment)
+        update.comments.append(comment)
+
+        self.assertEqual(update.num_admin_approvals, 0)
 
     def test_test_cases_with_no_dupes(self):
         update = self.get_update(name=u"FullTestCasesWithNoDupes")
