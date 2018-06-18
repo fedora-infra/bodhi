@@ -1882,11 +1882,13 @@ class Update(Base):
         Karma is reset when :class:`Builds <Build>` are added or removed from an update.
 
         Returns:
-            generator: :class:`Comments <Comment>` since the karma reset.
+            comments (list): class:`Comments <Comment>` since the karma reset.
         """
         # We want to traverse the comments in reverse order so we only consider
         # the most recent comments from any given user and only the comments
         # since the most recent karma reset event.
+        comments_since_karma_reset = []
+
         for comment in reversed(self.comments):
             if (comment.user.name == u'bodhi' and
                     ('New build' in comment.text or 'Removed build' in comment.text)):
@@ -1896,7 +1898,9 @@ class Update(Base):
                 # reverse order, once we find one of these comments we can
                 # simply exit this loop.
                 break
-            yield comment
+            comments_since_karma_reset.append(comment)
+
+        return comments_since_karma_reset
 
     @staticmethod
     def contains_critpath_component(builds, release_name):
@@ -2373,7 +2377,7 @@ class Update(Base):
             positive karma.
         """
         good, bad, seen = 0, 0, set()
-        for comment in reversed(self.comments):
+        for comment in self.comments_since_karma_reset:
             if comment.user.name in seen:
                 continue
             seen.add(comment.user.name)
@@ -2396,7 +2400,7 @@ class Update(Base):
             positive karma.
         """
         good, bad, seen = 0, 0, set()
-        for comment in reversed(self.comments):
+        for comment in self.comments_since_karma_reset:
             if comment.user.name in seen:
                 continue
             seen.add(comment.user.name)
@@ -2846,10 +2850,10 @@ class Update(Base):
         val += u"""
   Submitter: %s
   Submitted: %s\n""" % (username, self.date_submitted)
-        if len(self.comments):
+        if self.comments_since_karma_reset:
             val += u"   Comments: "
             comments = []
-            for comment in self.comments:
+            for comment in self.comments_since_karma_reset:
                 if comment.anonymous:
                     anonymous = " (unauthenticated)"
                 else:
@@ -3508,7 +3512,7 @@ class Update(Base):
             int: The number of admin approvals found in the comments of this update.
         """
         approvals = 0
-        for comment in self.comments:
+        for comment in self.comments_since_karma_reset:
             if comment.karma != 1:
                 continue
             admin_groups = config.get('admin_groups')
