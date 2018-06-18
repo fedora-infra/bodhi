@@ -547,8 +547,9 @@ def comment(update, text, karma, user, password, url, **kwargs):
 
 @updates.command()
 @staging_option
-@click.option('--arch', help='Specify arch of packages to download, ' +
-              '"all" will retrieve packages from all architectures')
+@click.option('--arch',
+              help=('Specify arch of packages to download, "all" will retrieve packages from all '
+                    'architectures'))
 @click.option('--cves', help='Download update(s) by CVE(s) (comma-separated list)')
 @click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')

@@ -223,8 +223,8 @@ class TestDownload(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
-                         'WARNING: Some builds not found!\nDownloading packages ' +
-                         'from nodejs-grunt-wrap-0.3.0-2.fc25\n')
+                         ('WARNING: Some builds not found!\nDownloading packages '
+                          'from nodejs-grunt-wrap-0.3.0-2.fc25\n'))
         call.assert_called_once_with((
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'))
@@ -247,8 +247,8 @@ class TestDownload(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
-                         'Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n' +
-                         'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n')
+                         ('Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n'
+                          'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n'))
         call.assert_called_once_with((
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'))
