@@ -68,9 +68,23 @@ data again. Make sure to save your input somewhere before reloading.
 
 
 def postschema_validator(f):
-    """Modify a validator function, so that it is skipped if schema validation already failed."""
+    """
+    Modify a validator function, so that it is skipped if schema validation already failed.
+
+    Args:
+        f (callable): The function we are wrapping.
+    Returns:
+        callable: The wrapped function.
+    """
     @wraps(f)
     def validator(request, **kwargs):
+        """
+        Run the validator, but only if there aren't errors and there is validated data.
+
+        Args:
+            request (pyramid.util.Request): The current web request.
+            kwargs (dict): The other arguments to pass on to the wrapped validator.
+        """
         # The check on request.errors is to make sure we don't bypass other checks without
         # failing the request
         if len(request.validated) == 0 and len(request.errors) > 0:
