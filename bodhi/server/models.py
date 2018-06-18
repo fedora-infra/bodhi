@@ -4216,7 +4216,7 @@ class User(Base):
     __get_by__ = ('name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
-    email = Column(UnicodeText, unique=True)
+    email = Column(UnicodeText)
 
     # A preference
     show_popups = Column(Boolean, default=True, server_default=text('TRUE'))
