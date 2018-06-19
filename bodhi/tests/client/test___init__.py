@@ -377,7 +377,7 @@ class TestNew(unittest.TestCase):
             client.new,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7'])
 
-        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.exit_code, 2)
         self.assertIn("This is a BodhiClientException message", result.output)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -395,9 +395,22 @@ class TestNew(unittest.TestCase):
             client.new,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7'])
 
+        self.assertEqual(result.exit_code, 2)
+        self.assertIn("This is an Exception message", result.output)
+
+    @mock.patch('bodhi.client.bindings.getpass.getpass', side_effect=EOFError)
+    def test_keep_quiet_if_ctrld_ends_password_input(self, getpass):
+        """
+        Assert keeping quiet if user press Ctrl+D to end password input
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--autokarma', 'bodhi-2.2.4-1.el7'])
+
         self.assertEqual(result.exit_code, 0)
-        self.assertIn("Traceback (most recent call last):", result.output)
-        self.assertIn("Exception: This is an Exception message", result.output)
+        self.assertEqual('', result.output.strip())
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -823,10 +836,7 @@ class TestRequest(unittest.TestCase):
                                                 'some_user', '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 2)
-        self.assertTrue(compare_output(
-            result.output,
-            (u'Usage: request [OPTIONS] UPDATE STATE\n\nError: Invalid value for UPDATE: Update not'
-             u' found: bodhi-2.2.4-99.el7\n')))
+        self.assertIn('Update not found: bodhi-2.2.4-99.el7', result.output)
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
