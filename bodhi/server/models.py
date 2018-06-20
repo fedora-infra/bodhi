@@ -4164,9 +4164,11 @@ class Bug(Base):
         ])
         bugs.bugtracker.close(self.bug_id, versions=versions, comment=self.default_message(update))
 
-    def modified(self, update):
+    def modified(self, update, comment):
         """
         Change the status of this bug to MODIFIED unless it is a parent security bug.
+
+        Also, comment on the bug stating that an update has been submitted.
 
         Args:
             update (Update): The update that is associated with this bug.
@@ -4174,7 +4176,7 @@ class Bug(Base):
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying on parent security bug %s', self.bug_id)
         else:
-            bugs.bugtracker.modified(self.bug_id)
+            bugs.bugtracker.modified(self.bug_id, comment)
 
 
 user_group_table = Table('user_group_table', Base.metadata,

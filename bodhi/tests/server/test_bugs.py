@@ -268,17 +268,31 @@ class TestBugzilla(unittest.TestCase):
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_modified(self, info):
-        """Test the modified() method"""
+        """Ensure correct execution of the modified() method."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
         bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.bug_status = 'NEW'
 
-        bz.modified(1411188)
+        bz.modified(1411188, 'A mean message.')
 
         bz._bz.getbug.assert_called_once_with(1411188)
         info.assert_called_once_with("Setting bug #1411188 status to MODIFIED")
-        self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 1)
+        bz._bz.getbug.return_value.setstatus.assert_called_once_with('MODIFIED',
+                                                                     comment='A mean message.')
+
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
+    def test_modified_after_verified(self):
+        """Test the modified() method when the status of bug is VERIFIED."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.product = 'aproduct'
+        bz._bz.getbug.return_value.bug_status = 'VERIFIED'
+
+        bz.modified(1411188, 'A mean message.')
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        bz._bz.getbug.return_value.addcomment.assert_called_once_with('A mean message.')
 
     @mock.patch('bodhi.server.bugs.log.info')
     def test_modified_product_skipped(self, info):
@@ -287,7 +301,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz = mock.MagicMock()
         bz._bz.getbug.return_value.product = 'not fedora!'
 
-        bz.modified(1411188)
+        bz.modified(1411188, 'A mean message.')
 
         bz._bz.getbug.assert_called_once_with(1411188)
         info.assert_called_once_with("Skipping set modified on 'not fedora!' bug #1411188")
@@ -300,7 +314,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz = mock.MagicMock()
         bz._bz.getbug.side_effect = Exception()
 
-        bz.modified(1411188)
+        bz.modified(1411188, 'A mean message.')
 
         bz._bz.getbug.assert_called_once_with(1411188)
         exception_log.assert_called_once_with("Unable to alter bug #1411188")

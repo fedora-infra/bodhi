@@ -263,15 +263,18 @@ class Bugzilla(BugTracker):
         if 'security' in [keyword.lower() for keyword in keywords]:
             bug_entity.security = True
 
-    def modified(self, bug_id):
+    def modified(self, bug_id, comment):
         """
         Change the status of this bug to MODIFIED if not already MODIFIED, VERIFIED, or CLOSED.
 
         This method will only operate on bugs that are associated with products listed
         in the bz_products setting.
 
+        This will also comment on the bug stating that an update has been submitted.
+
         Args:
             bug_id (basestring or int): The bug you wish to mark MODIFIED.
+            comment (basestring): The comment to be included with the state change.
         """
         try:
             bug = self.bz.getbug(bug_id)
@@ -280,7 +283,9 @@ class Bugzilla(BugTracker):
                 return
             if bug.bug_status not in ('MODIFIED', 'VERIFIED', 'CLOSED'):
                 log.info('Setting bug #%d status to MODIFIED' % bug_id)
-                bug.setstatus('MODIFIED')
+                bug.setstatus('MODIFIED', comment=comment)
+            else:
+                bug.addcomment(comment)
         except Exception:
             log.exception("Unable to alter bug #%d" % bug_id)
 
