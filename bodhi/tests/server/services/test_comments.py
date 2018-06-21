@@ -104,7 +104,8 @@ class TestCommentsService(base.BaseTestCase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_with_bug_feedback(self, publish):
         comment = self.make_comment()
-        comment['bug_feedback'] = [{'bug_id': 12345, 'karma': 1}]
+        comment['bug_feedback.0.bug_id'] = 12345
+        comment['bug_feedback.0.karma'] = 1
         res = self.app.post_json('/comments/', comment)
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
@@ -119,7 +120,8 @@ class TestCommentsService(base.BaseTestCase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_with_testcase_feedback(self, publish):
         comment = self.make_comment()
-        comment['testcase_feedback'] = [{'testcase_name': "Wat", 'karma': -1}]
+        comment['testcase_feedback.0.testcase_name'] = "Wat"
+        comment['testcase_feedback.0.karma'] = -1
         res = self.app.post_json('/comments/', comment)
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)

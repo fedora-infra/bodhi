@@ -151,6 +151,11 @@ class TestcaseFeedbacks(colander.SequenceSchema):
 class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
     """An API schema for bodhi.server.services.comments.new_comment()."""
 
+    def deserialize(self, cstruct):
+        """Unflatten comment before parsing into Schema."""
+        appstruct = SaveCommentSchema().unflatten(cstruct)
+        return super(SaveCommentSchema, self).deserialize(appstruct)
+
     update = colander.SchemaNode(colander.String())
     text = colander.SchemaNode(
         colander.String(),
