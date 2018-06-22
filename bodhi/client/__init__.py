@@ -180,13 +180,14 @@ def _save_override(url, user, password, staging, edit=False, **kwargs):
         edit (bool): Set to True to edit an existing buildroot override.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging)
-    resp = client.save_override(nvr=kwargs['nvr'],
-                                duration=kwargs['duration'],
-                                notes=kwargs['notes'],
-                                edit=edit,
-                                expired=kwargs.get('expire', False))
-    print_resp(resp, client)
+    with bindings.BodhiClient(base_url=url, username=user, password=password,
+                              staging=staging) as client:
+        resp = client.save_override(nvr=kwargs['nvr'],
+                                    duration=kwargs['duration'],
+                                    notes=kwargs['notes'],
+                                    edit=edit,
+                                    expired=kwargs.get('expire', False))
+        print_resp(resp, client)
 
 
 @click.group()
@@ -228,8 +229,8 @@ def list_composes(url, staging, verbose):
         staging (bool): Whether to use the staging server or not.
         verbose (bool): Whether to show verbose output or not.
     """
-    client = bindings.BodhiClient(base_url=url, staging=staging)
-    print_resp(client.list_composes(), client, verbose)
+    with bindings.BodhiClient(base_url=url, staging=staging) as client:
+        print_resp(client.list_composes(), client, verbose)
 
 
 @cli.group()
@@ -265,25 +266,25 @@ def new(user, password, url, **kwargs):
         kwargs (dict): Other keyword arguments passed to us by click.
     """
 
-    client = bindings.BodhiClient(base_url=url, username=user, password=password,
-                                  staging=kwargs['staging'])
+    with bindings.BodhiClient(base_url=url, username=user, password=password,
+                              staging=kwargs['staging']) as client:
 
-    if kwargs['file'] is None:
-        updates = [kwargs]
+        if kwargs['file'] is None:
+            updates = [kwargs]
 
-    else:
-        updates = client.parse_file(os.path.abspath(kwargs['file']))
+        else:
+            updates = client.parse_file(os.path.abspath(kwargs['file']))
 
-    kwargs['notes'] = _get_notes(**kwargs)
+        kwargs['notes'] = _get_notes(**kwargs)
 
-    for update in updates:
-        try:
-            resp = client.save(**update)
-            print_resp(resp, client)
-        except bindings.BodhiClientException as e:
-            click.echo(str(e))
-        except Exception as e:
-            traceback.print_exc()
+        for update in updates:
+            try:
+                resp = client.save(**update)
+                print_resp(resp, client)
+            except bindings.BodhiClientException as e:
+                click.echo(str(e))
+            except Exception as e:
+                traceback.print_exc()
 
 
 def _validate_edit_update(ctx, param, value):
@@ -330,26 +331,26 @@ def edit(user, password, url, **kwargs):
                        True.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, username=user, password=password,
-                                  staging=kwargs['staging'])
+    with bindings.BodhiClient(base_url=url, username=user, password=password,
+                              staging=kwargs['staging']) as client:
 
-    kwargs['notes'] = _get_notes(**kwargs)
+        kwargs['notes'] = _get_notes(**kwargs)
 
-    try:
-        if re.search(bindings.UPDATE_ID_RE, kwargs['update']):
-            query_param = {'updateid': kwargs['update']}
-            resp = client.query(**query_param)
-            title = resp['updates'][0]['title']
-        elif re.search(bindings.UPDATE_TITLE_RE, kwargs['update']):
-            title = kwargs['update']
-        del(kwargs['update'])
-        kwargs['builds'] = title
-        kwargs['edited'] = title
+        try:
+            if re.search(bindings.UPDATE_ID_RE, kwargs['update']):
+                query_param = {'updateid': kwargs['update']}
+                resp = client.query(**query_param)
+                title = resp['updates'][0]['title']
+            elif re.search(bindings.UPDATE_TITLE_RE, kwargs['update']):
+                title = kwargs['update']
+            del(kwargs['update'])
+            kwargs['builds'] = title
+            kwargs['edited'] = title
 
-        resp = client.save(**kwargs)
-        print_resp(resp, client)
-    except bindings.BodhiClientException as e:
-        click.echo(str(e))
+            resp = client.save(**kwargs)
+            print_resp(resp, client)
+        except bindings.BodhiClientException as e:
+            click.echo(str(e))
 
 
 @updates.command()
@@ -406,12 +407,12 @@ def query(url, mine=False, rows=None, **kwargs):
         mine (Boolean): If the --mine flag was set
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
-    if mine:
-        client.init_username()
-        kwargs['user'] = client.username
-    resp = client.query(rows_per_page=rows, **kwargs)
-    print_resp(resp, client)
+    with bindings.BodhiClient(base_url=url, staging=kwargs['staging']) as client:
+        if mine:
+            client.init_username()
+            kwargs['user'] = client.username
+        resp = client.query(rows_per_page=rows, **kwargs)
+        print_resp(resp, client)
 
 
 @updates.command()
@@ -447,15 +448,13 @@ def request(update, state, user, password, url, **kwargs):
                        True.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, username=user, password=password,
-                                  staging=kwargs['staging'])
-
     try:
-        resp = client.request(update, state)
+        with bindings.BodhiClient(base_url=url, username=user, password=password,
+                                  staging=kwargs['staging']) as client:
+            resp = client.request(update, state)
+            print_resp(resp, client)
     except bindings.UpdateNotFound as exc:
         raise click.BadParameter(six.text_type(exc), param_hint='UPDATE')
-
-    print_resp(resp, client)
 
 
 @updates.command()
@@ -491,11 +490,10 @@ def comment(update, text, karma, user, password, url, **kwargs):
                        True.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-
-    client = bindings.BodhiClient(base_url=url, username=user, password=password,
-                                  staging=kwargs['staging'])
-    resp = client.comment(update, text, karma)
-    print_resp(resp, client)
+    with bindings.BodhiClient(base_url=url, username=user, password=password,
+                              staging=kwargs['staging']) as client:
+        resp = client.comment(update, text, karma)
+        print_resp(resp, client)
 
 
 @updates.command()
@@ -522,49 +520,49 @@ def download(url, **kwargs):
                        True.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
-    requested_arch = kwargs['arch']
+    with bindings.BodhiClient(base_url=url, staging=kwargs['staging']) as client:
+        requested_arch = kwargs['arch']
 
-    del(kwargs['staging'])
-    del(kwargs['arch'])
-    # At this point we need to have reduced the kwargs dict to only our
-    # query options (cves, updateid, builds)
-    if not any(kwargs.values()):
-        click.echo("ERROR: must specify at least one of --cves, --updateid, --builds")
-        sys.exit(1)
+        del(kwargs['staging'])
+        del(kwargs['arch'])
+        # At this point we need to have reduced the kwargs dict to only our
+        # query options (cves, updateid, builds)
+        if not any(kwargs.values()):
+            click.echo("ERROR: must specify at least one of --cves, --updateid, --builds")
+            sys.exit(1)
 
-    # As the query method doesn't let us construct OR queries, we're
-    # gonna run one query for each option that was passed. The syntax
-    # for this is a bit ugly, sorry.
-    for (attr, value) in kwargs.items():
-        if value:
-            expecteds = len(value.split(','))
-            resp = client.query(**{attr: value})
-            if len(resp.updates) == 0:
-                click.echo("WARNING: No {0} found!".format(attr))
-            elif len(resp.updates) < expecteds:
-                click.echo("WARNING: Some {0} not found!".format(attr))
-            # Not sure if we need a check for > expecteds, I don't
-            # *think* that should ever be possible for these opts.
+        # As the query method doesn't let us construct OR queries, we're
+        # gonna run one query for each option that was passed. The syntax
+        # for this is a bit ugly, sorry.
+        for (attr, value) in kwargs.items():
+            if value:
+                expecteds = len(value.split(','))
+                resp = client.query(**{attr: value})
+                if len(resp.updates) == 0:
+                    click.echo("WARNING: No {0} found!".format(attr))
+                elif len(resp.updates) < expecteds:
+                    click.echo("WARNING: Some {0} not found!".format(attr))
+                # Not sure if we need a check for > expecteds, I don't
+                # *think* that should ever be possible for these opts.
 
-            for update in resp.updates:
-                click.echo("Downloading packages from {0}".format(update['title']))
-                for build in update['builds']:
-                    # subprocess is icky, but koji module doesn't
-                    # expose this in any usable way, and we don't want
-                    # to rewrite it here.
-                    if requested_arch is None:
-                        args = ('koji', 'download-build', '--arch=noarch',
-                                '--arch={0}'.format(platform.machine()), build['nvr'])
-                    else:
-                        if u'all' in requested_arch:
-                            args = ('koji', 'download-build', build['nvr'])
-                        if u'all' not in requested_arch:
+                for update in resp.updates:
+                    click.echo("Downloading packages from {0}".format(update['title']))
+                    for build in update['builds']:
+                        # subprocess is icky, but koji module doesn't
+                        # expose this in any usable way, and we don't want
+                        # to rewrite it here.
+                        if requested_arch is None:
                             args = ('koji', 'download-build', '--arch=noarch',
-                                    '--arch={0}'.format(requested_arch), build['nvr'])
-                    ret = subprocess.call(args)
-                    if ret:
-                        click.echo("WARNING: download of {0} failed!".format(build['nvr']))
+                                    '--arch={0}'.format(platform.machine()), build['nvr'])
+                        else:
+                            if u'all' in requested_arch:
+                                args = ('koji', 'download-build', build['nvr'])
+                            if u'all' not in requested_arch:
+                                args = ('koji', 'download-build', '--arch=noarch',
+                                        '--arch={0}'.format(requested_arch), build['nvr'])
+                        ret = subprocess.call(args)
+                        if ret:
+                            click.echo("WARNING: download of {0} failed!".format(build['nvr']))
 
 
 def _get_notes(**kwargs):
@@ -641,14 +639,14 @@ def query_buildroot_overrides(url, user=None, mine=False, packages=None,
         page (unicode): If supplied, returns the results for a specific page number.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
-    if mine:
-        client.init_username()
-        user = client.username
-    resp = client.list_overrides(user=user, packages=packages,
-                                 expired=expired, releases=releases, builds=builds,
-                                 rows_per_page=rows, page=page)
-    print_resp(resp, client)
+    with bindings.BodhiClient(base_url=url, staging=kwargs['staging']) as client:
+        if mine:
+            client.init_username()
+            user = client.username
+        resp = client.list_overrides(user=user, packages=packages,
+                                     expired=expired, releases=releases, builds=builds,
+                                     rows_per_page=rows, page=page)
+        print_resp(resp, client)
 
 
 @overrides.command('save')
