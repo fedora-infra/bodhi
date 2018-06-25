@@ -2887,7 +2887,7 @@ class TestUpdate(ModelTest):
             testing_tag=u'dist-7E-epel-testing', candidate_tag=u'dist-7E-epel-testing-candidate',
             pending_testing_tag=u'dist-7E-epel-testing-pending',
             pending_stable_tag=u'dist-7E-epel-pending', override_tag=u'dist-7E-epel-override',
-            branch=u'el7', version=u'7')
+            branch=u'el7', version=u'7', mail_template=u'fedora_epel_legacy_errata_template')
         update.release = release
         update.status = UpdateStatus.stable
 
@@ -2905,7 +2905,7 @@ class TestUpdate(ModelTest):
             testing_tag=u'dist-8E-epel-testing', candidate_tag=u'dist-8E-epel-testing-candidate',
             pending_testing_tag=u'dist-8E-epel-testing-pending',
             pending_stable_tag=u'dist-8E-epel-pending', override_tag=u'dist-8E-epel-override',
-            branch=u'el8', version=u'8')
+            branch=u'el8', version=u'8', mail_template=u'fedora_epel_errata_template')
         update.release = release
         update.status = UpdateStatus.stable
 

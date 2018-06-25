@@ -838,6 +838,7 @@ class Release(Base):
     pending_testing_tag = Column(UnicodeText, nullable=False)
     pending_stable_tag = Column(UnicodeText, nullable=False)
     override_tag = Column(UnicodeText, nullable=False)
+    mail_template = Column(UnicodeText, default=u'fedora_errata_template', nullable=False)
 
     state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
 
@@ -2789,14 +2790,8 @@ class Update(Base):
         elif self.status is UpdateStatus.testing:
             mailinglist = config.get('%s_test_announce_list' % release_name)
 
-        # switch email template to legacy if update aims to EPEL <= 7
-        if release_name == 'fedora_epel' and self.release.version_int <= 7:
-            templatetype = '%s_legacy_errata_template' % release_name
-        else:
-            templatetype = '%s_errata_template' % release_name
-
         if mailinglist:
-            for subject, body in mail.get_template(self, templatetype):
+            for subject, body in mail.get_template(self, self.release.mail_template):
                 mail.send_mail(sender, mailinglist, subject, body)
                 notifications.publish(
                     topic='errata.publish',

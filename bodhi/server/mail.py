@@ -19,6 +19,7 @@
 # 02110-1301, USA.
 """A collection of utilities for sending e-mail to Bodhi users."""
 from textwrap import wrap
+import os
 import smtplib
 
 from kitchen.iterutils import iterate
@@ -27,7 +28,7 @@ import six
 
 from bodhi.server import log
 from bodhi.server.config import config
-from bodhi.server.util import get_rpm_header
+from bodhi.server.util import get_rpm_header, get_absolute_path
 
 
 #
@@ -241,102 +242,30 @@ link below:
 
 }
 
-fedora_errata_template = u"""\
---------------------------------------------------------------------------------
-Fedora%(testing)s Update Notification
-%(updateid)s
-%(date)s
---------------------------------------------------------------------------------
 
-Name        : %(name)s
-Product     : %(product)s
-Version     : %(version)s
-Release     : %(release)s
-URL         : %(url)s
-Summary     : %(summary)s
-Description :
-%(description)s
+def read_template(name):
+    """
+    Read template text from file.
 
---------------------------------------------------------------------------------
-%(notes)s%(changelog)s%(references)s
-This update can be installed with the "dnf" update program. Use
-su -c 'dnf%(yum_repository)s upgrade --advisory %(updateid)s' at the command
-line. For more information, refer to the dnf documentation available at
-http://dnf.readthedocs.io/en/latest/command_ref.html#upgrade-command-label
+    Args:
+        name (basestring): The name of the email template stored in 'release' table in database.
+    Returns:
+        basestring: The text read from the file.
+    """
+    location = config.get('mail.templates_basepath')
+    directory = get_absolute_path(location)
+    file_name = "%s.tpl" % (name)
+    template_path = os.path.join(directory, file_name)
 
-All packages are signed with the Fedora Project GPG key. More details on the
-GPG keys used by the Fedora Project can be found at
-https://fedoraproject.org/keys
---------------------------------------------------------------------------------
-"""
-
-fedora_epel_errata_template = u"""\
---------------------------------------------------------------------------------
-Fedora EPEL%(testing)s Update Notification
-%(updateid)s
-%(date)s
---------------------------------------------------------------------------------
-
-Name        : %(name)s
-Product     : %(product)s
-Version     : %(version)s
-Release     : %(release)s
-URL         : %(url)s
-Summary     : %(summary)s
-Description :
-%(description)s
-
---------------------------------------------------------------------------------
-%(notes)s%(changelog)s%(references)s
-This update can be installed with the "dnf" update programs.  Use
-su -c 'dnf%(yum_repository)s upgrade %(name)s' at the command line.
-For more information, refer to the dnf documentation available at
-http://dnf.readthedocs.io/en/latest/command_ref.html#upgrade-command-label
-
-All packages are signed with the Fedora EPEL GPG key. More details on the
-GPG keys used by the Fedora Project can be found at
-https://fedoraproject.org/keys
---------------------------------------------------------------------------------
-"""
-
-# message template for legacy systems, still pointing users to use "yum"
-fedora_epel_legacy_errata_template = u"""\
---------------------------------------------------------------------------------
-Fedora EPEL%(testing)s Update Notification
-%(updateid)s
-%(date)s
---------------------------------------------------------------------------------
-
-Name        : %(name)s
-Product     : %(product)s
-Version     : %(version)s
-Release     : %(release)s
-URL         : %(url)s
-Summary     : %(summary)s
-Description :
-%(description)s
-
---------------------------------------------------------------------------------
-%(notes)s%(changelog)s%(references)s
-This update can be installed with the "yum" update programs.  Use
-su -c 'yum%(yum_repository)s update %(name)s' at the command line.
-For more information, refer to "YUM", available at
-https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7\
-/html/System_Administrators_Guide/ch-yum.html
-
-All packages are signed with the Fedora EPEL GPG key.  More details on the
-GPG keys used by the Fedora Project can be found at
-https://fedoraproject.org/keys
---------------------------------------------------------------------------------
-"""
-
-maillist_template = u"""\
-================================================================================
- %(name)s-%(version)s-%(release)s (%(updateid)s)
- %(summary)s
---------------------------------------------------------------------------------
-%(notes)s%(changelog)s%(references)s
-"""
+    if os.path.exists(template_path):
+        try:
+            with open(template_path) as template_file:
+                return to_unicode(template_file.read())
+        except IOError as e:
+            log.error("Unable to read template file: %s" % (template_path))
+            log.error("IO Error[%s]: %s" % (e.errno, e.strerror))
+    else:
+        log.error("Path does not exist: %s" % (template_path))
 
 
 def get_template(update, use_template='fedora_errata_template'):
@@ -351,7 +280,7 @@ def get_template(update, use_template='fedora_errata_template'):
         list: A list of templates for the given update.
     """
     from bodhi.server.models import UpdateStatus, UpdateType
-    use_template = globals()[use_template]
+    use_template = read_template(use_template)
     line = six.text_type('-' * 80) + '\n'
     templates = []
 

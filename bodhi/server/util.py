@@ -1449,3 +1449,20 @@ def _container_image_url(build, registry, tag=None):
         tag = '{}-{}'.format(build.nvr_version, build.nvr_release)
 
     return 'docker://{}/{}:{}'.format(registry, image_name, tag)
+
+
+def get_absolute_path(location):
+    """
+    Return an absolute path in filesystem for a relative path value.
+
+    For example, location 'bodhi:server/templates' can return something like:
+        /home/bodhi/bodhi/server/templates/
+
+    Args:
+        location (str): The relative path you want to convert.
+    Returns:
+        str: An absolute path in the filesystem referencing to the given directory.
+    """
+    module, final = location.split(':')
+    base = os.path.dirname(__import__(module).__file__)
+    return base + "/" + final
