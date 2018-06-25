@@ -467,6 +467,9 @@ class BodhiConfig(dict):
         'libravatar_enabled': {
             'value': True,
             'validator': _validate_bool},
+        'mail.templates_basepath': {
+            'value': 'bodhi:server/email/templates/',
+            'validator': six.text_type},
         'mako.directories': {
             'value': 'bodhi:server/templates',
             'validator': six.text_type},

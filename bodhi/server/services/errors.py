@@ -19,7 +19,6 @@
 """Define utilities for handling errors in the service modules."""
 
 import logging
-import os
 import re
 
 import cornice.util
@@ -29,6 +28,7 @@ import pyramid.httpexceptions
 import pyramid.response
 
 from bodhi.server.config import config
+from bodhi.server.util import get_absolute_path
 
 
 log = logging.getLogger('bodhi')
@@ -85,9 +85,7 @@ class html_handler(pyramid.httpexceptions.HTTPError):
             request (pyramid.util.Request): The current Request.
         """
         location = config.get('mako.directories')
-        module, final = location.split(':')
-        base = os.path.dirname(__import__(module).__file__)
-        directory = base + "/" + final
+        directory = get_absolute_path(location)
 
         lookup = mako.lookup.TemplateLookup(
             directories=[directory],

@@ -17,6 +17,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Tests for bodhi.server.mail."""
+import os
 import smtplib
 import unittest
 
@@ -24,6 +25,7 @@ from kitchen.text import converters
 import mock
 
 from bodhi.server import config, mail, models
+from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base
 
 
@@ -141,6 +143,55 @@ class TestGetTemplate(base.BaseTestCase):
         # The advisory flag should be included in the dnf instructions.
         self.assertTrue(
             'dnf --enablerepo=updates-testing upgrade --advisory {}'.format(u.alias) in t)
+
+    def test_read_template(self):
+        """Ensure that email template is read correctly."""
+        tpl_name = "maillist_template"
+
+        resp = mail.read_template(tpl_name)
+
+        # Assert return value is correct for the given template name.
+        expected = u"""\
+================================================================================
+ %(name)s-%(version)s-%(release)s (%(updateid)s)
+ %(summary)s
+--------------------------------------------------------------------------------
+%(notes)s%(changelog)s%(references)s
+"""
+        self.assertEqual(resp, expected)
+
+    @mock.patch('bodhi.server.mail.log.error')
+    def test_read_template_path_error(self, error):
+        """Reading from invalid template name should log appropriate error."""
+        name = "invalid_template_name"
+        location = config.config.get('mail.templates_basepath')
+        directory = get_absolute_path(location)
+        file_name = "%s.tpl" % (name)
+        template_path = os.path.join(directory, file_name)
+
+        mail.read_template(name)
+
+        # Assert error is logged correctly
+        self.assertEqual(error.call_count, 1)
+        self.assertEqual("Path does not exist: %s" % (template_path), error.mock_calls[0][1][0])
+
+    @mock.patch('bodhi.server.mail.log.error')
+    def test_read_template_io_error(self, error):
+        """IOError while opening template file should be logged appropriately."""
+        name = "fedora_errata_template"
+        location = config.config.get('mail.templates_basepath')
+        directory = get_absolute_path(location)
+        file_name = "%s.tpl" % (name)
+        template_path = os.path.join(directory, file_name)
+
+        with mock.patch('bodhi.server.mail.open', side_effect=IOError()):
+            mail.read_template(name)
+
+        # Assert error is logged correctly.
+        self.assertEqual(error.call_count, 2)
+        self.assertEqual("Unable to read template file: %s" % (template_path),
+                         error.mock_calls[0][1][0])
+        self.assertEqual("IO Error[None]: None", error.mock_calls[1][1][0])
 
 
 class TestSend(base.BaseTestCase):
