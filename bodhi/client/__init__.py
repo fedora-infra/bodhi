@@ -370,10 +370,22 @@ def edit(user, password, url, **kwargs):
             resp = client.query(**query_param)
             title = resp['updates'][0]['title']
         elif re.search(bindings.UPDATE_TITLE_RE, kwargs['update']):
+            query_param = {'like': kwargs['update']}
+            resp = client.query(**query_param)
             title = kwargs['update']
         del(kwargs['update'])
         kwargs['builds'] = title
         kwargs['edited'] = title
+
+        # Convert list of 'Bug' instances in DB to comma separated bug_ids for parsing.
+        former_update = resp['updates'][0]
+        if not kwargs['bugs']:
+            kwargs['bugs'] = ",".join([str(bug['bug_id']) for bug in former_update['bugs']])
+
+        # Replace empty fields with former values from database.
+        for field in kwargs:
+            if kwargs[field] in (None, '') and field in former_update:
+                kwargs[field] = former_update[field]
 
         resp = client.save(**kwargs)
         print_resp(resp, client)

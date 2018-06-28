@@ -1121,12 +1121,12 @@ class TestEdit(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'suggest': None, 'notes': None, 'notes_file': None, 'requirements': None,
-                    'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix',
-                    'severity': 'low'
+                    'suggest': u'unspecified', 'notes': u'New package.',
+                    'notes_file': None, 'request': None, 'unstable_karma': -3,
+                    'bugs': '1420605', 'requirements': u'', 'type': 'bugfix', 'severity': u'low'
                 }
             ),
             mock.call(
@@ -1163,12 +1163,12 @@ class TestEdit(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'suggest': None, 'notes': u'this is an edited note', 'notes_file': None,
-                    'requirements': None, 'request': None, 'bugs': u'', 'unstable_karma': None,
-                    'type': 'bugfix', 'severity': None
+                    'suggest': u'unspecified', 'notes': u'this is an edited note',
+                    'notes_file': None, 'request': None, 'severity': u'low',
+                    'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3, 'type': 'bugfix'
                 }
             ),
             mock.call(
@@ -1210,13 +1210,13 @@ class TestEdit(unittest.TestCase):
                 mock.call(
                     bindings_client, 'updates/', auth=True, verb='POST',
                     data={
-                        'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                        'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                         'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                         'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                        'suggest': None, 'notes': 'This is a --notes-file note!',
-                        'notes_file': 'notefile.txt', 'request': None, 'bugs': u'',
-                        'requirements': None, 'unstable_karma': None, 'type': 'bugfix',
-                        'severity': None
+                        'suggest': 'unspecified', 'notes': 'This is a --notes-file note!',
+                        'notes_file': 'notefile.txt', 'request': None, 'severity': 'low',
+                        'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
+                        'type': 'bugfix'
                     }
                 ),
                 mock.call(
@@ -1248,9 +1248,11 @@ class TestEdit(unittest.TestCase):
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
                 return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
-    def test_update_title(self, send_request):
+    def test_update_title(self, send_request, query):
         """
         Assert that we can successfully edit an update using the update title.
         """
@@ -1267,12 +1269,12 @@ class TestEdit(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26', 'autokarma': False,
-                    'edited': u'drupal7-i18n-1.17-1.fc26', 'suggest': None, 'requirements': None,
-                    'notes': u'this is an edited note', 'notes_file': None,
-                    'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix',
-                    'severity': None
+                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26',
+                    'autokarma': False, 'edited': u'drupal7-i18n-1.17-1.fc26',
+                    'suggest': u'unspecified', 'notes': u'this is an edited note',
+                    'notes_file': None, 'request': None, 'bugs': '1420605',
+                    'unstable_karma': -3, 'type': 'bugfix', 'severity': u'low', 'requirements': u''
                 }
             ),
             mock.call(
@@ -1347,12 +1349,13 @@ class TestEdit(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
-                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'suggest': None, 'notes': u'testing required tasks', 'notes_file': None,
-                    'requirements': u'dist.depcheck dist.rpmdeplint', 'request': None,
-                    'bugs': u'', 'unstable_karma': None, 'type': 'bugfix', 'severity': None
+                    'suggest': u'unspecified', 'notes': u'testing required tasks',
+                    'notes_file': None, 'request': None, 'severity': u'low',
+                    'bugs': '1420605', 'unstable_karma': -3,
+                    'requirements': u'dist.depcheck dist.rpmdeplint', 'type': 'bugfix'
                 }
             ),
             mock.call(
