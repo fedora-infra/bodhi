@@ -653,6 +653,12 @@ class ListPackageSchema(PaginatedSchema, SearchableSchema):
         missing=None,
     )
 
+    critpath = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
 
 class ListBuildSchema(PaginatedSchema):
     """An API schema for bodhi.server.services.builds.query_builds()."""
