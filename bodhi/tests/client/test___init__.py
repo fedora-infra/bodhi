@@ -305,14 +305,24 @@ class TestNew(unittest.TestCase):
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('unspecified', 'urgent')
         self.assertTrue(compare_output(result.output, expected_output))
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'updates/', auth=True, verb='POST',
-            data={
-                'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                'suggest': None, 'notes': None, 'request': None, 'bugs': u'', 'requirements': None,
-                'unstable_karma': None, 'file': None, 'notes_file': None, 'type': 'bugfix',
-                'severity': 'urgent'})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
+                    'suggest': None, 'notes': None, 'request': None, 'bugs': u'',
+                    'requirements': None, 'unstable_karma': None, 'file': None,
+                    'notes_file': None, 'type': 'bugfix', 'severity': 'urgent'
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -334,14 +344,24 @@ class TestNew(unittest.TestCase):
                                                                           'localhost:6543')
         self.assertTrue(compare_output(result.output, expected_output))
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'updates/', auth=True, verb='POST',
-            data={
-                'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                'suggest': None, 'notes': None, 'request': None, 'bugs': u'', 'requirements': None,
-                'unstable_karma': None, 'file': None, 'notes_file': None, 'type': 'bugfix',
-                'severity': None})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
+                    'suggest': None, 'notes': None, 'request': None, 'bugs': u'',
+                    'requirements': None, 'unstable_karma': None, 'file': None,
+                    'notes_file': None, 'type': 'bugfix', 'severity': None
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -419,14 +439,24 @@ class TestNew(unittest.TestCase):
                                                                           'localhost:6543')
         self.assertTrue(compare_output(result.output, expected_output + '\n'))
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'updates/', auth=True, verb='POST',
-            data={
-                'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                'suggest': None, 'notes': None, 'request': None, 'bugs': u'1234567',
-                'requirements': None, 'unstable_karma': None, 'file': None,
-                'notes_file': None, 'type': 'bugfix', 'severity': None})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
+                    'suggest': None, 'notes': None, 'request': None, 'bugs': u'1234567',
+                    'requirements': None, 'unstable_karma': None, 'file': None,
+                    'notes_file': None, 'type': 'bugfix', 'severity': None
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
 
@@ -499,16 +529,27 @@ class TestQuery(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, client_test_data.EXPECTED_QUERY_OUTPUT + '\n')
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'updates/', verb='GET',
-            params={
-                'approved_since': None, 'status': None, 'locked': None,
-                'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
-                'content_type': None,
-                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
-                'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
-                'cves': None, 'rows_per_page': None, 'page': None})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', verb='GET',
+                params={
+                    'approved_since': None, 'status': None, 'locked': None,
+                    'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
+                    'content_type': None,
+                    'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
+                    'staging': False, 'modified_since': None, 'pushed': None,
+                    'pushed_since': None, 'user': None, 'critpath': None, 'updateid': None,
+                    'packages': None, 'type': None, 'cves': None, 'rows_per_page': None,
+                    'page': None
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -559,16 +600,27 @@ class TestQuery(unittest.TestCase):
                                                                          'localhost:6543')
         self.assertEqual(result.output, expected_output + '\n')
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'updates/', verb='GET',
-            params={
-                'approved_since': None, 'status': None, 'locked': None,
-                'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
-                'content_type': None,
-                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
-                'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
-                'cves': None, 'rows_per_page': None, 'page': None})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', verb='GET',
+                params={
+                    'approved_since': None, 'status': None, 'locked': None,
+                    'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
+                    'content_type': None,
+                    'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
+                    'staging': False, 'modified_since': None, 'pushed': None,
+                    'pushed_since': None, 'user': None, 'critpath': None, 'updateid': None,
+                    'packages': None, 'type': None, 'cves': None, 'rows_per_page': None,
+                    'page': None
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -588,16 +640,26 @@ class TestQuery(unittest.TestCase):
 
         self.assertEqual(res.exit_code, 0)
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'updates/', verb='GET',
-            params={
-                'approved_since': None, 'status': None, 'locked': None,
-                'builds': None, 'releases': None,
-                'content_type': None,
-                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
-                'user': 'dudemcpants', 'critpath': None, 'updateid': None, 'packages': None,
-                'type': None, 'cves': None, 'rows_per_page': None, 'page': None})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', verb='GET',
+                params={
+                    'approved_since': None, 'status': None, 'locked': None,
+                    'builds': None, 'releases': None,
+                    'content_type': None,
+                    'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
+                    'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
+                    'user': 'dudemcpants', 'critpath': None, 'updateid': None, 'packages': None,
+                    'type': None, 'cves': None, 'rows_per_page': None, 'page': None
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
         mock_open.assert_called_with(fedora.client.openidbaseclient.b_SESSION_FILE, 'rb')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -616,16 +678,26 @@ class TestQuery(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'updates/', verb='GET',
-            params={
-                'approved_since': None, 'status': None, 'locked': None,
-                'builds': None, 'releases': None,
-                'content_type': None,
-                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
-                'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
-                'cves': None, 'rows_per_page': 10, 'page': None})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', verb='GET',
+                params={
+                    'approved_since': None, 'status': None, 'locked': None,
+                    'builds': None, 'releases': None,
+                    'content_type': None,
+                    'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
+                    'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
+                    'user': None, 'critpath': None, 'updateid': None, 'packages': None,
+                    'type': None, 'cves': None, 'rows_per_page': 10, 'page': None
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -643,16 +715,25 @@ class TestQuery(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'updates/', verb='GET',
-            params={
-                'approved_since': None, 'status': None, 'locked': None,
-                'builds': None, 'releases': None,
-                'content_type': None,
-                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
-                'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
-                'cves': None, 'rows_per_page': None, 'page': 5})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', verb='GET',
+                params={
+                    'approved_since': None, 'pushed': None, 'pushed_since': None,
+                    'critpath': None, 'cves': None, 'rows_per_page': None, 'staging': False,
+                    'submitted_since': None, 'suggest': None, 'updateid': None,
+                    'type': None, 'status': None, 'releases': None, 'modified_since': None,
+                    'user': None, 'content_type': None, 'packages': None, 'locked': None,
+                    'builds': None, 'request': None, 'bugs': None, 'page': 5
+                },
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
 
 
 class TestQueryBuildrootOverrides(unittest.TestCase):
@@ -698,8 +779,17 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
 
         self.assertEqual(res.exit_code, 0)
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'overrides/', verb='GET', params={'user': 'dudemcpants'})
+        calls = [
+            mock.call(
+                bindings_client, 'overrides/', verb='GET', params={'user': 'dudemcpants'}
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
         mock_open.assert_called_with(fedora.client.openidbaseclient.b_SESSION_FILE, 'rb')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -798,10 +888,20 @@ class TestRequest(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertTrue(compare_output(result.output, client_test_data.EXPECTED_UPDATE_OUTPUT))
-        send_request.assert_called_once_with(
-            'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
-            data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
-                  'update': u'bodhi-2.2.4-1.el7'})
+        calls = [
+            mock.call(
+                'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
+                data={
+                    'csrf_token': 'a_csrf_token', 'request': u'revoke',
+                    'update': u'bodhi-2.2.4-1.el7'
+                }
+            ),
+            mock.call(
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
         __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user',
                                          password='s3kr3t', staging=False)
 
@@ -854,10 +954,21 @@ class TestRequest(unittest.TestCase):
                                                                           'localhost:6543')
         self.assertTrue(compare_output(result.output, expected_output))
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_once_with(
-            bindings_client, 'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
-            data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
-                  'update': u'bodhi-2.2.4-99.el7'})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
+                data={
+                    'csrf_token': 'a_csrf_token', 'request': u'revoke',
+                    'update': u'bodhi-2.2.4-99.el7'
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
 
@@ -1006,15 +1117,25 @@ class TestEdit(unittest.TestCase):
         query.assert_called_with(
             bindings_client, updateid=u'FEDORA-2017-cc8582d738')
         bindings_client = send_request.mock_calls[0][1][0]
-        expected_data = {
-            'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-            'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'autokarma': False,
-            'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'suggest': None,
-            'notes': None, 'notes_file': None, 'requirements': None,
-            'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix',
-            'severity': 'low'}
-        send_request.assert_called_with(
-            bindings_client, 'updates/', auth=True, verb='POST', data=expected_data)
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'suggest': None, 'notes': None, 'notes_file': None, 'requirements': None,
+                    'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix',
+                    'severity': 'low'
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1038,15 +1159,25 @@ class TestEdit(unittest.TestCase):
         query.assert_called_with(
             bindings_client, updateid=u'FEDORA-2017-cc8582d738')
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_with(
-            bindings_client, 'updates/', auth=True, verb='POST',
-            data={
-                'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'autokarma': False,
-                'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'suggest': None,
-                'notes': u'this is an edited note', 'notes_file': None, 'requirements': None,
-                'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix',
-                'severity': None})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'suggest': None, 'notes': u'this is an edited note', 'notes_file': None,
+                    'requirements': None, 'request': None, 'bugs': u'', 'unstable_karma': None,
+                    'type': 'bugfix', 'severity': None
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -1075,16 +1206,26 @@ class TestEdit(unittest.TestCase):
             query.assert_called_with(
                 bindings_client, updateid=u'FEDORA-2017-cc8582d738')
             bindings_client = send_request.mock_calls[0][1][0]
-            send_request.assert_called_with(
-                bindings_client, 'updates/', auth=True, verb='POST',
-                data={
-                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'suggest': None, 'notes': 'This is a --notes-file note!',
-                    'notes_file': 'notefile.txt', 'request': None, 'bugs': u'',
-                    'requirements': None, 'unstable_karma': None, 'type': 'bugfix',
-                    'severity': None})
+            calls = [
+                mock.call(
+                    bindings_client, 'updates/', auth=True, verb='POST',
+                    data={
+                        'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                        'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                        'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                        'suggest': None, 'notes': 'This is a --notes-file note!',
+                        'notes_file': 'notefile.txt', 'request': None, 'bugs': u'',
+                        'requirements': None, 'unstable_karma': None, 'type': 'bugfix',
+                        'severity': None
+                    }
+                ),
+                mock.call(
+                    bindings_client,
+                    u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                    verb='GET'
+                )
+            ]
+            self.assertEqual(send_request.mock_calls, calls)
             self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     def test_notes_and_notes_file(self):
@@ -1122,15 +1263,25 @@ class TestEdit(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_with(
-            bindings_client, 'updates/', auth=True, verb='POST',
-            data={
-                'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26', 'autokarma': False,
-                'edited': u'drupal7-i18n-1.17-1.fc26', 'suggest': None, 'requirements': None,
-                'notes': u'this is an edited note', 'notes_file': None,
-                'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix',
-                'severity': None})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26', 'autokarma': False,
+                    'edited': u'drupal7-i18n-1.17-1.fc26', 'suggest': None, 'requirements': None,
+                    'notes': u'this is an edited note', 'notes_file': None,
+                    'request': None, 'bugs': u'', 'unstable_karma': None, 'type': 'bugfix',
+                    'severity': None
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
 
     def test_wrong_update_title_argument(self):
         """
@@ -1192,15 +1343,25 @@ class TestEdit(unittest.TestCase):
         query.assert_called_with(
             bindings_client, updateid=u'FEDORA-2017-cc8582d738')
         bindings_client = send_request.mock_calls[0][1][0]
-        send_request.assert_called_with(
-            bindings_client, 'updates/', auth=True, verb='POST',
-            data={
-                'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                'suggest': None, 'notes': u'testing required tasks', 'notes_file': None,
-                'requirements': u'dist.depcheck dist.rpmdeplint', 'request': None,
-                'bugs': u'', 'unstable_karma': None, 'type': 'bugfix', 'severity': None})
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'suggest': None, 'notes': u'testing required tasks', 'notes_file': None,
+                    'requirements': u'dist.depcheck dist.rpmdeplint', 'request': None,
+                    'bugs': u'', 'unstable_karma': None, 'type': 'bugfix', 'severity': None
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
