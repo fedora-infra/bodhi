@@ -47,6 +47,8 @@ def query_packages(request):
         name: The name of the Packages you wish to retrieve.
         like: Search for Packages with names like the given string.
         search: Search for Packages with names like the given string, with case insensitivity.
+        critpath: A boolean specifying if the packages to return should only be the ones in the
+            critical path or not.
         page: Retrieve the specified page of search results.
         rows_per_page: Specify how many rows per page are desired.
 
@@ -63,6 +65,10 @@ def query_packages(request):
     db = request.db
     data = request.validated
     query = db.query(Package)
+
+    critpath = data.get('critpath')
+    if critpath is not None:
+        query = query.filter(Package.critpath == critpath)
 
     name = data.get('name')
     if name is not None:

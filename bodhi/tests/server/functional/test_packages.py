@@ -37,6 +37,58 @@ class TestRpmPackagesService(base.BaseTestCase):
         body = resp.json_body
         self.assertEquals(len(body['packages']), 1)
 
+    def test_filter_out_critpath_none_in_db(self):
+        """ Test that filtering out critpath packages and ensure it returns the expected two
+        packages.
+        """
+        self.db.add(RpmPackage(name=u'a_second_package'))
+        self.db.commit()
+        resp = self.app.get('/packages/', dict(critpath=False))
+        body = resp.json_body
+        self.assertEquals(len(body['packages']), 2)
+
+    def test_filter_for_critpath_none_in_db(self):
+        """ Test that filtering for critpath packages and ensure it returns the expected zero
+        package.
+        """
+        self.db.add(RpmPackage(name=u'a_second_package'))
+        self.db.commit()
+        resp = self.app.get('/packages/', dict(critpath=True))
+        body = resp.json_body
+        self.assertEquals(len(body['packages']), 0)
+
+    def test_filter_for_critpath_critpath_one_in_db(self):
+        """ Test that filtering for critpath packages and ensure it returns the expected
+        package.
+        """
+        self.db.add(RpmPackage(name=u'a_second_package', critpath=True))
+        self.db.commit()
+        resp = self.app.get('/packages/', dict(critpath=True))
+        body = resp.json_body
+        self.assertEquals(len(body['packages']), 1)
+        self.assertEquals(body['packages'][0]['name'], u'a_second_package')
+
+    def test_filter_out_critpath_critpath_one_in_db(self):
+        """ Test that filtering out critpath packages and ensure it returns the expected
+        package.
+        """
+        self.db.add(RpmPackage(name=u'a_second_package', critpath=True))
+        self.db.commit()
+        resp = self.app.get('/packages/', dict(critpath=False))
+        body = resp.json_body
+        self.assertEquals(len(body['packages']), 1)
+        self.assertEquals(body['packages'][0]['name'], u'bodhi')
+
+    def test_not_filter_critpath_critpath_one_in_db(self):
+        """ Test that filtering out critpath packages and ensure it returns the expected
+        package.
+        """
+        self.db.add(RpmPackage(name=u'a_second_package', critpath=True))
+        self.db.commit()
+        resp = self.app.get('/packages/')
+        body = resp.json_body
+        self.assertEquals(len(body['packages']), 2)
+
     def test_filter_by_like(self):
         """ Test that filtering by like returns one package and not the other.
         """

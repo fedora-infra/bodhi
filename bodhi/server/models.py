@@ -982,6 +982,8 @@ class Package(Base):
             results that must pass for this package
         type (int): The polymorphic identity column. This is used to identify what Python
             class to create when loading rows from the database.
+        critpath (boolean): Boolean specifying if the package is considered a critical package
+            and thus included in the critical path or not.
         builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects.
         test_cases (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`TestCase`
             objects.
@@ -997,6 +999,7 @@ class Package(Base):
     name = Column(UnicodeText, nullable=False)
     requirements = Column(UnicodeText)
     type = Column(ContentType.db_type(), nullable=False)
+    critpath = Column(Boolean, default=False, nullable=False)
 
     builds = relationship('Build', backref=backref('package', lazy='joined'))
     test_cases = relationship('TestCase', backref='package', order_by="TestCase.id")

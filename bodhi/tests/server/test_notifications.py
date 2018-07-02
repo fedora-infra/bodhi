@@ -149,6 +149,7 @@ class TestPublish(base.BaseTestCase):
         Session.remove()
         expected_msg = {
             u'some_package': {
+                u'critpath': None,
                 u'name': u'so good',
                 u'type': 'base',
                 u'requirements': None,
