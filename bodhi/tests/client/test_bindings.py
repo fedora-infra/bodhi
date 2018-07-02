@@ -23,6 +23,7 @@ import unittest
 
 import fedora.client
 import mock
+import munch
 import six
 
 from bodhi.client import bindings
@@ -1197,6 +1198,30 @@ class TestBodhiClient_update_str(unittest.TestCase):
             "   Update ID: FEDORA-EPEL-2016-3081a94111\n",
             "")
         self.assertTrue(compare_output(text, expected_output))
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
+    def test_ci_status_errors(self, get_test_status):
+        """Test that severity is rendered."""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        get_test_status.return_value = munch.Munch(
+            {'errors': [munch.Munch({'description': 'bar'})]})
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertIn('CI Status: bar\n', text)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
+    def test_ci_status(self, get_test_status):
+        """Test that severity is rendered."""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        get_test_status.return_value = munch.Munch(
+            {'decision': munch.Munch({'summary': 'no tests required'})})
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertIn('CI Status: no tests required\n', text)
 
 
 class TestErrorhandled(unittest.TestCase):

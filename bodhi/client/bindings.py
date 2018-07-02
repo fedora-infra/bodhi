@@ -44,9 +44,10 @@ except ImportError:  # pragma: no cover
     # dnf is not available on EL 7.
     dnf = None  # pragma: no cover
 import koji
+import requests.exceptions
 import six
 
-from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError
+from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError, ServerError
 import fedora.client.openidproxyclient
 
 
@@ -349,6 +350,18 @@ class BodhiClient(OpenIdBaseClient):
         if 'bugs' in kwargs and kwargs['bugs'] == '':
             kwargs['bugs'] = None
         return self.send_request('updates/', verb='GET', params=kwargs)
+
+    def get_test_status(self, update):
+        """
+        Query bodhi for the test status of the specified update..
+
+        Args:
+            update (basestring): The title or identifier of the update to
+                retrieve the test status of.
+        Returns:
+            munch.Munch: The response from Bodhi describing the query results.
+        """
+        return self.send_request('updates/%s/get-test-results' % update, verb='GET')
 
     @errorhandled
     def comment(self, update, comment, karma=0, email=None):
@@ -724,6 +737,20 @@ class BodhiClient(OpenIdBaseClient):
             line_formatter.format('Autokarma', '{0}  [{1}, {2}]'.format(
                 update['autokarma'], update['unstable_karma'], update['stable_karma']))
         ]
+
+        try:
+            test_status = self.get_test_status(update['alias'])
+        except (ServerError, requests.exceptions.RequestException):
+            test_status = None
+
+        if test_status:
+            info = None
+            if 'errors' in test_status:
+                info = '\n'.join([el.description for el in test_status.errors])
+            elif 'decision' in test_status:
+                info = test_status.decision.summary
+            if info:
+                update_lines.append(line_formatter.format('CI Status', info))
 
         if update['request'] is not None:
             update_lines.append(line_formatter.format('Request', update['request']))
