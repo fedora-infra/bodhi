@@ -1719,3 +1719,247 @@ class TestPrintResp(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
 
         self.assertIn("\nCaveats:\nthis is a caveat\n", result.output)
+
+
+class TestWaive(unittest.TestCase):
+    """
+    Test the waive() function.
+    """
+
+    def test_waive_show_and_tests(self):
+        """
+        Assert we error if the user specifies --show and --test.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.waive,
+            [
+                '--show', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--url', 'http://localhost:6543',
+                '--test', 'foobar'
+            ]
+        )
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(
+            result.output,
+            'ERROR: You can not list the unsatisfied requirements and waive them at '
+            'the same time, please use either --show or --test=... but not both.\n')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    def test_waive_show_invalid_data_returned(self, send_request):
+        """
+        Assert we error correctly when the data returned by bodhi does not fit our expectations.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.waive,
+            ['--show', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            'Could not retrieve the unsatisfied requirements from bodhi.\n')
+        bindings_client = send_request.mock_calls[0][1][0]
+
+        send_request.assert_called_once_with(
+            bindings_client,
+            u'updates/nodejs-grunt-wrap-0.3.0-2.fc25/get-test-results',
+            verb='GET'
+        )
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_waive_show_with_errors(self, send_request):
+        """
+        Assert we display the proper error messages when we try to list the unsatisfied
+        requirements and there are errors in the data returned.
+        """
+        send_request.return_value = munch.Munch({
+            'errors': [
+                munch.Munch({'description': 'Could not contact greenwave, error code was 500'}),
+            ]
+        })
+
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.waive,
+            ['--show', 'FEDORA-2017-cc8582d738', '--url', 'http://localhost:6543']
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            'One or more error occured while retrieving the unsatisfied requirements:\n'
+            '  - Could not contact greenwave, error code was 500\n')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_waive_show_successful_missing_req(self, send_request):
+        """
+        Assert we display the unsatisfied requirements when everything is fine.
+        """
+        send_request.return_value = munch.Munch({
+            'decision': munch.Munch({
+                'summary': 'Two missing tests',
+                'unsatisfied_requirements': [
+                    'dist.rpmdeplint',
+                    'fedora-atomic-ci',
+                ]
+            }),
+        })
+
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.waive,
+            ['--show', 'FEDORA-2017-cc8582d738', '--url', 'http://localhost:6543']
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            'CI status: Two missing tests\nMissing tests:\n'
+            '  - dist.rpmdeplint\n'
+            '  - fedora-atomic-ci\n')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_waive_show_successful_no_missing_req(self, send_request):
+        """
+        Assert we display the unsatisfied requirements when everything is fine but there
+        are no unsatisfied requirements.
+        """
+        send_request.return_value = munch.Munch({
+            'decision': munch.Munch({
+                'summary': 'No tests required',
+                'unsatisfied_requirements': []
+            }),
+
+        })
+
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.waive,
+            ['--show', 'FEDORA-2017-cc8582d738', '--url', 'http://localhost:6543']
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(
+            result.output,
+            'CI status: No tests required\n'
+            'Missing tests: None\n')
+
+    def test_waive_missing_comment(self):
+        """
+        Assert we error if the user is trying to waive some tests without specifying a comment.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.waive,
+            ['--test', 'dist.rpmdeplint', 'FEDORA-2017-cc8582d738',
+             '--url', 'http://localhost:6543']
+        )
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(
+            result.output,
+            'ERROR: Comment are mandatory when waiving unsatisfied requirements\n')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_waive_all(self, send_request):
+        """
+        Assert we properly waive all missing requirements when asked.
+        """
+        send_request.side_effect = [
+            client_test_data.EXAMPLE_QUERY_MUNCH,
+            munch.Munch({
+                'decision': munch.Munch({
+                    'summary': 'All tests passed',
+                    'unsatisfied_requirements': []
+                }),
+            })
+        ]
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.waive,
+            ['--test', 'all', 'FEDORA-2017-c95b33872d', 'Expected errors',
+             '--url', 'http://localhost:6543']
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn('Waiving all unsatisfied requirements\n', result.output)
+        self.assertIn('CI Status: All tests passed\n', result.output)
+
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client,
+                'updates/FEDORA-2017-c95b33872d/waive-test-results',
+                auth=True,
+                data={'comment': u'Expected errors', 'csrf_token': 'a_csrf_token',
+                      'tests': None, 'update': u'FEDORA-2017-c95b33872d'},
+                verb='POST',
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_waive_some(self, send_request):
+        """
+        Assert we properly waive some missing requirements.
+        """
+        send_request.side_effect = [
+            client_test_data.EXAMPLE_QUERY_MUNCH,
+            munch.Munch({
+                'decision': munch.Munch({
+                    'summary': 'All tests passed',
+                    'unsatisfied_requirements': []
+                }),
+            })
+        ]
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.waive,
+            ['--test', 'dist.rpmdeplint', '--test', 'fedora-atomic-ci',
+             'FEDORA-2017-c95b33872d', 'Expected errors',
+             '--url', 'http://localhost:6543']
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn(
+            'Waiving unsatisfied requirements: dist.rpmdeplint, fedora-atomic-ci\n',
+            result.output)
+        self.assertIn('CI Status: All tests passed\n', result.output)
+
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client,
+                'updates/FEDORA-2017-c95b33872d/waive-test-results',
+                auth=True,
+                data={'comment': u'Expected errors', 'csrf_token': 'a_csrf_token',
+                      'tests': (u'dist.rpmdeplint', u'fedora-atomic-ci'),
+                      'update': u'FEDORA-2017-c95b33872d'},
+                verb='POST',
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)

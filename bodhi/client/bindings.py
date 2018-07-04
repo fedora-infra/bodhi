@@ -270,6 +270,33 @@ class BodhiClient(OpenIdBaseClient):
                 raise
 
     @errorhandled
+    def waive(self, update, comment, tests=None):
+        """
+        Waive unsatisfied requirements on an update.
+
+        Args:
+            update (basestring): The title of the update.
+            comment (basestring): A comment explaining the waiver.
+            tests (tuple(basestring) or None): The list of unsatisfied requirements
+                to waive. If not specified, all unsatisfied requirements of this
+                update will be waived.
+        Returns:
+            munch.Munch: The response from Bodhi to the request.
+        Raises:
+            UpdateNotFound: If the server returns a 404 error code.
+        """
+        data = {'update': update, 'tests': tests, 'comment': comment, 'csrf_token': self.csrf()}
+        try:
+            return self.send_request('updates/{0}/waive-test-results'.format(update),
+                                     verb='POST', auth=True, data=data)
+        except fedora.client.ServerError as exc:
+            if exc.code == 404:
+                # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
+                raise UpdateNotFound(update)
+            else:
+                raise
+
+    @errorhandled
     def query(self, **kwargs):
         """
         Query bodhi for a list of updates.

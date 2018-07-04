@@ -635,6 +635,79 @@ def _get_notes(**kwargs):
         return kwargs['notes']
 
 
+@updates.command()
+@click.argument('update')
+@click.argument('comment', required=False)
+@click.option(
+    '--show', is_flag=True, default=None,
+    help="List all the required unsatisfied requirements")
+@click.option(
+    '--test', multiple=True,
+    help="Waive the specifiy test(s), to automatically waive all unsatisfied "
+    "requirements, specify --test=all")
+@staging_option
+@url_option
+@handle_errors
+def waive(update, show, test, comment, url, **kwargs):
+    # User Docs that show in the --help
+    """
+    Show or waive unsatified requirements (ie: missing or failing tests) on an existing update.
+
+    UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
+
+    COMMENT: A comment explaining why the requirements were waived (mandatory with --test)
+    """
+    # Developer Docs
+    """
+    The update argument can be an update id or the update title.
+
+    Args:
+        update (unicode): The update who unsatisfied requirements wish to waive.
+        show (boolean): Whether to show all missing required tests of the specified update.
+        test (tuple(unicode)): Waive those specified tests or all of them if 'all' is specified.
+        comment (unicode): A comment explaining the waiver.
+        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
+                       True.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
+
+    if show and test:
+        click.echo(
+            'ERROR: You can not list the unsatisfied requirements and waive them '
+            'at the same time, please use either --show or --test=... but not both.')
+        sys.exit(1)
+
+    if show:
+        test_status = client.get_test_status(update)
+        if 'errors' in test_status:
+            click.echo('One or more error occured while retrieving the unsatisfied requirements:')
+            for el in test_status.errors:
+                click.echo('  - %s' % el.description)
+        elif 'decision' not in test_status:
+            click.echo('Could not retrieve the unsatisfied requirements from bodhi.')
+        else:
+            click.echo('CI status: %s' % test_status.decision.summary)
+            if test_status.decision.unsatisfied_requirements:
+                click.echo('Missing tests:')
+                for req in test_status.decision.unsatisfied_requirements:
+                    click.echo('  - %s' % req)
+            else:
+                click.echo('Missing tests: None')
+    else:
+        if not comment:
+            click.echo('ERROR: Comment are mandatory when waiving unsatisfied requirements')
+            sys.exit(1)
+
+        if 'all' in test:
+            click.echo('Waiving all unsatisfied requirements')
+            resp = client.waive(update, comment)
+        else:
+            click.echo('Waiving unsatisfied requirements: %s' % ', '.join(test))
+            resp = client.waive(update, comment, test)
+        print_resp(resp, client)
+
+
 @cli.group()
 def overrides():
     # Docs that show in the --help
