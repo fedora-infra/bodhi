@@ -649,6 +649,8 @@ class ComposerThread(threading.Thread):
                 update.remove_tag(update.release.pending_stable_tag,
                                   koji=koji)
             elif update.request is UpdateRequest.testing:
+                update.remove_tag(update.release.pending_signing_tag,
+                                  koji=koji)
                 update.remove_tag(update.release.pending_testing_tag,
                                   koji=koji)
         result = koji.multiCall()
