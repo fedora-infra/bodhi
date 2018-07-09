@@ -305,6 +305,10 @@ def new(user, password, url, **kwargs):
 
     kwargs['notes'] = _get_notes(**kwargs)
 
+    if not kwargs['notes']:
+        click.echo("ERROR: must specify at least one of --notes, --notes-file")
+        sys.exit(1)
+
     for update in updates:
         try:
             resp = client.save(**update)
@@ -363,6 +367,10 @@ def edit(user, password, url, **kwargs):
                                   staging=kwargs['staging'])
 
     kwargs['notes'] = _get_notes(**kwargs)
+
+    if not kwargs['notes']:
+        click.echo("ERROR: must specify at least one of --notes, --notes-file")
+        sys.exit(1)
 
     try:
         if re.search(bindings.UPDATE_ID_RE, kwargs['update']):

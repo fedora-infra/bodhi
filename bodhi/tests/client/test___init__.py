@@ -299,7 +299,7 @@ class TestNew(unittest.TestCase):
         result = runner.invoke(
             client.new,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
-             '--severity', 'urgent'])
+             '--severity', 'urgent', '--notes', 'No description.'])
 
         self.assertEqual(result.exit_code, 0)
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('unspecified', 'urgent')
@@ -311,7 +311,7 @@ class TestNew(unittest.TestCase):
                 data={
                     'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                    'suggest': None, 'notes': None, 'request': None, 'bugs': u'',
+                    'suggest': None, 'notes': u'No description.', 'request': None, 'bugs': u'',
                     'requirements': None, 'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': 'urgent'
                 }
@@ -337,7 +337,7 @@ class TestNew(unittest.TestCase):
         result = runner.invoke(
             client.new,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
-             '--url', 'http://localhost:6543'])
+             '--url', 'http://localhost:6543', '--notes', 'No description.'])
 
         self.assertEqual(result.exit_code, 0)
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
@@ -350,7 +350,7 @@ class TestNew(unittest.TestCase):
                 data={
                     'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                    'suggest': None, 'notes': None, 'request': None, 'bugs': u'',
+                    'suggest': None, 'notes': u'No description.', 'request': None, 'bugs': u'',
                     'requirements': None, 'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': None
                 }
@@ -395,7 +395,8 @@ class TestNew(unittest.TestCase):
 
         result = runner.invoke(
             client.new,
-            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7'])
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
+             '--notes', 'No description.'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertIn("This is a BodhiClientException message", result.output)
@@ -413,7 +414,8 @@ class TestNew(unittest.TestCase):
 
         result = runner.invoke(
             client.new,
-            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7'])
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
+             '--notes', 'No description.'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertIn("Traceback (most recent call last):", result.output)
@@ -432,7 +434,8 @@ class TestNew(unittest.TestCase):
         result = runner.invoke(
             client.new,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
-             '--bugs', '1234567', '--close-bugs', '--url', 'http://localhost:6543'])
+             '--bugs', '1234567', '--close-bugs', '--url', 'http://localhost:6543', '--notes',
+             'No description.'])
 
         self.assertEqual(result.exit_code, 0)
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
@@ -445,8 +448,8 @@ class TestNew(unittest.TestCase):
                 data={
                     'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                    'suggest': None, 'notes': None, 'request': None, 'bugs': u'1234567',
-                    'requirements': None, 'unstable_karma': None, 'file': None,
+                    'suggest': None, 'notes': u'No description.', 'request': None,
+                    'bugs': u'1234567', 'requirements': None, 'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': None
                 }
             ),
@@ -458,6 +461,22 @@ class TestNew(unittest.TestCase):
         ]
         self.assertEqual(send_request.mock_calls, calls)
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    def test_new_update_without_notes(self):
+        """
+        Assert providing neither --notes-file nor --notes parameters to new update request
+        results in an error.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
+             '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(result.output, u'ERROR: must specify at least one of --notes, '
+                                        '--notes-file\n')
 
 
 class TestPrintOverrideKojiHint(unittest.TestCase):
@@ -1110,7 +1129,8 @@ class TestEdit(unittest.TestCase):
 
         result = runner.invoke(
             client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
-                          '--password', 's3kr3t', '--severity', 'low'])
+                          '--password', 's3kr3t', '--severity', 'low',
+                          '--notes', 'Updated package.'])
 
         self.assertEqual(result.exit_code, 0)
         bindings_client = query.mock_calls[0][1][0]
@@ -1124,7 +1144,7 @@ class TestEdit(unittest.TestCase):
                     'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'suggest': u'unspecified', 'notes': u'New package.',
+                    'suggest': u'unspecified', 'notes': u'Updated package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
                     'bugs': '1420605', 'requirements': u'', 'type': 'bugfix', 'severity': u'low'
                 }
@@ -1380,10 +1400,26 @@ class TestEdit(unittest.TestCase):
 
         result = runner.invoke(
             client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
-                          '--password', 's3kr3t'])
+                          '--password', 's3kr3t', '--notes', 'No description.'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertIn("This is a BodhiClientException message", result.output)
+
+    def test_edit_update_without_notes(self):
+        """
+        Assert providing neither --notes-file nor --notes parameters to updates edit request
+        results in an error.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
+             '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(result.output, u'ERROR: must specify at least one of --notes, '
+                                        '--notes-file\n')
 
 
 class TestEditBuilrootOverrides(unittest.TestCase):
