@@ -126,6 +126,8 @@ release_options = [
                  help='Koji pending tag (eg: f20-updates-pending)'),
     click.option('--pending-testing-tag',
                  help='Koji pending testing tag (eg: f20-updates-testing-testing)'),
+    click.option('--pending-signing-tag',
+                 help='Koji pending signing tag (eg: f20-updates-pending-signing)'),
     click.option('--override-tag', help='Koji override tag (eg: f20-override)'),
     click.option('--state', type=click.Choice(['disabled', 'pending', 'current',
                                                'archived']),

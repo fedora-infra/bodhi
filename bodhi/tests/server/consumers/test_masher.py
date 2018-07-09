@@ -447,6 +447,7 @@ That was the actual one''' % mash_dir
             release = session.query(Update).one().release
             build = session.query(Build).one()
             nvr = build.nvr
+            pending_signing_tag = release.pending_signing_tag
             pending_testing_tag = release.pending_testing_tag
             override_tag = release.override_tag
             self.koji.__tagged__[session.query(Update).first().title] = [release.override_tag,
@@ -473,8 +474,9 @@ That was the actual one''' % mash_dir
                           (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
 
         # The override tag won't get removed until it goes to stable
-        self.assertEquals(self.koji.__untag__[0], (pending_testing_tag, nvr))
-        self.assertEquals(len(self.koji.__untag__), 1)
+        self.assertEquals(self.koji.__untag__[0], (pending_signing_tag, nvr))
+        self.assertEquals(self.koji.__untag__[1], (pending_testing_tag, nvr))
+        self.assertEquals(len(self.koji.__untag__), 2)
 
         with self.db_factory() as session:
             # Set the update request to stable and the release to pending
@@ -2412,6 +2414,26 @@ class TestComposerThread__perform_tag_actions(ComposerThreadBaseTestCase):
                          [('f26-updates-candidate', 'f26-updates-testing', 'bodhi-2.3.2-1.fc26')])
 
         self.assert_sems(0)
+
+
+class TestComposerThread_remove_pending_tags(ComposerThreadBaseTestCase):
+    """This test class contains tests for the ComposerThread.remove_pending_tags() method."""
+    @mock.patch('bodhi.server.models.Update.remove_tag')
+    def test_with_request_testing(self, remove_tag):
+        """
+        Assert that the method calls Update.remove_tag() twice for the pending_signing_tag
+        and pending_testing_tag.
+        """
+        msg = self._make_msg()
+        t = ComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                           'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+        t.log.debug = mock.MagicMock()
+
+        t.remove_pending_tags()
+
+        self.assertEqual(remove_tag.call_count, 2)
+        t.log.debug.assert_called_with("remove_pending_tags koji.multiCall result = %r", [])
 
 
 class TestComposerThread_check_all_karma_thresholds(ComposerThreadBaseTestCase):

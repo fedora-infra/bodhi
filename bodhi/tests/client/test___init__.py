@@ -1446,7 +1446,8 @@ class TestCreate(unittest.TestCase):
             data={'dist_tag': None, 'csrf_token': 'a_csrf_token', 'staging': False, 'name': u'F27',
                   'testing_tag': None, 'pending_stable_tag': None, 'long_name': None, 'state': None,
                   'version': None, 'override_tag': None, 'branch': None, 'id_prefix': None,
-                  'pending_testing_tag': None, 'stable_tag': None, 'candidate_tag': None})
+                  'pending_testing_tag': None, 'pending_signing_tag': None, 'stable_tag': None,
+                  'candidate_tag': None})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
