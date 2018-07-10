@@ -56,17 +56,29 @@ def rss(info):
 
         if 'updates' in data:
             key = 'updates'
+            feed_title = 'Released updates'
         elif 'users' in data:
             key = 'users'
+            feed_title = 'Bodhi users'
         elif 'comments' in data:
             key = 'comments'
+            feed_title = 'User comments'
         elif 'overrides' in data:
             key = 'overrides'
+            feed_title = 'Update overrides'
+
+        feed_description_list = []
+        for k in request.GET.keys():
+            feed_description_list.append('%s(%s)' % (k, request.GET[k]))
+        if feed_description_list:
+            feed_description = 'Filtered on: ' + ', '.join(feed_description_list)
+        else:
+            feed_description = "All %s" % (key)
 
         feed = FeedGenerator()
-        feed.title(key)
+        feed.title(feed_title)
         feed.link(href=request.url, rel='self')
-        feed.description(key)
+        feed.description(feed_description)
         feed.language(u'en')
 
         def linker(route, param, key):
