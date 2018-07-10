@@ -1465,6 +1465,23 @@ class TestUpdatesService(BaseTestCase):
                            headers={'Accept': 'application/atom+xml'})
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
         self.assertIn('bodhi-2.0-1.fc17', res)
+        self.assertIn('Released updates', res)
+        self.assertIn('All updates', res)
+
+    def test_list_updates_rss_with_single_filter(self):
+        res = self.app.get('/rss/updates/', {'severity': 'low'},
+                           headers={'Accept': 'application/atom+xml'})
+        self.assertIn('application/rss+xml', res.headers['Content-Type'])
+        self.assertIn('Released updates', res)
+        self.assertIn('Filtered on: severity(low)', res)
+
+    def test_list_updates_rss_with_multiple_filters(self):
+        res = self.app.get('/rss/updates/', {'severity': 'low', 'type': 'security'},
+                           headers={'Accept': 'application/atom+xml'})
+        self.assertIn('application/rss+xml', res.headers['Content-Type'])
+        self.assertIn('Released updates', res)
+        self.assertIn('type(security)', res)
+        self.assertIn('severity(low)', res)
 
     def test_list_updates_html(self):
         res = self.app.get('/updates/',
