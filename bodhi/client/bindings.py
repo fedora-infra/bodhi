@@ -858,6 +858,81 @@ class BodhiClient(OpenIdBaseClient):
         """
         return self.send_request('releases/', verb='GET', params=kwargs)
 
+    @errorhandled
+    def get_critpath_packages(self, release):
+        """
+        Get a list of critical path packages for a release.
+
+        Args:
+            release (unicode): The release name to query for.
+        Returns:
+            dict: A dictionary returned by critpath_package_requests() method.
+        """
+        return self.critpath_package_request(release=release, verb='GET', auth=False, data=None)
+
+    @errorhandled
+    def add_critpath_packages(self, release, packages):
+        """
+        Add a list of critical path packages to a release.
+
+        Args:
+            release (unicode): The release name to add packages to.
+            packages (list): List of critpath package names to add.
+        Returns:
+            dict: A dictionary returned by critpath_package_requests() method.
+        """
+        package_str = ','.join(packages)
+        return self.critpath_package_request(release=release, verb='PUT', auth=True,
+                                             data={'packages': package_str})
+
+    @errorhandled
+    def remove_critpath_packages(self, release, packages):
+        """
+        Remove a list of critical path packages from a release.
+
+        Args:
+            release (unicode): The release name to remove packages from.
+            packages (list): List of critpath package names to remove.
+        Returns:
+            dict: A dictionary returned by critpath_package_requests() method.
+        """
+        package_str = ','.join(packages)
+        # DELETE request method ignores the body sometimes, so passing dictionary doesn't work
+        # However, passing it's string representation works somehow.
+        return self.critpath_package_request(release=release, verb='DELETE', auth=True,
+                                             data='{"packages": "%s"}' % package_str)
+
+    @errorhandled
+    def critpath_package_request(self, release, verb, auth, data):
+        """
+        Return a list of critical path packages for a release after request.
+
+        Request can be for adding new critpath packages, remove existing critpath
+        packages or simply getting critpath packages for the release.
+
+        This method returns a dictionary in the following format::
+
+            {"packages": [
+                {"stack_id": null, "type": "rpm", "requirements": null,
+                 "name": "python", "stack": null}]}
+
+        Args:
+            release (unicode): The release name to interact with.
+            verb (unicode): Type of request to make.
+                            'GET': list packages
+                            'PUT': add packages
+                            'DELETE': remove packages
+            auth (bool): Whether to authenticate for send_request.
+            data (dict or unicode): data to be sent along the request.
+        Returns:
+            dict: A dictionary with a single key, packages, mapping to a list of Package
+                  objects that are in critical path for this Release.
+        """
+        if verb not in ('GET', 'PUT', 'DELETE'):
+            raise BodhiClientException("Unsupported request type.")
+        return self.send_request('releases/{}/critpath-packages'.format(release), verb=verb,
+                                 auth=auth, data=data)
+
     def get_koji_session(self):
         """
         Return an authenticated koji session.

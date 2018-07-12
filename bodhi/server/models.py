@@ -791,6 +791,12 @@ user_package_table = Table(
     Column('user_id', Integer, ForeignKey('users.id')),
     Column('package_id', Integer, ForeignKey('packages.id')))
 
+critical_path_packages_table = Table(
+    'critical_path_packages_table', Base.metadata,
+    Column('package_id', Integer, ForeignKey('packages.id'), nullable=False),
+    Column('release_id', Integer, ForeignKey('releases.id'), nullable=False)
+)
+
 
 class Release(Base):
     """
@@ -958,6 +964,28 @@ class Release(Base):
             if release:
                 return release
 
+    def add_critpath_pkgs(self, packages):
+        """
+        Add critical path packages to this Release.
+
+        Args:
+            packages (list): A list of packages to add to critical path for this Release.
+        """
+        for pkg in packages:
+            if pkg not in self.critpath_pkgs:
+                self.critpath_pkgs.append(pkg)
+
+    def remove_critpath_pkgs(self, packages):
+        """
+        Remove critical path packages for this Release.
+
+        Args:
+            packages (list): A list of packages to remove from critical path for this Release.
+        """
+        for pkg in packages:
+            if pkg in self.critpath_pkgs:
+                self.critpath_pkgs.remove(pkg)
+
 
 class TestCase(Base):
     """
@@ -1000,7 +1028,7 @@ class Package(Base):
 
     __tablename__ = 'packages'
     __get_by__ = ('name',)
-    __exclude_columns__ = ('id', 'committers', 'test_cases', 'builds',)
+    __exclude_columns__ = ('id', 'committers', 'test_cases', 'builds', 'critpath_releases',)
 
     name = Column(UnicodeText, nullable=False)
     requirements = Column(UnicodeText)
@@ -1010,6 +1038,10 @@ class Package(Base):
     test_cases = relationship('TestCase', backref='package', order_by="TestCase.id")
     committers = relationship('User', secondary=user_package_table,
                               backref='packages')
+
+    # Many-to-many relationship
+    critpath_releases = relationship('Release', secondary=critical_path_packages_table,
+                                     backref='critpath_pkgs')
 
     stack_id = Column(Integer, ForeignKey('stacks.id'))
 

@@ -1770,6 +1770,164 @@ class TestInfo(unittest.TestCase):
         self.assertEqual(result.output, ("ERROR: an error was encountered... :(\n"))
 
 
+class TestListCritpathPackages(unittest.TestCase):
+    """
+    Test the list_critpath_packages() function.
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_CRITPATH_PACKAGES_MUNCH, autospec=True)
+    def test_list_critpath_packages(self, send_request):
+        """
+        Test the list_critpath_packages method.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.list_critpath_packages,
+                               ['--url', 'http://localhost:6543', 'F27'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         client_test_data.EXPECTED_CRITPATH_PACKAGES_OUTPUT)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(bindings_client, 'releases/F27/critpath-packages',
+                                             verb='GET', auth=False, data=None)
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value={'packages': []}, autospec=True)
+    def test_when_empty_result(self, send_request):
+        """
+        Assert correct behavior when there are no critical path packages.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.list_critpath_packages, ['F27'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         "No critical path packages for this release.\n")
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(bindings_client, 'releases/F27/critpath-packages',
+                                             verb='GET', auth=False, data=None)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value={"errors": [{"description": "an error was encountered... :("}]},
+                autospec=True)
+    def test_list_with_errors(self, send_request):
+        """
+        Assert errors are printed if returned back in the request
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.list_critpath_packages, ['F27'])
+
+        self.assertEqual(result.exit_code, 2)
+        self.assertEqual(result.output, ("an error was encountered... :(\n"))
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(bindings_client, 'releases/F27/critpath-packages',
+                                             verb='GET', auth=False, data=None)
+
+
+class TestAddCritpathPackages(unittest.TestCase):
+    """
+    Test the add_critpath_packages() function.
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_CRITPATH_PACKAGES_MUNCH, autospec=True)
+    def test_add_critpath_packages(self, send_request):
+        """
+        Test the add_critpath_packages method.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.add_critpath_packages,
+                               ['--url', 'http://localhost:6543', 'F27', 'python', 'kernel'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         client_test_data.EXPECTED_CRITPATH_PACKAGES_OUTPUT)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(bindings_client, 'releases/F27/critpath-packages',
+                                             verb='PUT', auth=True,
+                                             data={'packages': 'python,kernel'})
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value={"errors": [{"description": "an error was encountered... :("}]},
+                autospec=True)
+    def test_add_with_errors(self, send_request):
+        """
+        Assert errors are printed if returned back in the request
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.add_critpath_packages, ['F27', 'python', 'kernel'])
+
+        self.assertEqual(result.exit_code, 2)
+        self.assertEqual(result.output, ("an error was encountered... :(\n"))
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(bindings_client, 'releases/F27/critpath-packages',
+                                             verb='PUT', auth=True,
+                                             data={'packages': 'python,kernel'})
+
+
+class TestRemoveCritpathPackages(unittest.TestCase):
+    """
+    Test the remove_critpath_packages() function.
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_CRITPATH_PACKAGES_MUNCH, autospec=True)
+    def test_remove_critpath_packages(self, send_request):
+        """
+        Test the remove_critpath_packages method.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.remove_critpath_packages,
+                               ['--url', 'http://localhost:6543', 'F27', 'python', 'kernel'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         client_test_data.EXPECTED_CRITPATH_PACKAGES_OUTPUT)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(bindings_client, 'releases/F27/critpath-packages',
+                                             verb='DELETE', auth=True,
+                                             data=u'{"packages": "python,kernel"}')
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value={"errors": [{"description": "an error was encountered... :("}]},
+                autospec=True)
+    def test_remove_with_errors(self, send_request):
+        """
+        Assert errors are printed if returned back in the request
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.remove_critpath_packages, ['F27', 'python', 'kernel'])
+
+        self.assertEqual(result.exit_code, 2)
+        self.assertEqual(result.output, ("an error was encountered... :(\n"))
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(bindings_client, 'releases/F27/critpath-packages',
+                                             verb='DELETE', auth=True,
+                                             data=u'{"packages": "python,kernel"}')
+
+
 class TestHandleErrors(unittest.TestCase):
     """
     Test the handle_errors decorator

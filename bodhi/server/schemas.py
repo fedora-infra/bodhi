@@ -414,6 +414,22 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
 
 
+class UpdateCriticalPackages(colander.MappingSchema):
+    """
+    An API schema for critical path packages.
+
+    This schema is used by bodhi.server.services.releases.add_critpath_packages()
+    and bodhi.server.services.releases.remove_critpath_packages().
+    """
+
+    packages = Packages(
+        colander.Sequence(accept_scalar=True),
+        location='body',
+        missing=None,
+        preparer=[util.splitter],
+    )
+
+
 class ListStackSchema(PaginatedSchema, SearchableSchema):
     """An API schema for bodhi.server.services.stacks.query_stacks()."""
 

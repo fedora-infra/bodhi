@@ -168,6 +168,14 @@ release_options = [
     debug_option]
 
 
+# Common manage critpath packages options
+manage_critpath_options = [
+    click.option('--user'),
+    click.option('--password', hide_input=True),
+    click.argument('name'),
+    click.argument('packages', nargs=-1)]
+
+
 def add_options(options):
     """
     Generate a click.option decorator with the given options.
@@ -1032,6 +1040,101 @@ def info_release(name, url, **kwargs):
         print_release(res)
 
 
+@releases.group(name='critpath')
+def critpath_pkgs():
+    """Manage critical path packages."""
+    pass  # pragma: no cover
+
+
+@critpath_pkgs.command(name='list')
+@handle_errors
+@click.argument('name')
+@url_option
+@staging_option
+def list_critpath_packages(name, url, staging, **kwargs):
+    # User Docs that show in the --help
+    """
+    List critical path packages of a release.
+
+    NAME: Release name (e.g. F27)
+    """
+    # Developer Docs
+    """
+    Args:
+        name (unicode): The release name to query.
+        url (unicode): The URL of a Bodhi server to query on. Ignored if staging is
+                       True.
+        staging (bool): Whether to use the staging server or not.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, staging=staging)
+    res = client.get_critpath_packages(release=name)
+
+    print_critpath_packages(res)
+
+
+@critpath_pkgs.command(name='add')
+@handle_errors
+@add_options(manage_critpath_options)
+@url_option
+@staging_option
+def add_critpath_packages(user, password, name, packages, url, staging, **kwargs):
+    # User Docs that show in the --help
+    """
+    Add critical path packages to a release.
+
+    NAME: Release name (e.g. F27)
+
+    [PACKAGES]: Space-separated list of packages to add (e.g. firefox vim python)
+    """
+    # Developer Docs
+    """
+    Args:
+        name (unicode): The release name to add critpath packages to.
+        packages (list): A list of package names to add.
+        url (unicode): The URL of a Bodhi server to query on. Ignored if staging is
+                       True.
+        staging (bool): Whether to use the staging server or not.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging)
+
+    res = client.add_critpath_packages(release=name, packages=packages)
+
+    print_critpath_packages(res)
+
+
+@critpath_pkgs.command(name='remove')
+@handle_errors
+@add_options(manage_critpath_options)
+@url_option
+@staging_option
+def remove_critpath_packages(user, password, name, packages, url, staging, **kwargs):
+    # User Docs that show in the --help
+    """
+    Remove critical path packages from a release.
+
+    NAME: Release name (e.g. F27)
+
+    [PACKAGES]: Space-separated list of packages to remove (e.g. firefox vim python)
+    """
+    # Developer Docs
+    """
+    Args:
+        name (unicode): The release name to remove critpath packages from.
+        packages (list): A list of package names to remove.
+        url (unicode): The URL of a Bodhi server to query on. Ignored if staging is
+                       True.
+        staging (bool): Whether to use the staging server or not.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging)
+
+    res = client.remove_critpath_packages(release=name, packages=packages)
+
+    print_critpath_packages(res)
+
+
 def save(client, **kwargs):
     """
     Save a new or edited release.
@@ -1073,6 +1176,25 @@ def print_release(release):
     print("  Override Tag:        %s" % release['override_tag'])
     print("  State:               %s" % release['state'])
     print("  Email Template:      %s" % release['mail_template'])
+
+
+def print_critpath_packages(response):
+    """
+    Print critical path packages of a release.
+
+    Args:
+        response (dict): A dictionary with a single key, packages, mapping to a list of Package
+                         objects that are in critical path for this Release.
+    """
+    packages = response['packages']
+
+    if packages:
+        package_names = sorted([pkg['name'] for pkg in packages])
+        click.echo("Critical path packages:")
+        for pkg_name in package_names:
+            click.echo("  - {}".format(pkg_name))
+    else:
+        click.echo("No critical path packages for this release.")
 
 
 def print_errors(data):

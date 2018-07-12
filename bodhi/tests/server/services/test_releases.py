@@ -21,7 +21,7 @@ import os
 
 from bodhi import server
 from bodhi.server.config import config
-from bodhi.server.models import Release, ReleaseState, Update
+from bodhi.server.models import Release, ReleaseState, Update, Package, ContentType
 from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base, create_update
 
@@ -31,6 +31,7 @@ class TestReleasesService(base.BaseTestCase):
     def setUp(self):
         super(TestReleasesService, self).setUp()
 
+        bodhi_pkg = Package.get(u'bodhi')
         release = Release(
             name=u'F22', long_name=u'Fedora 22',
             id_prefix=u'FEDORA', version=u'22',
@@ -41,9 +42,20 @@ class TestReleasesService(base.BaseTestCase):
             pending_testing_tag=u'f22-updates-testing-pending',
             pending_stable_tag=u'f22-updates-pending',
             override_tag=u'f22-override',
-            branch=u'f22')
+            branch=u'f22',
+            critpath_pkgs=[bodhi_pkg])
 
         self.db.add(release)
+
+        packages = [
+            Package(name=u'python', type=ContentType.rpm),
+            Package(name=u'json', type=ContentType.rpm),
+            Package(name=u'nodejs', type=ContentType.rpm),
+            Package(name=u'git', type=ContentType.module)
+        ]
+        for pkg in packages:
+            self.db.add(pkg)
+
         self.db.commit()
 
     def test_404(self):
@@ -383,3 +395,62 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEqual(res.content_type, 'text/html')
         self.assertIn('Fedora 22', res)
         self.assertIn('Fedora 42', res)
+
+    def test_get_critpath_packages(self):
+        res = self.app.get('/releases/F22/critpath-packages')
+        packages = res.json_body['packages']
+
+        self.assertEqual([pkg['name'] for pkg in packages], [u'bodhi'])
+
+    def test_add_critpath_packages(self):
+        self.app.put('/releases/F22/critpath-packages',
+                     {'packages': 'python,json,nodejs,git'})
+
+        release = self.db.query(Release).filter(Release.name == 'F22').one()
+        pkg_list = {pkg.name for pkg in release.critpath_pkgs}
+
+        self.assertEqual(pkg_list, {'bodhi', 'python', 'json', 'nodejs', 'git'})
+
+    @mock.patch('bodhi.server.buildsys.get_session')
+    def test_add_critpath_packages_not_in_bodhi(self, client_session):
+        """Assert that package gets created if not found in Bodhi, but present in koji."""
+        koji = client_session.return_value
+        koji.listPackages.return_value = {'package_name': 'not_bodhi'}
+
+        self.app.put('/releases/F22/critpath-packages',
+                     {'packages': 'python,not_bodhi'})
+
+        release = self.db.query(Release).filter(Release.name == 'F22').one()
+        pkg_list = {pkg.name for pkg in release.critpath_pkgs}
+
+        self.assertEqual(pkg_list, {'bodhi', 'python', 'not_bodhi'})
+
+    def test_add_critpath_packages_invalid_name(self):
+        res = self.app.put('/releases/F22/critpath-packages',
+                           {'packages': 'not_package'}, status=400)
+
+        self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid packages specified: not_package')
+
+    def test_remove_critpath_packages(self):
+        self.app.put('/releases/F22/critpath-packages',
+                     {'packages': 'python,json,nodejs,git'})
+
+        self.app.delete('/releases/F22/critpath-packages',
+                        '{"packages": "bodhi,json,git" }',
+                        headers={'Content-Type': 'application/json'})
+
+        release = self.db.query(Release).filter(Release.name == 'F22').one()
+        pkg_list = {pkg.name for pkg in release.critpath_pkgs}
+
+        self.assertEqual(pkg_list, {'python', 'nodejs'})
+
+    def test_remove_critpath_packages_invalid_name(self):
+        res = self.app.delete('/releases/F22/critpath-packages',
+                              '{"packages": "not_package" }', status=400,
+                              headers={'Content-Type': 'application/json'})
+
+        self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          'Invalid packages specified: not_package')
