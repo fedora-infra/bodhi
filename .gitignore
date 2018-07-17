@@ -10,6 +10,7 @@
 .coverage
 .dnf-cache/
 .idea
+.pytest_cache
 .vagrant
 .vagrant.d
 MANIFEST
