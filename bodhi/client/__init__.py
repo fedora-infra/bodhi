@@ -307,8 +307,8 @@ def new(user, password, url, **kwargs):
 
     kwargs['notes'] = _get_notes(**kwargs)
 
-    if not kwargs['notes']:
-        click.echo("ERROR: must specify at least one of --notes, --notes-file")
+    if not kwargs['notes'] and not kwargs['file']:
+        click.echo("ERROR: must specify at least one of --file, --notes, or --notes-file")
         sys.exit(1)
 
     for update in updates:
