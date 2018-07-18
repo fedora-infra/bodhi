@@ -1405,22 +1405,6 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertIn("This is a BodhiClientException message", result.output)
 
-    def test_edit_update_without_notes(self):
-        """
-        Assert providing neither --notes-file nor --notes parameters to updates edit request
-        results in an error.
-        """
-        runner = testing.CliRunner()
-
-        result = runner.invoke(
-            client.edit,
-            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
-             '--url', 'http://localhost:6543'])
-
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, u'ERROR: must specify at least one of --notes, '
-                                        '--notes-file\n')
-
 
 class TestEditBuilrootOverrides(unittest.TestCase):
     """
