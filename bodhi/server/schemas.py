@@ -339,6 +339,12 @@ class ListReleaseSchema(PaginatedSchema):
         preparer=[util.splitter],
     )
 
+    state = colander.SchemaNode(
+        colander.String(),
+        validator=colander.OneOf(list(ReleaseState.values())),
+        missing=None,
+    )
+
 
 class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     """An API schema for bodhi.server.services.releases.save_release()."""

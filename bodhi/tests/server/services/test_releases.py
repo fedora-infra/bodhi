@@ -195,6 +195,34 @@ class TestReleasesService(base.BaseTestCase):
 
         self.assertEquals(r.state, ReleaseState.disabled)
 
+    def test_list_releases_by_current_state(self):
+        """ Test that we can filter releases using the 'current' state """
+        res = self.app.get('/releases/', {"state": 'current'})
+        body = res.json_body
+        self.assertEquals(len(body['releases']), 1)
+        self.assertEquals(body['releases'][0]['name'], 'F17')
+
+    def test_list_releases_by_disabled_state(self):
+        """ Test that we can filter releases using the 'disabled' state """
+        res = self.app.get('/releases/', {"state": 'disabled'})
+        body = res.json_body
+        self.assertEquals(len(body['releases']), 1)
+        self.assertEquals(body['releases'][0]['name'], 'F22')
+
+    def test_list_releases_by_pending_state(self):
+        """ Test that we can filter releases using the 'pending' state """
+        res = self.app.get('/releases/', {"state": 'pending'})
+        body = res.json_body
+        self.assertEquals(len(body['releases']), 0)
+
+    def test_list_releases_with_a_wrong_state(self):
+        """ Test that we get a 400 error when we use an undefined state """
+        res = self.app.get('/releases/', {"state": 'active'}, status=400)
+        body = res.json_body
+        # the error description is not the same in Python2 and Python3
+        # so let's just make sure we have an error.
+        self.assertEquals(body['status'], 'error')
+
     @mock.patch('bodhi.server.services.releases.log.info', side_effect=IOError('BOOM!'))
     def test_save_release_exception_handler(self, info):
         """Test the exception handler in save_release()."""
