@@ -57,6 +57,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     bodhi.vm.provider :libvirt do |domain|
         # Season to taste
         domain.cpus = 4
+        domain.cpu_mode = "host-passthrough"
         domain.graphics_type = "spice"
         # The unit tests use a lot of RAM.
         domain.memory = 2048
