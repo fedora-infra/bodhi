@@ -11,6 +11,8 @@ Synopsis
 Description
 ===========
 
+DEPRECATED: This utility has been deprecated. Please use ``bodhi releases`` instead.
+
 ``bodhi-manage-releases`` is used by Bodhi administrators to create or edit releases in Bodhi. It
 can also be used to list information about an existing release.
 

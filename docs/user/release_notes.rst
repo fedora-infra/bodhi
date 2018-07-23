@@ -2,15 +2,120 @@
 Release notes
 =============
 
-develop
--------
+v3.9.0
+------
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Deprecation
+^^^^^^^^^^^
+
+``bodhi-manage-releases`` is now deprecated. The ``bodhi`` CLI now has a ``releases`` section that
+performs the tasks that ``bodhi-manage-releases`` is used for.
+
 
 Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
-* Cornice must now be at least version 3.1.0.
+* Cornice must now be at least version 3.1.0 (:issue:`2286`).
 * Greenwave is now a required service for Bodhi deployments that wish to continue displaying test
   results in the UI (:issue:`2370`).
+
+
+Features
+^^^^^^^^
+
+* Bodhi now comments in the same POST as status changes on Bugzilla comments (:issue:`336`).
+* The RSS feeds now have titles (:issue:`1119`).
+* ``bodhi-clean-old-mashes`` is automatically run after each successful compose (:issue:`1304`).
+* The ``bodhi`` CLI can now edit releases' ``pending_signing_tag`` fields (:issue:`1337`).
+* White space is stripped when searching for packages or updates (:issue:`2046`).
+* Severity is displayed in the web UI (:issue:`2108`).
+* Bugzilla bugs are sorted by number on the update bugs tab (:issue:`2222`).
+* The web UI now queries Greenwave with each page load to display the test gating status, rather
+  than displaying the cached value from Bodhi's database. This allows users to see the current
+  status of their update from Greenwave's perspective. This change also causes Bodhi to retrieve the
+  test results from Greenwave rather than from ResultsDB, which means the test results tab now shows
+  the same test results that influence the gating decision (:issue:`2370`, :issue:`2393`, and
+  :issue:`2425`)
+* The waiver API is now documented (:issue:`2390`).
+* The CLI and bindings can now paginate results when querying updates and overrides (:issue:`2405`).
+* The ``bodhi`` CLI can now manage releases (:issue:`2419`).
+* Comments have a mouse hoverover for timestamps (:commit:`60e2cddb`).
+* The compose is now skipped if the repo is already staged (:commit:`9d94edb4`).
+* Update statuses have a descriptive tooltip in the web UI (:commit:`40d04226`).
+* A new ``/updates/{id}/get-test-results`` :doc:`../server_api/updates` API endpoint was added that
+  can retrieve the test results for an update from Greenwave (:commit:`9631a9b6`).
+* API users can specify which results they'd like to waive in the waiver API (:commit:`7d51ee54`).
+* Update CI status is now displayed in the CLI (:commit:`4ab03afe`).
+* The CLI can now waive test results (:commit:`833a9c14`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* Do not alter Bugzilla tickets that are not related to an approved product (:issue:`1043` and
+  :issue:`2336`).
+* Only comments after the most recent karma reset event are considered for critpath karma
+  (:issue:`1996`).
+* The homepage now uses correct link for critical path updates (:issue:`2094`).
+* Bug and test case karma is now correctly registered (:issue:`2130`, :issue:`2189`, and
+  :issue:`2456`).
+* The web UI no longer uses a hardcoded Koji URL, and gets it from the new ``koji_web_url`` setting
+  instead (:issue:`2182`).
+* The Bodhi CLI will no longer reset unedited fields to their defaults when editing updates
+  (:issue:`2208`).
+* Return a helpful error when notes are not supplied when creating an update (:issue:`2214`).
+* Removed a conflicting HTTPForbidden handler (:issue:`2258`).
+* The RSS view for an update now works when the update has comments with no text (:issue:`2314`).
+* Composes that fail the sanity check are now thrown out (:issue:`2374`).
+* The uniqueness constraint on e-mail was dropped since it was not useful and did cause occasional
+  problems (:issue:`2387`).
+* e-mail templates are no longer hardcoded and are now stored on the filesystem (:issue:`2396`).
+* Failure to act on private Bugzilla tickets is no longer logged at error level (:issue:`2431`).
+* Block quotes are now correctly styled (:commit:`fd843a4e`).
+* The validators will no longer report spurious errors due to previously failed validations
+  (:commit:`5241205b`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Python 2 line test coverage was raised to 99% (:issue:`2409`).
+* The development build system now implements the addTag and deleteTag calls (:commit:`4787a3ec`).
+* The ``querystring`` validator is now used from Cornice (:commit:`f9900c05`).
+* The tests now initialize the BodhiClient with a username so the tests will pass when there is a
+  cached username (such as on a Fedora system that has Bodhi credentials) (:commit:`773232b6`).
+* A new subclass of ``webtest.TestApp`` was created so tests would pass on Python 3
+  (:commit:`847873f5`).
+* ``devel/Vagrantfile.example`` was renamed to ``Vagrantfile`` (:commit:`e985fa3c`).
+* The tests now pass on systems that don't use UTC (:commit:`63543675`).
+* Python 3 line test coverage was significantly increased, up to 98%.
+* A few warnings have been fixed.
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.9.0:
+
+* Clement Verna
+* Eli Young
+* Lumir Balhar
+* Mattia Verga
+* Miro Hrončok
+* Owen W. Taylor
+* Patrick Uiterwijk
+* Pierre-Yves Chibon
+* Ralph Bean
+* Vismay Golwala
+* Randy Barlow
 
 
 v3.8.1
@@ -26,6 +131,12 @@ Contributor
 ^^^^^^^^^^^
 
 Thanks to Miro Hrončok for fixing these issues.
+
+Deprecation
+^^^^^^^^^^^
+
+* ``bodhi-manage-releases`` has been deprecated and will be removed in a future release. Please use
+  ``bodhi releases`` instead (:issue:`2419`).
 
 
 v3.8.0

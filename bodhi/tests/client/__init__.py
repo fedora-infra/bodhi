@@ -866,4 +866,30 @@ EXPECTED_EXPIRED_OVERRIDES_OUTPUT = u"""========================================
   Expired: True
 """
 
+EXAMPLE_RELEASE_MUNCH = Munch({
+    u'dist_tag': u'f27', u'name': u'F27', u'testing_tag': u'f27-updates-testing',
+    u'pending_stable_tag': u'f27-updates-pending', u'pending_signing_tag': u'f27-signing-pending',
+    u'long_name': u'Fedora 27', u'state': u'pending', u'version': u'27',
+    u'override_tag': u'f27-override', u'branch': u'f27', u'id_prefix': u'FEDORA',
+    u'pending_testing_tag': u'f27-updates-testing-pending', u'stable_tag': u'f27-updates',
+    u'candidate_tag': u'f27-updates-candidate'})
+
+
+EXPECTED_RELEASE_OUTPUT = """Saved release:
+  Name:                F27
+  Long Name:           Fedora 27
+  Version:             27
+  Branch:              f27
+  ID Prefix:           FEDORA
+  Dist Tag:            f27
+  Stable Tag:          f27-updates
+  Testing Tag:         f27-updates-testing
+  Candidate Tag:       f27-updates-candidate
+  Pending Signing Tag: f27-signing-pending
+  Pending Testing Tag: f27-updates-testing-pending
+  Pending Stable Tag:  f27-updates-pending
+  Override Tag:        f27-override
+  State:               pending
+"""
+
 UNMATCHED_RESP = {"pants": "pants"}

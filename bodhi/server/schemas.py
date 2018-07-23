@@ -108,6 +108,12 @@ class Updates(colander.SequenceSchema):
     update = colander.SchemaNode(colander.String())
 
 
+class Tests(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Test objects."""
+
+    test = colander.SchemaNode(colander.String())
+
+
 class BugFeedback(colander.MappingSchema):
     """A schema for BugFeedback to be provided via API parameters."""
 
@@ -144,6 +150,11 @@ class TestcaseFeedbacks(colander.SequenceSchema):
 
 class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
     """An API schema for bodhi.server.services.comments.new_comment()."""
+
+    def deserialize(self, cstruct):
+        """Unflatten comment before parsing into Schema."""
+        appstruct = SaveCommentSchema().unflatten(cstruct)
+        return super(SaveCommentSchema, self).deserialize(appstruct)
 
     update = colander.SchemaNode(colander.String())
     text = colander.SchemaNode(
@@ -202,6 +213,7 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     notes = colander.SchemaNode(
         colander.String(),
         validator=colander.Length(min=2),
+        missing_msg='A description is required for the update.'
     )
     autokarma = colander.SchemaNode(
         colander.Boolean(),
@@ -805,5 +817,15 @@ class WaiveTestResultsSchema(CSRFProtectedSchema, colander.MappingSchema):
 
     comment = colander.SchemaNode(
         colander.String(),
+        missing=None,
+    )
+    tests = Tests(colander.Sequence(accept_scalar=True), missing=None, preparer=[util.splitter])
+
+
+class GetTestResultsSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.updates.get_test_results()."""
+
+    alias = Builds(
+        colander.Sequence(accept_scalar=True),
         missing=None,
     )

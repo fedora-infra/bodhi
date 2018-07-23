@@ -47,8 +47,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_critpath_components,
-    get_rpm_header, header, tokenize, pagure_api_get,
-    greenwave_api_post, waiverdb_api_post)
+    get_rpm_header, header, tokenize, pagure_api_get)
 import bodhi.server.util
 
 if six.PY2:
@@ -748,6 +747,7 @@ class ComposeState(DeclEnum):
         success (EnumSymbol): The Compose has completed successfully.
         failed (EnumSymbol): The compose has failed, abandon hope.
         signing_repo (EnumSymbol): Waiting for the repo to be signed.
+        cleaning (EnumSymbol): Cleaning old Composes after successful completion.
     """
 
     requested = 'requested', 'Requested'
@@ -759,6 +759,7 @@ class ComposeState(DeclEnum):
     success = 'success', 'Success'
     failed = 'failed', 'Failed'
     signing_repo = 'signing_repo', 'Signing repo'
+    cleaning = 'cleaning', 'Cleaning old composes'
 
 
 ##
@@ -837,6 +838,7 @@ class Release(Base):
     pending_testing_tag = Column(UnicodeText, nullable=False)
     pending_stable_tag = Column(UnicodeText, nullable=False)
     override_tag = Column(UnicodeText, nullable=False)
+    mail_template = Column(UnicodeText, default=u'fedora_errata_template', nullable=False)
 
     state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
 
@@ -1882,11 +1884,13 @@ class Update(Base):
         Karma is reset when :class:`Builds <Build>` are added or removed from an update.
 
         Returns:
-            generator: :class:`Comments <Comment>` since the karma reset.
+            list: class:`Comments <Comment>` since the karma reset.
         """
         # We want to traverse the comments in reverse order so we only consider
         # the most recent comments from any given user and only the comments
         # since the most recent karma reset event.
+        comments_since_karma_reset = []
+
         for comment in reversed(self.comments):
             if (comment.user.name == u'bodhi' and
                     ('New build' in comment.text or 'Removed build' in comment.text)):
@@ -1896,7 +1900,9 @@ class Update(Base):
                 # reverse order, once we find one of these comments we can
                 # simply exit this loop.
                 break
-            yield comment
+            comments_since_karma_reset.append(comment)
+
+        return comments_since_karma_reset
 
     @staticmethod
     def contains_critpath_component(builds, release_name):
@@ -1951,8 +1957,18 @@ class Update(Base):
         """
         return json.dumps(self.greenwave_subject)
 
-    def update_test_gating_status(self):
-        """Query Greenwave about this update and set the test_gating_status as appropriate."""
+    def get_test_gating_info(self):
+        """
+        Query Greenwave about this update and return the information retrieved.
+
+        Returns:
+            dict: The response from Greenwave for this update.
+        Raises:
+            BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
+        """
+        if not config.get('greenwave_api_url'):
+            raise BodhiException('No greenwave_api_url specified')
+
         # We retrieve updates going to testing (status=pending) and updates
         # (status=testing) going to stable.
         # If the update is pending, we want to know if it can go to testing
@@ -1968,7 +1984,11 @@ class Update(Base):
         }
         api_url = '{}/decision'.format(config.get('greenwave_api_url'))
 
-        decision = util.greenwave_api_post(api_url, data)
+        return bodhi.server.util.greenwave_api_post(api_url, data)
+
+    def update_test_gating_status(self):
+        """Query Greenwave about this update and set the test_gating_status as appropriate."""
+        decision = self.get_test_gating_info()
         if decision['policies_satisfied']:
             # If an unrestricted policy is applied and no tests are required
             # on this update, let's set the test gating as ignored in Bodhi.
@@ -2373,7 +2393,7 @@ class Update(Base):
             positive karma.
         """
         good, bad, seen = 0, 0, set()
-        for comment in reversed(self.comments):
+        for comment in self.comments_since_karma_reset:
             if comment.user.name in seen:
                 continue
             seen.add(comment.user.name)
@@ -2396,7 +2416,7 @@ class Update(Base):
             positive karma.
         """
         good, bad, seen = 0, 0, set()
-        for comment in reversed(self.comments):
+        for comment in self.comments_since_karma_reset:
             if comment.user.name in seen:
                 continue
             seen.add(comment.user.name)
@@ -2617,13 +2637,16 @@ class Update(Base):
         topic = u'update.request.%s' % action
         notifications.publish(topic=topic, msg=dict(update=self, agent=username))
 
-    def waive_test_results(self, username, comment=None):
+    def waive_test_results(self, username, comment=None, tests=None):
         """
         Attempt to waive test results for this update.
 
         Args:
             username (basestring): The name of the user who is waiving the test results.
             comment (basestring): A comment from the user describing their decision.
+            tests (list of basestring): A list of testcases to be waived. Defaults to ``None``
+                If left as ``None``, all ``unsatisfied_requirements`` returned by greenwave
+                will be waived, otherwise only the testcase found in both list will be waived.
         Raises:
             LockedUpdateException: If the Update is locked.
             BodhiException: If test gating is not enabled in this Bodhi instance,
@@ -2641,16 +2664,15 @@ class Update(Base):
         if self.test_gating_passed:
             raise BodhiException("Can't waive test resuts on an update that passes test gating")
 
-        decision_context = u'bodhi_update_push_testing'
-        if self.status == UpdateStatus.testing:
-            decision_context = u'bodhi_update_push_stable'
-        data = {
-            'product_version': self.product_version,
-            'decision_context': decision_context,
-            'subject': self.greenwave_subject
-        }
-        decision = greenwave_api_post('{}/decision'.format(config.get('greenwave_api_url')), data)
+        # Ensure we can always iterate over tests
+        tests = tests or []
+
+        decision = self.get_test_gating_info()
         for requirement in decision['unsatisfied_requirements']:
+
+            if tests and requirement['testcase'] not in tests:
+                continue
+
             data = {
                 'subject': requirement['item'],
                 'testcase': requirement['testcase'],
@@ -2660,7 +2682,8 @@ class Update(Base):
                 'comment': comment
             }
             log.debug('Waiving test results: %s' % data)
-            waiverdb_api_post('{}/waivers/'.format(config.get('waiverdb_api_url')), data)
+            bodhi.server.util.waiverdb_api_post(
+                '{}/waivers/'.format(config.get('waiverdb_api_url')), data)
 
     def add_tag(self, tag):
         """
@@ -2767,14 +2790,8 @@ class Update(Base):
         elif self.status is UpdateStatus.testing:
             mailinglist = config.get('%s_test_announce_list' % release_name)
 
-        # switch email template to legacy if update aims to EPEL <= 7
-        if release_name == 'fedora_epel' and self.release.version_int <= 7:
-            templatetype = '%s_legacy_errata_template' % release_name
-        else:
-            templatetype = '%s_errata_template' % release_name
-
         if mailinglist:
-            for subject, body in mail.get_template(self, templatetype):
+            for subject, body in mail.get_template(self, self.release.mail_template):
                 mail.send_mail(sender, mailinglist, subject, body)
                 notifications.publish(
                     topic='errata.publish',
@@ -2846,10 +2863,10 @@ class Update(Base):
         val += u"""
   Submitter: %s
   Submitted: %s\n""" % (username, self.date_submitted)
-        if len(self.comments):
+        if self.comments_since_karma_reset:
             val += u"   Comments: "
             comments = []
-            for comment in self.comments:
+            for comment in self.comments_since_karma_reset:
                 if comment.anonymous:
                     anonymous = " (unauthenticated)"
                 else:
@@ -3508,7 +3525,7 @@ class Update(Base):
             int: The number of admin approvals found in the comments of this update.
         """
         approvals = 0
-        for comment in self.comments:
+        for comment in self.comments_since_karma_reset:
             if comment.karma != 1:
                 continue
             admin_groups = config.get('admin_groups')
@@ -4164,9 +4181,11 @@ class Bug(Base):
         ])
         bugs.bugtracker.close(self.bug_id, versions=versions, comment=self.default_message(update))
 
-    def modified(self, update):
+    def modified(self, update, comment):
         """
         Change the status of this bug to MODIFIED unless it is a parent security bug.
+
+        Also, comment on the bug stating that an update has been submitted.
 
         Args:
             update (Update): The update that is associated with this bug.
@@ -4174,7 +4193,7 @@ class Bug(Base):
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying on parent security bug %s', self.bug_id)
         else:
-            bugs.bugtracker.modified(self.bug_id)
+            bugs.bugtracker.modified(self.bug_id, comment)
 
 
 user_group_table = Table('user_group_table', Base.metadata,
@@ -4214,7 +4233,7 @@ class User(Base):
     __get_by__ = ('name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
-    email = Column(UnicodeText, unique=True)
+    email = Column(UnicodeText)
 
     # A preference
     show_popups = Column(Boolean, default=True, server_default=text('TRUE'))

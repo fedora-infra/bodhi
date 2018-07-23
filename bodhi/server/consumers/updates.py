@@ -194,9 +194,8 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
                 log.info("Commenting on %r" % bug.bug_id)
                 comment = config['initial_bug_msg'] % (
                     update.title, update.release.long_name, update.abs_url())
-                bug.add_comment(update, comment)
 
                 log.info("Modifying %r" % bug.bug_id)
-                bug.modified(update)
+                bug.modified(update, comment)
             except Exception:
                 log.warning('Error occurred during updating single bug', exc_info=True)

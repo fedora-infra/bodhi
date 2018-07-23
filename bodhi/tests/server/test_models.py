@@ -1444,6 +1444,17 @@ class TestUpdateGetBugKarma(BaseTestCase):
         self.assertEqual(bad, -1)
         self.assertEqual(good, 2)
 
+        # This is a "karma reset event", so the above comments should not be counted in the karma.
+        user = model.User(name='bodhi')
+        comment = model.Comment(text=u"New build", karma=0, user=user)
+        self.db.add(comment)
+        update.comments.append(comment)
+
+        bad, good = update.get_bug_karma(update.bugs[0])
+
+        self.assertEqual(bad, 0)
+        self.assertEqual(good, 0)
+
 
 class TestUpdateGetTestcaseKarma(BaseTestCase):
     """Test the get_testcase_karma() method."""
@@ -1479,6 +1490,17 @@ class TestUpdateGetTestcaseKarma(BaseTestCase):
 
         self.assertEqual(bad, -1)
         self.assertEqual(good, 2)
+
+        # This is a "karma reset event", so the above comments should not be counted in the karma.
+        user = model.User(name='bodhi')
+        comment = model.Comment(text=u"New build", karma=0, user=user)
+        self.db.add(comment)
+        update.comments.append(comment)
+
+        bad, good = update.get_testcase_karma(update.builds[0].package.test_cases[0])
+
+        self.assertEqual(bad, 0)
+        self.assertEqual(good, 0)
 
 
 class TestUpdateSigned(BaseTestCase):
@@ -2865,7 +2887,7 @@ class TestUpdate(ModelTest):
             testing_tag=u'dist-7E-epel-testing', candidate_tag=u'dist-7E-epel-testing-candidate',
             pending_testing_tag=u'dist-7E-epel-testing-pending',
             pending_stable_tag=u'dist-7E-epel-pending', override_tag=u'dist-7E-epel-override',
-            branch=u'el7', version=u'7')
+            branch=u'el7', version=u'7', mail_template=u'fedora_epel_legacy_errata_template')
         update.release = release
         update.status = UpdateStatus.stable
 
@@ -2883,7 +2905,7 @@ class TestUpdate(ModelTest):
             testing_tag=u'dist-8E-epel-testing', candidate_tag=u'dist-8E-epel-testing-candidate',
             pending_testing_tag=u'dist-8E-epel-testing-pending',
             pending_stable_tag=u'dist-8E-epel-pending', override_tag=u'dist-8E-epel-override',
-            branch=u'el8', version=u'8')
+            branch=u'el8', version=u'8', mail_template=u'fedora_epel_errata_template')
         update.release = release
         update.status = UpdateStatus.stable
 
@@ -3019,6 +3041,27 @@ class TestUpdate(ModelTest):
         with mock.patch.dict(config, {'test_gating.required': True}):
             self.assertEqual(self.obj.check_requirements(self.db, config),
                              (True, 'No checks required.'))
+
+    def test_num_admin_approvals_after_karma_reset(self):
+        """Make sure number of admin approvals is counted correctly for the build."""
+        update = model.Update.query.first()
+
+        # Approval from admin 'bodhiadmin' {config.admin_groups}
+        user_group = [model.Group(name=u'bodhiadmin')]
+        user = model.User(name='bodhiadmin', groups=user_group)
+        comment = model.Comment(text='Test comment', karma=1, user=user)
+        self.db.add(comment)
+        update.comments.append(comment)
+
+        self.assertEqual(update.num_admin_approvals, 1)
+
+        # This is a "karma reset event", so the above comments should not be counted in the karma.
+        user = model.User(name='bodhi')
+        comment = model.Comment(text=u"New build", karma=0, user=user)
+        self.db.add(comment)
+        update.comments.append(comment)
+
+        self.assertEqual(update.num_admin_approvals, 0)
 
     def test_test_cases_with_no_dupes(self):
         update = self.get_update(name=u"FullTestCasesWithNoDupes")
@@ -3165,7 +3208,7 @@ class TestUpdate(ModelTest):
             str(exc.exception),
             ("Can't waive test results on a locked update"))
 
-    @mock.patch('bodhi.server.models.greenwave_api_post')
+    @mock.patch('bodhi.server.util.greenwave_api_post')
     @mock.patch('bodhi.server.util.http_session.post')
     def test_can_waive_multiple_test_results_of_an_update(self, post, greenwave_api_post):
         """Multiple failed tests getting waived should cause multiple calls to waiverdb."""
@@ -3218,8 +3261,8 @@ class TestUpdate(ModelTest):
             else:
                 self.assertEqual(post.mock_calls[i], v)
 
-    @mock.patch('bodhi.server.models.greenwave_api_post')
-    @mock.patch('bodhi.server.models.waiverdb_api_post')
+    @mock.patch('bodhi.server.util.greenwave_api_post')
+    @mock.patch('bodhi.server.util.waiverdb_api_post')
     def test_can_waive_test_results_of_an_update(self, mock_waiverdb, mock_greenwave):
         update = self.obj
         update.status = UpdateStatus.testing

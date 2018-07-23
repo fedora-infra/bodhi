@@ -446,6 +446,11 @@ class TestComposeState2HTML(unittest.TestCase):
         self.assertEqual(util.composestate2html(None, ComposeState.failed),
                          "<span class='label label-danger'>Failed</span>")
 
+    def test_cleaning(self):
+        """Assert correct return value with the cleaning state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.cleaning),
+                         "<span class='label label-warning'>Cleaning old composes</span>")
+
 
 class TestCanWaiveTestResults(base.BaseTestCase):
     """Test the can_waive_test_results() function."""
@@ -551,6 +556,24 @@ class TestSanityCheckRepodata(unittest.TestCase):
 
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir)
+
+
+class TestType2Icon(unittest.TestCase):
+    """Test the type2icon() function."""
+
+    def test_consonant(self):
+        """Test type2icon() with a kind that starts with a consonant."""
+        self.assertEqual(
+            util.type2icon(None, 'security'),
+            ("<span class='label label-danger' data-toggle='tooltip' "
+             "title='This is a security update'><i class='fa fa-fw fa-shield'></i></span>"))
+
+    def test_vowel(self):
+        """Test type2icon() with a kind that starts with a vowel."""
+        self.assertEqual(
+            util.type2icon(None, 'enhancement'),
+            ("<span class='label label-success' data-toggle='tooltip' "
+             "title='This is an enhancement update'><i class='fa fa-fw fa-bolt'></i></span>"))
 
 
 class TestUpdate2HTML(base.BaseTestCase):

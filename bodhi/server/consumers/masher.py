@@ -48,6 +48,7 @@ from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
+from bodhi.server.scripts import clean_old_mashes
 from bodhi.server.util import (copy_container, sorted_updates, sanity_check_repodata,
                                transactional_session_maker)
 
@@ -429,8 +430,13 @@ class ComposerThread(threading.Thread):
             self.check_all_karma_thresholds()
             self.obsolete_older_updates()
 
+            # Clean old composes
+            self.save_state(ComposeState.cleaning)
+            clean_old_mashes.remove_old_composes()
+
             self.save_state(ComposeState.success)
             self.success = True
+
             self.remove_state()
 
         except Exception:
@@ -643,6 +649,8 @@ class ComposerThread(threading.Thread):
                 update.remove_tag(update.release.pending_stable_tag,
                                   koji=koji)
             elif update.request is UpdateRequest.testing:
+                update.remove_tag(update.release.pending_signing_tag,
+                                  koji=koji)
                 update.remove_tag(update.release.pending_testing_tag,
                                   koji=koji)
         result = koji.multiCall()

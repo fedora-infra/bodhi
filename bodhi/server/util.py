@@ -490,6 +490,7 @@ def composestate2html(context, state):
         'updateinfo': 'warning',
         'punging': 'warning',
         'notifying': 'warning',
+        'cleaning': 'warning',
         'success': 'success',
         'failed': 'danger',
     }[state.value]
@@ -724,6 +725,11 @@ def type2icon(context, kind):
         'enhancement': 'success',
     }.get(kind)
 
+    if kind[0].lower() in 'aeiou':
+        kind_article = 'an'
+    else:
+        kind_article = 'a'
+
     fontawesome = {
         'security': 'fa-shield',
         'bugfix': 'fa-bug',
@@ -731,9 +737,9 @@ def type2icon(context, kind):
         'enhancement': 'fa-bolt',
     }.get(kind)
 
-    return "<span class='label label-%s' data-toggle='tooltip'\
-            title='This is a %s update'><i class='fa fa-fw %s'></i></span> \
-            " % (cls, kind, fontawesome)
+    span = ("<span class='label label-%s' data-toggle='tooltip' "
+            "title='This is %s %s update'><i class='fa fa-fw %s'></i></span>")
+    return span % (cls, kind_article, kind, fontawesome)
 
 
 def severity2html(context, severity):
@@ -1448,3 +1454,20 @@ def _container_image_url(build, registry, tag=None):
         tag = '{}-{}'.format(build.nvr_version, build.nvr_release)
 
     return 'docker://{}/{}:{}'.format(registry, image_name, tag)
+
+
+def get_absolute_path(location):
+    """
+    Return an absolute path in filesystem for a relative path value.
+
+    For example, location 'bodhi:server/templates' can return something like:
+        /home/bodhi/bodhi/server/templates/
+
+    Args:
+        location (str): The relative path you want to convert.
+    Returns:
+        str: An absolute path in the filesystem referencing to the given directory.
+    """
+    module, final = location.split(':')
+    base = os.path.dirname(__import__(module).__file__)
+    return base + "/" + final
