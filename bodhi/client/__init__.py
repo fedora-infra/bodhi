@@ -162,6 +162,7 @@ release_options = [
     click.option('--state', type=click.Choice(['disabled', 'pending', 'current',
                                                'archived']),
                  help='The state of the release'),
+    click.option('--mail-template', help='Name of the email template for this release'),
     staging_option,
     url_option,
     debug_option]
@@ -1071,6 +1072,7 @@ def print_release(release):
     print("  Pending Stable Tag:  %s" % release['pending_stable_tag'])
     print("  Override Tag:        %s" % release['override_tag'])
     print("  State:               %s" % release['state'])
+    print("  Email Template:      %s" % release['mail_template'])
 
 
 def print_errors(data):

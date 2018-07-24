@@ -872,7 +872,7 @@ EXAMPLE_RELEASE_MUNCH = Munch({
     u'long_name': u'Fedora 27', u'state': u'pending', u'version': u'27',
     u'override_tag': u'f27-override', u'branch': u'f27', u'id_prefix': u'FEDORA',
     u'pending_testing_tag': u'f27-updates-testing-pending', u'stable_tag': u'f27-updates',
-    u'candidate_tag': u'f27-updates-candidate'})
+    u'candidate_tag': u'f27-updates-candidate', 'mail_template': 'fedora_errata_template'})
 
 
 EXPECTED_RELEASE_OUTPUT = """Saved release:
@@ -890,6 +890,7 @@ EXPECTED_RELEASE_OUTPUT = """Saved release:
   Pending Stable Tag:  f27-updates-pending
   Override Tag:        f27-override
   State:               pending
+  Email Template:      fedora_errata_template
 """
 
 UNMATCHED_RESP = {"pants": "pants"}
