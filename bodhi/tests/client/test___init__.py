@@ -1470,7 +1470,7 @@ class TestCreate(unittest.TestCase):
                   'testing_tag': None, 'pending_stable_tag': None, 'long_name': None, 'state': None,
                   'version': None, 'override_tag': None, 'branch': None, 'id_prefix': None,
                   'pending_testing_tag': None, 'pending_signing_tag': None, 'stable_tag': None,
-                  'candidate_tag': None})
+                  'candidate_tag': None, 'mail_template': None})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -1529,7 +1529,8 @@ class TestEditRelease(unittest.TestCase):
                       'long_name': 'Fedora 27, the Greatest Fedora!', 'state': 'pending',
                       'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
                       'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
-                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate'}))
+                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
+                      'mail_template': 'fedora_errata_template'}))
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -1564,7 +1565,8 @@ class TestEditRelease(unittest.TestCase):
                       'long_name': 'Fedora 27', 'state': 'pending',
                       'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
                       'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
-                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate'}))
+                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
+                      'mail_template': 'fedora_errata_template'}))
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1601,6 +1603,40 @@ class TestEditRelease(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 1)
         self.assertEqual(result.output, ("ERROR: an error was encountered... :(\n"))
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_RELEASE_MUNCH, autospec=True)
+    def test_edit_mail_template(self, send_request):
+        """
+        Assert correct behavior while editing 'mail_template' name.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit_release,
+            ['--name', 'F27', '--mail-template', 'edited_fedora_errata_template'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
+        bindings_client = send_request.mock_calls[0][1][0]
+        self.assertEqual(send_request.call_count, 2)
+        self.assertEqual(send_request.mock_calls[0],
+                         mock.call(bindings_client, 'releases/F27', verb='GET', auth=True))
+        self.assertEqual(
+            send_request.mock_calls[1],
+            mock.call(
+                bindings_client, 'releases/', verb='POST', auth=True,
+                data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
+                      'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
+                      'pending_stable_tag': 'f27-updates-pending',
+                      'pending_signing_tag': 'f27-signing-pending',
+                      'long_name': 'Fedora 27', 'state': 'pending',
+                      'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
+                      'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
+                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
+                      'mail_template': 'edited_fedora_errata_template'}))
 
 
 class TestInfo(unittest.TestCase):

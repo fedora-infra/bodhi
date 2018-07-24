@@ -17,9 +17,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 import mock
+import os
 
 from bodhi import server
+from bodhi.server.config import config
 from bodhi.server.models import Release, ReleaseState, Update
+from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base, create_update
 
 
@@ -250,6 +253,59 @@ class TestReleasesService(base.BaseTestCase):
 
         r = self.db.query(Release).filter(Release.name == name).one()
         self.assertEquals(r.state, ReleaseState.current)
+
+    def test_edit_mail_template(self):
+        """Test `mail_template` is saved correctly in db after release edit."""
+        name = u"F22"
+
+        res = self.app.get('/releases/%s' % name, status=200)
+        r = res.json_body
+
+        r["edited"] = name
+        r["mail_template"] = "fedora_modular_errata_template"
+        r["csrf_token"] = self.get_csrf_token()
+
+        res = self.app.post("/releases/", r, status=200)
+
+        r = self.db.query(Release).filter(Release.name == name).one()
+        self.assertEqual(r.mail_template, "fedora_modular_errata_template")
+
+    def test_edit_mail_template_with_null_value(self):
+        """Test that null value for `mail_template` gets replaced by default value."""
+        name = u"F22"
+
+        res = self.app.get('/releases/%s' % name, status=200)
+        r = res.json_body
+
+        r["edited"] = name
+        r["mail_template"] = ""
+        r["csrf_token"] = self.get_csrf_token()
+
+        res = self.app.post("/releases/", r, status=200)
+
+        r = self.db.query(Release).filter(Release.name == name).one()
+        self.assertEqual(r.mail_template, "fedora_errata_template")
+
+    def test_edit_mail_template_with_invalid_value(self):
+        """Test appropriate error is returned when provided `mail_template` doesn't exist."""
+        name = u"F22"
+        location = config.get('mail.templates_basepath')
+        directory = get_absolute_path(location)
+        template_list = [os.path.splitext(file)[0] for file in os.listdir(directory)]
+        template_vals = ", ".join(template_list)
+
+        res = self.app.get('/releases/%s' % name, status=200)
+        r = res.json_body
+
+        r["edited"] = name
+        r["mail_template"] = "invalid_template_name"
+        r["csrf_token"] = self.get_csrf_token()
+
+        res = self.app.post("/releases/", r, status=400)
+
+        self.assertEquals(res.json_body['errors'][0]['name'], 'mail_template')
+        self.assertEquals(res.json_body['errors'][0]['description'],
+                          u'"invalid_template_name" is not one of {}'.format(template_vals))
 
     def test_get_single_release_html(self):
         res = self.app.get('/releases/f17', headers={'Accept': 'text/html'})
