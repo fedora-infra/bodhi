@@ -21,18 +21,15 @@ import copy
 import datetime
 import mock
 import re
-import unittest
 
 import PIL.Image
-from six import StringIO
-import six
+from six import BytesIO
 
 from bodhi.server import main
 from bodhi.tests.server import base
 
 
 class TestRenderers(base.BaseTestCase):
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_renderer_jpeg(self):
         """
         Test that the renderer returns a jpeg. In this case, the CAPTCHA image.
@@ -61,6 +58,6 @@ class TestRenderers(base.BaseTestCase):
         captcha_url = re.search(r'"http://localhost(/captcha/[^"]*)"', str(res)).groups()[0]
         resp = app.get(captcha_url, status=200)
         self.assertIn('image/jpeg', resp.headers['Content-Type'])
-        jpegdata = StringIO(resp.body)
+        jpegdata = BytesIO(resp.body)
         img = PIL.Image.open(jpegdata)
         self.assertEqual(img.size, (300, 80))
