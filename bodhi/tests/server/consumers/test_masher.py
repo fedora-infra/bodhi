@@ -28,6 +28,7 @@ import unittest
 
 from click import testing
 import mock
+from kitchen.text.converters import to_bytes
 import six
 import six.moves.urllib.parse as urlparse
 from six.moves.urllib.error import HTTPError, URLError
@@ -555,7 +556,6 @@ That was the actual one''' % mash_dir
         self.assertEqual(self.koji.__moved__[1],
                          (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-2.fc17'))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
@@ -595,11 +595,12 @@ References:
 
 """ % time.strftime('%Y'))
 
-        mail.assert_called_with(config.get('bodhi_email'), config.get('fedora_test_announce_list'),
+        mail.assert_called_with(to_bytes(config.get('bodhi_email')),
+                                to_bytes(config.get('fedora_test_announce_list')),
                                 mock.ANY)
         assert len(mail.mock_calls) == 2, len(mail.mock_calls)
         body = mail.mock_calls[1][1][2]
-        assert body.startswith(
+        assert body.decode('utf-8').startswith(
             ('From: updates@fedoraproject.org\r\nTo: %s\r\nX-Bodhi: fedoraproject.org\r\nSubject: '
              'Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to '
              'Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n====='
@@ -1042,7 +1043,6 @@ That was the actual one'''
             force=True,
             topic='mashtask.complete'))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
@@ -1094,6 +1094,12 @@ That was the actual one'''
         self.masher.consume(self._make_msg())
 
         # Ensure that F18 and F17 run in parallel
+        # If F17 is executed first, it will publish messages on 5 topics:
+        # [ mashtask.mashing, buildroot_override.untag, update.complete.stable,
+        #   errata.publish, mashtask.complete ]. So, F18 mashing call is expected on calls[6].
+        #
+        # On other hand if F18 is executed first, it will publish 4 of the above messages
+        # except `buildroot_override.untag` and so, F17 call is expected on calls[5].
         calls = publish.mock_calls
         if calls[1] == mock.call(
                 msg={'repo': u'f18-updates',
@@ -1102,25 +1108,24 @@ That was the actual one'''
                      'agent': 'bowlofeggs'},
                 force=True, topic='mashtask.mashing'):
             self.assertEqual(
-                calls[2],
+                calls[5],
                 mock.call(msg={'repo': u'f17-updates',
                                'ctype': 'rpm',
                                'updates': [u'bodhi-2.0-1.fc17'],
                                'agent': 'bowlofeggs'},
                           force=True, topic='mashtask.mashing'))
-        elif calls[1] == self.assertEqual(
-                calls[1],
-                mock.call(
-                    msg={'repo': u'f17-updates',
-                         'ctype': 'rpm',
-                         'updates': [u'bodhi-2.0-1.fc17'],
-                         'agent': 'bowlofeggs'},
-                    force=True, topic='mashtask.mashing')):
+        elif calls[1] == mock.call(
+                msg={'repo': u'f17-updates',
+                     'ctype': 'rpm',
+                     'updates': [u'bodhi-2.0-1.fc17'],
+                     'agent': 'bowlofeggs'},
+                force=True, topic='mashtask.mashing'):
             self.assertEqual(
-                calls[2],
+                calls[6],
                 mock.call(msg={'repo': u'f18-updates',
                                'ctype': 'rpm',
-                               'updates': [u'bodhi-2.0-1.fc18']},
+                               'updates': [u'bodhi-2.0-1.fc18'],
+                               'agent': 'bowlofeggs'},
                           force=True, topic='mashtask.mashing'))
 
     @mock.patch('bodhi.server.notifications.publish')
@@ -1306,7 +1311,6 @@ That was the actual one'''
              'status_comments': True})
         self.assertTrue(os.path.exists(mash_dir))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._sanity_check_repo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._stage_repo')
@@ -1366,10 +1370,10 @@ That was the actual one'''
                                 force=True,
                                 msg=mock.ANY)
 
-        self.assertEqual(t._module_defs, [{'context': '2',
-                                           'version': '20172',
-                                           'name': 'testmodule',
-                                           'stream': 'master'}])
+        self.assertEqual(list(t._module_defs), [{'context': '2',
+                                                 'version': '20172',
+                                                 'name': 'testmodule',
+                                                 'stream': 'master'}])
         self.assertEqual(t._module_list, ['testmodule:master:20172'])
 
         EXPECTED_VARIANTS = '''Raw NSVs:
@@ -2723,7 +2727,6 @@ class TestComposerThread_save_state(ComposerThreadBaseTestCase):
 
 class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     """This test class contains tests for the PungiComposerThread._wait_for_sync() method."""
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
@@ -2797,7 +2800,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         except Exception as ex:
             assert str(ex) == "Not found an arch to _wait_for_sync with"
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
@@ -2841,7 +2843,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         urlopen.assert_has_calls(expected_calls)
         sleep.assert_has_calls([mock.call(200), mock.call(200)])
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
@@ -2945,7 +2946,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         t.log.error.assert_called_once_with(
             'Cannot find local repomd: %s', os.path.join(repodata, 'repomd.xml'))
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':

@@ -21,7 +21,6 @@ from datetime import datetime, timedelta
 import copy
 import textwrap
 import time
-import unittest
 
 from mock import ANY
 import koji
@@ -35,7 +34,7 @@ from bodhi.server.config import config
 from bodhi.server.models import (
     BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
-    UpdateSeverity, User, TestGatingStatus)
+    UpdateSeverity, UpdateSuggestion, User, TestGatingStatus)
 from bodhi.server.util import call_api
 from bodhi.tests.server.base import BaseTestCase, BodhiTestApp
 
@@ -524,7 +523,6 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['bugs'][1]['bug_id'], 5678)
         self.assertEqual(up['bugs'][2]['bug_id'], 12345)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -535,7 +533,7 @@ class TestNewUpdate(BaseTestCase):
         up = r.json_body
         self.assertEqual(up['status'], 'error')
         self.assertEqual(up['errors'][0]['description'],
-                         "Invalid bug ID specified: [u'1234', u'blargh']")
+                         "Invalid bug ID specified: {}".format([u'1234', u'blargh']))
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
@@ -887,7 +885,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertNotIn('Legal</a>', resp)
         self.assertNotIn('http://loweringthebar.net/', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_add_build_from_different_release(self):
         """Editing an update that references builds from other releases should raise an error."""
         update = self.db.query(Update).one()
@@ -906,11 +903,10 @@ class TestUpdatesService(BaseTestCase):
             u'errors': [
                 {u'description': (
                     u"Cannot find release associated with build: bodhi-3.2.0-1.fc27, "
-                    u"tags: [u'f27-updates-candidate', u'f27', u'f27-updates-testing']"),
+                    u"tags: {}".format([u'f27-updates-candidate', u'f27', u'f27-updates-testing'])),
                  u'location': u'body', u'name': u'builds'}]}
         self.assertEqual(res.json, expected_json)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_edit_invalidly_tagged_build(self):
         """Editing an update that references invalidly tagged builds should raise an error."""
         update = self.db.query(Update).one()
@@ -930,7 +926,7 @@ class TestUpdatesService(BaseTestCase):
             u'errors': [
                 {u'description': (
                     u"Invalid tag: bodhi-2.0-1.fc17 not tagged with any of the following tags "
-                    u"[u'f17-updates-candidate', u'f17-updates-testing']"),
+                    u"{}".format([u'f17-updates-candidate', u'f17-updates-testing'])),
                  u'location': u'body', u'name': u'builds'}]}
         self.assertEqual(res.json, expected_json)
         listTags.assert_called_once_with('bodhi-2.0-1.fc17')
@@ -1585,7 +1581,6 @@ class TestUpdatesService(BaseTestCase):
         up = body['updates'][0]
         self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     def test_list_updates_pagination(self, *args):
 
@@ -1736,14 +1731,13 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(len(up['bugs']), 1)
         self.assertEqual(up['bugs'][0]['bug_id'], 12345)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_bug(self):
         res = self.app.get('/updates/', {"bugs": "cockroaches"}, status=400)
         body = res.json_body
         self.assertEqual(len(body.get('updates', [])), 0)
         self.assertEqual(res.json_body['errors'][0]['name'], 'bugs')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         "Invalid bug ID specified: [u'cockroaches']")
+                         "Invalid bug ID specified: {}".format([u'cockroaches']))
 
     def test_list_updates_by_unexisting_bug(self):
         res = self.app.get('/updates/', {"bugs": "19850110"})
@@ -2346,16 +2340,15 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_request(self):
         res = self.app.get('/updates/', {"request": "impossible"},
                            status=400)
         body = res.json_body
+        request_vals = ", ".join(UpdateRequest.values())
         self.assertEqual(len(body.get('updates', [])), 0)
         self.assertEqual(res.json_body['errors'][0]['name'], 'request')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         u'"impossible" is not one of revoke, testing,'
-                         ' obsolete, batched, stable, unpush')
+                         u'"impossible" is not one of {}'.format(request_vals))
 
     def test_list_updates_by_severity(self):
         res = self.app.get('/updates/', {"severity": "medium"})
@@ -2381,15 +2374,15 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_severity(self):
         res = self.app.get('/updates/', {"severity": "schoolmaster"},
                            status=400)
         body = res.json_body
+        severity_vals = ", ".join(UpdateSeverity.values())
         self.assertEqual(len(body.get('updates', [])), 0)
         self.assertEqual(res.json_body['errors'][0]['name'], 'severity')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         '"schoolmaster" is not one of high, urgent, medium, low, unspecified')
+                         '"schoolmaster" is not one of {}'.format(severity_vals))
 
     def test_list_updates_by_status(self):
         res = self.app.get('/updates/', {"status": "pending"})
@@ -2450,17 +2443,16 @@ class TestUpdatesService(BaseTestCase):
         body = res.json_body
         self.assertEqual(len(body['updates']), 0)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_status(self):
         res = self.app.get('/updates/', {"status": "single"},
                            status=400)
         body = res.json_body
+        status_vals = ", ".join(UpdateStatus.values())
         self.assertEqual(len(body.get('updates', [])), 0)
         self.assertEqual(res.json_body['errors'][0]['name'], 'status')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
-            ('"single" is not one of testing, side_tag_expired, processing, obsolete, '
-             'pending, stable, unpushed, side_tag_active'))
+            ('"single" is not one of {}'.format(status_vals)))
 
     def test_list_updates_by_suggest(self):
         res = self.app.get('/updates/', {"suggest": "unspecified"})
@@ -2486,15 +2478,15 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_suggest(self):
         res = self.app.get('/updates/', {"suggest": "no idea"},
                            status=400)
         body = res.json_body
+        suggest_vals = ", ".join(UpdateSuggestion.values())
         self.assertEqual(len(body.get('updates', [])), 0)
         self.assertEqual(res.json_body['errors'][0]['name'], 'suggest')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         '"no idea" is not one of logout, reboot, unspecified')
+                         '"no idea" is not one of {}'.format(suggest_vals))
 
     def test_list_updates_by_type(self):
         res = self.app.get('/updates/', {"type": "bugfix"})
@@ -2520,15 +2512,15 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_type(self):
         res = self.app.get('/updates/', {"type": "not_my"},
                            status=400)
         body = res.json_body
+        type_vals = ", ".join(UpdateType.values())
         self.assertEqual(len(body.get('updates', [])), 0)
         self.assertEqual(res.json_body['errors'][0]['name'], 'type')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         '"not_my" is not one of newpackage, bugfix, security, enhancement')
+                         '"not_my" is not one of {}'.format(type_vals))
 
     def test_list_updates_by_username(self):
         res = self.app.get('/updates/', {"user": "guest"})
@@ -3108,7 +3100,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(nvr, resp)
         self.assertIn('Disabled', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
     def test_invalid_request(self, *args):
@@ -3118,10 +3109,11 @@ class TestUpdatesService(BaseTestCase):
             '/updates/%s/request' % args['builds'],
             {'request': 'foo', 'csrf_token': self.get_csrf_token()}, status=400)
         resp = resp.json_body
+        request_vals = ", ".join(UpdateRequest.values())
         self.assertEqual(resp['status'], 'error')
         self.assertEqual(
             resp['errors'][0]['description'],
-            u'"foo" is not one of revoke, testing, obsolete, batched, stable, unpush')
+            u'"foo" is not one of {}'.format(request_vals))
 
         # Now try with None
         resp = self.app.post_json(
@@ -4422,7 +4414,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertNotIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_to_batched_button_present_when_karma_reached(self, publish, *args):
