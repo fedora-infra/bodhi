@@ -725,6 +725,11 @@ def type2icon(context, kind):
         'enhancement': 'success',
     }.get(kind)
 
+    if kind[0].lower() in 'aeiou':
+        kind_article = 'an'
+    else:
+        kind_article = 'a'
+
     fontawesome = {
         'security': 'fa-shield',
         'bugfix': 'fa-bug',
@@ -732,9 +737,9 @@ def type2icon(context, kind):
         'enhancement': 'fa-bolt',
     }.get(kind)
 
-    return "<span class='label label-%s' data-toggle='tooltip'\
-            title='This is a %s update'><i class='fa fa-fw %s'></i></span> \
-            " % (cls, kind, fontawesome)
+    span = ("<span class='label label-%s' data-toggle='tooltip' "
+            "title='This is %s %s update'><i class='fa fa-fw %s'></i></span>")
+    return span % (cls, kind_article, kind, fontawesome)
 
 
 def severity2html(context, severity):
