@@ -1,6 +1,7 @@
 
 Welcome to the Bodhi development environment! Here are some helpful commands:
 
+bci:         Run the same tests that CI runs locally (supports the same arguments as devel/run_tests.sh)
 bdiff-cover: Run btest and then run diff-cover against the develop branch
 bdocs:       Build Bodhi's documentation.
 bfedmsg:     Display the log of Bodhi's fedmsgs.
