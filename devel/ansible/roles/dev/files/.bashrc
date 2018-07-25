@@ -9,6 +9,7 @@ fi
 # export SYSTEMD_PAGER=
 
 shopt -s expand_aliases
+alias bci="sudo dnf install -y docker parallel && sudo systemctl enable docker && sudo systemctl start docker && sudo devel/run_tests.sh $@"
 alias bdiff-cover="btest; diff-cover /home/vagrant/bodhi/coverage.xml --compare-branch=develop --fail-under=100"
 alias bdocs="make -C /home/vagrant/bodhi/docs clean && make -C /home/vagrant/bodhi/docs html && make -C /home/vagrant/bodhi/docs man"
 alias blog="sudo journalctl -u bodhi"
