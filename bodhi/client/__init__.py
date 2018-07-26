@@ -109,8 +109,8 @@ pagination_options = [
 
 # Common releases options
 release_options = [
-    click.option('--username'),
-    click.option('--password', prompt=True, hide_input=True),
+    click.option('--user'),
+    click.option('--password', hide_input=True),
     click.option('--name', help='Release name (eg: F20)'),
     click.option('--long-name', help='Long release name (eg: "Fedora 20")'),
     click.option('--id-prefix', help='Release prefix (eg: FEDORA)'),
@@ -695,7 +695,7 @@ def waive(update, show, test, comment, url, **kwargs):
             if test_status.decision.unsatisfied_requirements:
                 click.echo('Missing tests:')
                 for req in test_status.decision.unsatisfied_requirements:
-                    click.echo('  - %s' % req)
+                    click.echo('  - %s' % req.testcase)
             else:
                 click.echo('Missing tests: None')
     else:
@@ -919,9 +919,9 @@ def releases():
 @releases.command(name='create')
 @handle_errors
 @add_options(release_options)
-def create_release(username, password, url, **kwargs):
+def create_release(user, password, url, **kwargs):
     """Create a release."""
-    client = bindings.BodhiClient(base_url=url, username=username, password=password,
+    client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
     kwargs['csrf_token'] = client.csrf()
 
@@ -932,9 +932,9 @@ def create_release(username, password, url, **kwargs):
 @handle_errors
 @add_options(release_options)
 @click.option('--new-name', help='New release name (eg: F20)')
-def edit_release(username, password, url, **kwargs):
+def edit_release(user, password, url, **kwargs):
     """Edit an existing release."""
-    client = bindings.BodhiClient(base_url=url, username=username, password=password,
+    client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
     csrf = client.csrf()
 
