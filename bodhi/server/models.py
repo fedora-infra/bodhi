@@ -1884,7 +1884,7 @@ class Update(Base):
         Karma is reset when :class:`Builds <Build>` are added or removed from an update.
 
         Returns:
-            comments (list): class:`Comments <Comment>` since the karma reset.
+            list: class:`Comments <Comment>` since the karma reset.
         """
         # We want to traverse the comments in reverse order so we only consider
         # the most recent comments from any given user and only the comments
@@ -2923,12 +2923,16 @@ class Update(Base):
         session.flush()
         return new
 
-    def update_cves(self, cves, session):
+    def update_cves(self, cves, session):  # pragma: no cover
         """
         Create any new CVES, and remove any missing ones.
 
         This method cannot possibly work:
             https://github.com/fedora-infra/bodhi/issues/1998#issuecomment-344332011
+
+        This method has pragma: no cover on it because of the combination of it not working (see
+        above), and because the CVE feature is planned for removal in a future X release of Bodhi
+        since it has never been used.
 
         Args:
             cves (list): A list of basestrings of CVE identifiers.

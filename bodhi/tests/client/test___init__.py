@@ -1405,22 +1405,6 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertIn("This is a BodhiClientException message", result.output)
 
-    def test_edit_update_without_notes(self):
-        """
-        Assert providing neither --notes-file nor --notes parameters to updates edit request
-        results in an error.
-        """
-        runner = testing.CliRunner()
-
-        result = runner.invoke(
-            client.edit,
-            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
-             '--url', 'http://localhost:6543'])
-
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, u'ERROR: must specify at least one of --notes, '
-                                        '--notes-file\n')
-
 
 class TestEditBuilrootOverrides(unittest.TestCase):
     """
@@ -1474,7 +1458,7 @@ class TestCreate(unittest.TestCase):
 
         result = runner.invoke(
             client.create_release,
-            ['--name', 'F27', '--url', 'http://localhost:6543', '--username', 'bowlofeggs',
+            ['--name', 'F27', '--url', 'http://localhost:6543', '--user', 'bowlofeggs',
              '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 0)
@@ -1502,7 +1486,7 @@ class TestCreate(unittest.TestCase):
 
         result = runner.invoke(
             client.create_release,
-            ['--name', 'F27', '--url', 'http://localhost:6543', '--username', 'bowlofeggs',
+            ['--name', 'F27', '--url', 'http://localhost:6543', '--user', 'bowlofeggs',
              '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 1)
@@ -1526,7 +1510,7 @@ class TestEditRelease(unittest.TestCase):
         result = runner.invoke(
             client.edit_release,
             ['--name', 'F27', '--long-name', 'Fedora 27, the Greatest Fedora!', '--url',
-             'http://localhost:6543', '--username', 'bowlofeggs', '--password', 's3kr3t'])
+             'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
@@ -1561,7 +1545,7 @@ class TestEditRelease(unittest.TestCase):
         result = runner.invoke(
             client.edit_release,
             ['--name', 'F27', '--new-name', 'fedora27', '--url',
-             'http://localhost:6543', '--username', 'bowlofeggs', '--password', 's3kr3t'])
+             'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
@@ -1594,7 +1578,7 @@ class TestEditRelease(unittest.TestCase):
         result = runner.invoke(
             client.edit_release,
             ['--long-name', 'Fedora 27, the Greatest Fedora!', '--url',
-             'http://localhost:6543', '--username', 'bowlofeggs', '--password', 's3kr3t'])
+             'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
         self.assertEqual(result.output, ("ERROR: Please specify the name of the release to edit\n"))
         send_request.assert_not_called()
@@ -1613,7 +1597,7 @@ class TestEditRelease(unittest.TestCase):
         result = runner.invoke(
             client.edit_release,
             ['--name', 'F27', '--long-name', 'Fedora 27, the Greatest Fedora!', '--url',
-             'http://localhost:6543', '--username', 'bowlofeggs', '--password', 's3kr3t'])
+             'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 1)
         self.assertEqual(result.output, ("ERROR: an error was encountered... :(\n"))
@@ -1840,8 +1824,28 @@ class TestWaive(unittest.TestCase):
             'decision': munch.Munch({
                 'summary': 'Two missing tests',
                 'unsatisfied_requirements': [
-                    'dist.rpmdeplint',
-                    'fedora-atomic-ci',
+                    munch.Munch({
+                        'subject_type': 'koji_build',
+                        'scenario': None,
+                        'testcase': 'dist.rpmdeplint',
+                        'item': munch.Munch({
+                            'item': 'python-arrow-0.8.0-5.fc28',
+                            'type': 'koji_build'
+                        }),
+                        'subject_identifier': 'python-arrow-0.8.0-5.fc28',
+                        'type': 'test-result-missing'
+                    }),
+                    munch.Munch({
+                        'subject_type': 'koji_build',
+                        'scenario': None,
+                        'testcase': 'fedora-atomic-ci',
+                        'item': munch.Munch({
+                            'item': 'python-arrow-0.8.0-5.fc28',
+                            'type': 'koji_build'
+                        }),
+                        'subject_identifier': 'python-arrow-0.8.0-5.fc28',
+                        'type': 'test-result-missing'
+                    }),
                 ]
             }),
         })
