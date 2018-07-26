@@ -695,7 +695,7 @@ def waive(update, show, test, comment, url, **kwargs):
             if test_status.decision.unsatisfied_requirements:
                 click.echo('Missing tests:')
                 for req in test_status.decision.unsatisfied_requirements:
-                    click.echo('  - %s' % req)
+                    click.echo('  - %s' % req.testcase)
             else:
                 click.echo('Missing tests: None')
     else:

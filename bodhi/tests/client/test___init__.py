@@ -1824,8 +1824,28 @@ class TestWaive(unittest.TestCase):
             'decision': munch.Munch({
                 'summary': 'Two missing tests',
                 'unsatisfied_requirements': [
-                    'dist.rpmdeplint',
-                    'fedora-atomic-ci',
+                    munch.Munch({
+                        'subject_type': 'koji_build',
+                        'scenario': None,
+                        'testcase': 'dist.rpmdeplint',
+                        'item': munch.Munch({
+                            'item': 'python-arrow-0.8.0-5.fc28',
+                            'type': 'koji_build'
+                        }),
+                        'subject_identifier': 'python-arrow-0.8.0-5.fc28',
+                        'type': 'test-result-missing'
+                    }),
+                    munch.Munch({
+                        'subject_type': 'koji_build',
+                        'scenario': None,
+                        'testcase': 'fedora-atomic-ci',
+                        'item': munch.Munch({
+                            'item': 'python-arrow-0.8.0-5.fc28',
+                            'type': 'koji_build'
+                        }),
+                        'subject_identifier': 'python-arrow-0.8.0-5.fc28',
+                        'type': 'test-result-missing'
+                    }),
                 ]
             }),
         })
