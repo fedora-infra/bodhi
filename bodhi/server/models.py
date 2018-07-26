@@ -1884,7 +1884,7 @@ class Update(Base):
         Karma is reset when :class:`Builds <Build>` are added or removed from an update.
 
         Returns:
-            comments (list): class:`Comments <Comment>` since the karma reset.
+            list: class:`Comments <Comment>` since the karma reset.
         """
         # We want to traverse the comments in reverse order so we only consider
         # the most recent comments from any given user and only the comments

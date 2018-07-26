@@ -558,6 +558,24 @@ class TestSanityCheckRepodata(unittest.TestCase):
         util.sanity_check_repodata(self.tempdir)
 
 
+class TestType2Icon(unittest.TestCase):
+    """Test the type2icon() function."""
+
+    def test_consonant(self):
+        """Test type2icon() with a kind that starts with a consonant."""
+        self.assertEqual(
+            util.type2icon(None, 'security'),
+            ("<span class='label label-danger' data-toggle='tooltip' "
+             "title='This is a security update'><i class='fa fa-fw fa-shield'></i></span>"))
+
+    def test_vowel(self):
+        """Test type2icon() with a kind that starts with a vowel."""
+        self.assertEqual(
+            util.type2icon(None, 'enhancement'),
+            ("<span class='label label-success' data-toggle='tooltip' "
+             "title='This is an enhancement update'><i class='fa fa-fw fa-bolt'></i></span>"))
+
+
 class TestUpdate2HTML(base.BaseTestCase):
     """Test the update2html() function."""
 
