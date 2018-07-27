@@ -101,7 +101,7 @@ Fedora versions using containers.
 
 It is possible for you to run these same tests locally. There is a ``devel/run_tests.sh`` script
 that is used by ``devel/ci/run_tests.sh`` and does the heavy lifting. This script is intended to be
-run as root since it uses ``docker``. It has a handy ``-x`` flag that will cause it to exit
+run as root since it uses ``podman``. It has a handy ``-x`` flag that will cause it to exit
 immediately upon failure. You can also set the ``RELEASES`` environment variable to a list of Fedora
 releases you wish to test in a given run. Thus, if I want to run the tests on only f26 and f27 and I
 want it to exit immediately upon failure, I can execute the script like this::

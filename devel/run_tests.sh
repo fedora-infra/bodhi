@@ -21,7 +21,7 @@
 # containers to test Bodhi across supported Fedora releases (See the RELEASES variable below). You
 # can set the RELEASES environment variable to override the RELEASES for a given test run if you
 # like. You can pass a -x flag to it to get it to exit early if a build or test run fails.
-# It is intended to be run with sudo, since it needs to use docker. Lastly, there is also a -a flag,
+# It is intended to be run with sudo, since it needs to use podman. Lastly, there is also a -a flag,
 # which will copy test results into a test_results folder if provided.
 
 BUILD_PARALLEL=${BUILD_PARALLEL:=""}
@@ -87,9 +87,9 @@ popd
 # tags.
 $PARALLEL sed -i "s/FEDORA_RELEASE/{= s:f:: =}/" devel/ci/Dockerfile-{} ::: $RELEASES
 # Build the containers.
-$PARALLEL $BUILD_PARALLEL "docker build --pull -t bodhi-dev/{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
+$PARALLEL $BUILD_PARALLEL "podman build --pull -t bodhi-dev/{} -f devel/ci/Dockerfile-{} . || (echo \"JENKIES FAIL\"; exit 1)" ::: $RELEASES || (echo -e "\n\n\033[0;31mFAILED TO BUILD IMAGE(S)\033[0m\n\n"; exit 1)
 
 # Run the tests.
-$PARALLEL docker run --network none --rm $MOUNT_TEST_RESULTS bodhi-dev/{} /bodhi/devel/test_container.sh $PYTEST_ARGS ::: $RELEASES || (tar_results; echo -e "\n\n\033[0;31mTESTS FAILED\033[0m\n\n"; exit 1)
+$PARALLEL podman run --network none --rm $MOUNT_TEST_RESULTS localhost/bodhi-dev/{} /bodhi/devel/test_container.sh $PYTEST_ARGS ::: $RELEASES || (tar_results; echo -e "\n\n\033[0;31mTESTS FAILED\033[0m\n\n"; exit 1)
 tar_results
 echo -e "\n\n\033[0;32mSUCCESS!\033[0m\n\n"
