@@ -40,7 +40,6 @@
       - python2-fedmsg-consumers
       - python2-fedora
       - python2-feedgen
-      - python2-flake8
       - python2-ipdb
       - python2-jinja2
       - python2-kitchen
@@ -76,6 +75,7 @@
       - python3-dogpile-cache
       - python3-fedmsg
       - python3-fedora
+      - python3-flake8
       - python3-ipdb
       - python3-kitchen
       - python3-markdown

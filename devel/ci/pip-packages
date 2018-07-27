@@ -13,7 +13,6 @@ RUN pip-2 install -r /bodhi/requirements.txt
 RUN pip-3 install -r /bodhi/requirements.txt
 RUN pip-2 install \
     diff-cover \
-    flake8 \
     mock \
     responses \
     pytest \
@@ -22,6 +21,7 @@ RUN pip-2 install \
     webtest
 RUN pip-3 install \
     diff-cover \
+    flake8 \
     mock \
     responses \
     pydocstyle \
