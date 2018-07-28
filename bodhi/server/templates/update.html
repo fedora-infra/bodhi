@@ -734,35 +734,6 @@ $(document).ready(function(){
                         </tr>
                       </thead>
 
-                      % for bug in update.bugs:
-                      <tr>
-                        <input type="hidden" name="bug_feedback.${loop.index}.bug_id" value="${bug.bug_id}">
-                        <td data-class="danger">  <input type="radio" name="bug_feedback.${loop.index}.karma" value="-1"> </td>
-                        <td>                      <input type="radio" name="bug_feedback.${loop.index}.karma" value="0" checked> </td>
-                        <td data-class="success"> <input type="radio" name="bug_feedback.${loop.index}.karma" value="1"> </td>
-                        <td>${self.util.bug_link(bug) | n}</td>
-                      </tr>
-                      % endfor
-
-                      % for test in update.full_test_cases:
-                      <tr>
-                        <input type="hidden" name="testcase_feedback.${loop.index}.testcase_name" value="${test.name}">
-                        <td data-class="danger">  <input type="radio" name="testcase_feedback.${loop.index}.karma" value="-1"> </td>
-                        <td>                      <input type="radio" name="testcase_feedback.${loop.index}.karma" value="0" checked> </td>
-                        <td data-class="success"> <input type="radio" name="testcase_feedback.${loop.index}.karma" value="1"> </td>
-                        <td>${self.util.testcase_link(test) | n}</td>
-                      </tr>
-                      % endfor
-
-                      % if update.critpath:
-                      <tr>
-                        <td data-class="danger">  <input type="radio" name="karma_critpath" value="-1"> </td>
-                        <td>                      <input type="radio" name="karma_critpath" value="0" checked> </td>
-                        <td data-class="success"> <input type="radio" name="karma_critpath" value="1"> </td>
-                        <td>Does the system's basic functionality continue to work after this update?</td>
-                      </tr>
-                      % endif
-
                       <tr>
                         <td data-class="danger">  <input type="radio" name="karma" value="-1"> </td>
                         <td>                      <input type="radio" name="karma" value="0" checked> </td>
@@ -784,6 +755,35 @@ $(document).ready(function(){
                         <td>Is the update generally functional? (karma)</td>
                         % endif
                       </tr>
+
+                      % if update.critpath:
+                      <tr>
+                        <td data-class="danger">  <input type="radio" name="karma_critpath" value="-1"> </td>
+                        <td>                      <input type="radio" name="karma_critpath" value="0" checked> </td>
+                        <td data-class="success"> <input type="radio" name="karma_critpath" value="1"> </td>
+                        <td>Does the system's basic functionality continue to work after this update?</td>
+                      </tr>
+                      % endif
+
+                      % for bug in update.bugs:
+                      <tr>
+                        <input type="hidden" name="bug_feedback.${loop.index}.bug_id" value="${bug.bug_id}">
+                        <td data-class="danger">  <input type="radio" name="bug_feedback.${loop.index}.karma" value="-1"> </td>
+                        <td>                      <input type="radio" name="bug_feedback.${loop.index}.karma" value="0" checked> </td>
+                        <td data-class="success"> <input type="radio" name="bug_feedback.${loop.index}.karma" value="1"> </td>
+                        <td>${self.util.bug_link(bug) | n}</td>
+                      </tr>
+                      % endfor
+
+                      % for test in update.full_test_cases:
+                      <tr>
+                        <input type="hidden" name="testcase_feedback.${loop.index}.testcase_name" value="${test.name}">
+                        <td data-class="danger">  <input type="radio" name="testcase_feedback.${loop.index}.karma" value="-1"> </td>
+                        <td>                      <input type="radio" name="testcase_feedback.${loop.index}.karma" value="0" checked> </td>
+                        <td data-class="success"> <input type="radio" name="testcase_feedback.${loop.index}.karma" value="1"> </td>
+                        <td>${self.util.testcase_link(test) | n}</td>
+                      </tr>
+                      % endfor
 
                     </table>
                 </div>
