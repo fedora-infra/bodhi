@@ -87,8 +87,8 @@ class TestNewUpdate(BaseTestCase):
     @mock.patch(**mock_valid_requirements)
     def test_empty_build_name(self, *args):
         res = self.app.post_json('/updates/', self.get_update([u'']), status=400)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'builds.0')
-        self.assertEquals(res.json_body['errors'][0]['description'], 'Required')
+        self.assertEqual(res.json_body['errors'][0]['name'], 'builds.0')
+        self.assertEqual(res.json_body['errors'][0]['description'], 'Required')
 
     @mock.patch(**mock_valid_requirements)
     def test_fail_on_edit_with_empty_build_list(self, *args):
@@ -96,13 +96,13 @@ class TestNewUpdate(BaseTestCase):
         update['edited'] = update['builds']  # the update title..
         update['builds'] = []
         res = self.app.post_json('/updates/', update, status=400)
-        self.assertEquals(len(res.json_body['errors']), 2)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'builds')
-        self.assertEquals(
+        self.assertEqual(len(res.json_body['errors']), 2)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'builds')
+        self.assertEqual(
             res.json_body['errors'][0]['description'],
             'You may not specify an empty list of builds.')
-        self.assertEquals(res.json_body['errors'][1]['name'], 'builds')
-        self.assertEquals(
+        self.assertEqual(res.json_body['errors'][1]['name'], 'builds')
+        self.assertEqual(
             res.json_body['errors'][1]['description'],
             'ACL validation mechanism was unable to determine ACLs.')
 
@@ -116,8 +116,8 @@ class TestNewUpdate(BaseTestCase):
         update['notes'] = u'This is wünderfül'
         r = self.app.post_json('/updates/', update)
         up = r.json_body
-        self.assertEquals(up['title'], u'bodhi-2.0.0-2.fc17')
-        self.assertEquals(up['notes'], u'This is wünderfül')
+        self.assertEqual(up['title'], u'bodhi-2.0.0-2.fc17')
+        self.assertEqual(up['notes'], u'This is wünderfül')
         self.assertIsNotNone(up['date_submitted'])
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
@@ -178,7 +178,7 @@ class TestNewUpdate(BaseTestCase):
         }
         assert expected_error in res.json_body['errors'], \
             res.json_body['errors']
-        self.assertEquals(publish.call_args_list, [])
+        self.assertEqual(publish.call_args_list, [])
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -240,26 +240,26 @@ class TestNewUpdate(BaseTestCase):
     def test_new_rpm_update(self, publish, *args):
         r = self.app.post_json('/updates/', self.get_update('bodhi-2.0.0-2.fc17'))
         up = r.json_body
-        self.assertEquals(up['title'], u'bodhi-2.0.0-2.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['content_type'], u'rpm')
-        self.assertEquals(up['severity'], u'unspecified')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
+        self.assertEqual(up['title'], u'bodhi-2.0.0-2.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['content_type'], u'rpm')
+        self.assertEqual(up['severity'], u'unspecified')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
         # The notes are inheriting notes from the update that this update obsoleted.
-        self.assertEquals(up['notes'], u'this is a test update\n\n----\n\nUseful details!')
+        self.assertEqual(up['notes'], u'this is a test update\n\n----\n\nUseful details!')
         self.assertIsNotNone(up['date_submitted'])
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
-        self.assertEquals(up['karma'], 0)
-        self.assertEquals(up['requirements'], 'rpmlint')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
+        self.assertEqual(up['karma'], 0)
+        self.assertEqual(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -274,9 +274,9 @@ class TestNewUpdate(BaseTestCase):
                                    status=400)
             up = r.json_body
 
-        self.assertEquals(up['status'], 'error')
-        self.assertEquals(up['errors'][0]['description'],
-                          "Build does not exist: bodhi-2.0.0-2.fc17")
+        self.assertEqual(up['status'], 'error')
+        self.assertEqual(up['errors'][0]['description'],
+                         "Build does not exist: bodhi-2.0.0-2.fc17")
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
@@ -289,9 +289,9 @@ class TestNewUpdate(BaseTestCase):
                                    status=400)
             up = r.json_body
 
-        self.assertEquals(up['status'], 'error')
-        self.assertEquals(up['errors'][0]['description'],
-                          "Koji error getting build: bodhi-2.0.0-2.fc17")
+        self.assertEqual(up['status'], 'error')
+        self.assertEqual(up['errors'][0]['description'],
+                         "Koji error getting build: bodhi-2.0.0-2.fc17")
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -345,7 +345,7 @@ class TestNewUpdate(BaseTestCase):
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_module_update(self, publish, *args):
         # Ensure there are no module packages in the DB to begin with.
-        self.assertEquals(self.db.query(ModulePackage).count(), 0)
+        self.assertEqual(self.db.query(ModulePackage).count(), 0)
         self.create_release(u'27M')
         # Then, create an update for one.
         data = self.get_update('nginx-master-20170523')
@@ -353,30 +353,30 @@ class TestNewUpdate(BaseTestCase):
         r = self.app.post_json('/updates/', data)
 
         up = r.json_body
-        self.assertEquals(up['title'], u'nginx-master-20170523')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F27M')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['content_type'], u'module')
-        self.assertEquals(up['severity'], u'unspecified')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'this is a test update')
+        self.assertEqual(up['title'], u'nginx-master-20170523')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F27M')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['content_type'], u'module')
+        self.assertEqual(up['severity'], u'unspecified')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
-        self.assertEquals(up['karma'], 0)
-        self.assertEquals(up['requirements'], 'rpmlint')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
+        self.assertEqual(up['karma'], 0)
+        self.assertEqual(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
         # At the end, ensure that the right kind of package was created.
-        self.assertEquals(self.db.query(ModulePackage).count(), 1)
+        self.assertEqual(self.db.query(ModulePackage).count(), 1)
 
     @mock.patch(**mock_valid_requirements)
     def test_multiple_builds_of_same_module_stream(self, *args):
@@ -403,12 +403,12 @@ class TestNewUpdate(BaseTestCase):
         assert res['title'] == 'nodejs-6-20170101 nodejs-8-20170202'
 
         # At the end, ensure that the right kind of packages were created.
-        self.assertEquals(self.db.query(ModulePackage).count(), 2)
+        self.assertEqual(self.db.query(ModulePackage).count(), 2)
 
     @mock.patch(**mock_valid_requirements)
     def test_multiple_updates_single_module_steam(self, *args):
         # Ensure there are no module packages in the DB to begin with.
-        self.assertEquals(self.db.query(ModulePackage).count(), 0)
+        self.assertEqual(self.db.query(ModulePackage).count(), 0)
         self.create_release(u'27M')
 
         # First create an update for nodejs:6
@@ -418,7 +418,7 @@ class TestNewUpdate(BaseTestCase):
         self.app.post_json('/updates/', self.get_update(u'nodejs-6-20170202'))
 
         # At the end, ensure that the right kind of package was created.
-        self.assertEquals(self.db.query(ModulePackage).count(), 1)
+        self.assertEqual(self.db.query(ModulePackage).count(), 1)
         pkg = self.db.query(ModulePackage).one()
         assert pkg.name == 'nodejs:6'
 
@@ -442,25 +442,25 @@ class TestNewUpdate(BaseTestCase):
         r = self.app.post_json('/updates/', data, status=200)
 
         up = r.json_body
-        self.assertEquals(up['title'], u'mariadb-10.1-10.f28container')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F28C')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['content_type'], u'container')
-        self.assertEquals(up['severity'], u'unspecified')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'this is a test update')
+        self.assertEqual(up['title'], u'mariadb-10.1-10.f28container')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F28C')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['content_type'], u'container')
+        self.assertEqual(up['severity'], u'unspecified')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
-        self.assertEquals(up['karma'], 0)
-        self.assertEquals(up['requirements'], 'rpmlint')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
+        self.assertEqual(up['karma'], 0)
+        self.assertEqual(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -473,10 +473,10 @@ class TestNewUpdate(BaseTestCase):
         r = self.app.post_json('/updates/', update)
         up = r.json_body
         # This Update inherits one bug from the Update it obsoleted.
-        self.assertEquals(len(up['bugs']), 3)
-        self.assertEquals(up['bugs'][0]['bug_id'], 1234)
-        self.assertEquals(up['bugs'][1]['bug_id'], 5678)
-        self.assertEquals(up['bugs'][2]['bug_id'], 12345)
+        self.assertEqual(len(up['bugs']), 3)
+        self.assertEqual(up['bugs'][0]['bug_id'], 1234)
+        self.assertEqual(up['bugs'][1]['bug_id'], 5678)
+        self.assertEqual(up['bugs'][2]['bug_id'], 12345)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
@@ -487,10 +487,10 @@ class TestNewUpdate(BaseTestCase):
         r = self.app.post_json('/updates/', update)
         up = r.json_body
         # This Update inherits one bug from the Update it obsoleted.
-        self.assertEquals(len(up['bugs']), 3)
-        self.assertEquals(up['bugs'][0]['bug_id'], 1234)
-        self.assertEquals(up['bugs'][1]['bug_id'], 5678)
-        self.assertEquals(up['bugs'][2]['bug_id'], 12345)
+        self.assertEqual(len(up['bugs']), 3)
+        self.assertEqual(up['bugs'][0]['bug_id'], 1234)
+        self.assertEqual(up['bugs'][1]['bug_id'], 5678)
+        self.assertEqual(up['bugs'][2]['bug_id'], 12345)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
@@ -501,9 +501,9 @@ class TestNewUpdate(BaseTestCase):
         update['bugs'] = '1234, blargh'
         r = self.app.post_json('/updates/', update, status=400)
         up = r.json_body
-        self.assertEquals(up['status'], 'error')
-        self.assertEquals(up['errors'][0]['description'],
-                          "Invalid bug ID specified: [u'1234', u'blargh']")
+        self.assertEqual(up['status'], 'error')
+        self.assertEqual(up['errors'][0]['description'],
+                         "Invalid bug ID specified: [u'1234', u'blargh']")
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
@@ -558,7 +558,7 @@ class TestNewUpdate(BaseTestCase):
         del args['requirements']
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
+        self.assertEqual(up['title'], u'bodhi-2.0.0-3.fc17')
         self.assertTrue('upgradepath' in up['requirements'])
         self.assertTrue('rpmlint' in up['requirements'])
         publish.assert_called_once_with(
@@ -575,7 +575,7 @@ class TestNewUpdate(BaseTestCase):
         args['request'] = 'stable'
         up = self.app.post_json('/updates/', args).json_body
         self.assertTrue(up['critpath'])
-        self.assertEquals(up['request'], 'testing')
+        self.assertEqual(up['request'], 'testing')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -597,12 +597,12 @@ class TestNewUpdate(BaseTestCase):
         args = self.get_update('bodhi-2.0.0-3.fc17')
         with mock.patch(**mock_uuid4_version2):
             r = self.app.post_json('/updates/', args).json_body
-        self.assertEquals(r['request'], 'testing')
+        self.assertEqual(r['request'], 'testing')
 
         # Since we're obsoleting something owned by someone else.
-        self.assertEquals(r['caveats'][0]['description'],
-                          'This update has obsoleted bodhi-2.0.0-2.fc17, '
-                          'and has inherited its bugs and notes.')
+        self.assertEqual(r['caveats'][0]['description'],
+                         'This update has obsoleted bodhi-2.0.0-2.fc17, '
+                         'and has inherited its bugs and notes.')
 
         # Check for the comment multiple ways
         # Note that caveats above don't support markdown, but comments do.
@@ -612,17 +612,17 @@ class TestNewUpdate(BaseTestCase):
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'],
                              '/updates/FEDORA-{}-033713b73b'.format(datetime.now().year)))
-        self.assertEquals(r['comments'][-1]['text'], expected_comment)
+        self.assertEqual(r['comments'][-1]['text'], expected_comment)
         publish.assert_called_with(
             topic='update.request.testing', msg=mock.ANY)
 
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertEquals(up.status, UpdateStatus.obsolete)
+        self.assertEqual(up.status, UpdateStatus.obsolete)
         expected_comment = u'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'],
                              '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
-        self.assertEquals(up.comments[-1].text, expected_comment)
+        self.assertEqual(up.comments[-1].text, expected_comment)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -633,9 +633,9 @@ class TestNewUpdate(BaseTestCase):
 
         r = self.app.post_json('/updates/', update, status=400)
 
-        self.assertEquals(r.json_body['status'], 'error')
-        self.assertEquals(r.json_body['errors'][0]['description'],
-                          "Unable to create update.  oops!")
+        self.assertEqual(r.json_body['status'], 'error')
+        self.assertEqual(r.json_body['errors'][0]['description'],
+                         "Unable to create update.  oops!")
         # Despite the Exception, the RpmBuild should still exist in the database
         build = self.db.query(RpmBuild).filter(RpmBuild.nvr == u'bodhi-2.3.2-1.fc17').one()
         self.assertEqual(build.package.name, 'bodhi')
@@ -659,22 +659,22 @@ class TestNewUpdate(BaseTestCase):
         with mock.patch(**mock_uuid4_version2):
             r = self.app.post_json('/updates/', args).json_body
 
-        self.assertEquals(r['request'], 'testing')
+        self.assertEqual(r['request'], 'testing')
         # The exception handler should have put an error message in the caveats.
-        self.assertEquals(r['caveats'][0]['description'],
-                          "Problem obsoleting older updates: bet you didn't see this coming!")
+        self.assertEqual(r['caveats'][0]['description'],
+                         "Problem obsoleting older updates: bet you didn't see this coming!")
         # Check for the comment multiple ways. The comment will be about the update being submitted
         # for testing instead of being about the obsoletion, since the obsoletion failed.
         # Note that caveats above don't support markdown, but comments do.
         expected_comment = 'This update has been submitted for testing by guest. '
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'], '/updates/FEDORA-2016-033713b73b'))
-        self.assertEquals(r['comments'][-1]['text'], expected_comment)
+        self.assertEqual(r['comments'][-1]['text'], expected_comment)
         up = self.db.query(Update).filter_by(title=nvr).one()
         # The old update failed to get obsoleted.
-        self.assertEquals(up.status, UpdateStatus.testing)
+        self.assertEqual(up.status, UpdateStatus.testing)
         expected_comment = u'This update has been submitted for testing by guest. '
-        self.assertEquals(up.comments[-1].text, expected_comment)
+        self.assertEqual(up.comments[-1].text, expected_comment)
 
 
 class TestSetRequest(BaseTestCase):
@@ -693,9 +693,9 @@ class TestSetRequest(BaseTestCase):
                          csrf_token=self.app.get('/csrf').json_body['csrf_token'])
         res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
-        self.assertEquals(res.json_body['status'], 'error')
-        self.assertEquals(res.json_body[u'errors'][0][u'description'],
-                          "Can't change request on a locked update")
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body[u'errors'][0][u'description'],
+                         "Can't change request on a locked update")
 
     @mock.patch(**mock_valid_requirements)
     def test_set_request_archived_release(self, *args):
@@ -710,9 +710,9 @@ class TestSetRequest(BaseTestCase):
                          csrf_token=self.app.get('/csrf').json_body['csrf_token'])
         res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
-        self.assertEquals(res.json_body['status'], 'error')
-        self.assertEquals(res.json_body[u'errors'][0][u'description'],
-                          "Can't change request for an archived release")
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body[u'errors'][0][u'description'],
+                         "Can't change request for an archived release")
 
     @mock.patch.dict(config, {'test_gating.required': True})
     def test_test_gating_status_failed(self):
@@ -730,9 +730,9 @@ class TestSetRequest(BaseTestCase):
 
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(up.request, None)
-        self.assertEquals(res.json_body['status'], 'error')
-        self.assertEquals(res.json_body[u'errors'][0][u'description'],
-                          "Requirement not met Required tests did not pass on this update")
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body[u'errors'][0][u'description'],
+                         "Requirement not met Required tests did not pass on this update")
 
     @mock.patch.dict(config, {'test_gating.required': True})
     def test_test_gating_status_passed(self):
@@ -769,9 +769,9 @@ class TestSetRequest(BaseTestCase):
                          csrf_token=self.app.get('/csrf').json_body['csrf_token'])
         res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
 
-        self.assertEquals(res.json_body['status'], 'error')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          u'IOError. oops!')
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'IOError. oops!')
         log_exception.assert_called_once_with("Unhandled exception in set_request")
 
 
@@ -1004,7 +1004,7 @@ class TestUpdatesService(BaseTestCase):
         assert 'bodhi does not have commit access to bodhi' not in res, res
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         assert build.update is not None
-        self.assertEquals(build.update.notes, u'testing!!!')
+        self.assertEqual(build.update.notes, u'testing!!!')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -1367,14 +1367,14 @@ class TestUpdatesService(BaseTestCase):
         url = '/updates/%s/%s' % (update['alias'], update['title'])
         res = self.app.get(url, status=302)
         target = 'http://localhost/updates/%s' % update['alias']
-        self.assertEquals(res.headers['Location'], target)
+        self.assertEqual(res.headers['Location'], target)
 
     def test_404(self):
         self.app.get('/a', status=404)
 
     def test_get_single_update(self):
         res = self.app.get('/updates/bodhi-2.0-1.fc17', headers={'Accept': 'application/json'})
-        self.assertEquals(res.json_body['update']['title'], 'bodhi-2.0-1.fc17')
+        self.assertEqual(res.json_body['update']['title'], 'bodhi-2.0-1.fc17')
         self.assertIn('application/json', res.headers['Content-Type'])
 
     def test_get_single_update_jsonp(self):
@@ -1426,31 +1426,31 @@ class TestUpdatesService(BaseTestCase):
     def test_list_updates(self):
         res = self.app.get('/updates/')
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         alias = u'FEDORA-%s-a3bbe1a8f2' % YEAR
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['submitter'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['content_type'], u'rpm')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], alias)
-        self.assertEquals(up['karma'], 1)
-        self.assertEquals(up['url'],
-                          (urlparse.urljoin(config['base_address'], '/updates/%s' % alias)))
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['submitter'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['content_type'], u'rpm')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], alias)
+        self.assertEqual(up['karma'], 1)
+        self.assertEqual(up['url'],
+                         (urlparse.urljoin(config['base_address'], '/updates/%s' % alias)))
 
     def test_list_updates_jsonp(self):
         res = self.app.get('/updates/',
@@ -1493,14 +1493,14 @@ class TestUpdatesService(BaseTestCase):
     def test_updates_like(self):
         res = self.app.get('/updates/', {'like': 'odh'})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
 
         res = self.app.get('/updates/', {'like': 'wat'})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
     def test_updates_search(self):
         """
@@ -1510,50 +1510,50 @@ class TestUpdatesService(BaseTestCase):
         # test that the search works
         res = self.app.get('/updates/', {'search': 'bodh'})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
 
         # test that the search is case insensitive
         res = self.app.get('/updates/', {'search': 'Bodh'})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
 
         # test a search that yields nothing
         res = self.app.get('/updates/', {'search': 'wat'})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
         # test a search for an alias
         res = self.app.get(
             '/updates/', {'search': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.utcnow().year)})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
 
         # test that the search works for leading space
         res = self.app.get('/updates/', {'search': ' bodh'})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
 
         # test that the search works for trailing space
         res = self.app.get('/updates/', {'search': 'bodh '})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
 
         # test that the search works for both leading and trailing space
         res = self.app.get('/updates/', {'search': ' bodh '})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_valid_requirements)
@@ -1566,13 +1566,13 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"rows_per_page": 1})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
         update1 = body['updates'][0]
 
         res = self.app.get('/updates/',
                            {"rows_per_page": 1, "page": 2})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
         update2 = body['updates'][0]
 
         self.assertNotEquals(update1, update2)
@@ -1584,7 +1584,7 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"approved_since": now.strftime("%Y-%m-%d")})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
         # Now approve one
         self.db.query(Update).first().date_approved = now
@@ -1594,41 +1594,41 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"approved_since": now.strftime("%Y-%m-%d")})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['content_type'], u'rpm')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
-        self.assertEquals(len(up['bugs']), 1)
-        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['content_type'], u'rpm')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+        self.assertEqual(len(up['bugs']), 1)
+        self.assertEqual(up['bugs'][0]['bug_id'], 12345)
 
         # https://github.com/fedora-infra/bodhi/issues/270
-        self.assertEquals(len(up['test_cases']), 1)
-        self.assertEquals(up['test_cases'][0]['name'], u'Wat')
+        self.assertEqual(len(up['test_cases']), 1)
+        self.assertEqual(up['test_cases'][0]['name'], u'Wat')
 
     def test_list_updates_by_invalid_approved_since(self):
         res = self.app.get('/updates/', {"approved_since": "forever"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'approved_since')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          'Invalid date')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'approved_since')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         'Invalid date')
 
     def test_list_updates_by_approved_before(self):
         # Approve an update
@@ -1640,7 +1640,7 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"approved_before": "1984-11-01"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
         # Now check we get the update if we use tomorrow
         tomorrow = datetime.utcnow() + timedelta(days=1)
@@ -1648,157 +1648,157 @@ class TestUpdatesService(BaseTestCase):
 
         res = self.app.get('/updates/', {"approved_before": tomorrow})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['content_type'], u'rpm')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
-        self.assertEquals(len(up['bugs']), 1)
-        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['content_type'], u'rpm')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+        self.assertEqual(len(up['bugs']), 1)
+        self.assertEqual(up['bugs'][0]['bug_id'], 12345)
 
     def test_list_updates_by_invalid_approved_before(self):
         res = self.app.get('/updates/', {"approved_before": "forever"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'approved_before')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          'Invalid date')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'approved_before')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         'Invalid date')
 
     def test_list_updates_by_bugs(self):
         res = self.app.get('/updates/', {"bugs": '12345'})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
-        self.assertEquals(len(up['bugs']), 1)
-        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+        self.assertEqual(len(up['bugs']), 1)
+        self.assertEqual(up['bugs'][0]['bug_id'], 12345)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_invalid_bug(self):
         res = self.app.get('/updates/', {"bugs": "cockroaches"}, status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'bugs')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid bug ID specified: [u'cockroaches']")
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'bugs')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         "Invalid bug ID specified: [u'cockroaches']")
 
     def test_list_updates_by_unexisting_bug(self):
         res = self.app.get('/updates/', {"bugs": "19850110"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
     def test_list_updates_by_critpath(self):
         res = self.app.get('/updates/', {"critpath": "false"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_invalid_critpath(self):
         res = self.app.get('/updates/', {"critpath": "lalala"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'critpath')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          '"lalala" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'critpath')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         '"lalala" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
     def test_list_updates_by_cves(self):
         res = self.app.get("/updates/", {"cves": "CVE-1985-0110"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_unexisting_cve(self):
         res = self.app.get('/updates/', {"cves": "CVE-2013-1015"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
     def test_list_updates_by_invalid_cve(self):
         res = self.app.get('/updates/', {"cves": "WTF-ZOMG-BBQ"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'cves.0')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          '"WTF-ZOMG-BBQ" is not a valid CVE id')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'cves.0')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         '"WTF-ZOMG-BBQ" is not a valid CVE id')
 
     def test_list_updates_by_date_submitted_invalid_date(self):
         """test filtering by submitted date with an invalid date"""
         res = self.app.get('/updates/', {"submitted_since": "11-01-1984"}, status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(body['errors'][0]['name'], 'submitted_since')
-        self.assertEquals(body['errors'][0]['description'],
-                          'Invalid date')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(body['errors'][0]['name'], 'submitted_since')
+        self.assertEqual(body['errors'][0]['description'],
+                         'Invalid date')
 
     def test_list_updates_by_date_submitted_future_date(self):
         """test filtering by submitted date with future date"""
@@ -1807,117 +1807,117 @@ class TestUpdatesService(BaseTestCase):
 
         res = self.app.get('/updates/', {"submitted_since": tomorrow})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
     def test_list_updates_by_date_submitted_valid(self):
         """test filtering by submitted date with valid data"""
         res = self.app.get('/updates/', {"submitted_since": "1984-11-01"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_date_submitted_before_invalid_date(self):
         """test filtering by submitted before date with an invalid date"""
         res = self.app.get('/updates/', {"submitted_before": "11-01-1984"}, status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(body['errors'][0]['name'], 'submitted_before')
-        self.assertEquals(body['errors'][0]['description'],
-                          'Invalid date')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(body['errors'][0]['name'], 'submitted_before')
+        self.assertEqual(body['errors'][0]['description'],
+                         'Invalid date')
 
     def test_list_updates_by_date_submitted_before_old_date(self):
         """test filtering by submitted before date with old date"""
         res = self.app.get('/updates/', {"submitted_before": "1975-01-01"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
     def test_list_updates_by_date_submitted_before_valid(self):
         """test filtering by submitted before date with valid date"""
         today = datetime.utcnow().strftime("%Y-%m-%d")
         res = self.app.get('/updates/', {"submitted_before": today})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_locked(self):
         Update.query.one().locked = True
         self.db.flush()
         res = self.app.get('/updates/', {"locked": "true"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], True)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], True)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_content_type(self):
         res = self.app.get('/updates/', {"content_type": "module"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
         res = self.app.get('/updates/', {"content_type": "rpm"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
     def test_list_updates_by_invalid_locked(self):
         res = self.app.get('/updates/', {"locked": "maybe"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'locked')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          '"maybe" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'locked')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         '"maybe" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
     def test_list_updates_by_modified_since(self):
         now = datetime.utcnow()
@@ -1926,7 +1926,7 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"modified_since": now.strftime("%Y-%m-%d")})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
         # Now approve one
         self.db.query(Update).first().date_modified = now
@@ -1936,37 +1936,37 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"modified_since": now.strftime("%Y-%m-%d")})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
-        self.assertEquals(len(up['bugs']), 1)
-        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+        self.assertEqual(len(up['bugs']), 1)
+        self.assertEqual(up['bugs'][0]['bug_id'], 12345)
 
     def test_list_updates_by_invalid_modified_since(self):
         res = self.app.get('/updates/', {"modified_since": "the dawn of time"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'modified_since')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          'Invalid date')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'modified_since')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         'Invalid date')
 
     def test_list_updates_by_modified_before(self):
         now = datetime.utcnow()
@@ -1977,7 +1977,7 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"modified_before": now.strftime("%Y-%m-%d")})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
         # Now approve one
         self.db.query(Update).first().date_modified = now
@@ -1987,128 +1987,128 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"modified_before": tomorrow})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
-        self.assertEquals(len(up['bugs']), 1)
-        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+        self.assertEqual(len(up['bugs']), 1)
+        self.assertEqual(up['bugs'][0]['bug_id'], 12345)
 
     def test_list_updates_by_invalid_modified_before(self):
         res = self.app.get('/updates/', {"modified_before": "the dawn of time"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'modified_before')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          'Invalid date')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'modified_before')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         'Invalid date')
 
     def test_list_updates_by_package(self):
         res = self.app.get('/updates/', {"packages": "bodhi"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_builds(self):
         res = self.app.get('/updates/', {"builds": "bodhi-3.0-1.fc17"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
         res = self.app.get('/updates/', {"builds": "bodhi-2.0-1.fc17"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_unexisting_package(self):
         res = self.app.get('/updates/', {"packages": "flash-player"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
     def test_list_updates_by_pushed(self):
         res = self.app.get('/updates/', {"pushed": "false"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
-        self.assertEquals(up['pushed'], False)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+        self.assertEqual(up['pushed'], False)
 
     def test_list_updates_by_invalid_pushed(self):
         res = self.app.get('/updates/', {"pushed": "who knows?"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'pushed')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          '"who knows?" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'pushed')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         '"who knows?" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
     def test_list_updates_by_pushed_since(self):
         now = datetime.utcnow()
@@ -2117,7 +2117,7 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"pushed_since": now.strftime("%Y-%m-%d")})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
         # Now approve one
         self.db.query(Update).first().date_pushed = now
@@ -2127,36 +2127,36 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"pushed_since": now.strftime("%Y-%m-%d")})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
-        self.assertEquals(len(up['bugs']), 1)
-        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+        self.assertEqual(len(up['bugs']), 1)
+        self.assertEqual(up['bugs'][0]['bug_id'], 12345)
 
     def test_list_updates_by_invalid_pushed_since(self):
         res = self.app.get('/updates/', {"pushed_since": "a while ago"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'pushed_since')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          'Invalid date')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'pushed_since')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         'Invalid date')
 
     def test_list_updates_by_pushed_before(self):
         now = datetime.utcnow()
@@ -2167,7 +2167,7 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"pushed_before": now.strftime("%Y-%m-%d")})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
         # Now approve one
         self.db.query(Update).first().date_pushed = now
@@ -2177,60 +2177,60 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/updates/',
                            {"pushed_before": tomorrow})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
-        self.assertEquals(len(up['bugs']), 1)
-        self.assertEquals(up['bugs'][0]['bug_id'], 12345)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+        self.assertEqual(len(up['bugs']), 1)
+        self.assertEqual(up['bugs'][0]['bug_id'], 12345)
 
     def test_list_updates_by_invalid_pushed_before(self):
         res = self.app.get('/updates/', {"pushed_before": "a while ago"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'pushed_before')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          'Invalid date')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'pushed_before')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         'Invalid date')
 
     def test_list_updates_by_release_name(self):
         res = self.app.get('/updates/', {"releases": "F17"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_singular_release_param(self):
         """
@@ -2239,176 +2239,176 @@ class TestUpdatesService(BaseTestCase):
         """
         res = self.app.get('/updates/', {"release": "F17"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_release_version(self):
         res = self.app.get('/updates/', {"releases": "17"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_unexisting_release(self):
         res = self.app.get('/updates/', {"releases": "WinXP"}, status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'releases')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          'Invalid releases specified: WinXP')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'releases')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         'Invalid releases specified: WinXP')
 
     def test_list_updates_by_request(self):
         res = self.app.get('/updates/', {'request': "testing"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_request(self):
         res = self.app.get('/updates/', {"request": "impossible"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'request')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          u'"impossible" is not one of revoke, testing,'
-                          ' obsolete, batched, stable, unpush')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'request')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'"impossible" is not one of revoke, testing,'
+                         ' obsolete, batched, stable, unpush')
 
     def test_list_updates_by_severity(self):
         res = self.app.get('/updates/', {"severity": "medium"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_severity(self):
         res = self.app.get('/updates/', {"severity": "schoolmaster"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'severity')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          '"schoolmaster" is not one of high, urgent, medium, low, unspecified')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'severity')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         '"schoolmaster" is not one of high, urgent, medium, low, unspecified')
 
     def test_list_updates_by_status(self):
         res = self.app.get('/updates/', {"status": "pending"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_status_active_release(self):
         res = self.app.get(
             '/updates/', {"status": "pending", "active_releases": 'true'})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_status_inactive_release(self):
         rel = self.db.query(Release).filter_by(name='F17').one()
@@ -2418,16 +2418,16 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get(
             '/updates/', {"status": "pending", "active_releases": 'true'})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_status(self):
         res = self.app.get('/updates/', {"status": "single"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'status')
-        self.assertEquals(
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'status')
+        self.assertEqual(
             res.json_body['errors'][0]['description'],
             ('"single" is not one of testing, side_tag_expired, processing, obsolete, '
              'pending, stable, unpushed, side_tag_active'))
@@ -2435,103 +2435,103 @@ class TestUpdatesService(BaseTestCase):
     def test_list_updates_by_suggest(self):
         res = self.app.get('/updates/', {"suggest": "unspecified"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_suggest(self):
         res = self.app.get('/updates/', {"suggest": "no idea"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'suggest')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          '"no idea" is not one of logout, reboot, unspecified')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'suggest')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         '"no idea" is not one of logout, reboot, unspecified')
 
     def test_list_updates_by_type(self):
         res = self.app.get('/updates/', {"type": "bugfix"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     def test_list_updates_by_unexisting_type(self):
         res = self.app.get('/updates/', {"type": "not_my"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'type')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          '"not_my" is not one of newpackage, bugfix, security, enhancement')
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'type')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         '"not_my" is not one of newpackage, bugfix, security, enhancement')
 
     def test_list_updates_by_username(self):
         res = self.app.get('/updates/', {"user": "guest"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'medium')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'Useful details!')
-        self.assertEquals(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEquals(up['karma'], 1)
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'medium')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'Useful details!')
+        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
 
     def test_list_updates_by_unexisting_username(self):
         res = self.app.get('/updates/', {"user": "santa"},
                            status=400)
         body = res.json_body
-        self.assertEquals(len(body.get('updates', [])), 0)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'user')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          "Invalid user specified: santa")
+        self.assertEqual(len(body.get('updates', [])), 0)
+        self.assertEqual(res.json_body['errors'][0]['name'], 'user')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         "Invalid user specified: santa")
 
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
@@ -2545,24 +2545,24 @@ class TestUpdatesService(BaseTestCase):
         args['requirements'] = 'upgradepath'
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F17')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['severity'], u'unspecified')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'this is a test update')
+        self.assertEqual(up['title'], u'bodhi-2.0.0-3.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F17')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['severity'], u'unspecified')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
         self.assertIsNotNone(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
-        self.assertEquals(up['karma'], 0)
-        self.assertEquals(up['requirements'], 'upgradepath')
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
+        self.assertEqual(up['karma'], 0)
+        self.assertEqual(up['requirements'], 'upgradepath')
         comment = textwrap.dedent("""
         guest edited this update.
 
@@ -2577,11 +2577,11 @@ class TestUpdatesService(BaseTestCase):
         Karma has been reset.
         """).strip()
         self.assertMultiLineEqual(up['comments'][-1]['text'], comment)
-        self.assertEquals(len(up['builds']), 1)
-        self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(),
-                          None)
-        self.assertEquals(len(publish.call_args_list), 2)
+        self.assertEqual(len(up['builds']), 1)
+        self.assertEqual(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
+        self.assertEqual(self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(),
+                         None)
+        self.assertEqual(len(publish.call_args_list), 2)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
     @mock.patch(**mock_valid_requirements)
@@ -2602,11 +2602,11 @@ class TestUpdatesService(BaseTestCase):
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['comments'][-1]['text'],
-                          u'This update has been submitted for testing by guest. ')
+        self.assertEqual(up['title'], u'bodhi-2.0.0-3.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['comments'][-1]['text'],
+                         u'This update has been submitted for testing by guest. ')
         comment = textwrap.dedent("""
         guest edited this update.
 
@@ -2621,13 +2621,13 @@ class TestUpdatesService(BaseTestCase):
         Karma has been reset.
         """).strip()
         self.assertMultiLineEqual(up['comments'][-2]['text'], comment)
-        self.assertEquals(up['comments'][-4]['text'],
-                          u'This update has been submitted for testing by guest. ')
-        self.assertEquals(len(up['builds']), 1)
-        self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(),
-                          None)
-        self.assertEquals(len(publish.call_args_list), 3)
+        self.assertEqual(up['comments'][-4]['text'],
+                         u'This update has been submitted for testing by guest. ')
+        self.assertEqual(len(up['builds']), 1)
+        self.assertEqual(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
+        self.assertEqual(self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(),
+                         None)
+        self.assertEqual(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
     @mock.patch(**mock_valid_requirements)
@@ -2656,11 +2656,11 @@ class TestUpdatesService(BaseTestCase):
         args['builds'] = ['a-1.0-1.fc17', 'b-2.0-1.fc17', 'c-1.0-1.fc17']
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['title'], u'a-1.0-1.fc17 b-2.0-1.fc17 c-1.0-1.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['comments'][-1]['text'],
-                          u'This update has been submitted for testing by guest. ')
+        self.assertEqual(up['title'], u'a-1.0-1.fc17 b-2.0-1.fc17 c-1.0-1.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['comments'][-1]['text'],
+                         u'This update has been submitted for testing by guest. ')
         comment = textwrap.dedent("""
         guest edited this update.
 
@@ -2675,13 +2675,13 @@ class TestUpdatesService(BaseTestCase):
         Karma has been reset.
         """).strip()
         self.assertMultiLineEqual(up['comments'][-2]['text'], comment)
-        self.assertEquals(up['comments'][-3]['text'],
-                          u'This update has been submitted for testing by guest. ')
-        self.assertEquals(len(up['builds']), 3)
-        self.assertEquals(up['builds'][0]['nvr'], u'a-1.0-1.fc17')
-        self.assertEquals(up['builds'][1]['nvr'], u'c-1.0-1.fc17')
-        self.assertEquals(up['builds'][2]['nvr'], u'b-2.0-1.fc17')
-        self.assertEquals(len(publish.call_args_list), 3)
+        self.assertEqual(up['comments'][-3]['text'],
+                         u'This update has been submitted for testing by guest. ')
+        self.assertEqual(len(up['builds']), 3)
+        self.assertEqual(up['builds'][0]['nvr'], u'a-1.0-1.fc17')
+        self.assertEqual(up['builds'][1]['nvr'], u'c-1.0-1.fc17')
+        self.assertEqual(up['builds'][2]['nvr'], u'b-2.0-1.fc17')
+        self.assertEqual(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
     @mock.patch(**mock_valid_requirements)
@@ -2702,11 +2702,11 @@ class TestUpdatesService(BaseTestCase):
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['comments'][-1]['text'],
-                          u'This update has been submitted for testing by guest. ')
+        self.assertEqual(up['title'], u'bodhi-2.0.0-3.fc17')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['comments'][-1]['text'],
+                         u'This update has been submitted for testing by guest. ')
         comment = textwrap.dedent("""
         guest edited this update.
 
@@ -2721,13 +2721,13 @@ class TestUpdatesService(BaseTestCase):
         Karma has been reset.
         """).strip()
         self.assertMultiLineEqual(up['comments'][-2]['text'], comment)
-        self.assertEquals(up['comments'][-4]['text'],
-                          u'This update has been submitted for testing by guest. ')
-        self.assertEquals(len(up['builds']), 1)
-        self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(),
-                          None)
-        self.assertEquals(len(publish.call_args_list), 3)
+        self.assertEqual(up['comments'][-4]['text'],
+                         u'This update has been submitted for testing by guest. ')
+        self.assertEqual(len(up['builds']), 1)
+        self.assertEqual(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
+        self.assertEqual(self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(),
+                         None)
+        self.assertEqual(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
     @mock.patch(**mock_valid_requirements)
@@ -2762,15 +2762,15 @@ class TestUpdatesService(BaseTestCase):
         r = self.app.post_json('/updates/', args, status=400)
         up = r.json_body
 
-        self.assertEquals(up['status'], 'error')
-        self.assertEquals(up['errors'][0]['description'],
-                          'Cannot add a F18 build to an F17 update')
+        self.assertEqual(up['status'], 'error')
+        self.assertEqual(up['errors'][0]['description'],
+                         'Cannot add a F18 build to an F17 update')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_stable_update(self, publish, *args):
         """Make sure we can't edit stable updates"""
-        self.assertEquals(publish.call_args_list, [])
+        self.assertEqual(publish.call_args_list, [])
 
         # First, create a testing update
         nvr = u'bodhi-2.0.0-2.fc17'
@@ -2788,9 +2788,9 @@ class TestUpdatesService(BaseTestCase):
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         r = self.app.post_json('/updates/', args, status=400)
         up = r.json_body
-        self.assertEquals(up['status'], 'error')
-        self.assertEquals(up['errors'][0]['description'], "Cannot edit stable updates")
-        self.assertEquals(len(publish.call_args_list), 1)
+        self.assertEqual(up['status'], 'error')
+        self.assertEqual(up['errors'][0]['description'], "Cannot edit stable updates")
+        self.assertEqual(len(publish.call_args_list), 1)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -2811,43 +2811,43 @@ class TestUpdatesService(BaseTestCase):
         args['edited'] = args['builds']
         args['notes'] = 'Some new notes'
         up = self.app.post_json('/updates/', args, status=200).json_body
-        self.assertEquals(up['notes'], 'Some new notes')
+        self.assertEqual(up['notes'], 'Some new notes')
 
         # Changing the builds should fail
         args['notes'] = 'And yet some other notes'
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         r = self.app.post_json('/updates/', args, status=400).json_body
-        self.assertEquals(r['status'], 'error')
+        self.assertEqual(r['status'], 'error')
         self.assertIn('errors', r)
         self.assertIn({u'description': u"Can't add builds to a locked update",
                        u'location': u'body', u'name': u'builds'},
                       r['errors'])
         up = self.db.query(Update).get(up_id)
-        self.assertEquals(up.notes, 'Some new notes')
+        self.assertEqual(up.notes, 'Some new notes')
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        self.assertEquals(up.builds, [build])
+        self.assertEqual(up.builds, [build])
 
         # Changing the request should fail
         args['notes'] = 'Still new notes'
         args['builds'] = args['edited']
         args['request'] = 'stable'
         r = self.app.post_json('/updates/', args, status=400).json_body
-        self.assertEquals(r['status'], 'error')
+        self.assertEqual(r['status'], 'error')
         self.assertIn('errors', r)
         self.assertIn(
             {u'description': u"Can't change the request on a locked update", u'location': u'body',
              u'name': u'builds'},
             r['errors'])
         up = self.db.query(Update).get(up_id)
-        self.assertEquals(up.notes, 'Some new notes')
+        self.assertEqual(up.notes, 'Some new notes')
         # We need to re-retrieve the build since we started a new transaction in the call to
         # /updates
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        self.assertEquals(up.builds, [build])
-        self.assertEquals(up.request, None)
+        self.assertEqual(up.builds, [build])
+        self.assertEqual(up.request, None)
 
         # At the end of the day, two fedmsg messages should have gone out.
-        self.assertEquals(len(publish.call_args_list), 2)
+        self.assertEqual(len(publish.call_args_list), 2)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
     @mock.patch(**mock_valid_requirements)
@@ -2871,9 +2871,9 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'LGTM', author=u'bowlofeggs', karma=1)
         up = self.db.query(Update).filter_by(title=nvr).one()
 
-        self.assertEquals(up.karma, 2)
-        self.assertEquals(up.request, UpdateRequest.testing)
-        self.assertEquals(up.status, UpdateStatus.pending)
+        self.assertEqual(up.karma, 2)
+        self.assertEqual(up.request, UpdateRequest.testing)
+        self.assertEqual(up.status, UpdateStatus.pending)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -2900,9 +2900,9 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'LGTM', author=u'bowlofeggs', karma=1)
         up = self.db.query(Update).filter_by(title=nvr).one()
 
-        self.assertEquals(up.karma, 2)
-        self.assertEquals(up.request, UpdateRequest.stable)
-        self.assertEquals(up.status, UpdateStatus.pending)
+        self.assertEqual(up.karma, 2)
+        self.assertEqual(up.request, UpdateRequest.stable)
+        self.assertEqual(up.status, UpdateStatus.pending)
 
     @mock.patch(**mock_valid_requirements)
     def test_pending_update_on_stable_karma_not_reached(self, publish, *args):
@@ -2922,9 +2922,9 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'WFM', author=u'dustymabe', karma=1)
         up = self.db.query(Update).filter_by(title=nvr).one()
 
-        self.assertEquals(up.karma, 1)
-        self.assertEquals(up.request, UpdateRequest.testing)
-        self.assertEquals(up.status, UpdateStatus.pending)
+        self.assertEqual(up.karma, 1)
+        self.assertEqual(up.request, UpdateRequest.testing)
+        self.assertEqual(up.status, UpdateStatus.pending)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -2948,9 +2948,9 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'LGTM', author=u'bowlofeggs', karma=1)
         up = self.db.query(Update).filter_by(title=nvr).one()
 
-        self.assertEquals(up.karma, 2)
-        self.assertEquals(up.status, UpdateStatus.pending)
-        self.assertEquals(up.request, UpdateRequest.testing)
+        self.assertEqual(up.karma, 2)
+        self.assertEqual(up.status, UpdateStatus.pending)
+        self.assertEqual(up.request, UpdateRequest.testing)
 
         text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
         up.comment(self.db, text, author=u'bodhi')
@@ -2969,11 +2969,11 @@ class TestUpdatesService(BaseTestCase):
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
         r = self.app.post_json('/updates/', args).json_body
-        self.assertEquals(r['request'], 'testing')
+        self.assertEqual(r['request'], 'testing')
 
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertEquals(up.status, UpdateStatus.pending)
-        self.assertEquals(up.request, UpdateRequest.testing)
+        self.assertEqual(up.status, UpdateStatus.pending)
+        self.assertEqual(up.request, UpdateRequest.testing)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -2984,11 +2984,11 @@ class TestUpdatesService(BaseTestCase):
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
         r = self.app.post_json('/updates/', args).json_body
-        self.assertEquals(r['request'], 'testing')
+        self.assertEqual(r['request'], 'testing')
 
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertEquals(up.status, UpdateStatus.obsolete)
-        self.assertEquals(up.request, None)
+        self.assertEqual(up.status, UpdateStatus.obsolete)
+        self.assertEqual(up.request, None)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3003,11 +3003,11 @@ class TestUpdatesService(BaseTestCase):
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
         r = self.app.post_json('/updates/', args).json_body
-        self.assertEquals(r['request'], 'testing')
+        self.assertEqual(r['request'], 'testing')
 
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertEquals(up.status, UpdateStatus.pending)
-        self.assertEquals(up.request, UpdateRequest.stable)
+        self.assertEqual(up.status, UpdateStatus.pending)
+        self.assertEqual(up.request, UpdateRequest.stable)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3032,17 +3032,17 @@ class TestUpdatesService(BaseTestCase):
         args = self.get_update(new_nvr)
         with mock.patch(**mock_uuid4_version2):
             r = self.app.post_json('/updates/', args).json_body
-        self.assertEquals(r['request'], 'testing')
+        self.assertEqual(r['request'], 'testing')
         publish.assert_called_with(
             topic='update.request.testing', msg=mock.ANY)
 
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertEquals(up.status, UpdateStatus.obsolete)
+        self.assertEqual(up.status, UpdateStatus.obsolete)
         expected_comment = u'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
         expected_comment = expected_comment.format(
             urlparse.urljoin(config['base_address'],
                              '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
-        self.assertEquals(up.comments[-1].text, expected_comment)
+        self.assertEqual(up.comments[-1].text, expected_comment)
 
         # Check Push to Stable button for obsolete update
         id = 'bodhi-2.0.0-2.fc17'
@@ -3115,7 +3115,7 @@ class TestUpdatesService(BaseTestCase):
             '/updates/%s/request' % args['builds'],
             {'request': 'testing', 'csrf_token': self.get_csrf_token()})
         self.assertEqual(resp.json['update']['request'], 'testing')
-        self.assertEquals(publish.call_args_list, [])
+        self.assertEqual(publish.call_args_list, [])
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -3183,9 +3183,9 @@ class TestUpdatesService(BaseTestCase):
         self.db.commit()
 
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertEquals(up.karma, -1)
-        self.assertEquals(up.status, UpdateStatus.obsolete)
-        self.assertEquals(up.request, None)
+        self.assertEqual(up.karma, -1)
+        self.assertEqual(up.status, UpdateStatus.obsolete)
+        self.assertEqual(up.request, None)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3208,9 +3208,9 @@ class TestUpdatesService(BaseTestCase):
         self.db.commit()
 
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertEquals(up.karma, -1)
-        self.assertEquals(up.status, UpdateStatus.pending)
-        self.assertEquals(up.request, UpdateRequest.testing)
+        self.assertEqual(up.karma, -1)
+        self.assertEqual(up.status, UpdateStatus.pending)
+        self.assertEqual(up.request, UpdateRequest.testing)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3234,9 +3234,9 @@ class TestUpdatesService(BaseTestCase):
         self.db.commit()
 
         up = self.db.query(Update).filter_by(title=nvr).one()
-        self.assertEquals(up.karma, -1)
-        self.assertEquals(up.status, UpdateStatus.pending)
-        self.assertEquals(up.request, UpdateRequest.testing)
+        self.assertEqual(up.karma, -1)
+        self.assertEqual(up.status, UpdateStatus.pending)
+        self.assertEqual(up.request, UpdateRequest.testing)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3270,10 +3270,10 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'Still not working', author=u'bob', karma=-1)
         up = self.db.query(Update).filter_by(title=nvr).one()
 
-        self.assertEquals(up.karma, -2)
-        self.assertEquals(up.autokarma, True)
-        self.assertEquals(up.status, UpdateStatus.obsolete)
-        self.assertEquals(up.request, None)
+        self.assertEqual(up.karma, -2)
+        self.assertEqual(up.autokarma, True)
+        self.assertEqual(up.status, UpdateStatus.obsolete)
+        self.assertEqual(up.request, None)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -3343,8 +3343,8 @@ class TestUpdatesService(BaseTestCase):
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
             status=400)
         up = Update.get(nvr)
-        self.assertEquals(up.request, None)
-        self.assertEquals(up.status, UpdateStatus.testing)
+        self.assertEqual(up.request, None)
+        self.assertEqual(up.status, UpdateStatus.testing)
 
         # Checks Success for requesting to stable push after the update reaches stable karma
         up.comment(self.db, u'LGTM', author=u'ralph', karma=1)
@@ -3353,8 +3353,8 @@ class TestUpdatesService(BaseTestCase):
             {'request': 'stable', 'csrf_token': self.get_csrf_token()},
             status=200)
         up = Update.get(nvr)
-        self.assertEquals(up.request, UpdateRequest.stable)
-        self.assertEquals(up.status, UpdateStatus.testing)
+        self.assertEqual(up.request, UpdateRequest.stable)
+        self.assertEqual(up.status, UpdateStatus.testing)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -3542,12 +3542,12 @@ class TestUpdatesService(BaseTestCase):
         resp = self.app.post_json('/updates/', args)
 
         # Note that this does **not** obsolete the other update
-        self.assertEquals(len(resp.json_body['caveats']), 1)
-        self.assertEquals(resp.json_body['caveats'][0]['description'],
-                          "Please be aware that there is another update in "
-                          "flight owned by bob, containing "
-                          "bodhi-2.0-2.fc17.  Are you coordinating with "
-                          "them?")
+        self.assertEqual(len(resp.json_body['caveats']), 1)
+        self.assertEqual(resp.json_body['caveats'][0]['description'],
+                         "Please be aware that there is another update in "
+                         "flight owned by bob, containing "
+                         "bodhi-2.0-2.fc17.  Are you coordinating with "
+                         "them?")
 
         # Ensure the second update was created successfully
         self.db.query(Update).filter_by(title=newtitle).one()
@@ -3556,21 +3556,21 @@ class TestUpdatesService(BaseTestCase):
     def test_updateid_alias(self, *args):
         res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0.0-3.fc17'))
         json = res.json_body
-        self.assertEquals(json['alias'], json['updateid'])
+        self.assertEqual(json['alias'], json['updateid'])
 
     def test_list_updates_by_lowercase_release_name(self):
         res = self.app.get('/updates/', {"releases": "f17"})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
 
         up = body['updates'][0]
-        self.assertEquals(up['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
 
     def test_redirect_to_package(self):
         "When you visit /updates/package, redirect to /updates/?packages=..."
         res = self.app.get('/updates/bodhi', status=302)
         target = 'http://localhost/updates/?packages=bodhi'
-        self.assertEquals(res.headers['Location'], target)
+        self.assertEqual(res.headers['Location'], target)
 
         # But be sure that we don't redirect if the package doesn't exist
         res = self.app.get('/updates/non-existant', status=404)
@@ -3579,24 +3579,24 @@ class TestUpdatesService(BaseTestCase):
         upd = self.db.query(Update).filter(Update.alias.isnot(None)).first()
         res = self.app.get('/updates/', {"alias": upd.alias})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
         up = body['updates'][0]
         # We need to refetch the update since the call to /updates/ committed the transaction.
         upd = self.db.query(Update).filter(Update.alias.isnot(None)).first()
-        self.assertEquals(up['title'], upd.title)
-        self.assertEquals(up['alias'], upd.alias)
+        self.assertEqual(up['title'], upd.title)
+        self.assertEqual(up['alias'], upd.alias)
 
         res = self.app.get('/updates/', {"updateid": upd.alias})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 1)
+        self.assertEqual(len(body['updates']), 1)
         up = body['updates'][0]
         # We need to refetch the update since the call to /updates/ committed the transaction.
         upd = self.db.query(Update).filter(Update.alias.isnot(None)).first()
-        self.assertEquals(up['title'], upd.title)
+        self.assertEqual(up['title'], upd.title)
 
         res = self.app.get('/updates/', {"updateid": 'BLARG'})
         body = res.json_body
-        self.assertEquals(len(body['updates']), 0)
+        self.assertEqual(len(body['updates']), 0)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3626,19 +3626,19 @@ class TestUpdatesService(BaseTestCase):
         data = r.json_body
 
         self.assertIn('caveats', data)
-        self.assertEquals(len(data['caveats']), 2)
-        self.assertEquals(data['caveats'][0]['description'],
-                          "Your update is being split into 2, one for each release.")
-        self.assertEquals(
+        self.assertEqual(len(data['caveats']), 2)
+        self.assertEqual(data['caveats'][0]['description'],
+                         "Your update is being split into 2, one for each release.")
+        self.assertEqual(
             data['caveats'][1]['description'],
             "This update has obsoleted bodhi-2.0-1.fc17, and has inherited its bugs and notes.")
 
         self.assertIn('updates', data)
-        self.assertEquals(len(data['updates']), 2)
+        self.assertEqual(len(data['updates']), 2)
 
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
         # Make sure two fedmsg messages were published
-        self.assertEquals(len(publish.call_args_list), 2)
+        self.assertEqual(len(publish.call_args_list), 2)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3648,7 +3648,7 @@ class TestUpdatesService(BaseTestCase):
         args['bugs'] = '56789'
         r = self.app.post_json('/updates/', args)
         # This has two bugs because it obsoleted another update and inherited its bugs.
-        self.assertEquals(len(r.json['bugs']), 2)
+        self.assertEqual(len(r.json['bugs']), 2)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         # Pretend it was pushed to testing and tested
@@ -3665,12 +3665,12 @@ class TestUpdatesService(BaseTestCase):
         r = self.app.post_json('/updates/', args)
         up = r.json_body
 
-        self.assertEquals(len(up['bugs']), 2)
+        self.assertEqual(len(up['bugs']), 2)
         bug_ids = [bug['bug_id'] for bug in up['bugs']]
         self.assertIn(56789, bug_ids)
         self.assertIn(98765, bug_ids)
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
 
         # now remove a bug
         args['edited'] = args['builds']
@@ -3678,11 +3678,11 @@ class TestUpdatesService(BaseTestCase):
         args['bugs'] = '98765'
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(len(up['bugs']), 1)
+        self.assertEqual(len(up['bugs']), 1)
         bug_ids = [bug['bug_id'] for bug in up['bugs']]
         self.assertIn(98765, bug_ids)
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3693,8 +3693,8 @@ class TestUpdatesService(BaseTestCase):
         args = self.get_update(build)
         args['edited'] = edited
         r = self.app.post_json('/updates/', args, status=400).json_body
-        self.assertEquals(r['status'], 'error')
-        self.assertEquals(r['errors'][0]['description'], 'Cannot find update to edit: %s' % edited)
+        self.assertEqual(r['status'], 'error')
+        self.assertEqual(r['errors'][0]['description'], 'Cannot find update to edit: %s' % edited)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3705,10 +3705,10 @@ class TestUpdatesService(BaseTestCase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = r.json_body
-        self.assertEquals(up['require_testcases'], True)
-        self.assertEquals(up['require_bugs'], False)
-        self.assertEquals(up['stable_karma'], 3)
-        self.assertEquals(up['unstable_karma'], -3)
+        self.assertEqual(up['require_testcases'], True)
+        self.assertEqual(up['require_bugs'], False)
+        self.assertEqual(up['stable_karma'], 3)
+        self.assertEqual(up['unstable_karma'], -3)
 
         # Pretend it was pushed to testing and tested
         update = self.db.query(Update).filter_by(title=build).one()
@@ -3727,13 +3727,13 @@ class TestUpdatesService(BaseTestCase):
 
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['status'], u'testing')
-        self.assertEquals(up['request'], None)
+        self.assertEqual(up['status'], u'testing')
+        self.assertEqual(up['request'], None)
 
-        self.assertEquals(up['require_bugs'], True)
-        self.assertEquals(up['require_testcases'], False)
-        self.assertEquals(up['stable_karma'], 3)
-        self.assertEquals(up['unstable_karma'], -3)
+        self.assertEqual(up['require_bugs'], True)
+        self.assertEqual(up['require_testcases'], False)
+        self.assertEqual(up['stable_karma'], 3)
+        self.assertEqual(up['unstable_karma'], -3)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3744,7 +3744,7 @@ class TestUpdatesService(BaseTestCase):
         r = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
         up = r.json_body
-        self.assertEquals(up['type'], u'newpackage')
+        self.assertEqual(up['type'], u'newpackage')
 
         # Pretend it was pushed to testing and tested
         update = self.db.query(Update).filter_by(title=build).one()
@@ -3758,16 +3758,16 @@ class TestUpdatesService(BaseTestCase):
         args['type'] = 'bugfix'
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['status'], u'testing')
-        self.assertEquals(up['request'], None)
-        self.assertEquals(up['type'], u'bugfix')
+        self.assertEqual(up['status'], u'testing')
+        self.assertEqual(up['request'], None)
+        self.assertEqual(up['type'], u'bugfix')
 
     def test_update_meeting_requirements_present(self):
         """ Check that the requirements boolean is present in our JSON """
         res = self.app.get('/updates/bodhi-2.0-1.fc17', headers={'Accept': 'application/json'})
         actual = res.json_body['update']['meets_testing_requirements']
         expected = False
-        self.assertEquals(actual, expected)
+        self.assertEqual(actual, expected)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3791,9 +3791,9 @@ class TestUpdatesService(BaseTestCase):
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
+        self.assertEqual(up['title'], u'bodhi-2.0.0-3.fc17')
         # This is what we really want to test here.
-        self.assertEquals(up['karma'], 0)
+        self.assertEqual(up['karma'], 0)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3820,7 +3820,7 @@ class TestUpdatesService(BaseTestCase):
         # Have bob +1 it
         upd.comment(self.db, u'LGTM', author=u'bob', karma=1)
         upd = Update.get(nvr)
-        self.assertEquals(upd.karma, 1)
+        self.assertEqual(upd.karma, 1)
 
         # Then.. edit it and change the builds!
         new_nvr = u'bodhi-2.0.0-3.fc17'
@@ -3828,16 +3828,16 @@ class TestUpdatesService(BaseTestCase):
         args['builds'] = new_nvr
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['title'], new_nvr)
+        self.assertEqual(up['title'], new_nvr)
         # This is what we really want to test here.
-        self.assertEquals(up['karma'], 0)
+        self.assertEqual(up['karma'], 0)
 
         # Have bob +1 it again
         upd = Update.get(new_nvr)
         upd.comment(self.db, u'Ship it!', author=u'bob', karma=1)
 
         # Bob should be able to give karma again since the reset
-        self.assertEquals(upd.karma, 1)
+        self.assertEqual(upd.karma, 1)
 
         # Then.. edit it and change the builds!
         newer_nvr = u'bodhi-2.0.0-4.fc17'
@@ -3845,16 +3845,16 @@ class TestUpdatesService(BaseTestCase):
         args['builds'] = newer_nvr
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['title'], newer_nvr)
+        self.assertEqual(up['title'], newer_nvr)
         # This is what we really want to test here.
-        self.assertEquals(up['karma'], 0)
+        self.assertEqual(up['karma'], 0)
 
         # Have bob +1 it again
         upd = Update.get(newer_nvr)
         upd.comment(self.db, u'Ship it!', author=u'bob', karma=1)
 
         # Bob should be able to give karma again since the reset
-        self.assertEquals(upd.karma, 1)
+        self.assertEqual(upd.karma, 1)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3910,7 +3910,7 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'wfm', author=u'ralph', karma=1)
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(up._composite_karma, (1, 0))
-        self.assertEquals(up.karma, 1)
+        self.assertEqual(up.karma, 1)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3942,7 +3942,7 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'Failed to work', author=u'bowlofeggs', karma=-1)
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(up._composite_karma, (1, -1))
-        self.assertEquals(up.karma, 0)
+        self.assertEqual(up.karma, 0)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -3970,7 +3970,7 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u' ', author=u'bowlofeggs', karma=1)
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(up._composite_karma, (2, 0))
-        self.assertEquals(up.karma, 2)
+        self.assertEqual(up.karma, 2)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4031,9 +4031,9 @@ class TestUpdatesService(BaseTestCase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = r.json_body
-        self.assertEquals(up['autokarma'], False)
-        self.assertEquals(up['stable_karma'], 3)
-        self.assertEquals(up['unstable_karma'], -3)
+        self.assertEqual(up['autokarma'], False)
+        self.assertEqual(up['stable_karma'], 3)
+        self.assertEqual(up['unstable_karma'], -3)
 
         # Pretend it was pushed to testing
         update = self.db.query(Update).filter_by(title=build).one()
@@ -4051,11 +4051,11 @@ class TestUpdatesService(BaseTestCase):
 
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['status'], u'testing')
-        self.assertEquals(up['request'], None)
-        self.assertEquals(up['autokarma'], False)
-        self.assertEquals(up['stable_karma'], 4)
-        self.assertEquals(up['unstable_karma'], -4)
+        self.assertEqual(up['status'], u'testing')
+        self.assertEqual(up['request'], None)
+        self.assertEqual(up['autokarma'], False)
+        self.assertEqual(up['stable_karma'], 4)
+        self.assertEqual(up['unstable_karma'], -4)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4070,7 +4070,7 @@ class TestUpdatesService(BaseTestCase):
         args['autokarma'] = True
         resp = self.app.post_json('/updates/', args)
         self.assertTrue(resp.json['critpath'])
-        self.assertEquals(resp.json['request'], 'testing')
+        self.assertEqual(resp.json['request'], 'testing')
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
@@ -4086,12 +4086,12 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'wfm', author=u'bowlofeggs', karma=1)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
-        self.assertEquals(up.karma, 0)
-        self.assertEquals(up.status, UpdateStatus.testing)
-        self.assertEquals(up.request, None)
+        self.assertEqual(up.karma, 0)
+        self.assertEqual(up.status, UpdateStatus.testing)
+        self.assertEqual(up.request, None)
 
         # Autopush gets disabled since there is a negative karma from ralph
-        self.assertEquals(up.autokarma, False)
+        self.assertEqual(up.autokarma, False)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4109,7 +4109,7 @@ class TestUpdatesService(BaseTestCase):
 
         resp = self.app.post_json('/updates/', args)
         self.assertTrue(resp.json['critpath'])
-        self.assertEquals(resp.json['request'], 'testing')
+        self.assertEqual(resp.json['request'], 'testing')
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
@@ -4121,13 +4121,13 @@ class TestUpdatesService(BaseTestCase):
 
         up.comment(self.db, u'LGTM', author=u'bowlofeggs', karma=1)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEquals(up.karma, 2)
+        self.assertEqual(up.karma, 2)
 
         # No negative karma: Update gets automatically marked as stable
-        self.assertEquals(up.autokarma, True)
+        self.assertEqual(up.autokarma, True)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEquals(up.request, UpdateRequest.batched)
+        self.assertEqual(up.request, UpdateRequest.batched)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4150,7 +4150,7 @@ class TestUpdatesService(BaseTestCase):
 
         resp = self.app.post_json('/updates/', args)
         self.assertTrue(resp.json['critpath'])
-        self.assertEquals(resp.json['request'], 'testing')
+        self.assertEqual(resp.json['request'], 'testing')
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
@@ -4172,13 +4172,13 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'LGTM', author=u'trishnag', karma=1)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
-        self.assertEquals(up.karma, 3)
-        self.assertEquals(up.autokarma, False)
+        self.assertEqual(up.karma, 3)
+        self.assertEqual(up.autokarma, False)
         # The request should still be at testing. This assertion tests for
         # https://github.com/fedora-infra/bodhi/issues/989 where karma comments were resetting the
         # request to None.
-        self.assertEquals(up.request, UpdateRequest.testing)
-        self.assertEquals(up.status, UpdateStatus.testing)
+        self.assertEqual(up.request, UpdateRequest.testing)
+        self.assertEqual(up.status, UpdateStatus.testing)
 
         id = 'kernel-3.11.5-300.fc17'
         resp = self.app.get('/updates/%s' % id,
@@ -4205,7 +4205,7 @@ class TestUpdatesService(BaseTestCase):
 
         resp = self.app.post_json('/updates/', args)
         self.assertTrue(resp.json['critpath'])
-        self.assertEquals(resp.json['request'], 'testing')
+        self.assertEqual(resp.json['request'], 'testing')
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
@@ -4221,13 +4221,13 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'LGTM', author=u'puiterwijk', karma=1)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
-        self.assertEquals(up.karma, 3)
-        self.assertEquals(up.autokarma, False)
+        self.assertEqual(up.karma, 3)
+        self.assertEqual(up.autokarma, False)
         # The request should still be at testing. This assertion tests for
         # https://github.com/fedora-infra/bodhi/issues/989 where karma comments were resetting the
         # request to None.
-        self.assertEquals(up.request, UpdateRequest.testing)
-        self.assertEquals(up.status, UpdateStatus.testing)
+        self.assertEqual(up.request, UpdateRequest.testing)
+        self.assertEqual(up.status, UpdateStatus.testing)
 
         id = 'kernel-3.11.5-300.fc17'
         resp = self.app.get('/updates/%s' % id,
@@ -4250,7 +4250,7 @@ class TestUpdatesService(BaseTestCase):
         args['unstable_karma'] = -3
 
         resp = self.app.post_json('/updates/', args)
-        self.assertEquals(resp.json['request'], 'testing')
+        self.assertEqual(resp.json['request'], 'testing')
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
@@ -4261,7 +4261,7 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
         expected_comment = config.get('disable_automatic_push_to_stable')
-        self.assertEquals(up.comments[3].text, expected_comment)
+        self.assertEqual(up.comments[3].text, expected_comment)
 
         up.comment(self.db, u'LGTM Now', author=u'ralph', karma=1)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
@@ -4272,13 +4272,13 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, u'LGTM', author=u'puiterwijk', karma=1)
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
-        self.assertEquals(up.karma, 3)
-        self.assertEquals(up.autokarma, False)
+        self.assertEqual(up.karma, 3)
+        self.assertEqual(up.autokarma, False)
 
         # Request and Status remains testing since the autopush is disabled
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEquals(up.request, UpdateRequest.testing)
-        self.assertEquals(up.status, UpdateStatus.testing)
+        self.assertEqual(up.request, UpdateRequest.testing)
+        self.assertEqual(up.status, UpdateStatus.testing)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4299,7 +4299,7 @@ class TestUpdatesService(BaseTestCase):
         args['unstable_karma'] = -2
 
         resp = self.app.post_json('/updates/', args)
-        self.assertEquals(resp.json['request'], 'testing')
+        self.assertEqual(resp.json['request'], 'testing')
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
@@ -4313,10 +4313,10 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
         # No negative karma: Update gets automatically marked as stable
-        self.assertEquals(up.autokarma, True)
+        self.assertEqual(up.autokarma, True)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEquals(up.request, UpdateRequest.batched)
+        self.assertEqual(up.request, UpdateRequest.batched)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4770,12 +4770,12 @@ class TestUpdatesService(BaseTestCase):
         # Ensures Request doesn't get set to stable automatically since autokarma is disabled
         upd.comment(self.db, u'LGTM', author=u'ralph', karma=1)
         upd = Update.get(nvr)
-        self.assertEquals(upd.karma, 1)
-        self.assertEquals(upd.stable_karma, 1)
-        self.assertEquals(upd.status, UpdateStatus.testing)
-        self.assertEquals(upd.request, UpdateRequest.batched)
-        self.assertEquals(upd.autokarma, False)
-        self.assertEquals(upd.pushed, True)
+        self.assertEqual(upd.karma, 1)
+        self.assertEqual(upd.stable_karma, 1)
+        self.assertEqual(upd.status, UpdateStatus.testing)
+        self.assertEqual(upd.request, UpdateRequest.batched)
+        self.assertEqual(upd.autokarma, False)
+        self.assertEqual(upd.pushed, True)
 
         text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author=u'bodhi')
@@ -4819,11 +4819,11 @@ class TestUpdatesService(BaseTestCase):
         # Ensures Request doesn't get set to stable automatically since autokarma is disabled
         upd.comment(self.db, u'LGTM', author=u'ralph', karma=1)
         upd = Update.get(nvr)
-        self.assertEquals(upd.karma, 1)
-        self.assertEquals(upd.stable_karma, 1)
-        self.assertEquals(upd.status, UpdateStatus.testing)
-        self.assertEquals(upd.request, None)
-        self.assertEquals(upd.autokarma, False)
+        self.assertEqual(upd.karma, 1)
+        self.assertEqual(upd.stable_karma, 1)
+        self.assertEqual(upd.status, UpdateStatus.testing)
+        self.assertEqual(upd.request, None)
+        self.assertEqual(upd.autokarma, False)
 
         text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author=u'bodhi')
@@ -4865,14 +4865,14 @@ class TestUpdatesService(BaseTestCase):
         args['builds'] = new_nvr
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['title'], new_nvr)
+        self.assertEqual(up['title'], new_nvr)
 
         # Change it back to ensure we can still reference the older build
         args['edited'] = args['builds']
         args['builds'] = nvr
         r = self.app.post_json('/updates/', args)
         up = r.json_body
-        self.assertEquals(up['title'], nvr)
+        self.assertEqual(up['title'], nvr)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -4945,22 +4945,22 @@ class TestUpdatesService(BaseTestCase):
         args['builds'] = '%s,%s' % (nvr1, nvr2)
         r = self.app.post_json('/updates/', args, status=400)
         up = r.json_body
-        self.assertEquals(up['status'], 'error')
-        self.assertEquals(up['errors'][0]['description'],
-                          'Update for bodhi-2.0.0-2.fc17 already exists')
+        self.assertEqual(up['status'], 'error')
+        self.assertEqual(up['errors'][0]['description'],
+                         'Update for bodhi-2.0.0-2.fc17 already exists')
 
         up = Update.get(nvr2)
-        self.assertEquals(up.title, nvr2)  # nvr1 shouldn't be able to be added
-        self.assertEquals(up.status, UpdateStatus.testing)
-        self.assertEquals(len(up.builds), 1)
-        self.assertEquals(up.builds[0].nvr, nvr2)
+        self.assertEqual(up.title, nvr2)  # nvr1 shouldn't be able to be added
+        self.assertEqual(up.status, UpdateStatus.testing)
+        self.assertEqual(len(up.builds), 1)
+        self.assertEqual(up.builds[0].nvr, nvr2)
 
         # nvr1 update should remain intact
         up = Update.get(nvr1)
-        self.assertEquals(up.title, nvr1)
-        self.assertEquals(up.status, UpdateStatus.testing)
-        self.assertEquals(len(up.builds), 1)
-        self.assertEquals(up.builds[0].nvr, nvr1)
+        self.assertEqual(up.title, nvr1)
+        self.assertEqual(up.status, UpdateStatus.testing)
+        self.assertEqual(len(up.builds), 1)
+        self.assertEqual(up.builds[0].nvr, nvr1)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4992,8 +4992,8 @@ class TestUpdatesService(BaseTestCase):
         r = self.app.post_json('/updates/', args)
         up = r.json_body
 
-        self.assertEquals(up['title'], u'bodhi-2.0.0-3.fc17')
-        self.assertEquals(up['karma'], 0)
+        self.assertEqual(up['title'], u'bodhi-2.0.0-3.fc17')
+        self.assertEqual(up['karma'], 0)
 
         update = Update.get(u'bodhi-2.0.0-3.fc17')
         update.status = UpdateStatus.testing
@@ -5002,7 +5002,7 @@ class TestUpdatesService(BaseTestCase):
         update.comment(self.db, u'lgtm2', author='friend4', karma=1)
         self.db.commit()
 
-        self.assertEquals(update.days_to_stable, 0)
+        self.assertEqual(update.days_to_stable, 0)
         self.assertEqual(update.meets_testing_requirements, True)
 
     @mock.patch(**mock_taskotron_results)
@@ -5044,7 +5044,7 @@ class TestUpdatesService(BaseTestCase):
         args['stable_karma'] = 2
 
         resp = self.app.post_json('/updates/', args)
-        self.assertEquals(resp.json['request'], 'testing')
+        self.assertEqual(resp.json['request'], 'testing')
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
@@ -5059,7 +5059,7 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEquals(up.request, UpdateRequest.stable)
+        self.assertEqual(up.request, UpdateRequest.stable)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -5074,7 +5074,7 @@ class TestUpdatesService(BaseTestCase):
         args['stable_karma'] = 2
 
         resp = self.app.post_json('/updates/', args)
-        self.assertEquals(resp.json['request'], 'testing')
+        self.assertEqual(resp.json['request'], 'testing')
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
@@ -5089,7 +5089,7 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEquals(up.request, UpdateRequest.stable)
+        self.assertEqual(up.request, UpdateRequest.stable)
 
 
 class TestWaiveTestResults(BaseTestCase):
@@ -5107,9 +5107,9 @@ class TestWaiveTestResults(BaseTestCase):
                          csrf_token=self.app.get('/csrf').json_body['csrf_token'])
         res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=400)
 
-        self.assertEquals(res.json_body['status'], 'error')
-        self.assertEquals(res.json_body[u'errors'][0][u'description'],
-                          "Can't waive test results on a locked update")
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body[u'errors'][0][u'description'],
+                         "Can't waive test results on a locked update")
 
     def test_cannot_waive_test_results_when_test_gating_is_off(self, *args):
         """
@@ -5125,9 +5125,9 @@ class TestWaiveTestResults(BaseTestCase):
                          csrf_token=self.app.get('/csrf').json_body['csrf_token'])
         res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=400)
 
-        self.assertEquals(res.json_body['status'], 'error')
-        self.assertEquals(res.json_body[u'errors'][0][u'description'],
-                          "Test gating is not enabled")
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body[u'errors'][0][u'description'],
+                         "Test gating is not enabled")
 
     @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
                 side_effect=IOError('IOError. oops!'))
@@ -5143,9 +5143,9 @@ class TestWaiveTestResults(BaseTestCase):
                          csrf_token=self.app.get('/csrf').json_body['csrf_token'])
         res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=400)
 
-        self.assertEquals(res.json_body['status'], 'error')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          u'IOError. oops!')
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'IOError. oops!')
         log_exception.assert_called_once_with("Unhandled exception in waive_test_results")
 
     @mock.patch.dict(config, [('test_gating.required', True)])
