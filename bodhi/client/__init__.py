@@ -384,9 +384,10 @@ def edit(user, password, url, **kwargs):
         kwargs['edited'] = title
 
         # Convert list of 'Bug' instances in DB to comma separated bug_ids for parsing.
-        former_update = resp['updates'][0]
+        former_update = resp['updates'][0].copy()
         if not kwargs['bugs']:
             kwargs['bugs'] = ",".join([str(bug['bug_id']) for bug in former_update['bugs']])
+            former_update.pop('bugs', None)
 
         # Replace empty fields with former values from database.
         for field in kwargs:
