@@ -33,6 +33,11 @@
         ${override.submitter.name}
       </a>
     </p>
+    %if override.expired_date is not None:
+    <p>Expired
+      <span class="text-muted" data-toggle="tooltip" title="${(override.expired_date).strftime('%Y-%m-%d %H:%M:%S')} (UTC)"> ${self.util.age(override.expired_date)} </span>
+    </p>
+    %endif
   </div>
   %endif
 %if request.user:
