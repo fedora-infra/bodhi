@@ -691,3 +691,20 @@ class TestOverridesWebViews(base.BaseTestCase):
                             status=200, headers={'Accept': 'text/html'})
         self.assertIn('<h3>Overrides <small>page #1 of 1 pages', resp)
         self.assertIn('<a href="http://localhost/overrides/bodhi-2.0-1.fc17">', resp)
+
+    def test_override_expired_date(self):
+        """
+        Test that a User can see the expired date of the override
+        """
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+        data = {'nvr': 'bodhi-2.0-1.fc17', 'notes': u'blah blah blah',
+                'expiration_date': expiration_date,
+                'edited': 'bodhi-2.0-1.fc17', 'expired': True,
+                'csrf_token': self.get_csrf_token()}
+
+        self.app.post('/overrides/', data)
+        resp = self.app.get('/overrides/bodhi-2.0-1.fc17',
+                            status=200, headers={'Accept': 'text/html'})
+
+        self.assertRegexpMatches(str(resp), ('Expired\\n.*<span class="text-muted" '
+                                             'data-toggle="tooltip" title=".*"> just now </span>'))
