@@ -757,6 +757,23 @@ def validate_bugs(request, **kwargs):
 
 
 @postschema_validator
+def validate_severity(request, **kwargs):
+    """
+    Ensure that severity is specified for a 'security' update.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    type = request.validated.get('type')
+    severity = request.validated.get('severity')
+
+    if type == UpdateType.security and severity == UpdateSeverity.unspecified:
+        request.errors.add("body", "severity",
+                           "Must specify severity for a security update")
+
+
+@postschema_validator
 def validate_update(request, **kwargs):
     """
     Make sure the requested update exists.

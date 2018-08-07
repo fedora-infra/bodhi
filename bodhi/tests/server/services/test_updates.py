@@ -706,6 +706,19 @@ class TestNewUpdate(BaseTestCase):
         expected_comment = u'This update has been submitted for testing by guest. '
         self.assertEqual(up.comments[-1].text, expected_comment)
 
+    @mock.patch(**mock_valid_requirements)
+    def test_security_update_without_severity(self, *args):
+        """Ensure that severity is required for a security update."""
+        update = self.get_update('bodhi-2.3.2-1.fc17')
+        update['type'] = u'security'
+        update['severity'] = u'unspecified'
+
+        r = self.app.post_json('/updates/', update, status=400)
+
+        self.assertEqual(r.json_body['status'], 'error')
+        self.assertEqual(r.json_body['errors'][0]['description'],
+                         "Must specify severity for a security update")
+
 
 class TestSetRequest(BaseTestCase):
     """
@@ -843,6 +856,20 @@ class TestEditUpdateForm(BaseTestCase):
                        headers={'accept': 'text/html'})
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', resp)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', resp)
+
+    def test_disabled_unspecified_severity_for_security_update(self):
+        update_json = self.get_update()
+        update_json['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
+        update_json['edited'] = u'bodhi-2.0-1.fc17'
+        update_json['requirements'] = u''
+        update_json['type'] = u'security'
+        update_json['severity'] = u'low'
+        self.app.post_json('/updates/', update_json)
+
+        resp = self.app.get('/updates/bodhi-2.0-1.fc17/edit',
+                            headers={'accept': 'text/html'})
+        self.assertRegexpMatches(str(resp), ('<input type="radio" name="severity" '
+                                             'value="unspecified"\\n.*disabled="disabled"\\n.*>'))
 
 
 class TestUpdatesService(BaseTestCase):

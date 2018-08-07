@@ -568,6 +568,19 @@ class TestNew(unittest.TestCase):
         self.assertEqual(result.output, u'ERROR: must specify at least one of --file, --notes, or '
                                         '--notes-file\n')
 
+    def test_new_security_update_with_unspecified_severity(self):
+        """Assert not providing --severity to new security update request results in an error."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'bodhi-2.2.4-1.el7',
+             '--notes', 'bla bla bla', '--type', 'security'])
+
+        self.assertEqual(result.exit_code, 2)
+        self.assertEqual(result.output, ('Usage: new [OPTIONS] BUILDS\n\nError: Invalid '
+                         'value for severity: must specify severity for a security update\n'))
+
 
 class TestPrintOverrideKojiHint(unittest.TestCase):
     """
@@ -1513,6 +1526,23 @@ class TestEdit(unittest.TestCase):
             )
         ]
         self.assertEqual(send_request.mock_calls, calls)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    def test_edit_security_update_with_unspecified_severity(self, query):
+        """Assert 'unspecified' severity while editing a security update results in an error."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--notes', 'this is an edited note',
+                          '--type', 'security', '--severity', 'unspecified'])
+
+        self.assertEqual(result.exit_code, 2)
+        self.assertEqual(result.output, ('Usage: edit [OPTIONS] UPDATE\n\nError: Invalid '
+                         'value for severity: must specify severity for a security update\n'))
 
 
 class TestEditBuilrootOverrides(unittest.TestCase):
