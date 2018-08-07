@@ -57,6 +57,7 @@ from bodhi.server.validators import (
     validate_requirements,
     validate_bugs,
     validate_request,
+    validate_severity,
 )
 
 
@@ -429,6 +430,7 @@ def query_updates(request):
                   validate_enums,
                   validate_requirements,
                   validate_bugs,
+                  validate_severity,
               ))
 def new_update(request):
     """

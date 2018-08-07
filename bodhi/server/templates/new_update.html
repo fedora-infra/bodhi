@@ -192,6 +192,9 @@ ${update.notes}
                     % if update and update.severity.description == value:
                     checked="checked"
                     % endif
+                    % if update and update.type.description == 'security' and value == 'unspecified':
+                    disabled="disabled"
+                    % endif
                     > ${value}
                     <span class="c-indicator"></span>
                   </label>

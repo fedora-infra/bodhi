@@ -265,4 +265,18 @@ $(document).ready(function() {
 
     update_markdown_preview($("#notes").val());
 
+    var validate_severity = function() {
+        var type = $("input[name=type]:checked").val();
+        var severity = $("input[name=severity]:checked").val();
+
+        if (type == 'security') {
+            $("input[name=severity][value=unspecified]").attr('disabled', 'disabled');
+        } else {
+            $("input[name=severity][value=unspecified]").removeAttr('disabled')
+        }
+    }
+
+    $("input[name=type]").on('change', validate_severity);
+    $("input[name=severity]").on('change', validate_severity);
+
 });
