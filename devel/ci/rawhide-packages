@@ -1,5 +1,4 @@
     python2-alembic \
-    python2-backports-functools_lru_cache \
     python2-bugzilla \
     python2-cornice \
     python2-cornice-sphinx \

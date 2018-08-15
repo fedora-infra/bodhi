@@ -526,9 +526,9 @@ def status2html(context, status):
         'processing': 'Unused.',
     }[status]
 
-    return ("<span class='text-muted' data-toggle='tooltip' title='%s'>" % (status_desc) +
-            "<span class='label label-%s'>%s</span>" % (cls, status) +
-            "</span>")
+    return "<span class='text-muted' data-toggle='tooltip' title='%s'>" % (status_desc) \
+        + "<span class='label label-%s'>%s</span>" % (cls, status) \
+        + "</span>"
 
 
 def greenwave_unsatisfied_requirements_html(context, update):
@@ -945,10 +945,8 @@ def can_waive_test_results(context, update):
     Returns:
         bool: Indicating if the test results can be waived on the given update.
     """
-    return (config.get('test_gating.required') and
-            not update.test_gating_passed and
-            config.get('waiverdb.access_token') and
-            update.status.description != 'stable')
+    return config.get('test_gating.required') and not update.test_gating_passed \
+        and config.get('waiverdb.access_token') and update.status.description != 'stable'
 
 
 def sorted_builds(builds):
@@ -1001,8 +999,7 @@ def sorted_updates(updates):
                 async_.append(build.update)
     log.info('sync = %s' % ([up.title for up in sync],))
     log.info('async_ = %s' % ([up.title for up in async_],))
-    if not (len(set(sync) & set(async_)) == 0 and
-            len(set(sync) | set(async_)) == len(updates)):
+    if not (len(set(sync) & set(async_)) == 0 and len(set(sync) | set(async_)) == len(updates)):
         # There should be absolutely no way to hit this code path, but let's be paranoid, and check
         # every run, to make sure no update gets left behind.
         # It makes sure that there is no update in sync AND async, and that the combination of

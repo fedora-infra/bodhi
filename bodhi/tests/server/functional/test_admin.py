@@ -28,10 +28,10 @@ class TestAdminView(base.BaseTestCase):
         """Test that authticated user can see the Admin panel"""
         res = self.app.get('/admin/')
         body = res.json_body
-        self.assertEquals(body['principals'][0], 'system.Everyone')
-        self.assertEquals(body['principals'][1], 'system.Authenticated')
-        self.assertEquals(body['principals'][2], 'guest')
-        self.assertEquals(body['user'], 'guest')
+        self.assertEqual(body['principals'][0], 'system.Everyone')
+        self.assertEqual(body['principals'][1], 'system.Authenticated')
+        self.assertEqual(body['principals'][2], 'guest')
+        self.assertEqual(body['user'], 'guest')
 
     def test_admin_unauthed(self):
         """Test that an unauthed user cannot see the admin endpoint"""
