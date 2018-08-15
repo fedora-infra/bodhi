@@ -301,9 +301,16 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEqual(o['expired_date'], None)
 
         # Submit it again
-        res = self.app.post('/overrides/', data, status=400)
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         'Buildroot override for %s already exists' % build.nvr)
+        data['notes'] = 'new blah blah'
+        res = self.app.post('/overrides/', data)
+        o = res.json_body
+        new_notes = """blah blah blah
+
+_@guest ({})_
+
+_____________
+new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
+        self.assertEquals(o['notes'], new_notes)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_multiple_nvr(self, publish):
