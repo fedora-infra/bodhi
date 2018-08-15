@@ -4438,6 +4438,8 @@ class BuildrootOverride(Base):
         override.submitter = data['submitter']
         override.notes = data['notes']
         override.expiration_date = data['expiration_date']
+        if 'submission_date' in data:
+            override.submission_date = data['submission_date']
 
         now = datetime.utcnow()
 

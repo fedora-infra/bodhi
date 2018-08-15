@@ -840,16 +840,7 @@ def save_buildroot_overrides(user, password, url, staging, **kwargs):
         staging (bool): Whether to use the staging server or not.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-
-    try:
-        _save_override(url=url, user=user, password=password, staging=staging, **kwargs)
-    except bindings.BodhiClientException as e:
-        if str(e) == "Buildroot override for %s already exists" % (kwargs['nvr']):
-            click.echo(str(e))
-            click.echo("The `overrides save` command is used for creating a new override.")
-            click.echo("Use `overrides edit` to edit an existing override.")
-        else:
-            raise
+    _save_override(url=url, user=user, password=password, staging=staging, **kwargs)
 
 
 @overrides.command('edit')
