@@ -375,8 +375,8 @@ class ComposerThread(threading.Thread):
         # dist_tag and do everything else other than mashing/updateinfo, since
         # the nightly build-branched cron job mashes for us.
         self.skip_compose = False
-        if (self.compose.release.state is ReleaseState.pending and
-                self.compose.request is UpdateRequest.stable):
+        if self.compose.release.state is ReleaseState.pending \
+                and self.compose.request is UpdateRequest.stable:
             self.skip_compose = True
 
         self.log.info('Running ComposerThread(%s)' % self.id)

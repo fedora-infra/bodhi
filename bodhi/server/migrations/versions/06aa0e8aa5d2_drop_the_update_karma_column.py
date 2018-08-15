@@ -48,4 +48,4 @@ def downgrade():
     Raises:
         NotImplemented: This is raised if this function is executed.
     """
-    raise NotImplemented('Downgrade not supported')
+    raise NotImplementedError('Downgrade not supported')
