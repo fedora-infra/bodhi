@@ -407,12 +407,10 @@ class TestNew(unittest.TestCase):
             result = runner.invoke(
                 client.new,
                 ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
-                 '--file', update_file.name])
+                 '--file', update_file.name, '--url', 'http://example.com/tests'])
 
         self.assertEqual(result.exit_code, 0)
-        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-            'http://example.com/tests', 'https://bodhi.fedoraproject.org')
-        self.assertTrue(compare_output(result.output, expected_output))
+        self.assertTrue(compare_output(result.output, client_test_data.EXPECTED_UPDATE_OUTPUT))
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
