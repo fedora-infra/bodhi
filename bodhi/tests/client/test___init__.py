@@ -20,6 +20,7 @@
 import datetime
 import os
 import platform
+import tempfile
 import unittest
 import copy
 
@@ -37,6 +38,32 @@ from bodhi.tests.utils import compare_output
 builtin_module_name = 'builtins' if six.PY3 else '__builtin__'
 
 EXPECTED_DEFAULT_BASE_URL = os.environ.get('BODHI_URL', bindings.BASE_URL)
+
+
+UPDATE_FILE = '''[fedora-workstation-backgrounds-1.1-1.fc26]
+# bugfix, security, enhancement, newpackage (required)
+type=bugfix
+
+# testing, stable
+request=testing
+
+# Bug numbers: 1234,9876
+bugs=123456,43212
+
+# Here is where you give an explanation of your update.
+notes=Initial Release
+
+# Enable request automation based on the stable/unstable karma thresholds
+autokarma=True
+stable_karma=3
+unstable_karma=-3
+
+# Automatically close bugs when this marked as stable
+close_bugs=True
+
+# Suggest that users restart after update
+suggest_reboot=False
+'''
 
 
 class TestComment(unittest.TestCase):
@@ -366,21 +393,46 @@ class TestNew(unittest.TestCase):
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.parse_file', autospec=True)
-    def test_file_flag(self, parse_file):
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_file_flag(self, send_request):
         """
         Assert correct behavior with the --file flag.
         """
         runner = testing.CliRunner()
+        with tempfile.NamedTemporaryFile() as update_file:
+            update_file.write(UPDATE_FILE.encode('utf-8'))
+            update_file.flush()
 
-        runner.invoke(
-            client.new,
-            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
-             '--file', '/tmp/bodhiupdate.txt'])
+            result = runner.invoke(
+                client.new,
+                ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
+                 '--file', update_file.name])
 
-        bindings_client = parse_file.mock_calls[0][1][0]
-
-        parse_file.assert_called_once_with(bindings_client, u'/tmp/bodhiupdate.txt')
+        self.assertEqual(result.exit_code, 0)
+        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
+            'http://example.com/tests', 'https://bodhi.fedoraproject.org')
+        self.assertTrue(compare_output(result.output, expected_output))
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': True, 'stable_karma': '3', 'csrf_token': 'a_csrf_token',
+                    'builds': u'fedora-workstation-backgrounds-1.1-1.fc26',
+                    'autokarma': 'True', 'suggest': 'unspecified', 'notes': u'Initial Release',
+                    'request': 'testing', 'bugs': u'123456,43212',
+                    'unstable_karma': '-3', 'type_': 'bugfix', 'type': 'bugfix',
+                    'type': 'bugfix', 'severity': 'unspecified'
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -475,7 +527,7 @@ class TestNew(unittest.TestCase):
              '--url', 'http://localhost:6543'])
 
         self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, u'ERROR: must specify at least one of --notes, '
+        self.assertEqual(result.output, u'ERROR: must specify at least one of --file, --notes, or '
                                         '--notes-file\n')
 
 
@@ -1458,7 +1510,7 @@ class TestCreate(unittest.TestCase):
 
         result = runner.invoke(
             client.create_release,
-            ['--name', 'F27', '--url', 'http://localhost:6543', '--username', 'bowlofeggs',
+            ['--name', 'F27', '--url', 'http://localhost:6543', '--user', 'bowlofeggs',
              '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 0)
@@ -1486,7 +1538,7 @@ class TestCreate(unittest.TestCase):
 
         result = runner.invoke(
             client.create_release,
-            ['--name', 'F27', '--url', 'http://localhost:6543', '--username', 'bowlofeggs',
+            ['--name', 'F27', '--url', 'http://localhost:6543', '--user', 'bowlofeggs',
              '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 1)
@@ -1510,7 +1562,7 @@ class TestEditRelease(unittest.TestCase):
         result = runner.invoke(
             client.edit_release,
             ['--name', 'F27', '--long-name', 'Fedora 27, the Greatest Fedora!', '--url',
-             'http://localhost:6543', '--username', 'bowlofeggs', '--password', 's3kr3t'])
+             'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
@@ -1545,7 +1597,7 @@ class TestEditRelease(unittest.TestCase):
         result = runner.invoke(
             client.edit_release,
             ['--name', 'F27', '--new-name', 'fedora27', '--url',
-             'http://localhost:6543', '--username', 'bowlofeggs', '--password', 's3kr3t'])
+             'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
@@ -1578,7 +1630,7 @@ class TestEditRelease(unittest.TestCase):
         result = runner.invoke(
             client.edit_release,
             ['--long-name', 'Fedora 27, the Greatest Fedora!', '--url',
-             'http://localhost:6543', '--username', 'bowlofeggs', '--password', 's3kr3t'])
+             'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
         self.assertEqual(result.output, ("ERROR: Please specify the name of the release to edit\n"))
         send_request.assert_not_called()
@@ -1597,7 +1649,7 @@ class TestEditRelease(unittest.TestCase):
         result = runner.invoke(
             client.edit_release,
             ['--name', 'F27', '--long-name', 'Fedora 27, the Greatest Fedora!', '--url',
-             'http://localhost:6543', '--username', 'bowlofeggs', '--password', 's3kr3t'])
+             'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 1)
         self.assertEqual(result.output, ("ERROR: an error was encountered... :(\n"))
@@ -1824,8 +1876,28 @@ class TestWaive(unittest.TestCase):
             'decision': munch.Munch({
                 'summary': 'Two missing tests',
                 'unsatisfied_requirements': [
-                    'dist.rpmdeplint',
-                    'fedora-atomic-ci',
+                    munch.Munch({
+                        'subject_type': 'koji_build',
+                        'scenario': None,
+                        'testcase': 'dist.rpmdeplint',
+                        'item': munch.Munch({
+                            'item': 'python-arrow-0.8.0-5.fc28',
+                            'type': 'koji_build'
+                        }),
+                        'subject_identifier': 'python-arrow-0.8.0-5.fc28',
+                        'type': 'test-result-missing'
+                    }),
+                    munch.Munch({
+                        'subject_type': 'koji_build',
+                        'scenario': None,
+                        'testcase': 'fedora-atomic-ci',
+                        'item': munch.Munch({
+                            'item': 'python-arrow-0.8.0-5.fc28',
+                            'type': 'koji_build'
+                        }),
+                        'subject_identifier': 'python-arrow-0.8.0-5.fc28',
+                        'type': 'test-result-missing'
+                    }),
                 ]
             }),
         })

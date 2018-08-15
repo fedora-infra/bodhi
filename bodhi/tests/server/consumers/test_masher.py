@@ -2233,6 +2233,24 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         self.assertEqual(Popen.mock_calls, expected_mock_calls)
 
 
+class TestPungiComposerThread__compose_updates(ComposerThreadBaseTestCase):
+    """This class contains tests for the PungiComposerThread._compose_updates() method."""
+
+    def test_mash_dir_dne(self):
+        """If mash_dir does not exist, the method should create it."""
+        msg = self._make_msg()
+        mash_dir = os.path.join(self.tempdir, 'mash_dir')
+        t = PungiComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                                'bowlofeggs', log, self.Session, mash_dir)
+        t._checkpoints = {'cool': 'checkpoint'}
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+        t.skip_compose = True
+
+        t._compose_updates()
+
+        self.assertTrue(os.path.exists(mash_dir))
+
+
 class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase):
     """This class contains tests for the PungiComposerThread._get_master_repomd_url() method."""
     @mock.patch.dict(

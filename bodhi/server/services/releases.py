@@ -35,6 +35,7 @@ from bodhi.server.models import (
     BuildrootOverride,
     Package,
     Release,
+    ReleaseState,
 )
 from bodhi.server.validators import (
     validate_tags,
@@ -258,6 +259,10 @@ def query_releases_json(request):
     if packages is not None:
         query = query.join(Release.builds).join(Build.package)
         query = query.filter(or_(*[Package.id == p.id for p in packages]))
+
+    state = data.get('state')
+    if state is not None:
+        query = query.filter(Release.state == ReleaseState.from_string(state))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.
