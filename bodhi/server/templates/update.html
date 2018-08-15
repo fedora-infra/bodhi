@@ -734,6 +734,37 @@ $(document).ready(function(){
                         </tr>
                       </thead>
 
+                      <tr>
+                        <td data-class="danger">  <input type="radio" name="karma" value="-1"> </td>
+                        <td>                      <input type="radio" name="karma" value="0" checked> </td>
+                        <td data-class="success"> <input type="radio" name="karma" value="1"> </td>
+                        % if not request.user:
+                        <td>
+                          <p class="text-muted">Is the update generally functional? (karma)</p>
+                          <p class="text-danger" style="font-size: 0.8rem;">You need to be logged in to add karma!</p>
+                          <script type="text/javascript">
+                            $(document).ready(function(){
+                              var karmaRadio = document.getElementsByName("karma");
+                              for(var i=0, iLen=karmaRadio.length; i<iLen; i++) {
+                                karmaRadio[i].disabled = true;
+                              }
+                            });
+                          </script>
+                        </td>
+                        % else:
+                        <td>Is the update generally functional? (karma)</td>
+                        % endif
+                      </tr>
+
+                      % if update.critpath:
+                      <tr>
+                        <td data-class="danger">  <input type="radio" name="karma_critpath" value="-1"> </td>
+                        <td>                      <input type="radio" name="karma_critpath" value="0" checked> </td>
+                        <td data-class="success"> <input type="radio" name="karma_critpath" value="1"> </td>
+                        <td>Does the system's basic functionality continue to work after this update?</td>
+                      </tr>
+                      % endif
+
                       % for bug in update.bugs:
                       <tr>
                         <input type="hidden" name="bug_feedback.${loop.index}.bug_id" value="${bug.bug_id}">
@@ -753,22 +784,6 @@ $(document).ready(function(){
                         <td>${self.util.testcase_link(test) | n}</td>
                       </tr>
                       % endfor
-
-                      % if update.critpath:
-                      <tr>
-                        <td data-class="danger">  <input type="radio" name="karma_critpath" value="-1"> </td>
-                        <td>                      <input type="radio" name="karma_critpath" value="0" checked> </td>
-                        <td data-class="success"> <input type="radio" name="karma_critpath" value="1"> </td>
-                        <td>Does the system's basic functionality continue to work after this update?</td>
-                      </tr>
-                      % endif
-
-                      <tr>
-                        <td data-class="danger">  <input type="radio" name="karma" value="-1"> </td>
-                        <td>                      <input type="radio" name="karma" value="0" checked> </td>
-                        <td data-class="success"> <input type="radio" name="karma" value="1"> </td>
-                        <td>Is the update generally functional?</td>
-                      </tr>
 
                     </table>
                 </div>

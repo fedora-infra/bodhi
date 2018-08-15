@@ -63,7 +63,7 @@ class TestGenericViews(base.BaseTestCase):
 
     def test_markdown(self):
         res = self.app.get('/markdown', {'text': 'wat'}, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p>wat</p>'
@@ -72,7 +72,7 @@ class TestGenericViews(base.BaseTestCase):
 
     def test_markdown_with_html_blocked_tag(self):
         res = self.app.get('/markdown', {'text': '<script>bold</script>'}, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '&lt;script&gt;bold&lt;/script&gt;\n'
@@ -81,7 +81,7 @@ class TestGenericViews(base.BaseTestCase):
 
     def test_markdown_with_html_whitelisted_tag(self):
         res = self.app.get('/markdown', {'text': '<pre>sudo dnf install pants</pre>'}, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<pre>sudo dnf install pants</pre>\n'
@@ -92,7 +92,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown',
                            {'text': '<b onclick="alert(\'pants\')">bold</b>'},
                            status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p><b>bold</b></p>'
@@ -103,7 +103,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown',
                            {'text': '<img src="pants.png">'},
                            status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p><img src="pants.png"></p>'
@@ -114,7 +114,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'my @colleague is distinguished',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p>my <a href="http://localhost/users/colleague">@colleague</a>'
@@ -126,7 +126,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': '@pingou is on it',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p><a href="http://localhost/users/pingou">@pingou</a>'
@@ -138,7 +138,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': '@kevin, thanks for that',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p><a href="http://localhost/users/kevin">@kevin</a>'
@@ -150,7 +150,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'I vote for @number80',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p>I vote for '
@@ -162,7 +162,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'Crazy.  #12345 is still busted.',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p>Crazy.  #12345 is still busted.</p>'
@@ -173,7 +173,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'Crazy.  RHBZ#12345 is still busted.',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p>Crazy.  '
@@ -190,7 +190,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'Crazy.  (RHBZ#12345) is still busted.',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p>Crazy.  '
@@ -203,7 +203,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'Crazy.  upstream#12345 is still busted.',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p>Crazy.  upstream#12345 is still busted.</p>'
@@ -219,7 +219,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'Crazy.  aRHBZa#12345 is still busted.',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p>Crazy.  aRHBZa#12345 is still busted.</p>'
@@ -230,7 +230,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': '```\nsudo dnf install bodhi\n```',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<pre><code>sudo dnf install bodhi\n</code></pre>\n'
@@ -241,7 +241,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'email me at dude@mcpants.org',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p>email me at <a href="mailto:dude@mcpants.org">dude@mcpants.org</a></p>'
@@ -252,7 +252,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'email me at <dude@mcpants.org>',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p>email me at <a href="mailto:dude@mcpants.org">dude@mcpants.org</a></p>'
@@ -263,7 +263,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'http://getfedora.org',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p><a href="http://getfedora.org">http://getfedora.org</a></p>'
@@ -274,7 +274,7 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/markdown', {
             'text': 'getfedora.org',
         }, status=200)
-        self.assertEquals(
+        self.assertEqual(
             res.json_body['html'],
             '<div class="markdown">'
             '<p><a href="http://getfedora.org">getfedora.org</a></p>'
@@ -294,7 +294,7 @@ class TestGenericViews(base.BaseTestCase):
         self.assertIn('f17-updates-testing', body)
         self.assertIn('f17-updates-testing-pending', body)
         self.assertIn('f17-override', body)
-        self.assertEquals(body['f17-updates'], 'TurboGears-1.0.2.2-2.fc17')
+        self.assertEqual(body['f17-updates'], 'TurboGears-1.0.2.2-2.fc17')
 
     @mock.patch("bodhi.server.buildsys.DevBuildsys.getLatestBuilds", side_effect=Exception())
     def test_latest_builds_exception(self, mock_getlatestbuilds):
@@ -315,25 +315,25 @@ class TestGenericViews(base.BaseTestCase):
     def test_candidate(self):
         res = self.app.get('/latest_candidates')
         body = res.json_body
-        self.assertEquals(body, [])
+        self.assertEqual(body, [])
 
         res = self.app.get('/latest_candidates', {'package': 'TurboGears'})
         body = res.json_body
-        self.assertEquals(len(body), 2)
-        self.assertEquals(body[0]['nvr'], 'TurboGears-1.0.2.2-2.fc17')
-        self.assertEquals(body[0]['id'], 16058)
-        self.assertEquals(body[1]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
-        self.assertEquals(body[1]['id'], 16059)
+        self.assertEqual(len(body), 2)
+        self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-2.fc17')
+        self.assertEqual(body[0]['id'], 16058)
+        self.assertEqual(body[1]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(body[1]['id'], 16059)
 
         res = self.app.get('/latest_candidates', {'package': 'TurboGears', 'testing': True})
         body = res.json_body
-        self.assertEquals(len(body), 3)
-        self.assertEquals(body[0]['nvr'], 'TurboGears-1.0.2.2-2.fc17')
-        self.assertEquals(body[0]['id'], 16058)
-        self.assertEquals(body[1]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
-        self.assertEquals(body[1]['id'], 16059)
-        self.assertEquals(body[2]['nvr'], 'TurboGears-1.0.2.2-4.fc17')
-        self.assertEquals(body[2]['id'], 16060)
+        self.assertEqual(len(body), 3)
+        self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-2.fc17')
+        self.assertEqual(body[0]['id'], 16058)
+        self.assertEqual(body[1]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(body[1]['id'], 16059)
+        self.assertEqual(body[2]['nvr'], 'TurboGears-1.0.2.2-4.fc17')
+        self.assertEqual(body[2]['id'], 16060)
 
     def test_version(self):
         res = self.app.get('/api_version')
