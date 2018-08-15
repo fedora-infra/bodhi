@@ -377,7 +377,7 @@ That was the actual one''' % mash_dir
             self.assertTrue(up.locked)
 
         # Ensure mashtask.start never got sent
-        self.assertEquals(len(publish.call_args_list), 0)
+        self.assertEqual(len(publish.call_args_list), 0)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_invalid_compose(self, publish):
@@ -408,7 +408,7 @@ That was the actual one''' % mash_dir
         self.masher.consume(self._make_msg())
 
         # Ensure that fedmsg was called 4 times
-        self.assertEquals(len(publish.call_args_list), 3)
+        self.assertEqual(len(publish.call_args_list), 3)
 
         # Also, ensure we reported success
         publish.assert_called_with(
@@ -457,7 +457,7 @@ That was the actual one''' % mash_dir
         self.masher.consume(self._make_msg())
 
         # Ensure that fedmsg was called 3 times
-        self.assertEquals(len(publish.call_args_list), 4)
+        self.assertEqual(len(publish.call_args_list), 4)
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
@@ -468,15 +468,15 @@ That was the actual one''' % mash_dir
             force=True)
 
         # Ensure our single update was moved
-        self.assertEquals(len(self.koji.__moved__), 1)
-        self.assertEquals(len(self.koji.__added__), 0)
-        self.assertEquals(self.koji.__moved__[0],
-                          (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
+        self.assertEqual(len(self.koji.__moved__), 1)
+        self.assertEqual(len(self.koji.__added__), 0)
+        self.assertEqual(self.koji.__moved__[0],
+                         (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
 
         # The override tag won't get removed until it goes to stable
-        self.assertEquals(self.koji.__untag__[0], (pending_signing_tag, nvr))
-        self.assertEquals(self.koji.__untag__[1], (pending_testing_tag, nvr))
-        self.assertEquals(len(self.koji.__untag__), 2)
+        self.assertEqual(self.koji.__untag__[0], (pending_signing_tag, nvr))
+        self.assertEqual(self.koji.__untag__[1], (pending_testing_tag, nvr))
+        self.assertEqual(len(self.koji.__untag__), 2)
 
         with self.db_factory() as session:
             # Set the update request to stable and the release to pending
@@ -490,10 +490,10 @@ That was the actual one''' % mash_dir
 
         # Ensure that stable updates to pending releases get their
         # tags added, not removed
-        self.assertEquals(len(self.koji.__moved__), 0)
-        self.assertEquals(len(self.koji.__added__), 1)
-        self.assertEquals(self.koji.__added__[0], (u'f17', u'bodhi-2.0-1.fc17'))
-        self.assertEquals(self.koji.__untag__[0], (override_tag, u'bodhi-2.0-1.fc17'))
+        self.assertEqual(len(self.koji.__moved__), 0)
+        self.assertEqual(len(self.koji.__added__), 1)
+        self.assertEqual(self.koji.__added__[0], (u'f17', u'bodhi-2.0-1.fc17'))
+        self.assertEqual(self.koji.__untag__[0], (override_tag, u'bodhi-2.0-1.fc17'))
 
         # Check that the override got expired
         with self.db_factory() as session:
@@ -535,7 +535,7 @@ That was the actual one''' % mash_dir
         self.masher.consume(self._make_msg())
 
         # Ensure that fedmsg was called 5 times
-        self.assertEquals(len(publish.call_args_list), 5)
+        self.assertEqual(len(publish.call_args_list), 5)
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
@@ -546,14 +546,14 @@ That was the actual one''' % mash_dir
             force=True)
 
         # Ensure our two updates were moved
-        self.assertEquals(len(self.koji.__moved__), 2)
-        self.assertEquals(len(self.koji.__added__), 0)
+        self.assertEqual(len(self.koji.__moved__), 2)
+        self.assertEqual(len(self.koji.__added__), 0)
 
         # Ensure the most recent version is tagged last in order to be the 'koji latest-pkg'
-        self.assertEquals(self.koji.__moved__[0],
-                          (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
-        self.assertEquals(self.koji.__moved__[1],
-                          (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-2.fc17'))
+        self.assertEqual(self.koji.__moved__[0],
+                         (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
+        self.assertEqual(self.koji.__moved__[1],
+                         (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-2.fc17'))
 
     @unittest.skipIf(six.PY3, 'Not working with Python 3 yet')
     @mock.patch(**mock_taskotron_results)
@@ -573,7 +573,7 @@ That was the actual one''' % mash_dir
 
         t.run()
 
-        self.assertEquals(t.testing_digest[u'Fedora 17'][u'bodhi-2.0-1.fc17'], """\
+        self.assertEqual(t.testing_digest[u'Fedora 17'][u'bodhi-2.0-1.fc17'], """\
 ================================================================================
  libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)
  Enhanced seccomp library
@@ -933,28 +933,28 @@ That was the actual one'''
         # mashing f17
         # complete.testing
         # mashtask.complete
-        self.assertEquals(calls[1], mock.call(
+        self.assertEqual(calls[1], mock.call(
             force=True,
             msg={'repo': u'f18-updates',
                  'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc18'],
                  'agent': 'bowlofeggs'},
             topic='mashtask.mashing'))
-        self.assertEquals(calls[4], mock.call(
+        self.assertEqual(calls[4], mock.call(
             force=True,
             msg={'success': True,
                  'ctype': 'rpm',
                  'repo': 'f18-updates',
                  'agent': 'bowlofeggs'},
             topic='mashtask.complete'))
-        self.assertEquals(calls[5], mock.call(
+        self.assertEqual(calls[5], mock.call(
             force=True,
             msg={'repo': u'f17-updates-testing',
                  'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc17'],
                  'agent': 'bowlofeggs'},
             topic='mashtask.mashing'))
-        self.assertEquals(calls[-1], mock.call(
+        self.assertEqual(calls[-1], mock.call(
             force=True,
             msg={'success': True,
                  'ctype': 'rpm',
@@ -1013,28 +1013,28 @@ That was the actual one'''
 
         # Ensure that F17 updates-testing runs before F18
         calls = publish.mock_calls
-        self.assertEquals(calls[1], mock.call(
+        self.assertEqual(calls[1], mock.call(
             msg={'repo': u'f17-updates-testing',
                  'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc17'],
                  'agent': 'bowlofeggs'},
             force=True,
             topic='mashtask.mashing'))
-        self.assertEquals(calls[3], mock.call(
+        self.assertEqual(calls[3], mock.call(
             msg={'success': True,
                  'ctype': 'rpm',
                  'repo': 'f17-updates-testing',
                  'agent': 'bowlofeggs'},
             force=True,
             topic='mashtask.complete'))
-        self.assertEquals(calls[4], mock.call(
+        self.assertEqual(calls[4], mock.call(
             msg={'repo': u'f18-updates',
                  'ctype': 'rpm',
                  'updates': [u'bodhi-2.0-1.fc18'],
                  'agent': 'bowlofeggs'},
             force=True,
             topic='mashtask.mashing'))
-        self.assertEquals(calls[-1], mock.call(
+        self.assertEqual(calls[-1], mock.call(
             msg={'success': True,
                  'ctype': 'rpm',
                  'repo': 'f18-updates',
@@ -1101,14 +1101,14 @@ That was the actual one'''
                      'updates': [u'bodhi-2.0-1.fc18'],
                      'agent': 'bowlofeggs'},
                 force=True, topic='mashtask.mashing'):
-            self.assertEquals(
+            self.assertEqual(
                 calls[2],
                 mock.call(msg={'repo': u'f17-updates',
                                'ctype': 'rpm',
                                'updates': [u'bodhi-2.0-1.fc17'],
                                'agent': 'bowlofeggs'},
                           force=True, topic='mashtask.mashing'))
-        elif calls[1] == self.assertEquals(
+        elif calls[1] == self.assertEqual(
                 calls[1],
                 mock.call(
                     msg={'repo': u'f17-updates',
@@ -1116,7 +1116,7 @@ That was the actual one'''
                          'updates': [u'bodhi-2.0-1.fc17'],
                          'agent': 'bowlofeggs'},
                     force=True, topic='mashtask.mashing')):
-            self.assertEquals(
+            self.assertEqual(
                 calls[2],
                 mock.call(msg={'repo': u'f18-updates',
                                'ctype': 'rpm',
@@ -1262,9 +1262,9 @@ That was the actual one'''
             'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
             'this_should_get_left_alone', 'f23-updates-should_be_untouched',
             'f23-updates.repocache', 'f23-updates-testing-blank'}
-        actual_dirs = set([d for d in os.listdir(mash_dir)
-                           if os.path.isdir(os.path.join(mash_dir, d)) and
-                           not d.startswith("Fedora-17-updates")])
+        actual_dirs = set([
+            d for d in os.listdir(mash_dir)
+            if os.path.isdir(os.path.join(mash_dir, d)) and not d.startswith("Fedora-17-updates")])
 
         # Assert that remove_old_composes removes the correct items and leaves the rest in place.
         self.assertEqual(actual_dirs, expected_dirs)
@@ -1693,14 +1693,14 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEquals(len(up.comments), 2)
+            self.assertEqual(len(up.comments), 2)
 
         self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEquals(len(up.comments), 3)
-            self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to testing.')
+            self.assertEqual(len(up.comments), 3)
+            self.assertEqual(up.comments[-1]['text'], u'This update has been pushed to testing.')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
@@ -1717,14 +1717,14 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.request = UpdateRequest.stable
-            self.assertEquals(len(up.comments), 2)
+            self.assertEqual(len(up.comments), 2)
 
         self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEquals(len(up.comments), 3)
-            self.assertEquals(up.comments[-1]['text'], u'This update has been pushed to stable.')
+            self.assertEqual(len(up.comments), 3)
+            self.assertEqual(up.comments[-1]['text'], u'This update has been pushed to stable.')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
@@ -1749,8 +1749,8 @@ testmodule:master:20172:2
 
             updates = t.get_security_updates(release.long_name)
 
-            self.assertEquals(len(updates), 1)
-            self.assertEquals(updates[0].title, u.builds[0].nvr)
+            self.assertEqual(len(updates), 1)
+            self.assertEqual(updates[0].title, u.builds[0].nvr)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
@@ -1767,14 +1767,14 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.request = UpdateRequest.stable
-            self.assertEquals(len(up.comments), 2)
+            self.assertEqual(len(up.comments), 2)
 
         self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEquals(up.locked, False)
-            self.assertEquals(up.status, UpdateStatus.stable)
+            self.assertEqual(up.locked, False)
+            self.assertEqual(up.status, UpdateStatus.stable)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
@@ -1800,8 +1800,8 @@ testmodule:master:20172:2
         # Ensure that the update hasn't changed state
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEquals(up.request, UpdateRequest.testing)
-            self.assertEquals(up.status, UpdateStatus.pending)
+            self.assertEqual(up.request, UpdateRequest.testing)
+            self.assertEqual(up.status, UpdateStatus.pending)
 
         # Resume the push
         msg = self._make_msg()
@@ -1810,8 +1810,8 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEquals(up.status, UpdateStatus.testing)
-            self.assertEquals(up.request, None)
+            self.assertEqual(up.status, UpdateStatus.testing)
+            self.assertEqual(up.request, None)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
@@ -1893,28 +1893,28 @@ testmodule:master:20172:2
                 up = session.query(Update).one()
                 up.request = UpdateRequest.testing
                 up.status = UpdateStatus.pending
-                self.assertEquals(up.stable_karma, 3)
+                self.assertEqual(up.stable_karma, 3)
             self.masher.consume(self._make_msg())
 
         with self.db_factory() as session:
             up = session.query(Update).one()
 
             # Ensure the update is still locked and in testing
-            self.assertEquals(up.locked, True)
-            self.assertEquals(up.status, UpdateStatus.pending)
-            self.assertEquals(up.request, UpdateRequest.testing)
+            self.assertEqual(up.locked, True)
+            self.assertEqual(up.status, UpdateStatus.pending)
+            self.assertEqual(up.request, UpdateRequest.testing)
 
             # Have the update reach the stable karma threshold
-            self.assertEquals(up.karma, 1)
+            self.assertEqual(up.karma, 1)
             up.comment(session, u"foo", 1, u'foo')
-            self.assertEquals(up.karma, 2)
-            self.assertEquals(up.request, UpdateRequest.testing)
+            self.assertEqual(up.karma, 2)
+            self.assertEqual(up.request, UpdateRequest.testing)
             up.comment(session, u"foo", 1, u'bar')
-            self.assertEquals(up.karma, 3)
-            self.assertEquals(up.request, UpdateRequest.testing)
+            self.assertEqual(up.karma, 3)
+            self.assertEqual(up.request, UpdateRequest.testing)
             up.comment(session, u"foo", 1, u'biz')
-            self.assertEquals(up.request, UpdateRequest.testing)
-            self.assertEquals(up.karma, 4)
+            self.assertEqual(up.request, UpdateRequest.testing)
+            self.assertEqual(up.karma, 4)
 
         # finish push and unlock updates
         msg = self._make_msg()
@@ -1924,11 +1924,11 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.comment(session, u"foo", 1, u'baz')
-            self.assertEquals(up.karma, 5)
+            self.assertEqual(up.karma, 5)
 
             # Ensure the masher set the autokarma once the push is done
-            self.assertEquals(up.locked, False)
-            self.assertEquals(up.request, UpdateRequest.batched)
+            self.assertEqual(up.locked, False)
+            self.assertEqual(up.request, UpdateRequest.batched)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
@@ -1958,7 +1958,7 @@ testmodule:master:20172:2
             up.request = UpdateRequest.stable
 
         # Ensure that fedmsg was called 3 times
-        self.assertEquals(len(publish.call_args_list), 4)
+        self.assertEqual(len(publish.call_args_list), 4)
         # Also, ensure we reported success
         publish.assert_called_with(
             topic="mashtask.complete",
@@ -2013,13 +2013,13 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             # Ensure that the older update got obsoleted
             up = session.query(Update).filter_by(title=oldbuild).one()
-            self.assertEquals(up.status, UpdateStatus.obsolete)
-            self.assertEquals(up.request, None)
+            self.assertEqual(up.status, UpdateStatus.obsolete)
+            self.assertEqual(up.request, None)
 
             # The latest update should be in testing
             up = session.query(Update).filter_by(title=otherbuild).one()
-            self.assertEquals(up.status, UpdateStatus.testing)
-            self.assertEquals(up.request, None)
+            self.assertEqual(up.status, UpdateStatus.testing)
+            self.assertEqual(up.request, None)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')

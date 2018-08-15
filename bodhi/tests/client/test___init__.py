@@ -223,8 +223,8 @@ class TestDownload(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
-                         'WARNING: Some builds not found!\nDownloading packages ' +
-                         'from nodejs-grunt-wrap-0.3.0-2.fc25\n')
+                         ('WARNING: Some builds not found!\nDownloading packages '
+                          'from nodejs-grunt-wrap-0.3.0-2.fc25\n'))
         call.assert_called_once_with((
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'))
@@ -247,8 +247,8 @@ class TestDownload(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
-                         'Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n' +
-                         'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n')
+                         ('Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n'
+                          'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n'))
         call.assert_called_once_with((
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'))
@@ -340,6 +340,46 @@ class TestNew(unittest.TestCase):
                     'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
                     'suggest': None, 'notes': u'No description.', 'request': None, 'bugs': u'',
                     'requirements': None, 'unstable_karma': None, 'file': None,
+                    'notes_file': None, 'type': 'bugfix', 'severity': 'urgent'
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
+
+    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'severity': 'urgent'})
+    @mock.patch.dict(os.environ, {'BODHI_URL': 'http://example.com/tests/'})
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_debug_flag(self, send_request):
+        """Assert correct behavior with the --debug flag."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--debug', '--user', 'bowlofeggs', '--password', 's3kr3t',
+             '--autokarma', 'bodhi-2.2.4-1.el7', '--severity', 'urgent', '--notes',
+             'No description.'])
+
+        self.assertEqual(result.exit_code, 0)
+        expected_output = 'No `errors` nor `decision` in the data returned\n' \
+            + client_test_data.EXPECTED_UPDATE_OUTPUT.replace('unspecified', 'urgent')
+        self.assertTrue(compare_output(result.output, expected_output))
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
+                    'suggest': None, 'notes': u'No description.', 'request': None,
+                    'bugs': u'', 'requirements': None, 'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': 'urgent'
                 }
             ),

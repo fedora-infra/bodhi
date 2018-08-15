@@ -18,12 +18,9 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
   Vagrant.
 * New functions, methods, and classes must have docblocks that explain what the code block is, and
   describing any parameters it accepts and what it returns (if anything). You can use the
-  ``pydocstyle`` utility to automatically check your code for this. There is a
-  ``bodhi.tests.test_style.TestStyle.test_code_with_pydocstyle`` test, that is slowly being expanded
-  to enforce PEP-257 across the codebase.
+  ``pydocstyle`` utility to automatically check your code for this.
 * New code must follow `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`_. You can use the
-  ``flake8`` utility to automatically check your code. There is a
-  ``bodhi.tests.test_style.TestStyle.test_code_with_flake8`` to enforce this style.
+  ``flake8`` utility to automatically check your code.
 * Add an entry to `docs/user/release_notes.rst`_ for any changes you make that should be in release
   notes.
 * Make sure your commits are atomic. Each commit should focus on one improvement or bug fix. If you
