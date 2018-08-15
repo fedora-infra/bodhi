@@ -1262,9 +1262,9 @@ That was the actual one'''
             'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
             'this_should_get_left_alone', 'f23-updates-should_be_untouched',
             'f23-updates.repocache', 'f23-updates-testing-blank'}
-        actual_dirs = set([d for d in os.listdir(mash_dir)
-                           if os.path.isdir(os.path.join(mash_dir, d)) and
-                           not d.startswith("Fedora-17-updates")])
+        actual_dirs = set([
+            d for d in os.listdir(mash_dir)
+            if os.path.isdir(os.path.join(mash_dir, d)) and not d.startswith("Fedora-17-updates")])
 
         # Assert that remove_old_composes removes the correct items and leaves the rest in place.
         self.assertEqual(actual_dirs, expected_dirs)

@@ -162,8 +162,7 @@ def cache_release(request, build):
         log.warn('Unable to determine release from '
                  'tags: %r build: %r' % (tags, build))
         request.errors.add('body', 'builds',
-                           'Unable to determine release ' +
-                           'from build: %s' % build)
+                           'Unable to determine release from build: %s' % build)
     if not build_rel:
         msg = 'Cannot find release associated with ' + \
             'build: {}, tags: {}'.format(build, tags)

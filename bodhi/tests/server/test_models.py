@@ -2937,8 +2937,7 @@ class TestUpdate(ModelTest):
             expected_msg = expected_msg % (
                 config.get('critpath.min_karma'),
                 config.get('critpath.num_admin_approvals'),
-                (config.get('critpath.min_karma') -
-                    config.get('critpath.num_admin_approvals')),
+                (config.get('critpath.min_karma') - config.get('critpath.num_admin_approvals')),
                 config.get('critpath.stable_after_days_without_negative_karma'))
             expected_msg += ' Additionally, it must pass automated tests.'
             self.assertEqual(str(e), expected_msg)
