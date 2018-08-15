@@ -39,6 +39,8 @@ def main():
     (This utility has been deprecated. Please use 'bodhi releases' instead.)
     """
     click.echo("This utility has been deprecated. Please use 'bodhi releases' instead.")
+    cli.commands['releases'].commands['create'].params[0].opts = ['--username']
+    cli.commands['releases'].commands['edit'].params[0].opts = ['--username']
     cli.commands['releases']()
 
 

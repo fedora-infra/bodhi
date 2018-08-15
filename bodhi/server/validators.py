@@ -162,8 +162,7 @@ def cache_release(request, build):
         log.warn('Unable to determine release from '
                  'tags: %r build: %r' % (tags, build))
         request.errors.add('body', 'builds',
-                           'Unable to determine release ' +
-                           'from build: %s' % build)
+                           'Unable to determine release from build: %s' % build)
     if not build_rel:
         msg = 'Cannot find release associated with ' + \
             'build: {}, tags: {}'.format(build, tags)
@@ -258,13 +257,11 @@ def validate_builds(request, **kwargs):
                                    'Cannot edit stable updates')
 
         for nvr in request.validated.get('builds', []):
-            # If the build is new
-            if nvr not in edited:
-                # Ensure it doesn't already exist
-                build = request.db.query(Build).filter_by(nvr=nvr).first()
-                if build and build.update is not None:
-                    request.errors.add('body', 'builds',
-                                       "Update for {} already exists".format(nvr))
+            # Ensure it doesn't already exist in another update
+            build = request.db.query(Build).filter_by(nvr=nvr).first()
+            if build and build.update is not None and up.title != build.update.title:
+                request.errors.add('body', 'builds',
+                                   "Update for {} already exists".format(nvr))
 
         return
 

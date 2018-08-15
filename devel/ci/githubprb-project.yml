@@ -88,6 +88,8 @@
             env > jenkins-env
             $ssh_cmd yum -y install rsync
             # Checkout the pull request that we received from the githubPRB plugin
+            git config --global user.email "bodhi-ci@fedoraproject.org"
+            git config --global user.name "Bodhi CI"
             git rebase --preserve-merges origin/${{ghprbTargetBranch}} \
             && rsync -e "ssh $sshopts" -Ha $(pwd)/ $CICO_hostname:payload \
             && /usr/bin/timeout {timeout} $ssh_cmd -t "cd payload && {ci_cmd}"

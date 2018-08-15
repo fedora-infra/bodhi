@@ -306,7 +306,7 @@ class TestNewUpdate(BaseTestCase):
         resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
         self.assertRegexpMatches(str(resp), ('https://koji.fedoraproject.org/koji'
-                                             '/search\?terms=.*\&amp;type=build\&amp;match=glob'))
+                                             r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -321,7 +321,7 @@ class TestNewUpdate(BaseTestCase):
         resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
         self.assertRegexpMatches(str(resp), ('https://koji.fedoraproject.org/koji'
-                                             '/search\?terms=.*\&amp;type=build\&amp;match=glob'))
+                                             r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -337,7 +337,7 @@ class TestNewUpdate(BaseTestCase):
         resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
         self.assertRegexpMatches(str(resp), ('https://host.org'
-                                             '/search\?terms=.*\&amp;type=build\&amp;match=glob'))
+                                             r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
@@ -2627,6 +2627,60 @@ class TestUpdatesService(BaseTestCase):
         self.assertEquals(up['builds'][0]['nvr'], u'bodhi-2.0.0-3.fc17')
         self.assertEquals(self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.0.0-2.fc17').first(),
                           None)
+        self.assertEquals(len(publish.call_args_list), 3)
+        publish.assert_called_with(topic='update.edit', msg=ANY)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_edit_testing_update_with_failed_title_change(self, publish, *args):
+        """Test that editing a multi-build update is still possible if title updating failed.
+
+        At some point, the text of the title was used to determine whether a build was
+        in the current update.
+        """
+        nvrs = 'a-1.0-1.fc17,b-1.0-1.fc17,c-1.0-1.fc17'
+        args = self.get_update(nvrs)
+        r = self.app.post_json('/updates/', args)
+        publish.assert_called_with(topic='update.request.testing', msg=ANY)
+
+        # Mark it as testing
+        upd = Update.get(r.json_body['alias'])
+        newtitle = upd.title.replace('a-1.0', 'a-1.5')
+        upd.title = newtitle
+        upd.status = UpdateStatus.testing
+        upd.request = None
+        self.db.commit()
+
+        args['edited'] = newtitle
+        # Kept a and c the same, bumped b
+        args['builds'] = ['a-1.0-1.fc17', 'b-2.0-1.fc17', 'c-1.0-1.fc17']
+        r = self.app.post_json('/updates/', args)
+        up = r.json_body
+        self.assertEquals(up['title'], u'a-1.0-1.fc17 b-2.0-1.fc17 c-1.0-1.fc17')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['comments'][-1]['text'],
+                          u'This update has been submitted for testing by guest. ')
+        comment = textwrap.dedent("""
+        guest edited this update.
+
+        New build(s):
+
+        - b-2.0-1.fc17
+
+        Removed build(s):
+
+        - b-1.0-1.fc17
+
+        Karma has been reset.
+        """).strip()
+        self.assertMultiLineEqual(up['comments'][-2]['text'], comment)
+        self.assertEquals(up['comments'][-3]['text'],
+                          u'This update has been submitted for testing by guest. ')
+        self.assertEquals(len(up['builds']), 3)
+        self.assertEquals(up['builds'][0]['nvr'], u'a-1.0-1.fc17')
+        self.assertEquals(up['builds'][1]['nvr'], u'c-1.0-1.fc17')
+        self.assertEquals(up['builds'][2]['nvr'], u'b-2.0-1.fc17')
         self.assertEquals(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 

@@ -1262,9 +1262,9 @@ That was the actual one'''
             'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
             'this_should_get_left_alone', 'f23-updates-should_be_untouched',
             'f23-updates.repocache', 'f23-updates-testing-blank'}
-        actual_dirs = set([d for d in os.listdir(mash_dir)
-                           if os.path.isdir(os.path.join(mash_dir, d)) and
-                           not d.startswith("Fedora-17-updates")])
+        actual_dirs = set([
+            d for d in os.listdir(mash_dir)
+            if os.path.isdir(os.path.join(mash_dir, d)) and not d.startswith("Fedora-17-updates")])
 
         # Assert that remove_old_composes removes the correct items and leaves the rest in place.
         self.assertEqual(actual_dirs, expected_dirs)
@@ -2231,6 +2231,24 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
         self.assertEqual(Popen.mock_calls, expected_mock_calls)
+
+
+class TestPungiComposerThread__compose_updates(ComposerThreadBaseTestCase):
+    """This class contains tests for the PungiComposerThread._compose_updates() method."""
+
+    def test_mash_dir_dne(self):
+        """If mash_dir does not exist, the method should create it."""
+        msg = self._make_msg()
+        mash_dir = os.path.join(self.tempdir, 'mash_dir')
+        t = PungiComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                                'bowlofeggs', log, self.Session, mash_dir)
+        t._checkpoints = {'cool': 'checkpoint'}
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+        t.skip_compose = True
+
+        t._compose_updates()
+
+        self.assertTrue(os.path.exists(mash_dir))
 
 
 class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase):

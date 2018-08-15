@@ -1892,8 +1892,8 @@ class Update(Base):
         comments_since_karma_reset = []
 
         for comment in reversed(self.comments):
-            if (comment.user.name == u'bodhi' and
-                    ('New build' in comment.text or 'Removed build' in comment.text)):
+            if comment.user.name == u'bodhi' and \
+                    ('New build' in comment.text or 'Removed build' in comment.text):
                 # We only want to consider comments since the most recent karma
                 # reset, which happens whenever a build is added or removed
                 # from an Update. Since we are traversing the comments in
@@ -2563,11 +2563,12 @@ class Update(Base):
                         'positive karma from proventesters, along with %d additional karma from '
                         'the community. Or, it must spend %s days in testing without any negative '
                         'feedback')
+                    additional_karma = config.get('critpath.min_karma') \
+                        - config.get('critpath.num_admin_approvals')
                     stern_note = stern_note % (
                         config.get('critpath.min_karma'),
                         config.get('critpath.num_admin_approvals'),
-                        (config.get('critpath.min_karma') -
-                            config.get('critpath.num_admin_approvals')),
+                        additional_karma,
                         config.get('critpath.stable_after_days_without_negative_karma'))
                     if config.get('test_gating.required'):
                         stern_note += ' Additionally, it must pass automated tests.'
@@ -2584,8 +2585,8 @@ class Update(Base):
         flash_notes = ''
         if action in (UpdateRequest.stable, UpdateRequest.batched) and not self.critpath:
             # Check if we've met the karma requirements
-            if (self.stable_karma not in (None, 0) and self.karma >=
-                    self.stable_karma) or self.critpath_approved:
+            if (self.stable_karma not in (None, 0) and self.karma >= self.stable_karma) \
+                    or self.critpath_approved:
                 log.debug('%s meets stable karma requirements' % self.title)
             else:
                 # If we haven't met the stable karma requirements, check if it
@@ -2779,8 +2780,8 @@ class Update(Base):
         mailinglist = None
         sender = config.get('bodhi_email')
         if not sender:
-            log.error("bodhi_email not defined in configuration!  Unable " +
-                      "to send update notice")
+            log.error(("bodhi_email not defined in configuration!  Unable "
+                      "to send update notice"))
             return
 
         # eg: fedora_epel
@@ -2923,12 +2924,16 @@ class Update(Base):
         session.flush()
         return new
 
-    def update_cves(self, cves, session):
+    def update_cves(self, cves, session):  # pragma: no cover
         """
         Create any new CVES, and remove any missing ones.
 
         This method cannot possibly work:
             https://github.com/fedora-infra/bodhi/issues/1998#issuecomment-344332011
+
+        This method has pragma: no cover on it because of the combination of it not working (see
+        above), and because the CVE feature is planned for removal in a future X release of Bodhi
+        since it has never been used.
 
         Args:
             cves (list): A list of basestrings of CVE identifiers.
@@ -3249,8 +3254,8 @@ class Update(Base):
 
             for index, build in enumerate(self.builds):
                 multicall_response = buildinfos[index]
-                if (not isinstance(multicall_response, list) or
-                        not isinstance(multicall_response[0], dict)):
+                if not isinstance(multicall_response, list) \
+                        or not isinstance(multicall_response[0], dict):
                     msg = ("Error retrieving data from Koji for %r: %r" %
                            (build.nvr, multicall_response))
                     log.error(msg)
@@ -4141,8 +4146,8 @@ class Bug(Base):
             comment (basestring or None): The comment to add to the bug. If None, a default message
                 is added to the bug. Defaults to None.
         """
-        if (update.type is UpdateType.security and self.parent and
-                update.status is not UpdateStatus.stable):
+        if update.type is UpdateType.security and self.parent \
+                and update.status is not UpdateStatus.stable:
             log.debug('Not commenting on parent security bug %s', self.bug_id)
         else:
             if not comment:
