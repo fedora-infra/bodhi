@@ -18,7 +18,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
 <link rel="alternate" type="application/atom+xml" title="New Comments on ${update.alias}" href="${request.route_url('comments_rss')}?updates=${update.alias}"/>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="${request.js_nonce}">
   $(document).ready(function() {
     // Some handy lookups that map taskotron states to bootstrap CSS classes.
     var classes = {

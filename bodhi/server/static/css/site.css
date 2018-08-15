@@ -116,7 +116,16 @@ hr {
 
 /* Search-y stuff */
 form#search, form#search input, .twitter-typeahead {
+    background:rgba(0,0,0,0);
+    border: 0;
+    color: white;
+    height:50px;
+    line-height: 50px;
     width: 100%;
+}
+
+div#searchbar {
+    display: none;
 }
 
 .tt-hint {
@@ -296,4 +305,8 @@ padding-bottom: 2em;
 
 .notblue{
   color:inherit;
+}
+
+div#new-update-form {
+    display: none;
 }

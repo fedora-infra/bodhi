@@ -19,7 +19,7 @@
     </div>
   </div>
 
-  <div id="new-update-form" class="p-t-3" style="display:none;">
+  <div id="new-update-form" class="p-t-3">
     <div class="row">
       <div class="col-md-12">
         % if not update:
@@ -200,11 +200,7 @@ ${update.notes}
                   </label>
                   % endfor
 
-                  <div id='severity-warning'
-                  % if not update or update.severity.description != 'urgent':
-                  style="display:none"
-                  % endif
-                  >
+                  <div id='severity-warning'>
                     <div class="alert alert-warning">
                       <p>Update with "urgent" severity will skip the batched state</p>
                     </div>
@@ -327,9 +323,19 @@ ${update.notes}
   </div>
 </div>
 <script src="${request.static_url('bodhi:server/static/js/update_form.js')}"></script>
-<script>$("#js-warning").hide();$("#new-update-form").show();</script>
-<script> $(document).ready(function() { $('.panel-heading > span, dt').tooltip(); }); </script>
-% if not update:
-<!-- Pre-select the radio buttons -->
-<script> $(document).ready(function() { $(".radio-group > label:first-of-type input").attr('checked', 'checked')}); </script>
-% endif
+<script nonce="${request.js_nonce}">
+  $("#js-warning").hide();$("#new-update-form").show();
+
+  $(document).ready(function() {
+    $('.panel-heading > span, dt').tooltip();
+
+    % if not update or update.severity.description != 'urgent':
+      $('#severity-warning').hide();
+    % endif
+
+    % if not update:
+      <!-- Pre-select the radio buttons -->
+      $(".radio-group > label:first-of-type input").attr('checked', 'checked')
+    % endif
+  });
+</script>

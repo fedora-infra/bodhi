@@ -1,4 +1,4 @@
-# Copyright © 2013-2017 Red Hat, Inc. and others.
+# Copyright © 2013-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -396,6 +396,15 @@ class BodhiConfig(dict):
         'critpath.type': {
             'value': None,
             'validator': _validate_none_or(str)},
+        'content_security_policy': {
+            'value': (
+                 "connect-src 'self' https://*.fedoraproject.org/ "
+                 "wss://hub.fedoraproject.org:9939/; "
+                 "img-src 'self' https://apps.fedoraproject.org https://secure.gravatar.com "
+                 "https://seccdn.libravatar.org; "
+                 "script-src 'self' {nonce} https://apps.fedoraproject.org; "
+                 "style-src 'self' https://apps.fedoraproject.org"),
+            'validator': str},
         'datagrepper_url': {
             'value': 'https://apps.fedoraproject.org/datagrepper',
             'validator': str},

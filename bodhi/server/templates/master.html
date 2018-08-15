@@ -14,9 +14,6 @@
     <meta name="author" content="Ralph Bean" />
     <meta name="author" content="Randy Barlow" />
 
-    <!-- Only allow websockets connections to fedoraproject.org. -->
-    <meta http-equiv="Content-Security-Policy" content="connect-src ${request.registry.settings['cors_connect_src']}">
-
     <link rel="shortcut icon" href="${request.static_url('bodhi:server/static/ico/favicon.ico')}">
 
     <base href="${request.registry.settings['base_address']}"/>
@@ -40,13 +37,13 @@
   </head>
 
   <body>
-      <div class="searchbar" style="display:none;">
+      <div class="searchbar" id="searchbar">
         <div class="container">
           <div class="row">
             <div class="col-xs-12">
               <form id="search" role="search" class="nav navbar-form navbar-left">
                 <div id="bloodhound" class="form-group m-b-0">
-                  <input class="typeahead form-control" name="term" type="text" placeholder="Search..." style="height:50px;background:rgba(0,0,0,0);border:0;color:white;line-height:50px;">
+                  <input class="typeahead form-control" name="term" type="text" placeholder="Search...">
                 </div>
               </form>
             </div>
@@ -144,13 +141,13 @@
                                 <input type="hidden" name="next" value="${request.current_route_url()}">
                                 % endif
                               </form>
-                              <a class="dropdown-item" href="javascript:$('#popup_toggle').submit();">
+                              <div id="popup_toggle_button" class="dropdown-item" role="button">
                                 % if request.user.show_popups:
                                 Disable popups
                                 % else:
                                 Enable popups
                                 % endif
-                              </a>
+                              </div>
                               % if request.user:
                               <a class="dropdown-item" href="${request.route_url('logout')}">
                                 Log out</a>
@@ -173,9 +170,9 @@
                         </li>
                         % endif
                         <li class="nav-item">
-                          <a class="nav-link" href="javascript:void(0);" id="search-toggle">
-                            <span class="fa fa-search"></span>
-                          </a>
+                          <button type="button" class="nav-link btn btn-default btn-sm" id="search-toggle">
+                            <i class="fa fa-search"></i>
+                          </input>
                         </li>
                     </ul>
                   </div>
@@ -246,7 +243,11 @@
     % if 'fedmenu.url' in request.registry.settings:
     <script src="${request.registry.settings.get('fedmenu.url')}/js/fedora-libravatar.js"></script>
     <script src="${request.registry.settings.get('fedmenu.url')}/js/fedmenu.js"></script>
-    <script>
+    <script type="text/javascript" nonce="${request.js_nonce}">
+      $('div#popup_toggle_button').click(function() {
+          $('#popup_toggle').submit();
+      });
+
       fedmenu({
           'url': '${request.registry.settings.get("fedmenu.data_url")}',
           'mimeType': 'application/javascript',
