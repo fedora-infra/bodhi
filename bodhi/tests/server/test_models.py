@@ -236,6 +236,100 @@ class TestBodhiBase(BaseTestCase):
             model.Update.find_polymorphic_child("whatever")
 
 
+class TestBugAddComment(BaseTestCase):
+    """Test Bug.add_comment()."""
+
+    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
+    @mock.patch('bodhi.server.models.log.debug')
+    def test_parent_security_bug(self, debug, comment):
+        """The method should not comment on a parent security bug."""
+        update = model.Update.query.first()
+        update.type = model.UpdateType.security
+        bug = model.Bug.query.first()
+        bug.parent = True
+
+        bug.add_comment(update)
+
+        debug.assert_called_once_with('Not commenting on parent security bug %s', bug.bug_id)
+        self.assertEqual(comment.call_count, 0)
+
+
+class TestBugDefaultMessage(BaseTestCase):
+    """Test Bug.default_mesage()."""
+
+    @mock.patch.dict(config, {'testing_bug_epel_msg': 'cool stuff %s'})
+    def test_epel_with_testing_bug_epel_msg(self):
+        """Test with testing_bug_epel_msg defined."""
+        bug = model.Bug()
+        update = model.Update.query.first()
+        update.release.id_prefix = 'FEDORA-EPEL'
+        update.status = UpdateStatus.testing
+
+        message = bug.default_message(update)
+
+        self.assertTrue(
+            'cool stuff {}'.format(config['base_address'] + update.get_url()) in message)
+        self.assertTrue(update.builds[0].nvr in message)
+        self.assertTrue(update.release.long_name in message)
+        self.assertTrue(update.status.description in message)
+        self.assertTrue(update.get_url() in message)
+
+    @mock.patch('bodhi.server.models.log.warn')
+    @mock.patch.dict(
+        config,
+        {'stable_bug_msg': '%s%s', 'testing_bug_msg': '%s', 'base_address': 'b'}, clear=True)
+    def test_epel_without_testing_bug_epel_msg(self, warn):
+        """Test with testing_bug_epel_msg undefined."""
+        bug = model.Bug()
+        update = model.Update.query.first()
+        update.release.id_prefix = 'FEDORA-EPEL'
+        update.status = UpdateStatus.testing
+
+        message = bug.default_message(update)
+
+        warn.assert_called_once_with("No 'testing_bug_epel_msg' found in the config.")
+        self.assertTrue(update.builds[0].nvr in message)
+        self.assertTrue(update.release.long_name in message)
+        self.assertTrue(update.status.description in message)
+        self.assertTrue(update.get_url() in message)
+
+
+class TestBugModified(BaseTestCase):
+    """Test Bug.modified()."""
+
+    @mock.patch('bodhi.server.models.bugs.bugtracker.modified')
+    @mock.patch('bodhi.server.models.log.debug')
+    def test_parent_security_bug(self, debug, modified):
+        """The method should not act on a parent security bug."""
+        update = model.Update.query.first()
+        update.type = model.UpdateType.security
+        bug = model.Bug.query.first()
+        bug.parent = True
+
+        bug.modified(update, 'this should not be used')
+
+        debug.assert_called_once_with('Not modifying on parent security bug %s', bug.bug_id)
+        self.assertEqual(modified.call_count, 0)
+
+
+class TestBugTesting(BaseTestCase):
+    """Test Bug.testing()."""
+
+    @mock.patch('bodhi.server.models.bugs.bugtracker.on_qa')
+    @mock.patch('bodhi.server.models.log.debug')
+    def test_parent_security_bug(self, debug, on_qa):
+        """The method should not act on a parent security bug."""
+        update = model.Update.query.first()
+        update.type = model.UpdateType.security
+        bug = model.Bug.query.first()
+        bug.parent = True
+
+        bug.testing(update)
+
+        debug.assert_called_once_with('Not modifying on parent security bug %s', bug.bug_id)
+        self.assertEqual(on_qa.call_count, 0)
+
+
 class TestQueryProperty(BaseTestCase):
 
     def test_session(self):
@@ -1911,6 +2005,12 @@ class TestUpdate(ModelTest):
         self.assertEqual(str(exc.exception),
                          'Unable to determine requested tag for {}.'.format(self.obj.title))
 
+    def test_requested_tag_request_obsolete(self):
+        """requested_tag() should returnt he candidate_tag if the request is obsolete."""
+        self.obj.request = UpdateRequest.obsolete
+
+        self.assertEqual(self.obj.requested_tag, self.obj.release.candidate_tag)
+
     def test_side_tag_locked_false(self):
         """Test the side_tag_locked property when it is false."""
         self.obj.status = model.UpdateStatus.side_tag_active
@@ -2194,6 +2294,33 @@ class TestUpdate(ModelTest):
             (u'dist-f11-updates-testing-pending', u'TurboGears-1.0.8-3.fc11'),
             (u'dist-f11-updates-pending', u'TurboGears-1.0.8-3.fc11')])
 
+    @mock.patch('bodhi.server.models.log.debug')
+    def test_unpush_stable(self, debug):
+        """unpush() should raise a BodhiException on a stable update."""
+        self.obj.status = UpdateStatus.stable
+        self.obj.untag = mock.MagicMock()
+
+        with self.assertRaises(BodhiException) as exc:
+            self.obj.unpush(self.db)
+
+        self.assertEqual(str(exc.exception), "Can't unpush a stable update")
+        debug.assert_called_once_with('Unpushing {}'.format(self.obj.title))
+        self.assertEqual(self.obj.untag.call_count, 0)
+
+    @mock.patch('bodhi.server.models.log.debug')
+    def test_unpush_unpushed(self, debug):
+        """unpush() should do nothing on an unpushed update."""
+        self.obj.status = UpdateStatus.unpushed
+        self.obj.untag = mock.MagicMock()
+
+        self.obj.unpush(self.db)
+
+        self.assertEqual(
+            debug.mock_calls,
+            [mock.call('Unpushing {}'.format(self.obj.title)),
+             mock.call('{} already unpushed'.format(self.obj.title))])
+        self.assertEqual(self.obj.untag.call_count, 0)
+
     def test_title(self):
         self.assertEqual(self.obj.title, u'TurboGears-1.0.8-3.fc11')
 
@@ -2429,6 +2556,54 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(self.obj._composite_karma, (2, -1))
 
+    def test_check_karma_thresholds_obsolete(self):
+        """check_karma_thresholds() should no-op on an obsolete update."""
+        self.obj.status = UpdateStatus.obsolete
+        self.obj.request = None
+        self.obj.comment(self.db, u"foo", 1, u'biz')
+        self.obj.stable_karma = 1
+
+        self.obj.check_karma_thresholds(self.db, 'bowlofeggs')
+
+        self.assertEqual(self.obj.request, None)
+        self.assertEqual(self.obj.status, UpdateStatus.obsolete)
+
+    def test_critpath_approved_no_release_requirements(self):
+        """critpath_approved() should use the broad requirements if the release doesn't have any."""
+        self.obj.critpath = True
+        self.obj.comment(self.db, u"foo", 1, u'biz')
+        release_name = self.obj.release.name.lower().replace('-', '')
+
+        with mock.patch.dict(
+                config,
+                {'{}.status'.format(release_name): 'stable', 'critpath.num_admin_approvals': 0,
+                 'critpath.min_karma': 1}):
+            self.assertTrue(self.obj.critpath_approved)
+
+    def test_critpath_approved_release_requirements(self):
+        """critpath_approved() should use the release requirements if they are defined."""
+        self.obj.critpath = True
+        self.obj.comment(self.db, u"foo", 1, u'biz')
+        release_name = self.obj.release.name.lower().replace('-', '')
+
+        with mock.patch.dict(
+                config,
+                {'{}.status'.format(release_name): 'stable', 'critpath.num_admin_approvals': 0,
+                 'critpath.min_karma': 1,
+                 '{}.{}.critpath.num_admin_approvals'.format(release_name, 'stable'): 0,
+                 '{}.{}.critpath.min_karma'.format(release_name, 'stable'): 2}):
+            self.assertFalse(self.obj.critpath_approved)
+
+    def test_last_modified_no_dates(self):
+        """last_modified() should raise ValueError if there are no available dates."""
+        self.obj.date_submitted = None
+        self.obj.date_modified = None
+
+        with self.assertRaises(ValueError) as exc:
+            self.obj.last_modified
+
+        self.assertTrue('Update has no timestamps set:' in str(exc.exception))
+
     @mock.patch('bodhi.server.notifications.publish')
     def test_stable_karma(self, publish):
         update = self.obj
@@ -2469,6 +2644,46 @@ class TestUpdate(ModelTest):
         # The update should stay at stable, rather than being set back to batched.
         self.assertEqual(update.request, UpdateRequest.stable)
         publish.assert_called_with(topic='update.comment', msg=mock.ANY)
+
+    def test_obsolete_if_unstable_unstable(self):
+        """Test obsolete_if_unstable() when all conditions are met for instability."""
+        self.obj.autokarma = True
+        self.obj.status = UpdateStatus.pending
+        self.obj.request = UpdateRequest.testing
+        self.obj.unstable_karma = -1
+        self.obj.comment(self.db, 'foo', -1, 'foo', check_karma=False)
+
+        self.assertEqual(self.obj.status, UpdateStatus.obsolete)
+
+    @mock.patch('bodhi.server.models.log.warn')
+    def test_remove_tag_emptystring(self, warn):
+        """Test remove_tag() with a tag of ''."""
+        self.assertEqual(self.obj.remove_tag(''), [])
+
+        warn.assert_called_once_with(
+            'Not removing builds of {} from empty tag'.format(self.obj.title))
+
+    def test_revoke_no_request(self):
+        """revoke() should raise BodhiException on an Update with no request."""
+        self.obj.request = None
+
+        with self.assertRaises(BodhiException) as exc:
+            self.obj.revoke()
+
+        self.assertEqual(str(exc.exception), 'Can only revoke an update with an existing request')
+
+    def test_revoke_processing(self):
+        """Revoking a processing Update should raise BodhiException."""
+        self.obj.request = UpdateRequest.stable
+        self.obj.status = UpdateStatus.processing
+
+        with self.assertRaises(BodhiException) as exc:
+            self.obj.revoke()
+
+        self.assertEqual(
+            str(exc.exception),
+            ('Can only revoke a pending, testing, unpushed, or obsolete update, not one that is '
+             'processing'))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_unstable_karma(self, publish):
@@ -2526,6 +2741,16 @@ class TestUpdate(ModelTest):
         assert update.bugs[0].bug_id == 5678
         self.assertEqual(self.db.query(model.Bug).filter_by(bug_id=4321).count(), 1)
 
+    def test_update_bugs_security(self):
+        """Asssociating an Update with a security Bug should mark the Update as security."""
+        bug = model.Bug(bug_id=1075839, security=True)
+        self.db.add(bug)
+        self.obj.type = UpdateType.enhancement
+
+        self.obj.update_bugs([1075839], self.db)
+
+        self.assertEqual(self.obj.type, UpdateType.security)
+
     def test_unicode_bug_title(self):
         bug = self.obj.bugs[0]
         bug.title = u'foo\xe9bar'
@@ -2571,6 +2796,43 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.request, UpdateRequest.stable)
         self.assertEqual(self.obj.status, UpdateStatus.pending)
 
+    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_set_request_resubmit_candidate_tag_missing(self, publish, get_session):
+        """Ensure that set_request() adds the candidate tag back to a resubmitted build."""
+        req = DummyRequest(user=DummyUser())
+        req.errors = cornice.Errors()
+        req.koji = get_session.return_value
+        self.obj.status = UpdateStatus.unpushed
+        self.obj.request = None
+
+        self.obj.set_request(self.db, 'testing', req.user.name)
+
+        self.assertEqual(self.obj.status, UpdateStatus.pending)
+        self.assertEqual(self.obj.request, UpdateRequest.testing)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg={'update': self.obj, 'agent': req.user.name})
+        self.assertEqual(
+            get_session.return_value.tagBuild.mock_calls,
+            [mock.call(self.obj.release.pending_signing_tag, self.obj.builds[0].nvr, force=True),
+             mock.call(self.obj.release.candidate_tag, self.obj.builds[0].nvr, force=True)])
+
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_set_request_revoke_pending_stable(self, publish):
+        """Ensure that we can revoke a pending/stable update with set_request()."""
+        req = DummyRequest(user=DummyUser())
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        self.obj.status = UpdateStatus.pending
+        self.obj.request = UpdateRequest.stable
+
+        self.obj.set_request(self.db, UpdateRequest.revoke, req.user.name)
+
+        self.assertEqual(self.obj.request, None)
+        self.assertEqual(self.obj.status, UpdateStatus.pending)
+        publish.assert_called_once_with(
+            topic='update.request.revoke', msg={'update': self.obj, 'agent': req.user.name})
+
     def test_set_request_untested_stable(self):
         """
         Ensure that we can't submit an update for stable if it hasn't met the
@@ -2611,6 +2873,42 @@ class TestUpdate(ModelTest):
         publish.assert_called_once_with(
             topic='update.request.stable', msg=mock.ANY)
 
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_set_request_stable_epel_requirements_not_met(self, publish):
+        """Test set_request() for EPEL update requesting stable that doesn't meet requirements."""
+        req = DummyRequest()
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        req.user = model.User(name='bob')
+        self.obj.release.id_prefix = 'FEDORA-EPEL'
+        self.obj.status = UpdateStatus.testing
+        self.obj.request = None
+
+        with self.assertRaises(BodhiException) as exc:
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+
+        self.assertEqual(str(exc.exception), config['not_yet_tested_epel_msg'])
+        self.assertEqual(self.obj.request, None)
+        self.assertEqual(publish.call_count, 0)
+
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_set_request_stable_epel_requirements_not_met_not_testing(self, publish):
+        """Test set_request() for EPEL update not meeting requirements that isn't testing."""
+        req = DummyRequest()
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        req.user = model.User(name='bob')
+        self.obj.release.id_prefix = 'FEDORA-EPEL'
+        self.obj.status = UpdateStatus.pending
+        self.obj.request = None
+
+        self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+
+        # The request should have gotten switched to testing.
+        self.assertEqual(self.obj.request, UpdateRequest.testing)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg={'update': self.obj, 'agent': req.user.name})
+
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_set_request_stable_for_critpath_update_when_test_gating_enabled(self):
         """
@@ -2639,11 +2937,24 @@ class TestUpdate(ModelTest):
             expected_msg = expected_msg % (
                 config.get('critpath.min_karma'),
                 config.get('critpath.num_admin_approvals'),
-                (config.get('critpath.min_karma') -
-                    config.get('critpath.num_admin_approvals')),
+                (config.get('critpath.min_karma') - config.get('critpath.num_admin_approvals')),
                 config.get('critpath.stable_after_days_without_negative_karma'))
             expected_msg += ' Additionally, it must pass automated tests.'
             self.assertEqual(str(e), expected_msg)
+
+    def test_set_request_string_action(self):
+        """Ensure that the action can be passed as a str."""
+        req = DummyRequest(user=DummyUser())
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        self.assertEqual(self.obj.status, UpdateStatus.pending)
+        self.obj.stable_karma = 1
+        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+
+        self.obj.set_request(self.db, 'stable', req.user.name)
+
+        self.assertEqual(self.obj.request, UpdateRequest.stable)
+        self.assertEqual(self.obj.status, UpdateStatus.pending)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_met_testing_requirements_at_7_days_after_bodhi_comment(self, publish):
@@ -2684,6 +2995,11 @@ class TestUpdate(ModelTest):
 
         # Since bodhi hasn't added the testing_approval_message yet, this should be False.
         self.assertEqual(self.obj.met_testing_requirements, False)
+
+    def test_met_testing_requirements_no_mandatory_days_in_testing(self):
+        """met_testing_requirements() should return True if no mandatory days in testing."""
+        with mock.patch.dict(config, {'fedora.mandatory_days_in_testing': 0}):
+            self.assertTrue(self.obj.met_testing_requirements)
 
     def test_meets_testing_requirements_with_non_autokarma_update_below_stable_karma(self):
         """
@@ -2827,6 +3143,14 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.comments[1].text, u'This update has been pushed to stable.')
         assert str(self.obj.comments[1]).endswith('This update has been pushed to stable.')
 
+    def test_status_comment_obsolete(self):
+        """Test status_comment() with an obsolete update."""
+        self.obj.status = UpdateStatus.obsolete
+
+        self.obj.status_comment(self.db)
+
+        self.assertEqual([c.text for c in self.obj.comments], ['This update has been obsoleted.'])
+
     @mock.patch('bodhi.server.notifications.publish')
     def test_anonymous_comment(self, publish):
         self.obj.comment(self.db, u'testing', author='me', anonymous=True, karma=1)
@@ -2838,6 +3162,68 @@ class TestUpdate(ModelTest):
             topic='update.comment', msg=mock.ANY)
         args, kwargs = publish.call_args
         self.assertEqual(kwargs['msg']['comment']['author'], 'anonymous')
+
+    @mock.patch.dict(config, {'critpath.num_admin_approvals': 2})
+    def test_comment_critpath_unapproved(self):
+        """Test a comment reaching karma threshold when update is not critpath approved."""
+        self.obj.autokarma = True
+        self.obj.critpath = True
+        self.obj.stable_karma = 1
+        self.obj.status = UpdateStatus.testing
+
+        # This should cause a caveat.
+        comments, caveats = self.obj.comment(self.db, u'testing 3', author='me3', karma=1)
+
+        self.assertEqual(
+            caveats,
+            [{'name': 'karma',
+              'description': ('This critical path update has not yet been approved for pushing to '
+                              'the stable repository.  It must first reach a karma of 2, '
+                              'consisting of 2 positive karma from proventesters, along with 0 '
+                              'additional karma from the community. Or, it must spend 14 days in '
+                              'testing without any negative feedback')}])
+
+    @mock.patch('bodhi.server.mail.smtplib.SMTP')
+    @mock.patch.dict('bodhi.server.models.config',
+                     {'bodhi_email': 'bodhi@fp.o', 'smtp_server': 'smtp.fp.o'})
+    def test_comment_emails_maintainers(self, SMTP):
+        """comment() should send e-mails to the other maintainers."""
+        bowlofeggs = model.User(name=u'bowlofeggs', email=u'bowlofeggs@fp.o')
+        self.obj.builds[0].package.committers.append(bowlofeggs)
+
+        self.obj.comment(self.db, u'Here is a cool e-mail for you.', author=u'bowlofemail')
+
+        bodies = [c[1][2].decode('utf-8') for c in SMTP.return_value.sendmail.mock_calls]
+        self.assertTrue('lmacken' in bodies[0])
+        # In Python 2 this address is in the middle e-mail and in Python 3 it's in the last e-mail
+        self.assertTrue('bowlofeggs@fp.o' in '\n'.join(bodies))
+        self.assertTrue(all(['Here is a cool e-mail for you.' in b for b in bodies]))
+
+    def test_comment_emails_other_commenters(self):
+        """comment() should send e-mails to the other maintainers."""
+        bowlofeggs = model.User(name=u'bowlofeggs', email=u'bowlofeggs@fp.o')
+        self.db.add(bowlofeggs)
+        self.db.flush()
+        self.obj.comment(self.db, u'im a commenter', author=u'bowlofeggs')
+
+        with mock.patch('bodhi.server.mail.smtplib.SMTP') as SMTP:
+            with mock.patch.dict('bodhi.server.models.config',
+                                 {'bodhi_email': 'bodhi@fp.o', 'smtp_server': 'smtp.fp.o'}):
+                self.obj.comment(self.db, u'Here is a cool e-mail for you.', author=u'someoneelse')
+
+        bodies = [c[1][2].decode('utf-8') for c in SMTP.return_value.sendmail.mock_calls]
+        self.assertTrue('lmacken' in bodies[0])
+        # In Python 2 this address is in the middle e-mail and in Python 3 it's in the last e-mail
+        self.assertTrue('bowlofeggs@fp.o' in '\n'.join(bodies))
+        self.assertTrue('someoneelse' in bodies[1])
+        self.assertTrue(all(['Here is a cool e-mail for you.' in b for b in bodies]))
+
+    def test_comment_no_author(self):
+        """A comment with no author should raise a ValueError."""
+        with self.assertRaises(ValueError) as exc:
+            self.obj.comment(self.db, 'Broke.', -1)
+
+        self.assertEqual(str(exc.exception), 'You must provide a comment author')
 
     def test_get_url(self):
         self.assertEqual(self.obj.get_url(), u'updates/TurboGears-1.0.8-3.fc11')
@@ -2912,6 +3298,55 @@ class TestUpdate(ModelTest):
         update.send_update_notice()
 
         get_template.assert_called_with(update, u'fedora_epel_errata_template')
+
+    @mock.patch('bodhi.server.models.log.error')
+    @mock.patch('bodhi.server.models.mail.send_mail')
+    @mock.patch.dict('bodhi.server.models.config', {'bodhi_email': None})
+    def test_send_update_notice_no_email_configured(self, send_mail, error):
+        """Test send_update_notice() when no e-mail address is configured."""
+        self.obj.send_update_notice()
+
+        error.assert_called_once_with(
+            'bodhi_email not defined in configuration!  Unable to send update notice')
+        self.assertEqual(send_mail.call_count, 0)
+
+    @mock.patch('bodhi.server.models.log.error')
+    @mock.patch('bodhi.server.models.mail.send_mail')
+    @mock.patch.dict('bodhi.server.models.config',
+                     {'bodhi_email': 'bodhi@fp.o', 'fedora_test_announce_list': None})
+    def test_send_update_notice_no_mailinglist_configured(self, send_mail, error):
+        """Test send_update_notice() when no e-mail address is configured."""
+        self.obj.send_update_notice()
+
+        self.assertEqual(
+            error.mock_calls,
+            [mock.call('Cannot find mailing list address for update notice'),
+             mock.call('release_name = %r', 'fedora')])
+        self.assertEqual(send_mail.call_count, 0)
+
+    @mock.patch('bodhi.server.mail.smtplib.SMTP')
+    @mock.patch('bodhi.server.models.notifications.publish')
+    @mock.patch.dict('bodhi.server.models.config',
+                     {'bodhi_email': 'bodhi@fp.o', 'smtp_server': 'smtp.fp.o'})
+    def test_send_update_notice_status_testing(self, publish, SMTP):
+        """Assert the test_announce_list setting is used for the mailing list of testing updates."""
+        self.obj.status = UpdateStatus.testing
+
+        self.obj.send_update_notice()
+
+        subject, body = mail.get_template(self.obj, self.obj.release.mail_template)[0]
+        publish.assert_called_once_with(topic='errata.publish',
+                                        msg={'subject': subject, 'body': body, 'update': self.obj})
+        release_name = self.obj.release.id_prefix.lower().replace('-', '_')
+        msg = ('From: {}\r\nTo: {}\r\nX-Bodhi: {}'
+               '\r\nSubject: [SECURITY] Fedora 11 Test Update: {}\r\n\r\n{}')
+        msg = msg.format(
+            config['bodhi_email'], config['{}_test_announce_list'.format(release_name)],
+            config['default_email_domain'], self.obj.builds[0].nvr, body)
+        SMTP.return_value.sendmail.assert_called_once_with(
+            config['bodhi_email'].encode('utf-8'),
+            [config['{}_test_announce_list'.format(release_name)].encode('utf-8')],
+            msg.encode('utf-8'))
 
     def test_check_requirements_empty(self):
         '''Empty requirements are OK'''
@@ -3326,3 +3761,31 @@ class TestBuildrootOverride(ModelTest):
                 nvr=u'TurboGears-1.0.8-3.fc11', package=model.RpmPackage(**TestRpmPackage.attrs),
                 release=model.Release(**TestRelease.attrs)),
             submitter=model.User(name=u'lmacken'))
+
+    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch('bodhi.server.models.log.error')
+    def test_expire_exception(self, error, get_session):
+        """Exceptions raised by koji untag_build() should be caught and logged by expire()."""
+        get_session.return_value.untagBuild.side_effect = IOError('oh no!')
+        bro = model.BuildrootOverride.query.first()
+
+        bro.expire()
+
+        get_session.return_value.untagBuild.assert_called_once_with(bro.build.release.override_tag,
+                                                                    bro.build.nvr, strict=True)
+        error.assert_called_once_with('Unable to untag override {}: {}'.format(bro.nvr, 'oh no!'))
+
+    def test_new_already_exists(self):
+        """new() should put an error on the request if the BRO already exists."""
+        req = DummyRequest(user=DummyUser())
+        req.db = self.db
+        req.errors = cornice.Errors()
+        bro = model.BuildrootOverride.query.first()
+
+        resp = model.BuildrootOverride.new(req, build=bro.build)
+
+        self.assertIs(resp, None)
+        self.assertEqual(
+            req.errors,
+            [{'location': 'body', 'name': 'nvr',
+              'description': '{} is already in a override'.format(bro.build.nvr)}])

@@ -66,6 +66,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             if ($.inArray(requirement.testcase, requirements) == -1) {
                 requirements.push(requirement.testcase);
             }
+            $('#failed_requirements').append('<li class="list-group-item">' + req.item + '</li>');
         });
         % if request.registry.settings.get("test_gating.required") is True:
             if (data['policies_satisfied']) {
@@ -1119,17 +1120,26 @@ $(document).ready(function(){
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h3 class="modal-title" id="waiveModalLabel">Waive Test Results</h3>
+        <h3 class="modal-title" id="waiveModalLabel">Waive All Test Results</h3>
         </button>
       </div>
       <div class="modal-body">
-          <div class="form-group">
-            <textarea class="form-control" id="waive_comment" name="waive_comment"></textarea>
+          <div class="row">
+            <div class="col-sm-offset-2 col-sm-10">
+              <p>Submitting this will waive the following test results blocking this update:</p>
+              <ul id="failed_requirements" class="list-group list-group-flush"></ul>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="waive_comment" class="col-sm-2 col-form-label">Comment</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" id="waive_comment" name="waive_comment" placeholder="A reason for the waiver..." required></textarea>
+            </div>
           </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-primary">Waive Test Results</button>
+        <button type="submit" class="btn btn-primary">Waive</button>
       </div>
     </div>
     </form>

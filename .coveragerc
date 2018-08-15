@@ -1,4 +1,5 @@
 [run]
+branch = True
 source = bodhi
 omit =
     bodhi/scripts/*
@@ -8,7 +9,7 @@ omit =
 
 [report]
 precision = 2
-fail_under = 99
+fail_under = 97
 exclude_lines =
     pragma: no cover
     class DevBuildsys
