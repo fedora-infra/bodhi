@@ -53,4 +53,4 @@ def upgrade():
 
 def downgrade():
     """Raise an exception explaining that this migration cannot be reversed."""
-    raise NotImplemented('This migration cannot be reversed.')
+    raise NotImplementedError('This migration cannot be reversed.')
