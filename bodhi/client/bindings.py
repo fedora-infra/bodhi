@@ -767,7 +767,8 @@ class BodhiClient(OpenIdBaseClient):
 
         try:
             test_status = self.get_test_status(update['alias'])
-        except (ServerError, requests.exceptions.RequestException):
+        except (ServerError, requests.exceptions.RequestException) as err:
+            log.debug('ERROR while retrieving CI status: %s', err)
             test_status = None
 
         if test_status:
@@ -776,6 +777,8 @@ class BodhiClient(OpenIdBaseClient):
                 info = '\n'.join([el.description for el in test_status.errors])
             elif 'decision' in test_status:
                 info = test_status.decision.summary
+            else:
+                log.debug('No `errors` nor `decision` in the data returned')
             if info:
                 update_lines.append(line_formatter.format('CI Status', info))
 

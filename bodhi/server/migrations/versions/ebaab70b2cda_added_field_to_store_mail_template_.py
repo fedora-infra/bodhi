@@ -40,12 +40,12 @@ def upgrade():
                             sa.sql.column('version', sa.Integer))
     op.execute(releases.update().where(releases.c.id_prefix == "FEDORA")
                                 .values({'mail_template': "fedora_errata_template"}))
-    op.execute(releases.update().where((releases.c.id_prefix == "FEDORA-EPEL") &
-                                       (sa.cast(releases.c.version, sa.Integer()) > 7))
-                                .values({'mail_template': "fedora_epel_errata_template"}))
-    op.execute(releases.update().where((releases.c.id_prefix == "FEDORA-EPEL") &
-                                       (sa.cast(releases.c.version, sa.Integer()) < 8))
-                                .values({'mail_template': "fedora_epel_legacy_errata_template"}))
+    op.execute(releases.update().where(
+        (releases.c.id_prefix == "FEDORA-EPEL") & (sa.cast(releases.c.version, sa.Integer()) > 7))
+        .values({'mail_template': "fedora_epel_errata_template"}))
+    op.execute(releases.update().where(
+        (releases.c.id_prefix == "FEDORA-EPEL") & (sa.cast(releases.c.version, sa.Integer()) < 8))
+        .values({'mail_template': "fedora_epel_legacy_errata_template"}))
     op.execute(releases.update().where(releases.c.id_prefix == "FEDORA-MODULAR")
                                 .values({'mail_template': "fedora_modular_errata_template"}))
 
