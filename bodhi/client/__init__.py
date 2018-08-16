@@ -352,7 +352,7 @@ def new(user, password, url, debug, **kwargs):
             print_resp(resp, client)
         except bindings.BodhiClientException as e:
             click.echo(str(e))
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
 
 
