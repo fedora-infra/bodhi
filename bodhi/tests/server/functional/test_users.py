@@ -33,25 +33,25 @@ class TestUsersService(base.BaseTestCase):
 
     def test_get_single_user(self):
         res = self.app.get('/users/bodhi')
-        self.assertEquals(res.json_body['user']['name'], 'bodhi')
+        self.assertEqual(res.json_body['user']['name'], 'bodhi')
 
     def test_get_hardcoded_avatar(self):
         res = self.app.get('/users/bodhi')
-        self.assertEquals(res.json_body['user']['name'], 'bodhi')
+        self.assertEqual(res.json_body['user']['name'], 'bodhi')
         url = 'https://apps.fedoraproject.org/img/icons/bodhi-24.png'
-        self.assertEquals(res.json_body['user']['avatar'], url)
+        self.assertEqual(res.json_body['user']['avatar'], url)
 
     @mock.patch.dict(config, {'libravatar_enabled': True})
     def test_get_single_avatar(self):
         res = self.app.get('/users/guest')
-        self.assertEquals(res.json_body['user']['name'], 'guest')
+        self.assertEqual(res.json_body['user']['name'], 'guest')
 
         base = 'https://seccdn.libravatar.org/avatar/'
         h = 'eb48e08cc23bcd5961de9541ba5156c385cd39799e1dbf511477aa4d4d3a37e7'
         tail = '?d=retro&s=24'
         url = base + h
 
-        self.assertEquals(res.json_body['user']['avatar'][:-len(tail)], url)
+        self.assertEqual(res.json_body['user']['avatar'][:-len(tail)], url)
 
     def test_get_single_user_page(self):
         res = self.app.get('/users/guest', headers=dict(accept='text/html'))
@@ -75,7 +75,7 @@ class TestUsersService(base.BaseTestCase):
         res = self.app.get('/users/')
         self.assertIn('application/json', res.headers['Content-Type'])
         body = res.json_body
-        self.assertEquals(len(body['users']), 3)
+        self.assertEqual(len(body['users']), 3)
 
         users = [user['name'] for user in body['users']]
         self.assertIn(u'guest', users)
@@ -101,14 +101,14 @@ class TestUsersService(base.BaseTestCase):
     def test_like_users(self):
         res = self.app.get('/users/', {'like': 'odh'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
+        self.assertEqual(len(body['users']), 1)
 
         user = body['users'][0]
-        self.assertEquals(user['name'], u'bodhi')
+        self.assertEqual(user['name'], u'bodhi')
 
         res = self.app.get('/users/', {'like': 'wat'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 0)
+        self.assertEqual(len(body['users']), 0)
 
     def test_search_users(self):
         """
@@ -118,89 +118,89 @@ class TestUsersService(base.BaseTestCase):
         # test that search works
         res = self.app.get('/users/', {'search': 'bodh'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
+        self.assertEqual(len(body['users']), 1)
         user = body['users'][0]
-        self.assertEquals(user['name'], u'bodhi')
+        self.assertEqual(user['name'], u'bodhi')
 
         # test that the search is case insensitive
         res = self.app.get('/users/', {'search': 'Bodh'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
+        self.assertEqual(len(body['users']), 1)
         user = body['users'][0]
-        self.assertEquals(user['name'], u'bodhi')
+        self.assertEqual(user['name'], u'bodhi')
 
         # test a search that yields nothing
         res = self.app.get('/users/', {'search': 'wat'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 0)
+        self.assertEqual(len(body['users']), 0)
 
     def test_list_users_with_pagination(self):
         res = self.app.get('/users/')
         body = res.json_body
-        self.assertEquals(len(body['users']), 3)
+        self.assertEqual(len(body['users']), 3)
 
         users = [user['name'] for user in body['users']]
 
         res = self.app.get('/users/', {'rows_per_page': 1})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
+        self.assertEqual(len(body['users']), 1)
         self.assertIn(body['users'][0]['name'], users)
 
         res = self.app.get('/users/', {'rows_per_page': 1, 'page': 2})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
+        self.assertEqual(len(body['users']), 1)
         self.assertIn(body['users'][0]['name'], users)
 
         res = self.app.get('/users/', {'rows_per_page': 1, 'page': 3})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
+        self.assertEqual(len(body['users']), 1)
         self.assertIn(body['users'][0]['name'], users)
 
     def test_list_users_by_name(self):
         res = self.app.get('/users/', {"name": 'guest'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
-        self.assertEquals(body['users'][0]['name'], 'guest')
+        self.assertEqual(len(body['users']), 1)
+        self.assertEqual(body['users'][0]['name'], 'guest')
 
     def test_list_users_by_name_match(self):
         res = self.app.get('/users/', {"name": 'gue%'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
-        self.assertEquals(body['users'][0]['name'], 'guest')
+        self.assertEqual(len(body['users']), 1)
+        self.assertEqual(body['users'][0]['name'], 'guest')
 
     def test_list_users_by_name_match_miss(self):
         res = self.app.get('/users/', {"name": '%wat%'})
-        self.assertEquals(len(res.json_body['users']), 0)
+        self.assertEqual(len(res.json_body['users']), 0)
 
     def test_list_users_by_groups(self):
         res = self.app.get('/users/', {"groups": 'packager'})
-        self.assertEquals(len(res.json_body['users']), 1)
+        self.assertEqual(len(res.json_body['users']), 1)
 
     def test_list_users_by_nonexistant_group(self):
         res = self.app.get('/users/', {"groups": 'carbunkle'}, status=400)
         body = res.json_body
-        self.assertEquals(body['errors'][0]['name'], 'groups')
-        self.assertEquals(body['errors'][0]['description'],
-                          'Invalid groups specified: carbunkle')
+        self.assertEqual(body['errors'][0]['name'], 'groups')
+        self.assertEqual(body['errors'][0]['description'],
+                         'Invalid groups specified: carbunkle')
 
     def test_list_users_by_mixed_nonexistant_group(self):
         res = self.app.get('/users/', {"groups": ['carbunkle', 'packager']}, status=400)
         body = res.json_body
-        self.assertEquals(body['errors'][0]['name'], 'groups')
-        self.assertEquals(body['errors'][0]['description'],
-                          'Invalid groups specified: carbunkle')
+        self.assertEqual(body['errors'][0]['name'], 'groups')
+        self.assertEqual(body['errors'][0]['description'],
+                         'Invalid groups specified: carbunkle')
 
     def test_list_users_by_group_miss(self):
         res = self.app.get('/users/', {"groups": 'provenpackager'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 0)
+        self.assertEqual(len(body['users']), 0)
         assert 'errors' not in res.json_body
 
     def test_list_users_by_update_title(self):
         res = self.app.get('/users/', {"updates": 'bodhi-2.0-1.fc17'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
-        self.assertEquals(body['users'][0]['name'], 'guest')
+        self.assertEqual(len(body['users']), 1)
+        self.assertEqual(body['users'][0]['name'], 'guest')
 
     def test_list_users_by_update_alias(self):
         update = self.db.query(Update).first()
@@ -209,25 +209,25 @@ class TestUsersService(base.BaseTestCase):
 
         res = self.app.get('/users/', {"updates": 'some_alias'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
-        self.assertEquals(body['users'][0]['name'], 'guest')
+        self.assertEqual(len(body['users']), 1)
+        self.assertEqual(body['users'][0]['name'], 'guest')
 
     def test_list_users_by_nonexistant_update(self):
         res = self.app.get('/users/', {"updates": 'carbunkle'}, status=400)
         body = res.json_body
-        self.assertEquals(body['errors'][0]['name'], 'updates')
-        self.assertEquals(body['errors'][0]['description'],
-                          'Invalid updates specified: carbunkle')
+        self.assertEqual(body['errors'][0]['name'], 'updates')
+        self.assertEqual(body['errors'][0]['description'],
+                         'Invalid updates specified: carbunkle')
 
     def test_list_users_by_package_name(self):
         res = self.app.get('/users/', {"packages": 'bodhi'})
         body = res.json_body
-        self.assertEquals(len(body['users']), 1)
-        self.assertEquals(body['users'][0]['name'], 'guest')
+        self.assertEqual(len(body['users']), 1)
+        self.assertEqual(body['users'][0]['name'], 'guest')
 
     def test_list_users_by_nonexistant_package(self):
         res = self.app.get('/users/', {"packages": 'carbunkle'}, status=400)
         body = res.json_body
-        self.assertEquals(body['errors'][0]['name'], 'packages')
-        self.assertEquals(body['errors'][0]['description'],
-                          'Invalid packages specified: carbunkle')
+        self.assertEqual(body['errors'][0]['name'], 'packages')
+        self.assertEqual(body['errors'][0]['description'],
+                         'Invalid packages specified: carbunkle')

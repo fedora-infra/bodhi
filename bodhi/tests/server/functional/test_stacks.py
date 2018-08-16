@@ -43,15 +43,15 @@ class TestStacksService(base.BaseTestCase):
 
     def test_get_single_stack(self):
         res = self.app.get('/stacks/GNOME', headers={'Accept': 'application/json'})
-        self.assertEquals(res.json_body['stack']['name'], u'GNOME')
-        self.assertEquals(res.json_body['stack']['packages'][0]['name'], u'gnome-shell')
+        self.assertEqual(res.json_body['stack']['name'], u'GNOME')
+        self.assertEqual(res.json_body['stack']['packages'][0]['name'], u'gnome-shell')
 
     def test_list_stacks(self):
         res = self.app.get('/stacks/')
         body = res.json_body
-        self.assertEquals(len(body['stacks']), 1)
-        self.assertEquals(body['stacks'][0]['name'], u'GNOME')
-        self.assertEquals(body['stacks'][0]['packages'][0]['name'], u'gnome-shell')
+        self.assertEqual(len(body['stacks']), 1)
+        self.assertEqual(body['stacks'][0]['name'], u'GNOME')
+        self.assertEqual(body['stacks'][0]['packages'][0]['name'], u'gnome-shell')
 
     def test_list_stacks_with_pagination(self):
         # Create a second stack
@@ -62,47 +62,47 @@ class TestStacksService(base.BaseTestCase):
 
         res = self.app.get('/stacks/')
         body = res.json_body
-        self.assertEquals(len(body['stacks']), 2)
+        self.assertEqual(len(body['stacks']), 2)
 
         res = self.app.get('/stacks/', {'rows_per_page': 1})
         body = res.json_body
-        self.assertEquals(len(body['stacks']), 1)
-        self.assertEquals(body['stacks'][0]['name'], u'GNOME')
+        self.assertEqual(len(body['stacks']), 1)
+        self.assertEqual(body['stacks'][0]['name'], u'GNOME')
 
         res = self.app.get('/stacks/', {'rows_per_page': 1, 'page': 2})
         body = res.json_body
-        self.assertEquals(len(body['stacks']), 1)
-        self.assertEquals(body['stacks'][0]['name'], 'Firefox')
-        self.assertEquals(body['stacks'][0]['packages'][0]['name'], 'firefox')
+        self.assertEqual(len(body['stacks']), 1)
+        self.assertEqual(body['stacks'][0]['name'], 'Firefox')
+        self.assertEqual(body['stacks'][0]['packages'][0]['name'], 'firefox')
 
     def test_list_stacks_by_name(self):
         res = self.app.get('/stacks/', {'name': 'GNOME'})
         body = res.json_body
-        self.assertEquals(len(body['stacks']), 1)
-        self.assertEquals(body['stacks'][0]['name'], 'GNOME')
+        self.assertEqual(len(body['stacks']), 1)
+        self.assertEqual(body['stacks'][0]['name'], 'GNOME')
 
     def test_list_stacks_by_name_mismatch(self):
         res = self.app.get('/stacks/', {'like': u'%KDE%'})
         body = res.json_body
-        self.assertEquals(len(body['stacks']), 0)
+        self.assertEqual(len(body['stacks']), 0)
 
     def test_list_stacks_by_name_match(self):
         res = self.app.get('/stacks/', {'like': '%GN%'})
         body = res.json_body
-        self.assertEquals(len(body['stacks']), 1)
-        self.assertEquals(body['stacks'][0]['name'], 'GNOME')
+        self.assertEqual(len(body['stacks']), 1)
+        self.assertEqual(body['stacks'][0]['name'], 'GNOME')
 
     def test_list_stacks_by_package_name(self):
         res = self.app.get('/stacks/', {"packages": 'gnome-shell'})
         body = res.json_body
-        self.assertEquals(len(body['stacks']), 1)
-        self.assertEquals(body['stacks'][0]['name'], 'GNOME')
+        self.assertEqual(len(body['stacks']), 1)
+        self.assertEqual(body['stacks'][0]['name'], 'GNOME')
 
     def test_list_stacks_by_nonexistant_package(self):
         res = self.app.get('/stacks/', {"packages": 'carbunkle'}, status=400)
-        self.assertEquals(res.json_body['errors'][0]['name'], 'packages')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          'Invalid packages specified: carbunkle')
+        self.assertEqual(res.json_body['errors'][0]['name'], 'packages')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         'Invalid packages specified: carbunkle')
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack(self, *args):
@@ -113,18 +113,18 @@ class TestStacksService(base.BaseTestCase):
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
-        self.assertEquals(body['name'], 'KDE')
+        self.assertEqual(body['name'], 'KDE')
         r = self.db.query(Stack).filter(Stack.name == attrs["name"]).one()
-        self.assertEquals(r.name, 'KDE')
-        self.assertEquals(len(r.packages), 2)
-        self.assertEquals(r.packages[0].name, 'kde-filesystem')
-        self.assertEquals(r.requirements, u'rpmlint')
+        self.assertEqual(r.name, 'KDE')
+        self.assertEqual(len(r.packages), 2)
+        self.assertEqual(r.packages[0].name, 'kde-filesystem')
+        self.assertEqual(r.requirements, u'rpmlint')
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_invalid_name(self, *args):
         attrs = {"name": "", 'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=400)
-        self.assertEquals(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['status'], 'error')
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_invalid_requirement(self, *args):
@@ -132,9 +132,9 @@ class TestStacksService(base.BaseTestCase):
                  "requirements": "silly-dilly",
                  "csrf_token": self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=400)
-        self.assertEquals(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['status'], 'error')
         c = self.db.query(Stack).filter(Stack.name == attrs["name"]).count()
-        self.assertEquals(c, 0)
+        self.assertEqual(c, 0)
 
     @mock.patch(**mock_valid_requirements)
     def test_new_stack_valid_requirement(self, *args):
@@ -145,11 +145,11 @@ class TestStacksService(base.BaseTestCase):
                  "csrf_token": self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs)
         body = res.json_body['stack']
-        self.assertEquals(body['name'], 'Hackey')
+        self.assertEqual(body['name'], 'Hackey')
         r = self.db.query(Stack).filter(Stack.name == attrs["name"]).one()
-        self.assertEquals(r.name, 'Hackey')
-        self.assertEquals(len(r.packages), 1)
-        self.assertEquals(r.requirements, attrs['requirements'])
+        self.assertEqual(r.name, 'Hackey')
+        self.assertEqual(len(r.packages), 1)
+        self.assertEqual(r.requirements, attrs['requirements'])
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack(self, *args):
@@ -160,24 +160,24 @@ class TestStacksService(base.BaseTestCase):
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
-        self.assertEquals(body['name'], 'GNOME')
-        self.assertEquals(len(body['packages']), 2)
-        self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
-        self.assertEquals(body['description'], 'foo')
-        self.assertEquals(body['requirements'], 'upgradepath')
+        self.assertEqual(body['name'], 'GNOME')
+        self.assertEqual(len(body['packages']), 2)
+        self.assertEqual(body['packages'][-1]['name'], 'gnome-music')
+        self.assertEqual(body['description'], 'foo')
+        self.assertEqual(body['requirements'], 'upgradepath')
 
         # Adding gnome-music to the stack should change its requirements, too.
         package = self.db.query(RpmPackage).filter(RpmPackage.name == u'gnome-music').one()
-        self.assertEquals(package.requirements, attrs['requirements'])
+        self.assertEqual(package.requirements, attrs['requirements'])
 
         # But not gnome-shell, since it was already in the stack.
         package = self.db.query(RpmPackage).filter(RpmPackage.name == u'gnome-shell').one()
-        self.assertEquals(package.requirements, None)
+        self.assertEqual(package.requirements, None)
 
     def test_delete_stack(self):
         res = self.app.delete("/stacks/GNOME")
-        self.assertEquals(res.json_body['status'], 'success')
-        self.assertEquals(self.db.query(Stack).count(), 0)
+        self.assertEqual(res.json_body['status'], 'success')
+        self.assertEqual(self.db.query(Stack).count(), 0)
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_remove_package(self, *args):
@@ -187,9 +187,9 @@ class TestStacksService(base.BaseTestCase):
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
-        self.assertEquals(body['name'], 'GNOME')
-        self.assertEquals(len(body['packages']), 1)
-        self.assertEquals(body['packages'][0]['name'], 'gnome-music')
+        self.assertEqual(body['name'], 'GNOME')
+        self.assertEqual(len(body['packages']), 1)
+        self.assertEqual(body['packages'][0]['name'], 'gnome-music')
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_with_no_group_privs(self, *args):
@@ -203,9 +203,9 @@ class TestStacksService(base.BaseTestCase):
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=403)
         body = res.json_body
-        self.assertEquals(body['status'], 'error')
-        self.assertEquals(body['errors'][0]['description'],
-                          'guest does not have privileges to modify the GNOME stack')
+        self.assertEqual(body['status'], 'error')
+        self.assertEqual(body['errors'][0]['description'],
+                         'guest does not have privileges to modify the GNOME stack')
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_with_no_user_privs(self, *args):
@@ -219,9 +219,9 @@ class TestStacksService(base.BaseTestCase):
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=403)
         body = res.json_body
-        self.assertEquals(body['status'], 'error')
-        self.assertEquals(body['errors'][0]['description'],
-                          'guest does not have privileges to modify the GNOME stack')
+        self.assertEqual(body['status'], 'error')
+        self.assertEqual(body['errors'][0]['description'],
+                         'guest does not have privileges to modify the GNOME stack')
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_with_user_privs(self, *args):
@@ -233,9 +233,9 @@ class TestStacksService(base.BaseTestCase):
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
-        self.assertEquals(body['name'], 'GNOME')
-        self.assertEquals(len(body['packages']), 2)
-        self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
+        self.assertEqual(body['name'], 'GNOME')
+        self.assertEqual(len(body['packages']), 2)
+        self.assertEqual(body['packages'][-1]['name'], 'gnome-music')
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_stack_with_group_privs(self, *args):
@@ -251,9 +251,9 @@ class TestStacksService(base.BaseTestCase):
                  'csrf_token': self.get_csrf_token()}
         res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
-        self.assertEquals(body['name'], 'GNOME')
-        self.assertEquals(len(body['packages']), 2)
-        self.assertEquals(body['packages'][-1]['name'], 'gnome-music')
+        self.assertEqual(body['name'], 'GNOME')
+        self.assertEqual(len(body['packages']), 2)
+        self.assertEqual(body['packages'][-1]['name'], 'gnome-music')
 
     def test_new_stack_form(self):
         res = self.app.get('/stacks/new', status=200)

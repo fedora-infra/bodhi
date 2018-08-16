@@ -171,7 +171,7 @@ class TestLogout(base.BaseTestCase):
     def test_logout(self):
         """Test the logout redirect"""
         resp = self.app.get('/logout', status=302)
-        self.assertEquals(resp.location, 'http://localhost/')
+        self.assertEqual(resp.location, 'http://localhost/')
 
 
 class TestPackagerACLFactory(base.BaseTestCase):
@@ -254,7 +254,7 @@ class TestRememberMe(base.BaseTestCase):
         security.remember_me(None, req, info)
 
         user = models.User.get(u'lmacken')
-        self.assertEquals([g.name for g in user.groups], ['releng', 'new_group'])
+        self.assertEqual([g.name for g in user.groups], ['releng', 'new_group'])
 
     def test_new_email(self):
         """Assert that the user gets their e-mail address updated."""
@@ -267,7 +267,7 @@ class TestRememberMe(base.BaseTestCase):
         security.remember_me(None, req, info)
 
         user = models.User.get(u'lmacken')
-        self.assertEquals(user.email, u'1337hax0r@example.com')
+        self.assertEqual(user.email, u'1337hax0r@example.com')
 
     def test_new_user(self):
         """Test the post-login hook"""
@@ -277,10 +277,10 @@ class TestRememberMe(base.BaseTestCase):
 
         # The user should now exist, and be a member of the releng group
         user = models.User.get(u'lmacken')
-        self.assertEquals(user.name, u'lmacken')
-        self.assertEquals(user.email, u'lmacken@fp.o')
-        self.assertEquals(len(user.groups), 1)
-        self.assertEquals(user.groups[0].name, u'releng')
+        self.assertEqual(user.name, u'lmacken')
+        self.assertEqual(user.email, u'lmacken@fp.o')
+        self.assertEqual(len(user.groups), 1)
+        self.assertEqual(user.groups[0].name, u'releng')
 
     def test_user_groups_removed(self):
         """Test that a user that has been removed from a group gets marked as removed upon login."""
@@ -293,5 +293,5 @@ class TestRememberMe(base.BaseTestCase):
         security.remember_me(None, req, info)
 
         user = models.User.get(u'lmacken')
-        self.assertEquals(len(user.groups), 0)
-        self.assertEquals(len(models.Group.get(u'releng').users), 0)
+        self.assertEqual(len(user.groups), 0)
+        self.assertEqual(len(models.Group.get(u'releng').users), 0)

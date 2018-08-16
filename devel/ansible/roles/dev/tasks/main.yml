@@ -22,7 +22,6 @@
       - packagedb-cli
       - pcaro-hermit-fonts
       - postgresql-devel
-      - pungi
       - python2
       - python2-alembic
       - python2-arrow
@@ -107,6 +106,12 @@
   pip:
       name: pyramid_debugtoolbar
       executable: pip3
+
+- name: Fake a pungi install
+  file:
+      src: /usr/bin/true
+      dest: /usr/bin/pungi-koji
+      state: link
 
 - name: Install bodhi in developer mode
   command: python /home/vagrant/bodhi/setup.py develop
