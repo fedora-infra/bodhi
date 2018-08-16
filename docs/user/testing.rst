@@ -15,9 +15,6 @@ describe their experience. Once the update reaches its karma threshold (set by t
 be pushed out to the stable repositories. This will happen automatically if the update is configured
 to use Bodhi's autokarma system, or manually by the packager if it is not.
 
-Unauthenticated users are able to post unofficial karma and comments to the update, but the karma
-will not be counted towards the update's overall karma and is left for the packager to consider.
-
 Some updates will offer testers additional types of karma. Critical path updates will offer the user
 a "critical path karma" option, which asks the tester if the system's basic functionality is
 preserved with the update (for example, does the system still boot). Some updates are associated
@@ -25,6 +22,9 @@ with Bugzilla tickets, and these updates will allow the tester to mark whether t
 bug is addressed by the update. Updates may also be linked to Wiki documents that describe a testing
 plan for the associated packages, and the tester may provide feedback for each of the wiki test
 pages as well.
+
+Unauthenticated users are only able to post comments and additional types of karma to the update, but
+they're not allowed to add votes to the main karma.
 
 
 Automated tests

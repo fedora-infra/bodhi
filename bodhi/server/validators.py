@@ -155,15 +155,7 @@ def cache_release(request, build):
     tags = cache_tags(request, build)
     if tags is None:
         return None
-    build_rel = None
-    try:
-        build_rel = Release.from_tags(tags, request.db)
-    except KeyError:
-        log.warn('Unable to determine release from '
-                 'tags: %r build: %r' % (tags, build))
-        request.errors.add('body', 'builds',
-                           'Unable to determine release ' +
-                           'from build: %s' % build)
+    build_rel = Release.from_tags(tags, request.db)
     if not build_rel:
         msg = 'Cannot find release associated with ' + \
             'build: {}, tags: {}'.format(build, tags)

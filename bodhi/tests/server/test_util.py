@@ -1208,9 +1208,9 @@ class TestUtils(base.BaseTestCase):
         # This ordering is because:
         #  u5 contains pkgd-1.0, which is < pkgdb-2.0 from u6
         #  u2 contains somepkg-1.0, which is < somepkg-2.0 from u1
-        self.assertEquals(sync, [u5, u6, u2, u1])
+        self.assertEqual(sync, [u5, u6, u2, u1])
         # This ordering is because neither u3 nor u4 overlap with other updates
-        self.assertEquals(async_, [u3, u4])
+        self.assertEqual(async_, [u3, u4])
 
     def test_sorted_updates_insanity(self):
         """
@@ -1227,9 +1227,9 @@ class TestUtils(base.BaseTestCase):
         sync, async_ = util.sorted_updates(us)
 
         # This ordering is actually insane, since both u2 and u3 contain a newer and an older build
-        self.assertEquals(sync, [u2, u3])
+        self.assertEqual(sync, [u2, u3])
         # This ordering is because u1 doesn't overlap with anything
-        self.assertEquals(async_, [u1])
+        self.assertEqual(async_, [u1])
 
     def test_splitter(self):
         splitlist = util.splitter(["build-0.1", "build-0.2"])

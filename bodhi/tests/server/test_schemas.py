@@ -40,4 +40,4 @@ class TestSchemas(unittest.TestCase):
         }
         schema = schemas.SaveCommentSchema()
         nested_structure = schema.unflatten(flat_structure)
-        self.assertEquals(nested_structure, expected)
+        self.assertEqual(nested_structure, expected)

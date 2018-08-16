@@ -26,7 +26,7 @@ class TestRpmPackagesService(base.BaseTestCase):
         self.db.commit()
         resp = self.app.get('/packages/')
         body = resp.json_body
-        self.assertEquals(len(body['packages']), 2)
+        self.assertEqual(len(body['packages']), 2)
 
     def test_filter_by_name(self):
         """ Test that filtering by name returns one package and not the other.
@@ -35,7 +35,7 @@ class TestRpmPackagesService(base.BaseTestCase):
         self.db.commit()
         resp = self.app.get('/packages/', dict(name='bodhi'))
         body = resp.json_body
-        self.assertEquals(len(body['packages']), 1)
+        self.assertEqual(len(body['packages']), 1)
 
     def test_filter_by_like(self):
         """ Test that filtering by like returns one package and not the other.
@@ -44,7 +44,7 @@ class TestRpmPackagesService(base.BaseTestCase):
         self.db.commit()
         resp = self.app.get('/packages/', dict(like='odh'))
         body = resp.json_body
-        self.assertEquals(len(body['packages']), 1)
+        self.assertEqual(len(body['packages']), 1)
 
     def test_filter_by_search(self):
         """ Test filtering by search
@@ -55,14 +55,14 @@ class TestRpmPackagesService(base.BaseTestCase):
         # test search
         resp = self.app.get('/packages/', dict(search='bodh'))
         body = resp.json_body
-        self.assertEquals(len(body['packages']), 1)
+        self.assertEqual(len(body['packages']), 1)
 
         # test the search is case-insensitive
         resp = self.app.get('/packages/', dict(search='Bodh'))
         body = resp.json_body
-        self.assertEquals(len(body['packages']), 1)
+        self.assertEqual(len(body['packages']), 1)
 
         # test a search that yields nothing
         resp = self.app.get('/packages/', dict(search='corebird'))
         body = resp.json_body
-        self.assertEquals(len(body['packages']), 0)
+        self.assertEqual(len(body['packages']), 0)
