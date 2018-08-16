@@ -952,6 +952,8 @@ class Release(Base):
         """
         tag_types, tag_rels = cls.get_tags(session)
         for tag in tags:
+            if tag not in tag_rels:
+                continue
             release = session.query(cls).filter_by(name=tag_rels[tag]).first()
             if release:
                 return release
