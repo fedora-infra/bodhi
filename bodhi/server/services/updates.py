@@ -527,7 +527,7 @@ def new_update(request):
             if len(releases) > 1:
                 result = dict(updates=updates)
     except LockedUpdateException as e:
-        log.warn(str(e))
+        log.warning(str(e))
         request.errors.add('body', 'builds', "%s" % str(e))
         return
     except Exception as e:
@@ -569,7 +569,7 @@ def new_update(request):
                                 error_handler=bodhi.server.services.errors.json_handler)
 def waive_test_results(request):
     """
-    Waive test results on a given update when gating is on.
+    Waive all blocking test results on a given update when gating is on.
 
     Args:
         request (pyramid.request): The current request.

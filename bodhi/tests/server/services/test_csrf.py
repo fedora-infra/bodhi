@@ -28,7 +28,7 @@ class TestCSRFService(base.BaseTestCase):
         """
         res = self.app.get('/csrf', headers={'Accept': 'text/html'}, status=200)
 
-        self.assertEquals(res.body.decode('utf-8'), self.get_csrf_token())
+        self.assertEqual(res.body.decode('utf-8'), self.get_csrf_token())
 
     def test_csrf_json(self):
         """
@@ -36,4 +36,4 @@ class TestCSRFService(base.BaseTestCase):
         """
         res = self.app.get('/csrf', headers={'Accept': 'application/json'}, status=200)
 
-        self.assertEquals(res.body.decode('utf-8'), '{"csrf_token": "%s"}' % self.get_csrf_token())
+        self.assertEqual(res.body.decode('utf-8'), '{"csrf_token": "%s"}' % self.get_csrf_token())

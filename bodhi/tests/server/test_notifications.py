@@ -79,9 +79,9 @@ class TestInit(unittest.TestCase):
         info.assert_called_once_with('fedmsg initialized')
 
     @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': False})
-    @mock.patch('bodhi.server.log.warn')
+    @mock.patch('bodhi.server.log.warning')
     @mock.patch('bodhi.server.notifications.fedmsg.init')
-    def test_fedmsg_disabled(self, init, warn):
+    def test_fedmsg_disabled(self, init, warning):
         """
         The init() function should log a warning and exit when fedmsg is disabled.
         """
@@ -89,7 +89,7 @@ class TestInit(unittest.TestCase):
 
         # fedmsg.init() should not have been called
         self.assertEqual(init.call_count, 0)
-        warn.assert_called_once_with('fedmsg disabled.  not initializing.')
+        warning.assert_called_once_with('fedmsg disabled.  not initializing.')
 
     @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
     @mock.patch('bodhi.server.log.info')

@@ -261,6 +261,16 @@ class DevBuildsys(Buildsystem):
                 }
                 break
 
+            if token.endswith("flatpak"):
+                tag = "f%s-updates-testing" % token.replace("fc", "")
+                data['extra'] = {
+                    'container_koji_task_id': 21098765,
+                    'image': {
+                        'flatpak': True
+                    },
+                }
+                break
+
             # Hardcoding for modules in the dev buildsys
             if token.startswith("2017"):
                 tag = "f27M-updates-testing"
@@ -373,6 +383,15 @@ class DevBuildsys(Buildsystem):
                  'name': 'f28C-updates-testing'},
                 {'arches': 'x86_64', 'id': 17, 'locked': True,
                  'name': 'f28C'},
+            ]
+        elif 'flatpak' in build:
+            result = [
+                {'arches': 'x86_64', 'id': 15, 'locked': True,
+                 'name': 'f28F-updates-candidate'},
+                {'arches': 'x86_64', 'id': 16, 'locked': True,
+                 'name': 'f28F-updates-testing'},
+                {'arches': 'x86_64', 'id': 17, 'locked': True,
+                 'name': 'f28F'},
             ]
         else:
             release = build.split('.')[-1].replace('fc', 'f')

@@ -452,7 +452,7 @@ def exception_view(exc, request):
     if status not in (404, 403):
         log.exception("Error caught.  Handling HTML response.")
     else:
-        log.warn(str(exc))
+        log.warning(str(exc))
 
     if not len(errors):
         description = getattr(exc, 'explanation', None) or str(exc)

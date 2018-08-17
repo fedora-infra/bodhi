@@ -83,53 +83,53 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         md.shelf.close()
 
         self.assertEqual(len(md.uinfo.updates), 1)
-        self.assertEquals(md.uinfo.updates[0].title, update.title)
-        self.assertEquals(md.uinfo.updates[0].release, update.release.long_name)
-        self.assertEquals(md.uinfo.updates[0].status, update.status.value)
-        self.assertEquals(md.uinfo.updates[0].updated_date, update.date_modified)
-        self.assertEquals(md.uinfo.updates[0].fromstr, config.get('bodhi_email'))
-        self.assertEquals(md.uinfo.updates[0].rights, config.get('updateinfo_rights'))
-        self.assertEquals(md.uinfo.updates[0].description, update.notes)
-        self.assertEquals(md.uinfo.updates[0].id, update.alias)
-        self.assertEquals(md.uinfo.updates[0].severity, 'Moderate')
+        self.assertEqual(md.uinfo.updates[0].title, update.title)
+        self.assertEqual(md.uinfo.updates[0].release, update.release.long_name)
+        self.assertEqual(md.uinfo.updates[0].status, update.status.value)
+        self.assertEqual(md.uinfo.updates[0].updated_date, update.date_modified)
+        self.assertEqual(md.uinfo.updates[0].fromstr, config.get('bodhi_email'))
+        self.assertEqual(md.uinfo.updates[0].rights, config.get('updateinfo_rights'))
+        self.assertEqual(md.uinfo.updates[0].description, update.notes)
+        self.assertEqual(md.uinfo.updates[0].id, update.alias)
+        self.assertEqual(md.uinfo.updates[0].severity, 'Moderate')
         self.assertEqual(len(md.uinfo.updates[0].references), 2)
         bug = md.uinfo.updates[0].references[0]
-        self.assertEquals(bug.href, update.bugs[0].url)
-        self.assertEquals(bug.id, '12345')
-        self.assertEquals(bug.type, 'bugzilla')
+        self.assertEqual(bug.href, update.bugs[0].url)
+        self.assertEqual(bug.id, '12345')
+        self.assertEqual(bug.type, 'bugzilla')
         cve = md.uinfo.updates[0].references[1]
-        self.assertEquals(cve.type, 'cve')
-        self.assertEquals(cve.href, update.cves[0].url)
-        self.assertEquals(cve.id, update.cves[0].cve_id)
+        self.assertEqual(cve.type, 'cve')
+        self.assertEqual(cve.href, update.cves[0].url)
+        self.assertEqual(cve.id, update.cves[0].cve_id)
         self.assertEqual(len(md.uinfo.updates[0].collections), 1)
         col = md.uinfo.updates[0].collections[0]
-        self.assertEquals(col.name, update.release.long_name)
-        self.assertEquals(col.shortname, update.release.name)
+        self.assertEqual(col.name, update.release.long_name)
+        self.assertEqual(col.shortname, update.release.name)
         self.assertEqual(len(col.packages), 2)
         pkg = col.packages[0]
-        self.assertEquals(pkg.epoch, '0')
+        self.assertEqual(pkg.epoch, '0')
         # It's a little goofy, but the DevBuildsys is going to return TurboGears rpms when its
         # listBuildRPMs() method is called, so let's just roll with it.
-        self.assertEquals(pkg.name, 'TurboGears')
-        self.assertEquals(
+        self.assertEqual(pkg.name, 'TurboGears')
+        self.assertEqual(
             pkg.src,
             ('https://download.fedoraproject.org/pub/fedora/linux/updates/17/SRPMS/T/'
              'TurboGears-1.0.2.2-2.fc17.src.rpm'))
-        self.assertEquals(pkg.version, '1.0.2.2')
+        self.assertEqual(pkg.version, '1.0.2.2')
         self.assertFalse(pkg.reboot_suggested)
-        self.assertEquals(pkg.arch, 'src')
-        self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')
+        self.assertEqual(pkg.arch, 'src')
+        self.assertEqual(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')
         pkg = col.packages[1]
-        self.assertEquals(pkg.epoch, '0')
-        self.assertEquals(pkg.name, 'TurboGears')
-        self.assertEquals(
+        self.assertEqual(pkg.epoch, '0')
+        self.assertEqual(pkg.name, 'TurboGears')
+        self.assertEqual(
             pkg.src,
             ('https://download.fedoraproject.org/pub/fedora/linux/updates/17/i386/T/'
              'TurboGears-1.0.2.2-2.fc17.noarch.rpm'))
-        self.assertEquals(pkg.version, '1.0.2.2')
+        self.assertEqual(pkg.version, '1.0.2.2')
         self.assertFalse(pkg.reboot_suggested)
-        self.assertEquals(pkg.arch, 'noarch')
-        self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.noarch.rpm')
+        self.assertEqual(pkg.arch, 'noarch')
+        self.assertEqual(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.noarch.rpm')
 
     def test_date_modified_none(self):
         """The metadata should use utcnow() if an update's date_modified is None."""
@@ -176,7 +176,7 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         col = md.uinfo.updates[0].collections[0]
         self.assertEqual(len(col.packages), 1)
         pkg = col.packages[0]
-        self.assertEquals(
+        self.assertEqual(
             pkg.src,
             ('https://download.fedoraproject.org/pub/fedora/linux/updates/17/aarch64/T/'
              'TurboGears-1.0.2.2-2.fc17.aarch64.rpm'))
@@ -200,14 +200,14 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         col = md.uinfo.updates[0].collections[0]
         self.assertEqual(len(col.packages), 1)
         pkg = col.packages[0]
-        self.assertEquals(pkg.epoch, '42')
+        self.assertEqual(pkg.epoch, '42')
 
 
 class TestFetchUpdates(UpdateInfoMetadataTestCase):
     """Test the UpdateInfoMetadata._fetch_updates() method."""
 
-    @mock.patch('bodhi.server.metadata.log.warn')
-    def test_build_unassociated(self, warn):
+    @mock.patch('bodhi.server.metadata.log.warning')
+    def test_build_unassociated(self, warning):
         """A warning should be logged if the Bodhi Build object is not associated with an Update."""
         update = self.db.query(Update).one()
         update.date_pushed = None
@@ -220,7 +220,7 @@ class TestFetchUpdates(UpdateInfoMetadataTestCase):
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
                                 close_shelf=False)
 
-        warn.assert_called_once_with(
+        warning.assert_called_once_with(
             'TurboGears-1.0.2.2-4.fc17 does not have a corresponding update')
         # Since the Build didn't have an Update, no Update should have been added to md.updates.
         self.assertEqual(md.updates, set([]))
@@ -340,41 +340,41 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         notice = self.get_notice(uinfo, 'mutt-1.5.14-1.fc13')
         self.assertIsNone(notice)
 
-        self.assertEquals(len(uinfo.updates), 1)
+        self.assertEqual(len(uinfo.updates), 1)
         notice = uinfo.updates[0]
 
         self.assertIsNotNone(notice)
-        self.assertEquals(notice.title, update.title)
-        self.assertEquals(notice.release, update.release.long_name)
-        self.assertEquals(notice.status, update.status.value)
+        self.assertEqual(notice.title, update.title)
+        self.assertEqual(notice.release, update.release.long_name)
+        self.assertEqual(notice.status, update.status.value)
         if update.date_modified:
-            self.assertEquals(notice.updated_date, update.date_modified)
-        self.assertEquals(notice.fromstr, config.get('bodhi_email'))
-        self.assertEquals(notice.rights, config.get('updateinfo_rights'))
-        self.assertEquals(notice.description, update.notes)
-        self.assertEquals(notice.id, update.alias)
-        self.assertEquals(notice.severity, 'Moderate')
+            self.assertEqual(notice.updated_date, update.date_modified)
+        self.assertEqual(notice.fromstr, config.get('bodhi_email'))
+        self.assertEqual(notice.rights, config.get('updateinfo_rights'))
+        self.assertEqual(notice.description, update.notes)
+        self.assertEqual(notice.id, update.alias)
+        self.assertEqual(notice.severity, 'Moderate')
         bug = notice.references[0]
-        self.assertEquals(bug.href, update.bugs[0].url)
-        self.assertEquals(bug.id, '12345')
-        self.assertEquals(bug.type, 'bugzilla')
+        self.assertEqual(bug.href, update.bugs[0].url)
+        self.assertEqual(bug.id, '12345')
+        self.assertEqual(bug.type, 'bugzilla')
         cve = notice.references[1]
-        self.assertEquals(cve.type, 'cve')
-        self.assertEquals(cve.href, update.cves[0].url)
-        self.assertEquals(cve.id, update.cves[0].cve_id)
+        self.assertEqual(cve.type, 'cve')
+        self.assertEqual(cve.href, update.cves[0].url)
+        self.assertEqual(cve.id, update.cves[0].cve_id)
 
         col = notice.collections[0]
-        self.assertEquals(col.name, update.release.long_name)
-        self.assertEquals(col.shortname, update.release.name)
+        self.assertEqual(col.name, update.release.long_name)
+        self.assertEqual(col.shortname, update.release.name)
 
         pkg = col.packages[0]
-        self.assertEquals(pkg.epoch, '0')
-        self.assertEquals(pkg.name, 'TurboGears')
-        self.assertEquals(
+        self.assertEqual(pkg.epoch, '0')
+        self.assertEqual(pkg.name, 'TurboGears')
+        self.assertEqual(
             pkg.src,
             ('https://download.fedoraproject.org/pub/fedora/linux/updates/testing/17/SRPMS/T/'
              'TurboGears-1.0.2.2-2.fc17.src.rpm'))
-        self.assertEquals(pkg.version, '1.0.2.2')
+        self.assertEqual(pkg.version, '1.0.2.2')
         self.assertFalse(pkg.reboot_suggested)
-        self.assertEquals(pkg.arch, 'src')
-        self.assertEquals(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')
+        self.assertEqual(pkg.arch, 'src')
+        self.assertEqual(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')

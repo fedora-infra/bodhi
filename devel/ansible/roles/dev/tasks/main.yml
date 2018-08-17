@@ -22,7 +22,6 @@
       - packagedb-cli
       - pcaro-hermit-fonts
       - postgresql-devel
-      - pungi
       - python2
       - python2-alembic
       - python2-arrow
@@ -58,6 +57,7 @@
       - python2-pyramid-mako
       - python2-pyramid-tm
       - python2-pytest-cov
+      - python2-responses
       - python2-rpdb
       - python2-simplemediawiki
       - python2-sphinx
@@ -90,6 +90,7 @@
       - python3-pyramid-fas-openid
       - python3-pytest
       - python3-pytest-cov
+      - python3-responses
       - python3-simplemediawiki
       - python3-sqlalchemy
       - python3-webtest
@@ -107,6 +108,12 @@
   pip:
       name: pyramid_debugtoolbar
       executable: pip3
+
+- name: Fake a pungi install
+  file:
+      src: /usr/bin/true
+      dest: /usr/bin/pungi-koji
+      state: link
 
 - name: Install bodhi in developer mode
   command: python /home/vagrant/bodhi/setup.py develop

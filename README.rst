@@ -8,7 +8,9 @@ Welcome to Bodhi, Fedora's update gating system.
 Documentation
 =============
 
-You can read Bodhi's documentation
+You can read Bodhi's
+`release notes <https://bodhi.fedoraproject.org/docs/user/release_notes.html>`_
+and documentation
 `online <https://bodhi.fedoraproject.org/docs>`_, or by installing it on your
 Fedora system and pointing your browser at
 ``/usr/share/doc/bodhi-docs/html/index.html``::

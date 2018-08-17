@@ -325,9 +325,9 @@ def get_template(update, use_template='fedora_errata_template'):
                     if parent and not bug.parent:
                         log.debug("Skipping tracker bug %s" % bug)
                         continue
-                title = (bug.title != 'Unable to fetch title' and
-                         bug.title != 'Invalid bug number') and \
-                    ' - %s' % bug.title or ''
+                title = (
+                    bug.title != 'Unable to fetch title' and bug.title != 'Invalid bug number') \
+                    and ' - %s' % bug.title or ''
                 info['references'] += u"  [ %d ] Bug #%d%s\n        %s\n" % \
                                       (i, bug.bug_id, title, bug.url)
                 i += 1
@@ -390,7 +390,7 @@ def _send_mail(from_addr, to_addr, body):
         smtp = smtplib.SMTP(smtp_server)
         smtp.sendmail(from_addr, [to_addr], body)
     except smtplib.SMTPRecipientsRefused as e:
-        log.warn('"recipient refused" for %r, %r' % (to_addr, e))
+        log.warning('"recipient refused" for %r, %r' % (to_addr, e))
     except Exception:
         log.exception('Unable to send mail')
     finally:
@@ -413,7 +413,7 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     if not from_addr:
         from_addr = config.get('bodhi_email')
     if not from_addr:
-        log.warn('Unable to send mail: bodhi_email not defined in the config')
+        log.warning('Unable to send mail: bodhi_email not defined in the config')
         return
     if to_addr in config.get('exclude_mail'):
         return

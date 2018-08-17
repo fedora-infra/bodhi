@@ -66,6 +66,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             if ($.inArray(requirement.testcase, requirements) == -1) {
                 requirements.push(requirement.testcase);
             }
+            $('#failed_requirements').append('<li class="list-group-item">' + req.item + '</li>');
         });
         % if request.registry.settings.get("test_gating.required") is True:
             if (data['policies_satisfied']) {
@@ -547,7 +548,7 @@ $(document).ready(function(){
       % endif
       % if can_edit:
         % if not update.locked:
-          <div id='updatebuttons' class="btn-group pull-right" role="group" aria-label="...">
+          <div id='updatebuttons' class="btn-group pull-right m-t-1" role="group" aria-label="...">
           % if not update.pushed:
             <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
             % if update.request is None:
@@ -733,6 +734,37 @@ $(document).ready(function(){
                         </tr>
                       </thead>
 
+                      <tr>
+                        <td data-class="danger">  <input type="radio" name="karma" value="-1"> </td>
+                        <td>                      <input type="radio" name="karma" value="0" checked> </td>
+                        <td data-class="success"> <input type="radio" name="karma" value="1"> </td>
+                        % if not request.user:
+                        <td>
+                          <p class="text-muted">Is the update generally functional? (karma)</p>
+                          <p class="text-danger" style="font-size: 0.8rem;">You need to be logged in to add karma!</p>
+                          <script type="text/javascript">
+                            $(document).ready(function(){
+                              var karmaRadio = document.getElementsByName("karma");
+                              for(var i=0, iLen=karmaRadio.length; i<iLen; i++) {
+                                karmaRadio[i].disabled = true;
+                              }
+                            });
+                          </script>
+                        </td>
+                        % else:
+                        <td>Is the update generally functional? (karma)</td>
+                        % endif
+                      </tr>
+
+                      % if update.critpath:
+                      <tr>
+                        <td data-class="danger">  <input type="radio" name="karma_critpath" value="-1"> </td>
+                        <td>                      <input type="radio" name="karma_critpath" value="0" checked> </td>
+                        <td data-class="success"> <input type="radio" name="karma_critpath" value="1"> </td>
+                        <td>Does the system's basic functionality continue to work after this update?</td>
+                      </tr>
+                      % endif
+
                       % for bug in update.bugs:
                       <tr>
                         <input type="hidden" name="bug_feedback.${loop.index}.bug_id" value="${bug.bug_id}">
@@ -752,22 +784,6 @@ $(document).ready(function(){
                         <td>${self.util.testcase_link(test) | n}</td>
                       </tr>
                       % endfor
-
-                      % if update.critpath:
-                      <tr>
-                        <td data-class="danger">  <input type="radio" name="karma_critpath" value="-1"> </td>
-                        <td>                      <input type="radio" name="karma_critpath" value="0" checked> </td>
-                        <td data-class="success"> <input type="radio" name="karma_critpath" value="1"> </td>
-                        <td>Does the system's basic functionality continue to work after this update?</td>
-                      </tr>
-                      % endif
-
-                      <tr>
-                        <td data-class="danger">  <input type="radio" name="karma" value="-1"> </td>
-                        <td>                      <input type="radio" name="karma" value="0" checked> </td>
-                        <td data-class="success"> <input type="radio" name="karma" value="1"> </td>
-                        <td>Is the update generally functional?</td>
-                      </tr>
 
                     </table>
                 </div>
@@ -792,7 +808,7 @@ $(document).ready(function(){
               </div>
               % endif
 
-              <div class="form-group m-t-1">
+              <div class="form-group m-t-1 clearfix">
                 <div class="col-sm-12 text-xs-right">
                   <button type="submit" class="btn btn-default">
                     <span class="indicator fa fa-comment" data-spinclass="indicator fa fa-spinner fa-spin"></span>
@@ -1104,17 +1120,26 @@ $(document).ready(function(){
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h3 class="modal-title" id="waiveModalLabel">Waive Test Results</h3>
+        <h3 class="modal-title" id="waiveModalLabel">Waive All Test Results</h3>
         </button>
       </div>
       <div class="modal-body">
-          <div class="form-group">
-            <textarea class="form-control" id="waive_comment" name="waive_comment"></textarea>
+          <div class="row">
+            <div class="col-sm-offset-2 col-sm-10">
+              <p>Submitting this will waive the following test results blocking this update:</p>
+              <ul id="failed_requirements" class="list-group list-group-flush"></ul>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="waive_comment" class="col-sm-2 col-form-label">Comment</label>
+            <div class="col-sm-10">
+              <textarea class="form-control" id="waive_comment" name="waive_comment" placeholder="A reason for the waiver..." required></textarea>
+            </div>
           </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-primary">Waive Test Results</button>
+        <button type="submit" class="btn btn-primary">Waive</button>
       </div>
     </div>
     </form>

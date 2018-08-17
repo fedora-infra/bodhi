@@ -85,7 +85,7 @@ class TestMain(BaseTestCase):
 
         log_info.assert_called_once_with("No active buildroot override to expire")
         buildrootoverride = self.db.query(models.BuildrootOverride).all()[0]
-        self.assertEquals(buildrootoverride.expired_date, None)
+        self.assertEqual(buildrootoverride.expired_date, None)
 
     @mock.patch('bodhi.server.scripts.expire_overrides.logging.Logger.info')
     def test_expire(self, log_info):

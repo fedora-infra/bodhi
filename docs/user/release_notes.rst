@@ -26,6 +26,7 @@ Dependency changes
 * Cornice must now be at least version 3.1.0 (:issue:`2286`).
 * Greenwave is now a required service for Bodhi deployments that wish to continue displaying test
   results in the UI (:issue:`2370`).
+* The responses python module is now needed for running tests.
 
 
 Features

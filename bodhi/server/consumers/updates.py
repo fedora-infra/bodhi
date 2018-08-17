@@ -87,7 +87,7 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
 
         self.handle_bugs = bool(config.get('bodhi_email'))
         if not self.handle_bugs:
-            log.warn("No bodhi_email defined; not fetching bug details")
+            log.warning("No bodhi_email defined; not fetching bug details")
         else:
             bug_module.set_bugtracker()
 
@@ -170,7 +170,7 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
             bugs (list): A list of bodhi.server.models.Bug instances that we wish to act on.
         """
         if not self.handle_bugs:
-            log.warn("Not configured to handle bugs")
+            log.warning("Not configured to handle bugs")
             return
 
         log.info("Got %i bugs to sync for %r" % (len(bugs), update.alias))

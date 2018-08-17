@@ -162,6 +162,7 @@ setup(
     bodhi-approve-testing = bodhi.server.scripts.approve_testing:main
     bodhi-manage-releases = bodhi.server.scripts.manage_releases:main
     bodhi-check-policies = bodhi.server.scripts.check_policies:check
+    bodhi-skopeo-lite = bodhi.server.scripts.skopeo_lite:main
     [moksha.consumer]
     masher = bodhi.server.consumers.masher:Masher
     updates = bodhi.server.consumers.updates:UpdatesHandler
