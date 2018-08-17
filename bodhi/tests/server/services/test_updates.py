@@ -464,6 +464,38 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
+    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_new_flatpak_update(self, publish, *args):
+        self.create_release(u'28F')
+        data = self.get_update('mariadb-10.1-10.f28flatpak')
+
+        r = self.app.post_json('/updates/', data, status=200)
+
+        up = r.json_body
+        self.assertEquals(up['title'], u'mariadb-10.1-10.f28flatpak')
+        self.assertEquals(up['status'], u'pending')
+        self.assertEquals(up['request'], u'testing')
+        self.assertEquals(up['user']['name'], u'guest')
+        self.assertEquals(up['release']['name'], u'F28F')
+        self.assertEquals(up['type'], u'bugfix')
+        self.assertEquals(up['content_type'], u'flatpak')
+        self.assertEquals(up['severity'], u'unspecified')
+        self.assertEquals(up['suggest'], u'unspecified')
+        self.assertEquals(up['close_bugs'], True)
+        self.assertEquals(up['notes'], u'this is a test update')
+        self.assertIsNotNone(up['date_submitted'])
+        self.assertEquals(up['date_modified'], None)
+        self.assertEquals(up['date_approved'], None)
+        self.assertEquals(up['date_pushed'], None)
+        self.assertEquals(up['locked'], False)
+        self.assertEquals(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
+        self.assertEquals(up['karma'], 0)
+        self.assertEquals(up['requirements'], 'rpmlint')
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -872,8 +904,6 @@ class TestUpdatesService(BaseTestCase):
         expected_json = {
             u'status': u'error',
             u'errors': [
-                {u'description': u'Unable to determine release from build: bodhi-3.2.0-1.fc27',
-                 u'location': u'body', u'name': u'builds'},
                 {u'description': (
                     u"Cannot find release associated with build: bodhi-3.2.0-1.fc27, "
                     u"tags: [u'f27-updates-candidate', u'f27', u'f27-updates-testing']"),

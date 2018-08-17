@@ -559,12 +559,14 @@ class ContentType(DeclEnum):
         rpm (EnumSymbol): Used to represent RPM related objects.
         module (EnumSymbol): Used to represent Module related objects.
         container (EnumSymbol): Used to represent Container related objects.
+        flatpak (EnumSymbol): Used to represent Flatpak related objects.
     """
 
     base = 'base', 'Base'
     rpm = 'rpm', 'RPM'
     module = 'module', 'Module'
     container = 'container', 'Container'
+    flatpak = 'flatpak', 'Flatpak'
 
     @classmethod
     def infer_content_class(cls, base, build):
@@ -589,7 +591,10 @@ class ContentType(DeclEnum):
         if 'module' in extra.get('typeinfo', {}):
             identity = cls.module
         elif 'container_koji_task_id' in extra:
-            identity = cls.container
+            if 'flatpak' in extra['image']:
+                identity = cls.flatpak
+            else:
+                identity = cls.container
 
         return base.find_polymorphic_child(identity)
 
@@ -873,7 +878,7 @@ class Release(Base):
         days = config.get('%s.mandatory_days_in_testing' %
                           self.id_prefix.lower().replace('-', '_'))
         if days is None:
-            log.warn('No mandatory days in testing defined for %s. Defaulting to 0.' % self.name)
+            log.warning('No mandatory days in testing defined for %s. Defaulting to 0.' % self.name)
             return 0
         else:
             return int(days)
@@ -947,6 +952,8 @@ class Release(Base):
         """
         tag_types, tag_rels = cls.get_tags(session)
         for tag in tags:
+            if tag not in tag_rels:
+                continue
             release = session.query(cls).filter_by(name=tag_rels[tag]).first()
             if release:
                 return release
@@ -1075,9 +1082,11 @@ class Package(Base):
         """
         pagure_url = config.get('pagure_url')
         # Pagure uses plural names for its namespaces such as "rpms" except for
-        # container
+        # container. Flatpaks build directly from the 'modules' namespace
         if self.type.name == 'container':
             namespace = self.type.name
+        elif self.type.name == 'flatpak':
+            namespace = 'modules'
         else:
             namespace = self.type.name + 's'
         package_pagure_url = '{0}/api/0/{1}/{2}?expand_group=1'.format(
@@ -1244,6 +1253,14 @@ class ContainerPackage(Package):
 
     __mapper_args__ = {
         'polymorphic_identity': ContentType.container,
+    }
+
+
+class FlatpakPackage(Package):
+    """Represents a Flatpak package."""
+
+    __mapper_args__ = {
+        'polymorphic_identity': ContentType.flatpak,
     }
 
 
@@ -1457,6 +1474,18 @@ class ContainerBuild(Build):
 
     __mapper_args__ = {
         'polymorphic_identity': ContentType.container,
+    }
+
+
+class FlatpakBuild(Build):
+    """
+    Represents a Flatpak build.
+
+    Note that this model uses single-table inheritance with its Build superclass.
+    """
+
+    __mapper_args__ = {
+        'polymorphic_identity': ContentType.flatpak,
     }
 
 
@@ -2183,7 +2212,7 @@ class Update(Base):
                 else:
                     # EL6 doesn't have these, and that's okay...
                     # We still warn in case the config gets messed up.
-                    log.warn('%s has no pending_signing_tag' % up.release.name)
+                    log.warning('%s has no pending_signing_tag' % up.release.name)
 
         # And, updates with new or removed builds always get their karma reset.
         # https://github.com/fedora-infra/bodhi/issues/511
@@ -2695,7 +2724,7 @@ class Update(Base):
         """
         log.debug('Adding tag %s to %s' % (tag, self.title))
         if not tag:
-            log.warn("Not adding builds of %s to empty tag" % self.title)
+            log.warning("Not adding builds of %s to empty tag" % self.title)
             return []  # An empty iterator in place of koji multicall
 
         koji = buildsys.get_session()
@@ -2719,7 +2748,7 @@ class Update(Base):
         """
         log.debug('Removing tag %s from %s' % (tag, self.title))
         if not tag:
-            log.warn("Not removing builds of %s from empty tag" % self.title)
+            log.warning("Not removing builds of %s from empty tag" % self.title)
             return []  # An empty iterator in place of koji multicall
 
         return_multicall = not koji
@@ -4132,7 +4161,7 @@ class Bug(Base):
                 if 'testing_bug_epel_msg' in config:
                     template = config['testing_bug_epel_msg']
                 else:
-                    log.warn("No 'testing_bug_epel_msg' found in the config.")
+                    log.warning("No 'testing_bug_epel_msg' found in the config.")
 
             message += template % (config.get('base_address') + update.get_url())
         return message

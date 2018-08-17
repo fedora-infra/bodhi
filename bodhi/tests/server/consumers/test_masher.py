@@ -36,13 +36,13 @@ from six import StringIO
 from bodhi.server import buildsys, exceptions, log, push
 from bodhi.server.config import config
 from bodhi.server.consumers.masher import (
-    checkpoint, Masher, ComposerThread, ContainerComposerThread, RPMComposerThread,
-    ModuleComposerThread, PungiComposerThread)
+    checkpoint, Masher, ComposerThread, ContainerComposerThread, FlatpakComposerThread,
+    RPMComposerThread, ModuleComposerThread, PungiComposerThread)
 from bodhi.server.exceptions import LockedUpdateException
 from bodhi.server.models import (
-    Build, BuildrootOverride, Compose, ComposeState, ContainerBuild, Release, ReleaseState,
-    RpmBuild, TestGatingStatus, Update, UpdateRequest, UpdateStatus, UpdateType, User, ModuleBuild,
-    ContentType, Package)
+    Build, BuildrootOverride, Compose, ComposeState, ContainerBuild, FlatpakBuild,
+    Release, ReleaseState, RpmBuild, TestGatingStatus, Update, UpdateRequest, UpdateStatus,
+    UpdateType, User, ModuleBuild, ContentType, Package)
 from bodhi.server.util import mkmetadatadir
 from bodhi.tests.server import base
 
@@ -2251,6 +2251,73 @@ class TestPungiComposerThread__compose_updates(ComposerThreadBaseTestCase):
         self.assertTrue(os.path.exists(mash_dir))
 
 
+class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
+    """Test FlatpakComposerThread._compose_update()."""
+
+    def setUp(self):
+        super(TestFlatpakComposerThread__compose_updates, self).setUp()
+
+        user = self.db.query(User).first()
+        release = self.create_release('28F')
+        release.branch = 'f28'
+        package1 = Package(name=u'testflatpak1',
+                           type=ContentType.flatpak)
+        self.db.add(package1)
+        package2 = Package(name=u'testflatpak2',
+                           type=ContentType.flatpak)
+        self.db.add(package2)
+        build1 = FlatpakBuild(nvr=u'testflatpak1-2.0.1-71.fc28', release=release, signed=True,
+                              package=package1)
+        self.db.add(build1)
+        build2 = FlatpakBuild(nvr=u'testflatpak2-1.0.1-1.fc28', release=release, signed=True,
+                              package=package2)
+        self.db.add(build2)
+        update = Update(
+            title=u'testflatpak1-2.0.1-71.fc28, testflatpak2-1.0.1-1.fc28',
+            builds=[build1, build2], user=user,
+            status=UpdateStatus.pending,
+            request=UpdateRequest.testing,
+            notes=u'Neat I can compose flatpaks now', release=release,
+            test_gating_status=TestGatingStatus.passed)
+        update.type = UpdateType.bugfix
+        self.db.add(update)
+        # Wipe out the tag cache so it picks up our new release
+        Release._tag_cache = None
+        self.db.flush()
+
+    @mock.patch('bodhi.server.consumers.masher.subprocess.Popen')
+    def test_flatpak_compose(self, Popen):
+        """
+        Basic test that FlatpakComposerThread does the expected thing.
+
+        We don't need extensive sets of tests since FlatpakComposerThread inherits
+        all code from ContainerComposerThread.
+        """
+        Popen.return_value.communicate.return_value = ('out', 'err')
+        Popen.return_value.returncode = 0
+        msg = self._make_msg(['--releases', 'F28F'])
+        t = FlatpakComposerThread(self.semmock, msg['body']['msg']['composes'][0],
+                                  'otaylor', log, self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
+
+        t._compose_updates()
+
+        # Popen should have been called three times per build, once for each of the destination
+        # tags. With two builds that is a total of 6 calls to Popen.
+        expected_mock_calls = []
+        for source in ('testflatpak1:2.0.1-71.fc28', 'testflatpak2:1.0.1-1.fc28'):
+            for dtag in [source.split(':')[1], source.split(':')[1].split('-')[0], 'testing']:
+                mock_call = mock.call(
+                    [config['skopeo.cmd'], 'copy',
+                     'docker://{}/f28/{}'.format(config['container.source_registry'], source),
+                     'docker://{}/f28/{}:{}'.format(config['container.destination_registry'],
+                                                    source.split(':')[0], dtag)],
+                    shell=False, stderr=-1, stdout=-1, cwd=None)
+                expected_mock_calls.append(mock_call)
+                expected_mock_calls.append(mock.call().communicate())
+        self.assertEqual(Popen.mock_calls, expected_mock_calls)
+
+
 class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase):
     """This class contains tests for the PungiComposerThread._get_master_repomd_url() method."""
     @mock.patch.dict(
@@ -3057,8 +3124,8 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         self.assertTrue(update.abs_url() in args[2].decode('utf-8'))
         self.assertTrue(update.title in args[2].decode('utf-8'))
 
-    @mock.patch('bodhi.server.consumers.masher.log.warn')
-    def test_test_list_not_configured(self, warn):
+    @mock.patch('bodhi.server.consumers.masher.log.warning')
+    def test_test_list_not_configured(self, warning):
         """If a test_announce_list setting is not found, a warning should be logged."""
         t = ComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                            'bowlofeggs', log, self.Session, self.tempdir)
@@ -3070,7 +3137,7 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         with mock.patch.dict(config, {'fedora_test_announce_list': None}):
             t.send_testing_digest()
 
-        warn.assert_called_once_with(
+        warning.assert_called_once_with(
             '%r undefined. Not sending updates-testing digest', 'fedora_test_announce_list')
 
 

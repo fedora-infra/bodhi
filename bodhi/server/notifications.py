@@ -45,7 +45,7 @@ def init(active=None, cert_prefix=None):
         cert_prefix (basestring): Configures the ``cert_prefix`` setting in the fedmsg_config.
     """
     if not bodhi.server.config.config.get('fedmsg_enabled'):
-        bodhi.server.log.warn("fedmsg disabled.  not initializing.")
+        bodhi.server.log.warning("fedmsg disabled.  not initializing.")
         return
 
     fedmsg_config = fedmsg.config.load_config()
@@ -114,7 +114,7 @@ def publish(topic, msg, force=False):
             after the current database transaction is committed.
     """
     if not bodhi.server.config.config.get('fedmsg_enabled'):
-        _log.warn("fedmsg disabled.  not sending %r" % topic)
+        _log.warning("fedmsg disabled.  not sending %r" % topic)
         return
 
     # Initialize right before we try to publish, but only if we haven't

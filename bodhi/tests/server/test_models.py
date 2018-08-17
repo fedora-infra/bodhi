@@ -274,11 +274,11 @@ class TestBugDefaultMessage(BaseTestCase):
         self.assertTrue(update.status.description in message)
         self.assertTrue(update.get_url() in message)
 
-    @mock.patch('bodhi.server.models.log.warn')
+    @mock.patch('bodhi.server.models.log.warning')
     @mock.patch.dict(
         config,
         {'stable_bug_msg': '%s%s', 'testing_bug_msg': '%s', 'base_address': 'b'}, clear=True)
-    def test_epel_without_testing_bug_epel_msg(self, warn):
+    def test_epel_without_testing_bug_epel_msg(self, warning):
         """Test with testing_bug_epel_msg undefined."""
         bug = model.Bug()
         update = model.Update.query.first()
@@ -287,7 +287,7 @@ class TestBugDefaultMessage(BaseTestCase):
 
         message = bug.default_message(update)
 
-        warn.assert_called_once_with("No 'testing_bug_epel_msg' found in the config.")
+        warning.assert_called_once_with("No 'testing_bug_epel_msg' found in the config.")
         self.assertTrue(update.builds[0].nvr in message)
         self.assertTrue(update.release.long_name in message)
         self.assertTrue(update.status.description in message)
@@ -1033,6 +1033,57 @@ class TestContainerPackage(ModelTest, unittest.TestCase):
             timeout=60)
 
 
+class TestFlatpakPackage(ModelTest, unittest.TestCase):
+    klass = model.FlatpakPackage
+    attrs = dict(name=u"flatpak-runtime")
+
+    @mock.patch('bodhi.server.util.http_session')
+    def test_get_pkg_committers_from_pagure(self, http_session):
+        """Ensure correct return value from get_pkg_committers_from_pagure()."""
+        json_output = {
+            "access_groups": {
+                "admin": [],
+                "commit": [],
+                "ticket": []
+            },
+            "access_users": {
+                "admin": [],
+                "commit": [],
+                "owner": [
+                    "otaylor"
+                ],
+                "ticket": []
+            },
+            "close_status": [],
+            "custom_keys": [],
+            "date_created": "1494947106",
+            "description": "Flatpak Runtime",
+            "fullname": "modules/flatpak-runtime",
+            "group_details": {},
+            "id": 2,
+            "milestones": {},
+            "name": "python",
+            "namespace": "rpms",
+            "parent": None,
+            "priorities": {},
+            "tags": [],
+            "user": {
+                "fullname": "Owen Taylor",
+                "name": "otaylor"
+            }
+        }
+        http_session.get.return_value.json.return_value = json_output
+        http_session.get.return_value.status_code = 200
+
+        rv = self.obj.get_pkg_committers_from_pagure()
+
+        self.assertEqual(rv, (['otaylor'], []))
+        http_session.get.assert_called_once_with(
+            ('https://src.fedoraproject.org/pagure/api/0/modules/flatpak-runtime'
+             '?expand_group=1'),
+            timeout=60)
+
+
 class TestRpmPackage(ModelTest, unittest.TestCase):
     """Unit test case for the ``RpmPackage`` model."""
     klass = model.RpmPackage
@@ -1465,12 +1516,12 @@ class TestUpdateEdit(BaseTestCase):
         with self.assertRaises(model.LockedUpdateException):
             model.Update.edit(request, data)
 
-    @mock.patch('bodhi.server.models.log.warn')
-    def test_new_builds_log_when_release_has_no_signing_tag(self, warn):
+    @mock.patch('bodhi.server.models.log.warning')
+    def test_new_builds_log_when_release_has_no_signing_tag(self, warning):
         """If new builds are added from a release with no signing tag, it should log a warning."""
-        package = model.Package(name='python-rpdb')
+        package = model.RpmPackage(name='python-rpdb')
         self.db.add(package)
-        build = model.Build(nvr='python-rpdb-1.3.1.fc17', package=package)
+        build = model.RpmBuild(nvr='python-rpdb-1.3.1.fc17', package=package)
         self.db.add(build)
         update = model.Update.query.first()
         data = {
@@ -1485,7 +1536,7 @@ class TestUpdateEdit(BaseTestCase):
 
         model.Update.edit(request, data)
 
-        warn.assert_called_once_with('F17 has no pending_signing_tag')
+        warning.assert_called_once_with('F17 has no pending_signing_tag')
         update = model.Update.query.first()
         self.assertEqual(set([b.nvr for b in update.builds]),
                          {'bodhi-2.0-1.fc17', 'python-rpdb-1.3.1.fc17'})
@@ -1754,13 +1805,13 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(self.obj.__json__()['content_type'], None)
 
-    @mock.patch('bodhi.server.models.log.warn')
-    def test_add_tag_null(self, warn):
+    @mock.patch('bodhi.server.models.log.warning')
+    def test_add_tag_null(self, warning):
         """Test the add_tag() method with a falsey tag, such as None."""
         result = self.obj.add_tag(tag=None)
 
         self.assertEqual(result, [])
-        warn.assert_called_once_with('Not adding builds of TurboGears-1.0.8-3.fc11 to empty tag')
+        warning.assert_called_once_with('Not adding builds of TurboGears-1.0.8-3.fc11 to empty tag')
 
     def test_autokarma_not_nullable(self):
         """Assert that the autokarma column does not allow NULL values.
@@ -2655,12 +2706,12 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(self.obj.status, UpdateStatus.obsolete)
 
-    @mock.patch('bodhi.server.models.log.warn')
-    def test_remove_tag_emptystring(self, warn):
+    @mock.patch('bodhi.server.models.log.warning')
+    def test_remove_tag_emptystring(self, warning):
         """Test remove_tag() with a tag of ''."""
         self.assertEqual(self.obj.remove_tag(''), [])
 
-        warn.assert_called_once_with(
+        warning.assert_called_once_with(
             'Not removing builds of {} from empty tag'.format(self.obj.title))
 
     def test_revoke_no_request(self):
