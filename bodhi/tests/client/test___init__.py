@@ -1420,7 +1420,7 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': 'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'suggest': 'unspecified', 'notes': 'New package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
-                    'bugs': '1234,5678', 'requirements': '', 'type': 'bugfix',
+                    'bugs': '1234,5678', 'requirements': '', 'type': 'newpackage',
                     'severity': 'low'}),
             mock.call(
                 bindings_client,
@@ -1457,7 +1457,8 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'suggest': u'unspecified', 'notes': u'Updated package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
-                    'bugs': '1420605', 'requirements': u'', 'type': 'bugfix', 'severity': u'low'
+                    'bugs': '1420605', 'requirements': u'', 'type': 'newpackage',
+                    'severity': u'low'
                 }
             ),
             mock.call(
@@ -1499,7 +1500,8 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'suggest': u'unspecified', 'notes': u'this is an edited note',
                     'notes_file': None, 'request': None, 'severity': u'low',
-                    'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3, 'type': 'bugfix'
+                    'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
+                    'type': 'newpackage'
                 }
             ),
             mock.call(
@@ -1547,7 +1549,7 @@ class TestEdit(unittest.TestCase):
                         'suggest': 'unspecified', 'notes': 'This is a --notes-file note!',
                         'notes_file': 'notefile.txt', 'request': None, 'severity': 'low',
                         'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
-                        'type': 'bugfix'
+                        'type': 'newpackage'
                     }
                 ),
                 mock.call(
@@ -1605,7 +1607,8 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': u'drupal7-i18n-1.17-1.fc26',
                     'suggest': u'unspecified', 'notes': u'this is an edited note',
                     'notes_file': None, 'request': None, 'bugs': '1420605',
-                    'unstable_karma': -3, 'type': 'bugfix', 'severity': u'low', 'requirements': u''
+                    'unstable_karma': -3, 'type': 'newpackage', 'severity': u'low',
+                    'requirements': u''
                 }
             ),
             mock.call(
@@ -1698,7 +1701,7 @@ class TestEdit(unittest.TestCase):
                     'suggest': u'unspecified', 'notes': u'testing required tasks',
                     'notes_file': None, 'request': None, 'severity': u'low',
                     'bugs': '1420605', 'unstable_karma': -3,
-                    'requirements': u'dist.depcheck dist.rpmdeplint', 'type': 'bugfix'
+                    'requirements': u'dist.depcheck dist.rpmdeplint', 'type': 'newpackage'
                 }
             ),
             mock.call(
@@ -1757,7 +1760,7 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
                     'suggest': u'unspecified', 'notes': u'New package.',
                     'notes_file': None, 'request': None, 'severity': u'low',
-                    'bugs': '', 'requirements': u'', 'unstable_karma': -3, 'type': 'bugfix'
+                    'bugs': '', 'requirements': u'', 'unstable_karma': -3, 'type': 'newpackage'
                 }
             ),
             mock.call(
