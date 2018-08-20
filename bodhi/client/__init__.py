@@ -93,8 +93,6 @@ debug_option = click.option('--debug', help='Display debugging information.',
 new_edit_options = [
     click.option('--user'),
     click.option('--password', hide_input=True),
-    click.option('--type', default='bugfix', help='Update type', required=True,
-                 type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage'])),
     click.option('--severity', help='Update severity',
                  type=click.Choice(['unspecified', 'low', 'medium', 'high', 'urgent']),
                  is_eager=True),
@@ -340,6 +338,8 @@ def require_severity_for_security_update(type, severity):
 
 
 @updates.command()
+@click.option('--type', default='bugfix', help='Update type', required=True,
+              type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
 @add_options(new_edit_options)
 @click.argument('builds')
 @click.option('--file', help='A text file containing all the update details')
@@ -413,6 +413,8 @@ def _validate_edit_update(ctx, param, value):
 
 
 @updates.command()
+@click.option('--type', help='Update type',
+              type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
 @add_options(new_edit_options)
 @click.argument('update', callback=_validate_edit_update)
 @url_option
