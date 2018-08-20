@@ -25,7 +25,7 @@
 # which will copy test results into a test_results folder if provided.
 
 BUILD_PARALLEL=${BUILD_PARALLEL:=""}
-RELEASES=${RELEASES:="f27 f28 rawhide pip"}
+RELEASES=${RELEASES:="f27 f28 f29 rawhide pip"}
 
 if [[ $@ == *"-a"* ]]; then
     # Make individual folders for each release to drop its test results and docs.
