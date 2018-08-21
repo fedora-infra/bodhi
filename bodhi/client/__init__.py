@@ -162,6 +162,7 @@ release_options = [
     click.option('--state', type=click.Choice(['disabled', 'pending', 'current',
                                                'archived']),
                  help='The state of the release'),
+    click.option('--mail-template', help='Name of the email template for this release'),
     staging_option,
     url_option,
     debug_option]
@@ -352,7 +353,7 @@ def new(user, password, url, debug, **kwargs):
             print_resp(resp, client)
         except bindings.BodhiClientException as e:
             click.echo(str(e))
-        except Exception as e:
+        except Exception:
             traceback.print_exc()
 
 
@@ -1062,6 +1063,7 @@ def print_release(release):
     print("  Pending Stable Tag:  %s" % release['pending_stable_tag'])
     print("  Override Tag:        %s" % release['override_tag'])
     print("  State:               %s" % release['state'])
+    print("  Email Template:      %s" % release['mail_template'])
 
 
 def print_errors(data):

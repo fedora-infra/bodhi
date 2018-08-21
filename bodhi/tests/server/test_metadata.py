@@ -206,8 +206,8 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
 class TestFetchUpdates(UpdateInfoMetadataTestCase):
     """Test the UpdateInfoMetadata._fetch_updates() method."""
 
-    @mock.patch('bodhi.server.metadata.log.warn')
-    def test_build_unassociated(self, warn):
+    @mock.patch('bodhi.server.metadata.log.warning')
+    def test_build_unassociated(self, warning):
         """A warning should be logged if the Bodhi Build object is not associated with an Update."""
         update = self.db.query(Update).one()
         update.date_pushed = None
@@ -220,7 +220,7 @@ class TestFetchUpdates(UpdateInfoMetadataTestCase):
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
                                 close_shelf=False)
 
-        warn.assert_called_once_with(
+        warning.assert_called_once_with(
             'TurboGears-1.0.2.2-4.fc17 does not have a corresponding update')
         # Since the Build didn't have an Update, no Update should have been added to md.updates.
         self.assertEqual(md.updates, set([]))

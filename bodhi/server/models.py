@@ -878,7 +878,7 @@ class Release(Base):
         days = config.get('%s.mandatory_days_in_testing' %
                           self.id_prefix.lower().replace('-', '_'))
         if days is None:
-            log.warn('No mandatory days in testing defined for %s. Defaulting to 0.' % self.name)
+            log.warning('No mandatory days in testing defined for %s. Defaulting to 0.' % self.name)
             return 0
         else:
             return int(days)
@@ -2212,7 +2212,7 @@ class Update(Base):
                 else:
                     # EL6 doesn't have these, and that's okay...
                     # We still warn in case the config gets messed up.
-                    log.warn('%s has no pending_signing_tag' % up.release.name)
+                    log.warning('%s has no pending_signing_tag' % up.release.name)
 
         # And, updates with new or removed builds always get their karma reset.
         # https://github.com/fedora-infra/bodhi/issues/511
@@ -2724,7 +2724,7 @@ class Update(Base):
         """
         log.debug('Adding tag %s to %s' % (tag, self.title))
         if not tag:
-            log.warn("Not adding builds of %s to empty tag" % self.title)
+            log.warning("Not adding builds of %s to empty tag" % self.title)
             return []  # An empty iterator in place of koji multicall
 
         koji = buildsys.get_session()
@@ -2748,7 +2748,7 @@ class Update(Base):
         """
         log.debug('Removing tag %s from %s' % (tag, self.title))
         if not tag:
-            log.warn("Not removing builds of %s from empty tag" % self.title)
+            log.warning("Not removing builds of %s from empty tag" % self.title)
             return []  # An empty iterator in place of koji multicall
 
         return_multicall = not koji
@@ -4161,7 +4161,7 @@ class Bug(Base):
                 if 'testing_bug_epel_msg' in config:
                     template = config['testing_bug_epel_msg']
                 else:
-                    log.warn("No 'testing_bug_epel_msg' found in the config.")
+                    log.warning("No 'testing_bug_epel_msg' found in the config.")
 
             message += template % (config.get('base_address') + update.get_url())
         return message

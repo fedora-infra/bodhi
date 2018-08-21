@@ -342,8 +342,8 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
 
     @mock.patch.dict(config.config, {'bodhi_email': None})
     @mock.patch('bodhi.server.consumers.updates.log.info')
-    @mock.patch('bodhi.server.consumers.updates.log.warn')
-    def test_bodhi_email_undefined(self, warn, info):
+    @mock.patch('bodhi.server.consumers.updates.log.warning')
+    def test_bodhi_email_undefined(self, warning, info):
         """work_on_bugs() should log a warning and return if bodhi_email is not defined."""
         hub = mock.MagicMock()
         hub.config = {'environment': 'environment',
@@ -355,7 +355,7 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
 
         # We should see warnings about bodhi_email being undefined.
         self.assertEqual(
-            warn.mock_calls,
+            warning.mock_calls,
             [mock.call('No bodhi_email defined; not fetching bug details'),
              mock.call('Not configured to handle bugs')])
         # We should not see info calls about syncing bugs, but we should see one about the handler.

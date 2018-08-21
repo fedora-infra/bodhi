@@ -159,7 +159,7 @@ def cache_release(request, build):
     if not build_rel:
         msg = 'Cannot find release associated with ' + \
             'build: {}, tags: {}'.format(build, tags)
-        log.warn(msg)
+        log.warning(msg)
         request.errors.add('body', 'builds', msg)
     # This might end up setting build_rel to None. That is expected, and indicates it failed.
     request.buildinfo[build]['release'] = build_rel
@@ -492,7 +492,7 @@ def validate_acls(request, **kwargs):
             groups = (['ralph', 'bowlofeggs', 'guest'], ['guest'])
             committers, watchers = people
         else:
-            log.warn('No acl_system configured')
+            log.warning('No acl_system configured')
             people = None
 
         buildinfo['people'] = people

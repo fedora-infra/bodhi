@@ -40,7 +40,6 @@
       - python2-fedmsg-consumers
       - python2-fedora
       - python2-feedgen
-      - python2-flake8
       - python2-ipdb
       - python2-jinja2
       - python2-kitchen
@@ -57,6 +56,7 @@
       - python2-pyramid-mako
       - python2-pyramid-tm
       - python2-pytest-cov
+      - python2-responses
       - python2-rpdb
       - python2-simplemediawiki
       - python2-sphinx
@@ -75,6 +75,7 @@
       - python3-dogpile-cache
       - python3-fedmsg
       - python3-fedora
+      - python3-flake8
       - python3-ipdb
       - python3-kitchen
       - python3-markdown
@@ -89,6 +90,7 @@
       - python3-pyramid-fas-openid
       - python3-pytest
       - python3-pytest-cov
+      - python3-responses
       - python3-simplemediawiki
       - python3-sqlalchemy
       - python3-webtest
