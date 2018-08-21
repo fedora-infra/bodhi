@@ -123,6 +123,8 @@ save_edit_options = [
                  help='Notes on why this override is in place.'),
     click.option('--user'),
     click.option('--password', hide_input=True),
+    click.option('--wait', is_flag=True, default=False,
+                 help='Wait and ensure that the override is active'),
     staging_option,
     url_option,
     debug_option]
@@ -245,12 +247,23 @@ def _save_override(url, user, password, staging, edit=False, **kwargs):
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging)
+
     resp = client.save_override(nvr=kwargs['nvr'],
                                 duration=kwargs['duration'],
                                 notes=kwargs['notes'],
                                 edit=edit,
                                 expired=kwargs.get('expire', False))
+    resp['wait'] = kwargs['wait']
     print_resp(resp, client)
+
+    if resp['wait']:
+        if 'release_id' in resp.build:
+            release = client.get_releases(ids=[resp.build.release_id])['releases'][0]
+            args = ('koji', 'wait-repo', '{}-build'.format(release.dist_tag),
+                    '--build={}'.format(resp.build.nvr))
+            ret = subprocess.call(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if ret:
+                click.echo("WARNING: ensuring active override failed for {}".format(resp.build.nvr))
 
 
 @click.group()
@@ -933,7 +946,7 @@ def _print_override_koji_hint(override, client):
         client (bodhi.client.bindings.BodhiClient): A BodhiClient that we can use to query the
             server for Releases.
     """
-    if 'release_id' in override.build:
+    if not override.get('wait', False) and 'release_id' in override.build:
         release = client.get_releases(ids=[override.build.release_id])['releases'][0]
         click.echo(
             '\n\nUse the following to ensure the override is active:\n\n'
