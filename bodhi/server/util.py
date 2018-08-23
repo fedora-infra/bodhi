@@ -25,6 +25,7 @@ import hashlib
 import json
 import os
 import pkg_resources
+import shutil
 import socket
 import subprocess
 import tempfile
@@ -35,6 +36,9 @@ from pyramid.i18n import TranslationStringFactory
 import arrow
 import bleach
 import colander
+import createrepo_c as cr
+import hawkey
+import libcomps
 import libravatar
 import librepo
 import markdown
@@ -95,7 +99,41 @@ def get_rpm_header(nvr, tries=0):
     raise ValueError("No rpm headers found in koji for %r" % nvr)
 
 
-def mkmetadatadir(path):
+def insert_in_repo(comp_type, repodata, filetype, extension, source):
+    """
+    Inject a file into the repodata with the help of createrepo_c.
+
+    Args:
+        comp_type (int): createrepo_c compression type indication.
+        repodata (basestring): The path to the repo where the metadata will be inserted.
+        filetype (basestring): What type of metadata will be inserted by createrepo_c.
+            This does allow any string to be inserted (custom types). There are some
+            types which are used with dnf repos as primary, updateinfo, comps, filelist etc.
+        extension (basestring): The file extension (xml, sqlite).
+        source (basestring): A file path. File holds the dump of metadata until
+            copied to the repodata folder.
+    """
+    log.info('Inserting %s.%s into %s', filetype, extension, repodata)
+    target_fname = os.path.join(repodata, '%s.%s' % (filetype, extension))
+    shutil.copyfile(source, target_fname)
+    repomd_xml = os.path.join(repodata, 'repomd.xml')
+    repomd = cr.Repomd(repomd_xml)
+    # create a new record for our repomd.xml
+    rec = cr.RepomdRecord(filetype, target_fname)
+    # compress our metadata file with the comp_type
+    rec_comp = rec.compress_and_fill(cr.SHA256, comp_type)
+    # add hash to the compresed metadata file
+    rec_comp.rename_file()
+    # set type of metadata
+    rec_comp.type = filetype
+    # insert metadata about our metadata in repomd.xml
+    repomd.set_record(rec_comp)
+    with open(repomd_xml, 'w') as repomd_file:
+        repomd_file.write(repomd.xml_dump())
+    os.unlink(target_fname)
+
+
+def mkmetadatadir(path, updateinfo=None, comps=None):
     """
     Generate package metadata for a given directory.
 
@@ -103,10 +141,45 @@ def mkmetadatadir(path):
 
     Args:
         path (basestring): The directory to generate metadata for.
+        updateinfo (basestring or None or bool): The updateinfo to insert instead of example.
+            No updateinfo is inserted if False is passed. Passing True provides undefined
+            behavior.
+        comps (basestring or None): The comps to insert instead of example.
     """
+    compsfile = '''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE comps PUBLIC "-//Red Hat, Inc.//DTD Comps info//EN" "comps.dtd">
+<comps>
+  <group>
+    <id>testable</id>
+    <_name>Testable</_name>
+    <_description>comps group for testing</_description>
+    <packagelist>
+      <packagereq>testpkg</packagereq>
+    </packagelist>
+  </group>
+</comps>'''
+    updateinfofile = ''
     if not os.path.isdir(path):
         os.makedirs(path)
-    subprocess.check_call(['createrepo_c', '--xz', '--database', '--quiet', path])
+    if not comps:
+        comps = os.path.join(path, 'comps.xml')
+        with open(comps, 'w') as f:
+            f.write(compsfile)
+    if updateinfo is None:
+        updateinfo = os.path.join(path, 'updateinfo.xml')
+        with open(updateinfo, 'w') as f:
+            f.write(updateinfofile)
+
+    subprocess.check_call(['createrepo_c',
+                           '--groupfile', 'comps.xml',
+                           '--deltas',
+                           '--xz',
+                           '--database',
+                           '--quiet',
+                           path])
+    if updateinfo is not False:
+        insert_in_repo(cr.XZ, os.path.join(path, 'repodata'), 'updateinfo', 'xml',
+                       os.path.join(path, 'updateinfo.xml'))
 
 
 def flash_log(msg):
@@ -264,7 +337,7 @@ def sanity_check_repodata(myurl):
     Args:
         myurl (basestring): A path to a repodata directory.
     Raises:
-        bodhi.server.exceptions.RepodataException: If the repodata is not valid or does not exist.
+        Exception: If the repodata is not valid or does not exist.
     """
     h = librepo.Handle()
     h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
@@ -278,17 +351,44 @@ def sanity_check_repodata(myurl):
     h.setopt(librepo.LRO_URLS, [myurl])
     h.setopt(librepo.LRO_LOCAL, True)
     h.setopt(librepo.LRO_CHECKSUM, True)
+    h.setopt(librepo.LRO_IGNOREMISSING, False)
+    r = librepo.Result()
     try:
-        h.perform()
+        h.perform(r)
     except librepo.LibrepoException as e:
         rc, msg, general_msg = e.args
         raise RepodataException(msg)
 
-    updateinfo = os.path.join(myurl, 'updateinfo.xml.gz')
-    if os.path.exists(updateinfo):
-        ret = subprocess.call(['zgrep', '<id/>', updateinfo])
-        if not ret:
-            raise RepodataException('updateinfo.xml.gz contains empty ID tags')
+    repo_info = r.getinfo(librepo.LRR_YUM_REPO)
+    primary_sack = hawkey.Sack()
+    hk_repo = hawkey.Repo(myurl)
+    try:
+        hk_repo.filelists_fn = repo_info['filelists']
+        hk_repo.presto_fn = repo_info['prestodelta']
+        hk_repo.primary_fn = repo_info['primary']
+        hk_repo.repomd_fn = repo_info['repomd']
+        hk_repo.updateinfo_fn = repo_info['updateinfo']
+    except KeyError:
+        raise RepodataException('Required part not in repomd.xml')
+    primary_sack.load_repo(hk_repo,
+                           build_cache=False,
+                           load_filelists=True,
+                           load_presto=True,
+                           load_updateinfo=True)
+
+    # Test comps
+    comps = libcomps.Comps()
+    try:
+        ret = comps.fromxml_f(repo_info['group'])
+    except Exception:
+        raise RepodataException('Comps file unable to be parsed')
+    if len(comps.groups) < 1:
+        raise RepodataException('Comps file empty')
+
+    # Test updateinfo
+    ret = subprocess.call(['zgrep', '<id/>', repo_info['updateinfo']])
+    if not ret:
+        raise RepodataException('updateinfo.xml.gz contains empty ID tags')
 
 
 def age(context, date, nuke_ago=False):

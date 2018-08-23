@@ -1309,7 +1309,7 @@ class PungiComposerThread(ComposerThread):
         master_repomd_url = self._get_master_repomd_url(arch)
 
         with open(repomd) as repomdf:
-            checksum = hashlib.sha1(repomdf.read()).hexdigest()
+            checksum = hashlib.sha1(repomdf.read().encode('utf-8')).hexdigest()
         while True:
             try:
                 self.log.info('Polling %s' % master_repomd_url)
@@ -1318,7 +1318,7 @@ class PungiComposerThread(ComposerThread):
                 self.log.exception('Error fetching repomd.xml')
                 time.sleep(200)
                 continue
-            newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
+            newsum = hashlib.sha1(masterrepomd.read().encode('utf-8')).hexdigest()
             if newsum == checksum:
                 self.log.info("master repomd.xml matches!")
                 notifications.publish(

@@ -1474,6 +1474,46 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertIn("This is a BodhiClientException message", result.output)
 
+    @mock.patch.dict(client_test_data.EXAMPLE_QUERY_MUNCH['updates'][0], {'bugs': []})
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_edit_bugless_update_without_bugs_param(self, send_request, query):
+        """Test editing an update with no bugs, without passing '--bugs' to it."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t'])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'suggest': u'unspecified', 'notes': u'New package.',
+                    'notes_file': None, 'request': None, 'severity': u'low',
+                    'bugs': '', 'requirements': u'', 'unstable_karma': -3, 'type': 'bugfix'
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
+
 
 class TestEditBuilrootOverrides(unittest.TestCase):
     """
