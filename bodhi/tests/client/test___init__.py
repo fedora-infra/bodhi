@@ -1205,6 +1205,42 @@ class TestEdit(unittest.TestCase):
                 return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
                 return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_bugs_flag(self, send_request, query):
+        """Assert that the --bugs flag is handled properly."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--bugs', '1234,5678'])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid='FEDORA-2017-cc8582d738')
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'autokarma': False, 'edited': 'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'suggest': 'unspecified', 'notes': 'New package.',
+                    'notes_file': None, 'request': None, 'unstable_karma': -3,
+                    'bugs': '1234,5678', 'requirements': '', 'type': 'bugfix',
+                    'severity': 'low'}),
+            mock.call(
+                bindings_client,
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET')]
+        self.assertEqual(send_request.mock_calls, calls)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
     def test_severity_flag(self, send_request, query):
         """Assert that the --severity flag is handled properly."""
         runner = testing.CliRunner()
@@ -1882,6 +1918,20 @@ class TestPrintResp(unittest.TestCase):
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
                                                                           'localhost:6543')
         self.assertTrue(compare_output(result.output, expected_output))
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_total_missing_in_response(self, send_request):
+        """If total is missing in the response, the x updates found (y shown) should not appear."""
+        response = copy.deepcopy(client_test_data.EXAMPLE_QUERY_MUNCH)
+        del response['total']
+        send_request.return_value = response
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.query, ['--url', 'http://example.com/tests'])
+
+        self.assertTrue('updates found' not in result.output)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
