@@ -428,7 +428,9 @@ def edit(user, password, url, debug, **kwargs):
             query_param = {'updateid': kwargs['update']}
             resp = client.query(**query_param)
             title = resp['updates'][0]['title']
-        elif re.search(bindings.UPDATE_TITLE_RE, kwargs['update']):
+        else:
+            # _validate_edit_update() has already ensured that we either got an update ID or an NVR,
+            # so we can assume here that we have an NVR.
             query_param = {'like': kwargs['update']}
             resp = client.query(**query_param)
             title = kwargs['update']
