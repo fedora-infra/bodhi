@@ -537,7 +537,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
 
     def test_correct_repo(self):
         """No Exception should be raised if the repo is normal."""
-        util.mkmetadatadir(self.tempdir)
+        base.mkmetadatadir(self.tempdir)
 
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir)
@@ -547,7 +547,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
         updateinfo = os.path.join(self.tempdir, 'updateinfo.xml')
         with open(updateinfo, 'w') as uinfo:
             uinfo.write('<id/>')
-        util.mkmetadatadir(self.tempdir, updateinfo=updateinfo)
+        base.mkmetadatadir(self.tempdir, updateinfo=updateinfo)
 
         with self.assertRaises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir)
@@ -559,7 +559,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
         comps = os.path.join(self.tempdir, 'comps.xml')
         with open(comps, 'w') as uinfo:
             uinfo.write('this is not even xml')
-        util.mkmetadatadir(self.tempdir, comps=comps)
+        base.mkmetadatadir(self.tempdir, comps=comps)
 
         with self.assertRaises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir)
@@ -571,7 +571,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
         comps = os.path.join(self.tempdir, 'comps.xml')
         with open(comps, 'w') as uinfo:
             uinfo.write('<whatever />')
-        util.mkmetadatadir(self.tempdir, comps=comps)
+        base.mkmetadatadir(self.tempdir, comps=comps)
 
         with self.assertRaises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir)
@@ -580,7 +580,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
 
     def test_repomd_missing_updateinfo(self):
         """If the updateinfo data tag is missing in repomd.xml, an Exception should be raised."""
-        util.mkmetadatadir(self.tempdir)
+        base.mkmetadatadir(self.tempdir)
         repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
         repomd = ElementTree.parse(repomd_path)
         ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
