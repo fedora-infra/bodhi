@@ -323,7 +323,7 @@ Bug fixes
   (:issue:`2297`).
 * Interpret the ``dogpile.cache.expiration_time`` as an ``int`` instead of a ``str``
   (:issue:`2299`).
-* Do not cache the Koji latest composes (:issue:`2301`).
+* Do not cache the Koji latest candidates (:issue:`2301`).
 * Do not require the web server to have Pungi installed since it does not use it (:issue:`2303`).
 
 
