@@ -19,13 +19,15 @@
 """Contains a useful base test class that helps with common testing needs for bodhi.server."""
 from contextlib import contextmanager
 import os
+import subprocess
 import unittest
 
 from webtest import TestApp
 from sqlalchemy import event
+import createrepo_c
 import mock
 
-from bodhi.server import bugs, buildsys, models, initialize_db, Session, config, main, webapp
+from bodhi.server import bugs, buildsys, models, initialize_db, Session, config, main, webapp, util
 from bodhi.tests.server import create_update, populate
 
 
@@ -357,3 +359,52 @@ class TransactionalSessionMaker(object):
         except Exception:
             session.rollback()
             raise
+
+
+def mkmetadatadir(path, updateinfo=None, comps=None):
+    """
+    Generate package metadata for a given directory.
+
+    If the metadata doesn't exist, then create it.
+
+    Args:
+        path (basestring): The directory to generate metadata for.
+        updateinfo (basestring or None or bool): The updateinfo to insert instead of example.
+            No updateinfo is inserted if False is passed. Passing True provides undefined
+            behavior.
+        comps (basestring or None): The comps to insert instead of example.
+    """
+    compsfile = '''<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE comps PUBLIC "-//Red Hat, Inc.//DTD Comps info//EN" "comps.dtd">
+<comps>
+  <group>
+    <id>testable</id>
+    <_name>Testable</_name>
+    <_description>comps group for testing</_description>
+    <packagelist>
+      <packagereq>testpkg</packagereq>
+    </packagelist>
+  </group>
+</comps>'''
+    updateinfofile = ''
+    if not os.path.isdir(path):
+        os.makedirs(path)
+    if not comps:
+        comps = os.path.join(path, 'comps.xml')
+        with open(comps, 'w') as f:
+            f.write(compsfile)
+    if updateinfo is None:
+        updateinfo = os.path.join(path, 'updateinfo.xml')
+        with open(updateinfo, 'w') as f:
+            f.write(updateinfofile)
+
+    subprocess.check_call(['createrepo_c',
+                           '--groupfile', 'comps.xml',
+                           '--deltas',
+                           '--xz',
+                           '--database',
+                           '--quiet',
+                           path])
+    if updateinfo is not False:
+        util.insert_in_repo(createrepo_c.XZ, os.path.join(path, 'repodata'), 'updateinfo', 'xml',
+                            os.path.join(path, 'updateinfo.xml'))

@@ -44,7 +44,6 @@ from bodhi.server.models import (
     Build, BuildrootOverride, Compose, ComposeState, ContainerBuild, FlatpakBuild,
     Release, ReleaseState, RpmBuild, TestGatingStatus, Update, UpdateRequest, UpdateStatus,
     UpdateType, User, ModuleBuild, ContentType, Package)
-from bodhi.server.util import mkmetadatadir
 from bodhi.tests.server import base
 
 
@@ -745,7 +744,7 @@ That was the actual one'''
         # test with valid repodata
         for arch in ('i386', 'x86_64', 'armhfp'):
             repo = os.path.join(t.path, 'compose', 'Everything', arch, 'os')
-            mkmetadatadir(repo)
+            base.mkmetadatadir(repo)
             os.makedirs(os.path.join(repo, 'Packages', 'a'))
             name = 'test.rpm'
             if arch == 'armhfp':
@@ -753,7 +752,7 @@ That was the actual one'''
             with open(os.path.join(repo, 'Packages', 'a', name), 'w') as tf:
                 tf.write('foo')
 
-        mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
+        base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
         os.makedirs(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree', 'Packages',
                                  'a'))
         with open(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree', 'Packages', 'a',
@@ -784,7 +783,7 @@ That was the actual one'''
         # test with valid repodata
         for arch in ('i386', 'x86_64', 'armhfp'):
             repo = os.path.join(t.path, 'compose', 'Everything', arch, 'os')
-            mkmetadatadir(repo)
+            base.mkmetadatadir(repo)
 
             # test with truncated/busted repodata
             xml = os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'repodata',
@@ -823,11 +822,11 @@ That was the actual one'''
         # test with valid repodata
         for arch in ('i386', 'x86_64', 'armhfp'):
             repo = os.path.join(t.path, 'compose', 'Everything', arch, 'os')
-            mkmetadatadir(repo)
+            base.mkmetadatadir(repo)
             os.makedirs(os.path.join(repo, 'Packages', 'a'))
             os.symlink('/dev/null', os.path.join(repo, 'Packages', 'a', 'test.notrpm'))
 
-        mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
+        base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
         os.makedirs(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree', 'Packages',
                                  'a'))
         os.symlink('/dev/null', os.path.join(t.path, 'compose', 'Everything', 'source', 'tree',
@@ -861,10 +860,10 @@ That was the actual one'''
         # test with valid repodata
         for arch in ('i386', 'x86_64', 'armhfp'):
             repo = os.path.join(t.path, 'compose', 'Everything', arch, 'os')
-            mkmetadatadir(repo)
+            base.mkmetadatadir(repo)
             shutil.rmtree(os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'Packages'))
 
-        mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
+        base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
 
         assert 'completed_repo' in t._checkpoints
         save_state.reset_mock()
