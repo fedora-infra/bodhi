@@ -2,6 +2,15 @@
 Release notes
 =============
 
+develop
+-------
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Bodhi now fully supports Python 3.
+
+
 v3.10.0
 -------
 
