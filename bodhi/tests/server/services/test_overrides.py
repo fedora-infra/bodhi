@@ -786,5 +786,5 @@ class TestOverridesWebViews(base.BaseTestCase):
         resp = self.app.get('/overrides/bodhi-2.0-1.fc17',
                             status=200, headers={'Accept': 'text/html'})
 
-        self.assertRegexpMatches(str(resp), ('Expired\\n.*<span class="text-muted" '
-                                             'data-toggle="tooltip" title=".*"> just now </span>'))
+        self.assertRegex(str(resp), ('Expired\\n.*<span class="text-muted" '
+                                     'data-toggle="tooltip" title=".*"> just now </span>'))

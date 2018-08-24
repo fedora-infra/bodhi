@@ -59,8 +59,8 @@ class TestGenericViews(base.BaseTestCase):
 
         res = self.app.get('/', headers={'Accept': 'text/html'})
 
-        self.assertRegexpMatches(str(res), ('status=testing&critpath=True.*'
-                                 'Latest Critical Path Updates in Need of Testing'))
+        self.assertRegex(str(res), ('status=testing&critpath=True.*'
+                         'Latest Critical Path Updates in Need of Testing'))
 
     def test_markdown(self):
         res = self.app.get('/markdown', {'text': 'wat'}, status=200)

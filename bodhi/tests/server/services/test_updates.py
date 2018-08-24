@@ -294,8 +294,8 @@ class TestNewUpdate(BaseTestCase):
 
         resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
-        self.assertRegexpMatches(str(resp), ('https://koji.fedoraproject.org/koji'
-                                             r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
+        self.assertRegex(str(resp), ('https://koji.fedoraproject.org/koji'
+                                     r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -309,8 +309,8 @@ class TestNewUpdate(BaseTestCase):
 
         resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
-        self.assertRegexpMatches(str(resp), ('https://koji.fedoraproject.org/koji'
-                                             r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
+        self.assertRegex(str(resp), ('https://koji.fedoraproject.org/koji'
+                                     r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -325,8 +325,8 @@ class TestNewUpdate(BaseTestCase):
 
         resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
-        self.assertRegexpMatches(str(resp), ('https://host.org'
-                                             r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
+        self.assertRegex(str(resp), ('https://host.org'
+                                     r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
@@ -1011,8 +1011,8 @@ class TestEditUpdateForm(BaseTestCase):
 
         resp = self.app.get('/updates/bodhi-2.0-1.fc17/edit',
                             headers={'accept': 'text/html'})
-        self.assertRegexpMatches(str(resp), ('<input type="radio" name="severity" '
-                                             'value="unspecified"\\n.*disabled="disabled"\\n.*>'))
+        self.assertRegex(str(resp), ('<input type="radio" name="severity" '
+                                     'value="unspecified"\\n.*disabled="disabled"\\n.*>'))
 
 
 class TestUpdatesService(BaseTestCase):
