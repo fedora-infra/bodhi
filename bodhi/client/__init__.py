@@ -96,7 +96,8 @@ new_edit_options = [
     click.option('--type', default='bugfix', help='Update type', required=True,
                  type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage'])),
     click.option('--severity', help='Update severity',
-                 type=click.Choice(['unspecified', 'low', 'medium', 'high', 'urgent'])),
+                 type=click.Choice(['unspecified', 'low', 'medium', 'high', 'urgent']),
+                 is_eager=True),
     click.option('--notes', help='Update description'),
     click.option('--notes-file', help='Update description from a file'),
     click.option('--bugs', help='Comma-separated list of bug numbers', default=''),
@@ -306,6 +307,19 @@ def updates():
     pass  # pragma: no cover
 
 
+def require_severity_for_security_update(type, severity):
+    """
+    Print an error message if the user did not provide severity for a security update.
+
+    Args:
+        type (unicode): The value of the update 'type'.
+        severity (unicode): The value of the update 'severity'.
+    """
+    if type == 'security' and severity not in ('low', 'medium', 'high', 'urgent'):
+        raise click.BadParameter('must specify severity for a security update',
+                                 param_hint='severity')
+
+
 @updates.command()
 @add_options(new_edit_options)
 @click.argument('builds')
@@ -348,6 +362,7 @@ def new(user, password, url, debug, **kwargs):
         sys.exit(1)
 
     for update in updates:
+        require_severity_for_security_update(type=update['type'], severity=update['severity'])
         try:
             resp = client.save(**update)
             print_resp(resp, client)
@@ -422,14 +437,17 @@ def edit(user, password, url, debug, **kwargs):
         kwargs['edited'] = title
 
         # Convert list of 'Bug' instances in DB to comma separated bug_ids for parsing.
-        former_update = resp['updates'][0]
+        former_update = resp['updates'][0].copy()
         if not kwargs['bugs']:
             kwargs['bugs'] = ",".join([str(bug['bug_id']) for bug in former_update['bugs']])
+            former_update.pop('bugs', None)
 
         # Replace empty fields with former values from database.
         for field in kwargs:
             if kwargs[field] in (None, '') and field in former_update:
                 kwargs[field] = former_update[field]
+
+        require_severity_for_security_update(type=kwargs['type'], severity=kwargs['severity'])
 
         resp = client.save(**kwargs)
         print_resp(resp, client)
@@ -839,16 +857,7 @@ def save_buildroot_overrides(user, password, url, staging, **kwargs):
         staging (bool): Whether to use the staging server or not.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-
-    try:
-        _save_override(url=url, user=user, password=password, staging=staging, **kwargs)
-    except bindings.BodhiClientException as e:
-        if str(e) == "Buildroot override for %s already exists" % (kwargs['nvr']):
-            click.echo(str(e))
-            click.echo("The `overrides save` command is used for creating a new override.")
-            click.echo("Use `overrides edit` to edit an existing override.")
-        else:
-            raise
+    _save_override(url=url, user=user, password=password, staging=staging, **kwargs)
 
 
 @overrides.command('edit')

@@ -5,7 +5,9 @@
     python2-devel \
     python3-devel \
     python3-simplemediawiki \
-    redhat-rpm-config
+    redhat-rpm-config \
+    python2-libcomps \
+    python3-libcomps
 
 COPY requirements.txt /bodhi/requirements.txt
 

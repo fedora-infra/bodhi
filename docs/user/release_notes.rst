@@ -2,6 +2,12 @@
 Release notes
 =============
 
+develop
+-------
+
+The composer now requires hawkey.
+
+
 v3.9.0
 ------
 

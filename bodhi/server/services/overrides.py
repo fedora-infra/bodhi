@@ -19,6 +19,7 @@
 """Define API endpoints for managing and searching buildroot overrides."""
 
 import math
+from datetime import datetime
 
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
@@ -257,10 +258,29 @@ def save_override(request):
                 })
             for build in builds:
                 log.info("Creating a new buildroot override: %s" % build.nvr)
-                if BuildrootOverride.get(build.id):
-                    request.errors.add('body', 'builds',
-                                       'Buildroot override for %s already exists' % build.nvr)
-                    return
+                existing_override = BuildrootOverride.get(build.id)
+                if existing_override:
+                    if not existing_override.expired_date:
+                        data['expiration_date'] = max(existing_override.expiration_date,
+                                                      data['expiration_date'])
+
+                    data['notes'] = """{0}
+
+_@{1} ({2})_
+
+_____________
+{3}""".format(existing_override.notes, existing_override.submitter.name,
+                        existing_override.submission_date.strftime("%b %d, %Y"), data['notes'])
+
+                    overrides.append(BuildrootOverride.edit(
+                        request,
+                        edited=build,
+                        submitter=submitter,
+                        submission_date=datetime.now(),
+                        notes=data['notes'],
+                        expiration_date=data['expiration_date'],
+                        expired=None,
+                    ))
                 else:
                     overrides.append(BuildrootOverride.new(
                         request,

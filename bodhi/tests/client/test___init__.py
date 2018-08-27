@@ -568,6 +568,19 @@ class TestNew(unittest.TestCase):
         self.assertEqual(result.output, u'ERROR: must specify at least one of --file, --notes, or '
                                         '--notes-file\n')
 
+    def test_new_security_update_with_unspecified_severity(self):
+        """Assert not providing --severity to new security update request results in an error."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'bodhi-2.2.4-1.el7',
+             '--notes', 'bla bla bla', '--type', 'security'])
+
+        self.assertEqual(result.exit_code, 2)
+        self.assertEqual(result.output, ('Usage: new [OPTIONS] BUILDS\n\nError: Invalid '
+                         'value for severity: must specify severity for a security update\n'))
+
 
 class TestPrintOverrideKojiHint(unittest.TestCase):
     """
@@ -1132,27 +1145,6 @@ class TestSaveBuilrootOverrides(unittest.TestCase):
                 params={'ids': [15]}))
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
-    def test_existing_override_error_message(self, send_request):
-        """
-        Assert that the error message is provided if we try to save an existing override
-        """
-        exception_message = "Buildroot override for js-tag-it-2.0-1.fc25 already exists"
-        send_request.side_effect = bindings.BodhiClientException(exception_message)
-        runner = testing.CliRunner()
-
-        result = runner.invoke(
-            client.save_buildroot_overrides,
-            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
-
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn("The `overrides save` command is used for creating a new override",
-                      result.output)
-        self.assertIn("Use `overrides edit` to edit an existing override",
-                      result.output)
-
 
 class TestWarnIfUrlAndStagingSet(unittest.TestCase):
     """
@@ -1494,6 +1486,63 @@ class TestEdit(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertIn("This is a BodhiClientException message", result.output)
+
+    @mock.patch.dict(client_test_data.EXAMPLE_QUERY_MUNCH['updates'][0], {'bugs': []})
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_edit_bugless_update_without_bugs_param(self, send_request, query):
+        """Test editing an update with no bugs, without passing '--bugs' to it."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t'])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'suggest': u'unspecified', 'notes': u'New package.',
+                    'notes_file': None, 'request': None, 'severity': u'low',
+                    'bugs': '', 'requirements': u'', 'unstable_karma': -3, 'type': 'bugfix'
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    def test_edit_security_update_with_unspecified_severity(self, query):
+        """Assert 'unspecified' severity while editing a security update results in an error."""
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--notes', 'this is an edited note',
+                          '--type', 'security', '--severity', 'unspecified'])
+
+        self.assertEqual(result.exit_code, 2)
+        self.assertEqual(result.output, ('Usage: edit [OPTIONS] UPDATE\n\nError: Invalid '
+                         'value for severity: must specify severity for a security update\n'))
 
 
 class TestEditBuilrootOverrides(unittest.TestCase):

@@ -27,6 +27,7 @@
     python3-feedgen \
     python3-flake8 \
     python3-kitchen \
+    python3-libcomps \
     python3-markdown \
     python3-mock \
     python3-munch \
