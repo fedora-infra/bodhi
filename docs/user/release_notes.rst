@@ -2,10 +2,82 @@
 Release notes
 =============
 
-develop
+v3.10.0
 -------
 
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
 The composer now requires hawkey.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* It is no longer an error if a developer tries to create an override for a build that already had
+  an override. Instead, Bodhi helpfully edits the old override automatically (:issue:`2030`).
+* The UI displays the date that expired overrides became expired (:issue:`2136`).
+* Security updates now require severity to be set (:issue:`2206`).
+* The Waiver UI now gives the user more context (:issue:`2270` and :issue:`2363`).
+* The CLI can be used to edit Release mail templates (:issue:`2475`).
+* The API can filter releases by state (:commit:`beb69a05`).
+* The CLI now has a ``--debug`` flag on a couple of commands (:commit:`1bd76179`).
+* The bindings have some debug level logging when retrieving Greenwave status (:commit:`b55fa453`).
+* The UI now makes it clear that only authenticated users can leave karma on updates
+  (:commit:`3b551c32`).
+* Bodhi can now manage Flatpaks (:commit:`1a6c4e88`).
+* Bodhi now ships a ``/usr/bin/bodhi-skopeo-lite``, which is intended to be an alternative for use
+  with the ``skopeo.cmd`` setting. It allows for multi-arch containers and Flatpaks to be managed by
+  Bodhi (:commit:`a0496fc9`).
+* The composer now uses librepo/hawkey to do much more extensive testing on the produced yum
+  repositories to ensure they are valid (:commit:`7dda554a`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* More space was added around some buttons so they don't touch on small screens (:issue:`1902`).
+* The ``bodhi releases`` subcommands no longer prompt for password when not necessary
+  (:issue:`2496`).
+* The submit feedback button now appears on low resolution screens (:issue:`2509`).
+* Articles were fixed in a tooltip on the update page (:commit:`075f8a9d`).
+* The CLI can again display missing required tests (:commit:`cf75ff81`).
+* Fix a failure that sometimes occurred when editing multi-build updates (:commit:`d997ed4f`).
+* Unknown Koji tags will no longer cause an Exception when creating new updates
+  (:commit:`78dd4aaf`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Line test coverage has reached 100% (:commit:`2477fc8f`).
+* A fake Pungi is used in the Vagrant environment to speed up ``vagrant up`` (:commit:`1b4f5fcd`).
+* No tests are skipped on Python 3 anymore (:commit:`44d46e37`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.10.0:
+
+* Anatoli Babenia
+* Clement Verna
+* Mattia Verga
+* Owen W. Taylor
+* Patrick Uiterwijk
+* Pierre-Yves Chibon
+* Ralph Bean
+* Rick Elrod
+* Vismay Golwala
+* Randy Barlow
 
 
 v3.9.0
