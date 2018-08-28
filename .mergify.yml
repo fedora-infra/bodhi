@@ -2,6 +2,7 @@ rules:
   default:
     automated_backport_labels:
       3.9-backports: "3.9"
+      3.10-backports: "3.10"
     protection:
       required_status_checks:
         strict: true
