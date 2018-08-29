@@ -359,6 +359,9 @@ class BodhiConfig(dict):
         'captcha.ttl': {
             'value': 300,
             'validator': int},
+        'clean_old_composes': {
+            'value': True,
+            'validator': _validate_bool},
         'container.destination_registry': {
             'value': 'registry.fedoraproject.org',
             'validator': six.text_type},
