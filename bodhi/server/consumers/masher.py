@@ -431,9 +431,10 @@ class ComposerThread(threading.Thread):
             self.check_all_karma_thresholds()
             self.obsolete_older_updates()
 
-            # Clean old composes
-            self.save_state(ComposeState.cleaning)
-            clean_old_mashes.remove_old_composes()
+            if config['clean_old_composes']:
+                # Clean old composes
+                self.save_state(ComposeState.cleaning)
+                clean_old_mashes.remove_old_composes()
 
             self.save_state(ComposeState.success)
             self.success = True

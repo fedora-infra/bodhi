@@ -28,6 +28,8 @@ Features
 * Security updates now require severity to be set (:issue:`2206`).
 * The Waiver UI now gives the user more context (:issue:`2270` and :issue:`2363`).
 * The CLI can be used to edit Release mail templates (:issue:`2475`).
+* A new ``clean_old_composes`` setting allows admins to disable the automatic compose cleanup
+  feature that was new in Bodhi 3.9.0 (:issue:`2561`).
 * The API can filter releases by state (:commit:`beb69a05`).
 * The CLI now has a ``--debug`` flag on a couple of commands (:commit:`1bd76179`).
 * The bindings have some debug level logging when retrieving Greenwave status (:commit:`b55fa453`).
