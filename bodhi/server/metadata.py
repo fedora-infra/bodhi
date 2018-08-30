@@ -21,6 +21,7 @@ from datetime import datetime
 import logging
 import os
 import shelve
+import shutil
 import tempfile
 
 from kitchen.text.converters import to_bytes
@@ -35,6 +36,40 @@ from bodhi.server.models import Build, UpdateStatus, UpdateRequest, UpdateSugges
 
 __version__ = '2.0'
 log = logging.getLogger(__name__)
+
+
+def insert_in_repo(comp_type, repodata, filetype, extension, source):
+    """
+    Inject a file into the repodata with the help of createrepo_c.
+
+    Args:
+        comp_type (int): createrepo_c compression type indication.
+        repodata (basestring): The path to the repo where the metadata will be inserted.
+        filetype (basestring): What type of metadata will be inserted by createrepo_c.
+            This does allow any string to be inserted (custom types). There are some
+            types which are used with dnf repos as primary, updateinfo, comps, filelist etc.
+        extension (basestring): The file extension (xml, sqlite).
+        source (basestring): A file path. File holds the dump of metadata until
+            copied to the repodata folder.
+    """
+    log.info('Inserting %s.%s into %s', filetype, extension, repodata)
+    target_fname = os.path.join(repodata, '%s.%s' % (filetype, extension))
+    shutil.copyfile(source, target_fname)
+    repomd_xml = os.path.join(repodata, 'repomd.xml')
+    repomd = cr.Repomd(repomd_xml)
+    # create a new record for our repomd.xml
+    rec = cr.RepomdRecord(filetype, target_fname)
+    # compress our metadata file with the comp_type
+    rec_comp = rec.compress_and_fill(cr.SHA256, comp_type)
+    # add hash to the compresed metadata file
+    rec_comp.rename_file()
+    # set type of metadata
+    rec_comp.type = filetype
+    # insert metadata about our metadata in repomd.xml
+    repomd.set_record(rec_comp)
+    with open(repomd_xml, 'w') as repomd_file:
+        repomd_file.write(repomd.xml_dump())
+    os.unlink(target_fname)
 
 
 def modifyrepo(comp_type, compose_path, filetype, extension, source):
@@ -56,7 +91,7 @@ def modifyrepo(comp_type, compose_path, filetype, extension, source):
             repodata = os.path.join(repo_path, arch, 'tree', 'repodata')
         else:
             repodata = os.path.join(repo_path, arch, 'os', 'repodata')
-        util.insert_in_repo(comp_type, repodata, filetype, extension, source)
+        insert_in_repo(comp_type, repodata, filetype, extension, source)
 
 
 class UpdateInfoMetadata(object):

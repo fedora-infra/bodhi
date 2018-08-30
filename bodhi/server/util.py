@@ -25,7 +25,6 @@ import hashlib
 import json
 import os
 import pkg_resources
-import shutil
 import socket
 import subprocess
 import tempfile
@@ -36,7 +35,6 @@ from pyramid.i18n import TranslationStringFactory
 import arrow
 import bleach
 import colander
-import createrepo_c as cr
 import hawkey
 import libcomps
 import libravatar
@@ -97,40 +95,6 @@ def get_rpm_header(nvr, tries=0):
         return result
 
     raise ValueError("No rpm headers found in koji for %r" % nvr)
-
-
-def insert_in_repo(comp_type, repodata, filetype, extension, source):
-    """
-    Inject a file into the repodata with the help of createrepo_c.
-
-    Args:
-        comp_type (int): createrepo_c compression type indication.
-        repodata (basestring): The path to the repo where the metadata will be inserted.
-        filetype (basestring): What type of metadata will be inserted by createrepo_c.
-            This does allow any string to be inserted (custom types). There are some
-            types which are used with dnf repos as primary, updateinfo, comps, filelist etc.
-        extension (basestring): The file extension (xml, sqlite).
-        source (basestring): A file path. File holds the dump of metadata until
-            copied to the repodata folder.
-    """
-    log.info('Inserting %s.%s into %s', filetype, extension, repodata)
-    target_fname = os.path.join(repodata, '%s.%s' % (filetype, extension))
-    shutil.copyfile(source, target_fname)
-    repomd_xml = os.path.join(repodata, 'repomd.xml')
-    repomd = cr.Repomd(repomd_xml)
-    # create a new record for our repomd.xml
-    rec = cr.RepomdRecord(filetype, target_fname)
-    # compress our metadata file with the comp_type
-    rec_comp = rec.compress_and_fill(cr.SHA256, comp_type)
-    # add hash to the compresed metadata file
-    rec_comp.rename_file()
-    # set type of metadata
-    rec_comp.type = filetype
-    # insert metadata about our metadata in repomd.xml
-    repomd.set_record(rec_comp)
-    with open(repomd_xml, 'w') as repomd_file:
-        repomd_file.write(repomd.xml_dump())
-    os.unlink(target_fname)
 
 
 def flash_log(msg):

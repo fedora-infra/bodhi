@@ -27,7 +27,8 @@ from sqlalchemy import event
 import createrepo_c
 import mock
 
-from bodhi.server import bugs, buildsys, models, initialize_db, Session, config, main, webapp, util
+from bodhi.server import (bugs, buildsys, models, initialize_db, Session, config, main, metadata,
+                          webapp)
 from bodhi.tests.server import create_update, populate
 
 
@@ -406,5 +407,5 @@ def mkmetadatadir(path, updateinfo=None, comps=None):
                            '--quiet',
                            path])
     if updateinfo is not False:
-        util.insert_in_repo(createrepo_c.XZ, os.path.join(path, 'repodata'), 'updateinfo', 'xml',
-                            os.path.join(path, 'updateinfo.xml'))
+        metadata.insert_in_repo(createrepo_c.XZ, os.path.join(path, 'repodata'), 'updateinfo',
+                                'xml', os.path.join(path, 'updateinfo.xml'))
