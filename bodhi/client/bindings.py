@@ -738,7 +738,7 @@ class BodhiClient(OpenIdBaseClient):
         #  |-->          80 chars in total         <--|
         wrap_width = 66
         wrap_line = functools.partial(textwrap.wrap, width=wrap_width)
-        line_formatter = '{0:>12}: {1}\n'
+        line_formatter = u'{0:>12}: {1}\n'
 
         update_lines = ['{:=^80}\n'.format('=')]
         update_lines += [
@@ -797,16 +797,12 @@ class BodhiClient(OpenIdBaseClient):
             ]
 
         if update['notes']:
-            buf = six.moves.cStringIO(update['notes'])
             notes_lines = list(itertools.chain(
-                *[wrap_line(line) for line in buf]
+                *[wrap_line(update['notes'])]
             ))
-            buf.close()
             indent_lines = ['Notes'] + [' '] * (len(notes_lines) - 1)
-            update_lines += [
-                line_formatter.format(indent, line)
-                for indent, line in six.moves.zip(indent_lines, notes_lines)
-            ]
+            for indent, line in six.moves.zip(indent_lines, notes_lines):
+                update_lines.append(line_formatter.format(indent, line))
 
         update_lines += [
             line_formatter.format('Submitter', update['user']['name']),

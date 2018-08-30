@@ -1183,6 +1183,18 @@ class TestBodhiClient_update_str(unittest.TestCase):
                 "Comments: bodhi (unauthenticated) ")))
 
     @mock.patch.dict(
+        client_test_data.EXAMPLE_UPDATE_MUNCH,
+        {u'notes': u'This note contains a unicode char ☺'})
+    def test_update_with_unicode_note(self):
+        """Ensure unicode content in update notes is correctly handled"""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertIn(u'Notes: This note contains a unicode char ☺', text)
+
+    @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH, {u'alias': None})
     def test_update_with_no_alias(self):
         """Ensure we render an update with no alias set properly"""
