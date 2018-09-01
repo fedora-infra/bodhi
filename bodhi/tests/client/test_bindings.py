@@ -1183,6 +1183,22 @@ class TestBodhiClient_update_str(unittest.TestCase):
                 "Comments: bodhi (unauthenticated) ")))
 
     @mock.patch.dict(
+        client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0],
+        {u'text': u'This comment contains a unicode char ☺. '})
+    def test_update_with_unicode_comment(self):
+        """Ensure unicode content in update comments is correctly handled"""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertTrue(compare_output(
+            text,
+            client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
+                u'Comments: This update has been submitted for testing by bowlofeggs. ',
+                u'Comments: This comment contains a unicode char ☺. ')))
+
+    @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
         {u'notes': u'This note contains a unicode char ☺'})
     def test_update_with_unicode_note(self):
