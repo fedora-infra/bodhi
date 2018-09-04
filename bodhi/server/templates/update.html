@@ -66,7 +66,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
             if ($.inArray(requirement.testcase, requirements) == -1) {
                 requirements.push(requirement.testcase);
             }
-            $('#failed_requirements').append('<li class="list-group-item">' + req.item + '</li>');
+            $('#failed_requirements').append('<li class="list-group-item">' + requirement.item + '</li>');
         });
         % if request.registry.settings.get("test_gating.required") is True:
             if (data['policies_satisfied']) {
