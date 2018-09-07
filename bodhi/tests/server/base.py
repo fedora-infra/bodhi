@@ -362,7 +362,7 @@ class TransactionalSessionMaker(object):
             raise
 
 
-def mkmetadatadir(path, updateinfo=None, comps=None):
+def mkmetadatadir(path, updateinfo=None, comps=None, source=False):
     """
     Generate package metadata for a given directory.
 
@@ -374,6 +374,7 @@ def mkmetadatadir(path, updateinfo=None, comps=None):
             No updateinfo is inserted if False is passed. Passing True provides undefined
             behavior.
         comps (basestring or None): The comps to insert instead of example.
+        source (True): If True, do not insert comps or prestodelta. Defaults to False.
     """
     compsfile = '''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE comps PUBLIC "-//Red Hat, Inc.//DTD Comps info//EN" "comps.dtd">
@@ -390,7 +391,7 @@ def mkmetadatadir(path, updateinfo=None, comps=None):
     updateinfofile = ''
     if not os.path.isdir(path):
         os.makedirs(path)
-    if not comps:
+    if not comps and not source:
         comps = os.path.join(path, 'comps.xml')
         with open(comps, 'w') as f:
             f.write(compsfile)
@@ -399,13 +400,13 @@ def mkmetadatadir(path, updateinfo=None, comps=None):
         with open(updateinfo, 'w') as f:
             f.write(updateinfofile)
 
-    subprocess.check_call(['createrepo_c',
-                           '--groupfile', 'comps.xml',
-                           '--deltas',
-                           '--xz',
-                           '--database',
-                           '--quiet',
-                           path])
+    createrepo_command = ['createrepo_c', '--xz', '--database', '--quiet', path]
+
+    if not source:
+        for arg in ('--deltas', 'comps.xml', '--groupfile'):
+            createrepo_command.insert(1, arg)
+
+    subprocess.check_call(createrepo_command)
     if updateinfo is not False:
         metadata.insert_in_repo(createrepo_c.XZ, os.path.join(path, 'repodata'), 'updateinfo',
                                 'xml', os.path.join(path, 'updateinfo.xml'))
