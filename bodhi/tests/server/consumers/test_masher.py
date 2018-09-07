@@ -752,7 +752,8 @@ That was the actual one'''
             with open(os.path.join(repo, 'Packages', 'a', name), 'w') as tf:
                 tf.write('foo')
 
-        base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
+        base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'),
+                           source=True)
         os.makedirs(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree', 'Packages',
                                  'a'))
         with open(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree', 'Packages', 'a',
@@ -826,7 +827,8 @@ That was the actual one'''
             os.makedirs(os.path.join(repo, 'Packages', 'a'))
             os.symlink('/dev/null', os.path.join(repo, 'Packages', 'a', 'test.notrpm'))
 
-        base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
+        base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'),
+                           source=True)
         os.makedirs(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree', 'Packages',
                                  'a'))
         os.symlink('/dev/null', os.path.join(t.path, 'compose', 'Everything', 'source', 'tree',
@@ -863,7 +865,8 @@ That was the actual one'''
             base.mkmetadatadir(repo)
             shutil.rmtree(os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'Packages'))
 
-        base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'))
+        base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'),
+                           source=True)
 
         assert 'completed_repo' in t._checkpoints
         save_state.reset_mock()

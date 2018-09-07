@@ -540,7 +540,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
         base.mkmetadatadir(self.tempdir)
 
         # No exception should be raised here.
-        util.sanity_check_repodata(self.tempdir)
+        util.sanity_check_repodata(self.tempdir, source=False)
 
     def test_updateinfo_empty_tags(self):
         """RepodataException should be raised if <id/> is found in updateinfo."""
@@ -550,7 +550,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
         base.mkmetadatadir(self.tempdir, updateinfo=updateinfo)
 
         with self.assertRaises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir)
+            util.sanity_check_repodata(self.tempdir, source=False)
 
         self.assertEqual(str(exc.exception), 'updateinfo.xml.gz contains empty ID tags')
 
@@ -562,7 +562,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
         base.mkmetadatadir(self.tempdir, comps=comps)
 
         with self.assertRaises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir)
+            util.sanity_check_repodata(self.tempdir, source=False)
 
         self.assertEqual(str(exc.exception), 'Comps file unable to be parsed')
 
@@ -574,7 +574,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
         base.mkmetadatadir(self.tempdir, comps=comps)
 
         with self.assertRaises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir)
+            util.sanity_check_repodata(self.tempdir, source=False)
 
         self.assertEqual(str(exc.exception), 'Comps file empty')
 
@@ -592,9 +592,25 @@ class TestSanityCheckRepodata(unittest.TestCase):
         repomd.write(repomd_path, encoding='UTF-8', xml_declaration=True)
 
         with self.assertRaises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir)
+            util.sanity_check_repodata(self.tempdir, source=False)
 
         self.assertEqual(str(exc.exception), 'Required part not in repomd.xml')
+
+    def test_source_true(self):
+        """It should not fail source repos for missing prestodelta or comps."""
+        base.mkmetadatadir(self.tempdir)
+        repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
+        repomd = ElementTree.parse(repomd_path)
+        ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
+        root = repomd.getroot()
+        for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
+            # Source repos don't have drpms or comps.
+            if data.attrib['type'] in ('group', 'prestodelta'):
+                root.remove(data)
+        repomd.write(repomd_path, encoding='UTF-8', xml_declaration=True)
+
+        # No exception should be raised.
+        util.sanity_check_repodata(self.tempdir, source=True)
 
 
 class TestType2Icon(unittest.TestCase):
