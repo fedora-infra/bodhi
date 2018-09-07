@@ -245,12 +245,13 @@ def get_critpath_components(collection='master', component_type='rpm', component
     return critpath_components
 
 
-def sanity_check_repodata(myurl):
+def sanity_check_repodata(myurl, source):
     """
     Sanity check the repodata for a given repository.
 
     Args:
         myurl (basestring): A path to a repodata directory.
+        source (bool): True if we are checking a source RPM repository, False otherwise.
     Raises:
         Exception: If the repodata is not valid or does not exist.
     """
@@ -279,7 +280,9 @@ def sanity_check_repodata(myurl):
     hk_repo = hawkey.Repo(myurl)
     try:
         hk_repo.filelists_fn = repo_info['filelists']
-        hk_repo.presto_fn = repo_info['prestodelta']
+        # Source repos don't have DRPMs.
+        if not source:
+            hk_repo.presto_fn = repo_info['prestodelta']
         hk_repo.primary_fn = repo_info['primary']
         hk_repo.repomd_fn = repo_info['repomd']
         hk_repo.updateinfo_fn = repo_info['updateinfo']
@@ -291,14 +294,16 @@ def sanity_check_repodata(myurl):
                            load_presto=True,
                            load_updateinfo=True)
 
-    # Test comps
-    comps = libcomps.Comps()
-    try:
-        ret = comps.fromxml_f(repo_info['group'])
-    except Exception:
-        raise RepodataException('Comps file unable to be parsed')
-    if len(comps.groups) < 1:
-        raise RepodataException('Comps file empty')
+    # Source repos don't have comps.
+    if not source:
+        # Test comps
+        comps = libcomps.Comps()
+        try:
+            ret = comps.fromxml_f(repo_info['group'])
+        except Exception:
+            raise RepodataException('Comps file unable to be parsed')
+        if len(comps.groups) < 1:
+            raise RepodataException('Comps file empty')
 
     # Test updateinfo
     ret = subprocess.call(['zgrep', '<id/>', repo_info['updateinfo']])
