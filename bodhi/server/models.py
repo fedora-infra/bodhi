@@ -1967,13 +1967,7 @@ class Update(Base):
             list: A list of dictionaries that are appropriate to be passed to the Greenwave API
                 subject field for a decision about this Update.
         """
-        # See discussion on https://pagure.io/greenwave/issue/34 for why we use these subjects.
-        subject = [{'item': build.nvr, 'type': 'koji_build'} for build in self.builds]
-        # Additionally add some subject entries for "CI"
-        # https://pagure.io/greenwave/issue/61
-        subject.extend([{'original_spec_nvr': build.nvr} for build in self.builds])
-        subject.append({'item': self.alias, 'type': 'bodhi_update'})
-        return subject
+        return [{'item': self.alias, 'type': 'bodhi_update'}]
 
     @property
     def greenwave_subject_json(self):
