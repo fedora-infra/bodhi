@@ -37,7 +37,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.viewcode']
 
-autodoc_default_flags = ['members', 'show-inheritance', 'special-members']
+autodoc_default_options = {'members': None, 'show-inheritance': None, 'special-members': None}
 autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
