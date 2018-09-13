@@ -1,8 +1,8 @@
 # https://docs.openstack.org/infra/jenkins-job-builder/triggers.html#triggers.github-pull-request
 - github_pull_request_defaults: &github_pull_request_defaults
-  name: 'github_pull_request_defaults'
-  cron: '* * * * *'
-  admin-list:
+    name: 'github_pull_request_defaults'
+    cron: '* * * * *'
+    admin-list:
       - AdamWill
       - bowlofeggs
       - crungehottman
@@ -17,13 +17,13 @@
       - matt8754
       - mattiaverga
       - vismay-golwala
-  github-hooks: true
-  permit-all: false
-  trigger-phrase: 'jenkies test'
-  allow-whitelist-orgs-as-admins: true
-  org-list:
+    github-hooks: true
+    permit-all: false
+    trigger-phrase: 'jenkies test'
+    allow-whitelist-orgs-as-admins: true
+    org-list:
       - fedora-infra
-  failure-comment: 'This pull request fails CI testing. Please review the Jenkins job. Hint: You can search for "JENKIES FAIL" in the console output to quickly find errors.'
+    failure-comment: 'This pull request fails CI testing. Please review the Jenkins job. Hint: You can search for "JENKIES FAIL" in the console output to quickly find errors.'
 
 - trigger:
     name: githubprb
