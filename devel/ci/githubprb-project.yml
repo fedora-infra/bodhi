@@ -1,31 +1,35 @@
+# https://docs.openstack.org/infra/jenkins-job-builder/triggers.html#triggers.github-pull-request
+- github_pull_request_defaults: &github_pull_request_defaults
+  name: 'github_pull_request_defaults'
+  cron: '* * * * *'
+  admin-list:
+      - AdamWill
+      - bowlofeggs
+      - crungehottman
+      - frenzymadness
+      - kparal
+      - kushaldas
+      - mcurlej
+      - mprahl
+      - owtaylor
+      - ralphbean
+      - ryanlerch
+      - matt8754
+      - mattiaverga
+      - vismay-golwala
+  github-hooks: true
+  permit-all: false
+  trigger-phrase: 'jenkies test'
+  allow-whitelist-orgs-as-admins: true
+  org-list:
+      - fedora-infra
+  failure-comment: 'This pull request fails CI testing. Please review the Jenkins job. Hint: You can search for "JENKIES FAIL" in the console output to quickly find errors.'
+
 - trigger:
     name: githubprb
     triggers:
-      # https://docs.openstack.org/infra/jenkins-job-builder/triggers.html#triggers.github-pull-request
       - github-pull-request:
-          admin-list:
-              - AdamWill
-              - bowlofeggs
-              - crungehottman
-              - frenzymadness
-              - kparal
-              - kushaldas
-              - mcurlej
-              - mprahl
-              - owtaylor
-              - ralphbean
-              - ryanlerch
-              - matt8754
-              - mattiaverga
-              - vismay-golwala
-          org-list:
-              - fedora-infra
-          cron: '* * * * *'
-          failure-comment: 'This pull request fails CI testing. Please review the Jenkins job. Hint: You can search for "JENKIES FAIL" in the console output to quickly find errors.'
-          github-hooks: true
-          permit-all: false
-          trigger-phrase: 'jenkies test'
-          allow-whitelist-orgs-as-admins: true
+          <<: *github_pull_request_defaults
 
 - scm:
     name: git-scm
@@ -115,6 +119,7 @@
     triggers:
         - github-pull-request:
             status-context: "Unit tests (pip)"
+            <<: *github_pull_request_defaults
     <<: *job_template_defaults
 
 - job-template:
@@ -122,6 +127,7 @@
     triggers:
         - github-pull-request:
             status-context: "Unit tests (f27)"
+            <<: *github_pull_request_defaults
     <<: *job_template_defaults
 
 - job-template:
@@ -129,6 +135,7 @@
     triggers:
         - github-pull-request:
             status-context: "Unit tests (f28)"
+            <<: *github_pull_request_defaults
     <<: *job_template_defaults
 
 - job-template:
@@ -136,6 +143,7 @@
     triggers:
         - github-pull-request:
             status-context: "Unit tests (f29)"
+            <<: *github_pull_request_defaults
     <<: *job_template_defaults
 
 - job-template:
@@ -143,6 +151,7 @@
     triggers:
         - github-pull-request:
             status-context: "Unit tests (rawhide)"
+            <<: *github_pull_request_defaults
     <<: *job_template_defaults
 
 - project:
