@@ -38,8 +38,8 @@
             branches:
                 - '${{ghprbActualCommit}}'
 
-- job-template:
-    name: '{ci_project}-{git_repo}'
+- job_template_defaults: &job_template_defaults
+    name: 'job_template_defaults'
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     concurrent: true
@@ -110,13 +110,76 @@
                 fi
             fi
 
+- job-template:
+    name: '{ci_project}-{git_repo}-unit-pip'
+    triggers:
+        - github-pull-request:
+            status-context: "Unit tests (pip)"
+    <<: *job_template_defaults
+
+- job-template:
+    name: '{ci_project}-{git_repo}-unit-f27'
+    triggers:
+        - github-pull-request:
+            status-context: "Unit tests (f27)"
+    <<: *job_template_defaults
+
+- job-template:
+    name: '{ci_project}-{git_repo}-unit-f28'
+    triggers:
+        - github-pull-request:
+            status-context: "Unit tests (f28)"
+    <<: *job_template_defaults
+
+- job-template:
+    name: '{ci_project}-{git_repo}-unit-f29'
+    triggers:
+        - github-pull-request:
+            status-context: "Unit tests (f29)"
+    <<: *job_template_defaults
+
+- job-template:
+    name: '{ci_project}-{git_repo}-unit-rawhide'
+    triggers:
+        - github-pull-request:
+            status-context: "Unit tests (rawhide)"
+    <<: *job_template_defaults
+
 - project:
     name: bodhi
     jobs:
-        - '{ci_project}-{git_repo}':
+        - '{ci_project}-{git_repo}-unit-pip':
             git_organization: fedora-infra
             git_username: fedora-infra
             git_repo: bodhi
             ci_project: '{name}'
-            ci_cmd: "devel/ci/run_tests.sh"
+            ci_cmd: "RELEASES=pip; devel/ci/run_tests.sh"
+            timeout: '128m'
+        - '{ci_project}-{git_repo}-unit-f27':
+            git_organization: fedora-infra
+            git_username: fedora-infra
+            git_repo: bodhi
+            ci_project: '{name}'
+            ci_cmd: "RELEASES=f27; devel/ci/run_tests.sh"
+            timeout: '128m'
+        - '{ci_project}-{git_repo}-unit-f28':
+            git_organization: fedora-infra
+            git_username: fedora-infra
+            git_repo: bodhi
+            ci_project: '{name}'
+            ci_cmd: "RELEASES=f28; devel/ci/run_tests.sh"
+            timeout: '128m'
+        - '{ci_project}-{git_repo}-unit-f29':
+            git_organization: fedora-infra
+            git_username: fedora-infra
+            git_repo: bodhi
+            ci_project: '{name}'
+            ci_cmd: "RELEASES=f29; devel/ci/run_tests.sh"
+            timeout: '128m'
+        - '{ci_project}-{git_repo}-unit-rawhide':
+            git_organization: fedora-infra
+            git_username: fedora-infra
+            git_repo: bodhi
+            ci_project: '{name}'
+            ci_cmd: "RELEASES=rawhide; devel/ci/run_tests.sh"
             timeout: '128m'
