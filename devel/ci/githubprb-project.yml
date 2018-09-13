@@ -116,42 +116,10 @@
             fi
 
 - job-template:
-    name: '{ci_project}-{git_repo}-unit-pip'
+    name: '{ci_project}-{git_repo}-unit-{release}'
     triggers:
         - github-pull-request:
-            status-context: "Unit tests (pip)"
-            <<: *github_pull_request_defaults
-    <<: *job_template_defaults
-
-- job-template:
-    name: '{ci_project}-{git_repo}-unit-f27'
-    triggers:
-        - github-pull-request:
-            status-context: "Unit tests (f27)"
-            <<: *github_pull_request_defaults
-    <<: *job_template_defaults
-
-- job-template:
-    name: '{ci_project}-{git_repo}-unit-f28'
-    triggers:
-        - github-pull-request:
-            status-context: "Unit tests (f28)"
-            <<: *github_pull_request_defaults
-    <<: *job_template_defaults
-
-- job-template:
-    name: '{ci_project}-{git_repo}-unit-f29'
-    triggers:
-        - github-pull-request:
-            status-context: "Unit tests (f29)"
-            <<: *github_pull_request_defaults
-    <<: *job_template_defaults
-
-- job-template:
-    name: '{ci_project}-{git_repo}-unit-rawhide'
-    triggers:
-        - github-pull-request:
-            status-context: "Unit tests (rawhide)"
+            status-context: "Unit tests ({release})"
             <<: *github_pull_request_defaults
     <<: *job_template_defaults
 
@@ -165,6 +133,7 @@
             ci_project: '{name}'
             ci_cmd: "RELEASES=pip; devel/ci/run_tests.sh"
             timeout: '128m'
+            release: pip
         - '{ci_project}-{git_repo}-unit-f27':
             git_organization: fedora-infra
             git_username: fedora-infra
@@ -172,6 +141,7 @@
             ci_project: '{name}'
             ci_cmd: "RELEASES=f27; devel/ci/run_tests.sh"
             timeout: '128m'
+            release: f27
         - '{ci_project}-{git_repo}-unit-f28':
             git_organization: fedora-infra
             git_username: fedora-infra
@@ -179,6 +149,7 @@
             ci_project: '{name}'
             ci_cmd: "RELEASES=f28; devel/ci/run_tests.sh"
             timeout: '128m'
+            release: f28
         - '{ci_project}-{git_repo}-unit-f29':
             git_organization: fedora-infra
             git_username: fedora-infra
@@ -186,6 +157,7 @@
             ci_project: '{name}'
             ci_cmd: "RELEASES=f29; devel/ci/run_tests.sh"
             timeout: '128m'
+            release: f29
         - '{ci_project}-{git_repo}-unit-rawhide':
             git_organization: fedora-infra
             git_username: fedora-infra
@@ -193,3 +165,4 @@
             ci_project: '{name}'
             ci_cmd: "RELEASES=rawhide; devel/ci/run_tests.sh"
             timeout: '128m'
+            release: rawhide
