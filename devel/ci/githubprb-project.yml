@@ -55,7 +55,8 @@
         - git-scm:
             git_url: https://github.com/{git_username}/{git_repo}.git
     triggers:
-        - githubprb
+        - githubprb:
+            github-hooks: true
     publishers:
         - junit:
             results: 'test_results/**/nosetests.xml'
