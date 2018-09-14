@@ -57,9 +57,6 @@
     triggers:
         - githubprb:
             github-hooks: true
-    publishers:
-        - junit:
-            results: 'test_results/**/nosetests.xml'
     builders:
         - shell: |
             set +e
