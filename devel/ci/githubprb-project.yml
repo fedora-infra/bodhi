@@ -24,6 +24,7 @@
     org-list:
       - fedora-infra
     failure-comment: 'This pull request fails CI testing. Please review the Jenkins job. Hint: You can search for "JENKIES FAIL" in the console output to quickly find errors.'
+    cancel-builds-on-update: true
 
 - trigger:
     name: githubprb
