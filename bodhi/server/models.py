@@ -3973,7 +3973,7 @@ class Comment(Base):
         Returns:
             basestring: A URL to this comment.
         """
-        url = '/updates/' + self.update.title + '#comment-' + str(self.id)
+        url = self.update.get_url() + '#comment-' + str(self.id)
         return url
 
     @property
