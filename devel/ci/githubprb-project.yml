@@ -120,13 +120,23 @@
             <<: *github_pull_request_defaults
     <<: *job_template_defaults
 
+- job-template:
+    name: '{ci_project}-{git_repo}-unit-{release}'
+    publishers:
+      - junit:
+          results: 'test_results/**/nosetests.xml'
+    triggers:
+        - github-pull-request:
+            status-context: "unit tests ({release})"
+            <<: *github_pull_request_defaults
+    <<: *job_template_defaults
+
 - project:
     name: bodhi
     test_type:
       - flake8
       - pydocstyle
       - docs
-      - unit
     release:
       - f27
       - f28
@@ -140,4 +150,21 @@
             git_repo: bodhi
             ci_project: '{name}'
             ci_cmd: "TEST_TYPE={test_type} RELEASES={release} devel/ci/run_tests.sh"
+            timeout: '128m'
+
+- project:
+    name: bodhi-unit
+    release:
+      - f27
+      - f28
+      - f29
+      - pip
+      - rawhide
+    jobs:
+        - '{ci_project}-{git_repo}-unit-{release}':
+            git_organization: fedora-infra
+            git_username: fedora-infra
+            git_repo: bodhi
+            ci_project: '{name}'
+            ci_cmd: "TEST_TYPE=unit RELEASES={release} devel/ci/run_tests.sh"
             timeout: '128m'
