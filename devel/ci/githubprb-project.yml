@@ -126,7 +126,7 @@
 - project:
     name: bodhi
     jobs:
-        - '{ci_project}-{git_repo}-unit-pip':
+        - '{ci_project}-{git_repo}-unit-{release}':
             git_organization: fedora-infra
             git_username: fedora-infra
             git_repo: bodhi
@@ -134,7 +134,7 @@
             ci_cmd: "RELEASES=pip; devel/ci/run_tests.sh"
             timeout: '128m'
             release: pip
-        - '{ci_project}-{git_repo}-unit-f27':
+        - '{ci_project}-{git_repo}-unit-{release}':
             git_organization: fedora-infra
             git_username: fedora-infra
             git_repo: bodhi
@@ -142,7 +142,7 @@
             ci_cmd: "RELEASES=f27; devel/ci/run_tests.sh"
             timeout: '128m'
             release: f27
-        - '{ci_project}-{git_repo}-unit-f28':
+        - '{ci_project}-{git_repo}-unit-{release}':
             git_organization: fedora-infra
             git_username: fedora-infra
             git_repo: bodhi
@@ -150,7 +150,7 @@
             ci_cmd: "RELEASES=f28; devel/ci/run_tests.sh"
             timeout: '128m'
             release: f28
-        - '{ci_project}-{git_repo}-unit-f29':
+        - '{ci_project}-{git_repo}-unit-{release}':
             git_organization: fedora-infra
             git_username: fedora-infra
             git_repo: bodhi
@@ -158,7 +158,7 @@
             ci_cmd: "RELEASES=f29; devel/ci/run_tests.sh"
             timeout: '128m'
             release: f29
-        - '{ci_project}-{git_repo}-unit-rawhide':
+        - '{ci_project}-{git_repo}-unit-{release}':
             git_organization: fedora-infra
             git_username: fedora-infra
             git_repo: bodhi
