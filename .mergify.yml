@@ -8,10 +8,22 @@ rules:
         strict: true
         contexts:
           - DCO
-          - Unit tests (f27)
-          - Unit tests (f28)
-          - Unit tests (f29)
-          - Unit tests (pip)
+          - flake8 tests (f27)
+          - flake8 tests (f28)
+          - flake8 tests (f29)
+          - flake8 tests (pip)
+          - pydocstyle tests (f27)
+          - pydocstyle tests (f28)
+          - pydocstyle tests (f29)
+          - pydocstyle tests (pip)
+          - docs tests (f27)
+          - docs tests (f28)
+          - docs tests (f29)
+          - docs tests (pip)
+          - unit tests (f27)
+          - unit tests (f28)
+          - unit tests (f29)
+          - unit tests (pip)
       required_pull_request_reviews:
         dismiss_stale_reviews: true
         require_code_owner_reviews: true
