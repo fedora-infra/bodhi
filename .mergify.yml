@@ -8,7 +8,10 @@ rules:
         strict: true
         contexts:
           - DCO
-          - default
+          - Unit tests (f27)
+          - Unit tests (f28)
+          - Unit tests (f29)
+          - Unit tests (pip)
       required_pull_request_reviews:
         dismiss_stale_reviews: true
         require_code_owner_reviews: true
