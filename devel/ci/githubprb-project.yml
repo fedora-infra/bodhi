@@ -130,44 +130,17 @@
       - pydocstyle
       - docs
       - unit
+    release:
+      - f27
+      - f28
+      - f29
+      - pip
+      - rawhide
     jobs:
         - '{ci_project}-{git_repo}-{test_type}-{release}':
             git_organization: fedora-infra
             git_username: fedora-infra
             git_repo: bodhi
             ci_project: '{name}'
-            ci_cmd: "TEST_TYPE={test_type} RELEASES=pip devel/ci/run_tests.sh"
+            ci_cmd: "TEST_TYPE={test_type} RELEASES={release} devel/ci/run_tests.sh"
             timeout: '128m'
-            release: pip
-        - '{ci_project}-{git_repo}-{test_type}-{release}':
-            git_organization: fedora-infra
-            git_username: fedora-infra
-            git_repo: bodhi
-            ci_project: '{name}'
-            ci_cmd: "TEST_TYPE={test_type} RELEASES=f27 devel/ci/run_tests.sh"
-            timeout: '128m'
-            release: f27
-        - '{ci_project}-{git_repo}-{test_type}-{release}':
-            git_organization: fedora-infra
-            git_username: fedora-infra
-            git_repo: bodhi
-            ci_project: '{name}'
-            ci_cmd: "TEST_TYPE={test_type} RELEASES=f28 devel/ci/run_tests.sh"
-            timeout: '128m'
-            release: f28
-        - '{ci_project}-{git_repo}-{test_type}-{release}':
-            git_organization: fedora-infra
-            git_username: fedora-infra
-            git_repo: bodhi
-            ci_project: '{name}'
-            ci_cmd: "TEST_TYPE={test_type} RELEASES=f29 devel/ci/run_tests.sh"
-            timeout: '128m'
-            release: f29
-        - '{ci_project}-{git_repo}-{test_type}-{release}':
-            git_organization: fedora-infra
-            git_username: fedora-infra
-            git_repo: bodhi
-            ci_project: '{name}'
-            ci_cmd: "TEST_TYPE={test_type} RELEASES=rawhide devel/ci/run_tests.sh"
-            timeout: '128m'
-            release: rawhide
