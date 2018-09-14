@@ -36,5 +36,6 @@ class YAMLLoadTest(unittest.TestCase):
 
         self.assertEqual(
             jjb[1]['trigger']['triggers'][0]['github-pull-request']['failure-comment'],
-            ('This pull request fails CI testing. Please review the Jenkins job. Hint: You can '
-             'search for "JENKIES FAIL" in the console output to quickly find errors.'))
+            ('This pull request fails the {release} unit tests. Please review the Jenkins job. '
+             'Hint: You can search for "JENKIES FAIL" in the console output to quickly find '
+             'errors.'))

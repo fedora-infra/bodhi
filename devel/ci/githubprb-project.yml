@@ -23,7 +23,7 @@
     allow-whitelist-orgs-as-admins: true
     org-list:
       - fedora-infra
-    failure-comment: 'This pull request fails CI testing. Please review the Jenkins job. Hint: You can search for "JENKIES FAIL" in the console output to quickly find errors.'
+    failure-comment: 'This pull request fails the {release} unit tests. Please review the Jenkins job. Hint: You can search for "JENKIES FAIL" in the console output to quickly find errors.'
 
 - trigger:
     name: githubprb
