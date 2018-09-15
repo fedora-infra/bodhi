@@ -260,6 +260,19 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(res.json_body['errors'][0]['description'],
                          "You must provide an author")
 
+    def test_empty_comment(self):
+        """Ensure that a comment without text or feedback is not permitted."""
+        comment = self.make_comment(text='')
+        comment['bug_feedback.0.bug_id'] = 12345
+        comment['bug_feedback.0.karma'] = 0
+        comment['testcase_feedback.0.testcase_name'] = "Wat"
+        comment['testcase_feedback.0.karma'] = 0
+        res = self.app.post_json('/comments/', comment, status=400)
+
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'You must provide either some text or feedback')
+
     @mock.patch('bodhi.server.services.comments.Update.comment',
                 side_effect=IOError('IOError. oops!'))
     def test_unexpected_exception(self, exception):

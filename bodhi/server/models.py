@@ -3012,11 +3012,20 @@ class Update(Base):
         if not author:
             raise ValueError('You must provide a comment author')
 
-        caveats = []
-
         # Listify these
         bug_feedback = bug_feedback or []
         testcase_feedback = testcase_feedback or []
+
+        got_feedback = False
+        for feedback_dict in (bug_feedback + testcase_feedback):
+            if feedback_dict['karma'] != 0:
+                got_feedback = True
+                break
+
+        if (not text and not karma and not karma_critpath and not got_feedback):
+            raise ValueError('You must provide either some text or feedback')
+
+        caveats = []
 
         if self.user.name == author:
             if karma != 0:

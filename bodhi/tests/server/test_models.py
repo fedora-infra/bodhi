@@ -3276,6 +3276,13 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(str(exc.exception), 'You must provide a comment author')
 
+    def test_comment_empty(self):
+        """A comment with no text or feedback should raise a ValueError."""
+        with self.assertRaises(ValueError) as exc:
+            self.obj.comment(self.db, '', author=u'bowlofeggs')
+
+        self.assertEqual(str(exc.exception), 'You must provide either some text or feedback')
+
     def test_get_url(self):
         self.assertEqual(self.obj.get_url(), u'updates/TurboGears-1.0.8-3.fc11')
         idx = 'a3bbe1a8f2'
