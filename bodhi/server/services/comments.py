@@ -24,7 +24,7 @@ from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
 from pyramid.httpexceptions import HTTPBadRequest
 from sqlalchemy import func, distinct
-from sqlalchemy.sql import or_
+from sqlalchemy.sql import or_, and_
 
 from bodhi.server import log
 from bodhi.server.models import Comment, Build, Update
@@ -155,15 +155,15 @@ def query_comments(request):
     update_owner = data.get('update_owner')
     if update_owner is not None:
         query = query.join(Comment.update)
-        query = query.filter(Update.user == update_owner)
+        query = query.filter(or_(*[Update.user == u for u in update_owner]))
 
     ignore_user = data.get('ignore_user')
     if ignore_user is not None:
-        query = query.filter(Comment.user != ignore_user)
+        query = query.filter(and_(*[Comment.user != u for u in ignore_user]))
 
     user = data.get('user')
     if user is not None:
-        query = query.filter(Comment.user == user)
+        query = query.filter(or_(*[Comment.user == u for u in user]))
 
     query = query.order_by(Comment.timestamp.desc())
 

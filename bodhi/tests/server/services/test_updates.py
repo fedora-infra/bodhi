@@ -2573,6 +2573,34 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
+    def test_list_updates_by_multiple_usernames(self):
+        nvr = u'just-testing-1.0-2.fc17'
+        another_user = User(name=u'aUser')
+        self.db.add(another_user)
+        update = Update(
+            title=nvr,
+            user=another_user,
+            request=UpdateRequest.testing,
+            type=UpdateType.enhancement,
+            notes=u'Just another update.',
+            date_submitted=datetime(1981, 10, 11),
+            requirements=u'rpmlint',
+            stable_karma=3,
+            unstable_karma=-3,
+        )
+        update.release = Release.query.one()
+        self.db.add(update)
+        self.db.flush()
+
+        res = self.app.get('/updates/', {"user": "guest,aUser"})
+        body = res.json_body
+        self.assertEqual(len(body['updates']), 2)
+
+        self.assertEqual(body['updates'][0]['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(body['updates'][1]['title'], u'just-testing-1.0-2.fc17')
+        self.assertEqual(body['updates'][0]['user']['name'], u'guest')
+        self.assertEqual(body['updates'][1]['user']['name'], u'aUser')
+
     def test_list_updates_by_unexisting_username(self):
         res = self.app.get('/updates/', {"user": "santa"},
                            status=400)
@@ -2580,7 +2608,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(len(body.get('updates', [])), 0)
         self.assertEqual(res.json_body['errors'][0]['name'], 'user')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         "Invalid user specified: santa")
+                         "Invalid users specified: santa")
 
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)

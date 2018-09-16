@@ -103,7 +103,7 @@ The ``overrides`` command allows users to manage build overrides.
 
     ``--user <username>``
 
-        Filter for overrides by the given username.
+        Filter for overrides by a list of usernames, given as a comma-separated list.
 
 
 ``bodhi overrides save [options] <nvr>``
@@ -360,7 +360,7 @@ The ``updates`` command allows users to interact with bodhi updates.
 
     ``--user <username>``
 
-        Filter for updates by the given username.
+        Filter for updates by a list of usernames, given as a comma-separated list.
 
 ``bodhi updates request [options] <update> <state>``
 

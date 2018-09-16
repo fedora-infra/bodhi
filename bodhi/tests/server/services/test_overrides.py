@@ -186,6 +186,38 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEqual(override['submitter']['name'], 'guest')
         self.assertEqual(override['notes'], 'blah blah blah')
 
+    def test_list_overrides_by_multiple_usernames(self):
+        release = Release.get(u'F17')
+
+        package = RpmPackage(name=u'just-testing')
+        self.db.add(package)
+        build = RpmBuild(nvr=u'just-testing-1.0-2.fc17', package=package, release=release)
+        self.db.add(build)
+        another_user = User(name=u'aUser')
+        self.db.add(another_user)
+
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+
+        override = BuildrootOverride(build=build, submitter=another_user,
+                                     notes=u'Crazy! 😱',
+                                     expiration_date=expiration_date)
+        self.db.add(override)
+        self.db.flush()
+
+        res = self.app.get('/overrides/', {"user": "guest,aUser"})
+        body = res.json_body
+        self.assertEqual(len(body['overrides']), 2)
+
+        override_fake = body['overrides'][0]
+        self.assertEqual(override_fake['build']['nvr'], 'just-testing-1.0-2.fc17')
+        self.assertEqual(override_fake['submitter']['name'], 'aUser')
+        self.assertEqual(override_fake['notes'], u'Crazy! 😱')
+
+        override_orig = body['overrides'][1]
+        self.assertEqual(override_orig['build']['nvr'], 'bodhi-2.0-1.fc17')
+        self.assertEqual(override_orig['submitter']['name'], 'guest')
+        self.assertEqual(override_orig['notes'], 'blah blah blah')
+
     def test_list_overrides_by_username_without_override(self):
         self.db.add(User(name=u'bochecha'))
         self.db.flush()
@@ -203,7 +235,7 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEqual(len(errors), 1)
         self.assertEqual(errors[0]['name'], 'user')
         self.assertEqual(errors[0]['description'],
-                         "Invalid user specified: santa")
+                         "Invalid users specified: santa")
 
     def test_list_overrides_by_like(self):
         """

@@ -802,18 +802,28 @@ def ensure_user_exists(param, request):
         request (pyramid.util.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
-    username = request.validated.get(param)
-    if username is None:
+    users = request.validated.get(param)
+    if users is None:
         return
 
     db = request.db
-    user = db.query(User).filter_by(name=username).first()
+    bad_users = []
+    validated_users = []
 
-    if user:
-        request.validated[param] = user
+    for u in users:
+        user = db.query(User).filter_by(name=u).first()
+
+        if not user:
+            bad_users.append(u)
+        else:
+            validated_users.append(user)
+
+    if bad_users:
+        request.errors.add('querystring', param,
+                           "Invalid users specified: {}".format(
+                               ", ".join(bad_users)))
     else:
-        request.errors.add("querystring", param,
-                           "Invalid user specified: {}".format(username))
+        request.validated[param] = validated_users
 
 
 def validate_username(request, **kwargs):
