@@ -182,7 +182,7 @@ def query_overrides(request):
 
     submitter = data.get('user')
     if submitter is not None:
-        query = query.filter(BuildrootOverride.submitter == submitter)
+        query = query.filter(or_(*[BuildrootOverride.submitter == s for s in submitter]))
 
     query = query.order_by(BuildrootOverride.submission_date.desc())
 

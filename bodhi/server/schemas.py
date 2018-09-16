@@ -90,6 +90,12 @@ class Packages(colander.SequenceSchema):
     package = colander.SchemaNode(colander.String())
 
 
+class Users(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of User objects."""
+
+    user = colander.SchemaNode(colander.String())
+
+
 class Releases(colander.SequenceSchema):
     """A SequenceSchema to validate a list of Release objects."""
 
@@ -653,10 +659,11 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         validator=colander.OneOf(list(ContentType.values())),
     )
 
-    user = colander.SchemaNode(
-        colander.String(),
+    user = Users(
+        colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
+        preparer=[util.splitter],
     )
 
     updateid = Builds(
@@ -734,22 +741,25 @@ class ListCommentSchema(PaginatedSchema, SearchableSchema):
         preparer=[util.splitter],
     )
 
-    user = colander.SchemaNode(
-        colander.String(),
+    user = Users(
+        colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
+        preparer=[util.splitter],
     )
 
-    update_owner = colander.SchemaNode(
-        colander.String(),
+    update_owner = Users(
+        colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
+        preparer=[util.splitter],
     )
 
-    ignore_user = colander.SchemaNode(
-        colander.String(),
+    ignore_user = Users(
+        colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
+        preparer=[util.splitter],
     )
 
     anonymous = colander.SchemaNode(
@@ -795,10 +805,11 @@ class ListOverrideSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         preparer=[util.splitter],
     )
 
-    user = colander.SchemaNode(
-        colander.String(),
+    user = Users(
+        colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
+        preparer=[util.splitter],
     )
 
 

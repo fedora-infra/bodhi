@@ -474,13 +474,43 @@ class TestCommentsService(base.BaseTestCase):
         comment = body['comments'][0]
         self.assertEqual(comment['text'], u'wow. amaze.')
 
+    def test_list_comments_by_multiple_usernames(self):
+        nvr = u'just-testing-1.0-2.fc17'
+        update = Update(
+            title=nvr,
+            request=UpdateRequest.testing,
+            type=UpdateType.enhancement,
+            notes=u'Just another update.',
+            date_submitted=datetime(1981, 10, 11),
+            requirements=u'rpmlint',
+            stable_karma=3,
+            unstable_karma=-3,
+        )
+        update.release = Release.query.one()
+        self.db.add(update)
+
+        another_user = User(name=u'aUser')
+        self.db.add(another_user)
+
+        comment = Comment(karma=1, text=u'Cool! 😃')
+        comment.user = another_user
+        self.db.add(comment)
+        update.comments.append(comment)
+        self.db.flush()
+
+        res = self.app.get('/comments/', {"user": "guest,aUser"})
+        body = res.json_body
+        self.assertEqual(len(body['comments']), 2)
+        self.assertEqual(body['comments'][0]['text'], u'Cool! 😃')
+        self.assertEqual(body['comments'][1]['text'], u'wow. amaze.')
+
     def test_list_comments_by_unexisting_username(self):
         res = self.app.get('/comments/', {"user": "santa"}, status=400)
         body = res.json_body
         self.assertEqual(len(body.get('comments', [])), 0)
         self.assertEqual(res.json_body['errors'][0]['name'], 'user')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         "Invalid user specified: santa")
+                         "Invalid users specified: santa")
 
     def test_list_comments_by_update_owner(self):
         res = self.app.get('/comments/', {"update_owner": "guest"})
@@ -488,6 +518,39 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 2)
 
         comment = body['comments'][0]
+        self.assertEqual(comment['text'], u'srsly.  pretty good.')
+
+    def test_list_comments_by_multiple_update_owners(self):
+        nvr = u'just-testing-1.0-2.fc17'
+        another_user = User(name=u'aUser')
+        self.db.add(another_user)
+        update = Update(
+            title=nvr,
+            user=another_user,
+            request=UpdateRequest.testing,
+            type=UpdateType.enhancement,
+            notes=u'Just another update.',
+            date_submitted=datetime(1981, 10, 11),
+            requirements=u'rpmlint',
+            stable_karma=3,
+            unstable_karma=-3,
+        )
+        update.release = Release.query.one()
+        self.db.add(update)
+
+        comment = Comment(karma=1, text=u'Cool! 😃')
+        comment.user = another_user
+        self.db.add(comment)
+        update.comments.append(comment)
+        self.db.flush()
+
+        res = self.app.get('/comments/', {"update_owner": "guest,aUser"})
+        body = res.json_body
+        self.assertEqual(len(body['comments']), 3)
+
+        comment = body['comments'][0]
+        self.assertEqual(comment['text'], u'Cool! 😃')
+        comment = body['comments'][1]
         self.assertEqual(comment['text'], u'srsly.  pretty good.')
 
     def test_list_comments_by_update_owner_with_none(self):
@@ -505,7 +568,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body.get('comments', [])), 0)
         self.assertEqual(res.json_body['errors'][0]['name'], 'update_owner')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         "Invalid user specified: santa")
+                         "Invalid users specified: santa")
 
     def test_list_comments_with_ignore_user(self):
         res = self.app.get('/comments/', {"ignore_user": "guest"})
@@ -515,13 +578,43 @@ class TestCommentsService(base.BaseTestCase):
         comment = body['comments'][0]
         self.assertEqual(comment['text'], u'srsly.  pretty good.')
 
+    def test_list_comments_with_multiple_ignore_user(self):
+        nvr = u'just-testing-1.0-2.fc17'
+        another_user = User(name=u'aUser')
+        self.db.add(another_user)
+        update = Update(
+            title=nvr,
+            user=another_user,
+            request=UpdateRequest.testing,
+            type=UpdateType.enhancement,
+            notes=u'Just another update.',
+            date_submitted=datetime(1981, 10, 11),
+            requirements=u'rpmlint',
+            stable_karma=3,
+            unstable_karma=-3,
+        )
+        update.release = Release.query.one()
+        self.db.add(update)
+
+        comment = Comment(karma=1, text=u'Cool! 😃')
+        comment.user = another_user
+        self.db.add(comment)
+        update.comments.append(comment)
+        self.db.flush()
+
+        res = self.app.get('/comments/', {"ignore_user": "guest,anonymous"})
+        body = res.json_body
+        self.assertEqual(len(body['comments']), 1)
+        self.assertNotIn('errors', body)
+        self.assertEqual(body['comments'][0]['text'], u'Cool! 😃')
+
     def test_list_comments_with_unexisting_ignore_user(self):
         res = self.app.get('/comments/', {"ignore_user": "santa"}, status=400)
         body = res.json_body
         self.assertEqual(len(body.get('comments', [])), 0)
         self.assertEqual(res.json_body['errors'][0]['name'], 'ignore_user')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         "Invalid user specified: santa")
+                         "Invalid users specified: santa")
 
     def test_put_json_comment(self):
         """ We only want to POST comments, not PUT. """

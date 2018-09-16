@@ -380,7 +380,7 @@ def query_updates(request):
 
     user = data.get('user')
     if user is not None:
-        query = query.filter(Update.user == user)
+        query = query.filter(or_(*[Update.user == u for u in user]))
 
     updateid = data.get('updateid')
     if updateid is not None:
