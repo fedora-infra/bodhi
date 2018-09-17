@@ -747,6 +747,7 @@ class ComposeState(DeclEnum):
         initializing (EnumSymbol): The compose is initializing.
         updateinfo (EnumSymbol): The updateinfo.xml is being generated.
         punging (EnumSymbol): A Pungi soldier has been deployed to deal with the situation.
+        syncing_repo (EnumSymbol): The repo is being synced to the master mirror.
         notifying (EnumSymbol): Pungi has finished successfully, and we are now sending out various
             forms of notifications, such as e-mail, fedmsgs, and bugzilla.
         success (EnumSymbol): The Compose has completed successfully.
@@ -760,6 +761,7 @@ class ComposeState(DeclEnum):
     initializing = 'initializing', 'Initializing'
     updateinfo = 'updateinfo', 'Generating updateinfo.xml'
     punging = 'punging', 'Waiting for Pungi to finish'
+    syncing_repo = 'syncing_repo', 'Wait for the repo to hit the master mirror'
     notifying = 'notifying', 'Sending notifications'
     success = 'success', 'Success'
     failed = 'failed', 'Failed'

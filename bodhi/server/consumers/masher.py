@@ -1308,6 +1308,7 @@ class PungiComposerThread(ComposerThread):
             self.log.error('Cannot find local repomd: %s', repomd)
             return
 
+        self.save_state(ComposeState.syncing_repo)
         master_repomd_url = self._get_master_repomd_url(arch)
 
         with open(repomd) as repomdf:

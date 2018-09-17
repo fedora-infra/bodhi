@@ -2887,12 +2887,13 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
             'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
     @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
                 return_value=StringIO('---\nyaml: rules'))
-    def test_checksum_match_immediately(self, urlopen, publish):
+    def test_checksum_match_immediately(self, urlopen, publish, save):
         """
         Assert correct operation when the repomd checksum matches immediately.
         """
@@ -2925,17 +2926,19 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             mock.call('http://example.com/pub/fedora/linux/updates/testing/17/aarch64/'
                       'repodata.repomd.xml')]
         self.assertTrue(urlopen.mock_calls[0] in expected_calls)
+        save.assert_called_once_with(ComposeState.syncing_repo)
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
             'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
     @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
                 return_value=StringIO('---\nyaml: rules'))
-    def test_no_checkarch(self, urlopen, publish):
+    def test_no_checkarch(self, urlopen, publish, save):
         """
         Assert error when no checkarch is found.
         """
@@ -2955,17 +2958,19 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             assert False, "Compose with just source passed"
         except Exception as ex:
             assert str(ex) == "Not found an arch to _wait_for_sync with"
+            save.assert_not_called()
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
             'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch(
         'bodhi.server.consumers.masher.urllib2.urlopen',
         side_effect=[StringIO('wrong'), StringIO('nope'), StringIO('---\nyaml: rules')])
-    def test_checksum_match_third_try(self, urlopen, sleep, publish):
+    def test_checksum_match_third_try(self, urlopen, sleep, publish, save):
         """
         Assert correct operation when the repomd checksum matches on the third try.
         """
@@ -2998,18 +3003,20 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             for i in range(3)]
         urlopen.assert_has_calls(expected_calls)
         sleep.assert_has_calls([mock.call(200), mock.call(200)])
+        save.assert_called_with(ComposeState.syncing_repo)
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
             'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch(
         'bodhi.server.consumers.masher.urllib2.urlopen',
         side_effect=[HTTPError('url', 404, 'Not found', {}, None),
                      StringIO('---\nyaml: rules')])
-    def test_httperror(self, urlopen, sleep, publish):
+    def test_httperror(self, urlopen, sleep, publish, save):
         """
         Assert that an HTTPError is properly caught and logged, and that the algorithm continues.
         """
@@ -3044,16 +3051,18 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         urlopen.assert_has_calls(expected_calls)
         t.log.exception.assert_called_once_with('Error fetching repomd.xml')
         sleep.assert_called_once_with(200)
+        save.assert_called_once_with(ComposeState.syncing_repo)
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd': None})
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
     @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
                 mock.MagicMock(side_effect=Exception('urlopen should not be called')))
-    def test_missing_config_key(self, publish):
+    def test_missing_config_key(self, publish, save):
         """
         Assert that a ValueError is raised when the needed *_master_repomd config is missing.
         """
@@ -3076,13 +3085,15 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
                          'fedora_testing_master_repomd in the config file')
         publish.assert_called_once_with(topic='mashtask.sync.wait',
                                         msg={'repo': t.id, 'agent': 'bowlofeggs'}, force=True)
+        save.assert_called_once_with(ComposeState.syncing_repo)
 
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
     @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
                 mock.MagicMock(side_effect=Exception('urlopen should not be called')))
-    def test_missing_repomd(self, publish):
+    def test_missing_repomd(self, publish, save):
         """
         Assert that an error is logged when the local repomd is missing.
         """
@@ -3101,18 +3112,20 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
                                         msg={'repo': t.id, 'agent': 'bowlofeggs'}, force=True)
         t.log.error.assert_called_once_with(
             'Cannot find local repomd: %s', os.path.join(repodata, 'repomd.xml'))
+        save.assert_not_called()
 
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
             'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch(
         'bodhi.server.consumers.masher.urllib2.urlopen',
         side_effect=[URLError('it broke'),
                      StringIO('---\nyaml: rules')])
-    def test_urlerror(self, urlopen, sleep, publish):
+    def test_urlerror(self, urlopen, sleep, publish, save):
         """
         Assert that a URLError is properly caught and logged, and that the algorithm continues.
         """
@@ -3147,6 +3160,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         urlopen.assert_has_calls(expected_calls)
         t.log.exception.assert_called_once_with('Error fetching repomd.xml')
         sleep.assert_called_once_with(200)
+        save.assert_called_once_with(ComposeState.syncing_repo)
 
 
 class TestComposerThread__mark_status_changes(ComposerThreadBaseTestCase):
