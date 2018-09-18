@@ -46,7 +46,7 @@ class BugTracker(object):
         """
         raise NotImplementedError
 
-    getbug = update_details = modified = on_qa = close = update_details = _
+    getbug = update_details = modified = on_qa = close = _
 
 
 class FakeBugTracker(BugTracker):
