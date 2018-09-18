@@ -8,26 +8,26 @@ rules:
         strict: true
         contexts:
           - DCO
-          - flake8 tests (f27)
-          - flake8 tests (f28)
-          - flake8 tests (f29)
-          - flake8 tests (pip)
-          - pydocstyle tests (f27)
-          - pydocstyle tests (f28)
-          - pydocstyle tests (f29)
-          - pydocstyle tests (pip)
-          - docs tests (f27)
-          - docs tests (f28)
-          - docs tests (f29)
-          - docs tests (pip)
-          - unit tests (f27-python2)
-          - unit tests (f28-python2)
-          - unit tests (f29-python2)
-          - unit tests (pip-python2)
-          - unit tests (f27-python3)
-          - unit tests (f28-python3)
-          - unit tests (f29-python3)
-          - unit tests (pip-python3)
+          - f27-docs
+          - f27-flake8
+          - f27-pydocstyle
+          - f27-python2-unit
+          - f27-python3-unit
+          - f28-docs
+          - f28-flake8
+          - f28-pydocstyle
+          - f28-python2-unit
+          - f28-python3-unit
+          - f29-docs
+          - f29-flake8
+          - f29-pydocstyle
+          - f29-python2-unit
+          - f29-python3-unit
+          - pip-docs
+          - pip-flake8
+          - pip-pydocstyle
+          - pip-python2-unit
+          - pip-python3-unit
       required_pull_request_reviews:
         dismiss_stale_reviews: true
         require_code_owner_reviews: true
