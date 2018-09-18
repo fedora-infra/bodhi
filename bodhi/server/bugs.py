@@ -118,7 +118,7 @@ class Bugzilla(BugTracker):
         Generate and return a URL to the given bug.
 
         Args:
-            bug_id (basestring or int): The id of the bug you want a URl for.
+            bug_id (basestring or int): The id of the bug you want a URL for.
         Returns:
             basestring: The requested URL.
         """
