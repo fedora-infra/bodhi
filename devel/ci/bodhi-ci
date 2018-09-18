@@ -237,7 +237,7 @@ def _container_run(no_build, releases, command_maps, archive=False):
             if isinstance(command, str):
                 command = [command]
 
-            args = [container_runtime, 'run', '--network', 'none', '--rm', '-t',
+            args = [container_runtime, 'run', '--network', 'none', '--rm',
                     '--label', CONTAINER_LABEL]
 
             if archive:
