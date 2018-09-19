@@ -4196,7 +4196,7 @@ class Bug(Base):
         """
         # Skip modifying Security Response bugs for testing updates
         if update.type is UpdateType.security and self.parent:
-            log.debug('Not modifying on parent security bug %s', self.bug_id)
+            log.debug('Not modifying parent security bug %s', self.bug_id)
         else:
             comment = self.default_message(update)
             bugs.bugtracker.on_qa(self.bug_id, comment)
@@ -4225,7 +4225,7 @@ class Bug(Base):
             update (Update): The update that is associated with this bug.
         """
         if update.type is UpdateType.security and self.parent:
-            log.debug('Not modifying on parent security bug %s', self.bug_id)
+            log.debug('Not modifying parent security bug %s', self.bug_id)
         else:
             bugs.bugtracker.modified(self.bug_id, comment)
 
