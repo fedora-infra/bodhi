@@ -367,6 +367,24 @@ The ``updates`` command allows users to interact with bodhi updates.
     Request that the given update be changed to the given state. ``update`` should be given by
     update id, and ``state`` should be one of testing, stable, unpush, obsolete, or revoke.
 
+``bodhi updates waive [options] <update> <comment>``
+
+    Show or waive unsatisfied test requirements on an update.
+
+    The following options are supported:
+
+    ``--show``
+
+        List the unsatisfied test requirements.
+
+    ``--test TEXT``
+
+        Waive the test specified by name in TEXT. all can be used to waive all unsatisfied tests.
+
+    ``--debug``
+
+        Display debugging information.
+
 
 Releases
 =========
