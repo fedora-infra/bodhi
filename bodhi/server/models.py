@@ -2715,6 +2715,8 @@ class Update(Base):
             bodhi.server.util.waiverdb_api_post(
                 '{}/waivers/'.format(config.get('waiverdb_api_url')), data)
 
+        self.test_gating_status = TestGatingStatus.waiting
+
     def add_tag(self, tag):
         """
         Add the given koji tag to all :class:`Builds <Build>` in this update.

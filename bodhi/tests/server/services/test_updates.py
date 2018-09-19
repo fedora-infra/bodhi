@@ -5149,6 +5149,7 @@ class TestWaiveTestResults(BaseTestCase):
         nvr = u'bodhi-2.0-1.fc17'
 
         up = self.db.query(Update).filter_by(title=nvr).one()
+        up.test_gating_status = TestGatingStatus.failed
         up.locked = True
 
         post_data = dict(update=nvr,
@@ -5158,6 +5159,9 @@ class TestWaiveTestResults(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body[u'errors'][0][u'description'],
                          "Can't waive test results on a locked update")
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should not have been altered.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.failed)
 
     def test_cannot_waive_test_results_when_test_gating_is_off(self, *args):
         """
@@ -5167,6 +5171,7 @@ class TestWaiveTestResults(BaseTestCase):
         nvr = u'bodhi-2.0-1.fc17'
 
         up = self.db.query(Update).filter_by(title=nvr).one()
+        up.test_gating_status = TestGatingStatus.failed
         up.locked = False
 
         post_data = dict(update=nvr,
@@ -5176,6 +5181,9 @@ class TestWaiveTestResults(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body[u'errors'][0][u'description'],
                          "Test gating is not enabled")
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should not have been altered.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.failed)
 
     @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
                 side_effect=IOError('IOError. oops!'))
@@ -5185,6 +5193,7 @@ class TestWaiveTestResults(BaseTestCase):
         nvr = u'bodhi-2.0-1.fc17'
 
         up = self.db.query(Update).filter_by(title=nvr).one()
+        up.test_gating_status = TestGatingStatus.failed
         up.locked = False
 
         post_data = dict(update=nvr, request='stable',
@@ -5195,6 +5204,9 @@ class TestWaiveTestResults(BaseTestCase):
         self.assertEqual(res.json_body['errors'][0]['description'],
                          u'IOError. oops!')
         log_exception.assert_called_once_with("Unhandled exception in waive_test_results")
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should not have been altered.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.failed)
 
     @mock.patch.dict(config, [('test_gating.required', True)])
     @mock.patch('bodhi.server.util.waiverdb_api_post')
@@ -5255,6 +5267,10 @@ class TestWaiveTestResults(BaseTestCase):
 
         self.assertEqual(list(res.json_body.keys()), ['update'])
         self.assertEqual(res.json_body['update'], up.__json__())
+        self.assertEqual(res.json_body['update']['test_gating_status'], 'waiting')
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should have been reset to waiting.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
 
     @mock.patch.dict(config, [('test_gating.required', True)])
     @mock.patch('bodhi.server.util.waiverdb_api_post')
@@ -5340,6 +5356,10 @@ class TestWaiveTestResults(BaseTestCase):
 
         self.assertEqual(list(res.json_body.keys()), ['update'])
         self.assertEqual(res.json_body['update'], up.__json__())
+        self.assertEqual(res.json_body['update']['test_gating_status'], 'waiting')
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should have been reset to waiting.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
 
     @mock.patch.dict(config, [('test_gating.required', True)])
     @mock.patch('bodhi.server.util.waiverdb_api_post')
@@ -5413,6 +5433,10 @@ class TestWaiveTestResults(BaseTestCase):
 
         self.assertEqual(list(res.json_body.keys()), ['update'])
         self.assertEqual(res.json_body['update'], up.__json__())
+        self.assertEqual(res.json_body['update']['test_gating_status'], 'waiting')
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should have been reset to waiting.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
 
     @mock.patch.dict(config, [('test_gating.required', True)])
     @mock.patch('bodhi.server.util.waiverdb_api_post')
@@ -5502,6 +5526,10 @@ class TestWaiveTestResults(BaseTestCase):
 
         self.assertEqual(list(res.json_body.keys()), ['update'])
         self.assertEqual(res.json_body['update'], up.__json__())
+        self.assertEqual(res.json_body['update']['test_gating_status'], 'waiting')
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should have been updated to waiting.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
 
     @mock.patch.dict(config, [('test_gating.required', True)])
     @mock.patch('bodhi.server.util.waiverdb_api_post')
@@ -5575,6 +5603,10 @@ class TestWaiveTestResults(BaseTestCase):
 
         self.assertEqual(list(res.json_body.keys()), ['update'])
         self.assertEqual(res.json_body['update'], up.__json__())
+        self.assertEqual(res.json_body['update']['test_gating_status'], 'waiting')
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should not have been altered.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
 
 
 class TestGetTestResults(BaseTestCase):
