@@ -60,8 +60,8 @@
     builders:
         - shell: |
             set +e
-            set -x
             export CICO_API_KEY=$(cat ~/duffy.key )
+            set -x
             # get node
             n=1
             while true
@@ -107,6 +107,7 @@
                    exit 1;
                 else
                     # fail mode gives us 12 hrs to debug the machine
+                    set +x
                     curl "http://admin.ci.centos.org:8080/Node/fail?key=$CICO_API_KEY&ssid=$CICO_ssid";
                     exit 1
                 fi
