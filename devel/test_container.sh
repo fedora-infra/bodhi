@@ -38,11 +38,6 @@ gather_results() {
     fi
 }
 
-sed -i '/pyramid_debugtoolbar/d' setup.py
-sed -i '/pyramid_debugtoolbar/d' devel/development.ini.example
-
-cp devel/development.ini.example development.ini
-
 /usr/bin/python2 setup.py develop || fail
 py3_version=$(python3 -c "import sys ; print(sys.version[:3])")
 mkdir -p /usr/local/lib/python$py3_version/site-packages/

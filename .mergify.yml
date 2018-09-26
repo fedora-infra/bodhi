@@ -20,10 +20,14 @@ rules:
           - docs tests (f28)
           - docs tests (f29)
           - docs tests (pip)
-          - unit tests (f27)
-          - unit tests (f28)
-          - unit tests (f29)
-          - unit tests (pip)
+          - unit tests (f27-python2)
+          - unit tests (f28-python2)
+          - unit tests (f29-python2)
+          - unit tests (pip-python2)
+          - unit tests (f27-python3)
+          - unit tests (f28-python3)
+          - unit tests (f29-python3)
+          - unit tests (pip-python3)
       required_pull_request_reviews:
         dismiss_stale_reviews: true
         require_code_owner_reviews: true

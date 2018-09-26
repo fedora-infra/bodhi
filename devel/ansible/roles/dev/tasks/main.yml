@@ -5,6 +5,7 @@
       state: present
   with_items:
       - createrepo_c
+      - docker
       - fedmsg-hub
       - fedmsg-relay
       - freetype-devel
@@ -208,6 +209,12 @@
 - name: Start and enable the bodhi service
   service:
       name: bodhi
+      state: started
+      enabled: yes
+
+- name: Start and enable the docker service
+  service:
+      name: docker
       state: started
       enabled: yes
 

@@ -64,27 +64,6 @@ tar_results() {
 }
 
 
-# Assemble the Dockerfile snippets into Dockerfiles for each release.
-pushd devel/ci/
-for r in $RELEASES; do
-    cat Dockerfile-header > Dockerfile-$r
-    if [ $r != "pip" ]; then
-        # Add the common rpm packages for the non-pip releases.
-        cat rpm-packages >> Dockerfile-$r
-    else
-        # Let's use F26 for the pip tests.
-        sed -i "s/FEDORA_RELEASE/27/" Dockerfile-$r
-    fi
-    cat $r-packages Dockerfile-footer >> Dockerfile-$r
-    echo "COPY . /bodhi" >> Dockerfile-$r
-    echo "RUN find /bodhi -name \"*.pyc\" -delete" >> Dockerfile-$r
-    echo "RUN find /bodhi -name \"*__pycache__\" -delete" >> Dockerfile-$r
-    echo "RUN rm -rf *.egg-info" >> Dockerfile-$r
-    echo "RUN rm -rf /bodhi/docs/_build" >> Dockerfile-$r
-    echo "RUN rm -rf /bodhi/docs/developer/docblocks" >> Dockerfile-$r
-done
-popd
-
 # Insert the container tag to pull for each release. There's a substitution in the parallel {}'s
 # that will remove the "f" from the releases since Fedora uses just the number of the release in its
 # tags.

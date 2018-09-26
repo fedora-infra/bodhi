@@ -26,4 +26,4 @@ sudo yum install -y bzip2 docker parallel
 
 sudo systemctl start docker
 
-BUILD_PARALLEL="-j 4" ./devel/run_tests.sh -a
+./devel/ci/bodhi-ci $@

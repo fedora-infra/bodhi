@@ -1,0 +1,408 @@
+#!/usr/bin/python3
+# Copyright © 2018 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+"""Bodhi's CI command tool."""
+import os
+import signal
+import subprocess
+import sys
+import time
+
+import click
+
+
+CONTAINER_NAME = 'bodhi-ci'
+# We label the containers we run so it's easy to find them if the user uses ctrl-c to stop the job.
+CONTAINER_LABEL = 'purpose=bodhi-ci'
+PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+RELEASES = ('f27', 'f28', 'f29', 'rawhide', 'pip')
+
+
+def _set_container_runtime(ctx, param, value):
+    """
+    Set up the container_runtime variable.
+
+    Args:
+        ctx (click.core.Context): The Click context, unused.
+        param (click.core.Option): The option being handled. Unused.
+        value (str): The value of the --container-runtime flag.
+    Returns:
+        str: The value of the --container-runtime flag.
+    """
+    global CONTAINER_NAME
+    global container_runtime
+    container_runtime = value
+    if value == 'podman':
+        # Workaround for https://github.com/containers/buildah/issues/1034
+        CONTAINER_NAME = 'localhost/{}'.format(CONTAINER_NAME)
+    return value
+
+
+archive_option = click.option(
+    '--archive', '-a', is_flag=True,
+    help=("Collect *.xml from the tests and put them into test_results/."))
+container_runtime_option = click.option(
+    '--container-runtime', '-c', default='docker', type=click.Choice(['docker', 'podman']),
+    help='Select the container runtime to use. Defaults to docker.',
+    callback=_set_container_runtime)
+failfast_option = click.option('--failfast', '-x', is_flag=True,
+                               help='Exit immediately upon error.')
+no_build_option = click.option(
+    '--no-build', is_flag=True,
+    help='Do not run docker build if the image already exists.')
+pyver_option = click.option(
+    '--pyver', '-p', default=[2, 3], multiple=True, type=int,
+    help=("Limit to a particular Python major version. May be specified multiple times. "
+          "Acceptable values: 2, 3"))
+releases_option = click.option(
+    '--release', '-r', default=list(RELEASES), multiple=True,
+    help=("Limit to a particular release. May be specified multiple times. "
+          "Acceptable values: {}".format(', '.join(RELEASES))))
+
+# These command maps define how to run each type of test, how to label them in the output,
+# and overrides for how to run them that are release specific (pip sometimes uses different
+# executables.)
+docs_command_map = {
+    'label': 'docs',
+    'default': [
+        '/usr/bin/bash', '-c',
+        ('/usr/bin/python2 setup.py develop && make -C docs clean && make -C docs html && make '
+         '-C docs man')]}
+flake8_command_map = {
+    'label': 'flake8',
+    'default': '/usr/bin/flake8',
+    'pip': '/usr/local/bin/flake8'}
+pydocstyle_command_map = {
+    'label': 'pydocstyle',
+    'default': ['/usr/bin/pydocstyle', 'bodhi'],
+    'pip': ['/usr/local/bin/pydocstyle', 'bodhi']}
+
+container_runtime = None
+
+
+@click.group()
+def cli():
+    """
+    Bodhi's Continuous Integration helper script.
+    """
+
+
+@cli.command()
+@archive_option
+@container_runtime_option
+@failfast_option
+@no_build_option
+@pyver_option
+@releases_option
+def all(archive, container_runtime, no_build, failfast, pyver, release):
+    """Run all the types of tests in parallel."""
+    command_maps = [docs_command_map, flake8_command_map, pydocstyle_command_map]
+    command_maps.extend(_generate_unit_command_maps(failfast, pyver))
+
+    _container_run(no_build, release, command_maps, archive)
+
+
+@cli.command()
+@container_runtime_option
+@releases_option
+def build(container_runtime, release):
+    """Build the containers for testing."""
+    _build(release)
+
+
+@cli.command()
+@container_runtime_option
+@releases_option
+def clean(container_runtime, release):
+    """Remove all builds pertaining to Bodhi CI."""
+    jobs = {}
+    for r in release:
+        args = [container_runtime, 'rmi',
+                '{}/{}'.format(CONTAINER_NAME, r)]
+        jobs['{:>8}'.format(r)] = args
+
+    _run_processes(jobs)
+
+
+@cli.command()
+@container_runtime_option
+@no_build_option
+@releases_option
+def docs(container_runtime, no_build, release):
+    """Build the docs."""
+    _container_run(no_build, release, docs_command_map)
+
+
+@cli.command()
+@container_runtime_option
+@no_build_option
+@releases_option
+def flake8(container_runtime, no_build, release):
+    """Run flake8 tests."""
+    _container_run(no_build, release, flake8_command_map)
+
+
+@cli.command()
+@container_runtime_option
+@no_build_option
+@releases_option
+def pydocstyle(container_runtime, no_build, release):
+    """Run pydocstyle tests."""
+    _container_run(no_build, release, pydocstyle_command_map)
+
+
+@cli.command()
+@archive_option
+@container_runtime_option
+@failfast_option
+@no_build_option
+@pyver_option
+@releases_option
+def unit(archive, container_runtime, no_build, failfast, pyver, release):
+    """Run the unit tests."""
+    _container_run(no_build, release, _generate_unit_command_maps(failfast, pyver), archive)
+
+
+def _build(releases):
+    """
+    Build the container images needed to test the given releases.
+
+    Args:
+        releases (list): A list of strings mapping to releases to build container images for.
+    """
+    jobs = {}
+    for r in releases:
+        dockerfile = os.path.join(PROJECT_PATH, 'devel', 'ci', 'Dockerfile-{}'.format(r))
+        args = [container_runtime, 'build', '--pull', '-t', '{}/{}'.format(CONTAINER_NAME, r), '-f',
+                dockerfile, '.']
+        jobs['{:>8}'.format(r)] = args
+
+    _run_processes(jobs)
+
+
+def _container_run(no_build, releases, command_maps, archive=False):
+    """
+    Run the commands described by the given command_maps in parallel.
+
+    A command_map is a dictionary that provides a label describing a job, a mapping from release
+    name to a job description, and a default job description for releases not described. For
+    example, the following will note the job as 'some-cool-job' when reporting on the terminal,
+    has a default executable job to run, and has an override for the job to run for the pip release:
+
+        {'label': 'some-cool-job',
+         'default': '/usr/bin/neat_executable',
+         'pip': '/usr/local/bin/neat_thing_over_here'}
+
+    The commands referenced by the 'default' or release override keys can also be expressed as lists
+    suitable for passing to subprocess.Popen().
+
+    Args:
+        no_build (bool): If True, ensure the builds exist and only build them if they do
+            not. If False, build them.
+        releases (list): A list of strings describing the releases to run the given jobs for.
+        command_maps (list): A list of dictionaries describing commands to be run. See above for
+            a description of the dictionary.
+    """
+    if no_build:
+        _ensure_builds_exist(releases)
+    else:
+        _build(releases)
+
+    if isinstance(command_maps, dict):
+        command_maps = [command_maps]
+
+    jobs = {}
+    for command_map in command_maps:
+        for r in releases:
+            if r in command_map:
+                command = command_map[r]
+            else:
+                command = command_map['default']
+
+            if isinstance(command, str):
+                command = [command]
+
+            args = [container_runtime, 'run', '--network', 'none', '--rm', '-t',
+                    '--label', CONTAINER_LABEL]
+
+            if archive:
+                archive_dir = '{}/test_results/{}'.format(
+                    PROJECT_PATH, '{}-{}'.format(r, command_map['label']))
+                args.extend(['-v', '{}:/results:z'.format(archive_dir)])
+
+            args.append('{}/{}'.format(CONTAINER_NAME, r))
+            args.extend(command)
+
+            jobs['{:>8}-{:<12}'.format(r, command_map['label'])] = args
+
+    _run_processes(jobs)
+
+
+def _ensure_builds_exist(releases):
+    """
+    Ensure that container images exist for the given releases.
+
+    Any container images that don't exist will be built.
+
+    Args:
+        releases(list): A list of strings naming releases.
+    """
+    releases_to_build = set()
+    for r in releases:
+        expected_repository = '{}/{}'.format(CONTAINER_NAME, r)
+        args = [container_runtime, 'images', expected_repository]
+        images = subprocess.check_output(args).decode()
+        if expected_repository not in images:
+            releases_to_build.add(r)
+    if releases_to_build:
+        _build(releases_to_build)
+
+
+def _generate_unit_command_maps(failfast, pyvers):
+    """
+    Return a list of command maps suitable for _container_run() that run the unit tests.
+
+    Args:
+        failfast (bool): Whether to pass the -x flag to py.test, which asks it to exit immediately
+            upon failure.
+        pyvers (list): A list of integers for which Python versions to test. Only 2 and 3 are used.
+    Retutns:
+        list: A list of dictionaries (known as command maps - see the help for _container_run() for
+            a description of the schema.)
+    """
+    pytest_flags = ''
+    if failfast:
+        pytest_flags = '-x'
+
+    test_command = ('({} setup.py develop && {} {} || (cp *.xml /results && exit 1)) '
+                    '&& cp *.xml /results')
+    py2_command_map = {
+        'label': 'python2-unit',
+        'default': [
+            '/usr/bin/bash', '-c', test_command.format(
+                '/usr/bin/python2', '/usr/bin/py.test-2', pytest_flags)],
+        'pip': [
+            '/usr/bin/bash', '-c', test_command.format(
+                '/usr/bin/python2', '/usr/bin/py.test', pytest_flags)]}
+    py3_command_map = {
+        'label': 'python3-unit',
+        'default': [
+            '/usr/bin/bash', '-c', test_command.format(
+                '/usr/bin/python3', '/usr/bin/py.test-3', pytest_flags)],
+        'pip': [
+            '/usr/bin/bash', '-c', test_command.format(
+                '/usr/bin/python3', '/usr/local/bin/py.test', pytest_flags)]}
+
+    command_maps = []
+    if 2 in pyvers:
+        command_maps.append(py2_command_map)
+    if 3 in pyvers:
+        command_maps.append(py3_command_map)
+
+    return command_maps
+
+
+def _run_processes(jobs):
+    """
+    Run the given jobs in parallel.
+
+    Start a process for each job in the jobs map. The stdout and stderr for each process is
+    written to the terminal. Processes that exited with code 0 are output first, followed by any
+    processes that failed. Lastly, a summary report for the jobs is printed, indicating success or
+    failure for each one. If any jobs failed, one of the failed jobs' exit code will be used to exit
+    this process.
+
+    Args:
+        jobs (dict): A dictionary mapping job labels (str) to a list of strings which are suitable
+            as arguments to subprocess.Popen().
+    """
+    return_code = 0
+
+    popen_kwargs = {'shell': False}
+    if len(jobs) > 1:
+        popen_kwargs['stdout'] = subprocess.PIPE
+        popen_kwargs['stderr'] = subprocess.STDOUT
+
+    processes = {}
+    for j, args in jobs.items():
+        click.echo('Running {}'.format(' '.join(args)))
+        p = subprocess.Popen(args, **popen_kwargs)
+        processes[j] = p
+        if container_runtime == 'podman':
+            time.sleep(2)
+
+    # For ease of reading, let's save the output from failed jobs here so we can print it out after
+    # the successful jobs' output.
+    failed_output = ''
+    for label, p in processes.items():
+        out, err = p.communicate()
+
+        if len(jobs) > 1:
+            out = out.decode()
+            if out:
+                for line in out.split('\n'):
+                    line = '{}\t{}'.format(label, line)
+                    if p.returncode == 0:
+                        click.echo(line)
+                    else:
+                        failed_output = failed_output + line + '\n'
+
+    if failed_output:
+        click.echo(failed_output)
+
+    click.echo('\n')
+    for label, p in processes.items():
+        if p.returncode != 0:
+            return_code = p.returncode
+            click.echo(
+                '{}:  \033[0;31mFAILED\033[0m  (exited with code: {})'.format(label, p.returncode))
+        else:
+            click.echo('{}:  \033[0;32mSUCCESS!\033[0m'.format(label))
+    click.echo('\n')
+
+    if return_code:
+        sys.exit(return_code)
+
+
+def _signal_handler(sig, frame):
+    """
+    Kill processes that match CONTAINER_LABEL before exiting with code 1.
+
+    Args:
+        sig (int): The signal that we are handling.
+        frame (frame): The current frame.
+    """
+    click.echo(type(sig))
+    click.echo(type(frame))
+    click.echo(sig)
+    click.echo(frame)
+    click.echo('Stopping processes.')
+    args = [container_runtime, 'ps', '--filter=label={}'.format(CONTAINER_LABEL), '-q']
+    processes = subprocess.check_output(args).decode()
+    jobs = {}
+    for process in processes.split('\n'):
+        if process:
+            jobs[process] = [container_runtime, 'stop', process]
+    _run_processes(jobs)
+    sys.exit(1)
+
+
+signal.signal(signal.SIGINT, _signal_handler)
+
+
+cli()
