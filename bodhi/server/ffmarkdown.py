@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2014-2017 Red Hat, Inc. and others.
+# Copyright © 2014-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -23,10 +23,15 @@ Fedora-flavored Markdown.
 Author: Ralph Bean <rbean@redhat.com>
 """
 
+from markdown.extensions import Extension
 import markdown.inlinepatterns
 import markdown.postprocessors
 import markdown.util
 import pyramid.threadlocal
+
+
+MENTION_RE = r'(?<!\S)(@\w+)'
+BUGZILLA_RE = r'([a-zA-Z]+)(#[0-9]{5,})'
 
 
 def user_url(name):
@@ -72,54 +77,76 @@ def bug_url(tracker, idx):
         return None
 
 
-def inject():
-    """Hack out python-markdown to do the autolinking that we want."""
-    # build some Pattern objects for @mentions, #bugs, etc...
-    class MentionPattern(markdown.inlinepatterns.Pattern):
-        def handleMatch(self, m):
-            el = markdown.util.etree.Element("a")
-            name = markdown.util.AtomicString(m.group(2))
-            el.set('href', user_url(name[1:]))
-            el.text = name
-            return el
+class MentionPattern(markdown.inlinepatterns.Pattern):
+    """Match username mentions and point to their profiles."""
 
-    class BugzillaPattern(markdown.inlinepatterns.Pattern):
-        def handleMatch(self, m):
-            tracker = markdown.util.AtomicString(m.group(2))
-            idx = markdown.util.AtomicString(m.group(3))
-            url = bug_url(tracker, idx[1:])
+    def handleMatch(self, m):
+        """
+        Build and return an Element that links to the matched User's profile.
 
-            if url is None:
-                return tracker + idx
+        Args:
+            m (re.MatchObject): The regex match on the username.
+        Return:
+            xml.etree.Element: An html anchor referencing the user's profile.
+        """
+        el = markdown.util.etree.Element("a")
+        name = markdown.util.AtomicString(m.group(2))
+        el.set('href', user_url(name[1:]))
+        el.text = name
+        return el
 
-            el = markdown.util.etree.Element("a")
-            el.set('href', url)
-            el.text = idx
-            return el
 
-    MENTION_RE = r'(?<!\S)(@\w+)'
-    BUGZILLA_RE = r'([a-zA-Z]+)(#[0-9]{5,})'
+class BugzillaPattern(markdown.inlinepatterns.Pattern):
+    """Match bug tracker patterns."""
 
-    class SurroundProcessor(markdown.postprocessors.Postprocessor):
-        def run(self, text):
-            return "<div class='markdown'>" + text + "</div>"
+    def handleMatch(self, m):
+        """
+        Build and return an Element that links to the referenced bug.
 
-    # monkey-patch the build_inlinepatterns func to insert our patterns
-    original_pattern_builder = markdown.build_inlinepatterns
+        Args:
+            m (re.MatchObject): The regex match on the bug.
+        Returns:
+            xml.etree.Element: An html anchor referencing the matched bug.
+        """
+        tracker = markdown.util.AtomicString(m.group(2))
+        idx = markdown.util.AtomicString(m.group(3))
+        url = bug_url(tracker, idx[1:])
 
-    def extended_pattern_builder(md_instance, **kwargs):
-        patterns = original_pattern_builder(md_instance, **kwargs)
-        patterns['mention'] = MentionPattern(MENTION_RE, md_instance)
-        patterns['bugzillas'] = BugzillaPattern(BUGZILLA_RE, md_instance)
-        return patterns
+        if url is None:
+            return tracker + idx
 
-    markdown.build_inlinepatterns = extended_pattern_builder
+        el = markdown.util.etree.Element("a")
+        el.set('href', url)
+        el.text = idx
+        return el
 
-    original_postprocessor_builder = markdown.build_postprocessors
 
-    def extended_postprocessor_builder(md_instance, **kwargs):
-        processors = original_postprocessor_builder(md_instance, **kwargs)
-        processors['surround'] = SurroundProcessor(md_instance)
-        return processors
+class SurroundProcessor(markdown.postprocessors.Postprocessor):
+    """A postprocessor to surround the text with a markdown <div>."""
 
-    markdown.build_postprocessors = extended_postprocessor_builder
+    def run(self, text):
+        """
+        Return text wrapped in a <div> with a markdown class.
+
+        Args:
+            text (str): The text to wrap in a <div>.
+        Returns:
+            str: The text wrapped in a <div>.
+        """
+        return "<div class='markdown'>" + text + "</div>"
+
+
+class BodhiExtension(Extension):
+    """Bodhi's markdown Extension."""
+
+    def extendMarkdown(self, md, md_globals):
+        """
+        Extend markdown to add our patterns and postprocessor.
+
+        Args:
+            md (Markdown): An instance of the Markdown class.
+            md_globals (dict): Contains all the various global variables within the markdown module.
+        """
+        md.inlinePatterns.add('mention', MentionPattern(MENTION_RE, md), '_end')
+        md.inlinePatterns.add('bugzilla', BugzillaPattern(BUGZILLA_RE, md), '_end')
+        md.postprocessors.add('surrond', SurroundProcessor(md), '_end')
