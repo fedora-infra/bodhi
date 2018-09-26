@@ -46,7 +46,7 @@ from six.moves import map
 from six.moves.urllib.parse import urlencode
 import six
 
-from bodhi.server import log, buildsys, Session
+from bodhi.server import ffmarkdown, log, buildsys, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
 
@@ -480,7 +480,8 @@ def markup(context, text):
         "a",
     ]
 
-    markdown_text = markdown.markdown(text, extensions=['markdown.extensions.fenced_code'])
+    markdown_text = markdown.markdown(text, extensions=['markdown.extensions.fenced_code',
+                                                        ffmarkdown.BodhiExtension()])
 
     # previously, we linkified text in ffmarkdown.py, but this was causing issues like #1721
     # so now we use the bleach linkifier to do this for us.

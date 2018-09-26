@@ -31,15 +31,11 @@ from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 import six
 
-from bodhi.server import bugs, buildsys, ffmarkdown
+from bodhi.server import bugs, buildsys
 from bodhi.server.config import config as bodhi_config
 
 
 log = logging.getLogger(__name__)
-
-
-# TODO -- someday move this externally to "fedora_flavored_markdown"
-ffmarkdown.inject()
 
 
 #
