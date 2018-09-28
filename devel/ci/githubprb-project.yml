@@ -122,7 +122,7 @@
     <<: *job_template_defaults
 
 - job-template:
-    name: '{ci_project}-{git_repo}-unit-{release}'
+    name: '{ci_project}-{git_repo}-unit-{release}-{pyver}'
     publishers:
       - junit:
           results: 'test_results/**/nosetests.xml'
@@ -165,7 +165,7 @@
       - pip
       - rawhide
     jobs:
-        - '{ci_project}-{git_repo}-unit-{release}':
+        - '{ci_project}-{git_repo}-unit-{release}-{pyver}':
             git_organization: fedora-infra
             git_username: fedora-infra
             git_repo: bodhi
