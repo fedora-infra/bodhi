@@ -26,7 +26,7 @@
     allow-whitelist-orgs-as-admins: true
     org-list:
       - fedora-infra
-    failure-comment: 'This pull request fails CI testing. Please review the Jenkins job. Hint: You can search for "JENKIES FAIL" in the console output to quickly find errors.'
+    cancel-builds-on-update: true
 
 - trigger:
     name: githubprb
@@ -63,8 +63,8 @@
     builders:
         - shell: |
             set +e
-            set -x
             export CICO_API_KEY=$(cat ~/duffy.key )
+            set -x
             # get node
             n=1
             while true
@@ -110,6 +110,7 @@
                    exit 1;
                 else
                     # fail mode gives us 12 hrs to debug the machine
+                    set +x
                     curl "http://admin.ci.centos.org:8080/Node/fail?key=$CICO_API_KEY&ssid=$CICO_ssid";
                     exit 1
                 fi
@@ -123,13 +124,23 @@
             <<: *github_pull_request_defaults
     <<: *job_template_defaults
 
+- job-template:
+    name: '{ci_project}-{git_repo}-unit-{release}'
+    publishers:
+      - junit:
+          results: 'test_results/**/nosetests.xml'
+    triggers:
+        - github-pull-request:
+            status-context: "unit tests ({release})"
+            <<: *github_pull_request_defaults
+    <<: *job_template_defaults
+
 - project:
     name: bodhi
     test_type:
       - flake8
       - pydocstyle
       - docs
-      - unit
     release:
       - f27
       - f28
@@ -143,4 +154,21 @@
             git_repo: bodhi
             ci_project: '{name}'
             ci_cmd: "TEST_TYPE={test_type} RELEASES={release} devel/ci/run_tests.sh"
+            timeout: '128m'
+
+- project:
+    name: bodhi-unit
+    release:
+      - f27
+      - f28
+      - f29
+      - pip
+      - rawhide
+    jobs:
+        - '{ci_project}-{git_repo}-unit-{release}':
+            git_organization: fedora-infra
+            git_username: fedora-infra
+            git_repo: bodhi
+            ci_project: '{name}'
+            ci_cmd: "TEST_TYPE=unit RELEASES={release} devel/ci/run_tests.sh"
             timeout: '128m'
