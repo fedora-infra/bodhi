@@ -25,6 +25,7 @@ import unittest
 import copy
 
 from click import testing
+import click
 import fedora.client
 import mock
 import munch
@@ -1435,9 +1436,15 @@ class TestEdit(unittest.TestCase):
                           '--password', 's3kr3t', '--notes', 'this is an edited note',
                           '--url', 'http://localhost:6543'])
         self.assertEqual(result.exit_code, 2)
+        # Click 7.0 capitalizes UPDATE, and < 7 does not.
+        if [int(n) for n in click.__version__.split('.')] < [7, 0]:
+            label = 'update'
+        else:
+            label = 'UPDATE'
         expected = u'Usage: edit [OPTIONS] UPDATE\n\n' \
-                   u'Error: Invalid value for "update": ' \
+                   u'Error: Invalid value for "{}": ' \
                    u'Please provide an Update ID or an Update Title\n'
+        expected = expected.format(label)
 
         self.assertEqual(result.output, expected)
 
@@ -1453,9 +1460,15 @@ class TestEdit(unittest.TestCase):
                           '--password', 's3kr3t', '--notes', 'this is an edited note',
                           '--url', 'http://localhost:6543'])
         self.assertEqual(result.exit_code, 2)
+        # Click 7.0 capitalizes UPDATE, and < 7 does not.
+        if [int(n) for n in click.__version__.split('.')] < [7, 0]:
+            label = 'update'
+        else:
+            label = 'UPDATE'
         expected = u'Usage: edit [OPTIONS] UPDATE\n\n' \
-                   u'Error: Invalid value for "update": ' \
+                   u'Error: Invalid value for "{}": ' \
                    u'Please provide an Update ID or an Update Title\n'
+        expected = expected.format(label)
 
         self.assertEqual(result.output, expected)
 

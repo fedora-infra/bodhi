@@ -738,7 +738,7 @@ class Copier(object):
 
 
 @main.command()
-@click.option('--src-creds', '--screds', metavar='USERNAME[:PASSWORD]',
+@click.option('--src-creds', '--screds', 'src_creds', metavar='USERNAME[:PASSWORD]',
               help='Use USERNAME[:PASSWORD] for accessing the source registry')
 @click.option('--src-tls-verify', type=bool, default=True,
               help=('require HTTPS and verify certificates when talking to the '
@@ -746,7 +746,7 @@ class Copier(object):
 @click.option('--src-cert-dir', metavar='PATH',
               help=('use certificates at PATH (*.crt, *.cert, *.key) to connect to the '
                     'source registry'))
-@click.option('--dest-creds', '--dcreds', metavar='USERNAME[:PASSWORD]',
+@click.option('--dest-creds', '--dcreds', 'dest_creds', metavar='USERNAME[:PASSWORD]',
               help='Use USERNAME[:PASSWORD] for accessing the destination registry')
 @click.option('--dest-tls-verify', type=bool, default=True,
               help=('require HTTPS and verify certificates when talking to the '
@@ -756,10 +756,11 @@ class Copier(object):
                     'destination registry'))
 @click.argument('src', metavar='SOURCE-IMAGE-NAME')
 @click.argument('dest', metavar='DEST-IMAGE-NAME')
-def copy(src, dest, screds, src_tls_verify, src_cert_dir, dcreds, dest_tls_verify, dest_cert_dir):
+def copy(src, dest, src_creds, src_tls_verify, src_cert_dir, dest_creds, dest_tls_verify,
+         dest_cert_dir):
     """Copy an image from one location to another."""
-    src = parse_spec(src, screds, src_tls_verify, src_cert_dir)
-    dest = parse_spec(dest, dcreds, dest_tls_verify, dest_cert_dir)
+    src = parse_spec(src, src_creds, src_tls_verify, src_cert_dir)
+    dest = parse_spec(dest, dest_creds, dest_tls_verify, dest_cert_dir)
 
     if src.registry != dest.registry:
         tempdir = tempfile.mkdtemp()
