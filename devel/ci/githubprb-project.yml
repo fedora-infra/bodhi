@@ -170,5 +170,5 @@
             git_username: fedora-infra
             git_repo: bodhi
             ci_project: '{name}'
-            ci_cmd: "devel/ci/run_tests.sh unit -r {release} -p {pyver}"
+            ci_cmd: "devel/ci/run_tests.sh unit -a -r {release} -p {pyver}"
             timeout: '128m'
