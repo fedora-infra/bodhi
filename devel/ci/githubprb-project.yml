@@ -47,7 +47,7 @@
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     concurrent: true
-    node: "{ci_project}"
+    node: bodhi
     properties:
         - github:
             url: https://github.com/{git_username}/{git_repo}/
@@ -154,7 +154,7 @@
             timeout: '128m'
 
 - project:
-    name: bodhi
+    name: bodhi-unit
     pyver:
       - 2
       - 3
