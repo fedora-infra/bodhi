@@ -154,7 +154,7 @@
             timeout: '128m'
 
 - project:
-    name: bodhi-unit
+    name: bodhi
     pyver:
       - 2
       - 3
