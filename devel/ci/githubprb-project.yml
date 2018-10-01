@@ -98,17 +98,15 @@
             rtn_code=$?
             # Copy the archive results back to the master
             rsync -e "ssh $sshopts" -Ha $CICO_hostname:payload/test_results $(pwd)/
+            cico node done $CICO_ssid;
             if [ $rtn_code -eq 0 ]; then
-                cico node done $CICO_ssid
+                echo "BUILD SUCCEEDED";
             else
                 if [[ $rtn_code -eq 124 ]]; then
-                   echo "BUILD TIMEOUT";
-                   cico node done $CICO_ssid;
-                   exit 1;
+                    echo "BUILD TIMEOUT";
+                    exit 1;
                 else
-                    # fail mode gives us 12 hrs to debug the machine
-                    set +x
-                    curl "http://admin.ci.centos.org:8080/Node/fail?key=$CICO_API_KEY&ssid=$CICO_ssid";
+                    echo "BUILD FAILED";
                     exit 1
                 fi
             fi
