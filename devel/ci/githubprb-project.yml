@@ -1,3 +1,6 @@
+# When this file is changed, you can monitor the progress of Jenkies by watching
+# https://ci.centos.org/job/cico/job/bodhi-service-job/
+
 # https://docs.openstack.org/infra/jenkins-job-builder/triggers.html#triggers.github-pull-request
 - github_pull_request_defaults: &github_pull_request_defaults
     name: 'github_pull_request_defaults'
