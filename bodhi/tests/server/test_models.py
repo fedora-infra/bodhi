@@ -308,7 +308,7 @@ class TestBugModified(BaseTestCase):
 
         bug.modified(update, 'this should not be used')
 
-        debug.assert_called_once_with('Not modifying on parent security bug %s', bug.bug_id)
+        debug.assert_called_once_with('Not modifying parent security bug %s', bug.bug_id)
         self.assertEqual(modified.call_count, 0)
 
 
@@ -326,7 +326,7 @@ class TestBugTesting(BaseTestCase):
 
         bug.testing(update)
 
-        debug.assert_called_once_with('Not modifying on parent security bug %s', bug.bug_id)
+        debug.assert_called_once_with('Not modifying parent security bug %s', bug.bug_id)
         self.assertEqual(on_qa.call_count, 0)
 
 
