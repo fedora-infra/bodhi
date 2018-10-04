@@ -48,7 +48,6 @@
         Managed by Jenkins Job Builder, do not edit manually!
     concurrent: true
     node: bodhi
-    disabled: true
     properties:
         - github:
             url: https://github.com/{git_username}/{git_repo}/
