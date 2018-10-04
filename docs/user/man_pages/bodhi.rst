@@ -461,7 +461,7 @@ The ``releases`` command allows users to manage update releases.
 
     ``--pending-testing-tag TEXT``
 
-        The Koji tag to use on updates that are pending testing (e.g., f29-updates-testing-pending).
+        The Koji tag to use on updates that are pending testing (e.g., f29-updates-pending-testing).
 
     ``--stable-tag TEXT``
 
