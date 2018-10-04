@@ -20,6 +20,10 @@ Options
 
 Most of the commands will accept these options:
 
+``--debug``
+
+    Some commands accept this flag to show extra debug information.
+
 ``--help``
 
     Show help text and exit.
@@ -54,6 +58,10 @@ Commands
 There are two commands, ``overrides`` and ``updates``. They are described in more detail in their
 own sections below.
 
+``bodhi composes <subcommand> [options] [args]``
+
+    Provides an interface to view composes. Supports one subcommand, ``list``, described below.
+
 ``bodhi overrides <subcommand> [options] [args]``
 
     Provides commands to aid in management of build overrides. Supports subcommands ``query`` and
@@ -63,6 +71,26 @@ own sections below.
 
     Provides an interface to manage updates. Supports subcommands ``comment``, ``download``,
     ``new``, ``query``, and ``request``, described below.
+
+``bodhi releases <subcommand> [options] [args]``
+
+    Provides an interface to manage releases. Supports subcommands ``create``, ``edit``, and
+    ``info``, described below.
+
+
+Composes
+========
+
+The ``composes`` command allows users to view composes.
+
+``bodhi composes list [options]``
+
+   The ``list`` subcommand allows you to see the current composes on the Bodhi server. It supports
+   the following options:
+
+   ``-v, --verbose``
+
+       Print more detail about the composes.
 
 
 Overrides
