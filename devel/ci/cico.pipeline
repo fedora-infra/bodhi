@@ -110,6 +110,14 @@ def test_release = { String release ->
 
 node('bodhi') {
     checkout scm
+        
+    release = ['f27', 'f28', 'f29', 'pip', 'rawhide']
+
+    println release.collectEntries()
+    parallel release.collectEntries {release ->
+        println release
+    }
+
 
     stage('Allocate Duffy node') {
         env.CICO_API_KEY = readFile("${env.HOME}/duffy.key").trim()
@@ -131,13 +139,9 @@ node('bodhi') {
             synctoduffynode('bodhi')
         }
 
-        parallel(
-            f27: {test_release('f27')},
-            f28: {test_release('f28')},
-            f29: {test_release('f29')},
-            pip: {test_release('pip')},
-            rawhide: {test_release('rawhide')}
-        )
+        parallel release.collectEntries {release ->
+            [release: {test_release(release)}]
+        }
 
         stage('Sync Artifacts'){
             syncfromduffynode('test_results')
