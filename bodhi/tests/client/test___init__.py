@@ -1868,6 +1868,85 @@ class TestInfo(unittest.TestCase):
         self.assertEqual(result.output, ("ERROR: an error was encountered... :(\n"))
 
 
+class TestListReleases(unittest.TestCase):
+    """
+    Test the list_releases() function.
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_RELEASES_LIST_MUNCH, autospec=True)
+    def test_url_flag(self, send_request):
+        """
+        Assert correct behavior with the --url flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.list_releases, ['--url', 'http://localhost:6543'])
+
+        expected_output = '{}\n{}'.format(
+            client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT,
+            client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT,
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, expected_output)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'releases/', params={}, verb='GET'
+        )
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_RELEASES_LIST_MUNCH, autospec=True)
+    def test_display_archived_flag(self, send_request):
+        """
+        Assert correct behavior with the --display-archived flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.list_releases, ['--url', 'http://localhost:6543', '--display-archived']
+        )
+
+        expected_output = '{}\n{}\n{}'.format(
+            client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT,
+            client_test_data.EXPECTED_ARCHIVED_RELEASES_LIST_OUTPUT,
+            client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT,
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, expected_output)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'releases/', params={}, verb='GET'
+        )
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value={"errors": [{"description": "an error was encountered... :("}]},
+                autospec=True)
+    def test_list_releases_with_errors(self, send_request):
+        """
+        Assert errors are printed if returned back in the request
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.list_releases, ['--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 2)
+        self.assertEqual(result.output, ("an error was encountered... :(\n"))
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'releases/', params={}, verb='GET'
+        )
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+
 class TestHandleErrors(unittest.TestCase):
     """
     Test the handle_errors decorator

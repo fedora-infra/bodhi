@@ -893,4 +893,54 @@ EXPECTED_RELEASE_OUTPUT = """Saved release:
   Email Template:      fedora_errata_template
 """
 
+
+EXAMPLE_RELEASES_LIST_MUNCH = Munch({
+    u'rows_per_page': 20, u'total': 3, u'pages': 1,
+    u'releases': [
+        Munch({
+            u'composes': [], u'dist_tag': u'f26', u'name': u'F26',
+            u'testing_tag': u'f26-updates-testing', u'pending_stable_tag': u'f26-updates-pending',
+            u'mail_template': u'fedora_errata_template', u'long_name': u'Fedora 26',
+            u'state': u'archived', u'version': u'26', u'id_prefix': u'FEDORA', u'branch': u'f26',
+            u'pending_signing_tag': u'f26-signing-pending',
+            u'pending_testing_tag': u'f26-updates-testing-pending',
+            u'candidate_tag': u'f26-updates-candidate', u'stable_tag': u'f26-updates',
+            u'override_tag': u'f26-override'
+        }),
+        Munch({
+            u'composes': [], u'dist_tag': u'f28', u'name': u'F28',
+            u'testing_tag': u'f28-updates-testing', u'pending_stable_tag': u'f28-updates-pending',
+            u'mail_template': u'fedora_errata_template', u'long_name': u'Fedora 28',
+            u'state': u'current', u'version': u'28', u'id_prefix': u'FEDORA', u'branch': u'f28',
+            u'pending_signing_tag': u'f28-signing-pending',
+            u'pending_testing_tag': u'f28-updates-testing-pending',
+            u'candidate_tag': u'f28-updates-candidate', u'stable_tag': u'f28-updates',
+            u'override_tag': u'f28-override'
+        }),
+        Munch({
+            u'composes': [], u'dist_tag': u'f29', u'name': u'F29',
+            u'testing_tag': u'f29-updates-testing', u'pending_stable_tag': u'f29-updates-pending',
+            u'mail_template': u'fedora_errata_template', u'long_name': u'Fedora 29',
+            u'state': u'pending', u'version': u'29', u'id_prefix': u'FEDORA', u'branch': u'f29',
+            u'pending_signing_tag': u'f29-signing-pending',
+            u'pending_testing_tag': u'f29-updates-testing-pending',
+            u'candidate_tag': u'f29-updates-candidate', u'stable_tag': u'f29-updates',
+            u'override_tag': u'f29-override'
+        }),
+    ]
+})
+
+EXPECTED_PENDING_RELEASES_LIST_OUTPUT = """pending:
+  Name:                F29
+"""
+
+EXPECTED_ARCHIVED_RELEASES_LIST_OUTPUT = """archived:
+  Name:                F26
+"""
+
+EXPECTED_CURRENT_RELEASES_LIST_OUTPUT = """current:
+  Name:                F28
+"""
+
+
 UNMATCHED_RESP = {"pants": "pants"}
