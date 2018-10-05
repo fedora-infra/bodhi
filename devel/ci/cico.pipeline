@@ -74,7 +74,7 @@ def retry_with_sleep = { f ->
  * @param args Any extra arguments to be passed to the command.
  */
 def bodhi_ci = { String release, String command, String context, String args ->
-    githubNotify context: release + '-' + context, status: 'PENDING'
+    githubNotify context: release + '-' + context, description: 'running', status: 'PENDING'
 
     try {
         stage(release + '-' + context) {
