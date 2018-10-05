@@ -48,6 +48,7 @@ RUN pip-2 install \
 RUN pip-3 install \
     diff-cover \
     flake8 \
+    jenkins-job-builder \
     mock \
     responses \
     pydocstyle \
