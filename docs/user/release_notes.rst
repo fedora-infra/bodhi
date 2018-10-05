@@ -8,6 +8,12 @@ v3.10.1
 This releases fixes a crash while composing modular repositories (:issue:`2631`).
 
 
+v3.10.1
+-------
+
+This releases fixes a crash while composing modular repositories (:issue:`2631`).
+
+
 v3.10.0
 -------
 
