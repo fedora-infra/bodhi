@@ -1148,11 +1148,12 @@ class PungiComposerThread(ComposerThread):
                 if arch == 'source':
                     repodata = os.path.join(self.path, 'compose',
                                             'Everything', arch, 'tree', 'repodata')
-                    sanity_check_repodata(repodata, source=True)
+                    sanity_check_repodata(repodata, repo_type='source')
                 else:
                     repodata = os.path.join(self.path, 'compose',
                                             'Everything', arch, 'os', 'repodata')
-                    sanity_check_repodata(repodata, source=False)
+                    repo_type = 'module' if self.ctype == ContentType.module else 'yum'
+                    sanity_check_repodata(repodata, repo_type=repo_type)
             except Exception:
                 self.log.exception("Repodata sanity check failed, compose thrown out")
                 self._toss_out_repo()
