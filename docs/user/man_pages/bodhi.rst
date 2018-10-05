@@ -74,8 +74,8 @@ own sections below.
 
 ``bodhi releases <subcommand> [options] [args]``
 
-    Provides an interface to manage releases. Supports subcommands ``create``, ``edit``, and
-    ``info``, described below.
+    Provides an interface to manage releases. Supports subcommands ``create``, ``edit``, ``info`` and
+    ``list``, described below.
 
 
 Composes
@@ -582,6 +582,14 @@ The ``releases`` command allows users to manage update releases.
 ``bodhi releases info RELEASE_NAME``
 
     The ``info`` command prints information about the given release.
+
+``bodhi releases list [options]``
+
+    The ``list`` command prints list of releases.
+
+    ``--display-archived``
+
+        Display full list, including archived releases.
 
 
 Examples
