@@ -90,26 +90,21 @@ If you are looking for some easy tasks to get started with Bodhi development, ha
 CI Tests
 ========
 
-All Bodhi pull requests are tested in a `Jenkins instance <https://ci.centos.org/job/bodhi-bodhi/>`_
+All Bodhi pull requests are tested in a `Jenkins instance <https://ci.centos.org/>`_
 that is graciously hosted for us by the CentOS Project. Sometimes tests fail, and when they do you
 can visit the test job that failed and view its console output. This will display the output from
 the ``devel/ci/run_tests.sh`` script. That script runs Bodhi's test suite on a variety of
 Fedora versions using containers.
 
-It is possible for you to run these same tests locally. There is a ``devel/run_tests.sh`` script
+It is possible for you to run these same tests locally. There is a ``devel/ci/bodhi-ci`` script
 that is used by ``devel/ci/run_tests.sh`` and does the heavy lifting. This script is intended to be
-run as root since it uses ``docker``. It has a handy ``-x`` flag that will cause it to exit
-immediately upon failure. You can also set the ``RELEASES`` environment variable to a list of Fedora
-releases you wish to test in a given run. Thus, if I want to run the tests on only f26 and f27 and I
-want it to exit immediately upon failure, I can execute the script like this::
+run as root since it uses ``docker`` (or optionally, ``podman``). It has a handy ``-x`` flag that
+will cause it to exit immediately upon failure. You can also choose to test specific releases, and
+there are a variety of other features. Be sure to check out its ``--help`` flag to learn how to use
+it. Thus, if I want to run the tests on only f28 and f29 and I want it to exit immediately upon
+failure, I can execute the script like this::
 
-    # RELEASES="f26 f27" ./devel/run_tests.sh
-
-The CI system does not halt immediately upon failure, so that you can see all the problems at once.
-Sometimes this makes it difficult to tell where the failure happened when looking at the console
-output on the CI server. Some common failures will print out "JENKIES FAIL" to help with this. If
-you browse to the console output on a job with failed tests, you can use your browser's text search
-feature to find that string in the output to more quickly identify where the failure occurred.
+    $ sudo devel/ci/bodhi-ci all -r f28 -r f29 -x
 
 
 Create a Bodhi development environment

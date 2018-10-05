@@ -1043,6 +1043,22 @@ def info_release(name, url, **kwargs):
         print_release(res)
 
 
+@releases.command(name='list')
+@handle_errors
+@click.option('--display-archived', is_flag=True, default=False,
+              help='Display full list, including archived releases.')
+@url_option
+@debug_option
+@staging_option
+def list_releases(display_archived, url, **kwargs):
+    """Retrieve and print list of releases."""
+    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
+
+    res = client.get_releases()
+
+    print_releases_list(res['releases'], display_archived)
+
+
 def save(client, **kwargs):
     """
     Save a new or edited release.
@@ -1060,6 +1076,32 @@ def save(client, **kwargs):
     else:
         print("Saved release:")
         print_release(res)
+
+
+def print_releases_list(releases, display_archived):
+    """
+    Print a list of releases to the terminal.
+
+    Args:
+        releases (munch.Munch): The releases to be printed.
+        display_archived (bool): If True, show releases in all states, including archived.
+    """
+    pending = [release for release in releases if release['state'] == 'pending']
+    archived = [release for release in releases if release['state'] == 'archived']
+    current = [release for release in releases if release['state'] == 'current']
+
+    print('pending:')
+    for release in pending:
+        print("  Name:                %s" % release['name'])
+
+    if display_archived:
+        print('\narchived:')
+        for release in archived:
+            print("  Name:                %s" % release['name'])
+
+    print('\ncurrent:')
+    for release in current:
+        print("  Name:                %s" % release['name'])
 
 
 def print_release(release):
