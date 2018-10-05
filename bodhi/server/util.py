@@ -245,16 +245,21 @@ def get_critpath_components(collection='master', component_type='rpm', component
     return critpath_components
 
 
-def sanity_check_repodata(myurl, source):
+def sanity_check_repodata(myurl, repo_type):
     """
     Sanity check the repodata for a given repository.
 
     Args:
         myurl (basestring): A path to a repodata directory.
-        source (bool): True if we are checking a source RPM repository, False otherwise.
+        repo_type (str): This should be set to 'yum' for Yum repositories, 'module' for module
+            repositories, or 'source' for source repositories.
     Raises:
         Exception: If the repodata is not valid or does not exist.
+        ValueError: If repo_type is not an acceptable value.
     """
+    if repo_type not in ('module', 'source', 'yum'):
+        raise ValueError('repo_type must be one of module, source, or yum.')
+
     h = librepo.Handle()
     h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
     h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())
@@ -280,9 +285,11 @@ def sanity_check_repodata(myurl, source):
     hk_repo = hawkey.Repo(myurl)
     try:
         hk_repo.filelists_fn = repo_info['filelists']
-        # Source repos don't have DRPMs.
-        if not source:
+        # Source and module repos don't have DRPMs.
+        if repo_type == 'yum':
             hk_repo.presto_fn = repo_info['prestodelta']
+        elif repo_type == 'module':
+            hk_repo.presto_fn = repo_info['modules']
         hk_repo.primary_fn = repo_info['primary']
         hk_repo.repomd_fn = repo_info['repomd']
         hk_repo.updateinfo_fn = repo_info['updateinfo']
@@ -294,8 +301,8 @@ def sanity_check_repodata(myurl, source):
                            load_presto=True,
                            load_updateinfo=True)
 
-    # Source repos don't have comps.
-    if not source:
+    # Only yum repos have comps
+    if repo_type == 'yum':
         # Test comps
         comps = libcomps.Comps()
         try:
