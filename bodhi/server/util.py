@@ -286,8 +286,8 @@ def sanity_check_repodata(myurl, source):
         hk_repo.primary_fn = repo_info['primary']
         hk_repo.repomd_fn = repo_info['repomd']
         hk_repo.updateinfo_fn = repo_info['updateinfo']
-    except KeyError:
-        raise RepodataException('Required part not in repomd.xml')
+    except KeyError as e:
+        raise RepodataException('Required part not in repomd.xml: {}'.format(e.args[0]))
     primary_sack.load_repo(hk_repo,
                            build_cache=False,
                            load_filelists=True,

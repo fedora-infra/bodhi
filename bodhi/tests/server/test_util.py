@@ -594,7 +594,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
         with self.assertRaises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, source=False)
 
-        self.assertEqual(str(exc.exception), 'Required part not in repomd.xml')
+        self.assertEqual(str(exc.exception), 'Required part not in repomd.xml: updateinfo')
 
     def test_source_true(self):
         """It should not fail source repos for missing prestodelta or comps."""
