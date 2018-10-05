@@ -77,9 +77,9 @@ def bodhi_ci = { String release, String command, String context, String args ->
     githubNotify context: release + '-' + context, description: 'running', status: 'PENDING'
 
     try {
-        stage(release + ' ' + command) {
+        stage(release + '-' + context) {
             timeout(time: 16, unit: 'MINUTES') {
-                onmyduffynode 'cd payload && ./devel/ci/bodhi-ci ' + command + ' -r ' + release + ' ' + args
+                onmyduffynode 'cd payload && ./devel/ci/bodhi-ci ' + command + ' --no-tty -r ' + release + ' ' + args
             }
         }
         githubNotify context: release + '-' + context, status: 'SUCCESS'

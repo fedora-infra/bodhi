@@ -53,6 +53,22 @@ def _set_container_runtime(ctx, param, value):
     return value
 
 
+def _set_tty(ctx, param, value):
+    """
+    Set up the tty variable.
+
+    Args:
+        ctx (click.core.Context): The Click context, unused.
+        param (click.core.Option): The option being handled. Unused.
+        value (str): The value of the --tty/--no-tty flag.
+    Returns:
+        bool: The value of the --tty/--no-tty flag.
+    """
+    global tty
+    tty = value
+    return value
+
+
 archive_option = click.option(
     '--archive', '-a', is_flag=True,
     help=("Collect *.xml from the tests and put them into test_results/."))
@@ -73,6 +89,8 @@ releases_option = click.option(
     '--release', '-r', default=list(RELEASES), multiple=True,
     help=("Limit to a particular release. May be specified multiple times. "
           "Acceptable values: {}".format(', '.join(RELEASES))))
+tty_option = click.option('--tty/--no-tty', default=True, help='Allocate a pseudo-TTY.',
+                          callback=_set_tty)
 
 # These command maps define how to run each type of test, how to label them in the output,
 # and overrides for how to run them that are release specific (pip sometimes uses different
@@ -93,6 +111,7 @@ pydocstyle_command_map = {
     'pip': ['/usr/local/bin/pydocstyle', 'bodhi']}
 
 container_runtime = None
+tty = False
 
 
 @click.group()
@@ -109,7 +128,8 @@ def cli():
 @no_build_option
 @pyver_option
 @releases_option
-def all(archive, container_runtime, no_build, failfast, pyver, release):
+@tty_option
+def all(archive, container_runtime, no_build, failfast, pyver, release, tty):
     """Run all the types of tests in parallel."""
     command_maps = [docs_command_map, flake8_command_map, pydocstyle_command_map]
     command_maps.extend(_generate_unit_command_maps(failfast, pyver))
@@ -120,7 +140,8 @@ def all(archive, container_runtime, no_build, failfast, pyver, release):
 @cli.command()
 @container_runtime_option
 @releases_option
-def build(container_runtime, release):
+@tty_option
+def build(container_runtime, release, tty):
     """Build the containers for testing."""
     _build(release)
 
@@ -128,7 +149,8 @@ def build(container_runtime, release):
 @cli.command()
 @container_runtime_option
 @releases_option
-def clean(container_runtime, release):
+@tty_option
+def clean(container_runtime, release, tty):
     """Remove all builds pertaining to Bodhi CI."""
     jobs = {}
     for r in release:
@@ -143,7 +165,8 @@ def clean(container_runtime, release):
 @container_runtime_option
 @no_build_option
 @releases_option
-def docs(container_runtime, no_build, release):
+@tty_option
+def docs(container_runtime, no_build, release, tty):
     """Build the docs."""
     _container_run(no_build, release, docs_command_map)
 
@@ -152,7 +175,8 @@ def docs(container_runtime, no_build, release):
 @container_runtime_option
 @no_build_option
 @releases_option
-def flake8(container_runtime, no_build, release):
+@tty_option
+def flake8(container_runtime, no_build, release, tty):
     """Run flake8 tests."""
     _container_run(no_build, release, flake8_command_map)
 
@@ -161,7 +185,8 @@ def flake8(container_runtime, no_build, release):
 @container_runtime_option
 @no_build_option
 @releases_option
-def pydocstyle(container_runtime, no_build, release):
+@tty_option
+def pydocstyle(container_runtime, no_build, release, tty):
     """Run pydocstyle tests."""
     _container_run(no_build, release, pydocstyle_command_map)
 
@@ -173,7 +198,8 @@ def pydocstyle(container_runtime, no_build, release):
 @no_build_option
 @pyver_option
 @releases_option
-def unit(archive, container_runtime, no_build, failfast, pyver, release):
+@tty_option
+def unit(archive, container_runtime, no_build, failfast, pyver, release, tty):
     """Run the unit tests."""
     _container_run(no_build, release, _generate_unit_command_maps(failfast, pyver), archive)
 
@@ -239,6 +265,9 @@ def _container_run(no_build, releases, command_maps, archive=False):
 
             args = [container_runtime, 'run', '--network', 'none', '--rm',
                     '--label', CONTAINER_LABEL]
+
+            if tty:
+                args.append('-t')
 
             if archive:
                 archive_dir = '{}/test_results/{}'.format(
@@ -369,10 +398,15 @@ def _run_processes(jobs):
     for label, p in processes.items():
         if p.returncode != 0:
             return_code = p.returncode
+            color_start = '\033[0;31m' if tty else ''
+            color_end = '\033[0m' if tty else ''
             click.echo(
-                '{}:  \033[0;31mFAILED\033[0m  (exited with code: {})'.format(label, p.returncode))
+                '{}:  {}FAILED{}  (exited with code: {})'.format(
+                    label, color_start, color_end, p.returncode))
         else:
-            click.echo('{}:  \033[0;32mSUCCESS!\033[0m'.format(label))
+            color_start = '\033[0;32m' if tty else ''
+            color_end = '\033[0m' if tty else ''
+            click.echo('{}:  {}SUCCESS!{}'.format(label, color_start, color_end))
     click.echo('\n')
 
     if return_code:
