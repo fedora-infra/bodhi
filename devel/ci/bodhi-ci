@@ -421,10 +421,6 @@ def _signal_handler(sig, frame):
         sig (int): The signal that we are handling.
         frame (frame): The current frame.
     """
-    click.echo(type(sig))
-    click.echo(type(frame))
-    click.echo(sig)
-    click.echo(frame)
     click.echo('Stopping processes.')
     args = [container_runtime, 'ps', '--filter=label={}'.format(CONTAINER_LABEL), '-q']
     processes = subprocess.check_output(args).decode()
