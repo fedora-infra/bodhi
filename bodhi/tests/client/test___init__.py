@@ -656,14 +656,15 @@ class TestQuery(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'approved_since': None, 'status': None, 'locked': None,
+                    'updateid': None, 'alias': None, 'approved_since': None,
+                    'approved_before': None, 'status': None, 'locked': None,
                     'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
-                    'content_type': None,
-                    'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                    'staging': False, 'modified_since': None, 'pushed': None,
-                    'pushed_since': None, 'user': None, 'critpath': None, 'updateid': None,
-                    'packages': None, 'type': None, 'cves': None, 'rows_per_page': None,
-                    'page': None
+                    'active_releases': None, 'content_type': None, 'severity': None,
+                    'submitted_since': None, 'submitted_before': None, 'suggest': None,
+                    'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
+                    'modified_before': None, 'pushed': None, 'pushed_since': None,
+                    'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
+                    'type': None, 'cves': None, 'rows_per_page': None, 'page': None,
                 }
             ),
             mock.call(
@@ -696,13 +697,15 @@ class TestQuery(unittest.TestCase):
         send_request.assert_called_once_with(
             bindings_client, 'updates/', verb='GET',
             params={
-                'approved_since': None, 'status': None, 'locked': None,
+                'updateid': None, 'alias': None, 'approved_since': None,
+                'approved_before': None, 'status': None, 'locked': None,
                 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
-                'content_type': None,
-                'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
-                'user': None, 'critpath': None, 'updateid': None, 'packages': None, 'type': None,
-                'cves': None, 'rows_per_page': None, 'page': None})
+                'active_releases': None, 'content_type': None, 'severity': None,
+                'submitted_since': None, 'submitted_before': None, 'suggest': None,
+                'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
+                'modified_before': None, 'pushed': None, 'pushed_since': None,
+                'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
+                'type': None, 'cves': None, 'rows_per_page': None, 'page': None})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -727,14 +730,15 @@ class TestQuery(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'approved_since': None, 'status': None, 'locked': None,
+                    'updateid': None, 'alias': None, 'approved_since': None,
+                    'approved_before': None, 'status': None, 'locked': None,
                     'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
-                    'content_type': None,
-                    'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                    'staging': False, 'modified_since': None, 'pushed': None,
-                    'pushed_since': None, 'user': None, 'critpath': None, 'updateid': None,
-                    'packages': None, 'type': None, 'cves': None, 'rows_per_page': None,
-                    'page': None
+                    'active_releases': None, 'content_type': None, 'severity': None,
+                    'submitted_since': None, 'submitted_before': None, 'suggest': None,
+                    'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
+                    'modified_before': None, 'pushed': None, 'pushed_since': None,
+                    'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
+                    'type': None, 'cves': None, 'rows_per_page': None, 'page': None
                 }
             ),
             mock.call(
@@ -767,13 +771,15 @@ class TestQuery(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'approved_since': None, 'status': None, 'locked': None,
-                    'builds': None, 'releases': None,
-                    'content_type': None,
-                    'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                    'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
-                    'user': 'dudemcpants', 'critpath': None, 'updateid': None, 'packages': None,
-                    'type': None, 'cves': None, 'rows_per_page': None, 'page': None
+                    'updateid': None, 'alias': None, 'approved_since': None,
+                    'approved_before': None, 'status': None, 'locked': None,
+                    'builds': None, 'releases': None, 'active_releases': None,
+                    'content_type': None, 'severity': None, 'submitted_since': None,
+                    'submitted_before': None, 'suggest': None, 'request': None, 'bugs': None,
+                    'staging': False, 'modified_since': None, 'modified_before': None,
+                    'pushed': None, 'pushed_since': None, 'pushed_before': None,
+                    'user': 'dudemcpants', 'critpath': None, 'packages': None,
+                    'type': None, 'cves': None, 'rows_per_page': None, 'page': None,
                 }
             ),
             mock.call(
@@ -805,12 +811,14 @@ class TestQuery(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'approved_since': None, 'status': None, 'locked': None,
+                    'updateid': None, 'alias': None, 'approved_since': None,
+                    'approved_before': None, 'status': None, 'locked': None,
                     'builds': None, 'releases': None,
-                    'content_type': None,
-                    'submitted_since': None, 'suggest': None, 'request': None, 'bugs': None,
-                    'staging': False, 'modified_since': None, 'pushed': None, 'pushed_since': None,
-                    'user': None, 'critpath': None, 'updateid': None, 'packages': None,
+                    'active_releases': None, 'content_type': None, 'severity': None,
+                    'submitted_since': None, 'submitted_before': None, 'suggest': None,
+                    'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
+                    'modified_before': None, 'pushed': None, 'pushed_since': None,
+                    'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
                     'type': None, 'cves': None, 'rows_per_page': 10, 'page': None
                 }
             ),
@@ -842,12 +850,15 @@ class TestQuery(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'approved_since': None, 'pushed': None, 'pushed_since': None,
-                    'critpath': None, 'cves': None, 'rows_per_page': None, 'staging': False,
-                    'submitted_since': None, 'suggest': None, 'updateid': None,
-                    'type': None, 'status': None, 'releases': None, 'modified_since': None,
-                    'user': None, 'content_type': None, 'packages': None, 'locked': None,
-                    'builds': None, 'request': None, 'bugs': None, 'page': 5
+                    'updateid': None, 'alias': None, 'approved_since': None,
+                    'approved_before': None, 'status': None, 'locked': None,
+                    'builds': None, 'releases': None,
+                    'active_releases': None, 'content_type': None, 'severity': None,
+                    'submitted_since': None, 'submitted_before': None, 'suggest': None,
+                    'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
+                    'modified_before': None, 'pushed': None, 'pushed_since': None,
+                    'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
+                    'type': None, 'cves': None, 'rows_per_page': None, 'page': 5
                 },
             ),
             mock.call(
