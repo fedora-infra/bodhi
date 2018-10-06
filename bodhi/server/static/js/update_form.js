@@ -70,23 +70,6 @@ $(document).ready(function() {
         },
     });
 
-    // candidate_error and bug_error are just two handy utilities for reporting
-    // errors when stuff in the code blocks below this goes wrong.
-    var candidate_error = function(package) {
-        $("#candidate-checkboxes .spinner").remove();
-        messenger.post({
-            message: 'No candidate builds found for ' + package,
-            type: 'error',
-        });
-    }
-    var bugs_error = function(package) {
-        $("#bugs-checkboxes .spinner").remove();
-        messenger.post({
-            message: 'No bugs found for ' + package,
-            type: 'error',
-        });
-    }
-
     // Callback to remove a checkbox when it is unchecked.
     // https://github.com/fedora-infra/bodhi/issues/260
     var remove_unchecked = function() {
@@ -180,7 +163,12 @@ $(document).ready(function() {
             success: function(builds) {
                 $("#candidate-checkboxes .spinner").remove();
                 $("#candidate-checkboxes input:checkbox:not(:checked)").parents("div.checkbox").remove();
-                if (builds.length == 0) {return candidate_error(datum.name);}
+                if (builds.length == 0) {
+                    return messenger.post({
+                        message: 'No candidate builds found for ' + datum.name,
+                        type: 'info',
+                    });
+                }
                 $.each(builds, function(i, build) {
                     // Insert the checkbox only if this ID is not already listed
                     if ($.inArray(build.id, checked_candidate_ids) == -1) {
@@ -188,7 +176,12 @@ $(document).ready(function() {
                     }
                 });
             },
-            error: function() {candidate_error(datum.name);},
+            error: function() {
+                messenger.post({
+                        message: 'Unable to retrieve builds list for ' + datum.name,
+                        type: 'error',
+                    });
+            },
         });
         var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
         var prefix = '/bugzilla/query/query_bugs/%7B%22filters%22:%7B%22package%22:%22';
@@ -199,7 +192,12 @@ $(document).ready(function() {
                 $("#bugs-checkboxes .spinner").remove();
                 $("#bugs-checkboxes input:checkbox:not(:checked)").parents("div.checkbox").remove();
                 data = JSON.parse(data);
-                if (data.rows.length == 0) {return bugs_error(datum.name);}
+                if (data.rows.length == 0) {
+                    return messenger.post({
+                        message: 'No bugs found for ' + datum.name,
+                        type: 'info',
+                    });
+                }
                 $.each(data.rows, function(i, bug) {
                     // Insert the checkbox only if this ID is not already listed
                     if ($.inArray(bug.id, checked_bug_ids) == -1) {
@@ -208,7 +206,12 @@ $(document).ready(function() {
                 });
                 // TODO -- tack on 'And 200 more bugs..'
             },
-            error: function() {bugs_error(datum.name);},
+            error: function() {
+                messenger.post({
+                        message: 'Unable to retrieve bugs list for ' + datum.name,
+                        type: 'error',
+                    });
+            },
         });
     });
 
