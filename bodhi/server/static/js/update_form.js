@@ -145,24 +145,24 @@ $(document).ready(function() {
     // fire off two async js calls to get bugs and builds.  Those are then
     // added to their respective checkbox lists once they are retrieved.
     $('#packages-search input.typeahead').on('typeahead:selected', function (e, datum) {
-        $("#candidate-checkboxes").prepend("<img class='spinner' src='static/img/spinner.gif'>")
-        $("#bugs-checkboxes").prepend("<img class='spinner' src='static/img/spinner.gif'>")
         // Get a list of currently checked items
-        var checked_bug_ids = [];
+        var checked_bugs = [];
         $("#bugs-checkboxes input:checkbox:checked").each(function(){
-            checked_bug_ids.push(parseInt($(this).val()));
+            var bug = {id: parseInt($(this).val()), title: $(this).parent().text().replace(/^#\d+\s/m, '')};
+            checked_bugs.push(bug);
         });
         var checked_candidate_ids = [];
         $("#candidate-checkboxes input:checkbox:checked").each(function(){
             checked_candidate_ids.push(parseInt($(this).attr('data-build-id')));
         });
+        // Empty lists
+        document.getElementById("candidate-checkboxes").innerHTML = "<img class='spinner' src='static/img/spinner.gif'>";
+        document.getElementById("bugs-checkboxes").innerHTML = "<img class='spinner' src='static/img/spinner.gif'>";
         // Get the candidate builds
         $.ajax({
             url: 'latest_candidates',
             data: $.param({package: datum.name}),
             success: function(builds) {
-                $("#candidate-checkboxes .spinner").remove();
-                $("#candidate-checkboxes input:checkbox:not(:checked)").parents("div.checkbox").remove();
                 if (builds.length == 0) {
                     return messenger.post({
                         message: 'No candidate builds found for ' + datum.name,
@@ -182,6 +182,13 @@ $(document).ready(function() {
                         type: 'error',
                     });
             },
+            complete: function() {
+                $("#candidate-checkboxes .spinner").remove();
+                // Re-add previously checked builds
+                $.each(checked_candidate_ids, function(i, nvr) {
+                    add_build_checkbox(nvr, false, true);
+                });
+            },
         });
         var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
         var prefix = '/bugzilla/query/query_bugs/%7B%22filters%22:%7B%22package%22:%22';
@@ -189,8 +196,6 @@ $(document).ready(function() {
         $.ajax({
             url: base + prefix + datum.name + suffix,
             success: function(data) {
-                $("#bugs-checkboxes .spinner").remove();
-                $("#bugs-checkboxes input:checkbox:not(:checked)").parents("div.checkbox").remove();
                 data = JSON.parse(data);
                 if (data.rows.length == 0) {
                     return messenger.post({
@@ -200,9 +205,14 @@ $(document).ready(function() {
                 }
                 $.each(data.rows, function(i, bug) {
                     // Insert the checkbox only if this ID is not already listed
-                    if ($.inArray(bug.id, checked_bug_ids) == -1) {
-                        add_bug_checkbox(bug.id, bug.description, false);
-                    }
+                    var listed = false;
+                    $.each(checked_bugs, function(i, checked_bug) {
+                        if (bug.id == checked_bug.id) {
+                            listed = true;
+                            return false;
+                        }
+                    });
+                    if (listed == false) {add_bug_checkbox(bug.id, bug.description, false);}
                 });
                 // TODO -- tack on 'And 200 more bugs..'
             },
@@ -211,6 +221,13 @@ $(document).ready(function() {
                         message: 'Unable to retrieve bugs list for ' + datum.name,
                         type: 'error',
                     });
+            },
+            complete: function() {
+                $("#bugs-checkboxes .spinner").remove();
+                // Re-add previously checked bugs
+                $.each(checked_bugs, function(i, bug) {
+                    add_bug_checkbox(bug.id, bug.title, true);
+                });
             },
         });
     });
