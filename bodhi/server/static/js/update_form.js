@@ -200,6 +200,7 @@ $(document).ready(function() {
         // Get the candidate builds
         $.ajax({
             url: 'latest_candidates',
+            timeout: 10000,
             data: $.param({package: datum.name}),
             success: function(builds) {
                 if (builds.length == 0) {
@@ -215,11 +216,19 @@ $(document).ready(function() {
                     }
                 });
             },
-            error: function() {
-                messenger.post({
+            error: function(jqXHR, textStatus) {
+                if (textStatus == 'timeout') {
+                    messenger.post({
+                        message: 'Reached timeout while retrieving builds list for ' + datum.name,
+                        type: 'error',
+                    });
+                }
+                else {
+                    messenger.post({
                         message: 'Unable to retrieve builds list for ' + datum.name,
                         type: 'error',
                     });
+                }
             },
             complete: function() {
                 $("#candidate-checkboxes .spinner").remove();
@@ -234,6 +243,7 @@ $(document).ready(function() {
         var suffix = '%22,%22version%22:%22%22%7D,%22rows_per_page%22:8,%22start_row%22:0%7D';
         $.ajax({
             url: base + prefix + datum.name + suffix,
+            timeout: 10000,
             success: function(data) {
                 data = JSON.parse(data);
                 if (data.rows.length == 0) {
@@ -255,11 +265,19 @@ $(document).ready(function() {
                 });
                 // TODO -- tack on 'And 200 more bugs..'
             },
-            error: function() {
-                messenger.post({
+            error: function(jqXHR, textStatus) {
+                if (textStatus == 'timeout') {
+                    messenger.post({
+                        message: 'Reached timeout while retrieving bugs list for ' + datum.name,
+                        type: 'error',
+                    });
+                }
+                else {
+                    messenger.post({
                         message: 'Unable to retrieve bugs list for ' + datum.name,
                         type: 'error',
                     });
+                }
             },
             complete: function() {
                 $("#bugs-checkboxes .spinner").remove();
