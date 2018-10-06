@@ -70,6 +70,17 @@ $(document).ready(function() {
         },
     });
 
+    // Do not submit form when pressing enter while typing packages
+    // Instead select the first typeahead suggestion if only one result is given
+    $('#packages-search .typeahead').keydown(function(event) {
+        if(event.keyCode == 13) {
+            event.preventDefault();
+            if ($(".tt-selectable").length == 1) {
+                $(".tt-selectable").first().click();
+            }
+        }
+    });
+
     // Callback to remove a checkbox when it is unchecked.
     // https://github.com/fedora-infra/bodhi/issues/260
     var remove_unchecked = function() {
