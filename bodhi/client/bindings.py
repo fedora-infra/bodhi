@@ -302,9 +302,12 @@ class BodhiClient(OpenIdBaseClient):
         Query bodhi for a list of updates.
 
         Args:
+            alias (basestring): The update alias.
+            updateid (basestring): The update ID (eg: FEDORA-2015-0001).
             content_type (basestring): A content type (rpm, module) to limit the query to.
             releases (basestring): A comma separated list of releases that you wish to query updates
                 for.
+            active_releases (bool): A boolean to filter only updates for active releases.
             status (basestring): The update status (``pending``, ``testing``, ``stable``,
                 ``obsolete``, ``unpushed``, ``processing``)
             type (basestring): The type of the update: ``security``, ``bugfix``,

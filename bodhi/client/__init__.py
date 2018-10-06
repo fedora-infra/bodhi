@@ -459,8 +459,11 @@ def edit(user, password, url, debug, **kwargs):
 
 @updates.command()
 @click.option('--updateid', help='Query by update ID (eg: FEDORA-2015-0001)')
+@click.option('--alias', help='Query by alias')
 @click.option('--approved-since', help='Approved after a specific timestamp')
+@click.option('--approved-before', help='Approved before a specific timestamp')
 @click.option('--modified-since', help='Modified after a specific timestamp')
+@click.option('--modified-before', help='Modified before a specific timestamp')
 @click.option('--builds', help='Query updates based on builds')
 @click.option('--bugs', help='A list of bug numbers')
 @click.option('--critpath', is_flag=True, default=None,
@@ -473,12 +476,20 @@ def edit(user, password, url, debug, **kwargs):
               help='Filter by pushed updates')
 @click.option('--pushed-since',
               help='Updates that have been pushed after a certain time')
+@click.option('--pushed-before',
+              help='Updates that have been pushed before a certain time')
 @click.option('--releases', help='Updates for specific releases')
+@click.option('--active-releases', is_flag=True, default=None,
+              help='Updates for active releases')
 @click.option('--locked', help='Updates that are in a locked state')
 @click.option('--request', help='Updates with a specific request',
               type=click.Choice(['testing', 'stable', 'unpush', 'batched']))
+@click.option('--severity', help='Updates with a specific severity',
+              type=click.Choice(['unspecified', 'urgent', 'high', 'medium', 'low']))
 @click.option('--submitted-since',
               help='Updates that have been submitted since a certain time')
+@click.option('--submitted-before',
+              help='Updates that have been submitted before a certain time')
 @click.option('--status', help='Filter by update status',
               type=click.Choice(['pending', 'testing', 'stable', 'obsolete',
                                  'unpushed', 'processing']))

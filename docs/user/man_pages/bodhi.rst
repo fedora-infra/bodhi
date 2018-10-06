@@ -314,13 +314,25 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Query for the update given by id.
 
+    ``--alias <alias>``
+
+        Query for the update given by alias.
+
     ``--approved-since <timestamp>``
 
         Query for updates approved after the given timestamp.
 
+    ``--approved-before <timestamp>``
+
+        Query for updates approved before the given timestamp.
+
     ``--modified-since <timestamp>``
 
         Query for updates modified after the given timestamp.
+
+    ``--modified-before <timestamp>``
+
+        Query for updates modified before the given timestamp.
 
     ``--builds <builds>``
 
@@ -358,9 +370,17 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Query for updates that have been pushed after the given timestamp.
 
+    ``--pushed-before <timestamp>``
+
+        Query for updates that have been pushed before the given timestamp.
+
     ``--releases <releases>``
 
         Query for updates related to a list of releases, given as a comma-separated list.
+
+    ``--active-releases``
+
+        Query for updates for active releases.
 
     ``--locked``
 
@@ -370,9 +390,17 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Query for updates marked with the given request type.
 
+    ``--severity [unspecified, urgent, high, medium, low]``
+
+        Query for updates with a specific severity.
+
     ``--submitted-since <timestamp>``
 
         Query for updates that were submitted since the given timestamp.
+
+    ``--submitted-before <timestamp>``
+
+        Query for updates that were submitted before the given timestamp.
 
     ``--status [pending | testing | stable | obsolete | unpushed | processing]``
 
