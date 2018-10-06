@@ -83,15 +83,29 @@ $(document).ready(function() {
     // The code here is a little long because we need to additionally wire up
     // code to fire when one of those checkboxes is clicked.  (It adds
     // changelog entries to the update notes).
-    var add_build_checkbox = function(nvr, idx, checked) {
+    var add_build_checkbox = function(nvr, idx, checked, manual) {
         if (nvr == '' || nvr == null || nvr === undefined) return;
+        // Prevent duplicated manual entries
+        if (manual) {
+            var current_buildlist = [];
+            $("#candidate-checkboxes input").each(function(){
+                current_buildlist.push($(this).val());
+            });
+            if ($.inArray(nvr, current_buildlist) != -1) {
+                messenger.post({
+                    message: 'Build ' + nvr + ' already in list!',
+                    type: 'info',
+                });
+                return;
+            }
+        }
         $("#candidate-checkboxes").prepend(
             [
                 '<div class="checkbox">',
                 '<label>',
                 '<input name="builds" data-build-nvr="' + nvr + '"' +
                     (idx ? '" data-build-id="' + idx + '" ' : ' ') +
-                    'type="checkbox" value="' + nvr + '"' + (checked ? ' checked' : '') + '>',
+                    'type="checkbox" value="' + nvr + '"' + (checked ? ' checked' : '') + (manual ? ' class="manual"' : '')  + '>',
                 nvr,
                 '</label>',
                 '</div>',
@@ -125,13 +139,27 @@ $(document).ready(function() {
 
     // A utility for adding another bug to the checkbox list of potential bugs
     // this update could fix.
-    var add_bug_checkbox = function(idx, description, checked) {
+    var add_bug_checkbox = function(idx, description, checked, manual) {
         if (idx == '' || idx == null || idx === undefined) return;
+        // Prevent duplicated manual entries
+        if (manual) {
+            var current_buglist = [];
+            $("#bugs-checkboxes input").each(function(){
+                current_buglist.push(parseInt($(this).val()));
+            });
+            if ($.inArray(parseInt(idx), current_buglist) != -1) {
+                messenger.post({
+                    message: 'Bug #' + idx + ' already in list!',
+                    type: 'info',
+                });
+                return;
+            }
+        }
         $("#bugs-checkboxes").prepend(
             [
                 '<div>',
                 '<label class="c-input c-checkbox">',
-                '<input name="bugs" type="checkbox" value="' + idx + '"' + (checked ? ' checked' : '') + '>',
+                '<input name="bugs" type="checkbox" value="' + idx + '"' + (checked ? ' checked' : '') + (manual ? ' class="manual"' : '') + '>',
                 '<span class="c-indicator"></span><a href="https://bugzilla.redhat.com/show_bug.cgi?id=' + idx + '">',
                 '#' + idx + '</a> ' + description,
                 '</label>',
@@ -172,7 +200,7 @@ $(document).ready(function() {
                 $.each(builds, function(i, build) {
                     // Insert the checkbox only if this ID is not already listed
                     if ($.inArray(build.id, checked_candidate_ids) == -1) {
-                        add_build_checkbox(build.nvr, build.id, false);
+                        add_build_checkbox(build.nvr, build.id, false, false);
                     }
                 });
             },
@@ -186,7 +214,7 @@ $(document).ready(function() {
                 $("#candidate-checkboxes .spinner").remove();
                 // Re-add previously checked builds
                 $.each(checked_candidate_ids, function(i, nvr) {
-                    add_build_checkbox(nvr, false, true);
+                    add_build_checkbox(nvr, false, true, false);
                 });
             },
         });
@@ -212,7 +240,7 @@ $(document).ready(function() {
                             return false;
                         }
                     });
-                    if (listed == false) {add_bug_checkbox(bug.id, bug.description, false);}
+                    if (listed == false) {add_bug_checkbox(bug.id, bug.description, false, false);}
                 });
                 // TODO -- tack on 'And 200 more bugs..'
             },
@@ -226,7 +254,7 @@ $(document).ready(function() {
                 $("#bugs-checkboxes .spinner").remove();
                 // Re-add previously checked bugs
                 $.each(checked_bugs, function(i, bug) {
-                    add_bug_checkbox(bug.id, bug.title, true);
+                    add_bug_checkbox(bug.id, bug.title, true, false);
                 });
             },
         });
@@ -241,7 +269,7 @@ $(document).ready(function() {
             $.each(intermediary.trim().split(" "), function(j, item) {
                 item = item.trim()
                 if (item[0] == '#') { item = item.substring(1); }
-                add_bug_checkbox(item, '', true);
+                add_bug_checkbox(item, '', true, true);
             });
         });
         $("#bugs-adder input").val('');  // Clear the field
@@ -251,7 +279,7 @@ $(document).ready(function() {
         var value = $("#builds-adder input").val().trim();
         $.each(value.split(","), function(i, intermediary) {
             $.each(intermediary.trim().split(" "), function(j, item) {
-                add_build_checkbox(item.trim(), false, true);
+                add_build_checkbox(item.trim(), false, true, true);
             });
         });
         $("#builds-adder input").val('');  // Clear the field
