@@ -893,7 +893,7 @@ Features
 * The :doc:`update_states` are now documented (:commit:`6f4a48a4`).
 * A :doc:`testing` doc was written (:commit:`f1f2d011`).
 * A man page for :doc:`man_pages/bodhi-expire-overrides` was written (:commit:`e4402a32`).
-* A man page for :doc:`man_pages/bodhi-manage-releases` was written (:commit:`84d01668`).
+* A man page for ``bodhi-manage-releases`` was written (:commit:`84d01668`).
 * Update status and request fields are now indexed for more performant searching
   (:commit:`768ccb6c`).
 * ``updateinfo.xml`` now includes the severity level on security updates (:commit:`8c9c1bf9`).
