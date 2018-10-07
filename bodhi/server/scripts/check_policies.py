@@ -23,9 +23,15 @@ Check the enforced policies by Greenwave for each open update.
 Ideally, this should be done in a fedmsg consumer but we currently do not have any
 messages in the message bus yet.
 """
+import logging
+
 import click
 
 from bodhi.server import config, initialize_db, models, Session
+
+
+logger = logging.getLogger('check-policies')
+logging.basicConfig(level=logging.INFO)
 
 
 @click.command()
