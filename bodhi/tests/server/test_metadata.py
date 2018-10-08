@@ -17,7 +17,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from hashlib import sha256
 from os.path import join, exists, basename
 import glob
@@ -132,6 +132,10 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
 
     def test_date_modified_none(self):
         """The metadata should use utcnow() if an update's date_modified is None."""
+        test_start_time = datetime.utcnow()
+        # The UpdateRecord's updated_date attribute strips microseconds, so let's force them to 0
+        # so our assertions at the end of this test will pass.
+        test_start_time = test_start_time - timedelta(microseconds=test_start_time.microsecond)
         update = self.db.query(Update).one()
         update.date_modified = None
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
@@ -141,10 +145,14 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
 
         md.shelf.close()
         self.assertEqual(len(md.uinfo.updates), 1)
-        self.assertTrue(abs((datetime.utcnow() - md.uinfo.updates[0].updated_date).seconds) < 2)
+        self.assertTrue(test_start_time <= md.uinfo.updates[0].updated_date <= datetime.utcnow())
 
     def test_date_pushed_none(self):
         """The metadata should use utcnow() if an update's date_pushed is None."""
+        test_start_time = datetime.utcnow()
+        # The UpdateRecord's updated_date attribute strips microseconds, so let's force them to 0
+        # so our assertions at the end of this test will pass.
+        test_start_time = test_start_time - timedelta(microseconds=test_start_time.microsecond)
         update = self.db.query(Update).one()
         update.date_pushed = None
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
@@ -154,7 +162,7 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
 
         md.shelf.close()
         self.assertEqual(len(md.uinfo.updates), 1)
-        self.assertTrue(abs((datetime.utcnow() - md.uinfo.updates[0].issued_date).seconds) < 2)
+        self.assertTrue(test_start_time <= md.uinfo.updates[0].issued_date <= datetime.utcnow())
 
     def test_rpm_with_arch(self):
         """Ensure that an RPM with a non 386 arch gets handled correctly."""
