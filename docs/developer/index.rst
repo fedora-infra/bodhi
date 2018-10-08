@@ -92,12 +92,19 @@ CI Tests
 
 All Bodhi pull requests are tested in a `Jenkins instance <https://ci.centos.org/>`_
 that is graciously hosted for us by the CentOS Project. Sometimes tests fail, and when they do you
-can visit the test job that failed and view its console output. This will display the output from
-the ``devel/ci/run_tests.sh`` script. That script runs Bodhi's test suite on a variety of
-Fedora versions using containers.
+can visit the test job that failed and view its console output by visiting the
+`bodhi-pipeline job <https://ci.centos.org/job/bodhi-pipeline/>`_. Links to individual pull request
+builds can be found on your pull request on GitHub by clicking the "Details" link next to
+``continuous-integration/jenkins/pr-merge``. From there you can inspect the full console output, or
+you can click into the "Pipeline Steps" on the left to see the output of each individual job.
+
+Bodhi's CI pipeline workflow is described in `Groovyscript <http://www.groovy-lang.org/>`_ in
+``devel/ci/cico.pipeline``. This file is fairly well self-documented, and described to Jenkins how
+it should run Bodhi's tests. It defines the various GitHub contexts that our ``.mergify.yml``
+configuration is set to block merges on, and it runs the individual build and test jobs in parallel.
 
 It is possible for you to run these same tests locally. There is a ``devel/ci/bodhi-ci`` script
-that is used by ``devel/ci/run_tests.sh`` and does the heavy lifting. This script is intended to be
+that is used by the pipeline to do the heavy lifting. This script is intended to be
 run as root since it uses ``docker`` (or optionally, ``podman``). It has a handy ``-x`` flag that
 will cause it to exit immediately upon failure. You can also choose to test specific releases, and
 there are a variety of other features. Be sure to check out its ``--help`` flag to learn how to use
@@ -105,6 +112,9 @@ it. Thus, if I want to run the tests on only f28 and f29 and I want it to exit i
 failure, I can execute the script like this::
 
     $ sudo devel/ci/bodhi-ci all -r f28 -r f29 -x
+
+Note that if you are using the Vagrant development environment, there is a handy ``bci`` shell alias
+that runs ``sudo devel/ci/bodhi-ci`` for you.
 
 
 Create a Bodhi development environment
