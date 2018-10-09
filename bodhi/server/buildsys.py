@@ -253,22 +253,41 @@ class DevBuildsys(Buildsystem):
         for token in release_tokens:
             # Starting to hardcode some dev buildsys bits for docker.
             # See https://github.com/fedora-infra/bodhi/pull/1543
-            if token.endswith("container"):
-                tag = "f%s-updates-testing" % token.replace("fc", "").replace("container", "")
+            if token.endswith("container") or token.endswith("flatpak"):
+                fedora_release = "f" + (token
+                                        .replace("fc", "")
+                                        .replace("flatpak", "")
+                                        .replace("container", ""))
+                tag = "%s-updates-testing" % fedora_release
+
+                format_data = {
+                    'registry': 'candidate-registry.fedoraproject.org',
+                    'hash': 'sha256:2bd64a888...',
+                    'version': version,
+                    'release': release
+                }
+
+                if token.endswith("flatpak"):
+                    format_data['repository'] = name
+                else:
+                    tag = "f%s-updates-testing" % token.replace("fc", "").replace("container", "")
+                    format_data['repository'] = "{}/{}".format(fedora_release, name)
+
                 data['extra'] = {
                     'container_koji_task_id': 19708268,
-                    'image': {},
-                }
-                break
-
-            if token.endswith("flatpak"):
-                tag = "f%s-updates-testing" % token.replace("fc", "")
-                data['extra'] = {
-                    'container_koji_task_id': 21098765,
                     'image': {
-                        'flatpak': True
+                        'index': {
+                            'pull': ['{registry}/{repository}:{hash}'
+                                     .format(**format_data),
+                                     '{registry}/{repository}:{version}:{release}'
+                                     .format(**format_data)],
+                        }
                     },
                 }
+
+                if token.endswith("flatpak"):
+                    data['extra']['image']['flatpak'] = True
+
                 break
 
             # Hardcoding for modules in the dev buildsys
