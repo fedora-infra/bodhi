@@ -138,6 +138,13 @@ node('bodhi') {
             pip: {test_release('pip')},
             rawhide: {test_release('rawhide')}
         )
+    } catch (e) {
+        currentBuild.result = "FAILURE"
+        throw e
+    } finally {
+        stage('Deallocate node'){
+            sh 'cico node done ${SSID}'
+        }
 
         stage('Sync Artifacts'){
             syncfromduffynode('test_results')
@@ -145,13 +152,6 @@ node('bodhi') {
 
         stage('junit'){
             junit(testResults: 'test_results/**/nosetests.xml', allowEmptyResults: true)
-        }
-    } catch (e) {
-        currentBuild.result = "FAILURE"
-        throw e
-    } finally {
-        stage('Deallocate node'){
-            sh 'cico node done ${SSID}'
         }
     }
 }
