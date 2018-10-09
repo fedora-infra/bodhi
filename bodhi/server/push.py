@@ -71,15 +71,15 @@ def push(username, cert_prefix, **kwargs):
     db_factory = transactional_session_maker()
     composes = []
     with db_factory() as session:
-        if not resume and session.query(Compose).count():
-            click.confirm('Existing composes detected: {}. Do you wish to resume them all?'.format(
-                ', '.join([str(c) for c in session.query(Compose).all()])), abort=True)
+        if not resume and session.query(Compose).filter(Compose.state == ComposeState.failed).count():
+            click.confirm('Failed composes detected: {}. Do you wish to resume them all?'.format(
+                ', '.join([str(c) for c in session.query(Compose).filter(Compose.state == ComposeState.failed).all()])), abort=True)
             resume = True
             resume_all = True
 
         # If we're resuming a push
         if resume:
-            for compose in session.query(Compose).all():
+            for compose in session.query(Compose).filter(Compose.state == ComposeState.failed).all():
                 if len(compose.updates) == 0:
                     # Compose objects can end up with 0 updates in them if the masher ejects all the
                     # updates in a compose for some reason. Composes with no updates cannot be
