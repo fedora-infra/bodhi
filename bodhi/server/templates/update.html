@@ -67,6 +67,9 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
                 requirements.push(requirement.testcase);
             }
             $('#failed_requirements').append('<li class="list-group-item">' + requirement.testcase + '</li>');
+            
+            // there is at least one unsatisfied requirement, so show the button to be able to waive.
+            $('#waive').show();
         });
         % if request.registry.settings.get("test_gating.required") is True:
             if (data['policies_satisfied']) {
@@ -570,7 +573,7 @@ $(document).ready(function(){
             <a id='unpush' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Unpush</a>
           % endif
           % if self.util.can_waive_test_results(update):
-            <a id='waive' class="btn btn-sm btn-primary" data-toggle="modal" data-target="#waive_test_results">Waive Test Results</a>
+            <a id='waive' class="btn btn-sm btn-primary hidden" data-toggle="modal" data-target="#waive_test_results">Waive Test Results</a>
           % endif
           </div>
         % else:
