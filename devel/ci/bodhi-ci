@@ -17,18 +17,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Bodhi's CI command tool."""
+import asyncio
 import os
 import signal
 import subprocess
 import sys
-import time
+import uuid
 
 import click
 
 
 CONTAINER_NAME = 'bodhi-ci'
-# We label the containers we run so it's easy to find them if the user uses ctrl-c to stop the job.
-CONTAINER_LABEL = 'purpose=bodhi-ci'
+# We label the containers we run so it's easy to find them when we run _stop_all_jobs() at the end.
+# UUID is used so that one bodhi-ci process does not stop jobs started by a different one.
+CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 RELEASES = ('f27', 'f28', 'f29', 'rawhide', 'pip')
 
@@ -53,19 +55,18 @@ def _set_container_runtime(ctx, param, value):
     return value
 
 
-def _set_tty(ctx, param, value):
+def _set_global(ctx, param, value):
     """
-    Set up the tty variable.
+    Set up a global variable based on click input.
 
     Args:
         ctx (click.core.Context): The Click context, unused.
-        param (click.core.Option): The option being handled. Unused.
-        value (str): The value of the --tty/--no-tty flag.
+        param (click.core.Option): The option being handled. Used to find the global we are setting.
+        value (str): The value of the flag.
     Returns:
-        bool: The value of the --tty/--no-tty flag.
+        bool: The value of the flag.
     """
-    global tty
-    tty = value
+    globals()[param.name] = value
     return value
 
 
@@ -77,7 +78,9 @@ container_runtime_option = click.option(
     help='Select the container runtime to use. Defaults to docker.',
     callback=_set_container_runtime)
 failfast_option = click.option('--failfast', '-x', is_flag=True,
-                               help='Exit immediately upon error.')
+                               help='Exit immediately upon error.', callback=_set_global)
+init_option = click.option('--init/--no-init', default=True,
+                           help="Use the container runtime's --init flag.", callback=_set_global)
 no_build_option = click.option(
     '--no-build', is_flag=True,
     help='Do not run docker build if the image already exists.')
@@ -90,7 +93,7 @@ releases_option = click.option(
     help=("Limit to a particular release. May be specified multiple times. "
           "Acceptable values: {}".format(', '.join(RELEASES))))
 tty_option = click.option('--tty/--no-tty', default=True, help='Allocate a pseudo-TTY.',
-                          callback=_set_tty)
+                          callback=_set_global)
 
 # These command maps define how to run each type of test, how to label them in the output,
 # and overrides for how to run them that are release specific (pip sometimes uses different
@@ -111,6 +114,8 @@ pydocstyle_command_map = {
     'pip': ['/usr/local/bin/pydocstyle', 'bodhi']}
 
 container_runtime = None
+failfast = False
+init = True
 tty = False
 
 
@@ -125,32 +130,35 @@ def cli():
 @archive_option
 @container_runtime_option
 @failfast_option
+@init_option
 @no_build_option
 @pyver_option
 @releases_option
 @tty_option
-def all(archive, container_runtime, no_build, failfast, pyver, release, tty):
+def all(archive, container_runtime, no_build, failfast, init, pyver, release, tty):
     """Run all the types of tests in parallel."""
     command_maps = [docs_command_map, flake8_command_map, pydocstyle_command_map]
-    command_maps.extend(_generate_unit_command_maps(failfast, pyver))
+    command_maps.extend(_generate_unit_command_maps(pyver))
 
     _container_run(no_build, release, command_maps, archive)
 
 
 @cli.command()
 @container_runtime_option
+@failfast_option
 @releases_option
 @tty_option
-def build(container_runtime, release, tty):
+def build(container_runtime, failfast, release, tty):
     """Build the containers for testing."""
     _build(release)
 
 
 @cli.command()
 @container_runtime_option
+@init_option
 @releases_option
 @tty_option
-def clean(container_runtime, release, tty):
+def clean(container_runtime, init, release, tty):
     """Remove all builds pertaining to Bodhi CI."""
     jobs = {}
     for r in release:
@@ -163,30 +171,36 @@ def clean(container_runtime, release, tty):
 
 @cli.command()
 @container_runtime_option
+@failfast_option
+@init_option
 @no_build_option
 @releases_option
 @tty_option
-def docs(container_runtime, no_build, release, tty):
+def docs(container_runtime, failfast, init, no_build, release, tty):
     """Build the docs."""
     _container_run(no_build, release, docs_command_map)
 
 
 @cli.command()
 @container_runtime_option
+@failfast_option
+@init_option
 @no_build_option
 @releases_option
 @tty_option
-def flake8(container_runtime, no_build, release, tty):
+def flake8(container_runtime, failfast, init, no_build, release, tty):
     """Run flake8 tests."""
     _container_run(no_build, release, flake8_command_map)
 
 
 @cli.command()
 @container_runtime_option
+@failfast_option
+@init_option
 @no_build_option
 @releases_option
 @tty_option
-def pydocstyle(container_runtime, no_build, release, tty):
+def pydocstyle(container_runtime, failfast, init, no_build, release, tty):
     """Run pydocstyle tests."""
     _container_run(no_build, release, pydocstyle_command_map)
 
@@ -195,13 +209,14 @@ def pydocstyle(container_runtime, no_build, release, tty):
 @archive_option
 @container_runtime_option
 @failfast_option
+@init_option
 @no_build_option
 @pyver_option
 @releases_option
 @tty_option
-def unit(archive, container_runtime, no_build, failfast, pyver, release, tty):
+def unit(archive, container_runtime, no_build, failfast, init, pyver, release, tty):
     """Run the unit tests."""
-    _container_run(no_build, release, _generate_unit_command_maps(failfast, pyver), archive)
+    _container_run(no_build, release, _generate_unit_command_maps(pyver), archive)
 
 
 def _build(releases):
@@ -266,6 +281,9 @@ def _container_run(no_build, releases, command_maps, archive=False):
             args = [container_runtime, 'run', '--network', 'none', '--rm',
                     '--label', CONTAINER_LABEL]
 
+            if init:
+                args.append('--init')
+
             if tty:
                 args.append('-t')
 
@@ -302,13 +320,100 @@ def _ensure_builds_exist(releases):
         _build(releases_to_build)
 
 
-def _generate_unit_command_maps(failfast, pyvers):
+def _format_output(output, label):
+    """
+    Run decode on the given output, and then prepend label in front of each line.
+
+    Args:
+        output (bytes): The output from Process.communicate().
+        label (str): The label to prepend on each line.
+    """
+    if not output:
+        return ''
+    output = output.decode()
+    return '\n'.join(['{}\t{}'.format(label, line) for line in output.split('\n')])
+
+
+def _process_results(loop, done, pending):
+    """
+    Process the finished and pendings tasks and return error output, a summary, and an exit code.
+
+    This function is used by _run_processes() to generate the final stdout to be printed (which is
+    going to be the output of the failed tasks since the cancelled tasks and successful tasks
+    already had their output printed), a summary block for humans to read, and an exit code that
+    bodhi-ci should use. Any pending tasks will be cancelled.
+
+    Args:
+        loop (asyncio.AbstractEventLoop): The event loop. This is used to cancel any pending tasks.
+        done (set): A set of asyncio.Tasks that represent finished tasks.
+        pending (set): A set of asyncio.Tasks that represent unfinshed tasks. These will be
+            canceled.
+    Returns:
+        dict: A dictionary with three keys:
+            'summary': Indexing a str summarizing the jobs.
+            'output': The output that should be printed.
+            'returncode': The exit code that bodhi-ci should exit with.
+    """
+    returncode = 0
+    error_output = ''
+    summary = ''
+
+    if pending:
+        for task in pending:
+            task.cancel()
+        future = asyncio.wait(pending)
+        cancelled, pending = loop.run_until_complete(future)
+        done = done | cancelled
+        returncode = -signal.SIGINT
+
+    for task in done:
+        try:
+            result = task.result()
+        except RuntimeError as e:
+            # This task failed, or was cancelled.
+            result = e.result
+            if result['stdout']:
+                if result['returncode'] < 0:
+                    # This was canceled, so let's print it now so the error output can go
+                    # last.
+                    click.echo(result['stdout'])
+                else:
+                    error_output = '{}\n{}'.format(error_output, result['stdout'])
+            if not returncode:
+                returncode = result['returncode']
+        summary = summary + result['summary']
+
+    # Let's sort the summary lexicographically so releases show near each other.
+    summary = '\n'.join(sorted([l for l in summary.split('\n')]))
+
+    return {'summary': summary, 'output': error_output, 'returncode': returncode}
+
+
+def _generate_result(job, returncode, output):
+    """
+    Generate the result format that _run_process() needs to return.
+
+    Args:
+        job (str): The job label.
+        returncode (int): The process exit code.
+        output (bytes): The output from process.communicate().
+    Returns:
+        dict: A dictionary with the following keys:
+            job (str): A label identifying the job.
+            summary (str): A summary line to show the user about this job at the end.
+            returncode (int): The process' exit code.
+            stdout (str): The process' stdout.
+    """
+    return {
+        'job': job, 'returncode': returncode,
+        'summary': _summary_line(returncode, job), 'stdout': _format_output(output, job)}
+
+
+def _generate_unit_command_maps(pyvers):
     """
     Return a list of command maps suitable for _container_run() that run the unit tests.
 
     Args:
-        failfast (bool): Whether to pass the -x flag to py.test, which asks it to exit immediately
-            upon failure.
         pyvers (list): A list of integers for which Python versions to test. Only 2 and 3 are used.
     Retutns:
         list: A list of dictionaries (known as command maps - see the help for _container_run() for
@@ -346,6 +451,58 @@ def _generate_unit_command_maps(failfast, pyvers):
     return command_maps
 
 
+async def _run_process(job, *args, **kwargs):
+    """
+    Run a subprocess, returning its label, summary, return code, and stdout.
+
+    Cancelled processes will have their return code set to -2, no matter what their real return code
+    was. This makes it easy to identify cancelled processes.
+
+    Args:
+        job (str): The label to prepend on all stdout for the job.
+        args (list): A list of args to pass to asyncio.create_subprocess_exec().
+        kwargs (dict): The keyword arguments to pass to asyncio.create_subprocess_exec().
+    Returns:
+        dict: A dictionary with the following keys:
+            job (str): A label identifying the job.
+            summary (str): A summary line to show the user about this job at the end.
+            returncode (int): The process' exit code, or -2 if it was cancelled.
+            stdout (str): The process' stdout.
+    """
+    cancelled = False
+    stdout = b''
+
+    process = await asyncio.create_subprocess_exec(*args, **kwargs)
+
+    try:
+        stdout, stderr = await process.communicate()
+    except asyncio.CancelledError as e:
+        try:
+            process.terminate()
+        except ProcessLookupError:
+            # The process is already stopped, nothing to see here.
+            pass
+        cancelled_stdout, stderr = await process.communicate()
+        stdout = stdout + cancelled_stdout
+        cancelled = True
+
+    returncode = -2 if cancelled else process.returncode
+
+    result = _generate_result(job, returncode, stdout)
+
+    # If the job's been cancelled or successful, let's go ahead and print its output now. Failed
+    # jobs will have their output printed at the end.
+    if returncode <= 0 and result['stdout']:
+        click.echo(result['stdout'])
+
+    if process.returncode != 0:
+        error = RuntimeError()
+        error.result = result
+        raise error
+
+    return result
+
+
 def _run_processes(jobs):
     """
     Run the given jobs in parallel.
@@ -360,83 +517,99 @@ def _run_processes(jobs):
         jobs (dict): A dictionary mapping job labels (str) to a list of strings which are suitable
             as arguments to subprocess.Popen().
     """
-    return_code = 0
-
     popen_kwargs = {'shell': False}
     if len(jobs) > 1:
+        # If there's more than one job, let's buffer the output so the user doesn't see a jumbled
+        # mess.
         popen_kwargs['stdout'] = subprocess.PIPE
         popen_kwargs['stderr'] = subprocess.STDOUT
 
-    processes = {}
-    for j, args in jobs.items():
-        click.echo('Running {}'.format(' '.join(args)))
-        p = subprocess.Popen(args, **popen_kwargs)
-        processes[j] = p
-        if container_runtime == 'podman':
-            time.sleep(2)
+    loop = asyncio.get_event_loop()
 
-    # For ease of reading, let's save the output from failed jobs here so we can print it out after
-    # the successful jobs' output.
-    failed_output = ''
-    for label, p in processes.items():
-        out, err = p.communicate()
+    [click.echo('Running {}'.format(' '.join(args))) for j, args in jobs.items()]
+    processes = [_run_process(j, *args, **popen_kwargs) for j, args in jobs.items()]
 
-        if len(jobs) > 1:
-            out = out.decode()
-            if out:
-                for line in out.split('\n'):
-                    line = '{}\t{}'.format(label, line)
-                    if p.returncode == 0:
-                        click.echo(line)
-                    else:
-                        failed_output = failed_output + line + '\n'
+    return_when = asyncio.ALL_COMPLETED
+    if failfast:
+        return_when = asyncio.FIRST_EXCEPTION
+    future = asyncio.wait(processes, return_when=return_when)
+    # Catch SIGINT, but don't do anything. We just don't want the signal to cause the Exception to
+    # bubble up out of the main loop.
+    loop.add_signal_handler(signal.SIGINT, lambda: None)
 
-    if failed_output:
-        click.echo(failed_output)
+    try:
+        done, pending = loop.run_until_complete(future)
 
-    click.echo('\n')
-    for label, p in processes.items():
-        if p.returncode != 0:
-            return_code = p.returncode
-            color_start = '\033[0;31m' if tty else ''
-            color_end = '\033[0m' if tty else ''
-            click.echo(
-                '{}:  {}FAILED{}  (exited with code: {})'.format(
-                    label, color_start, color_end, p.returncode))
-        else:
-            color_start = '\033[0;32m' if tty else ''
-            color_end = '\033[0m' if tty else ''
-            click.echo('{}:  {}SUCCESS!{}'.format(label, color_start, color_end))
-    click.echo('\n')
+        results = _process_results(loop, done, pending)
+    finally:
+        _stop_all_jobs(loop)
 
-    if return_code:
-        sys.exit(return_code)
+    # Now it's time to print any error output we collected and the summary, then exit or return.
+    click.echo(results['output'])
+    click.echo('\n\n{}'.format(results['summary']))
+    if results['returncode']:
+        sys.exit(results['returncode'])
 
 
-def _signal_handler(sig, frame):
+def _stop_all_jobs(loop):
     """
-    Kill processes that match CONTAINER_LABEL before exiting with code 1.
+    Stop all running docker jobs with the CONTAINER_LABEL.
+
+    Even though we terminate() all of our child processes above, Docker does not always proxy
+    signals through to the container, so we will do a final cleanup to make sure all the jobs we
+    started in this process have been told to stop.
 
     Args:
-        sig (int): The signal that we are handling.
-        frame (frame): The current frame.
+        loop (asyncio.AbstractEventLoop): The event loop.
     """
-    click.echo(type(sig))
-    click.echo(type(frame))
-    click.echo(sig)
-    click.echo(frame)
-    click.echo('Stopping processes.')
     args = [container_runtime, 'ps', '--filter=label={}'.format(CONTAINER_LABEL), '-q']
     processes = subprocess.check_output(args).decode()
     jobs = {}
     for process in processes.split('\n'):
         if process:
             jobs[process] = [container_runtime, 'stop', process]
-    _run_processes(jobs)
-    sys.exit(1)
+
+    # If you give run_until_complete a future with no tasks, you will haz a sad (that's the
+    # technical wording for a ValueError).
+    if jobs:
+        stop_processes = [_run_process(j, *args, stdout=subprocess.DEVNULL, shell=False)
+                          for j, args in jobs.items()]
+        stop_future = asyncio.wait(stop_processes)
+        loop.run_until_complete(stop_future)
 
 
-signal.signal(signal.SIGINT, _signal_handler)
+def _summary_line(exit_code, job):
+    """
+    Create a summary line for the given job with given exit_code.
+
+    If the exit_code indicates failure, it is printed to the console immediately. Failed jobs'
+    stdout is not printed until the end of the job, so this gives the user a way to know that a job
+    failed before its output is printed, and they can ctrl-c to see its output.
+
+    Args:
+        exit_code (int): The exit code of the given job - used to determine which color/message to
+            print.
+        job (str): The label for the job.
+    Returns:
+        str: A summary line suitable to print at the end of the process.
+    """
+    if exit_code == 0:
+        color_start = '\033[0;32m' if tty else ''
+        color_end = '\033[0m' if tty else ''
+        summary_line = '{}:  {}SUCCESS!{}\n'.format(job, color_start, color_end)
+    elif exit_code < 0:
+        color_start = '\033[0;33m' if tty else ''
+        color_end = '\033[0m' if tty else ''
+        summary_line = '{}:  {}CANCELED{}\n'.format(
+            job, color_start, color_end)
+    else:
+        color_start = '\033[0;31m' if tty else ''
+        color_end = '\033[0m' if tty else ''
+        summary_line = '{}:  {}FAILED{}  (exited with code: {})\n'.format(
+            job, color_start, color_end, exit_code)
+        click.echo(summary_line)
+
+    return summary_line
 
 
 cli()

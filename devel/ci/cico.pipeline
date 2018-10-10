@@ -43,8 +43,12 @@ def synctoduffynode(rsyncpath) {
  */
 def configure_node = {
     onmyduffynode 'yum -y install epel-release'
-    onmyduffynode 'yum install -y docker python34-click rsync'
+    onmyduffynode 'yum install -y docker python36 rsync'
     onmyduffynode 'systemctl start docker'
+
+    // We need this until https://src.fedoraproject.org/rpms/python-click/pull-request/2 is merged.
+    onmyduffynode 'python3.6 -m ensurepip'
+    onmyduffynode 'python3.6 -m pip install click'
 }
 
 
@@ -79,7 +83,7 @@ def bodhi_ci = { String release, String command, String context, String args ->
     try {
         stage(release + '-' + context) {
             timeout(time: 16, unit: 'MINUTES') {
-                onmyduffynode 'cd payload && ./devel/ci/bodhi-ci ' + command + ' --no-tty -r ' + release + ' ' + args
+                onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci ' + command + ' --no-tty -r ' + release + ' ' + args
             }
         }
         githubNotify context: release + '-' + context, status: 'SUCCESS'
@@ -99,11 +103,11 @@ def test_release = { String release ->
     bodhi_ci(release, 'build', 'build', '')
 
     parallel(
-        docs: {bodhi_ci(release, 'docs', 'docs', '--no-build')},
-        flake8: {bodhi_ci(release, 'flake8', 'flake8', '--no-build')},
-        pydocstyle: {bodhi_ci(release, 'pydocstyle', 'pydocstyle', '--no-build')},
-        unitpy2: {bodhi_ci(release, 'unit', 'python2-unit', '--no-build -a -p 2')},
-        unitpy3: {bodhi_ci(release, 'unit', 'python3-unit', '--no-build -a -p 3')}
+        docs: {bodhi_ci(release, 'docs', 'docs', '--no-build --no-init')},
+        flake8: {bodhi_ci(release, 'flake8', 'flake8', '--no-build --no-init')},
+        pydocstyle: {bodhi_ci(release, 'pydocstyle', 'pydocstyle', '--no-build --no-init')},
+        unitpy2: {bodhi_ci(release, 'unit', 'python2-unit', '--no-build --no-init -a -p 2')},
+        unitpy3: {bodhi_ci(release, 'unit', 'python3-unit', '--no-build --no-init -a -p 3')}
     )
 }
 
