@@ -133,6 +133,13 @@ The ``overrides`` command allows users to manage build overrides.
 
         Filter for overrides by a list of usernames, given as a comma-separated list.
 
+    ``--rows <integer>``
+
+        Limits number of results shown per page.
+
+    ``--page <integer>``
+
+        Go to page number.
 
 ``bodhi overrides save [options] <nvr>``
 
@@ -417,6 +424,14 @@ The ``updates`` command allows users to interact with bodhi updates.
     ``--user <username>``
 
         Filter for updates by a list of usernames, given as a comma-separated list.
+
+    ``--rows <integer>``
+
+        Limits number of results shown per page.
+
+    ``--page <integer>``
+
+        Go to page number.
 
 ``bodhi updates request [options] <update> <state>``
 
