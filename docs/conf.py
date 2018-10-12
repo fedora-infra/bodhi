@@ -263,6 +263,7 @@ man_pages = [
     ('user/man_pages/bodhi-expire-overrides', 'bodhi-expire-overrides',
      'Look for overrides that are past their expiration dates and mark them expired',
      ['Randy Barlow'], 1),
+    ('user/man_pages/bodhi-sar', 'bodhi-sar', 'display user data', ['Randy Barlow'], 1),
     ('user/man_pages/bodhi-skopeo-lite', 'bodhi-skopeo-lite',
      'Copy containers between registries',
      ['Owen Taylor'], 1),
