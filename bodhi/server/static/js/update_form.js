@@ -299,11 +299,21 @@ $(document).ready(function() {
     // field or the 'bugs' field, those things get added to the list of
     // possibilities.
     var add_bugs = function() {
+        $("#bugs-checkboxes").prepend("<img class='spinner' src='static/img/spinner.gif'>\n");
         var value = $("#bugs-adder input").val().trim();
+        var count_done = 0;
+        var count_todo = 0;
         $.each(value.split(","), function(i, intermediary) {
-            $.each(intermediary.trim().split(" "), function(j, item) {
+            bug_list = intermediary.trim().split(" ");
+            count_todo += bug_list.length;
+            $.each(bug_list, function(j, item) {
                 item = item.trim()
                 if (item[0] == '#') { item = item.substring(1); }
+                // Prevent empty item e.g. double space in input
+                if (item == '') {
+                    count_done += 1;
+                    return;
+                }
                 $.ajax({
                     url: "https://bugzilla.redhat.com/jsonrpc.cgi?method=Bug.get&params=%5B%7B%22ids%22:" + item + "%7D%5D",
                     timeout: 10000,
@@ -350,6 +360,10 @@ $(document).ready(function() {
                                 type: 'error',
                             });
                         }
+                    },
+                    complete: function() {
+                        count_done += 1;
+                        if (count_done == count_todo) { $("#bugs-checkboxes .spinner").remove(); }
                     },
                 });
             });
