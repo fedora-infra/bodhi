@@ -304,11 +304,58 @@ $(document).ready(function() {
             $.each(intermediary.trim().split(" "), function(j, item) {
                 item = item.trim()
                 if (item[0] == '#') { item = item.substring(1); }
-                add_bug_checkbox(item, '', true, true);
+                $.ajax({
+                    url: "https://bugzilla.redhat.com/jsonrpc.cgi?method=Bug.get&params=%5B%7B%22ids%22:" + item + "%7D%5D",
+                    timeout: 10000,
+                    dataType: 'jsonp',
+                    success: function(data) {
+                        // Received error response e.g. bug doesn't exist
+                        if (data.error) {
+                            messenger.post({
+                                message: data.error.message,
+                                type: 'error',
+                            });
+                            return;
+                        }
+                        // There should be only one
+                        if (data.result.bugs.length != 1) {
+                            messenger.post({
+                                message: 'Received bad response for bug #' + item,
+                                type: 'error',
+                            });
+                            return;
+                        }
+                        // Check Bug product
+                        if (data.result.bugs[0].product !== "Fedora" && data.result.bugs[0].product !== "Fedora EPEL") {
+                            var r = confirm('Bug #' + item + ' doesn\'t seem to refer to Fedora or Fedora EPEL.\nAre you sure you want to reference it in this update?');
+                            if (r === false) { return; }
+                        }
+                        // Alert user if bug is already closed
+                        if (data.result.bugs[0].status == "CLOSED") {
+                            var r = confirm('Bug #' + item + ' is already in CLOSED state.\nAre you sure you want to reference it in this update?');
+                            if (r === false) { return; }
+                        }
+                        add_bug_checkbox(item, data.result.bugs[0].summary, true, true);
+                    },
+                    error: function(jqXHR, textStatus) {
+                        if (textStatus == 'timeout') {
+                            messenger.post({
+                                message: 'Reached timeout while retrieving details for bug #' + item,
+                                type: 'error',
+                            });
+                        }
+                        else {
+                            messenger.post({
+                                message: 'Unable to retrieve details for bug #' + item,
+                                type: 'error',
+                            });
+                        }
+                    },
+                });
             });
         });
         $("#bugs-adder input").val('');  // Clear the field
-        return false;
+        return;
     }
     var add_builds = function() {
         var value = $("#builds-adder input").val().trim();
