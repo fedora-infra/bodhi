@@ -82,11 +82,16 @@ $(document).ready(function() {
         }
     });
 
-    // Callback to remove a checkbox when it is unchecked.
+    // Callbacks to remove a checkbox when it is unchecked.
     // https://github.com/fedora-infra/bodhi/issues/260
-    var remove_unchecked = function() {
+    var remove_unchecked_bug = function() {
         if (!$(this).is(":checked")) {
-            $(this).parent().parent().remove();
+            $(this).closest(".bug-container").remove();
+        }
+    };
+    var remove_unchecked_candidate = function() {
+        if (!$(this).is(":checked")) {
+            $(this).closest(".candidate-container").remove();
         }
     };
 
@@ -113,7 +118,7 @@ $(document).ready(function() {
         }
         $("#candidate-checkboxes").prepend(
             [
-                '<div class="checkbox">',
+                '<div class="checkbox candidate-container">',
                 '<label>',
                 '<input name="builds" data-build-nvr="' + nvr + '"' +
                     (idx ? ' data-build-id="' + idx + '" ' : ' ') +
@@ -122,7 +127,7 @@ $(document).ready(function() {
                 '</label>',
                 '</div>',
         ].join('\n'));
-        $("#candidate-checkboxes input:first-of-type").click(remove_unchecked);
+        $("#candidate-checkboxes input:first-of-type").click(remove_unchecked_candidate);
 
         $("#candidate-checkboxes .checkbox:first-child input").click(function() {
             var self = $(this);
@@ -151,7 +156,7 @@ $(document).ready(function() {
 
     // A utility for adding another bug to the checkbox list of potential bugs
     // this update could fix.
-    var add_bug_checkbox = function(idx, description, checked, manual) {
+    var add_bug_checkbox = function(idx, description, release, checked, manual) {
         if (idx == '' || idx == null || idx === undefined) return;
         // Prevent duplicated manual entries
         if (manual) {
@@ -169,15 +174,18 @@ $(document).ready(function() {
         }
         $("#bugs-checkboxes").prepend(
             [
+                '<div class="bug-container">',
                 '<div>',
                 '<label class="c-input c-checkbox">',
                 '<input name="bugs" type="checkbox" value="' + idx + '"' + (checked ? ' checked' : '') + (manual ? ' class="manual"' : '') + '>',
                 '<span class="c-indicator"></span><a href="https://bugzilla.redhat.com/show_bug.cgi?id=' + idx + '">',
-                '#' + idx + '</a> ' + description,
-                '</label>',
+                '#' + idx + '</a></label> ',
+                '<span class="label label-info bug-release">' + release + '</span>',
+                '</div>',
+                '<div class="bug-description">' + description + '</div>',
                 '</div>',
         ].join('\n'));
-        $("#bugs-checkboxes input:first-of-type").click(remove_unchecked);
+        $("#bugs-checkboxes input:first-of-type").click(remove_unchecked_bug);
     }
 
     // This wires up the action that happens when the user selects something
@@ -188,7 +196,9 @@ $(document).ready(function() {
         // Get a list of currently checked items
         var checked_bugs = [];
         $("#bugs-checkboxes input:checkbox:checked").each(function(){
-            var bug = {id: parseInt($(this).val()), title: $(this).parent().text().replace(/^#\d+\s/m, '')};
+            var title = $(this).closest(".bug-container").find(".bug-description").text();
+            var release = $(this).closest(".bug-container").find(".bug-release").text();
+            var bug = {id: parseInt($(this).val()), title: title, release: release};
             checked_bugs.push(bug);
         });
         var checked_candidates = [];
@@ -267,7 +277,7 @@ $(document).ready(function() {
                             return false;
                         }
                     });
-                    if (listed == false) {add_bug_checkbox(bug.id, bug.description, false, false);}
+                    if (listed == false) {add_bug_checkbox(bug.id, bug.description, bug.release, false, false);}
                 });
                 // TODO -- tack on 'And 200 more bugs..'
             },
@@ -289,7 +299,7 @@ $(document).ready(function() {
                 $("#bugs-checkboxes .spinner").remove();
                 // Re-add previously checked bugs
                 $.each(checked_bugs, function(i, bug) {
-                    add_bug_checkbox(bug.id, bug.title, true, false);
+                    add_bug_checkbox(bug.id, bug.title, bug.release, true, false);
                 });
             },
         });
@@ -345,7 +355,8 @@ $(document).ready(function() {
                             var r = confirm('Bug #' + item + ' is already in CLOSED state.\nAre you sure you want to reference it in this update?');
                             if (r === false) { return; }
                         }
-                        add_bug_checkbox(item, data.result.bugs[0].summary, true, true);
+                        var release = data.result.bugs[0].product + ' ' + data.result.bugs[0].version[0];
+                        add_bug_checkbox(item, data.result.bugs[0].summary, release, true, true);
                     },
                     error: function(jqXHR, textStatus) {
                         if (textStatus == 'timeout') {
