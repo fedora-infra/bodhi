@@ -302,6 +302,7 @@ class BodhiClient(OpenIdBaseClient):
         Query bodhi for a list of updates.
 
         Args:
+            title (basestring): The update title.
             alias (basestring): The update alias.
             updateid (basestring): The update ID (eg: FEDORA-2015-0001).
             content_type (basestring): A content type (rpm, module) to limit the query to.
@@ -349,6 +350,9 @@ class BodhiClient(OpenIdBaseClient):
         Returns:
             munch.Munch: The response from Bodhi describing the query results.
         """
+        if 'title' in kwargs:
+            kwargs['like'] = kwargs['title']
+            del kwargs['title']
         # bodhi1 compat
         if 'limit' in kwargs:
             kwargs['rows_per_page'] = kwargs['limit']

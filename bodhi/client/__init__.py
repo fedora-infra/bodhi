@@ -459,6 +459,7 @@ def edit(user, password, url, debug, **kwargs):
 
 @updates.command()
 @click.option('--updateid', help='Query by update ID (eg: FEDORA-2015-0001)')
+@click.option('--title', help='Query by title')
 @click.option('--alias', help='Query by alias')
 @click.option('--approved-since', help='Approved after a specific timestamp')
 @click.option('--approved-before', help='Approved before a specific timestamp')
