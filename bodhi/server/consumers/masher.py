@@ -1218,9 +1218,9 @@ class PungiComposerThread(ComposerThread):
         """
         self.save_state(ComposeState.punging)
         if pungi_process is None:
-            self.log.info('Not waiting for pungi thread, as there was no pungi')
+            self.log.info('Not waiting for pungi process, as there was no pungi')
             return
-        self.log.info('Waiting for pungi thread to finish')
+        self.log.info('Waiting for pungi process to finish')
         out, err = pungi_process.communicate()
         self.devnull.close()
         if pungi_process.returncode != 0:

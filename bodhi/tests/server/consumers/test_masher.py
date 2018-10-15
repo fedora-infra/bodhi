@@ -3511,5 +3511,5 @@ class TestPungiComposerThread__wait_for_pungi(ComposerThreadBaseTestCase):
         self.assertEqual(
             t.log.info.mock_calls,
             [mock.call('Compose object updated.'),
-             mock.call('Not waiting for pungi thread, as there was no pungi')])
+             mock.call('Not waiting for pungi process, as there was no pungi')])
         self.assertEqual(t.compose.state, ComposeState.punging)
