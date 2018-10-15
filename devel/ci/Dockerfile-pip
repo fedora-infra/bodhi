@@ -28,6 +28,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     graphviz \
     python2-devel \
     python3-devel \
+    python3-librepo \
     python3-simplemediawiki \
     redhat-rpm-config \
     python2-libcomps \
