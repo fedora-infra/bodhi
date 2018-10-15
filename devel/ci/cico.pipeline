@@ -43,12 +43,8 @@ def synctoduffynode(rsyncpath) {
  */
 def configure_node = {
     onmyduffynode 'yum -y install epel-release'
-    onmyduffynode 'yum install -y docker python36 rsync'
+    onmyduffynode 'yum install -y docker python36-click rsync'
     onmyduffynode 'systemctl start docker'
-
-    // We need this until https://src.fedoraproject.org/rpms/python-click/pull-request/2 is merged.
-    onmyduffynode 'python3.6 -m ensurepip'
-    onmyduffynode 'python3.6 -m pip install click'
 }
 
 
@@ -108,11 +104,11 @@ def test_release = { String release ->
         pydocstyle: {bodhi_ci(release, 'pydocstyle', 'pydocstyle', '--no-build --no-init')},
         unitpy2: {
             bodhi_ci(release, 'unit', 'python2-unit', '--no-build --no-init -p 2')
-            bodhi_ci(release, 'diff-cover', 'python2-diff-cover', '--no-build --no-init -p 2')
+            bodhi_ci(release, 'diff_cover', 'python2-diff-cover', '--no-build --no-init -p 2')
         },
         unitpy3: {
             bodhi_ci(release, 'unit', 'python3-unit', '--no-build --no-init -p 3')
-            bodhi_ci(release, 'diff-cover', 'python3-diff-cover', '--no-build --no-init -p 3')
+            bodhi_ci(release, 'diff_cover', 'python3-diff-cover', '--no-build --no-init -p 3')
         }
     )
 }
