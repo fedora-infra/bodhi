@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Bodhi's CI command tool."""
 import asyncio
+import multiprocessing
 import os
 import signal
 import subprocess
@@ -33,6 +34,22 @@ CONTAINER_NAME = 'bodhi-ci'
 CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 RELEASES = ('f27', 'f28', 'f29', 'rawhide', 'pip')
+
+
+def _set_concurrency(ctx, param, value):
+    """
+    Set up the concurrency_semaphore.
+
+    Args:
+        ctx (click.core.Context): The Click context, unused.
+        param (click.core.Option): The option being handled. Unused.
+        value (str): The value of the -j flag.
+    Returns:
+        str: The value of the -j flag.
+    """
+    global concurrency_semaphore
+    concurrency_semaphore = asyncio.Semaphore(value=value)
+    return value
 
 
 def _set_container_runtime(ctx, param, value):
@@ -73,6 +90,9 @@ def _set_global(ctx, param, value):
 archive_option = click.option(
     '--archive', '-a', is_flag=True,
     help=("Collect *.xml from the tests and put them into test_results/."))
+concurrency_option = click.option(
+    '--concurrency', '-j', default=multiprocessing.cpu_count(), callback=_set_concurrency, type=int,
+    help='Number of concurrent processes to run. Defaults to the number of cores detected')
 container_runtime_option = click.option(
     '--container-runtime', '-c', default='docker', type=click.Choice(['docker', 'podman']),
     help='Select the container runtime to use. Defaults to docker.',
@@ -113,6 +133,7 @@ pydocstyle_command_map = {
     'default': ['/usr/bin/pydocstyle', 'bodhi'],
     'pip': ['/usr/local/bin/pydocstyle', 'bodhi']}
 
+concurrency_semaphore = None
 container_runtime = None
 failfast = False
 init = True
@@ -128,6 +149,7 @@ def cli():
 
 @cli.command()
 @archive_option
+@concurrency_option
 @container_runtime_option
 @failfast_option
 @init_option
@@ -135,7 +157,8 @@ def cli():
 @pyver_option
 @releases_option
 @tty_option
-def all(archive, container_runtime, no_build, failfast, init, pyver, release, tty):
+def all(archive, concurrency, container_runtime, no_build, failfast, init, pyver, release,
+        tty):
     """Run all the types of tests in parallel."""
     command_maps = [docs_command_map, flake8_command_map, pydocstyle_command_map]
     command_maps.extend(_generate_unit_command_maps(pyver))
@@ -144,21 +167,23 @@ def all(archive, container_runtime, no_build, failfast, init, pyver, release, tt
 
 
 @cli.command()
+@concurrency_option
 @container_runtime_option
 @failfast_option
 @releases_option
 @tty_option
-def build(container_runtime, failfast, release, tty):
+def build(concurrency, container_runtime, failfast, release, tty):
     """Build the containers for testing."""
     _build(release)
 
 
 @cli.command()
+@concurrency_option
 @container_runtime_option
 @init_option
 @releases_option
 @tty_option
-def clean(container_runtime, init, release, tty):
+def clean(concurrency, container_runtime, init, release, tty):
     """Remove all builds pertaining to Bodhi CI."""
     jobs = {}
     for r in release:
@@ -170,43 +195,47 @@ def clean(container_runtime, init, release, tty):
 
 
 @cli.command()
+@concurrency_option
 @container_runtime_option
 @failfast_option
 @init_option
 @no_build_option
 @releases_option
 @tty_option
-def docs(container_runtime, failfast, init, no_build, release, tty):
+def docs(concurrency, container_runtime, failfast, init, no_build, release, tty):
     """Build the docs."""
     _container_run(no_build, release, docs_command_map)
 
 
 @cli.command()
+@concurrency_option
 @container_runtime_option
 @failfast_option
 @init_option
 @no_build_option
 @releases_option
 @tty_option
-def flake8(container_runtime, failfast, init, no_build, release, tty):
+def flake8(concurrency, container_runtime, failfast, init, no_build, release, tty):
     """Run flake8 tests."""
     _container_run(no_build, release, flake8_command_map)
 
 
 @cli.command()
+@concurrency_option
 @container_runtime_option
 @failfast_option
 @init_option
 @no_build_option
 @releases_option
 @tty_option
-def pydocstyle(container_runtime, failfast, init, no_build, release, tty):
+def pydocstyle(concurrency, container_runtime, failfast, init, no_build, release, tty):
     """Run pydocstyle tests."""
     _container_run(no_build, release, pydocstyle_command_map)
 
 
 @cli.command()
 @archive_option
+@concurrency_option
 @container_runtime_option
 @failfast_option
 @init_option
@@ -214,7 +243,7 @@ def pydocstyle(container_runtime, failfast, init, no_build, release, tty):
 @pyver_option
 @releases_option
 @tty_option
-def unit(archive, container_runtime, no_build, failfast, init, pyver, release, tty):
+def unit(archive, concurrency, container_runtime, no_build, failfast, init, pyver, release, tty):
     """Run the unit tests."""
     _container_run(no_build, release, _generate_unit_command_maps(pyver), archive)
 
@@ -472,19 +501,20 @@ async def _run_process(job, *args, **kwargs):
     cancelled = False
     stdout = b''
 
-    process = await asyncio.create_subprocess_exec(*args, **kwargs)
+    async with concurrency_semaphore:
+        process = await asyncio.create_subprocess_exec(*args, **kwargs)
 
-    try:
-        stdout, stderr = await process.communicate()
-    except asyncio.CancelledError as e:
         try:
-            process.terminate()
-        except ProcessLookupError:
-            # The process is already stopped, nothing to see here.
-            pass
-        cancelled_stdout, stderr = await process.communicate()
-        stdout = stdout + cancelled_stdout
-        cancelled = True
+            stdout, stderr = await process.communicate()
+        except asyncio.CancelledError as e:
+            try:
+                process.terminate()
+            except ProcessLookupError:
+                # The process is already stopped, nothing to see here.
+                pass
+            cancelled_stdout, stderr = await process.communicate()
+            stdout = stdout + cancelled_stdout
+            cancelled = True
 
     returncode = -2 if cancelled else process.returncode
 
