@@ -107,8 +107,10 @@ container_runtime_option = click.option(
     callback=_set_container_runtime)
 failfast_option = click.option('--failfast', '-x', is_flag=True,
                                help='Exit immediately upon error.', callback=_set_global)
-init_option = click.option('--init/--no-init', default=True,
-                           help="Use the container runtime's --init flag.", callback=_set_global)
+init_option = click.option(
+    '--init/--no-init', default=True, callback=_set_global,
+    help=("Use docker's --init flag. This option only has an effect when docker is "
+          "the container runtime being used."))
 no_build_option = click.option(
     '--no-build', is_flag=True, callback=_set_global,
     help='Do not run docker build if the image already exists.')
@@ -490,7 +492,8 @@ class Job(object):
         args = [container_runtime, 'run', '--network', 'none', '--rm',
                 '--label', CONTAINER_LABEL]
 
-        if init:
+        # podman does not support --init: https://github.com/containers/libpod/issues/1670
+        if init and container_runtime == 'docker':
             args.append('--init')
 
         if tty:
