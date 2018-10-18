@@ -25,6 +25,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import typing
 import uuid
 
 import click
@@ -156,26 +157,8 @@ def cli():
 def all(archive, archive_path, concurrency, container_runtime, no_build, failfast, init, pyver,
         release, tty):
     """Run all the types of tests in parallel."""
-    buffer_output = concurrency != 1
-    build_jobs = [BuildJob(r, buffer_output=buffer_output) for r in release]
-    docs_jobs = [DocsJob(j.release, depends_on=j, buffer_output=buffer_output) for j in build_jobs]
-    flake8_jobs = [
-        Flake8Job(j.release, depends_on=j, buffer_output=buffer_output) for j in build_jobs]
-    pydocstyle_jobs = [
-        PydocstyleJob(j.release, depends_on=j, buffer_output=buffer_output) for j in build_jobs]
-    unit_jobs = []
-    for p in pyver:
-        unit_jobs.extend([
-            UnitJob(archive=archive, archive_path=archive_path, pyver=p,
-                    release=j.release, depends_on=j, buffer_output=buffer_output)
-            for j in build_jobs])
-    diff_cover_jobs = []
-    for j in unit_jobs:
-        diff_cover_jobs.append(
-            DiffCoverJob(archive=archive, archive_path=archive_path, pyver=j.pyver,
-                         release=j.release, depends_on=j, buffer_output=buffer_output))
-
-    _run_jobs(build_jobs + docs_jobs + flake8_jobs + pydocstyle_jobs + unit_jobs + diff_cover_jobs)
+    _run_jobs(_build_jobs_list('all', concurrency, release, pyvers=pyver, archive=archive,
+                               archive_path=archive_path))
 
 
 @cli.command()
@@ -186,9 +169,7 @@ def all(archive, archive_path, concurrency, container_runtime, no_build, failfas
 @tty_option
 def build(concurrency, container_runtime, failfast, release, tty):
     """Build the containers for testing."""
-    buffer_output = concurrency != 1 or len(release) != 1
-    build_jobs = [BuildJob(r, buffer_output=buffer_output) for r in release]
-    _run_jobs(build_jobs)
+    _run_jobs(_build_jobs_list('build', concurrency, release))
 
 
 @cli.command()
@@ -218,21 +199,8 @@ def clean(concurrency, container_runtime, init, release, tty):
 def diff_cover(archive, archive_path, concurrency, container_runtime, no_build, failfast, init,
                pyver, release, tty):
     """Run the diff cover test."""
-    buffer_output = not (concurrency == 1 or (len(release) == 1 and len(pyver) == 1))
-    build_jobs = [BuildJob(r, buffer_output=buffer_output) for r in release]
-    unit_jobs = []
-    for p in pyver:
-        unit_jobs.extend([
-            UnitJob(archive=archive, archive_path=archive_path, pyver=p,
-                    release=j.release, depends_on=j, buffer_output=buffer_output)
-            for j in build_jobs])
-    diff_cover_jobs = []
-    for j in unit_jobs:
-        diff_cover_jobs.append(
-            DiffCoverJob(archive=archive, archive_path=archive_path, pyver=j.pyver,
-                         release=j.release, depends_on=j, buffer_output=buffer_output))
-
-    _run_jobs(build_jobs + unit_jobs + diff_cover_jobs)
+    _run_jobs(_build_jobs_list('diff_cover', concurrency, release, pyvers=pyver, archive=archive,
+                               archive_path=archive_path))
 
 
 @cli.command()
@@ -245,10 +213,7 @@ def diff_cover(archive, archive_path, concurrency, container_runtime, no_build, 
 @tty_option
 def docs(concurrency, container_runtime, failfast, init, no_build, release, tty):
     """Build the docs."""
-    buffer_output = concurrency != 1 or len(release) != 1
-    build_jobs = [BuildJob(r, buffer_output=buffer_output) for r in release]
-    docs_jobs = [DocsJob(j.release, depends_on=j, buffer_output=buffer_output) for j in build_jobs]
-    _run_jobs(build_jobs + docs_jobs)
+    _run_jobs(_build_jobs_list('docs', concurrency, release))
 
 
 @cli.command()
@@ -261,11 +226,7 @@ def docs(concurrency, container_runtime, failfast, init, no_build, release, tty)
 @tty_option
 def flake8(concurrency, container_runtime, failfast, init, no_build, release, tty):
     """Run flake8 tests."""
-    buffer_output = concurrency != 1 or len(release) != 1
-    build_jobs = [BuildJob(r, buffer_output=buffer_output) for r in release]
-    flake8_jobs = [
-        Flake8Job(j.release, depends_on=j, buffer_output=buffer_output) for j in build_jobs]
-    _run_jobs(build_jobs + flake8_jobs)
+    _run_jobs(_build_jobs_list('flake8', concurrency, release))
 
 
 @cli.command()
@@ -278,11 +239,7 @@ def flake8(concurrency, container_runtime, failfast, init, no_build, release, tt
 @tty_option
 def pydocstyle(concurrency, container_runtime, failfast, init, no_build, release, tty):
     """Run pydocstyle tests."""
-    buffer_output = concurrency != 1 or len(release) != 1
-    build_jobs = [BuildJob(r, buffer_output=buffer_output) for r in release]
-    pydocstyle_jobs = [
-        PydocstyleJob(j.release, depends_on=j, buffer_output=buffer_output) for j in build_jobs]
-    _run_jobs(build_jobs + pydocstyle_jobs)
+    _run_jobs(_build_jobs_list('pydocstyle', concurrency, release))
 
 
 @cli.command()
@@ -299,16 +256,8 @@ def pydocstyle(concurrency, container_runtime, failfast, init, no_build, release
 def unit(archive, concurrency, container_runtime, no_build, failfast, init, pyver, release,
          archive_path, tty):
     """Run the unit tests."""
-    buffer_output = concurrency != 1 or (len(release) != 1 and len(pyver) != 1)
-    build_jobs = [BuildJob(r, buffer_output=buffer_output) for r in release]
-    unit_jobs = []
-    for p in pyver:
-        unit_jobs.extend([
-            UnitJob(archive=archive, archive_path=archive_path, pyver=p,
-                    release=j.release, depends_on=j, buffer_output=buffer_output)
-            for j in build_jobs])
-
-    _run_jobs(build_jobs + unit_jobs)
+    _run_jobs(_build_jobs_list('unit', concurrency, release, pyvers=pyver, archive=archive,
+                               archive_path=archive_path))
 
 
 class Job(object):
@@ -794,6 +743,59 @@ class UnitJob(Job):
         else:
             await super(UnitJob, self).run()
         return self
+
+
+def _build_jobs_list(
+        command: str, concurrency: int, releases: typing.Iterable[str],
+        pyvers: typing.Iterable[int] = None, archive: bool = False,
+        archive_path: str = '') -> typing.List[Job]:
+    """
+    Build and return a list of jobs to be run for the given command.
+
+    Args:
+        command: The name of the calling command.
+        concurrency: The number of Jobs we will run in parallel.
+        releases: The releases we are building Jobs for.
+        pyvers: The Python versions we are testing.
+        archive: Whether to set up an archive volume to mount in the container.
+        archive_path: Which path on the host so share into the container when archive is True.
+    Returns:
+        A list of Jobs to be run.
+    """
+    if command == 'all':
+        buffer_output = concurrency != 1
+    elif command in ('diff_cover', 'unit'):
+        buffer_output = concurrency != 1 and (len(releases) != 1 or len(pyvers) != 1)
+    else:
+        buffer_output = concurrency != 1 and len(releases) != 1
+    jobs = []
+    for release in releases:
+        build_job = BuildJob(release, buffer_output=buffer_output)
+        jobs.append(build_job)
+        if command != 'build':
+            if command in ('all', 'docs'):
+                docs_job = DocsJob(release, depends_on=build_job, buffer_output=buffer_output)
+                jobs.append(docs_job)
+            if command in ('all', 'flake8'):
+                flake8_job = Flake8Job(release, depends_on=build_job, buffer_output=buffer_output)
+                jobs.append(flake8_job)
+            if command in ('all', 'pydocstyle'):
+                pydocstyle_job = PydocstyleJob(release, depends_on=build_job,
+                                               buffer_output=buffer_output)
+                jobs.append(pydocstyle_job)
+            if command in ('all', 'diff_cover', 'unit'):
+                for pyver in pyvers:
+                    unit_job = UnitJob(
+                        archive=archive, archive_path=archive_path, pyver=pyver, release=release,
+                        depends_on=build_job, buffer_output=buffer_output)
+                    jobs.append(unit_job)
+                    if command in ('all', 'diff_cover'):
+                        diff_cover_job = DiffCoverJob(
+                            archive=archive, archive_path=archive_path, pyver=pyver,
+                            release=release, depends_on=unit_job, buffer_output=buffer_output)
+                        jobs.append(diff_cover_job)
+
+    return jobs
 
 
 def _cancel_jobs(jobs):
