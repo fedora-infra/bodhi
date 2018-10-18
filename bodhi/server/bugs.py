@@ -154,14 +154,14 @@ class Bugzilla(BugTracker):
                     break
                 except xmlrpc_client.Fault as e:
                     attempts += 1
-                    log.exception(
+                    log.info(
                         "\nA fault has occurred \nFault code: %d \nFault string: %s" %
                         (e.faultCode, e.faultString))
         except InvalidComment:
-            log.exception(
+            log.info(
                 "Comment too long for bug #%d:  %s" % (bug_id, comment))
         except Exception:
-            log.exception("Unable to add comment to bug #%d" % bug_id)
+            log.info("Unable to add comment to bug #%d" % bug_id)
 
     def on_qa(self, bug_id, comment):
         """
@@ -188,7 +188,7 @@ class Bugzilla(BugTracker):
             else:
                 bug.addcomment(comment)
         except Exception:
-            log.exception("Unable to alter bug #%d" % bug_id)
+            log.info("Unable to alter bug #%d" % bug_id)
 
     def close(self, bug_id, versions, comment):
         """
@@ -248,10 +248,10 @@ class Bugzilla(BugTracker):
                 bug = self.bz.getbug(bug_entity.bug_id)
             except xmlrpc_client.Fault:
                 bug_entity.title = 'Invalid bug number'
-                log.exception("Got fault from Bugzilla")
+                log.info("Got fault from Bugzilla")
                 return
             except Exception:
-                log.exception("Unknown exception from Bugzilla")
+                log.info("Unknown exception from Bugzilla")
                 return
         if bug.product == 'Security Response':
             bug_entity.parent = True
@@ -287,7 +287,7 @@ class Bugzilla(BugTracker):
             else:
                 bug.addcomment(comment)
         except Exception:
-            log.exception("Unable to alter bug #%d" % bug_id)
+            log.info("Unable to alter bug #%d" % bug_id)
 
 
 def set_bugtracker():
