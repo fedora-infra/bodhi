@@ -638,7 +638,7 @@ class DocsJob(Job):
 
     def __init__(self, *args, **kwargs):
         """
-        Initialize the CleanJob.
+        Initialize the DocsJob.
 
         See the superclass's docblock for details about accepted parameters.
         """
@@ -734,7 +734,7 @@ class UnitJob(Job):
 
     def __init__(self, archive, archive_path, pyver, *args, **kwargs):
         """
-        Initialize the StopJob.
+        Initialize the UnitJob.
 
         See the superclass's docblock for details about additional accepted parameters.
 
