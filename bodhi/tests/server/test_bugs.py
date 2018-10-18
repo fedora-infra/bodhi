@@ -103,9 +103,9 @@ class TestBugzilla(unittest.TestCase):
 
         info.assert_called_once_with('Unable to close bug #12345')
 
-    @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_close_successful(self, exception):
+    def test_close_successful(self, info):
         """Test the close() method with a success case."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -120,11 +120,11 @@ class TestBugzilla(unittest.TestCase):
             'ERRATA',
             comment='Fixed. Closing bug and adding version to fixed_in field.',
             fixedin='bodhi-3.1.0-1.fc27')
-        self.assertEqual(exception.call_count, 0)
+        self.assertEqual(info.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_close_fixedin_maxlength(self, exception):
+    def test_close_fixedin_maxlength(self, info):
         """Test the close() method when fixed_in field may go over 255 chars."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -140,11 +140,11 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.return_value.close.assert_called_once_with(
             'ERRATA',
             comment='Closing, but don\'t modify fixed_in field to not cross 255 chars limit.')
-        self.assertEqual(exception.call_count, 0)
+        self.assertEqual(info.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_close_pre_existing_fixedin(self, exception):
+    def test_close_pre_existing_fixedin(self, info):
         """Test the close() method at the edge of the allowed size of the fixedin field (254)."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -163,7 +163,7 @@ class TestBugzilla(unittest.TestCase):
             'ERRATA',
             comment='Fixed. Closing bug and adding version to fixed_in field.',
             fixedin=expected_fixedin)
-        self.assertEqual(exception.call_count, 0)
+        self.assertEqual(info.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.info')
     def test_close_product_skipped(self, info):
@@ -179,8 +179,8 @@ class TestBugzilla(unittest.TestCase):
         info.assert_called_once_with("Skipping set closed on 'not fedora!' bug #12345")
         self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.exception')
-    def test_comment_successful(self, exception):
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_comment_successful(self, info):
         """Test the comment() method with a success case."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -190,10 +190,10 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A nice message.')
         # No exceptions should have been logged
-        self.assertEqual(exception.call_count, 0)
+        self.assertEqual(info.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.exception')
-    def test_comment_too_long(self, exception):
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_comment_too_long(self, info):
         """Assert that the comment() method gets angry if the comment is too long."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -204,11 +204,11 @@ class TestBugzilla(unittest.TestCase):
 
         self.assertEqual(bz._bz.getbug.call_count, 0)
         # An exception should have been logged
-        exception.assert_called_once_with(
+        info.assert_called_once_with(
             u'Comment too long for bug #1411188:  {}'.format(long_comment))
 
-    @mock.patch('bodhi.server.bugs.log.exception')
-    def test_comment_too_many_attempts(self, exception):
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_comment_too_many_attempts(self, info):
         """Assert that only 5 attempts are made to comment before giving up."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -225,12 +225,12 @@ class TestBugzilla(unittest.TestCase):
                          [('A nice message.',) for i in range(5)])
         # Five exceptions should have been logged
         self.assertEqual(
-            [c[1] for c in exception.mock_calls],
+            [c[1] for c in info.mock_calls],
             [(('\nA fault has occurred \nFault code: 42 \nFault string: Someone turned the '
                'microwave on and now the WiFi is down.'),) for i in range(5)])
 
-    @mock.patch('bodhi.server.bugs.log.exception')
-    def test_comment_unexpected_exception(self, exception):
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_comment_unexpected_exception(self, info):
         """Test the comment() method with an unexpected Exception."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -241,7 +241,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A nice message.')
-        exception.assert_called_once_with('Unable to add comment to bug #1411188')
+        info.assert_called_once_with('Unable to add comment to bug #1411188')
 
     def test_get_url(self):
         """
@@ -307,8 +307,8 @@ class TestBugzilla(unittest.TestCase):
         info.assert_called_once_with("Skipping set modified on 'not fedora!' bug #1411188")
         self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.exception')
-    def test_modified_exception(self, exception_log):
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_modified_exception(self, info_log):
         """Test the modified() method logs an exception if encountered"""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -317,11 +317,11 @@ class TestBugzilla(unittest.TestCase):
         bz.modified(1411188, 'A mean message.')
 
         bz._bz.getbug.assert_called_once_with(1411188)
-        exception_log.assert_called_once_with("Unable to alter bug #1411188")
+        info_log.assert_called_once_with("Unable to alter bug #1411188")
         self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.exception')
-    def test_update_details_exception(self, mock_exceptionlog):
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_update_details_exception(self, mock_infolog):
         """Test we log an exception if update_details raises one"""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -329,7 +329,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz.update_details(0, 0)
 
-        mock_exceptionlog.assert_called_once_with('Unknown exception from Bugzilla')
+        mock_infolog.assert_called_once_with('Unknown exception from Bugzilla')
 
     def test_update_details_keywords_str(self):
         """Assert that we split the keywords into a list when they are a str."""
@@ -357,9 +357,9 @@ class TestBugzilla(unittest.TestCase):
         self.assertIs(bug_entity.parent, True)
         self.assertEqual(bug_entity.title, 'Fedora gets you, good job guys!')
 
-    @mock.patch('bodhi.server.bugs.log.exception')
-    def test_update_details_xmlrpc_fault(self, exception):
-        """Test we log an exception if update_details raises one"""
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_update_details_xmlrpc_fault(self, info):
+        """Test we log an info if update_details raises one"""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
         bz._bz.getbug.side_effect = xmlrpc_client.Fault(42, 'You found the meaning.')
@@ -370,11 +370,11 @@ class TestBugzilla(unittest.TestCase):
 
         self.assertEqual(bug.title, 'Invalid bug number')
         bz._bz.getbug.assert_called_once_with(123)
-        exception.assert_called_once_with('Got fault from Bugzilla')
+        info.assert_called_once_with('Got fault from Bugzilla')
 
-    @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_on_qa_failure(self, exception):
+    def test_on_qa_failure(self, info):
         """
         Test the on_qa() method with a failure case.
         """
@@ -389,11 +389,11 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.setstatus.assert_called_once_with('ON_QA',
                                                                      comment='A mean message.')
-        exception.assert_called_once_with('Unable to alter bug #1411188')
+        info.assert_called_once_with('Unable to alter bug #1411188')
 
-    @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_on_qa_success(self, exception):
+    def test_on_qa_success(self, info):
         """
         Test the on_qa() method with a success case.
         """
@@ -405,11 +405,11 @@ class TestBugzilla(unittest.TestCase):
 
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.setstatus.assert_called_once_with('ON_QA', comment='A message.')
-        self.assertEqual(exception.call_count, 0)
+        self.assertEqual(info.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_on_qa_skipped_because_closed(self, exception):
+    def test_on_qa_skipped_because_closed(self, info):
         """
         Test the on_qa() method when the bug is already CLOSED.
         It must not change bug state, only post the comment.
@@ -424,11 +424,11 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
         bz._bz.getbug.return_value.setstatus.assert_not_called()
-        self.assertEqual(exception.call_count, 0)
+        self.assertEqual(info.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_on_qa_skipped_because_verified(self, exception):
+    def test_on_qa_skipped_because_verified(self, info):
         """
         Test the on_qa() method when the bug is already VERIFIED.
         It must not change bug state, only post the comment.
@@ -443,11 +443,11 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
         bz._bz.getbug.return_value.setstatus.assert_not_called()
-        self.assertEqual(exception.call_count, 0)
+        self.assertEqual(info.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.exception')
+    @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_on_qa_skipped_because_already_set(self, exception):
+    def test_on_qa_skipped_because_already_set(self, info):
         """
         Test the on_qa() method when the bug is already ON_QA.
         It must not be set again ON_QA, only post the comment.
@@ -462,7 +462,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
         bz._bz.getbug.return_value.setstatus.assert_not_called()
-        self.assertEqual(exception.call_count, 0)
+        self.assertEqual(info.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.info')
     def test_on_qa_product_skipped(self, info):
