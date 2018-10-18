@@ -12,22 +12,30 @@ rules:
           - f27-flake8
           - f27-pydocstyle
           - f27-python2-unit
+          - f27-python2-diff-cover
           - f27-python3-unit
+          - f27-python3-diff-cover
           - f28-docs
           - f28-flake8
           - f28-pydocstyle
           - f28-python2-unit
+          - f28-python2-diff-cover
           - f28-python3-unit
+          - f28-python3-diff-cover
           - f29-docs
           - f29-flake8
           - f29-pydocstyle
           - f29-python2-unit
+          - f29-python2-diff-cover
           - f29-python3-unit
+          - f29-python3-diff-cover
           - pip-docs
           - pip-flake8
           - pip-pydocstyle
           - pip-python2-unit
+          - pip-python2-diff-cover
           - pip-python3-unit
+          - pip-python3-diff-cover
       required_pull_request_reviews:
         dismiss_stale_reviews: true
         require_code_owner_reviews: true

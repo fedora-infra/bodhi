@@ -21,6 +21,7 @@ import asyncio
 import functools
 import multiprocessing
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -34,7 +35,7 @@ CONTAINER_NAME = 'bodhi-ci'
 # UUID is used so that one bodhi-ci process does not stop jobs started by a different one.
 CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 # This template is used to generate the summary lines that are printed out at the end.
-LABEL_TEMPLATE = '{:>8}-{:<12}'
+LABEL_TEMPLATE = '{:>8}-{:<16}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 RELEASES = ('f27', 'f28', 'f29', 'rawhide', 'pip')
 
@@ -91,8 +92,12 @@ def _set_global(ctx, param, value):
 
 
 archive_option = click.option(
-    '--archive', '-a', is_flag=True,
+    '--archive/--no-archive', is_flag=True, default=True,
     help=("Collect *.xml from the tests and put them into test_results/."))
+archive_path_option = click.option(
+    '--archive-path', envvar='BODHI_CI_ARCHIVE_PATH',
+    default=os.path.join(PROJECT_PATH, 'test_results'),
+    help='Define where test results should be placed if -a is used.')
 concurrency_option = click.option(
     '--concurrency', '-j', default=multiprocessing.cpu_count(), callback=_set_concurrency, type=int,
     help='Number of concurrent processes to run. Defaults to the number of cores detected')
@@ -137,6 +142,7 @@ def cli():
 
 @cli.command()
 @archive_option
+@archive_path_option
 @concurrency_option
 @container_runtime_option
 @failfast_option
@@ -145,8 +151,8 @@ def cli():
 @pyver_option
 @releases_option
 @tty_option
-def all(archive, concurrency, container_runtime, no_build, failfast, init, pyver, release,
-        tty):
+def all(archive, archive_path, concurrency, container_runtime, no_build, failfast, init, pyver,
+        release, tty):
     """Run all the types of tests in parallel."""
     buffer_output = concurrency != 1
     build_jobs = [BuildJob(r, buffer_output=buffer_output) for r in release]
@@ -158,11 +164,16 @@ def all(archive, concurrency, container_runtime, no_build, failfast, init, pyver
     unit_jobs = []
     for p in pyver:
         unit_jobs.extend([
-            UnitJob(archive=archive, pyver=p, release=j.release, depends_on=j,
-                    buffer_output=buffer_output)
+            UnitJob(archive=archive, archive_path=archive_path, pyver=p,
+                    release=j.release, depends_on=j, buffer_output=buffer_output)
             for j in build_jobs])
+    diff_cover_jobs = []
+    for j in unit_jobs:
+        diff_cover_jobs.append(
+            DiffCoverJob(archive=archive, archive_path=archive_path, pyver=j.pyver,
+                         release=j.release, depends_on=j, buffer_output=buffer_output))
 
-    _run_jobs(build_jobs + docs_jobs + flake8_jobs + pydocstyle_jobs + unit_jobs)
+    _run_jobs(build_jobs + docs_jobs + flake8_jobs + pydocstyle_jobs + unit_jobs + diff_cover_jobs)
 
 
 @cli.command()
@@ -189,6 +200,37 @@ def clean(concurrency, container_runtime, init, release, tty):
     buffer_output = concurrency != 1 or len(release) != 1
     clean_jobs = [CleanJob(r, buffer_output=buffer_output) for r in release]
     _run_jobs(clean_jobs)
+
+
+@cli.command()
+@archive_option
+@archive_path_option
+@concurrency_option
+@container_runtime_option
+@failfast_option
+@init_option
+@no_build_option
+@pyver_option
+@releases_option
+@tty_option
+def diff_cover(archive, archive_path, concurrency, container_runtime, no_build, failfast, init,
+               pyver, release, tty):
+    """Run the diff cover test."""
+    buffer_output = not (concurrency == 1 or (len(release) == 1 and len(pyver) == 1))
+    build_jobs = [BuildJob(r, buffer_output=buffer_output) for r in release]
+    unit_jobs = []
+    for p in pyver:
+        unit_jobs.extend([
+            UnitJob(archive=archive, archive_path=archive_path, pyver=p,
+                    release=j.release, depends_on=j, buffer_output=buffer_output)
+            for j in build_jobs])
+    diff_cover_jobs = []
+    for j in unit_jobs:
+        diff_cover_jobs.append(
+            DiffCoverJob(archive=archive, archive_path=archive_path, pyver=j.pyver,
+                         release=j.release, depends_on=j, buffer_output=buffer_output))
+
+    _run_jobs(build_jobs + unit_jobs + diff_cover_jobs)
 
 
 @cli.command()
@@ -250,16 +292,18 @@ def pydocstyle(concurrency, container_runtime, failfast, init, no_build, release
 @no_build_option
 @pyver_option
 @releases_option
+@archive_path_option
 @tty_option
-def unit(archive, concurrency, container_runtime, no_build, failfast, init, pyver, release, tty):
+def unit(archive, concurrency, container_runtime, no_build, failfast, init, pyver, release,
+         archive_path, tty):
     """Run the unit tests."""
     buffer_output = concurrency != 1 or (len(release) != 1 and len(pyver) != 1)
     build_jobs = [BuildJob(r, buffer_output=buffer_output) for r in release]
     unit_jobs = []
     for p in pyver:
         unit_jobs.extend([
-            UnitJob(archive=archive, pyver=p, release=j.release, depends_on=j,
-                    buffer_output=buffer_output)
+            UnitJob(archive=archive, archive_path=archive_path, pyver=p,
+                    release=j.release, depends_on=j, buffer_output=buffer_output)
             for j in build_jobs])
 
     _run_jobs(build_jobs + unit_jobs)
@@ -273,6 +317,8 @@ class Job(object):
     running tests.
 
     Attributes:
+        archive_dir (str): A path where this job's test results is on the host. Only set if an
+            archive is used (not used on all jobs).
         release (str): The release this job is testing.
         depends_on (Job or None): If not None, this Job will wait for the depends_on job's complete
             Event to start.
@@ -430,7 +476,7 @@ class Job(object):
         """Print a message announcing that we are running now."""
         click.echo('Running {}'.format(' '.join(self._command)))
 
-    def _convert_command_for_container(self, archive=False):
+    def _convert_command_for_container(self, archive=False, archive_path=''):
         """
         Use this to convert self._command to run in a container.
 
@@ -440,6 +486,8 @@ class Job(object):
         in a container.
 
         Args:
+            archive_path (str): A path on the host to share as a volume into the container for
+                its /results path.
             archive (bool): Whether to mount a shared volume from the host into the container for
                 archival purposes.
         """
@@ -453,9 +501,9 @@ class Job(object):
             args.append('-t')
 
         if archive:
-            archive_dir = '{}/test_results/{}'.format(
-                PROJECT_PATH, '{}-{}'.format(self.release, self.label))
-            args.extend(['-v', '{}:/results:z'.format(archive_dir)])
+            self.archive_dir = '{}/{}'.format(archive_path,
+                                              '{}-{}'.format(self.release, self._label))
+            args.extend(['-v', '{}:/results:z'.format(self.archive_dir)])
 
         args.append(self._container_image)
         args.extend(self._command)
@@ -530,6 +578,49 @@ class CleanJob(Job):
         super(CleanJob, self).__init__(*args, **kwargs)
 
         self._command = [container_runtime, 'rmi', self._container_image]
+
+
+class DiffCoverJob(Job):
+    """
+    Define a Job for running diff-cover on the test results.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    _label = 'diff-cover'
+
+    def __init__(self, archive, archive_path, pyver, *args, **kwargs):
+        """
+        Initialize the DiffCoverJob.
+
+        See the superclass's docblock for details about additional accepted parameters.
+
+        Args:
+            archive (bool): If True, set up the volume mount so we can retrieve the test results
+                from the container.
+            archive_path (str): A path on the host to share as a volume into the container for
+                its /results path.
+            pyver (int): Which major version of Python we are testing with.
+        """
+        super(DiffCoverJob, self).__init__(*args, **kwargs)
+
+        self.archive_path = archive_path
+
+        self._command = ['/usr/bin/diff-cover', '/results/coverage.xml',
+                         '--compare-branch=origin/develop', '--fail-under=100']
+        self._label = '{}-py{}'.format(self._label, pyver)
+        self._convert_command_for_container(archive=archive, archive_path=archive_path)
+
+    def _announce(self):
+        """
+        Copy the coverage.xml from the unit test job to the diff_cover container, then announce.
+        """
+        if not os.path.exists(self.archive_dir):
+            os.makedirs(self.archive_dir)
+        shutil.copy(os.path.join(self.depends_on.archive_dir, 'coverage.xml'),
+                    os.path.join(self.archive_dir, 'coverage.xml'))
+
+        super(DiffCoverJob, self)._announce()
 
 
 class DocsJob(Job):
@@ -634,11 +725,14 @@ class UnitJob(Job):
     Define a Job for running the unit tests.
 
     See the Job superclass's docblock for details about its attributes.
+
+    Attributes:
+        pyver (int): The Python version we are testing.
     """
 
     _label = 'unit'
 
-    def __init__(self, archive, pyver, *args, **kwargs):
+    def __init__(self, archive, archive_path, pyver, *args, **kwargs):
         """
         Initialize the StopJob.
 
@@ -647,10 +741,13 @@ class UnitJob(Job):
         Args:
             archive (bool): If True, set up the volume mount so we can retrieve the test results
                 from the container.
+            archive_path (str): A path on the host to share as a volume into the container for
+                its /results path.
             pyver (int): Which major version of Python we are testing with.
         """
         super(UnitJob, self).__init__(*args, **kwargs)
 
+        self.pyver = pyver
         self._label = '{}-py{}'.format(self._label, pyver)
         pytest_flags = ''
         if failfast:
@@ -679,7 +776,21 @@ class UnitJob(Job):
                     '/usr/bin/bash', '-c',
                     test_command.format('/usr/bin/python3', '/usr/bin/py.test-3', pytest_flags)]
 
-        self._convert_command_for_container(archive=archive)
+        self._convert_command_for_container(archive=archive, archive_path=archive_path)
+
+    async def run(self):
+        """
+        Run the UnitJob, unless --no-build has been requested and the needed coverage data exists.
+
+        Returns:
+            UnitJob: Returns self.
+        """
+        if no_build and os.path.exists(os.path.join(self.archive_dir, 'coverage.xml')):
+            self.complete.set()
+            self.skipped = True
+        else:
+            await super(UnitJob, self).run()
+        return self
 
 
 def _cancel_jobs(jobs):

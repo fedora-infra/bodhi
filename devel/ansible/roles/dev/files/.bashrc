@@ -9,7 +9,7 @@ fi
 # export SYSTEMD_PAGER=
 
 shopt -s expand_aliases
-alias bci="sudo /home/vagrant/bodhi/devel/ci/bodhi-ci"
+alias bci="sudo -E /home/vagrant/bodhi/devel/ci/bodhi-ci"
 alias bdiff-cover="btest; diff-cover /home/vagrant/bodhi/coverage.xml --compare-branch=develop --fail-under=100"
 alias bdocs="make -C /home/vagrant/bodhi/docs clean && make -C /home/vagrant/bodhi/docs html && make -C /home/vagrant/bodhi/docs man"
 alias blog="sudo journalctl -u bodhi"
@@ -40,5 +40,6 @@ function btest {
 
 export BODHI_URL="http://localhost:6543/"
 export PYTHONWARNINGS="once"
+export BODHI_CI_ARCHIVE_PATH="/home/vagrant/bodhi-ci-test_results/"
 
 cd /home/vagrant/bodhi
