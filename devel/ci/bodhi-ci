@@ -400,7 +400,7 @@ class Job(object):
             async with concurrency_semaphore:
                 # It's possible that we got cancelled while we were waiting on the Semaphore.
                 if not self.cancelled:
-                    self._announce()
+                    self._pre_start_hook()
                     process = await asyncio.create_subprocess_exec(*self._command,
                                                                    **self._popen_kwargs)
 
@@ -472,10 +472,6 @@ class Job(object):
             return '{}:  {}FAILED{}  (exited with code: {})\n'.format(
                 self.label, color_start, color_end, self.returncode)
 
-    def _announce(self):
-        """Print a message announcing that we are running now."""
-        click.echo('Running {}'.format(' '.join(self._command)))
-
     def _convert_command_for_container(self, archive=False, archive_path=''):
         """
         Use this to convert self._command to run in a container.
@@ -508,6 +504,10 @@ class Job(object):
         args.append(self._container_image)
         args.extend(self._command)
         self._command = args
+
+    def _pre_start_hook(self):
+        """Print a message announcing that we are running now."""
+        click.echo('Running {}'.format(' '.join(self._command)))
 
 
 class BuildJob(Job):
@@ -611,7 +611,7 @@ class DiffCoverJob(Job):
         self._label = '{}-py{}'.format(self._label, pyver)
         self._convert_command_for_container(archive=archive, archive_path=archive_path)
 
-    def _announce(self):
+    def _pre_start_hook(self):
         """
         Copy the coverage.xml from the unit test job to the diff_cover container, then announce.
         """
@@ -620,7 +620,7 @@ class DiffCoverJob(Job):
         shutil.copy(os.path.join(self.depends_on.archive_dir, 'coverage.xml'),
                     os.path.join(self.archive_dir, 'coverage.xml'))
 
-        super(DiffCoverJob, self)._announce()
+        super(DiffCoverJob, self)._pre_start_hook()
 
 
 class DocsJob(Job):
@@ -715,7 +715,7 @@ class StopJob(Job):
         self._command = [container_runtime, 'stop', self.release]
         self._popen_kwargs['stdout'] = subprocess.DEVNULL
 
-    def _announce(self):
+    def _pre_start_hook(self):
         """Do not announce this Job; it is noisy."""
         pass
 
