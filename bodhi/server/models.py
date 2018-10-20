@@ -836,6 +836,8 @@ class Release(Base):
         id (int): The primary key of this release.
         builds (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Builds <Build>`
             associated with this release.
+        composed_by_bodhi (bool): The flag that indicates whether the release is composed by
+            Bodhi or not. Defaults to True.
     """
 
     __tablename__ = 'releases'
@@ -859,6 +861,7 @@ class Release(Base):
     mail_template = Column(UnicodeText, default=u'fedora_errata_template', nullable=False)
 
     state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
+    composed_by_bodhi = Column(Boolean, default=True)
 
     @property
     def version_int(self):

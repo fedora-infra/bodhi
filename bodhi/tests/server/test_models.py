@@ -776,7 +776,8 @@ class TestRelease(ModelTest):
         pending_testing_tag=u"dist-f11-updates-testing-pending",
         pending_stable_tag=u"dist-f11-updates-pending",
         override_tag=u"dist-f11-override",
-        state=model.ReleaseState.current)
+        state=model.ReleaseState.current,
+        composed_by_bodhi=True)
 
     def test_collection_name(self):
         """Test the collection_name property of the Release."""
@@ -821,7 +822,8 @@ class TestReleaseModular(ModelTest):
         pending_testing_tag=u"dist-f11-updates-testing-pending",
         pending_stable_tag=u"dist-f11-updates-pending",
         override_tag=u"dist-f11-override",
-        state=model.ReleaseState.current)
+        state=model.ReleaseState.current,
+        composed_by_bodhi=True)
 
     def test_version_int(self):
         self.assertEqual(self.obj.version_int, 11)
@@ -852,7 +854,8 @@ class TestReleaseContainer(ModelTest):
         pending_testing_tag=u"dist-f11-updates-testing-pending",
         pending_stable_tag=u"dist-f11-updates-pending",
         override_tag=u"dist-f11-override",
-        state=model.ReleaseState.current)
+        state=model.ReleaseState.current,
+        composed_by_bodhi=True)
 
     def test_version_int(self):
         self.assertEqual(self.obj.version_int, 11)
