@@ -820,6 +820,7 @@ class Release(Base):
             mashed into the stable repository, such as 'f27-updates-pending'.
         override_tag (unicode): The koji tag that is used when a build is added as a buildroot
             override, such as 'f27-override'.
+        mail_template (unicode): The notification mail template.
         state (:class:`ReleaseState`): The current state of the release. Defaults to
             ``ReleaseState.disabled``.
         id (int): The primary key of this release.
