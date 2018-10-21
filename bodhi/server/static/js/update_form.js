@@ -329,12 +329,23 @@ $(document).ready(function() {
                     timeout: 10000,
                     dataType: 'jsonp',
                     success: function(data) {
-                        // Received error response e.g. bug doesn't exist
+                        // Received error response
                         if (data.error) {
-                            messenger.post({
-                                message: data.error.message,
-                                type: 'error',
-                            });
+                            // Error 102 is due to bug being private
+                            // Bodhi can't handle private bugs, we should avoid
+                            // attaching them to updates
+                            if (data.error.code == 102) {
+                                messenger.post({
+                                    message: 'Bodhi can\'t manage private bugs! (#' + item + ')',
+                                    type: 'error',
+                                });
+                            }
+                            else {
+                                messenger.post({
+                                    message: data.error.message,
+                                    type: 'error',
+                                });
+                            }
                             return;
                         }
                         // There should be only one
