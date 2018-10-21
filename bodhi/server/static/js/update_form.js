@@ -357,7 +357,8 @@ $(document).ready(function() {
                             return;
                         }
                         // Check Bug product
-                        if (data.result.bugs[0].product !== "Fedora" && data.result.bugs[0].product !== "Fedora EPEL") {
+                        var product = data.result.bugs[0].product;
+                        if (product !== "Fedora" && product !== "Fedora EPEL" && product !== "Fedora Modules") {
                             var r = confirm('Bug #' + item + ' doesn\'t seem to refer to Fedora or Fedora EPEL.\nAre you sure you want to reference it in this update?');
                             if (r === false) { return; }
                         }
@@ -366,7 +367,10 @@ $(document).ready(function() {
                             var r = confirm('Bug #' + item + ' is already in CLOSED state.\nAre you sure you want to reference it in this update?');
                             if (r === false) { return; }
                         }
-                        var release = data.result.bugs[0].product + ' ' + data.result.bugs[0].version[0];
+                        var release = product
+                        if (data.result.bugs[0].version[0] !== 'unspecified') {
+                            release += ' ' + data.result.bugs[0].version[0];
+                        }
                         add_bug_checkbox(item, data.result.bugs[0].summary, release, true, true);
                     },
                     error: function(jqXHR, textStatus) {
