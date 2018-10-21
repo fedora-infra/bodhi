@@ -272,6 +272,25 @@ def composes():
     pass  # pragma: no cover
 
 
+@composes.command(name='info')
+@handle_errors
+@click.argument('release')
+@click.argument('request')
+@url_option
+@debug_option
+@staging_option
+def info_compose(release, request, url, **kwargs):
+    """Retrieve and print info about a compose."""
+    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
+
+    try:
+        resp = client.get_compose(release, request)
+    except bindings.ComposeNotFound as exc:
+        raise click.BadParameter(six.text_type(exc), param_hint='RELEASE/REQUEST')
+
+    print_resp(resp, client)
+
+
 @composes.command(name='list')
 @handle_errors
 @staging_option
@@ -959,6 +978,8 @@ def print_resp(resp, client, verbose=False):
     elif 'comment' in resp:
         click.echo('The following comment was added to %s' % resp.comment['update'].title)
         click.echo(resp.comment.text)
+    elif 'compose' in resp:
+        click.echo(client.compose_str(resp['compose'], minimal=False))
     elif 'composes' in resp:
         if len(resp['composes']) == 1:
             click.echo(client.compose_str(resp['composes'][0], minimal=(not verbose)))
