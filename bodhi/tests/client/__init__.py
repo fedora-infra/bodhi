@@ -69,6 +69,41 @@ i found $10000
 """
 
 
+EXPECTED_COMPOSE_OUTPUT = """\
+================================================================================
+     *EPEL-7-stable  :   2 updates (requested)
+================================================================================
+Content Type: rpm
+     Started: 2018-03-15 17:25:22
+     Updated: 2018-03-15 17:25:22
+
+Updates:
+
+        FEDORA-EPEL-2018-50566f0a39: uwsgi-2.0.16-1.el7
+        FEDORA-EPEL-2018-328e2b8c27: qtpass-1.2.1-3.el7
+
+"""
+
+
+EXAMPLE_COMPOSE_MUNCH = Munch({
+    'compose': Munch({
+        u'release_id': 8, u'content_type': u'rpm',
+        u'update_summary': [
+            Munch({u'alias': u'FEDORA-EPEL-2018-50566f0a39', u'title': u'uwsgi-2.0.16-1.el7'}),
+            Munch({u'alias': u'FEDORA-EPEL-2018-328e2b8c27', u'title': u'qtpass-1.2.1-3.el7'})],
+        u'error_message': None, u'request': u'stable', u'state': u'requested',
+        u'state_date': u'2018-03-15 17:25:22', u'checkpoints': u'{}',
+        u'release': Munch({
+            u'dist_tag': u'epel7', u'name': u'EPEL-7', u'testing_tag': u'epel7-testing',
+            u'pending_stable_tag': u'epel7-pending',
+            u'pending_signing_tag': u'epel7-signing-pending', u'long_name': u'Fedora EPEL 7',
+            u'state': u'current', u'version': u'7', u'override_tag': u'epel7-override',
+            u'branch': u'epel7', u'id_prefix': u'FEDORA-EPEL',
+            u'pending_testing_tag': u'epel7-testing-pending', u'stable_tag': u'epel7',
+            u'candidate_tag': u'epel7-testing-candidate'}),
+        u'date_created': u'2018-03-15 17:25:22', u'security': True})})
+
+
 EXAMPLE_COMPOSES_MUNCH = Munch({
     'composes': [
         Munch({

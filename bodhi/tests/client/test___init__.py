@@ -255,6 +255,85 @@ class TestDownload(unittest.TestCase):
             'nodejs-grunt-wrap-0.3.0-2.fc25'))
 
 
+class TestComposeInfo(unittest.TestCase):
+    """
+    This class tests the info_compose() function.
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
+    @mock.patch.object(client.bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
+                       create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_COMPOSE_MUNCH)
+    def test_successful_operation(self, send_request, __init__):
+        """
+        Assert that a successful compose info is handled properly.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.info_compose, ['EPEL-7', 'stable'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(compare_output(result.output, client_test_data.EXPECTED_COMPOSE_OUTPUT))
+        calls = [
+            mock.call('composes/EPEL-7/stable', verb='GET')
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
+        __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, staging=False)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                side_effect=fedora.client.ServerError(
+                    url='http://example.com/tests/updates/bodhi-2.2.4-99.el7/request', status=404,
+                    msg='update not found'))
+    def test_compose_not_found(self, send_request, __init__):
+        """
+        Assert that info_compose() transforms a bodhi.client.bindings.ComposeNotFound into a
+        click.BadParameter so that the user gets a nice error message.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(client.info_compose, ['EPEL-7', 'stable'])
+
+        self.assertEqual(result.exit_code, 2)
+        self.assertTrue(compare_output(
+            result.output,
+            (u'Usage: info [OPTIONS] RELEASE REQUEST\n\n'
+             u'Error: Invalid value for RELEASE/REQUEST: Compose with '
+             u'request "stable" not found for release "EPEL-7"')))
+        send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
+        __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, staging=False)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_COMPOSE_MUNCH, autospec=True)
+    def test_url_flag(self, send_request):
+        """
+        Assert correct behavior with the --url flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.info_compose,
+            ['--url', 'http://localhost:6543', 'EPEL-7', 'stable']
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertTrue(compare_output(result.output, client_test_data.EXPECTED_COMPOSE_OUTPUT))
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client, 'composes/EPEL-7/stable', verb='GET',
+            ),
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+
 class TestListComposes(unittest.TestCase):
     """Test the list_composes() function."""
     @mock.patch.dict(client_test_data.EXAMPLE_COMPOSES_MUNCH,

@@ -428,6 +428,78 @@ class TestBodhiClient_latest_builds(unittest.TestCase):
         client.send_request.assert_called_once_with('latest_builds', params={'package': 'bodhi'})
 
 
+class TestBodhiClient_get_compose(unittest.TestCase):
+    """
+    This class contains tests for BodhiClient.get_compose().
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
+    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
+                       create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                side_effect=fedora.client.ServerError(
+                    url='http://example.com/tests/composes/EPEL-7/stable', status=404,
+                    msg='update not found'))
+    def test_404_error(self, send_request, __init__):
+        """
+        Test for the case when the server returns a 404 error code.
+        """
+        client = bindings.BodhiClient(staging=False)
+
+        with self.assertRaises(bindings.ComposeNotFound) as exc:
+            client.get_compose('EPEL-7', 'stable')
+
+            self.assertEqual(exc.release, 'EPEL-7')
+            self.assertEqual(exc.request, 'stable')
+
+        send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
+        __init__.assert_called_once_with(staging=False)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
+    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
+                       create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_COMPOSE_MUNCH)
+    def test_successful_request(self, send_request, __init__):
+        """
+        Test with a successful request.
+        """
+        client = bindings.BodhiClient(staging=False)
+
+        response = client.get_compose('EPEL-7', 'stable')
+
+        self.assertEqual(response, client_test_data.EXAMPLE_COMPOSE_MUNCH)
+        send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
+        __init__.assert_called_once_with(staging=False)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
+    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
+                       create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request')
+    def test_other_ServerError(self, send_request, __init__):
+        """
+        Test for the case when a non-404 ServerError is raised.
+        """
+        server_error = fedora.client.ServerError(
+            url='http://example.com/tests/composes/EPEL-7/stable', status=500,
+            msg='Internal server error')
+        send_request.side_effect = server_error
+        client = bindings.BodhiClient(staging=False)
+
+        with self.assertRaises(fedora.client.ServerError) as exc:
+            client.get_compose('EPEL-7', 'stable')
+
+            self.assertTrue(exc is server_error)
+
+        send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
+        __init__.assert_called_once_with(staging=False)
+
+
 class TestBodhiClient_list_composes(unittest.TestCase):
     """Test the BodhiClient.list_composes() method."""
 

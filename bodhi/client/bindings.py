@@ -85,6 +85,29 @@ class UpdateNotFound(BodhiClientException):
     __str__ = __unicode__
 
 
+class ComposeNotFound(BodhiClientException):
+    """Used to indicate that a referenced Compose is not found on the server."""
+
+    def __init__(self, release, request):
+        """Initialize the Exception."""
+        self.release = six.text_type(release)
+        self.request = six.text_type(request)
+
+    def __unicode__(self):
+        """
+        Return a human readable error message.
+
+        Returns:
+            unicode: An error message.
+        """
+        return u'Compose with request "{1}" not found for release "{0}"'.format(
+            self.release, self.request
+        )
+
+    # Use __unicode__ method under __str__ name for Python 3
+    __str__ = __unicode__
+
+
 def errorhandled(method):
     """Raise exceptions on failure. Used as a decorator for BodhiClient methods."""
     @functools.wraps(method)
@@ -447,6 +470,28 @@ class BodhiClient(OpenIdBaseClient):
             data['expired'] = expired
         return self.send_request(
             'overrides/', verb='POST', auth=True, data=data)
+
+    @errorhandled
+    def get_compose(self, release, request):
+        """
+        Get information about compose.
+
+        Args:
+            release (basestring): The name of the release.
+            request (basestring): The request (``testing``, ``stable``).
+        Returns:
+            munch.Munch: The response from Bodhi to the request.
+        Raises:
+            ComposeNotFound: If the server returns a 404 error code.
+        """
+        try:
+            return self.send_request('composes/{}/{}'.format(release, request), verb='GET')
+        except fedora.client.ServerError as exc:
+            if exc.code == 404:
+                # The Bodhi server gave us a 404 on the resource, so let's raise an ComposeNotFound.
+                raise ComposeNotFound(release, request)
+            else:
+                raise
 
     @errorhandled
     def list_composes(self):
