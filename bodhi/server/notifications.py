@@ -109,6 +109,7 @@ def publish(topic, msg, force=False):
     immediately.
 
     Args:
+        topic (basestring): The message topic suffix.
         msg (dict): A dictionary representing the message to be published via fedmsg.
         force (bool): If True, send the message immediately. Else, queue the message to be sent
             after the current database transaction is committed.
