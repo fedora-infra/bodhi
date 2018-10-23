@@ -138,6 +138,8 @@ node('bodhi') {
         }
 
         stage('Sync pull request to node') {
+            // We don't want test_results files from previous test jobs to stick around.
+            sh 'rm -rf test_results'
             synctoduffynode('bodhi')
         }
 
