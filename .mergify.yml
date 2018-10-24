@@ -1,45 +1,55 @@
-rules:
-  default:
-    automated_backport_labels:
-      3.9-backports: "3.9"
-      3.10-backports: "3.10"
-    protection:
-      required_status_checks:
-        strict: true
-        contexts:
-          - DCO
-          - f27-docs
-          - f27-flake8
-          - f27-pydocstyle
-          - f27-python2-unit
-          - f27-python2-diff-cover
-          - f27-python3-unit
-          - f27-python3-diff-cover
-          - f28-docs
-          - f28-flake8
-          - f28-pydocstyle
-          - f28-python2-unit
-          - f28-python2-diff-cover
-          - f28-python3-unit
-          - f28-python3-diff-cover
-          - f29-docs
-          - f29-flake8
-          - f29-pydocstyle
-          - f29-python2-unit
-          - f29-python2-diff-cover
-          - f29-python3-unit
-          - f29-python3-diff-cover
-          - pip-docs
-          - pip-flake8
-          - pip-pydocstyle
-          - pip-python2-unit
-          - pip-python2-diff-cover
-          - pip-python3-unit
-          - pip-python3-diff-cover
-      required_pull_request_reviews:
-        dismiss_stale_reviews: true
-        require_code_owner_reviews: true
-        required_approving_review_count: 1
-    merge_strategy:
+pull_request_rules:
+- actions:
+    merge:
       method: rebase
-      rebase_fallback: none
+      rebase_fallback: null
+      strict: true
+  conditions:
+  - label!=no-mergify
+  - '#approved-reviews-by>=1'
+  - status-success=DCO
+  - status-success=f27-docs
+  - status-success=f27-flake8
+  - status-success=f27-pydocstyle
+  - status-success=f27-python2-unit
+  - status-success=f27-python2-diff-cover
+  - status-success=f27-python3-unit
+  - status-success=f27-python3-diff-cover
+  - status-success=f28-docs
+  - status-success=f28-flake8
+  - status-success=f28-pydocstyle
+  - status-success=f28-python2-unit
+  - status-success=f28-python2-diff-cover
+  - status-success=f28-python3-unit
+  - status-success=f28-python3-diff-cover
+  - status-success=f29-docs
+  - status-success=f29-flake8
+  - status-success=f29-pydocstyle
+  - status-success=f29-python2-unit
+  - status-success=f29-python2-diff-cover
+  - status-success=f29-python3-unit
+  - status-success=f29-python3-diff-cover
+  - status-success=pip-docs
+  - status-success=pip-flake8
+  - status-success=pip-pydocstyle
+  - status-success=pip-python2-unit
+  - status-success=pip-python2-diff-cover
+  - status-success=pip-python3-unit
+  - status-success=pip-python3-diff-cover
+  name: default
+- actions:
+    backport:
+      branches:
+      - '3.10'
+  conditions:
+  - label!=no-mergify
+  - label=3.10-backports
+  name: backport 3.10
+- actions:
+    backport:
+      branches:
+      - '3.9'
+  conditions:
+  - label!=no-mergify
+  - label=3.9-backports
+  name: backport 3.9
