@@ -848,6 +848,8 @@ def _process_results(loop, done, pending):
             summary = summary + result.summary_line
         if not result.cancelled and result.returncode:
             error_output = '{}\n{}'.format(error_output, result.output)
+            if not returncode:
+                returncode = result.returncode
 
     # Let's sort the summary lexicographically so releases show near each other.
     summary = '\n'.join(sorted([l for l in summary.split('\n')]))
