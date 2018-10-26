@@ -66,7 +66,7 @@ class BodhiClientException(FedoraClientError):
 
 
 class UpdateNotFound(BodhiClientException):
-    """Used to indicate that a referenced Exception is not found on the server."""
+    """Used to indicate that a referenced Update is not found on the server."""
 
     def __init__(self, update):
         """Initialize the Exception."""
