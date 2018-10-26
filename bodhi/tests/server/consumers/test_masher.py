@@ -438,6 +438,7 @@ That was the actual one''' % mash_dir
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_tags(self, publish, *args):
         self.expected_sems = 2
@@ -511,6 +512,7 @@ That was the actual one''' % mash_dir
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_tag_ordering(self, publish, *args):
         """
@@ -562,6 +564,7 @@ That was the actual one''' % mash_dir
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.mail._send_mail')
     def test_testing_digest(self, mail, *args):
@@ -885,6 +888,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_security_update_priority(self, publish, *args):
         self.expected_sems = 2
@@ -972,6 +976,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_security_update_priority_testing(self, publish, *args):
         self.expected_sems = 2
@@ -1052,6 +1057,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_security_updates_parallel(self, publish, *args):
         self.expected_sems = 2
@@ -1168,8 +1174,13 @@ That was the actual one'''
         msg = self._make_msg()
         t = RPMComposerThread(self.semmock, msg['body']['msg']['composes'][0],
                               'ralph', log, self.db_factory, self.tempdir)
+        real_sleep = time.sleep
 
-        t.run()
+        # We want it to run long enough to finish the call to /usr/bin/false, which can take a bit
+        # on a heavily loaded system (such as the CI system running all tests in parallel), but not
+        # the full 3 seconds because that's a waste of time.
+        with mock.patch('bodhi.server.consumers.masher.time.sleep', lambda x: real_sleep(0.125)):
+            t.run()
 
         self.assertFalse(t.success)
         with self.db_factory() as db:
@@ -1184,6 +1195,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_mash_late_exit(self, publish, *args):
         self.expected_sems = 1
@@ -1196,7 +1208,7 @@ That was the actual one'''
 
         with self.db_factory() as session:
             with tempfile.NamedTemporaryFile(delete=False) as script:
-                script.write(b'#!/bin/bash\nsleep 5\nexit 1\n')
+                script.write(b'#!/bin/bash\nsleep 0.5\nexit 1\n')
                 script.close()
                 os.chmod(script.name, 0o755)
 
@@ -1216,6 +1228,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.scripts.clean_old_mashes.NUM_TO_KEEP', 2)
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_clean_old_composes_false(self, publish, *args):
         """Test work() with clean_old_composes set to False."""
@@ -1310,6 +1323,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.scripts.clean_old_mashes.NUM_TO_KEEP', 2)
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_clean_old_composes_true(self, publish, *args):
         """Test work() with clean_old_composes set to True."""
@@ -1415,6 +1429,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.scripts.clean_old_mashes.NUM_TO_KEEP', 2)
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_mash(self, publish, *args):
         self.expected_sems = 1
@@ -1473,6 +1488,7 @@ That was the actual one'''
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_mash_module(self, publish, *args):
         self.expected_sems = 1
@@ -1600,6 +1616,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_failed_gating(self, publish, *args):
         self.expected_sems = 1
@@ -1739,6 +1756,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_absent_gating(self, publish, *args):
         # Set the request to stable right out the gate so we can test gating
@@ -1792,6 +1810,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     @mock.patch('bodhi.server.bugs.bugtracker.modified')
@@ -1819,6 +1838,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.bugs.bugtracker.comment')
     @mock.patch('bodhi.server.bugs.bugtracker.close')
@@ -1846,6 +1866,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_status_comment_testing(self, *args):
@@ -1869,6 +1890,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_status_comment_stable(self, *args):
@@ -1919,6 +1941,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_unlock_updates(self, *args):
@@ -1943,6 +1966,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_resume_push(self, *args):
@@ -1980,9 +2004,10 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
-    def test_retry_done_compose(self, mock_cmd, mock_publish,
+    def test_retry_done_compose(self, mock_cmd, mock_publish, sleep,
                                 mock_wait_for_sync, mock_generate_updateinfo,
                                 mock_wait_for_repo_signature, mock_stage_repo,
                                 mock_sanity_check_repo, mock_wait_for_pungi,
@@ -2030,6 +2055,7 @@ testmodule:master:20172:2
 
         # Assert that we did wait for resync
         mock_wait_for_sync.assert_called()
+        sleep.assert_called_once_with(3)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')
@@ -2038,6 +2064,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.util.cmd')
     def test_stable_requirements_met_during_push(self, *args):
@@ -2097,6 +2124,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_push_timestamps(self, publish, *args):
         self.expected_sems = 2
@@ -2145,6 +2173,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._generate_updateinfo')
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_sync')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsolete_older_updates(self, publish, *args):
         self.expected_sems = 1
