@@ -321,6 +321,10 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Query for the update given by id.
 
+    ``--title <title>``
+
+        Query for the update given by title.
+
     ``--alias <alias>``
 
         Query for the update given by alias.
