@@ -226,6 +226,37 @@ class TestReleasesService(base.BaseTestCase):
         # so let's just make sure we have an error.
         self.assertEqual(body['status'], 'error')
 
+    def test_list_releases_exclude_archived_on(self):
+        """ Test that we can filter releases using the exclude_archived flag"""
+        r = Release.query.filter_by(name='F17').first()
+        r.state = ReleaseState.archived
+        r = Release.query.filter_by(name='F22').first()
+        r.state = ReleaseState.current
+        self.db.flush()
+
+        res = self.app.get('/releases/', {"exclude_archived": True})
+
+        body = res.json_body
+        self.assertEqual([r['name'] for r in body['releases']], ['F22'])
+        for r in body["releases"]:
+            self.assertNotEqual(r["state"], ReleaseState.archived)
+
+    def test_list_releases_exclude_archived_off(self):
+        """
+        Test that "archived" releases are included in response when the exclude_archived is off
+        """
+        r = Release.query.filter_by(name='F17').first()
+        r.state = ReleaseState.archived
+        r = Release.query.filter_by(name='F22').first()
+        r.state = ReleaseState.current
+        self.db.flush()
+
+        res = self.app.get('/releases/')
+
+        body = res.json_body
+        self.assertEqual(len(body['releases']), 2)
+        self.assertEqual({r['name'] for r in body['releases']}, {'F17', 'F22'})
+
     @mock.patch('bodhi.server.services.releases.log.info', side_effect=IOError('BOOM!'))
     def test_save_release_exception_handler(self, info):
         """Test the exception handler in save_release()."""
