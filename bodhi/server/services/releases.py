@@ -260,6 +260,10 @@ def query_releases_json(request):
         query = query.join(Release.builds).join(Build.package)
         query = query.filter(or_(*[Package.id == p.id for p in packages]))
 
+    exclude_archived = data.get('exclude_archived')
+    if exclude_archived:
+        query = query.filter(Release.state != ReleaseState.archived)
+
     state = data.get('state')
     if state is not None:
         query = query.filter(Release.state == ReleaseState.from_string(state))

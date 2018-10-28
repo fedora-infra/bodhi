@@ -1064,11 +1064,15 @@ def info_release(name, url, **kwargs):
 @staging_option
 def list_releases(display_archived, url, **kwargs):
     """Retrieve and print list of releases."""
+    exclude_archived = True
+    if display_archived:
+        exclude_archived = False
+
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
 
-    res = client.get_releases()
+    res = client.get_releases(exclude_archived=exclude_archived)
 
-    print_releases_list(res['releases'], display_archived)
+    print_releases_list(res['releases'])
 
 
 def save(client, **kwargs):
@@ -1090,30 +1094,31 @@ def save(client, **kwargs):
         print_release(res)
 
 
-def print_releases_list(releases, display_archived):
+def print_releases_list(releases):
     """
     Print a list of releases to the terminal.
 
     Args:
         releases (munch.Munch): The releases to be printed.
-        display_archived (bool): If True, show releases in all states, including archived.
     """
     pending = [release for release in releases if release['state'] == 'pending']
     archived = [release for release in releases if release['state'] == 'archived']
     current = [release for release in releases if release['state'] == 'current']
 
-    print('pending:')
-    for release in pending:
-        print("  Name:                %s" % release['name'])
+    if pending:
+        click.echo('pending:')
+        for release in pending:
+            click.echo("  Name:                %s" % release['name'])
 
-    if display_archived:
-        print('\narchived:')
+    if archived:
+        click.echo('\narchived:')
         for release in archived:
-            print("  Name:                %s" % release['name'])
+            click.echo("  Name:                %s" % release['name'])
 
-    print('\ncurrent:')
-    for release in current:
-        print("  Name:                %s" % release['name'])
+    if current:
+        click.echo('\ncurrent:')
+        for release in current:
+            click.echo("  Name:                %s" % release['name'])
 
 
 def print_release(release):
