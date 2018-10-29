@@ -1061,8 +1061,9 @@ def info_release(name, url, **kwargs):
               help='Display full list, including archived releases.')
 @url_option
 @debug_option
+@add_options(pagination_options)
 @staging_option
-def list_releases(display_archived, url, **kwargs):
+def list_releases(display_archived, url, rows=None, page=None, **kwargs):
     """Retrieve and print list of releases."""
     exclude_archived = True
     if display_archived:
@@ -1070,7 +1071,7 @@ def list_releases(display_archived, url, **kwargs):
 
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
 
-    res = client.get_releases(exclude_archived=exclude_archived)
+    res = client.get_releases(rows_per_page=rows, page=page, exclude_archived=exclude_archived)
 
     print_releases_list(res['releases'])
 
