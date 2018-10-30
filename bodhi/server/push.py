@@ -61,8 +61,10 @@ def update_sig_status(update):
 @click.option('--resume', help='Resume one or more previously failed pushes',
               is_flag=True, default=False)
 @click.option('--username', prompt=True)
+@click.option('--yes', '-y', is_flag=True, default=False,
+              help='Answers yes to the various questions')
 @click.version_option(message='%(version)s')
-def push(username, cert_prefix, **kwargs):
+def push(username, cert_prefix, yes, **kwargs):
     """Push builds out to the repositories."""
     resume = kwargs.pop('resume')
     resume_all = False
@@ -72,8 +74,14 @@ def push(username, cert_prefix, **kwargs):
     composes = []
     with db_factory() as session:
         if not resume and session.query(Compose).count():
-            click.confirm('Existing composes detected: {}. Do you wish to resume them all?'.format(
-                ', '.join([str(c) for c in session.query(Compose).all()])), abort=True)
+            if yes:
+                click.echo('Existing composes detected: {}. Resuming all.'.format(
+                    ', '.join([str(c) for c in session.query(Compose).all()])))
+            else:
+                click.confirm(
+                    'Existing composes detected: {}. Do you wish to resume them all?'.format(
+                        ', '.join([str(c) for c in session.query(Compose).all()])),
+                    abort=True)
             resume = True
             resume_all = True
 
@@ -90,8 +98,11 @@ def push(username, cert_prefix, **kwargs):
                     session.delete(compose)
                     continue
 
-                if not resume_all and not click.confirm('Resume {}?'.format(compose)):
-                    continue
+                if not resume_all:
+                    if yes:
+                        click.echo('Resuming {}.'.format(compose))
+                    elif not click.confirm('Resume {}?'.format(compose)):
+                        continue
 
                 # Reset the Compose's state and error message.
                 compose.state = ComposeState.requested
@@ -148,8 +159,12 @@ def push(username, cert_prefix, **kwargs):
                 click.echo(update.title)
 
         if composes:
-            click.confirm('\n\nPush these {:d} updates?'.format(
-                sum([len(c.updates) for c in composes])), abort=True)
+            if yes:
+                click.echo('\n\nPushing {:d} updates.'.format(
+                    sum([len(c.updates) for c in composes])))
+            else:
+                click.confirm('\n\nPush these {:d} updates?'.format(
+                    sum([len(c.updates) for c in composes])), abort=True)
             click.echo('\nLocking updates...')
         else:
             click.echo('\nThere are no updates to push.')
