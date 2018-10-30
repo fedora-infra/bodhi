@@ -2004,7 +2004,8 @@ class TestListReleases(unittest.TestCase):
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_RELEASES_LIST_MUNCH, autospec=True)
+                return_value=client_test_data.EXAMPLE_RELEASE_MUNCH_NO_ARCHIVED,
+                autospec=True)
     def test_url_flag(self, send_request):
         """
         Assert correct behavior with the --url flag.
@@ -2022,14 +2023,47 @@ class TestListReleases(unittest.TestCase):
         self.assertEqual(result.output, expected_output)
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
-            bindings_client, 'releases/', params={}, verb='GET'
+            bindings_client, 'releases/', params={
+                'rows_per_page': None, 'page': None, 'exclude_archived': True
+            }, verb='GET'
         )
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_RELEASES_LIST_MUNCH, autospec=True)
+                return_value=client_test_data.EXAMPLE_RELEASE_MUNCH_NO_ARCHIVED,
+                autospec=True)
+    def test_pagination(self, send_request):
+        """
+        Assert correct behavior using pagination.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.list_releases, ['--url', 'http://localhost:6543', '--rows', 4, '--page', 1]
+        )
+
+        expected_output = '{}\n{}'.format(
+            client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT,
+            client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT,
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, expected_output)
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'releases/', params={
+                'rows_per_page': 4, 'page': 1, 'exclude_archived': True
+            }, verb='GET'
+        )
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_RELEASE_MUNCH_WITH_ARCHIVED,
+                autospec=True)
     def test_display_archived_flag(self, send_request):
         """
         Assert correct behavior with the --display-archived flag.
@@ -2050,7 +2084,9 @@ class TestListReleases(unittest.TestCase):
         self.assertEqual(result.output, expected_output)
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
-            bindings_client, 'releases/', params={}, verb='GET'
+            bindings_client, 'releases/', params={
+                'rows_per_page': None, 'page': None, 'exclude_archived': False
+            }, verb='GET'
         )
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
@@ -2071,9 +2107,49 @@ class TestListReleases(unittest.TestCase):
         self.assertEqual(result.output, ("an error was encountered... :(\n"))
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
-            bindings_client, 'releases/', params={}, verb='GET'
+            bindings_client, 'releases/', params={
+                'rows_per_page': None, 'page': None, 'exclude_archived': True
+            }, verb='GET'
         )
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+
+class TestPrintReleasesList(unittest.TestCase):
+    """
+    Test the print_releases_list() function
+    """
+    @mock.patch('bodhi.client.click.echo')
+    def test_only_pending_state(self, echo):
+        """Assert that only release with pending state is printed ."""
+        releases = [{"state": "pending", "name": "test_name"}]
+
+        client.print_releases_list(releases)
+
+        self.assertEqual(echo.call_count, 2)
+        self.assertEqual(echo.mock_calls[0][1][0], 'pending:')
+        self.assertEqual(echo.mock_calls[1][1][0], '  Name:                test_name')
+
+    @mock.patch('bodhi.client.click.echo')
+    def test_only_archived_state(self, echo):
+        """Assert that only release with archived state is printed ."""
+        releases = [{"state": "archived", "name": "test_name"}]
+
+        client.print_releases_list(releases)
+
+        self.assertEqual(echo.call_count, 2)
+        self.assertEqual(echo.mock_calls[0][1][0], '\narchived:')
+        self.assertEqual(echo.mock_calls[1][1][0], '  Name:                test_name')
+
+    @mock.patch('bodhi.client.click.echo')
+    def test_only_current_state(self, echo):
+        """Assert that only release with current state is printed ."""
+        releases = [{"state": "current", "name": "test_name"}]
+
+        client.print_releases_list(releases)
+
+        self.assertEqual(echo.call_count, 2)
+        self.assertEqual(echo.mock_calls[0][1][0], '\ncurrent:')
+        self.assertEqual(echo.mock_calls[1][1][0], '  Name:                test_name')
 
 
 class TestHandleErrors(unittest.TestCase):
