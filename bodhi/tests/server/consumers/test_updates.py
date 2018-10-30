@@ -30,11 +30,12 @@ from bodhi.server.consumers import updates
 from bodhi.tests.server import base
 
 
+@mock.patch('bodhi.server.consumers.updates.time.sleep')
 class TestUpdatesHandlerConsume(base.BaseTestCase):
     """This test class contains tests for the UpdatesHandler.consume() method."""
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
-    def test_edited_update_bug_not_in_update(self, work_on_bugs, fetch_test_cases):
+    def test_edited_update_bug_not_in_update(self, work_on_bugs, fetch_test_cases, sleep):
         """
         Test with a message that indicates that the update is being edited, and the list of bugs
         contains one that UpdatesHandler does not find in the database.
@@ -53,6 +54,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
 
         self.assertEqual(work_on_bugs.call_count, 0)
         self.assertEqual(fetch_test_cases.call_count, 0)
+        sleep.assert_called_once_with(1)
 
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
     # can ensure that we aren't raising Exceptions from them, while allowing us to only assert that
@@ -61,7 +63,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                 side_effect=updates.UpdatesHandler.fetch_test_cases, autospec=True)
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs',
                 side_effect=updates.UpdatesHandler.work_on_bugs, autospec=True)
-    def test_edited_update_bugs_in_update(self, work_on_bugs, fetch_test_cases):
+    def test_edited_update_bugs_in_update(self, work_on_bugs, fetch_test_cases, sleep):
         """
         Test with a message that indicates that the update is being edited, and the list of bugs
         matches what UpdatesHandler finds in the database.
@@ -86,9 +88,10 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(fetch_test_cases.call_count, 1)
         self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][1],
                                    sqlalchemy.orm.session.Session))
+        sleep.assert_called_once_with(1)
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
-    def test_gating_required_false(self):
+    def test_gating_required_false(self, sleep):
         """Assert that test_gating_status is not updated if test_gating is not enabled."""
         update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
         update.test_gating_status = None
@@ -126,9 +129,10 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertIsNone(update.test_gating_status)
         self.assertIsNone(update.greenwave_summary_string)
         self.assertIsNone(update.greenwave_unsatisfied_requirements)
+        sleep.assert_called_once_with(1)
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
-    def test_gating_required_true(self):
+    def test_gating_required_true(self, sleep):
         """Assert that test_gating_status is updated when test_gating is enabled."""
         update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
         update.test_gating_status = None
@@ -167,6 +171,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(update.greenwave_summary_string, u'what have you done‽')
         self.assertEqual(update.greenwave_unsatisfied_requirements,
                          json.dumps(greenwave_response['unsatisfied_requirements']))
+        sleep.assert_called_once_with(1)
 
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
     # can ensure that we aren't raising Exceptions from them, while allowing us to only assert that
@@ -175,7 +180,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                 side_effect=updates.UpdatesHandler.fetch_test_cases, autospec=True)
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs',
                 side_effect=updates.UpdatesHandler.work_on_bugs, autospec=True)
-    def test_request_testing(self, work_on_bugs, fetch_test_cases):
+    def test_request_testing(self, work_on_bugs, fetch_test_cases, sleep):
         """
         Assert correct behavior when the message tells us that the update is requested for testing.
         """
@@ -201,10 +206,11 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(fetch_test_cases.call_count, 1)
         self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][1],
                                    sqlalchemy.orm.session.Session))
+        sleep.assert_called_once_with(1)
 
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
-    def test_unknown_topic(self, work_on_bugs, fetch_test_cases):
+    def test_unknown_topic(self, work_on_bugs, fetch_test_cases, sleep):
         """
         Assert that NotImplementedError gets raised when an unknown topic is received.
         """
@@ -223,10 +229,11 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
 
         self.assertEqual(work_on_bugs.call_count, 0)
         self.assertEqual(fetch_test_cases.call_count, 0)
+        sleep.assert_called_once_with(1)
 
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
-    def test_update_not_found(self, work_on_bugs, fetch_test_cases):
+    def test_update_not_found(self, work_on_bugs, fetch_test_cases, sleep):
         """
         If the message references an update that isn't found, assert that an Exception is raised.
         """
@@ -246,11 +253,12 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(str(exc.exception), "Couldn't find alias 'hurd-1.0-1.fc26' in DB")
         self.assertEqual(work_on_bugs.call_count, 0)
         self.assertEqual(fetch_test_cases.call_count, 0)
+        sleep.assert_called_once_with(1)
 
     @mock.patch('bodhi.server.consumers.updates.log.error')
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
-    def test_without_alias(self, work_on_bugs, fetch_test_cases, error):
+    def test_without_alias(self, work_on_bugs, fetch_test_cases, error, sleep):
         """
         An error should get logged and the function should return if the message has no alias.
         """
@@ -270,6 +278,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(fetch_test_cases.call_count, 0)
         error.assert_called_once_with(
             "Update Handler got update with no alias {'new_bugs': ['12345'], 'update': {}}.")
+        sleep.assert_called_once_with(1)
 
 
 class TestUpdatesHandlerInit(unittest.TestCase):
