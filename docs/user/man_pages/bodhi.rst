@@ -92,6 +92,10 @@ The ``composes`` command allows users to view composes.
 
        Print more detail about the composes.
 
+``bodhi composes info [options] RELEASE REQUEST``
+
+   The ``info`` subcommand allows you to see the compose for release with the given request.
+
 
 Overrides
 =========
