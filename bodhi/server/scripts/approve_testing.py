@@ -23,10 +23,11 @@ The script is responsible for commenting on updates after they reach the mandato
 spent in the testing repository.
 """
 
+import logging
 import os
 import sys
 
-from pyramid.paster import get_appsettings
+from pyramid.paster import get_appsettings, setup_logging
 import six
 
 from ..models import Update, UpdateStatus
@@ -64,7 +65,12 @@ def main(argv=sys.argv):
     if len(argv) != 2:
         usage(argv)
 
-    settings = get_appsettings(argv[1])
+    config_uri = argv[1]
+
+    setup_logging(config_uri)
+    log = logging.getLogger(__name__)
+
+    settings = get_appsettings(config_uri)
     initialize_db(settings)
     db = Session()
 
@@ -74,7 +80,7 @@ def main(argv=sys.argv):
         for update in testing:
             # If this release does not have any testing requirements, skip it
             if not update.release.mandatory_days_in_testing:
-                print('%s doesn\'t have mandatory days in testing' % update.release.name)
+                log.info('%s doesn\'t have mandatory days in testing', update.release.name)
                 continue
 
             # If this has already met testing requirements, skip it
@@ -84,7 +90,7 @@ def main(argv=sys.argv):
             # Approval message when testing based on karma threshold
             if update.stable_karma not in (0, None) and update.karma >= update.stable_karma \
                     and not update.autokarma and update.meets_testing_requirements:
-                print('%s now reaches stable karma threshold' % update.title)
+                log.info('%s now reaches stable karma threshold', update.title)
                 text = config.get('testing_approval_msg_based_on_karma')
                 update.comment(db, text, author=u'bodhi')
                 continue
@@ -95,7 +101,7 @@ def main(argv=sys.argv):
             # this function only needs to consider the time requirements because these updates have
             # not reached the karma threshold.
             if update.meets_testing_requirements:
-                print('%s now meets testing requirements' % update.title)
+                log.info('%s now meets testing requirements', update.title)
                 text = six.text_type(
                     config.get('testing_approval_msg') % update.mandatory_days_in_testing)
                 update.comment(db, text, author=u'bodhi')
@@ -106,7 +112,7 @@ def main(argv=sys.argv):
 
         db.commit()
     except Exception as e:
-        print(str(e))
+        log.error(e)
         db.rollback()
         Session.remove()
         sys.exit(1)

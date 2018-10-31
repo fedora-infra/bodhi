@@ -35,7 +35,11 @@ class TestMain(BaseTestCase):
     This class contains tests for the main() function.
     """
     @patch('bodhi.server.notifications.publish')
-    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self, publish):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_autokarma_update_meeting_time_requirements_gets_one_comment(
+        self, info, error, publish
+    ):
         """
         Ensure that an update that meets the required time in testing gets only one comment from
         Bodhi to that effect, even on subsequent runs of main().
@@ -49,11 +53,12 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
-                # Now we will run main() again, but this time we expect Bodhi not to add any
-                # further comments.
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                    # Now we will run main() again, but this time we expect Bodhi not to add any
+                    # further comments.
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -63,10 +68,14 @@ class TestMain(BaseTestCase):
             config.get('testing_approval_msg') % update.release.mandatory_days_in_testing)
         publish.assert_called_once_with(
             topic='update.requirements_met.stable', msg=dict(update=update))
+        info.assert_called_once_with('%s now meets testing requirements', 'bodhi-2.0-1.fc17')
+        error.assert_not_called()
 
     # Set the release's mandatory days in testing to 0 to set up the condition for this test.
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
-    def test_autokarma_update_without_mandatory_days_in_testing(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_autokarma_update_without_mandatory_days_in_testing(self, info, error):
         """
         If the Update's release doesn't have a mandatory days in testing, main() should ignore it
         (and should not comment on the update at all, even if it does reach karma levels.)
@@ -83,13 +92,18 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
         self.assertEqual(self.db.query(models.Comment).count(), 0)
+        info.assert_called_once_with("%s doesn't have mandatory days in testing", 'F17')
+        error.assert_not_called()
 
-    def test_autokarma_update_not_meeting_testing_requirments(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_autokarma_update_not_meeting_testing_requirments(self, info, error):
         """
         If an autokarma update has not met the testing requirements, bodhi should not comment on the
         update.
@@ -107,17 +121,21 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
         self.assertEqual(self.db.query(models.Comment).count(), 0)
+        info.assert_not_called()
+        error.assert_not_called()
 
     @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
     @patch('bodhi.server.scripts.approve_testing.Session.remove')
     @patch('bodhi.server.scripts.approve_testing.sys.exit')
-    @patch('sys.stdout', new_callable=StringIO)
-    def test_exception_handler(self, stdout, exit, remove, comment):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_exception_handler(self, info, error, exit, remove, comment):
         """The Exception handler prints the Exception, rolls back and closes the db, and exits."""
         update = self.db.query(models.Update).all()[0]
         update.date_testing = datetime.utcnow() - timedelta(days=15)
@@ -127,12 +145,13 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with patch.object(self.db, 'commit'):
-                    with patch.object(self.db, 'rollback'):
-                        approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    with patch.object(self.db, 'commit'):
+                        with patch.object(self.db, 'rollback'):
+                            approve_testing.main(['nosetests', 'some_config.ini'])
 
-                        self.assertEqual(self.db.commit.call_count, 0)
-                        self.db.rollback.assert_called_once_with()
+                            self.assertEqual(self.db.commit.call_count, 0)
+                            self.db.rollback.assert_called_once_with()
 
         exit.assert_called_once_with(1)
         comment.assert_called_once_with(
@@ -140,11 +159,15 @@ class TestMain(BaseTestCase):
             ('This update has reached 7 days in testing and can be pushed to stable now if the '
              'maintainer wishes'),
             author=u'bodhi')
-        self.assertEqual(stdout.getvalue(),
-                         'bodhi-2.0-1.fc17 now meets testing requirements\nThe DB died lol\n')
+        info.assert_called_once_with('%s now meets testing requirements', 'bodhi-2.0-1.fc17')
+        error.assert_called_once()
         remove.assert_called_once_with()
 
-    def test_non_autokarma_critpath_update_meeting_karma_requirements_gets_one_comment(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_non_autokarma_critpath_update_meeting_karma_requirements_gets_one_comment(
+        self, info, error
+    ):
         """
         Ensure that a non-autokarma critical path update that meets the required karma threshold
         and required time in testing gets only one comment from Bodhi to that effect, even on
@@ -169,18 +192,25 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
-                # Now we will run main() again, but this time we expect Bodhi not to add any
-                # further comments.
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                    # Now we will run main() again, but this time we expect Bodhi not to add any
+                    # further comments.
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         self.assertEqual(comment_q.count(), 1)
         self.assertEqual(comment_q[0].text, config.get('testing_approval_msg_based_on_karma'))
+        info.assert_called_once_with('%s now reaches stable karma threshold', 'bodhi-2.0-1.fc17')
+        error.assert_not_called()
 
-    def test_non_autokarma_critpath_update_not_meeting_time_requirements_gets_no_comment(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_non_autokarma_critpath_update_not_meeting_time_requirements_gets_no_comment(
+        self, info, error
+    ):
         """
         Ensure that a non-autokarma critical path update that does not meet the required time in
         testing does not get any comment from bodhi saying it can be pushed to stable.
@@ -201,11 +231,12 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
-                # Now we will run main() again, but this time we expect Bodhi not to add any
-                # further comments.
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                    # Now we will run main() again, but this time we expect Bodhi not to add any
+                    # further comments.
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -215,8 +246,12 @@ class TestMain(BaseTestCase):
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
+        info.assert_not_called()
+        error.assert_not_called()
 
-    def test_non_autokarma_update_meeting_karma_requirements_gets_one_comment(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_non_autokarma_update_meeting_karma_requirements_gets_one_comment(self, info, error):
         """
         Ensure that a non-autokarma update that meets the required karma threshold gets only one
         comment from Bodhi to that effect, even on subsequent runs of main(). There was an issue[0]
@@ -235,18 +270,25 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
-                # Now we will run main() again, but this time we expect Bodhi not to add any
-                # further comments.
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                    # Now we will run main() again, but this time we expect Bodhi not to add any
+                    # further comments.
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         self.assertEqual(comment_q.count(), 1)
         self.assertEqual(comment_q[0].text, config.get('testing_approval_msg_based_on_karma'))
+        info.assert_called_once_with('%s now reaches stable karma threshold', 'bodhi-2.0-1.fc17')
+        error.assert_not_called()
 
-    def test_non_autokarma_critpath_update_meeting_time_requirements_gets_one_comment(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_non_autokarma_critpath_update_meeting_time_requirements_gets_one_comment(
+        self, info, error
+    ):
         """
         Ensure that a critpath update that meets the required time in testing (14 days) gets a
         comment from Bodhi indicating that the update has met the required time in testing.
@@ -266,11 +308,12 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
-                # Now we will run main() again, but this time we expect Bodhi not to add any
-                # further comments.
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                    # Now we will run main() again, but this time we expect Bodhi not to add any
+                    # further comments.
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         update = self.db.query(models.Update).all()[0]
         self.assertEqual(update.critpath, True)
@@ -284,8 +327,12 @@ class TestMain(BaseTestCase):
             config.get('testing_approval_msg') % update.mandatory_days_in_testing)
         self.assertEqual(update.release.mandatory_days_in_testing, 7)
         self.assertEqual(update.mandatory_days_in_testing, 14)
+        info.assert_called_once_with('%s now meets testing requirements', 'bodhi-2.0-1.fc17')
+        error.assert_not_called()
 
-    def test_non_autokarma_update_with_stable_karma_0(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_non_autokarma_update_with_stable_karma_0(self, info, error):
         """
         A non-autokarma update with a stable_karma set to 0 should not get comments from Bodhi.
         """
@@ -298,7 +345,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -308,8 +356,12 @@ class TestMain(BaseTestCase):
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
+        info.assert_not_called()
+        error.assert_not_called()
 
-    def test_non_autokarma_update_with_stable_karma_None(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_non_autokarma_update_with_stable_karma_None(self, info, error):
         """
         A non-autokarma update with a stable_karma set to None should not get comments from Bodhi.
         """
@@ -322,7 +374,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -332,8 +385,12 @@ class TestMain(BaseTestCase):
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
+        info.assert_not_called()
+        error.assert_not_called()
 
-    def test_non_autokarma_update_with_unmet_karma_requirement(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_non_autokarma_update_with_unmet_karma_requirement(self, info, error):
         """
         A non-autokarma update without enough karma should not get comments from Bodhi.
         """
@@ -346,7 +403,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -356,8 +414,12 @@ class TestMain(BaseTestCase):
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
+        info.assert_not_called()
+        error.assert_not_called()
 
-    def test_non_autokarma_update_with_unmet_karma_requirement_after_time_met(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_non_autokarma_update_with_unmet_karma_requirement_after_time_met(self, info, error):
         """
         A non-autokarma update without enough karma that reaches mandatory days in testing should
         get a comment from Bodhi that the update can be pushed to stable.
@@ -374,7 +436,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -382,10 +445,14 @@ class TestMain(BaseTestCase):
         self.assertEqual(
             comment_q[0].text,
             config.get('testing_approval_msg') % update.release.mandatory_days_in_testing)
+        info.assert_called_once_with('%s now meets testing requirements', 'bodhi-2.0-1.fc17')
+        error.assert_not_called()
 
     # Set the release's mandatory days in testing to 0 to set up the condition for this test.
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
-    def test_non_autokarma_update_without_mandatory_days_in_testing(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_non_autokarma_update_without_mandatory_days_in_testing(self, info, error):
         """
         If the Update's release doesn't have a mandatory days in testing, main() should ignore it
         (and should not comment on the update at all, even if it does reach karma levels.)
@@ -400,7 +467,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -410,9 +478,13 @@ class TestMain(BaseTestCase):
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
         self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
+        info.assert_called_once_with("%s doesn't have mandatory days in testing", 'F17')
+        error.assert_not_called()
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 14)])
-    def test_subsequent_comments_after_initial_push_comment(self):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_subsequent_comments_after_initial_push_comment(self, info, error):
         """
         If a user edits an update after Bodhi comments a testing_approval_msg,
         Bodhi should send an additional testing_approval_msg when the revised
@@ -428,9 +500,10 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
-                update.comment(self.db, u"Removed build", 0, u'bodhi')
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
+                    update.comment(self.db, u"Removed build", 0, u'bodhi')
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -445,18 +518,30 @@ class TestMain(BaseTestCase):
             cmnts[2].text,
             config.get('testing_approval_msg') %
             update.release.mandatory_days_in_testing)
+        self.assertEqual(
+            info.call_args_list[0][0], (u'%s now meets testing requirements', u'bodhi-2.0-1.fc17')
+        )
+        self.assertEqual(
+            info.call_args_list[1][0], (u'%s now meets testing requirements', u'bodhi-2.0-1.fc17')
+        )
+        error.assert_not_called()
 
     @patch('sys.exit')
     @patch('sys.stdout', new_callable=StringIO)
-    def test_usage(self, stdout, exit):
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.error')
+    @patch('bodhi.server.scripts.approve_testing.logging.Logger.info')
+    def test_usage(self, info, error, stdout, exit):
         """
         Assert that the usage message is returned to the user if not exactly 2 arguments are given
         """
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini', 'testnoses'])
+                with patch('bodhi.server.scripts.approve_testing.setup_logging'):
+                    approve_testing.main(['nosetests', 'some_config.ini', 'testnoses'])
 
         self.assertEqual(
             stdout.getvalue(),
             'usage: nosetests <config_uri>\n(example: "nosetests development.ini")\n')
         exit.assert_called_once_with(1)
+        info.assert_not_called()
+        error.assert_not_called()
