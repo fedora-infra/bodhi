@@ -39,6 +39,7 @@ from bodhi.server.models import (
     UpdateSeverity, UpdateSuggestion, User, TestGatingStatus)
 from bodhi.server.util import call_api
 from bodhi.tests.server.base import BaseTestCase
+from bodhi.server.exceptions import BodhiException, LockedUpdateException
 
 
 YEAR = time.localtime().tm_year
@@ -795,6 +796,30 @@ class TestSetRequest(BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(up.request, UpdateRequest.stable)
         self.assertEqual(res.json['update']['request'], 'stable')
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.services.updates.Update.set_request',
+                side_effect=BodhiException('BodhiException. oops!'))
+    @mock.patch('bodhi.server.services.updates.Update.check_requirements',
+                return_value=(True, "a fake reason"))
+    @mock.patch('bodhi.server.services.updates.log.error')
+    def test_BodhiException_exception(self, log_error, check_requirements, send_request, *args):
+        """Ensure that an BodhiException Exception is handled by set_request()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+        up.release.state = ReleaseState.current
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'BodhiException. oops!')
+        log_error.assert_called_once()
+        self.assertEqual("Failed to set the request: %s", log_error.call_args_list[0][0][0])
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.set_request',
@@ -5221,6 +5246,53 @@ class TestWaiveTestResults(BaseTestCase):
         self.assertEqual(up.test_gating_status, TestGatingStatus.failed)
 
     @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
+                side_effect=LockedUpdateException('LockedUpdateException. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.warning')
+    def test_LockedUpdateException_exception(self, log_warning, waive_test_results, *args):
+        """Ensure that an LockedUpdateException Exception is handled by waive_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.test_gating_status = TestGatingStatus.failed
+        up.locked = False
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=400)
+
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'LockedUpdateException. oops!')
+        log_warning.assert_called_once_with('LockedUpdateException. oops!')
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should not have been altered.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.failed)
+
+    @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
+                side_effect=BodhiException('BodhiException. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.error')
+    def test_BodhiException_exception(self, log_error, waive_test_results, *args):
+        """Ensure that an BodhiException Exception is handled by waive_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.test_gating_status = TestGatingStatus.failed
+        up.locked = False
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=400)
+
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'BodhiException. oops!')
+        log_error.assert_called_once()
+        self.assertEqual("Failed to waive the test results: %s", log_error.call_args_list[0][0][0])
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should not have been altered.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.failed)
+
+    @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
                 side_effect=IOError('IOError. oops!'))
     @mock.patch('bodhi.server.services.updates.log.exception')
     def test_unexpected_exception(self, log_exception, waive_test_results, *args):
@@ -5665,6 +5737,70 @@ class TestGetTestResults(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body[u'errors'][0][u'description'],
                          "No greenwave_api_url specified")
+
+    @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
+                side_effect=requests.Timeout('RequestsTimeout. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.error')
+    def test_RequestsTimeout_exception(self, log_error, get_test_gating_info, *args):
+        """Ensure that an RequestsTimeout Exception is handled by get_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=504)
+
+        self.assertEqual(res.status_code, 504)
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'RequestsTimeout. oops!')
+        log_error.assert_called_once()
+        self.assertEqual(
+            "Error querying greenwave for test results - timed out",
+            log_error.call_args_list[0][0][0],
+        )
+
+    @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
+                side_effect=RuntimeError('RuntimeError. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.error')
+    def test_RuntimeError_exception(self, log_error, get_test_gating_info, *args):
+        """Ensure that an RuntimeError Exception is handled by get_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=502)
+
+        self.assertEqual(res.status_code, 502)
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'RuntimeError. oops!')
+        log_error.assert_called_once()
+        self.assertEqual(
+            "Error querying greenwave for test results: %s", log_error.call_args_list[0][0][0]
+        )
+
+    @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
+                side_effect=BodhiException('BodhiException. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.error')
+    def test_BodhiException_exception(self, log_error, get_test_gating_info, *args):
+        """Ensure that an BodhiException Exception is handled by get_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=501)
+
+        self.assertEqual(res.status_code, 501)
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'BodhiException. oops!')
+        log_error.assert_called_once()
+        self.assertEqual(
+            "Failed to query greenwave for test results: %s", log_error.call_args_list[0][0][0]
+        )
 
     @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
                 side_effect=IOError('IOError. oops!'))
