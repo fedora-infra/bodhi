@@ -163,6 +163,7 @@ setup(
     bodhi-check-policies = bodhi.server.scripts.check_policies:check
     bodhi-skopeo-lite = bodhi.server.scripts.skopeo_lite:main
     bodhi-sar = bodhi.server.scripts.sar:get_user_data
+    bodhi-shell = bodhi.server.scripts.bshell:get_bodhi_shell
     [moksha.consumer]
     masher = bodhi.server.consumers.masher:Masher
     updates = bodhi.server.consumers.updates:UpdatesHandler
