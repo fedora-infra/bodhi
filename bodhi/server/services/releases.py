@@ -329,7 +329,7 @@ def save_release(request):
     except Exception as e:
         log.exception(e)
         request.errors.add('body', 'release',
-                           'Unable to create update: %s' % e)
+                           'Unable to create/edit release: %s' % e)
         return
 
     request.db.add(r)
