@@ -94,6 +94,7 @@ class TestBugzilla(unittest.TestCase):
         """Assert that an xmlrpc Fault is caught and logged by close()."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.close.side_effect = xmlrpc_client.Fault(
             410, 'You must log in before using this part of Red Hat Bugzilla.')
@@ -111,6 +112,7 @@ class TestBugzilla(unittest.TestCase):
         """Test the close() method with a success case."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.component = 'bodhi'
         bz._bz.getbug.return_value.product = 'aproduct'
 
@@ -126,10 +128,28 @@ class TestBugzilla(unittest.TestCase):
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
+    def test_close_private_bug(self, info):
+        """Test the close() method with a bug flagged as private."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = True
+        bz._bz.getbug.return_value.component = 'bodhi'
+        bz._bz.getbug.return_value.product = 'aproduct'
+
+        bz.close(12345, {'bodhi': 'bodhi-3.1.0-1.fc27'},
+                 'Fixed. Closing bug and adding version to fixed_in field.')
+
+        bz._bz.getbug.assert_called_once_with(12345)
+        bz._bz.getbug.return_value.close.assert_not_called()
+        info.assert_called_once_with('Unable to modify status of private bug #12345')
+
+    @mock.patch('bodhi.server.bugs.log.info')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_close_fixedin_maxlength(self, info):
         """Test the close() method when fixed_in field may go over 255 chars."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.component = 'bodhi'
         bz._bz.getbug.return_value.product = 'aproduct'
         fill_text = ' '.join([u'exactly-10', ] * 23)
@@ -150,6 +170,7 @@ class TestBugzilla(unittest.TestCase):
         """Test the close() method at the edge of the allowed size of the fixedin field (254)."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.component = 'bodhi'
         bz._bz.getbug.return_value.product = 'aproduct'
         fill_text = ' '.join([u'exactly-10', ] * 21)
@@ -172,6 +193,7 @@ class TestBugzilla(unittest.TestCase):
         """Test the close() method when the bug's product is not in the bz_products config."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'not fedora!'
 
         bz.close(12345, {'bodhi': 'bodhi-35.103.109-1.fc27'},
@@ -186,6 +208,7 @@ class TestBugzilla(unittest.TestCase):
         """Test the comment() method with a success case."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
 
         bz.comment(1411188, 'A nice message.')
 
@@ -194,11 +217,25 @@ class TestBugzilla(unittest.TestCase):
         # No exceptions should have been logged
         self.assertEqual(info.call_count, 0)
 
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_comment_private_bug(self, info):
+        """Test the comment() method on a bug flagged as private."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = True
+
+        bz.comment(1411188, 'A nice message.')
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        bz._bz.getbug.return_value.addcomment.assert_not_called()
+        info.assert_called_once_with('Unable to comment on private bug #1411188')
+
     @mock.patch('bodhi.server.bugs.log.error')
     def test_comment_too_long(self, error):
         """Assert that the comment() method gets angry if the comment is too long."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         oh_my = u'All work aind no play makes bowlofeggs a dull… something something… '
         long_comment = oh_my * (65535 // len(oh_my) + 1)
 
@@ -214,6 +251,7 @@ class TestBugzilla(unittest.TestCase):
         """Assert that only 5 attempts are made to comment before giving up."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.addcomment.side_effect = \
             xmlrpc_client.Fault(
                 42,
@@ -236,6 +274,7 @@ class TestBugzilla(unittest.TestCase):
         """Test the comment() method with an unexpected Exception."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.addcomment.side_effect = Exception(
             'Ran out of internet fluid, please refill.')
 
@@ -273,6 +312,7 @@ class TestBugzilla(unittest.TestCase):
         """Ensure correct execution of the modified() method."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.bug_status = 'NEW'
 
@@ -283,11 +323,28 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.return_value.setstatus.assert_called_once_with('MODIFIED',
                                                                      comment='A mean message.')
 
+    @mock.patch('bodhi.server.bugs.log.info')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
+    def test_modified_private_bug(self, info):
+        """Test the modified() method when the bug is flagged as private."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = True
+        bz._bz.getbug.return_value.product = 'aproduct'
+        bz._bz.getbug.return_value.bug_status = 'NEW'
+
+        bz.modified(1411188, 'A mean message.')
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        info.assert_called_once_with("Unable to modify status of private bug #1411188")
+        bz._bz.getbug.return_value.setstatus.assert_not_called()
+
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_modified_after_verified(self):
         """Test the modified() method when the status of bug is VERIFIED."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.bug_status = 'VERIFIED'
 
@@ -301,6 +358,7 @@ class TestBugzilla(unittest.TestCase):
         """Test the modified() method when the bug's product is not in the bz_products config."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'not fedora!'
 
         bz.modified(1411188, 'A mean message.')
@@ -375,6 +433,22 @@ class TestBugzilla(unittest.TestCase):
         error.assert_called_once_with(
             'Got fault from Bugzilla: fault code: 42, fault string: You found the meaning.')
 
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_update_details_xmlrpc_fault_bug_is_private(self, info):
+        """Test we set the bug as private and log the info"""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = xmlrpc_client.Fault(102, 'The bug is private.')
+        bug = mock.MagicMock()
+        bug.bug_id = 123
+
+        bz.update_details(0, bug)
+
+        self.assertEqual(bug.title, 'Private bug')
+        self.assertEqual(bug.private, True)
+        bz._bz.getbug.assert_called_once_with(123)
+        info.assert_called_once_with('Marked bug #123 as private.')
+
     @mock.patch('bodhi.server.bugs.log.exception')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_on_qa_failure(self, exception):
@@ -383,6 +457,7 @@ class TestBugzilla(unittest.TestCase):
         """
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.setstatus.side_effect = Exception(
             'You forgot to pay your oxygen bill. Your air supply will promptly be severed.')
@@ -402,6 +477,7 @@ class TestBugzilla(unittest.TestCase):
         """
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'aproduct'
 
         bz.on_qa(1411188, 'A message.')
@@ -412,6 +488,24 @@ class TestBugzilla(unittest.TestCase):
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
+    def test_on_qa_private_bug(self, info):
+        """
+        Test the on_qa() method with a private bug.
+        """
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = True
+        bz._bz.getbug.return_value.product = 'aproduct'
+
+        bz.on_qa(1411188, 'A message.')
+
+        bz._bz.getbug.assert_called_once_with(1411188)
+        bz._bz.getbug.return_value.setstatus.assert_not_called()
+        bz._bz.getbug.return_value.addcomment.assert_not_called()
+        info.assert_called_once_with('Unable to modify status of private bug #1411188')
+
+    @mock.patch('bodhi.server.bugs.log.info')
+    @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
     def test_on_qa_skipped_because_closed(self, info):
         """
         Test the on_qa() method when the bug is already CLOSED.
@@ -419,6 +513,7 @@ class TestBugzilla(unittest.TestCase):
         """
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.bug_status = 'CLOSED'
 
@@ -438,6 +533,7 @@ class TestBugzilla(unittest.TestCase):
         """
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.bug_status = 'VERIFIED'
 
@@ -457,6 +553,7 @@ class TestBugzilla(unittest.TestCase):
         """
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'aproduct'
         bz._bz.getbug.return_value.bug_status = 'ON_QA'
 
@@ -472,6 +569,7 @@ class TestBugzilla(unittest.TestCase):
         """Test the on_qa() method when the bug's product is not in the bz_products config."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
+        bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'not fedora!'
 
         bz.on_qa(1411188, 'A message.')
