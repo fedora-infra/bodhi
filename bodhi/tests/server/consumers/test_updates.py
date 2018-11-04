@@ -416,3 +416,25 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
             h.work_on_bugs(h.db_factory, update, bugs)
 
         warning.assert_called_once_with('Error occurred during updating single bug', exc_info=True)
+
+    @mock.patch('bodhi.server.bugs.Bugzilla.modified')
+    @mock.patch('bodhi.server.consumers.updates.log.info')
+    def test_private_bug_skipped(self, info, modified):
+        """Assert that Bodhi doesn't try to change private bugs."""
+        hub = mock.MagicMock()
+        hub.config = {'environment': 'environment',
+                      'topic_prefix': 'topic_prefix'}
+        h = updates.UpdatesHandler(hub)
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        update = self.db.query(models.Update).filter(
+            models.Build.nvr == u'bodhi-2.0-1.fc17').one()
+        bug = models.Bug.query.first()
+        # Set this bug to private.
+        bug.private = True
+        self.db.flush()
+        bugs = self.db.query(models.Bug).all()
+
+        h.work_on_bugs(h.db_factory, update, bugs)
+
+        info.assert_called_with('  Skipping bug 12345 because it is private')
+        modified.assert_not_called()
