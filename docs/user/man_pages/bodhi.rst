@@ -614,6 +614,14 @@ The ``releases`` command allows users to manage update releases.
 
         Display full list, including archived releases.
 
+    ``--rows <integer>``
+
+        Limits number of results shown per page.
+
+    ``--page <integer>``
+
+        Go to page number.
+
 
 Examples
 ========
