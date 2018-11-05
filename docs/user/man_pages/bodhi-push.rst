@@ -44,6 +44,10 @@ Options
 
     Resume one or more previously failed pushes.
 
+``-y, --yes``
+
+    Answers yes to the various questions.
+
 ``--staging``
 
     Use the staging bodhi instance instead of the production instance.
