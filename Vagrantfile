@@ -10,9 +10,9 @@
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
- config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/28/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-28-1.1.x86_64.vagrant-libvirt.box"
- config.vm.box = "f28-cloud-libvirt"
- config.vm.box_download_checksum = "d60f52c9cb04bfd4c5e950410611c746641f0b5f76830a53d44a0f1a43ab3fac"
+ config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/29/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-29-1.2.x86_64.vagrant-libvirt.box"
+ config.vm.box = "f29-cloud-libvirt"
+ config.vm.box_download_checksum = "30a58db024a5203fea0fee8fffcbc1998b3e6de787dbc504dc5c511b97c84777"
  config.vm.box_download_checksum_type = "sha256"
 
  # Forward traffic on the host to the development server on the guest.
@@ -31,7 +31,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  # Vagrant can share the source directory using rsync, NFS, or SSHFS (with the vagrant-sshfs
  # plugin). Consult the Vagrant documentation if you do not want to use SSHFS.
  config.vm.synced_folder ".", "/vagrant", disabled: true
- config.vm.synced_folder ".", "/home/vagrant/bodhi", type: "sshfs", sshfs_opts_append: "-o nonempty"
+ config.vm.synced_folder ".", "/home/vagrant/bodhi", type: "sshfs"
 
  # To cache update packages (which is helpful if frequently doing `vagrant destroy && vagrant up`)
  # you can create a local directory and share it to the guest's DNF cache. Uncomment the lines below
