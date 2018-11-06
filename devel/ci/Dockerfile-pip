@@ -44,7 +44,6 @@ RUN pip-2 install \
     responses \
     pytest \
     pytest-cov \
-    sqlalchemy_schemadisplay \
     webtest
 RUN pip-3 install \
     diff-cover \
@@ -56,7 +55,6 @@ RUN pip-3 install \
     pytest-cov \
     sqlalchemy_schemadisplay \
     webtest
-RUN pip-2 install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
 RUN pip-3 install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
 
 # Fake pungi being installed so we can avoid it and all its dependencies
@@ -72,4 +70,7 @@ RUN rm -rf /bodhi/docs/_build
 RUN rm -rf /bodhi/docs/developer/docblocks
 RUN sed -i '/pyramid_debugtoolbar/d' setup.py
 RUN sed -i '/pyramid_debugtoolbar/d' devel/development.ini.example
+# The Makefile is set to use sphinx-build-3, but the pip installed sphinx is just called
+# sphinx-build.
+RUN sed -i 's/sphinx-build-3/sphinx-build/' docs/Makefile
 RUN cp devel/development.ini.example development.ini
