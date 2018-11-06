@@ -39,7 +39,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python2-pytest-cov \
     python2-responses \
     python2-sqlalchemy \
-    python2-sqlalchemy_schemadisplay \
     python3-alembic \
     python3-arrow \
     python3-bleach \
@@ -70,7 +69,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python2-alembic \
     python2-bugzilla \
     python2-cornice \
-    python2-cornice-sphinx \
     python2-munch \
     python2-openid \
     python2-pylibravatar \
@@ -81,6 +79,9 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python2-webtest \
     python3-pyramid-fas-openid \
     python2-libcomps
+
+# sqlalchemy_schemadisplay is not packaged for Python 3 in Fedora < 30
+RUN pip-3 install sqlalchemy_schemadisplay
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji

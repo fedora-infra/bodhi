@@ -39,7 +39,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python2-pytest-cov \
     python2-responses \
     python2-sqlalchemy \
-    python2-sqlalchemy_schemadisplay \
     python3-alembic \
     python3-arrow \
     python3-bleach \
@@ -65,6 +64,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-pytest-cov \
     python3-responses \
     python3-simplemediawiki \
+    python3-sphinx \
     python3-sqlalchemy \
     python3-webtest \
     python-alembic \
@@ -79,8 +79,8 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python2-libcomps
 
 RUN pip-2 install cornice
-RUN pip-2 install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
-RUN pip-3 install cornice
+# sqlalchemy_schemadisplay is not packaged for Python 3 in Fedora < 30
+RUN pip-3 install cornice sqlalchemy_schemadisplay
 RUN pip-3 install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
 RUN pip-3 install pyramid-fas-openid
 
