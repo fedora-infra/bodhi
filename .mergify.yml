@@ -48,8 +48,8 @@ pull_request_rules:
 - actions:
     backport:
       branches:
-      - '3.9'
+      - '3.11'
   conditions:
   - label!=no-mergify
-  - label=3.9-backports
-  name: backport 3.9
+  - label=3.11-backports
+  name: backport 3.11
