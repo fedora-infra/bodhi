@@ -1,17 +1,18 @@
 ---
-- name: Install dev packages
+- name: Install packages
   dnf:
-      name: "{{ item }}"
-      state: present
-  with_items:
+    name:
+      - bash-completion
       - createrepo_c
       - docker
+      - dstat
       - fedmsg-hub
       - fedmsg-relay
       - freetype-devel
       - gcc
       - git
       - graphviz
+      - htop
       - httpie
       - liberation-mono-fonts
       - libffi-devel
@@ -23,6 +24,7 @@
       - packagedb-cli
       - pcaro-hermit-fonts
       - postgresql-devel
+      - postgresql-server
       - python2
       - python2-alembic
       - python2-arrow
@@ -96,9 +98,38 @@
       - python3-sqlalchemy
       - python3-webtest
       - redhat-rpm-config
+      - screen
       - skopeo
+      - tmux
+      - tree
       - vim-enhanced
       - zlib-devel
+    state: present
+
+- name: Initialize PostgreSQL
+  command: postgresql-setup initdb
+  args:
+      creates: /var/lib/pgsql/data/pg_hba.conf
+
+- replace:
+    dest: /var/lib/pgsql/data/pg_hba.conf
+    regexp: "host    all             all             127.0.0.1/32            ident"
+    replace: "host    all             all             127.0.0.1/32            trust"
+
+- replace:
+    dest: /var/lib/pgsql/data/pg_hba.conf
+    regexp: "host    all             all             ::1/128                 ident"
+    replace: "host    all             all             ::1/128                 trust"
+
+- service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Create a database for Bodhi
+  shell: runuser -l postgres -c 'createdb bodhi2' && touch /home/vagrant/.db-created
+  args:
+      creates: /home/vagrant/.db-created
 
 # This isn't packaged in Fedora yet, but it's only a development tool (we should still add it)
 - name: pip install debugtoolbar

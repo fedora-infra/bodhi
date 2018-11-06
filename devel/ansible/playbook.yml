@@ -4,6 +4,4 @@
   become_method: sudo
   vars:
   roles:
-    - core
-    - db
-    - dev
+    - bodhi
