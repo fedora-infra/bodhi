@@ -1,5 +1,8 @@
-# (c) 2017 - Copyright Red Hat Inc
-
+# -*- coding: utf-8 -*-
+# Copyright © 2017, 2018 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # version 2 as published by the Free Software Foundation.
@@ -15,6 +18,7 @@
 #
 # Authors:
 #   Pierre-Yves Chibon <pingou@pingoured.fr>
+#   Randy Barlow <bowlofeggs@fedoraproject.org>
 """This test module contains tests for the migration system."""
 
 import os
@@ -35,8 +39,15 @@ class TestAlembic(unittest.TestCase):
         This test runs the `alembic history | grep ' (head), '` command,
         and ensure it returns only one line.
         """
+        alembic = None
+        # Fedora calls the executable alembic-3, but the pip installed alembic will be alembic.
+        for executable in ('alembic-3', 'alembic'):
+            if os.path.exists(os.path.join('/', 'usr', 'bin', executable)):
+                alembic = executable
+                break
+
         proc1 = subprocess.Popen(
-            ['alembic', 'history'],
+            [alembic, 'history'],
             cwd=REPO_PATH, stdout=subprocess.PIPE)
         proc2 = subprocess.Popen(
             ['grep', ' (head), '],
