@@ -51,6 +51,12 @@ Backwards incompatible changes
 * Bug objects no longer include a ``private`` field (:issue:`3016`).
 * The CLI now defaults to the ``--wait`` flag when creating or editing buildroot overrides. The old
   behavior can be achieved with the ``--no-wait`` flag.
+* All of Bodhi's fedmsgs have been changed. A new bodhi.messages packages has been added with new
+  published message schemas. Note that only the fields listed in the documented schemas are
+  supported in Bodhi 4, even though Bodhi still sends messages similar to the messages it sent in
+  the past. Message consumers should not rely on any undocumented fields in these messages. If you
+  need information that is not included in the supported schema, please work with the Bodhi project
+  to get the schema adjusted accordingly.
 
 
 Dependency changes
