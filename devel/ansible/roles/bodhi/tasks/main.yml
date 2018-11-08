@@ -208,6 +208,7 @@
   with_items:
       - bodhi.service
       - fedmsg-tail.service
+      - print-messages.service
 
 - name: Install the .bashrc
   copy:
@@ -231,6 +232,9 @@
       dest: /etc/motd
       mode: 0644
 
+- name: Set up the RabbitMQ broker
+  import_tasks: rabbitmq.yml
+
 - name: Remove default fedmsg endpoints
   file: path=/etc/fedmsg.d/endpoints.py state=absent
 
@@ -252,6 +256,12 @@
 - name: Start and enable the docker service
   service:
       name: docker
+      state: started
+      enabled: yes
+
+- name: Start and enable the fedora-messaging print service
+  service:
+      name: print-messages
       state: started
       enabled: yes
 
