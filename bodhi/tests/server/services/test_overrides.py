@@ -20,6 +20,7 @@
 from datetime import datetime, timedelta
 import copy
 
+from fedora_messaging import api, testing as fml_testing
 import mock
 import webtest
 
@@ -781,7 +782,8 @@ class TestOverridesWebViews(base.BaseTestCase):
                 'edited': 'bodhi-2.0-1.fc17', 'expired': True,
                 'csrf_token': self.get_csrf_token()}
 
-        self.app.post('/overrides/', data)
+        with fml_testing.mock_sends(api.Message):
+            self.app.post('/overrides/', data)
         resp = self.app.get('/overrides/bodhi-2.0-1.fc17',
                             status=200, headers={'Accept': 'text/html'})
 

@@ -18,6 +18,7 @@ import unittest
 from datetime import timedelta
 
 import mock
+from fedora_messaging import api, testing as fml_testing
 from six import StringIO
 
 from bodhi.server import models
@@ -100,10 +101,11 @@ class TestMain(BaseTestCase):
             with mock.patch('bodhi.server.scripts.expire_overrides.get_appsettings',
                             return_value=''):
                 with mock.patch('bodhi.server.scripts.expire_overrides.setup_logging'):
-                    expire_overrides.main(['expire_overrides', 'some_config.ini'])
+                    with fml_testing.mock_sends(api.Message):
+                        expire_overrides.main(['expire_overrides', 'some_config.ini'])
 
         log_info.assert_has_calls([mock.call('Expiring %d buildroot overrides...', 1),
-                                   mock.call(u'Expired bodhi-2.0-1.fc17')])
+                                   mock.call(u'Expired bodhi-2.0-1.fc17')], any_order=True)
         self.assertNotEqual(buildrootoverride.expired_date, None)
 
     @mock.patch('sys.exit')

@@ -32,6 +32,8 @@ except ImportError:
     IncompleteRead = None
 
 from click import testing
+from fedora_messaging import api
+from fedora_messaging.testing import mock_sends
 import mock
 import six
 import six.moves.urllib.parse as urlparse
@@ -2666,7 +2668,8 @@ class TestComposerThread_perform_gating(ComposerThreadBaseTestCase):
         t.db = self.db
         t.id = getattr(self.db.query(Release).one(), '{}_tag'.format('stable'))
 
-        t.perform_gating()
+        with mock_sends(api.Message):
+            t.perform_gating()
 
         # Without the call to self.db.expire() at the end of perform_gating(), there would be 1
         # update here.
