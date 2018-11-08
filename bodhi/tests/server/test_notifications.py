@@ -20,6 +20,7 @@
 
 import unittest
 
+from fedora_messaging import api, testing as fml_testing, exceptions as fml_exceptions
 from sqlalchemy import exc
 import mock
 
@@ -127,12 +128,27 @@ class TestPublish(base.BaseTestCase):
     """Tests for :func:`bodhi.server.notifications.publish`."""
 
     @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': False})
-    def test_publish_off(self, mock_init):
-        """Assert publish doesn't populate the info dict when publishing is off."""
-        notifications.publish('demo.topic', {'such': 'important'})
+    def test_fedmsg_publish_off(self, mock_init):
+        """Assert when fedmsg publish is off, fedora-messaging messages are queued."""
+        expected_msgs = [api.Message(topic='org.fedoraproject.dev.bodhi.demo.topic',
+                                     body={u'such': 'important'})]
         session = Session()
-        self.assertEqual(dict(), session.info)
+
+        notifications.publish('demo.topic', {'such': 'important'})
+
+        self.assertIn('messages', session.info)
+        for expected, actual in zip(expected_msgs, session.info['messages']):
+            self.assertEqual(expected, actual)
         self.assertEqual(0, mock_init.call_count)
+
+    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': False})
+    def test_fedmsg_publish_off_force(self, mock_init):
+        """Assert that fedora-messaging messages respect the force flag."""
+        expected = api.Message(topic='org.fedoraproject.dev.bodhi.demo.topic',
+                               body={u'such': 'important'})
+
+        with fml_testing.mock_sends(expected):
+            notifications.publish('demo.topic', {'such': 'important'}, force=True)
 
     @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
     def test_publish(self, mock_init):
@@ -174,6 +190,38 @@ class TestPublish(base.BaseTestCase):
         mock_fedmsg_publish.assert_called_once_with(
             topic='demo.topic', msg={'such': 'important'})
         mock_init.assert_called_once_with()
+
+
+class TestSendMessagesAfterCommit(base.BaseTestCase):
+    """Tests for :func:`bodhi.server.notifications.send_messages_after_commit`."""
+
+    def test_no_messages(self):
+        """Assert if no messages have been queued, the event handler succeeds."""
+        with fml_testing.mock_sends():
+            notifications.send_messages_after_commit(Session())
+
+    def test_clear_messages_on_send(self):
+        """Assert the message queue is cleared after the event handler runs."""
+        session = Session()
+        session.info['messages'] = [api.Message()]
+
+        with fml_testing.mock_sends(api.Message()):
+            notifications.send_messages_after_commit(session)
+
+        self.assertEqual(session.info['messages'], [])
+
+    @mock.patch('bodhi.server.notifications.api.publish')
+    @mock.patch('bodhi.server.notifications._log')
+    def test_error_logged(self, mock_log, mock_pub):
+        session = Session()
+        message = api.Message()
+        session.info['messages'] = [message]
+        mock_pub.side_effect = fml_exceptions.BaseException()
+
+        notifications.send_messages_after_commit(session)
+
+        mock_log.exception.assert_called_once_with(
+            "An error occurred publishing %r after a database commit", message)
 
 
 @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})

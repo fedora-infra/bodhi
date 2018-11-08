@@ -20,6 +20,7 @@
 import copy
 from datetime import datetime, timedelta
 
+from fedora_messaging import api, testing as fml_testing
 import mock
 import webtest
 
@@ -635,14 +636,16 @@ class TestCommentsService(base.BaseTestCase):
         self.app.put_json('/comments/', self.make_comment(), status=405)
 
     def test_post_json_comment(self):
-        self.app.post_json('/comments/', self.make_comment(text='awesome'))
+        with fml_testing.mock_sends(api.Message):
+            self.app.post_json('/comments/', self.make_comment(text='awesome'))
         up = self.db.query(Update).filter_by(title=u'bodhi-2.0-1.fc17').one()
         self.assertEqual(len(up.comments), 3)
         self.assertEqual(up.comments[-1]['text'], 'awesome')
 
     def test_new_comment(self):
         comment = self.make_comment('bodhi-2.0-1.fc17', text='superb')
-        r = self.app.post_json('/comments/', comment)
+        with fml_testing.mock_sends(api.Message):
+            r = self.app.post_json('/comments/', comment)
         comment = r.json_body['comment']
         self.assertEqual(comment['text'], u'superb')
         self.assertEqual(comment['user']['name'], u'guest')
@@ -659,7 +662,8 @@ class TestCommentsService(base.BaseTestCase):
         up = self.db.query(Update).filter_by(title=u'bodhi-2.0-1.fc17').one()
         self.assertEqual(up.user.name, 'guest')
 
-        r = self.app.post_json('/comments/', comment)
+        with fml_testing.mock_sends(api.Message):
+            r = self.app.post_json('/comments/', comment)
         comment = r.json_body['comment']
         self.assertEqual(comment['user']['name'], u'guest')
         self.assertEqual(comment['update']['title'], u'bodhi-2.0-1.fc17')
@@ -682,7 +686,8 @@ class TestCommentsService(base.BaseTestCase):
         self.db.flush()
 
         comment = self.make_comment(up2, karma=1)
-        self.app.post_json('/comments/', comment)
+        with fml_testing.mock_sends(api.Message):
+            self.app.post_json('/comments/', comment)
 
         up = self.db.query(Update).filter_by(title=up2).one()
         self.assertEqual(len(up.comments), 1)  # After
@@ -702,7 +707,8 @@ class TestCommentsService(base.BaseTestCase):
         self.db.flush()
 
         comment = self.make_comment(up2, karma=-1)
-        self.app.post_json('/comments/', comment)
+        with fml_testing.mock_sends(api.Message):
+            self.app.post_json('/comments/', comment)
 
         up = self.db.query(Update).filter_by(title=up2).one()
         self.assertEqual(len(up.comments), 1)  # After
