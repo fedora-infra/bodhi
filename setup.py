@@ -113,12 +113,81 @@ setup(
     """)
 
 
+setuptools.command.egg_info.manifest_maker.template = 'MESSAGES_MANIFEST.in'
+
+
+setup(
+    name="bodhi-messages",
+    version=VERSION,
+    description="JSON schema for messages sent by Bodhi",
+    long_description=('Bodhi Messages\n==============\n\n This package contains the schema for '
+                      'messages published by Bodhi.'),
+    url="https://github.com/fedora-infra/bodhi/",
+    # Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    classifiers=[
+        "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+        "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+    ],
+    license="GPLv2+",
+    maintainer="Fedora Infrastructure Team",
+    maintainer_email="infrastructure@lists.fedoraproject.org",
+    platforms=["Fedora", "GNU/Linux"],
+    keywords=["fedora", "fedora-messaging"],
+    packages=['bodhi.messages'],
+    include_package_data=True,
+    zip_safe=False,
+    install_requires=["fedora_messaging"],
+    test_suite="bodhi.tests.messages",
+    entry_points={
+        "fedora.messages": [
+            (
+                "bodhi.buildroot_override.tag.v1="
+                "bodhi.messages.schemas.buildroot_override:BuildrootOverrideTagV1"
+            ), (
+                "bodhi.buildroot_override.untag.v1="
+                "bodhi.messages.schemas.buildroot_override:BuildrootOverrideUntagV1"
+            ),
+            "bodhi.errata.publish.v1=bodhi.messages.schemas.errata:ErrataPublishV1",
+            "bodhi.composer.start.v1=bodhi.messages.schemas.composer:ComposerStartV1",
+            "bodhi.compose.complete.v1=bodhi.messages.schemas.compose:ComposeCompleteV1",
+            "bodhi.compose.composing.v1=bodhi.messages.schemas.compose:ComposeComposingV1",
+            "bodhi.compose.start.v1=bodhi.messages.schemas.compose:ComposeStartV1",
+            "bodhi.compose.sync.done.v1=bodhi.messages.schemas.compose:ComposeSyncDoneV1",
+            "bodhi.compose.sync.wait.v1=bodhi.messages.schemas.compose:ComposeSyncWaitV1",
+            "bodhi.update.comment.v1=bodhi.messages.schemas.update:UpdateCommentV1",
+            (
+                "bodhi.update.complete.testing.v1="
+                "bodhi.messages.schemas.update:UpdateCompleteTestingV1"
+            ),
+            "bodhi.update.edit.v1=bodhi.messages.schemas.update:UpdateEditV1",
+            "bodhi.update.eject.v1=bodhi.messages.schemas.update:UpdateEjectV1",
+            "bodhi.update.karma.threshold.v1=bodhi.messages.schemas.update:UpdateKarmaThresholdV1",
+            "bodhi.update.request.revoke.v1=bodhi.messages.schemas.update:UpdateRequestRevokeV1",
+            "bodhi.update.request.stable.v1=bodhi.messages.schemas.update:UpdateRequestStableV1",
+            "bodhi.update.request.testing.v1=bodhi.messages.schemas.update:UpdateRequestTestingV1",
+            "bodhi.update.request.unpush.v1=bodhi.messages.schemas.update:UpdateRequestUnpushV1",
+            (
+                "bodhi.update.request.obsolete.v1="
+                "bodhi.messages.schemas.update:UpdateRequestObsoleteV1"
+            ), (
+                "bodhi.update.requirements_met.stable.v1="
+                "bodhi.messages.schemas.update:UpdateRequirementsMetStableV1"
+            ),
+        ]
+    },
+)
+
+
 setuptools.command.egg_info.manifest_maker.template = 'SERVER_MANIFEST.in'
 # Due to https://github.com/pypa/setuptools/issues/808, we need to include the bodhi superpackage
 # and then remove it if we want find_packages() to find the bodhi.server package and its
 # subpackages without including the bodhi top level package.
 server_packages = find_packages(
-    exclude=['bodhi.client', 'bodhi.client.*', 'bodhi.tests', 'bodhi.tests.*'])
+    exclude=['bodhi.client', 'bodhi.client.*', 'bodhi.messages', 'bodhi.messages.*', 'bodhi.tests',
+             'bodhi.tests.*'])
 server_packages.remove('bodhi')
 
 
