@@ -260,6 +260,24 @@ def unit(archive, concurrency, container_runtime, no_build, failfast, init, pyve
                                archive_path=archive_path))
 
 
+@cli.command()
+@archive_option
+@concurrency_option
+@container_runtime_option
+@failfast_option
+@init_option
+@no_build_option
+@pyver_option
+@releases_option
+@archive_path_option
+@tty_option
+def integration(archive, concurrency, container_runtime, no_build, failfast, init, pyver, release,
+                archive_path, tty):
+    """Run the integration tests."""
+    _run_jobs(_build_jobs_list('integration', concurrency, release, pyvers=pyver, archive=archive,
+                               archive_path=archive_path))
+
+
 class Job(object):
     """
     Represent a CI job.
@@ -388,7 +406,7 @@ class Job(object):
                 error.result = self
                 raise error
 
-        except asyncio.CancelledError as e:
+        except asyncio.CancelledError:
             self.cancelled = True
         finally:
             # If the job's been cancelled or successful, let's go ahead and print its output now.
@@ -705,9 +723,9 @@ class UnitJob(Job):
 
         self.pyver = pyver
         self._label = '{}-py{}'.format(self._label, pyver)
-        pytest_flags = ''
+        pytest_flags = '--junit-xml=nosetests.xml bodhi/tests'
         if failfast:
-            pytest_flags = '-x'
+            pytest_flags += ' -x'
 
         test_command = ('({} setup.py develop && {} {} || (cp *.xml /results && exit 1)) '
                         '&& cp *.xml /results')
@@ -755,6 +773,70 @@ class UnitJob(Job):
         return self
 
 
+class IntegrationBuildJob(BuildJob):
+    """
+    Define a Job for building container images for integration testing.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    def __init__(self, app_name, *args, **kwargs):
+        """
+        Initialize the IntegrationBuildJob.
+
+        See the superclass's docblock for details about accepted parameters.
+        """
+        super(IntegrationBuildJob, self).__init__(*args, **kwargs)
+
+        self._label = 'integration-build-{}'.format(app_name)
+        self._container_image = '{}-integration-{}'.format(CONTAINER_NAME, app_name)
+        dockerfile = os.path.join(PROJECT_PATH, 'devel', 'ci', 'integration', app_name, 'Dockerfile')
+        self._command = [container_runtime, 'build', '--pull', '-t', self._container_image,
+                         '-f', dockerfile, '.']
+
+
+class IntegrationJob(Job):
+    """
+    Define a Job for running the integration tests.
+
+    See the Job superclass's docblock for details about its attributes.
+
+    Attributes:
+        pyver (int): The Python version we are testing.
+    """
+
+    _label = 'integration'
+
+    def __init__(self, archive, archive_path, pyver, *args, **kwargs):
+        """
+        Initialize the IntegrationJob.
+
+        See the superclass's docblock for details about additional accepted parameters.
+
+        Args:
+            archive (bool): If True, set up the volume mount so we can retrieve the test results
+                from the container.
+            archive_path (str): A path on the host to share as a volume into the container for
+                its /results path.
+            pyver (int): Which major version of Python we are testing with.
+        """
+        super(IntegrationJob, self).__init__(*args, **kwargs)
+
+        self.pyver = pyver
+        self._command = [sys.executable, '-m', 'pytest', '--no-cov', 'devel/ci/integration/tests/']
+        bodhi_container_image = '{}-integration-bodhi'.format(CONTAINER_NAME)
+        self._popen_kwargs["env"] = os.environ.copy()
+        self._popen_kwargs["env"]["BODHI_INTEGRATION_IMAGE"] = bodhi_container_image
+        if failfast:
+            self._command.append('-x')
+        if archive:
+            self._command.append(
+                '--junit-xml={}/{}/nosetests.xml'.format(
+                    archive_path, self._label
+                )
+            )
+
+
 def _build_jobs_list(
         command: str, concurrency: int, releases: typing.Iterable[str],
         pyvers: typing.Iterable[int] = None, archive: bool = False,
@@ -780,34 +862,46 @@ def _build_jobs_list(
         buffer_output = concurrency != 1 and len(releases) != 1
     jobs = []
     for release in releases:
-        build_job = BuildJob(release, buffer_output=buffer_output)
-        jobs.append(build_job)
-        if command != 'build':
-            if command in ('all', 'docs'):
-                docs_job = DocsJob(release, depends_on=build_job, buffer_output=buffer_output)
-                jobs.append(docs_job)
-            if command in ('all', 'flake8'):
-                flake8_job = Flake8Job(release, depends_on=build_job, buffer_output=buffer_output)
-                jobs.append(flake8_job)
-            if command in ('all', 'pydocstyle'):
-                pydocstyle_job = PydocstyleJob(release, depends_on=build_job,
-                                               buffer_output=buffer_output)
-                jobs.append(pydocstyle_job)
-            if command in ('all', 'diff_cover', 'unit'):
-                for pyver in pyvers:
-                    unit_job = UnitJob(
-                        archive=archive, archive_path=archive_path, pyver=pyver, release=release,
-                        depends_on=build_job, buffer_output=buffer_output)
-                    jobs.append(unit_job)
-                    if command in ('all', 'diff_cover'):
-                        if pyver == 2 and release not in ('f27', 'f28', 'f29', 'pip'):
-                            # We don't support Python 2 on the server for Fedora >= 30, so don't
-                            # enforce coverage there.
-                            continue
-                        diff_cover_job = DiffCoverJob(
-                            archive=archive, archive_path=archive_path, pyver=pyver,
-                            release=release, depends_on=unit_job, buffer_output=buffer_output)
-                        jobs.append(diff_cover_job)
+        if command in ('all', 'build', 'docs', 'flake8', 'pydocstyle', 'diff_cover', 'unit'):
+            build_job = BuildJob(release, buffer_output=buffer_output)
+            jobs.append(build_job)
+        if command in ('all', 'docs'):
+            docs_job = DocsJob(release, depends_on=build_job, buffer_output=buffer_output)
+            jobs.append(docs_job)
+        if command in ('all', 'flake8'):
+            flake8_job = Flake8Job(release, depends_on=build_job, buffer_output=buffer_output)
+            jobs.append(flake8_job)
+        if command in ('all', 'pydocstyle'):
+            pydocstyle_job = PydocstyleJob(release, depends_on=build_job,
+                                           buffer_output=buffer_output)
+            jobs.append(pydocstyle_job)
+        if command in ('all', 'diff_cover', 'unit'):
+            for pyver in pyvers:
+                unit_job = UnitJob(
+                    archive=archive, archive_path=archive_path, pyver=pyver, release=release,
+                    depends_on=build_job, buffer_output=buffer_output)
+                jobs.append(unit_job)
+                if command in ('all', 'diff_cover'):
+                    if pyver == 2 and release not in ('f27', 'f28', 'f29', 'pip'):
+                        # We don't support Python 2 on the server for Fedora >= 30, so don't
+                        # enforce coverage there.
+                        continue
+                    diff_cover_job = DiffCoverJob(
+                        archive=archive, archive_path=archive_path, pyver=pyver,
+                        release=release, depends_on=unit_job, buffer_output=buffer_output)
+                    jobs.append(diff_cover_job)
+    if command in ('all', 'integration') and 3 in pyvers and "f29" in releases:
+        build_jobs = [
+            IntegrationBuildJob(app_name="resultsdb", release="f29", buffer_output=buffer_output),
+            IntegrationBuildJob(app_name="waiverdb", release="f29", buffer_output=buffer_output),
+            IntegrationBuildJob(app_name="greenwave", release="f29", buffer_output=buffer_output),
+            IntegrationBuildJob(app_name="bodhi", release="f29", buffer_output=buffer_output),
+        ]
+        jobs.extend(build_jobs)
+        integration_job = IntegrationJob(
+            archive=archive, archive_path=archive_path, pyver=3, release="f29",
+            depends_on=build_jobs, buffer_output=buffer_output)
+        jobs.append(integration_job)
 
     return jobs
 
@@ -889,6 +983,10 @@ def _run_jobs(jobs):
     Args:
         jobs (list): A list of Jobs to run.
     """
+    if not jobs:
+        click.echo("No jobs!")
+        sys.exit(3)
+
     loop = asyncio.get_event_loop()
 
     processes = [j.run() for j in jobs]

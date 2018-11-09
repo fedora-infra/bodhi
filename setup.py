@@ -88,6 +88,11 @@ setup(
         'pyyaml',
         'webtest',
         'mock',
+        'six',
+        'conu >= 0.5.0',
+        'munch',
+        'psycopg2',
+        'requests',
     ],
 )
 
