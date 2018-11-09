@@ -559,7 +559,7 @@ class DiffCoverJob(Job):
         self.archive_path = archive_path
 
         self._command = ['/usr/bin/diff-cover', '/results/coverage.xml',
-                         '--compare-branch=origin/develop', '--fail-under=100']
+                         '--compare-branch=origin/3.11', '--fail-under=100']
         self._label = '{}-py{}'.format(self._label, pyver)
         self._convert_command_for_container(archive=archive, archive_path=archive_path)
 
