@@ -2,13 +2,110 @@
 Release notes
 =============
 
-develop
+v3.11.0
 -------
 
 Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
 * Bodhi now fully supports Python 3.
+* Bodhi now works with markdown 3 and click 7.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* It is now possible to query update by more fields: ``alias``, ``approved-before``,
+  ``modified-before``, ``pushed-before``, ``active-releases``, ``severity``, and
+  ``submitted-before``, and the fields are documented in the bindings (:issue:`181`).
+* It is now possible to query by update title (:issue:`251`).
+* It is now possible to filter comments, updates, and overrides with multiple users at once
+  (:issue:`2489`).
+* The ``bodhi releases`` subcommand now has a ``list`` feature (:issue:`2536`).
+* A new compose state was added for waiting on the mirrors to sync updated repositories
+  (:issue:`2550`).
+* A new server CLI script called ``bodhi-sar`` has been added to retrieve personally identifiable
+  information from Bodhi (:issue:`2553`).
+* The ``waive`` subcommand is now documented in the ``bodhi`` man page (:issue:`2610`).
+* ``bodhi-push`` now has a ``--yes/-y`` flag (:issue:`2635`).
+* The ``composes`` and ``releases`` subcommands are now documented in the ``bodhi`` man page
+  (:issue:`2642`).
+* The composer now logs more information when items are missing from the generated ``repomd.xml``
+  file (:issue:`2643`).
+* The comment submit button now renders more clearly on some browsers (:issue:`2649`).
+* Bodhi is now able to determine container repository names from Koji metadata, instead of
+  hard coding it (:issue:`2658`).
+* The ``bodhi`` CLI's pagination features are now documented (:issue:`2663`).
+* There is now a ``bodhi composes info`` subcommand (:issue:`2683`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* Bodhi now disallows empty comments (:issue:`2009`).
+* ``bodhi-check-policies`` now sets up a log handler to silence warnings (:issue:`2156`).
+* The ``test_gating_status`` is now set back to waiting when updates are waived (:issue:`2364`).
+* Bugzilla permission errors should not cause error e-mails to be sent anymore (:issue:`2431`).
+* The waive button is now only displayed if there are failed tests to waive (:issue:`2545`).
+* Correctly handle unicode characters in update notes in the CLI (:issue:`2546`).
+* The test waiver dialog now shows the test case name (:issue:`2571`).
+* Examples were corrected in the ``bodhi`` CLI help text and man page
+  (:issue:`2640` and :issue:`2641`).
+* The new update web form received a number of improvements and bug fixes. Builds and bugs lists are
+  refreshed every time a new package is selected in the input field. Manual added bugs and builds
+  are not added to the lists if they are already present after having been retrieved from package
+  selection. When an error in AJAX query occurs it is now displayed as an error message. AJAX
+  queries now have a timeout. And we now avoid form submit when pressing Enter while entering text
+  in the package text input field (:issue:`2648`).
+* A misleading composer log entry was corrected (:issue:`2667`).
+* An incorrect error message was corrected (:issue:`2703`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Bodhi's CI job now reports each test as an individual GitHub status line, which makes it much
+  easier to identify the cause of test failures when they occur (:issue:`2584`).
+* Due to the above, Mergify is now configured to only enforce passing tests on branched releases,
+  since Rawhide failures are often not due to pull request patches (:issue:`2594`).
+* Use update.get_url() to generate comments URL (:issue:`2596`).
+* Unnecessary repetition was removed from the ``BugTracker`` class (:issue:`2607`).
+* A typo was fixed in the docstring of ``Bugzilla.get_url()`` (:issue:`2608`).
+* CI now uses the Jenkins Pipeline plugin, which allows us to run the CI jobs much more efficiently,
+  and only requires a single node to parallelize the tasks (:issue:`2609`).
+* A new development tool, ``devel/ci/bodhi-ci``, was created to replace ``devel/run_tests.sh`` as
+  the CI test running tool. It is designed to be useful to developers for running the CI suite
+  locally, and has help text to guide you in usage (:issue:`2616`).
+* Do not expose the Duffy key in CI logs (:issue:`2617`).
+* Use markdown's Extension API to register FFMarkdown instead of an undocumented internal API. This
+  allows Bodhi to work with markdown-3.0.0 (:issue:`2618`).
+* Explicitly name the skopeo-lite src/dest_creds parameters. Also fix two unit tests for
+  click-7.0.0. This allows Bodhi to work with click-7.0.0 (:issue:`2621`).
+* Some docstrings were corrected (:issue:`2680`, :issue:`2682`, and :issue:`2689`).
+* Upgraded to Mergify 2 (:issue:`2686`).
+* Bodhi's tests now run about 40% faster (:issue:`2687`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.11.0:
+
+* Mattia Verga
+* Owen W. Taylor
+* Patrick Uiterwijk
+* Ryan Lerch
+* Sebastian Wojciechowski
+* sedrubal
+* Randy Barlow
 
 
 v3.10.1
