@@ -43,10 +43,13 @@ def synctoduffynode(rsyncpath) {
  */
 def configure_node = {
     onmyduffynode 'yum -y install epel-release'
-    onmyduffynode 'yum install -y docker python36-click rsync'
+    onmyduffynode 'yum install -y docker python36-click python36-requests rsync'
     // Workaround https://bugzilla.redhat.com/show_bug.cgi?id=1655214
     onmyduffynode 'yum downgrade -y docker-1.13.1-75.git8633870.el7.centos.x86_64 docker-client-1.13.1-75.git8633870.el7.centos.x86_64 docker-common-1.13.1-75.git8633870.el7.centos.x86_64'
     onmyduffynode 'systemctl start docker'
+    // To run the integration testsuite
+    onmyduffynode 'python3.6 -m ensurepip'
+    onmyduffynode 'python3.6 -m pip install \'pytest<4.0\' pytest-cov conu munch psycopg2'
 }
 
 
@@ -150,7 +153,10 @@ node('bodhi') {
             f28: {test_release('f28')},
             f29: {test_release('f29')},
             pip: {test_release('pip')},
-            rawhide: {test_release('rawhide')}
+            rawhide: {test_release('rawhide')},
+            integration: {
+                bodhi_ci('f29', 'integration', 'python3-integration', '--no-build --no-init -p 3')
+            }
         )
     } catch (e) {
         currentBuild.result = "FAILURE"
