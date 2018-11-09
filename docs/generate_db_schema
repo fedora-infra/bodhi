@@ -8,14 +8,14 @@ from bodhi.server import models
 
 
 def write_graph(filename):
-   graph = create_schema_graph(
-       metadata=models.metadata,
-       show_datatypes=False,
-       show_indexes=False,
-       rankdir='LR',
-       concentrate=False
-   )
-   graph.write_png(filename)
+    graph = create_schema_graph(
+        metadata=models.metadata,
+        show_datatypes=False,
+        show_indexes=False,
+        rankdir='LR',
+        concentrate=False
+    )
+    graph.write_png(filename)
 
 
 if __name__ == '__main__':
