@@ -6,7 +6,7 @@ pull_request_rules:
       strict: true
   conditions:
   - label!=no-mergify
-  - '#approved-reviews-by>=1'
+  - approved-reviews-by=@bodhi
   - status-success=DCO
   - status-success=f27-docs
   - status-success=f27-flake8
