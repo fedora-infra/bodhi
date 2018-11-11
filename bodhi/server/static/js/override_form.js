@@ -52,6 +52,7 @@ $(document).ready(function() {
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         remote: {
             url: url + '%QUERY',
+            rateLimitWait: 600,
         }
     });
     candidates.initialize();
