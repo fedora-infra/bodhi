@@ -277,3 +277,9 @@
     src: /home/vagrant/bodhi/bodhi-complete.sh
     dest: /etc/bash_completion.d/bodhi-complete.sh
     state: link
+
+- name: Block motd welcome screen in ssh session
+  lineinfile:
+    dest: /etc/pam.d/sshd
+    line: "session    optional     pam_motd.so"
+    state: absent
