@@ -9,6 +9,7 @@ $(document).ready(function() {
             wildcard: '%QUERY',
             url: 'packages/?search=%QUERY',
             transform: function(response) { return response.packages; },
+            rateLimitWait: 600,
         }
     });
     var updates = new Bloodhound({
@@ -18,6 +19,7 @@ $(document).ready(function() {
             wildcard: '%QUERY',
             url: 'updates/?search=%QUERY',
             transform: function(response) { return response.updates; },
+            rateLimitWait: 600,
         }
     });
     var users = new Bloodhound({
@@ -27,6 +29,7 @@ $(document).ready(function() {
             wildcard: '%QUERY',
             url: 'users/?search=%QUERY',
             transform: function(response) { return response.users; },
+            rateLimitWait: 600,
         }
     });
     var overrides = new Bloodhound({
@@ -36,6 +39,7 @@ $(document).ready(function() {
             wildcard: '%QUERY',
             url: 'overrides/?search=%QUERY',
             transform: function(response) { return response.overrides; },
+            rateLimitWait: 600,
         }
     });
 

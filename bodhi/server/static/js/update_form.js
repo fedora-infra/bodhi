@@ -48,6 +48,7 @@ $(document).ready(function() {
                     return {'name': $('<p>' + row.name + '</p>').text()}
                 });
             },
+            rateLimitWait: 600,
         }
     });
     packages.initialize();
