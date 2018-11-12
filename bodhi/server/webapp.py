@@ -50,13 +50,25 @@ def _complete_database_session(request):
 @subscriber(NewRequest)
 def _prepare_request(event):
     """
-    Add callbacks onto every new request.
+    Prepare each incoming request to Bodhi.
 
-    This function adds a callback to clean up the database session when the request is finished.
+    This function does two things:
+        * If requests do not have an Accept header, or if their Accept header is "*/*", it sets the
+          header to application/json. Pyramid has undefined behavior when an ambiguous or missing
+          Accept header is received, and multiple views are defined that handle specific Accept
+          headers. For example, we have a view that returns html or JSON for /composes/, depending
+          on the Accept header, but if a request has no Accept header or has */*, Pyramid will
+          consider both views to be a match for the request and so it is undefined which view will
+          handle the request. Let's force ambibuous requests to receive a JSON response so we have a
+          defined behavior. See https://github.com/fedora-infra/bodhi/issues/2731.
+        * It adds a callback to clean up the database session when the request is finished.
 
     Args:
         event (pyramid.events.NewRequest): The new request event.
     """
+    if 'Accept' not in event.request.headers or event.request.headers['Accept'] == '*/*':
+        event.request.headers['Accept'] = 'application/json'
+
     event.request.add_finished_callback(_complete_database_session)
 
 
