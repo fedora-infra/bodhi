@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 import copy
 
 import mock
+import webtest
 
 from bodhi.server.models import BuildrootOverride, RpmBuild, RpmPackage, Release, User
 from bodhi.server import main
@@ -681,7 +682,7 @@ class TestOverridesWebViews(base.BaseTestCase):
             'authtkt.secure': True,
         })
         with mock.patch('bodhi.server.Session.remove'):
-            app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+            app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
 
         resp = app.get('/overrides/bodhi-2.0-1.fc17',
                        status=200, headers={'Accept': 'text/html'})
@@ -707,7 +708,7 @@ class TestOverridesWebViews(base.BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
         resp = app.get('/overrides/new',
                        status=403, headers={'Accept': 'text/html'})
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', resp)

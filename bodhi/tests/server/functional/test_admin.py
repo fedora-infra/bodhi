@@ -1,4 +1,4 @@
-# Copyright 2017 Red Hat, Inc.
+# Copyright 2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import copy
+
+import webtest
 
 from bodhi.server import main
 from bodhi.tests.server import base
@@ -40,7 +42,7 @@ class TestAdminView(base.BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.get('/admin/', status=403)
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
