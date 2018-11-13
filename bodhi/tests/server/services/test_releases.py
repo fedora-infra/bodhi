@@ -278,7 +278,7 @@ class TestReleasesService(base.BaseTestCase):
             res.json,
             {"status": "error", "errors": [
                 {"location": "body", "name": "release",
-                 "description": "Unable to create update: BOOM!"}]})
+                 "description": "Unable to create/edit release: BOOM!"}]})
         # The release should not have been created.
         self.assertEqual(self.db.query(Release).filter(Release.name == attrs["name"]).count(), 0)
         info.assert_called_once_with('Creating a new release: F42')

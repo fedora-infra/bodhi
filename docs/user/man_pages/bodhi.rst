@@ -92,6 +92,10 @@ The ``composes`` command allows users to view composes.
 
        Print more detail about the composes.
 
+``bodhi composes info [options] RELEASE REQUEST``
+
+   The ``info`` subcommand allows you to see the compose for release with the given request.
+
 
 Overrides
 =========
@@ -609,6 +613,14 @@ The ``releases`` command allows users to manage update releases.
     ``--display-archived``
 
         Display full list, including archived releases.
+
+    ``--rows <integer>``
+
+        Limits number of results shown per page.
+
+    ``--page <integer>``
+
+        Go to page number.
 
 
 Examples
