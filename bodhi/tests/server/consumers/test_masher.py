@@ -268,7 +268,7 @@ Compose dir: %s
 That was the actual one''' % mash_dir
 
             fake_popen = mock.MagicMock()
-            fake_popen.communicate = lambda: (fake_stdout, 'hello')
+            fake_popen.communicate = lambda: (fake_stdout.encode(), b'hello')
             fake_popen.poll.return_value = None
             fake_popen.returncode = 0
             return fake_popen
@@ -630,11 +630,11 @@ References:
             t.release = session.query(Release).filter_by(name=u'F17').one()
             try:
                 fake_popen = mock.MagicMock()
-                fake_stdout = '''Some output
+                fake_stdout = b'''Some output
 Some more output ...... This is not a Compose dir: ....
 Compose dir: /tmp/nonsensical_directory
 That was the actual one'''
-                fake_popen.communicate = lambda: (fake_stdout, 'hello')
+                fake_popen.communicate = lambda: (fake_stdout, b'hello')
                 fake_popen.poll.return_value = None
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year
@@ -660,10 +660,10 @@ That was the actual one'''
             t.release = session.query(Release).filter_by(name=u'F17').one()
             try:
                 fake_popen = mock.MagicMock()
-                fake_stdout = '''Some output
+                fake_stdout = b'''Some output
     Some more output ...... This is not a Compose dir: ....
     That was the actual one'''
-                fake_popen.communicate = lambda: (fake_stdout, 'hello')
+                fake_popen.communicate = lambda: (fake_stdout, b'hello')
                 fake_popen.poll.return_value = None
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year

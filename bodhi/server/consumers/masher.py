@@ -1222,6 +1222,8 @@ class PungiComposerThread(ComposerThread):
             return
         self.log.info('Waiting for pungi process to finish')
         out, err = pungi_process.communicate()
+        out = out.decode()
+        err = err.decode()
         self.devnull.close()
         if pungi_process.returncode != 0:
             self.log.error('Pungi exited with exit code %d', pungi_process.returncode)
