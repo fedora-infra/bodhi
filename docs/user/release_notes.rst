@@ -10,6 +10,7 @@ Dependency changes
 
 * Bodhi now fully supports Python 3.
 * Bodhi now works with markdown 3 and click 7.
+* Bodhi no longer requires pyramid_tm.
 
 
 Server upgrade instructions
