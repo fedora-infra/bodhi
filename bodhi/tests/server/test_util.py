@@ -1458,6 +1458,30 @@ class TestCMDFunctions(base.BaseTestCase):
         mock_error.assert_not_called()
         mock_debug.assert_called_with('output\nerror')
 
+    @mock.patch('bodhi.server.buildsys.get_session')
+    def test__get_build_repository(self, session):
+        session.return_value = mock.Mock()
+        session.return_value.getBuild.side_effect = [
+            {
+                'extra': {
+                    'image': {
+                        'index': {
+                            'pull': [pullspec]
+                        }
+                    }
+                }
+            }
+            for pullspec in [
+                'candidate-registry.fedoraproject.org/f29/cockpit:176-5.fc28',
+                'candidate-registry.fedoraproject.org/myrepo@sha256:abcdefg123456'
+            ]
+        ]
+        build = mock.Mock()
+        build.nvr = 'cockpit-167-5'
+        self.assertEqual(util._get_build_repository(build), 'f29/cockpit')
+        self.assertEqual(util._get_build_repository(build), 'myrepo')
+        session.return_value.getBuild.assert_called_with('cockpit-167-5')
+
 
 class TestTransactionalSessionMaker(base.BaseTestCase):
     """This class contains tests on the TransactionalSessionMaker class."""
