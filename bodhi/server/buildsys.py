@@ -277,9 +277,9 @@ class DevBuildsys(Buildsystem):
                     'container_koji_task_id': 19708268,
                     'image': {
                         'index': {
-                            'pull': ['{registry}/{repository}:{hash}'
+                            'pull': ['{registry}/{repository}@sha256:{hash}'
                                      .format(**format_data),
-                                     '{registry}/{repository}:{version}:{release}'
+                                     '{registry}/{repository}:{version}-{release}'
                                      .format(**format_data)],
                         }
                     },
