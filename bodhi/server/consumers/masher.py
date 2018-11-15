@@ -1324,7 +1324,7 @@ class PungiComposerThread(ComposerThread):
                 self.log.exception('Error fetching repomd.xml')
                 time.sleep(200)
                 continue
-            newsum = hashlib.sha1(masterrepomd.read().encode('utf-8')).hexdigest()
+            newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
             if newsum == checksum:
                 self.log.info("master repomd.xml matches!")
                 notifications.publish(
