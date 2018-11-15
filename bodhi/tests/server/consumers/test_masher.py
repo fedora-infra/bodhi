@@ -32,7 +32,6 @@ from kitchen.text.converters import to_bytes
 import six
 import six.moves.urllib.parse as urlparse
 from six.moves.urllib.error import HTTPError, URLError
-from six import StringIO
 
 from bodhi.server import buildsys, exceptions, log, push
 from bodhi.server.config import config
@@ -2927,12 +2926,12 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
-                return_value=StringIO('---\nyaml: rules'))
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
     def test_checksum_match_immediately(self, urlopen, publish, save):
         """
         Assert correct operation when the repomd checksum matches immediately.
         """
+        urlopen.return_value.read.return_value = b'---\nyaml: rules'
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -2972,12 +2971,12 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
-                return_value=StringIO('---\nyaml: rules'))
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
     def test_no_checkarch(self, urlopen, publish, save):
         """
         Assert error when no checkarch is found.
         """
+        urlopen.return_value.read.return_value = b'---\nyaml: rules'
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3003,13 +3002,12 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
-    @mock.patch(
-        'bodhi.server.consumers.masher.urllib2.urlopen',
-        side_effect=[StringIO('wrong'), StringIO('nope'), StringIO('---\nyaml: rules')])
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
     def test_checksum_match_third_try(self, urlopen, sleep, publish, save):
         """
         Assert correct operation when the repomd checksum matches on the third try.
         """
+        urlopen.return_value.read.side_effect = [b'wrong', b'nope', b'---\nyaml: rules']
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3035,8 +3033,9 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
         expected_calls = [
             mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
-                      '{}/repodata.repomd.xml'.format(arch))
-            for i in range(3)]
+                      '{}/repodata.repomd.xml'.format(arch)),
+            mock.call().read()]
+        expected_calls = expected_calls * 3
         urlopen.assert_has_calls(expected_calls)
         sleep.assert_has_calls([mock.call(200), mock.call(200)])
         save.assert_called_with(ComposeState.syncing_repo)
@@ -3048,14 +3047,14 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
-    @mock.patch(
-        'bodhi.server.consumers.masher.urllib2.urlopen',
-        side_effect=[HTTPError('url', 404, 'Not found', {}, None),
-                     StringIO('---\nyaml: rules')])
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
     def test_httperror(self, urlopen, sleep, publish, save):
         """
         Assert that an HTTPError is properly caught and logged, and that the algorithm continues.
         """
+        fake_url = mock.MagicMock()
+        fake_url.read.return_value = b'---\nyaml: rules'
+        urlopen.side_effect = [HTTPError('url', 404, 'Not found', {}, None), fake_url]
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3157,14 +3156,14 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
-    @mock.patch(
-        'bodhi.server.consumers.masher.urllib2.urlopen',
-        side_effect=[URLError('it broke'),
-                     StringIO('---\nyaml: rules')])
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
     def test_urlerror(self, urlopen, sleep, publish, save):
         """
         Assert that a URLError is properly caught and logged, and that the algorithm continues.
         """
+        fake_url = mock.MagicMock()
+        fake_url.read.return_value = b'---\nyaml: rules'
+        urlopen.side_effect = [URLError('it broke'), fake_url]
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
