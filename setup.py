@@ -1,7 +1,3 @@
-import __main__
-__requires__ = __main__.__requires__ = 'WebOb>=1.4.1'
-import pkg_resources  # noqa
-
 # The following two imports are required to shut up an
 # atexit error when running tests with python 2.7
 from setuptools import setup, find_packages  # noqa
