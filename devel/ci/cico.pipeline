@@ -115,7 +115,12 @@ def test_release = { String release ->
 
 
 node('bodhi') {
-    checkout scm
+    commit_hash = checkout(scm).GIT_COMMIT
+    // diff-cover sometimes fails to identify origin/develop, so let's check out the develop branch
+    // and then switch back to the commit hash we are testing so there is a develop branch available
+    // for diff-cover to use later. See https://github.com/Bachmann1234/diff-cover/issues/55
+    sh 'git checkout develop'
+    sh 'git checkout ' + commit_hash
 
     stage('Allocate Duffy node') {
         env.CICO_API_KEY = readFile("${env.HOME}/duffy.key").trim()
