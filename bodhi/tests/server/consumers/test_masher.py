@@ -33,7 +33,6 @@ except ImportError:
 
 from click import testing
 import mock
-from kitchen.text.converters import to_bytes
 import six
 import six.moves.urllib.parse as urlparse
 from six.moves.urllib.error import HTTPError, URLError
@@ -601,8 +600,8 @@ References:
 
 """ % time.strftime('%Y'))
 
-        mail.assert_called_with(to_bytes(config.get('bodhi_email')),
-                                to_bytes(config.get('fedora_test_announce_list')),
+        mail.assert_called_with(config.get('bodhi_email'),
+                                config.get('fedora_test_announce_list'),
                                 mock.ANY)
         assert len(mail.mock_calls) == 2, len(mail.mock_calls)
         body = mail.mock_calls[1][1][2]
@@ -3341,9 +3340,8 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         sendmail = SMTP.return_value.sendmail
         self.assertEqual(sendmail.call_count, 1)
         args = sendmail.mock_calls[0][1]
-        self.assertEqual(args[0].decode('utf-8'), config['bodhi_email'])
-        self.assertEqual([c.decode('utf-8') for c in args[1]],
-                         [config['fedora_test_announce_list']])
+        self.assertEqual(args[0], config['bodhi_email'])
+        self.assertEqual(args[1], [config['fedora_test_announce_list']])
         self.assertTrue(
             'The following Fedora 17 Critical Path updates have yet to be approved:\n Age URL\n'
             in args[2].decode('utf-8'))
@@ -3373,9 +3371,8 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         sendmail = SMTP.return_value.sendmail
         self.assertEqual(sendmail.call_count, 1)
         args = sendmail.mock_calls[0][1]
-        self.assertEqual(args[0].decode('utf-8'), config['bodhi_email'])
-        self.assertEqual([c.decode('utf-8') for c in args[1]],
-                         [config['fedora_test_announce_list']])
+        self.assertEqual(args[0], config['bodhi_email'])
+        self.assertEqual(args[1], [config['fedora_test_announce_list']])
         self.assertTrue(
             'The following Fedora 17 Security updates need testing:\n Age  URL\n'
             in args[2].decode('utf-8'))
