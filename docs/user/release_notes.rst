@@ -2,6 +2,35 @@
 Release notes
 =============
 
+v3.11.1
+-------
+
+This is a bugfix release, addressing a few issues with running Bodhi under Python 3.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No special actions are needed when applying this update.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Pass the correct type, str, to ``smtplib.SMTP.sendmail()`` for its to and from address parameters
+  (:issue:`2756`).
+* Allow ``EnumSymbols`` to be sorted (:issue:`2757`).
+* Catch ``http.client.IncompleteRead`` while Composing and retry (:issue:`2758`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.11.1:
+
+* Randy Barlow
+
+
 v3.11.0
 -------
 
