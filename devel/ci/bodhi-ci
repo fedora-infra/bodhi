@@ -584,7 +584,7 @@ class DocsJob(Job):
 
     _command = [
         '/usr/bin/bash', '-c',
-        ('/usr/bin/python2 setup.py develop && make -C docs clean && make -C docs html && make '
+        ('/usr/bin/python3 setup.py develop && make -C docs clean && make -C docs html && make '
          '-C docs man')]
     _label = 'docs'
 
