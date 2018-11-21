@@ -34,6 +34,11 @@ import tempfile
 import threading
 import time
 from datetime import datetime
+try:
+    from http.client import IncompleteRead
+except ImportError:  # pragma: no cover
+    # Python 2 does not have this Exception.
+    IncompleteRead = None
 
 import fedmsg.consumers
 import jinja2
@@ -1320,7 +1325,7 @@ class PungiComposerThread(ComposerThread):
             try:
                 self.log.info('Polling %s' % master_repomd_url)
                 masterrepomd = urllib2.urlopen(master_repomd_url)
-            except (URLError, HTTPError):
+            except (IncompleteRead, URLError, HTTPError):
                 self.log.exception('Error fetching repomd.xml')
                 time.sleep(200)
                 continue
