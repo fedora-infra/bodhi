@@ -565,6 +565,11 @@ class DevBuildsys(Buildsystem):
                 headers['changelogtime'].insert(0, 1375531201)
             elif rpmID == 'TurboGears-1.9.1-1.fc17.src':
                 headers['changelogtext'] = []
+            elif rpmID == 'TurboGears-1.9.1-42.fc17.src':
+                # Make sure only a single changelog entry is present
+                headers['changelogname'] = ['Randy Barlow <bowlofeggs@fp.o> - 1.9.1-42']
+                headers['changelogtext'] = ["- Hope I didn't break anything!"]
+                headers['changelogtime'] = [1375531200]
             return headers
 
 
