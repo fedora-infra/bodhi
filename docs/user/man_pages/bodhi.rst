@@ -55,8 +55,8 @@ Most of the commands will accept these options:
 Commands
 ========
 
-There are two commands, ``overrides`` and ``updates``. They are described in more detail in their
-own sections below.
+There are four commands, ``composes``, ``overrides``, ``updates`` and ``releases``. They are described
+in more detail in their own sections below.
 
 ``bodhi composes <subcommand> [options] [args]``
 
