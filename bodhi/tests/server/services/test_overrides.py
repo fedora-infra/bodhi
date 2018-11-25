@@ -23,7 +23,15 @@ import copy
 import mock
 import webtest
 
-from bodhi.server.models import BuildrootOverride, RpmBuild, RpmPackage, Release, User
+from bodhi.server.models import (
+    BuildrootOverride,
+    RpmBuild,
+    RpmPackage,
+    Release,
+    User,
+    Update,
+    TestGatingStatus,
+)
 from bodhi.server import main
 from bodhi.tests.server import base
 
@@ -305,6 +313,37 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEqual(o['expiration_date'],
                          expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEqual(o['expired_date'], None)
+
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_create_override_for_build_with_test_gating_status_failed(self, publish):
+        """
+        Test that Override is not created when the test gating status is failed.
+        """
+        release = Release.get(u'F17')
+        package = RpmPackage(name=u'not-bodhi')
+        self.db.add(package)
+        build = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
+        update = Update.query.first()
+        update.builds.append(build)
+        update.test_gating_status = TestGatingStatus.failed
+        self.db.add(build)
+        self.db.flush()
+
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+
+        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+                'expiration_date': expiration_date,
+                'csrf_token': self.get_csrf_token()}
+        res = self.app.post('/overrides/', data, status=400)
+
+        publish.assert_not_called()
+
+        errors = res.json_body['errors']
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0]['name'], 'nvr')
+        self.assertEqual(errors[0]['description'],
+                         "Cannot create a buildroot override if "
+                         "build's test gating status is failed.")
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_duplicate_override(self, publish):
