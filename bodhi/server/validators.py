@@ -45,6 +45,7 @@ from .models import (
     ReleaseState,
     Stack,
     TestCase,
+    TestGatingStatus,
     Update,
     UpdateStatus,
     UpdateRequest,
@@ -1068,6 +1069,13 @@ def _validate_override_build(request, nvr, db):
     """
     build = Build.get(nvr)
     if build is not None:
+        if not request.validated['edited'] and \
+                build.update is not None and \
+                build.update.test_gating_status == TestGatingStatus.failed:
+            request.errors.add("body", "nvr", "Cannot create a buildroot override"
+                               " if build's test gating status is failed.")
+            return
+
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure
             # that out and apply it.
