@@ -152,7 +152,7 @@ def get_update_for_editing(request):
         types=reversed(list(bodhi.server.models.UpdateType.values())),
         severities=sorted(
             list(bodhi.server.models.UpdateSeverity.values()), key=bodhi.server.util.sort_severity),
-        suggestions=reversed(list(bodhi.server.models.UpdateSuggestion.values())),
+        suggestions=list(bodhi.server.models.UpdateSuggestion.values()),
     )
 
 
