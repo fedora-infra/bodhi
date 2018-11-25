@@ -849,7 +849,7 @@ class BodhiClient(OpenIdBaseClient):
 
         if update['notes']:
             notes_lines = list(itertools.chain(
-                *[wrap_line(update['notes'])]
+                *[wrap_line(line) for line in update['notes'].splitlines()]
             ))
             indent_lines = ['Notes'] + [' '] * (len(notes_lines) - 1)
             for indent, line in six.moves.zip(indent_lines, notes_lines):
