@@ -1336,6 +1336,19 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         self.assertIn('CI Status: no tests required\n', text)
 
+    @mock.patch.dict(
+        client_test_data.EXAMPLE_UPDATE_MUNCH,
+        {'notes': 'This note contains:\n* multiline formatting\n* bullet points\n\n'})
+    def test_notes_multiline(self):
+        """Test that severity is rendered."""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertIn('Notes: This note contains:\n', text)
+        self.assertIn('     : * multiline formatting\n', text)
+        self.assertIn('     : * bullet points\n', text)
+
 
 class TestErrorhandled(unittest.TestCase):
     """
