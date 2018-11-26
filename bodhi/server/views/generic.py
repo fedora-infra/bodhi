@@ -241,12 +241,15 @@ def new_update(request):
     user = request.authenticated_userid
     if not user:
         raise HTTPForbidden("You must be logged in.")
+    suggestions = list(models.UpdateSuggestion.values())
+    if six.PY2:  # pragma: no cover
+        suggestions = reversed(suggestions)
     return dict(
         update=None,
         types=reversed(list(models.UpdateType.values())),
         severities=sorted(list(models.UpdateSeverity.values()),
                           key=bodhi.server.util.sort_severity),
-        suggestions=reversed(list(models.UpdateSuggestion.values())),
+        suggestions=suggestions,
     )
 
 

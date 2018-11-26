@@ -19,6 +19,7 @@
 
 from datetime import datetime
 import copy
+import re
 
 import mock
 import webtest
@@ -393,6 +394,11 @@ class TestGenericViews(base.BaseTestCase):
         # Test that a logged in user sees the New Update form
         res = self.app.get('/updates/new')
         self.assertIn('Creating a new update requires JavaScript', res)
+        # Make sure that unspecified comes first, as it should be the default.
+        regex = r''
+        for value in ('unspecified', 'reboot', 'logout'):
+            regex = regex + r'name="suggest" value="{}".*'.format(value)
+        self.assertTrue(re.search(regex, res.body.decode('utf8').replace('\n', ' ')))
 
         # Test that the unlogged in user cannot see the New Update form
         anonymous_settings = copy.copy(self.app_settings)

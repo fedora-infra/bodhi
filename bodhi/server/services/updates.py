@@ -26,6 +26,7 @@ from cornice.validators import colander_body_validator, colander_querystring_val
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 from requests import RequestException, Timeout as RequestsTimeout
+import six
 
 from bodhi.server import log, security
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
@@ -147,12 +148,15 @@ def get_update_for_editing(request):
             severities: The possible values for update severity.
             suggestions: The possible values for update suggestion.
     """
+    suggestions = list(bodhi.server.models.UpdateSuggestion.values())
+    if six.PY2:  # pragma: no cover
+        suggestions = reversed(suggestions)
     return dict(
         update=request.validated['update'],
         types=reversed(list(bodhi.server.models.UpdateType.values())),
         severities=sorted(
             list(bodhi.server.models.UpdateSeverity.values()), key=bodhi.server.util.sort_severity),
-        suggestions=reversed(list(bodhi.server.models.UpdateSuggestion.values())),
+        suggestions=suggestions,
     )
 
 
