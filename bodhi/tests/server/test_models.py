@@ -3413,8 +3413,8 @@ class TestUpdate(ModelTest):
             config['bodhi_email'], config['{}_test_announce_list'.format(release_name)],
             config['default_email_domain'], self.obj.builds[0].nvr, body)
         SMTP.return_value.sendmail.assert_called_once_with(
-            config['bodhi_email'].encode('utf-8'),
-            [config['{}_test_announce_list'.format(release_name)].encode('utf-8')],
+            config['bodhi_email'],
+            [config['{}_test_announce_list'.format(release_name)]],
             msg.encode('utf-8'))
 
     def test_check_requirements_empty(self):
