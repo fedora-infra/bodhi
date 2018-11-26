@@ -403,8 +403,8 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     Send an e-mail.
 
     Args:
-        from_addr (basestring): The address to use in the From: header.
-        to_addr (basestring): The address to send the e-mail to.
+        from_addr (str): The address to use in the From: header.
+        to_addr (str): The address to send the e-mail to.
         subject (basestring): The subject of the e-mail.
         body_text (basestring): The body of the e-mail to be sent.
         headers (dict or None): A mapping of header fields to values to be included in the e-mail,
@@ -418,12 +418,10 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     if to_addr in config.get('exclude_mail'):
         return
 
-    from_addr = to_bytes(from_addr)
-    to_addr = to_bytes(to_addr)
     subject = to_bytes(subject)
     body_text = to_bytes(body_text)
 
-    msg = [b'From: %s' % from_addr, b'To: %s' % to_addr]
+    msg = [b'From: %s' % to_bytes(from_addr), b'To: %s' % to_bytes(to_addr)]
     if headers:
         for key, value in headers.items():
             msg.append(b'%s: %s' % (to_bytes(key), to_bytes(value)))
@@ -440,11 +438,11 @@ def send(to, msg_type, update, sender=None, agent=None):
     Send an update notification email to a given recipient.
 
     Args:
-        to (iterable): An iterable of e-mail addresses to send an update e-mail to.
+        to (iterable): An iterable strs of e-mail addresses to send an update e-mail to.
         msg_type (basestring): The message template to use. Should be one of the keys in the
             MESSAGES template.
         update (bodhi.server.models.Update): The Update we are mailing people about.
-        sender (basestring or None): The address to use in the From: header. If None, the
+        sender (str or None): The address to use in the From: header. If None, the
             "bodhi_email" setting will be used as the From: header.
         agent (basestring): The username that performed the action that generated this e-mail.
     """
