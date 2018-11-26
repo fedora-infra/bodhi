@@ -212,7 +212,7 @@ def generate_captcha(context, request):
     """
     settings = request.registry.settings
     plainkey, value = math_generator(plainkey=None, settings=settings)
-    cipherkey = encrypt(plainkey, settings)
+    cipherkey = encrypt(plainkey, settings).decode('utf8')
     url = request.route_url('captcha_image', cipherkey=cipherkey)
     request.session['captcha'] = cipherkey  # Remember this to stop replay.
     return cipherkey, url
