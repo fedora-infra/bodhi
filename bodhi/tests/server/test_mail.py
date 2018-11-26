@@ -49,6 +49,21 @@ class TestGetTemplate(base.BaseTestCase):
         self.assertFalse('- Limit package to x86/x86_64 platforms (RHBZ #837888)' in t)
 
     @mock.patch('bodhi.server.models.RpmBuild.get_latest')
+    def test_changelog_single_entry(self, get_latest):
+        """Test that we handle a changelog with a single entry correctly."""
+        get_latest.return_value = 'TurboGears-1.9.1-42.fc17'
+        u = self.create_update(['TurboGears-2.0.0.0-1.fc17'])
+
+        # This should not blow up like it did in https://github.com/fedora-infra/bodhi/issues/2768
+        t = mail.get_template(u)
+
+        # Assemble the template for easier asserting.
+        t = '\n'.join([l for l in t[0]])
+        self.assertTrue('ChangeLog:' in t)
+        self.assertTrue('* Sat Aug  3 2013 Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1' in t)
+        self.assertTrue('- Added some bowlofeggs charm.' in t)
+
+    @mock.patch('bodhi.server.models.RpmBuild.get_latest')
     def test_changelog_no_old_text(self, get_latest):
         """Ensure that a changelog gets generated when there is an older Build with no text."""
         get_latest.return_value = 'TurboGears-1.9.1-1.fc17'
