@@ -22,6 +22,7 @@ Bug fixes
 * Allow ``EnumSymbols`` to be sorted (:issue:`2757`).
 * Catch ``http.client.IncompleteRead`` while Composing and retry (:issue:`2758`).
 * Correctly handle timestamps from Koji (:issue:`2768`).
+* Do not reverse the logout/reboot options in the web UI on Python 3 (:issue:`2778`).
 
 
 Contributors
@@ -29,6 +30,7 @@ Contributors
 
 The following developers contributed to Bodhi 3.11.1:
 
+* Patrick Uiterwijk
 * Randy Barlow
 
 

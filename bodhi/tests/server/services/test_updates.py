@@ -19,6 +19,7 @@
 """This module contains tests for bodhi.server.services.updates."""
 from datetime import datetime, timedelta
 import copy
+import re
 import textwrap
 import time
 
@@ -829,6 +830,11 @@ class TestEditUpdateForm(BaseTestCase):
             '/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year),
             headers={'accept': 'text/html'})
         self.assertIn('Editing an update requires JavaScript', resp)
+        # Make sure that unspecified comes first, as it should be the default.
+        regex = r''
+        for value in ('unspecified', 'reboot', 'logout'):
+            regex = regex + r'name="suggest" value="{}".*'.format(value)
+        self.assertTrue(re.search(regex, resp.body.decode('utf8').replace('\n', ' ')))
 
     def test_edit_without_permission(self):
         """
