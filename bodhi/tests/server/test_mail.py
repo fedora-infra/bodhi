@@ -49,6 +49,21 @@ class TestGetTemplate(base.BaseTestCase):
         self.assertFalse('- Limit package to x86/x86_64 platforms (RHBZ #837888)' in t)
 
     @mock.patch('bodhi.server.models.RpmBuild.get_latest')
+    def test_changelog_single_entry(self, get_latest):
+        """Test that we handle a changelog with a single entry correctly."""
+        get_latest.return_value = 'TurboGears-1.9.1-42.fc17'
+        u = self.create_update(['TurboGears-2.0.0.0-1.fc17'])
+
+        # This should not blow up like it did in https://github.com/fedora-infra/bodhi/issues/2768
+        t = mail.get_template(u)
+
+        # Assemble the template for easier asserting.
+        t = '\n'.join([l for l in t[0]])
+        self.assertTrue('ChangeLog:' in t)
+        self.assertTrue('* Sat Aug  3 2013 Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1' in t)
+        self.assertTrue('- Added some bowlofeggs charm.' in t)
+
+    @mock.patch('bodhi.server.models.RpmBuild.get_latest')
     def test_changelog_no_old_text(self, get_latest):
         """Ensure that a changelog gets generated when there is an older Build with no text."""
         get_latest.return_value = 'TurboGears-1.9.1-1.fc17'
@@ -210,11 +225,12 @@ class TestSend(base.BaseTestCase):
         self.assertEqual(sendmail.call_count, 1)
         sendmail = sendmail.mock_calls[0]
         self.assertEqual(len(sendmail[1]), 3)
-        self.assertEqual(sendmail[1][0], b'updates@fedoraproject.org')
-        self.assertEqual(sendmail[1][1], [b'bowlofeggs@example.com'])
-        self.assertTrue('Message-ID: <bodhi-update-{}-{}-{}@{}>'.format(
+        self.assertEqual(sendmail[1][0], 'updates@fedoraproject.org')
+        self.assertEqual(sendmail[1][1], ['bowlofeggs@example.com'])
+        expected_body = 'Message-ID: <bodhi-update-{}-{}-{}@{}>'.format(
             update.id, update.user.name, update.release.name,
-            config.config.get('message_id_email_domain')) in str(sendmail[1][2]))
+            config.config.get('message_id_email_domain'))
+        self.assertTrue(expected_body.encode('utf-8') in sendmail[1][2])
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.example.com'})
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
@@ -227,8 +243,8 @@ class TestSend(base.BaseTestCase):
         SMTP.assert_called_once_with('smtp.example.com')
         sendmail = SMTP.return_value.sendmail
         self.assertEqual(sendmail.call_count, 1)
-        self.assertEqual(sendmail.mock_calls[0][1][0], b'updates@fedoraproject.org')
-        self.assertEqual(sendmail.mock_calls[0][1][1], [b'fake@news.com'])
+        self.assertEqual(sendmail.mock_calls[0][1][0], 'updates@fedoraproject.org')
+        self.assertEqual(sendmail.mock_calls[0][1][1], ['fake@news.com'])
         self.assertTrue(b'X-Bodhi-Update-Title: bodhi-2.0-1.fc17' in sendmail.mock_calls[0][1][2])
         self.assertTrue(
             b'Subject: [Fedora Update] [comment] bodhi-2.0-1.fc17' in sendmail.mock_calls[0][1][2])
@@ -271,7 +287,7 @@ class TestSendMail(unittest.TestCase):
 
         SMTP.assert_called_once_with('smtp.fp.o')
         smtp.sendmail.assert_called_once_with(
-            b'bodhi@example.com', [b'bowlofeggs@example.com'],
+            'bodhi@example.com', ['bowlofeggs@example.com'],
             (b'From: bodhi@example.com\r\nTo: bowlofeggs@example.com\r\nBodhi-Is: Great\r\n'
              b'X-Bodhi: fedoraproject.org\r\nSubject: R013X\r\n\r\nWant a c00l w@tch?'))
 
@@ -297,7 +313,7 @@ class TestSendMail(unittest.TestCase):
 
         SMTP.assert_called_once_with('smtp.fp.o')
         smtp.sendmail.assert_called_once_with(
-            b'bodhi@example.com', [b'bowlofeggs@example.com'],
+            'bodhi@example.com', ['bowlofeggs@example.com'],
             (b'From: bodhi@example.com\r\nTo: bowlofeggs@example.com\r\n'
              b'X-Bodhi: fedoraproject.org\r\nSubject: R013X\r\n\r\nWant a c00l w@tch?'))
 
@@ -315,8 +331,8 @@ class TestSendReleng(unittest.TestCase):
 
         SMTP.assert_called_once_with('smtp.fp.o')
         smtp.sendmail.assert_called_once_with(
-            config.config.get('bodhi_email').encode('utf-8'),
-            [config.config.get('release_team_address').encode('utf-8')],
+            config.config.get('bodhi_email'),
+            [config.config.get('release_team_address')],
             ('From: {}\r\nTo: {}\r\nX-Bodhi: fedoraproject.org\r\nSubject: sup\r\n\r\nr u '
              'ready 2 upd8').format(
                 config.config.get('bodhi_email'), config.config.get('release_team_address')).encode(
