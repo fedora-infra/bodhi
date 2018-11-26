@@ -22,6 +22,7 @@ Bug fixes
 * Allow ``EnumSymbols`` to be sorted (:issue:`2757`).
 * Catch ``http.client.IncompleteRead`` while Composing and retry (:issue:`2758`).
 * Correctly handle timestamps from Koji (:issue:`2768`).
+* The captcha now works under Python 3 (:issue:`2786`).
 * Do not reverse the logout/reboot options in the web UI on Python 3 (:issue:`2778`).
 
 
