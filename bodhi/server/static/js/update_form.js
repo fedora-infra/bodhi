@@ -115,7 +115,7 @@ $(document).ready(function() {
                 '<div class="checkbox">',
                 '<label>',
                 '<input name="builds" data-build-nvr="' + nvr + '"' +
-                    (idx ? '" data-build-id="' + idx + '" ' : ' ') +
+                    (idx ? ' data-build-id="' + idx + '" ' : ' ') +
                     'type="checkbox" value="' + nvr + '"' + (checked ? ' checked' : '') + (manual ? ' class="manual"' : '')  + '>',
                 nvr,
                 '</label>',
@@ -190,9 +190,14 @@ $(document).ready(function() {
             var bug = {id: parseInt($(this).val()), title: $(this).parent().text().replace(/^#\d+\s/m, '')};
             checked_bugs.push(bug);
         });
-        var checked_candidate_ids = [];
+        var checked_candidates = [];
         $("#candidate-checkboxes input:checkbox:checked").each(function(){
-            checked_candidate_ids.push(parseInt($(this).attr('data-build-id')));
+            var buildid = $(this).attr('data-build-id')
+            if (buildid !== '') {
+                checked_candidates.push([$(this).val(), parseInt(buildid)]);
+            } else {
+                checked_candidates.push([$(this).val(), false]);
+            }
         });
         // Empty lists
         document.getElementById("candidate-checkboxes").innerHTML = "<img class='spinner' src='static/img/spinner.gif'>";
@@ -211,7 +216,7 @@ $(document).ready(function() {
                 }
                 $.each(builds, function(i, build) {
                     // Insert the checkbox only if this ID is not already listed
-                    if ($.inArray(build.id, checked_candidate_ids) == -1) {
+                    if ($.inArray(build.id, checked_candidates) == -1) {
                         add_build_checkbox(build.nvr, build.id, false, false);
                     }
                 });
@@ -233,8 +238,8 @@ $(document).ready(function() {
             complete: function() {
                 $("#candidate-checkboxes .spinner").remove();
                 // Re-add previously checked builds
-                $.each(checked_candidate_ids, function(i, nvr) {
-                    add_build_checkbox(nvr, false, true, false);
+                $.each(checked_candidates, function(i, build) {
+                    add_build_checkbox(build[0], build[1], true, false);
                 });
             },
         });
