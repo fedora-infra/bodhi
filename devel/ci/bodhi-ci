@@ -791,16 +791,15 @@ def _build_jobs_list(
                 jobs.append(pydocstyle_job)
             if command in ('all', 'diff_cover', 'unit'):
                 for pyver in pyvers:
-                    if pyver == 2 and command == 'diff_cover' and \
-                            release not in ('f28', 'f29', 'pip'):
-                        # We don't support Python 2 on the server for Fedora >= 30, so don't enforce
-                        # coverage there.
-                        continue
                     unit_job = UnitJob(
                         archive=archive, archive_path=archive_path, pyver=pyver, release=release,
                         depends_on=build_job, buffer_output=buffer_output)
                     jobs.append(unit_job)
                     if command in ('all', 'diff_cover'):
+                        if pyver == 2 and release not in ('f27', 'f28', 'f29', 'pip'):
+                            # We don't support Python 2 on the server for Fedora >= 30, so don't
+                            # enforce coverage there.
+                            continue
                         diff_cover_job = DiffCoverJob(
                             archive=archive, archive_path=archive_path, pyver=pyver,
                             release=release, depends_on=unit_job, buffer_output=buffer_output)
