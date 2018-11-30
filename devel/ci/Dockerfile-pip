@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:27
+FROM registry.fedoraproject.org/fedora:29
 MAINTAINER "Randy Barlow" <bowlofeggs@fedoraproject.org>
 
 # Work around a severe dnf/libsolv/glibc issue: https://pagure.io/releng/issue/7125
@@ -46,6 +46,7 @@ RUN pip-2 install \
     pytest-cov \
     webtest
 RUN pip-3 install \
+    cornice_sphinx \
     diff-cover \
     flake8 \
     mock \
@@ -55,7 +56,6 @@ RUN pip-3 install \
     pytest-cov \
     sqlalchemy_schemadisplay \
     webtest
-RUN pip-3 install -e git+https://github.com/Cornices/cornice.ext.sphinx.git@master#egg=cornice_sphinx
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji
