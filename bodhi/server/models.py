@@ -2339,6 +2339,17 @@ class Update(Base):
                             )
                         })
 
+                # Warn about attempt to obsolete security update by update with
+                # other type and set type of new update to security.
+                if oldBuild.update.type == UpdateType.security and \
+                        self.type is not UpdateType.security:
+                    caveats.append({
+                        'name': 'update',
+                        'description': 'Adjusting type of this update to security,'
+                        'since it obsoletes another security update'
+                    })
+                    self.type = UpdateType.security
+
                 if obsoletable:
                     log.info('%s is obsoletable' % oldBuild.nvr)
 

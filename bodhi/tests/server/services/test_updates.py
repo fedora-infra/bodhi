@@ -659,6 +659,120 @@ class TestNewUpdate(BaseTestCase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
+    def test_create_new_nonsecurity_update_when_previous_security_one_exists(self, publish, *args):
+        """
+        Assert that when non-security update obsoletes previous security update, caveat is reported
+        and submitted update type is changed to security.
+        """
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args["type"] = "security"
+        args["severity"] = "high"
+        with mock.patch(**mock_uuid4_version1):
+            self.app.post_json('/updates/', args)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+        publish.call_args_list = []
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        with mock.patch(**mock_uuid4_version2):
+            r = self.app.post_json('/updates/', args).json_body
+
+        # Since we're trying to obsolete security update with non security update.
+        self.assertEqual(r['caveats'][0]['description'],
+                         'Adjusting type of this update to security,'
+                         'since it obsoletes another security update')
+
+        publish.assert_called_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        self.assertEqual(r['request'], 'testing')
+
+        # Since we're obsoleting something owned by someone else.
+        self.assertEqual(r['caveats'][1]['description'],
+                         'This update has obsoleted bodhi-2.0.0-2.fc17, '
+                         'and has inherited its bugs and notes.')
+
+        # Check for the comment multiple ways
+        # Note that caveats above don't support markdown, but comments do.
+        expected_comment = (
+            u'This update has obsoleted [bodhi-2.0.0-2.fc17]({}), '
+            u'and has inherited its bugs and notes.')
+        expected_comment = expected_comment.format(
+            urlparse.urljoin(config['base_address'],
+                             '/updates/FEDORA-{}-033713b73b'.format(datetime.now().year)))
+        self.assertEqual(r['comments'][-1]['text'], expected_comment)
+        publish.assert_called_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertEqual(up.status, UpdateStatus.obsolete)
+        expected_comment = u'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
+        expected_comment = expected_comment.format(
+            urlparse.urljoin(config['base_address'],
+                             '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
+        self.assertEqual(up.comments[-1].text, expected_comment)
+
+        # Assert that the type of the new update is security.
+        up = self.db.query(Update).filter_by(title=u'bodhi-2.0.0-3.fc17').one()
+        self.assertEqual(up.type, UpdateType.security)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_obsoletion_security_update(self, publish, *args):
+        """Assert that security update can obsolete previous security update."""
+        nvr = u'bodhi-2.0.0-2.fc17'
+        args = self.get_update(nvr)
+        args["type"] = "security"
+        args["severity"] = "high"
+        with mock.patch(**mock_uuid4_version1):
+            self.app.post_json('/updates/', args)
+        publish.assert_called_once_with(
+            topic='update.request.testing', msg=mock.ANY)
+        publish.call_args_list = []
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.status = UpdateStatus.testing
+        up.request = None
+
+        args = self.get_update('bodhi-2.0.0-3.fc17')
+        args["type"] = "security"
+        args["severity"] = "high"
+        with mock.patch(**mock_uuid4_version2):
+            r = self.app.post_json('/updates/', args).json_body
+        self.assertEqual(r['request'], 'testing')
+
+        # Since we're obsoleting something owned by someone else.
+        self.assertEqual(r['caveats'][0]['description'],
+                         'This update has obsoleted bodhi-2.0.0-2.fc17, '
+                         'and has inherited its bugs and notes.')
+
+        # Check for the comment multiple ways
+        # Note that caveats above don't support markdown, but comments do.
+        expected_comment = (
+            u'This update has obsoleted [bodhi-2.0.0-2.fc17]({}), '
+            u'and has inherited its bugs and notes.')
+        expected_comment = expected_comment.format(
+            urlparse.urljoin(config['base_address'],
+                             '/updates/FEDORA-{}-033713b73b'.format(datetime.now().year)))
+        self.assertEqual(r['comments'][-1]['text'], expected_comment)
+        publish.assert_called_with(
+            topic='update.request.testing', msg=mock.ANY)
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        self.assertEqual(up.status, UpdateStatus.obsolete)
+        expected_comment = u'This update has been obsoleted by [bodhi-2.0.0-3.fc17]({}).'
+        expected_comment = expected_comment.format(
+            urlparse.urljoin(config['base_address'],
+                             '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
+        self.assertEqual(up.comments[-1].text, expected_comment)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.services.updates.Update.new', side_effect=IOError('oops!'))
     def test_unexpected_exception(self, publish, *args):
         """Ensure that an unexpected Exception is handled by new_update()."""
