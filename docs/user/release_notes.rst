@@ -2,6 +2,32 @@
 Release notes
 =============
 
+v3.11.2
+-------
+
+This is a bugfix release, addressing an issue that was solved incorrectly with 3.11.1.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No special actions are needed when applying this update.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Correctly catch ``http.client.IncompleteRead`` while Composing and retry (:issue:`2758`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.11.2:
+
+* Randy Barlow
+
+
 v3.11.1
 -------
 
