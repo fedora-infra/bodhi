@@ -144,7 +144,6 @@ node('bodhi') {
         }
 
         parallel(
-            f27: {test_release('f27')},
             f28: {test_release('f28')},
             f29: {test_release('f29')},
             pip: {test_release('pip')},
