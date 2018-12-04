@@ -277,9 +277,9 @@ class DevBuildsys(Buildsystem):
                     'container_koji_task_id': 19708268,
                     'image': {
                         'index': {
-                            'pull': ['{registry}/{repository}:{hash}'
+                            'pull': ['{registry}/{repository}@sha256:{hash}'
                                      .format(**format_data),
-                                     '{registry}/{repository}:{version}:{release}'
+                                     '{registry}/{repository}:{version}-{release}'
                                      .format(**format_data)],
                         }
                     },
@@ -565,6 +565,11 @@ class DevBuildsys(Buildsystem):
                 headers['changelogtime'].insert(0, 1375531201)
             elif rpmID == 'TurboGears-1.9.1-1.fc17.src':
                 headers['changelogtext'] = []
+            elif rpmID == 'TurboGears-1.9.1-42.fc17.src':
+                # Make sure only a single changelog entry is present
+                headers['changelogname'] = ['Randy Barlow <bowlofeggs@fp.o> - 1.9.1-42']
+                headers['changelogtext'] = ["- Hope I didn't break anything!"]
+                headers['changelogtime'] = [1375531200]
             return headers
 
 

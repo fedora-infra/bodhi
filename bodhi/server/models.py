@@ -74,6 +74,17 @@ class EnumSymbol(object):
         self.value = value
         self.description = description
 
+    def __lt__(self, other):
+        """
+        Return True if self.value is less than other.value.
+
+        Args:
+            other (EnumSymbol): The other EnumSymbol we are being compared to.
+        Returns:
+            bool: True if self.value is less than other.value, False otherwise.
+        """
+        return self.value < other.value
+
     def __reduce__(self):
         """
         Allow unpickling to return the symbol linked to the DeclEnum class.

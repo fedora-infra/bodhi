@@ -25,14 +25,17 @@ import shutil
 import tempfile
 import time
 import unittest
+try:
+    from http.client import IncompleteRead
+except ImportError:
+    # Python 2 does not have this Exception.
+    IncompleteRead = None
 
 from click import testing
 import mock
-from kitchen.text.converters import to_bytes
 import six
 import six.moves.urllib.parse as urlparse
 from six.moves.urllib.error import HTTPError, URLError
-from six import StringIO
 
 from bodhi.server import buildsys, exceptions, log, push
 from bodhi.server.config import config
@@ -268,7 +271,7 @@ Compose dir: %s
 That was the actual one''' % mash_dir
 
             fake_popen = mock.MagicMock()
-            fake_popen.communicate = lambda: (fake_stdout, 'hello')
+            fake_popen.communicate = lambda: (fake_stdout.encode(), b'hello')
             fake_popen.poll.return_value = None
             fake_popen.returncode = 0
             return fake_popen
@@ -597,8 +600,8 @@ References:
 
 """ % time.strftime('%Y'))
 
-        mail.assert_called_with(to_bytes(config.get('bodhi_email')),
-                                to_bytes(config.get('fedora_test_announce_list')),
+        mail.assert_called_with(config.get('bodhi_email'),
+                                config.get('fedora_test_announce_list'),
                                 mock.ANY)
         assert len(mail.mock_calls) == 2, len(mail.mock_calls)
         body = mail.mock_calls[1][1][2]
@@ -630,11 +633,11 @@ References:
             t.release = session.query(Release).filter_by(name=u'F17').one()
             try:
                 fake_popen = mock.MagicMock()
-                fake_stdout = '''Some output
+                fake_stdout = b'''Some output
 Some more output ...... This is not a Compose dir: ....
 Compose dir: /tmp/nonsensical_directory
 That was the actual one'''
-                fake_popen.communicate = lambda: (fake_stdout, 'hello')
+                fake_popen.communicate = lambda: (fake_stdout, b'hello')
                 fake_popen.poll.return_value = None
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year
@@ -660,10 +663,10 @@ That was the actual one'''
             t.release = session.query(Release).filter_by(name=u'F17').one()
             try:
                 fake_popen = mock.MagicMock()
-                fake_stdout = '''Some output
+                fake_stdout = b'''Some output
     Some more output ...... This is not a Compose dir: ....
     That was the actual one'''
-                fake_popen.communicate = lambda: (fake_stdout, 'hello')
+                fake_popen.communicate = lambda: (fake_stdout, b'hello')
                 fake_popen.poll.return_value = None
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year
@@ -2927,12 +2930,12 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
-                return_value=StringIO('---\nyaml: rules'))
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
     def test_checksum_match_immediately(self, urlopen, publish, save):
         """
         Assert correct operation when the repomd checksum matches immediately.
         """
+        urlopen.return_value.read.return_value = b'---\nyaml: rules'
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -2972,12 +2975,12 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
-                return_value=StringIO('---\nyaml: rules'))
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
     def test_no_checkarch(self, urlopen, publish, save):
         """
         Assert error when no checkarch is found.
         """
+        urlopen.return_value.read.return_value = b'---\nyaml: rules'
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3003,13 +3006,12 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
-    @mock.patch(
-        'bodhi.server.consumers.masher.urllib2.urlopen',
-        side_effect=[StringIO('wrong'), StringIO('nope'), StringIO('---\nyaml: rules')])
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
     def test_checksum_match_third_try(self, urlopen, sleep, publish, save):
         """
         Assert correct operation when the repomd checksum matches on the third try.
         """
+        urlopen.return_value.read.side_effect = [b'wrong', b'nope', b'---\nyaml: rules']
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3035,8 +3037,9 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
         expected_calls = [
             mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
-                      '{}/repodata.repomd.xml'.format(arch))
-            for i in range(3)]
+                      '{}/repodata.repomd.xml'.format(arch)),
+            mock.call().read()]
+        expected_calls = expected_calls * 3
         urlopen.assert_has_calls(expected_calls)
         sleep.assert_has_calls([mock.call(200), mock.call(200)])
         save.assert_called_with(ComposeState.syncing_repo)
@@ -3048,14 +3051,14 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
-    @mock.patch(
-        'bodhi.server.consumers.masher.urllib2.urlopen',
-        side_effect=[HTTPError('url', 404, 'Not found', {}, None),
-                     StringIO('---\nyaml: rules')])
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
     def test_httperror(self, urlopen, sleep, publish, save):
         """
         Assert that an HTTPError is properly caught and logged, and that the algorithm continues.
         """
+        fake_url = mock.MagicMock()
+        fake_url.read.return_value = b'---\nyaml: rules'
+        urlopen.side_effect = [HTTPError('url', 404, 'Not found', {}, None), fake_url]
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3084,6 +3087,55 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
                       '{}/repodata.repomd.xml'.format(arch))
             for i in range(2)]
+        urlopen.assert_has_calls(expected_calls)
+        t.log.exception.assert_called_once_with('Error fetching repomd.xml')
+        sleep.assert_called_once_with(200)
+        save.assert_called_once_with(ComposeState.syncing_repo)
+
+    @unittest.skipIf(six.PY2, "Python 2 does not have the IncompleteRead Exception.")
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
+    def test_incompleteread(self, urlopen, sleep, publish, save):
+        """
+        Assert that an IncompleteRead is properly caught and logged, and that the code continues.
+        """
+        urlopen.return_value.read.side_effect = [IncompleteRead('some_data'), b'---\nyaml: rules']
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
+                                'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
+        t.id = 'f26-updates-testing'
+        t.log = mock.MagicMock()
+        t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
+        for arch in ['aarch64', 'x86_64']:
+            repodata = os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'repodata')
+            os.makedirs(repodata)
+            with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                repomd.write('---\nyaml: rules')
+
+        t._wait_for_sync()
+
+        expected_calls = [
+            mock.call(topic='mashtask.sync.wait', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True),
+            mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True)]
+        publish.assert_has_calls(expected_calls)
+        # Since os.listdir() isn't deterministic about the order of the items it returns, the test
+        # won't be deterministic about which of arch URL gets used. However, either one of them
+        # would be correct so we will just assert that the one that is used is used correctly.
+        arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
+        expected_calls = []
+        for i in range(2):
+            expected_calls.append(
+                mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
+                          '{}/repodata.repomd.xml'.format(arch)))
+            expected_calls.append(mock.call().read())
         urlopen.assert_has_calls(expected_calls)
         t.log.exception.assert_called_once_with('Error fetching repomd.xml')
         sleep.assert_called_once_with(200)
@@ -3157,14 +3209,14 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
-    @mock.patch(
-        'bodhi.server.consumers.masher.urllib2.urlopen',
-        side_effect=[URLError('it broke'),
-                     StringIO('---\nyaml: rules')])
+    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
     def test_urlerror(self, urlopen, sleep, publish, save):
         """
         Assert that a URLError is properly caught and logged, and that the algorithm continues.
         """
+        fake_url = mock.MagicMock()
+        fake_url.read.return_value = b'---\nyaml: rules'
+        urlopen.side_effect = [URLError('it broke'), fake_url]
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3288,9 +3340,8 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         sendmail = SMTP.return_value.sendmail
         self.assertEqual(sendmail.call_count, 1)
         args = sendmail.mock_calls[0][1]
-        self.assertEqual(args[0].decode('utf-8'), config['bodhi_email'])
-        self.assertEqual([c.decode('utf-8') for c in args[1]],
-                         [config['fedora_test_announce_list']])
+        self.assertEqual(args[0], config['bodhi_email'])
+        self.assertEqual(args[1], [config['fedora_test_announce_list']])
         self.assertTrue(
             'The following Fedora 17 Critical Path updates have yet to be approved:\n Age URL\n'
             in args[2].decode('utf-8'))
@@ -3320,9 +3371,8 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
         sendmail = SMTP.return_value.sendmail
         self.assertEqual(sendmail.call_count, 1)
         args = sendmail.mock_calls[0][1]
-        self.assertEqual(args[0].decode('utf-8'), config['bodhi_email'])
-        self.assertEqual([c.decode('utf-8') for c in args[1]],
-                         [config['fedora_test_announce_list']])
+        self.assertEqual(args[0], config['bodhi_email'])
+        self.assertEqual(args[1], [config['fedora_test_announce_list']])
         self.assertTrue(
             'The following Fedora 17 Security updates need testing:\n Age  URL\n'
             in args[2].decode('utf-8'))

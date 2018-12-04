@@ -51,6 +51,17 @@ class TestCompose__acl__(base.BaseTestCase):
 
 class TestComposeCollectionGet(base.BaseTestCase):
     """This class contains tests for the Compose.collection_get() method."""
+    def test_default_accept(self):
+        """Test that an Accept header of */* gets the default JSON response."""
+        update = models.Update.query.first()
+        compose = models.Compose(release=update.release, request=update.request)
+        self.db.add(compose)
+        self.db.flush()
+
+        response = self.app.get('/composes/', status=200, headers={'Accept': '*/*'})
+
+        self.assertEqual(response.json, {'composes': [compose.__json__()]})
+
     def test_no_composes_html(self):
         """Assert correct behavior for html interface when there are no composes."""
         response = self.app.get('/composes/', status=200, headers={'Accept': 'text/html'})

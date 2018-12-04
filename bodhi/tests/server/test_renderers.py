@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2017 Red Hat, Inc.
+# Copyright © 2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -23,6 +23,7 @@ import mock
 import re
 
 import PIL.Image
+import webtest
 from six import BytesIO
 
 from bodhi.server import main
@@ -50,7 +51,7 @@ class TestRenderers(base.BaseTestCase):
             'captcha.ttl': '300',
         })
         with mock.patch('bodhi.server.Session.remove'):
-            app = base.BodhiTestApp(main({}, session=self.db, **settings))
+            app = webtest.TestApp(main({}, session=self.db, **settings))
 
         res = app.get('/updates/FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                       status=200,

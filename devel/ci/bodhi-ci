@@ -38,7 +38,7 @@ CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 # This template is used to generate the summary lines that are printed out at the end.
 LABEL_TEMPLATE = '{:>8}-{:<16}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-RELEASES = ('f27', 'f28', 'f29', 'rawhide', 'pip')
+RELEASES = ('f28', 'f29', 'rawhide', 'pip')
 
 
 def _set_concurrency(ctx, param, value):
@@ -559,7 +559,7 @@ class DiffCoverJob(Job):
         self.archive_path = archive_path
 
         self._command = ['/usr/bin/diff-cover', '/results/coverage.xml',
-                         '--compare-branch=origin/develop', '--fail-under=100']
+                         '--compare-branch=develop', '--fail-under=100']
         self._label = '{}-py{}'.format(self._label, pyver)
         self._convert_command_for_container(archive=archive, archive_path=archive_path)
 
@@ -584,7 +584,7 @@ class DocsJob(Job):
 
     _command = [
         '/usr/bin/bash', '-c',
-        ('/usr/bin/python2 setup.py develop && make -C docs clean && make -C docs html && make '
+        ('/usr/bin/python3 setup.py develop && make -C docs clean && make -C docs html && make '
          '-C docs man')]
     _label = 'docs'
 
@@ -708,6 +708,12 @@ class UnitJob(Job):
         test_command = ('({} setup.py develop && {} {} || (cp *.xml /results && exit 1)) '
                         '&& cp *.xml /results')
 
+        if self.release not in ('f28', 'f29', 'pip'):
+            # We do not support the server on Fedora >= 30:
+            test_command = (
+                'rm requirements.txt && touch requirements.txt && rm .coveragerc && '
+                'rm -rf bodhi/tests/server && {}'.format(test_command))
+
         if self.release == 'pip':
             # pip installs some of the executables in different places than Fedora does.
             if pyver == 2:
@@ -785,6 +791,11 @@ def _build_jobs_list(
                 jobs.append(pydocstyle_job)
             if command in ('all', 'diff_cover', 'unit'):
                 for pyver in pyvers:
+                    if pyver == 2 and command == 'diff_cover' and \
+                            release not in ('f28', 'f29', 'pip'):
+                        # We don't support Python 2 on the server for Fedora >= 30, so don't enforce
+                        # coverage there.
+                        continue
                     unit_job = UnitJob(
                         archive=archive, archive_path=archive_path, pyver=pyver, release=release,
                         depends_on=build_job, buffer_output=buffer_output)

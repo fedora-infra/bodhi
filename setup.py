@@ -1,7 +1,3 @@
-import __main__
-__requires__ = __main__.__requires__ = 'WebOb>=1.4.1'
-import pkg_resources  # noqa
-
 # The following two imports are required to shut up an
 # atexit error when running tests with python 2.7
 from setuptools import setup, find_packages  # noqa
@@ -46,7 +42,7 @@ def get_requirements(requirements_file='requirements.txt'):
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-VERSION = '3.10.1'
+VERSION = '3.11.2'
 # Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
@@ -55,6 +51,9 @@ CLASSIFIERS = [
     'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
     'Operating System :: POSIX :: Linux',
     'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
     'Topic :: System :: Software Distribution']
 LICENSE = 'GPLv2+'
 MAINTAINER = 'Fedora Infrastructure Team'

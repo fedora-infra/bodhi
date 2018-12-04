@@ -39,7 +39,7 @@ Once you are inside the development environment, there are a helpful set of comm
 ``.bashrc`` that will be printed to the screen via the ``/etc/motd`` file. Be sure to familiarize
 yourself with these:
 
-.. include:: ../../devel/ansible/roles/dev/files/motd
+.. include:: ../../devel/ansible/roles/bodhi/files/motd
    :literal:
 
 Keep in mind that all ``vagrant`` commands should be run with your current working directory set to

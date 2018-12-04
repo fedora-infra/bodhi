@@ -459,6 +459,17 @@ class TestEnumSymbol(unittest.TestCase):
 
         self.assertEqual(s.__json__(), 'value')
 
+    def test___lt__(self):
+        """Ensure that EnumSymbols support sorting."""
+        open_source = model.EnumSymbol(model.UpdateStatus, 'open source', 'open_source',
+                                       'Open Source')
+        closed_source = model.EnumSymbol(model.UpdateStatus, 'closed source',
+                                         'closed_source', 'Closed Source')
+
+        self.assertLess(closed_source, open_source)
+        self.assertGreater(open_source, closed_source)
+        self.assertNotEqual(open_source, closed_source)
+
     def test___reduce__(self):
         """Ensure correct operation of the __reduce__() method by pickling an instance."""
         s = model.EnumSymbol(model.UpdateStatus, 'testing', 'testing', 'testing')
@@ -3402,8 +3413,8 @@ class TestUpdate(ModelTest):
             config['bodhi_email'], config['{}_test_announce_list'.format(release_name)],
             config['default_email_domain'], self.obj.builds[0].nvr, body)
         SMTP.return_value.sendmail.assert_called_once_with(
-            config['bodhi_email'].encode('utf-8'),
-            [config['{}_test_announce_list'.format(release_name)].encode('utf-8')],
+            config['bodhi_email'],
+            [config['{}_test_announce_list'.format(release_name)]],
             msg.encode('utf-8'))
 
     def test_check_requirements_empty(self):

@@ -25,6 +25,7 @@ import hashlib
 import json
 import os
 import pkg_resources
+import re
 import socket
 import subprocess
 import tempfile
@@ -1428,11 +1429,11 @@ class no_autoflush(object):
 
 def _get_build_repository(build):
     """
-    Return the registry repository name for the given Build.
+    Return the registry repository name for the given Build from the container's pull string.
 
-    For example, if the Build's container pull string is:
-
-    'candidate-registry.fedoraproject.org/f29/cockpit:176-5.fc28', this will return 'f29/cockpit'.
+    Examples -
+    'candidate-registry.fedoraproject.org/f29/cockpit:176-5.fc28' => 'f29/cockpit'.
+    'candidate-registry.fedoraproject.org/myrepo@sha256:<hash>' => 'myrepo'.
 
     Args:
         build (bodhi.server.models.Build): A Build representing a container or flatpak.
@@ -1443,9 +1444,8 @@ def _get_build_repository(build):
     koji_build = koji.getBuild(build.nvr)
 
     pull_specs = koji_build['extra']['image']['index']['pull']
-    # Specs are of the form 'candidate-registry.fedoraproject.org/f29/cockpit:176-5.fc28'
     # All the pull specs should have the same repository, so which one we use is arbitrary
-    base, tag = pull_specs[0].split(':', 1)
+    base, tag = re.compile(r'[:@]').split(pull_specs[0], 1)
     server, repository = base.split('/', 1)
 
     return repository
