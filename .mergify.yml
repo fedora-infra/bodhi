@@ -6,7 +6,7 @@ pull_request_rules:
       strict: true
   conditions:
   - label!=no-mergify
-  - approved-reviews-by=[bowlofeggs]
+  - approved-reviews-by=bowlofeggs
   - status-success=DCO
   - status-success=f28-docs
   - status-success=f28-flake8
@@ -38,7 +38,7 @@ pull_request_rules:
   conditions:
   - label!=no-mergify
   - author=bowlofeggs
-  - approved-reviews-by=[@fedora-infra]
+  - approved-reviews-by=@fedora-infra
   - status-success=DCO
   - status-success=f28-docs
   - status-success=f28-flake8
