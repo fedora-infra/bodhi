@@ -220,7 +220,7 @@ class TestNewUpdate(BaseTestCase):
     def test_invalid_acl_system(self, *args):
         with mock.patch.dict(config, {'acl_system': 'null'}):
             res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-2.fc17'),
-                                     status=400)
+                                     status=403)
 
         assert "guest does not have commit access to bodhi" in res, res
 
