@@ -299,6 +299,19 @@ class TestValidateAcls(BaseTestCase):
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 0, mock_request.errors
 
+    @mock.patch.dict('bodhi.server.validators.config',
+                     {'acl_system': 'dummy', 'acl_dummy_committer': 'mattia'})
+    def test_validate_acls_dummy_committer(self):
+        """ Test validate_acls when the acl system is dummy and a user
+        adds himself to the committers list by the development.ini file.
+        """
+        user = self.db.query(models.User).filter_by(id=1).one()
+        user.name = 'mattia'
+        self.db.flush()
+        mock_request = self.get_mock_request()
+        validators.validate_acls(mock_request)
+        assert len(mock_request.errors) == 0, mock_request.errors
+
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'nonexistent'})
     def test_validate_acls_invalid_acl_system(self):
         """ Test validate_acls when the acl system is invalid.

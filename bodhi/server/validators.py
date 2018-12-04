@@ -488,9 +488,11 @@ def validate_acls(request, **kwargs):
                 request.errors.add('body', 'builds', error_msg)
                 return
         elif acl_system == 'dummy':
-            people = (['ralph', 'bowlofeggs', 'guest'], ['guest'])
-            groups = (['ralph', 'bowlofeggs', 'guest'], ['guest'])
-            committers, watchers = people
+            committers = ['ralph', 'bowlofeggs', 'guest']
+            if config['acl_dummy_committer']:
+                committers.append(config['acl_dummy_committer'])
+            groups = ['guest']
+            people = committers
         else:
             log.warning('No acl_system configured')
             people = None
