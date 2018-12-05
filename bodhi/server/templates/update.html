@@ -937,9 +937,19 @@ $(document).ready(function(){
                 </div>
                 <div>
                   % if update.autokarma is True:
-                  <td><span class='label label-success'>Enabled</span></td>
+                  <td>
+                    <span class='text-muted' data-toggle='tooltip' title='The update will be automatically pushed
+                    to stable once the karma threshold is reached.'>
+                      <span class='label label-success'>Enabled</span>
+                    </span>
+                    </td>
                   % elif update.autokarma is False:
-                  <td><span class='label label-danger'>Disabled</span></td>
+                  <td>
+                    <span class='text-muted' data-toggle='tooltip' title='The update will never be automatically pushed
+                    to stable.'>
+                      <span class='label label-danger'>Disabled</span>
+                    </span>
+                  </td>
                   % endif
                 </div>
               </div>

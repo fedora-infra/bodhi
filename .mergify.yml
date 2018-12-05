@@ -6,7 +6,7 @@ pull_request_rules:
       strict: true
   conditions:
   - label!=no-mergify
-  - '#approved-reviews-by>=1'
+  - approved-reviews-by=bowlofeggs
   - status-success=DCO
   - status-success=f28-docs
   - status-success=f28-flake8
@@ -30,6 +30,38 @@ pull_request_rules:
   - status-success=pip-python3-unit
   - status-success=pip-python3-diff-cover
   name: default
+- actions:
+    merge:
+      method: rebase
+      rebase_fallback: null
+      strict: true
+  conditions:
+  - label!=no-mergify
+  - author=bowlofeggs
+  - approved-reviews-by=@fedora-infra
+  - status-success=DCO
+  - status-success=f28-docs
+  - status-success=f28-flake8
+  - status-success=f28-pydocstyle
+  - status-success=f28-python2-unit
+  - status-success=f28-python2-diff-cover
+  - status-success=f28-python3-unit
+  - status-success=f28-python3-diff-cover
+  - status-success=f29-docs
+  - status-success=f29-flake8
+  - status-success=f29-pydocstyle
+  - status-success=f29-python2-unit
+  - status-success=f29-python2-diff-cover
+  - status-success=f29-python3-unit
+  - status-success=f29-python3-diff-cover
+  - status-success=pip-docs
+  - status-success=pip-flake8
+  - status-success=pip-pydocstyle
+  - status-success=pip-python2-unit
+  - status-success=pip-python2-diff-cover
+  - status-success=pip-python3-unit
+  - status-success=pip-python3-diff-cover
+  name: default-from-bowlofeggs
 - actions:
     backport:
       branches:
