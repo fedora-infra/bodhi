@@ -271,8 +271,8 @@ class Job(object):
         archive_dir (str): A path where this job's test results is on the host. Only set if an
             archive is used (not used on all jobs).
         release (str): The release this job is testing.
-        depends_on (Job or None): If not None, this Job will wait for the depends_on job's complete
-            Event to start.
+        depends_on (list of Job): This Job will wait for all the jobs' complete Event in the list
+            to start.
         cancelled (bool): True if this Job has been cancelled, False otherwise.
         complete (asyncio.Event): An Event that allows other Jobs to wait for this Job to complete.
             complete.set() is called at the end of run().
@@ -287,13 +287,17 @@ class Job(object):
 
         Args:
             release (str): The release this Job pertains to.
-            depends_on (Job): Another Job that this Job should wait to complete before starting.
+            depends_on (list of Job): A list of Job that this Job should wait to complete before
+                starting. It is also possible to provide a Job instance if there is a single
+                dependency.
             buffer_output (bool): If True, this Job will buffer its stdout and stderr into its
                 output property. If False, child processes will send their output straign to stdout
                 and stderr.
         """
         self.release = release
-        self.depends_on = depends_on
+        self.depends_on = depends_on or []
+        if not isinstance(self.depends_on, list):
+            self.depends_on = [self.depends_on]
 
         self.cancelled = False
         # Used to block dependent processes until this Job is done.
@@ -342,9 +346,9 @@ class Job(object):
             Job: Returns self.
         """
         try:
-            if self.depends_on:
-                await self.depends_on.complete.wait()
-                if self.depends_on.returncode != 0 and not self.depends_on.skipped:
+            for job in self.depends_on:
+                await job.complete.wait()
+                if job.returncode != 0 and not job.skipped:
                     # If the Job we depend on failed, we should cancel.
                     raise asyncio.CancelledError()
 
@@ -569,7 +573,7 @@ class DiffCoverJob(Job):
         """
         if not os.path.exists(self.archive_dir):
             os.makedirs(self.archive_dir)
-        shutil.copy(os.path.join(self.depends_on.archive_dir, 'coverage.xml'),
+        shutil.copy(os.path.join(self.depends_on[0].archive_dir, 'coverage.xml'),
                     os.path.join(self.archive_dir, 'coverage.xml'))
 
         super(DiffCoverJob, self)._pre_start_hook()
