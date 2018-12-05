@@ -284,6 +284,9 @@ class BodhiConfig(dict):
         'acl_system': {
             'value': 'dummy',
             'validator': six.text_type},
+        'acl_dummy_committer': {
+            'value': None,
+            'validator': _validate_none_or(six.text_type)},
         'admin_groups': {
             'value': ['proventesters', 'security_respons', 'bodhiadmin', 'sysadmin-main'],
             'validator': _generate_list_validator()},

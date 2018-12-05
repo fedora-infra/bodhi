@@ -47,7 +47,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-pylibravatar \
     python3-pyramid-fas-openid \
     python3-pyramid-mako \
-    python3-pyramid-tm \
     python3-pytest \
     python3-pytest-cov \
     python3-responses \

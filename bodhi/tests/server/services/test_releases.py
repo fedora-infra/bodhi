@@ -364,9 +364,9 @@ class TestReleasesService(base.BaseTestCase):
 
         res = self.app.post("/releases/", r, status=400)
 
-        self.assertEquals(res.json_body['errors'][0]['name'], 'mail_template')
-        self.assertEquals(res.json_body['errors'][0]['description'],
-                          u'"invalid_template_name" is not one of {}'.format(template_vals))
+        self.assertEqual(res.json_body['errors'][0]['name'], 'mail_template')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'"invalid_template_name" is not one of {}'.format(template_vals))
 
     def test_get_single_release_html(self):
         res = self.app.get('/releases/f17', headers={'Accept': 'text/html'})

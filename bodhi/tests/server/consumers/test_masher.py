@@ -3105,9 +3105,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         """
         Assert that an IncompleteRead is properly caught and logged, and that the code continues.
         """
-        fake_url = mock.MagicMock()
-        fake_url.read.return_value = b'---\nyaml: rules'
-        urlopen.side_effect = [IncompleteRead('some_data'), fake_url]
+        urlopen.return_value.read.side_effect = [IncompleteRead('some_data'), b'---\nyaml: rules']
         t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
                                 'bowlofeggs', log, self.Session, self.tempdir)
         t.compose = self.db.query(Compose).one()
@@ -3132,10 +3130,12 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         # won't be deterministic about which of arch URL gets used. However, either one of them
         # would be correct so we will just assert that the one that is used is used correctly.
         arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
-        expected_calls = [
-            mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
-                      '{}/repodata.repomd.xml'.format(arch))
-            for i in range(2)]
+        expected_calls = []
+        for i in range(2):
+            expected_calls.append(
+                mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
+                          '{}/repodata.repomd.xml'.format(arch)))
+            expected_calls.append(mock.call().read())
         urlopen.assert_has_calls(expected_calls)
         t.log.exception.assert_called_once_with('Error fetching repomd.xml')
         sleep.assert_called_once_with(200)
