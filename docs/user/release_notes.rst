@@ -2,6 +2,33 @@
 Release notes
 =============
 
+v3.11.3
+-------
+
+This is a bugfix release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No special actions are needed when applying this update.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Correctly handle multiple builds with the search form in the new update JavaScript web UI code
+  (:issue:`2791`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.11.3:
+
+* Mattia Verga
+
+
 v3.11.2
 -------
 
