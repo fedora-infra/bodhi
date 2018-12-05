@@ -3655,7 +3655,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json_body['caveats'][0]['description'],
                          "Please be aware that there is another update in "
                          "flight owned by bob, containing "
-                         "bodhi-2.0-2.fc17.  Are you coordinating with "
+                         "bodhi-2.0-2.fc17. Are you coordinating with "
                          "them?")
 
         # Ensure the second update was created successfully
