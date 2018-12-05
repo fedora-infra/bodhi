@@ -78,7 +78,9 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python2-libcomps
 
 # sqlalchemy_schemadisplay is not packaged for Python 3 in Fedora < 30
-RUN pip-3 install sqlalchemy_schemadisplay
+# fedora_messaging isn't packaged for Fedora 28
+RUN pip-3 install sqlalchemy_schemadisplay fedora_messaging
+RUN pip install fedora_messaging
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji
