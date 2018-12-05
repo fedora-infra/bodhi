@@ -16,6 +16,7 @@ RUN sed -i '/nodocs/d' /etc/dnf/dnf.conf
 # 3. python3-bodhi-client
 RUN dnf install -y \
     \
+    fedora-messaging \
     httpd \
     intltool \
     liberation-mono-fonts \
