@@ -1738,12 +1738,12 @@ class TestGetKojiSession(unittest.TestCase):
     This class tests the get_koji_session method.
     """
     @mock.patch('{}.open'.format(builtin_module_name), create=True)
-    @mock.patch('bodhi.client.bindings.ConfigParser.readfp')
+    @mock.patch('bodhi.client.bindings.configparser.ConfigParser.readfp')
     @mock.patch("os.path.exists")
     @mock.patch("os.path.expanduser", return_value="/home/dudemcpants/")
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.koji.ClientSession')
-    @mock.patch('bodhi.client.bindings.ConfigParser.get')
+    @mock.patch('bodhi.client.bindings.configparser.ConfigParser.get')
     def test_koji_conf_in_home_directory(self, get, koji, cookies,
                                          expanduser, exists, readfp, mock_open):
         """Test that if ~/.koji/config exists, we read the config from there first"""
@@ -1756,12 +1756,12 @@ class TestGetKojiSession(unittest.TestCase):
         mock_open.assert_called_once_with("/home/dudemcpants/.koji/config")
 
     @mock.patch('{}.open'.format(builtin_module_name), create=True)
-    @mock.patch('bodhi.client.bindings.ConfigParser.readfp')
+    @mock.patch('bodhi.client.bindings.configparser.ConfigParser.readfp')
     @mock.patch("os.path.exists")
     @mock.patch("os.path.expanduser", return_value="/home/dudemcpants/")
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
     @mock.patch('bodhi.client.bindings.koji.ClientSession')
-    @mock.patch('bodhi.client.bindings.ConfigParser.get')
+    @mock.patch('bodhi.client.bindings.configparser.ConfigParser.get')
     def test_koji_conf_not_in_home_directory(self, get, koji, cookies,
                                              expanduser, exists, readfp, mock_open):
         """Test that if ~/.koji.config doesn't exist, we read config from /etc/koji.conf"""

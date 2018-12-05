@@ -56,7 +56,6 @@
       - python2-pyramid
       - python2-pyramid-fas-openid
       - python2-pyramid-mako
-      - python2-pyramid-tm
       - python2-pytest-cov
       - python2-responses
       - python2-simplemediawiki

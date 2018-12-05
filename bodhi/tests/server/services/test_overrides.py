@@ -382,7 +382,7 @@ _@guest ({})_
 
 _____________
 new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
-        self.assertEquals(o['notes'], new_notes)
+        self.assertEqual(o['notes'], new_notes)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_multiple_nvr(self, publish):
@@ -473,7 +473,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
 
         old_build = RpmBuild.get(u'bodhi-2.0-1.fc17')
 
-        self.assertNotEquals(old_build.override['expired_date'], None)
+        self.assertNotEqual(old_build.override['expired_date'], None)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_cannot_edit_override_build(self, publish):
@@ -649,7 +649,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         self.assertEqual(override['build'], o['build'])
         self.assertEqual(override['notes'], o['notes'])
         self.assertEqual(override['expiration_date'], o['expiration_date'])
-        self.assertNotEquals(override['expired_date'], None)
+        self.assertNotEqual(override['expired_date'], None)
         publish.assert_called_once_with(
             topic='buildroot_override.untag', msg=mock.ANY)
 
