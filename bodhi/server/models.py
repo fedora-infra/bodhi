@@ -2332,7 +2332,7 @@ class Update(Base):
                             'name': 'update',
                             'description': 'Please be aware that there '
                             'is another update in flight owned by %s, '
-                            'containing %s.  Are you coordinating with '
+                            'containing %s. Are you coordinating with '
                             'them?' % (
                                 oldBuild.update.user.name,
                                 oldBuild.nvr,
