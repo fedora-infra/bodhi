@@ -512,6 +512,7 @@ def validate_acls(request, **kwargs):
             if not has_access:
                 request.errors.add('body', 'builds', "{} does not have commit "
                                    "access to {}".format(user.name, package.name))
+                request.errors.status = 403
 
 
 @postschema_validator
