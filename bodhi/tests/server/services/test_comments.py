@@ -371,7 +371,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 1)
         comment2 = body['comments'][0]
 
-        self.assertNotEquals(comment1, comment2)
+        self.assertNotEqual(comment1, comment2)
 
     def test_list_comments_by_since(self):
         tomorrow = datetime.utcnow() + timedelta(days=1)

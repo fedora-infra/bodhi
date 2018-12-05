@@ -29,13 +29,11 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python2-dogpile-cache \
     python2-fedmsg \
     python2-feedgen \
-    python2-iniparse \
     python2-kitchen \
     python2-markdown \
     python2-mock \
     python2-pillow \
     python2-pyramid-mako \
-    python2-pyramid-tm \
     python2-pytest-cov \
     python2-responses \
     python2-sqlalchemy \
@@ -59,7 +57,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-pydocstyle \
     python3-pylibravatar \
     python3-pyramid-mako \
-    python3-pyramid-tm \
     python3-pytest \
     python3-pytest-cov \
     python3-responses \

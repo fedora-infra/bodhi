@@ -1031,7 +1031,7 @@ def edit_release(user, password, url, debug, **kwargs):
     edited = kwargs.pop('name')
 
     if edited is None:
-        print("ERROR: Please specify the name of the release to edit")
+        click.echo("ERROR: Please specify the name of the release to edit")
         return
 
     res = client.send_request('releases/%s' % edited, verb='GET', auth=True)
@@ -1072,7 +1072,7 @@ def info_release(name, url, **kwargs):
         print_errors(res)
 
     else:
-        print('Release:')
+        click.echo('Release:')
         print_release(res)
 
 
@@ -1112,7 +1112,7 @@ def save(client, **kwargs):
         print_errors(res)
 
     else:
-        print("Saved release:")
+        click.echo("Saved release:")
         print_release(res)
 
 
@@ -1150,21 +1150,21 @@ def print_release(release):
     Args:
         release (munch.Munch): The release to be printed.
     """
-    print("  Name:                %s" % release['name'])
-    print("  Long Name:           %s" % release['long_name'])
-    print("  Version:             %s" % release['version'])
-    print("  Branch:              %s" % release['branch'])
-    print("  ID Prefix:           %s" % release['id_prefix'])
-    print("  Dist Tag:            %s" % release['dist_tag'])
-    print("  Stable Tag:          %s" % release['stable_tag'])
-    print("  Testing Tag:         %s" % release['testing_tag'])
-    print("  Candidate Tag:       %s" % release['candidate_tag'])
-    print("  Pending Signing Tag: %s" % release['pending_signing_tag'])
-    print("  Pending Testing Tag: %s" % release['pending_testing_tag'])
-    print("  Pending Stable Tag:  %s" % release['pending_stable_tag'])
-    print("  Override Tag:        %s" % release['override_tag'])
-    print("  State:               %s" % release['state'])
-    print("  Email Template:      %s" % release['mail_template'])
+    click.echo("  Name:                %s" % release['name'])
+    click.echo("  Long Name:           %s" % release['long_name'])
+    click.echo("  Version:             %s" % release['version'])
+    click.echo("  Branch:              %s" % release['branch'])
+    click.echo("  ID Prefix:           %s" % release['id_prefix'])
+    click.echo("  Dist Tag:            %s" % release['dist_tag'])
+    click.echo("  Stable Tag:          %s" % release['stable_tag'])
+    click.echo("  Testing Tag:         %s" % release['testing_tag'])
+    click.echo("  Candidate Tag:       %s" % release['candidate_tag'])
+    click.echo("  Pending Signing Tag: %s" % release['pending_signing_tag'])
+    click.echo("  Pending Testing Tag: %s" % release['pending_testing_tag'])
+    click.echo("  Pending Stable Tag:  %s" % release['pending_stable_tag'])
+    click.echo("  Override Tag:        %s" % release['override_tag'])
+    click.echo("  State:               %s" % release['state'])
+    click.echo("  Email Template:      %s" % release['mail_template'])
 
 
 def print_errors(data):
@@ -1175,7 +1175,7 @@ def print_errors(data):
         errors (munch.Munch): The errors to be formatted and printed.
     """
     for error in data['errors']:
-        print("ERROR: %s" % error['description'])
+        click.echo("ERROR: %s" % error['description'])
 
     sys.exit(1)
 
