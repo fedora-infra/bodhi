@@ -35,7 +35,6 @@ import os
 import re
 import textwrap
 
-from iniparse.compat import ConfigParser
 from six.moves import configparser
 from six.moves import input
 try:
@@ -913,7 +912,7 @@ class BodhiClient(OpenIdBaseClient):
         Returns:
             koji.ClientSession: An intialized authenticated koji client.
         """
-        config = ConfigParser()
+        config = configparser.ConfigParser()
         if os.path.exists(os.path.join(os.path.expanduser('~'), '.koji', 'config')):
             config.readfp(open(os.path.join(os.path.expanduser('~'), '.koji', 'config')))
         else:

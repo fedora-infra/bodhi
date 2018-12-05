@@ -8,7 +8,6 @@ cryptography
 dogpile.cache
 fedmsg[consumers]
 feedgen
-iniparse
 jinja2
 kitchen
 markdown

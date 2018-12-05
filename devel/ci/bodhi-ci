@@ -38,7 +38,7 @@ CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 # This template is used to generate the summary lines that are printed out at the end.
 LABEL_TEMPLATE = '{:>8}-{:<16}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-RELEASES = ('f27', 'f28', 'f29', 'rawhide', 'pip')
+RELEASES = ('f28', 'f29', 'rawhide', 'pip')
 
 
 def _set_concurrency(ctx, param, value):
@@ -708,7 +708,7 @@ class UnitJob(Job):
         test_command = ('({} setup.py develop && {} {} || (cp *.xml /results && exit 1)) '
                         '&& cp *.xml /results')
 
-        if self.release not in ('f27', 'f28', 'f29', 'pip'):
+        if self.release not in ('f28', 'f29', 'pip'):
             # We do not support the server on Fedora >= 30:
             test_command = (
                 'rm requirements.txt && touch requirements.txt && rm .coveragerc && '
@@ -792,7 +792,7 @@ def _build_jobs_list(
             if command in ('all', 'diff_cover', 'unit'):
                 for pyver in pyvers:
                     if pyver == 2 and command == 'diff_cover' and \
-                            release not in ('f27', 'f28', 'f29', 'pip'):
+                            release not in ('f28', 'f29', 'pip'):
                         # We don't support Python 2 on the server for Fedora >= 30, so don't enforce
                         # coverage there.
                         continue
