@@ -45,6 +45,7 @@ from .models import (
     ReleaseState,
     Stack,
     TestCase,
+    TestGatingStatus,
     Update,
     UpdateStatus,
     UpdateRequest,
@@ -488,9 +489,11 @@ def validate_acls(request, **kwargs):
                 request.errors.add('body', 'builds', error_msg)
                 return
         elif acl_system == 'dummy':
-            people = (['ralph', 'bowlofeggs', 'guest'], ['guest'])
-            groups = (['ralph', 'bowlofeggs', 'guest'], ['guest'])
-            committers, watchers = people
+            committers = ['ralph', 'bowlofeggs', 'guest']
+            if config['acl_dummy_committer']:
+                committers.append(config['acl_dummy_committer'])
+            groups = ['guest']
+            people = committers
         else:
             log.warning('No acl_system configured')
             people = None
@@ -1067,6 +1070,13 @@ def _validate_override_build(request, nvr, db):
     """
     build = Build.get(nvr)
     if build is not None:
+        if not request.validated['edited'] and \
+                build.update is not None and \
+                build.update.test_gating_status == TestGatingStatus.failed:
+            request.errors.add("body", "nvr", "Cannot create a buildroot override"
+                               " if build's test gating status is failed.")
+            return
+
         if not build.release:
             # Oddly, the build has no associated release.  Let's try to figure
             # that out and apply it.

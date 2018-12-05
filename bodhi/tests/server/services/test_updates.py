@@ -476,25 +476,25 @@ class TestNewUpdate(BaseTestCase):
         r = self.app.post_json('/updates/', data, status=200)
 
         up = r.json_body
-        self.assertEquals(up['title'], u'mariadb-10.1-10.f28flatpak')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F28F')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['content_type'], u'flatpak')
-        self.assertEquals(up['severity'], u'unspecified')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'this is a test update')
+        self.assertEqual(up['title'], u'mariadb-10.1-10.f28flatpak')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F28F')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['content_type'], u'flatpak')
+        self.assertEqual(up['severity'], u'unspecified')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
-        self.assertEquals(up['karma'], 0)
-        self.assertEquals(up['requirements'], 'rpmlint')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
+        self.assertEqual(up['karma'], 0)
+        self.assertEqual(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -1659,7 +1659,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(len(body['updates']), 1)
         update2 = body['updates'][0]
 
-        self.assertNotEquals(update1, update2)
+        self.assertNotEqual(update1, update2)
 
     def test_list_updates_by_approved_since(self):
         now = datetime.utcnow()

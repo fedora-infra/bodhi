@@ -58,7 +58,7 @@ class TestBuildsService(base.BaseTestCase):
         self.assertEqual(len(body['builds']), 1)
         build2 = body['builds'][0]
 
-        self.assertNotEquals(build1, build2)
+        self.assertNotEqual(build1, build2)
 
     def test_list_builds_by_package(self):
         res = self.app.get('/builds/', {"packages": "bodhi"})

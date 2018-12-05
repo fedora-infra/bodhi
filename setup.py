@@ -110,7 +110,7 @@ setup(
     packages=['bodhi.client'],
     include_package_data=False,
     zip_safe=False,
-    install_requires=['click', 'iniparse', 'python-fedora >= 0.9.0', 'six'],
+    install_requires=['click', 'python-fedora >= 0.9.0', 'six'],
     entry_points="""\
     [console_scripts]
     bodhi = bodhi.client:cli
