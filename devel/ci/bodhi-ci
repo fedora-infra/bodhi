@@ -708,7 +708,7 @@ class UnitJob(Job):
         test_command = ('({} setup.py develop && {} {} || (cp *.xml /results && exit 1)) '
                         '&& cp *.xml /results')
 
-        if self.release not in ('f28', 'f29', 'pip'):
+        if pyver == 2 and self.release not in ('f28', 'f29', 'pip'):
             # We do not support the server on Fedora >= 30:
             test_command = (
                 'rm requirements.txt && touch requirements.txt && rm .coveragerc && '
