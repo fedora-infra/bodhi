@@ -32,7 +32,7 @@ import six
 import munch
 
 from bodhi.client import bindings
-from fedora.client import AuthError
+from fedora.client import AuthError, openidproxyclient
 
 
 log = logging.getLogger(__name__)
@@ -83,6 +83,12 @@ url_option = click.option('--url', envvar='BODHI_URL', default=bindings.BASE_URL
                           help=('URL of a Bodhi server. Ignored if --staging is set. Can be set '
                                 'with BODHI_URL environment variable'),
                           callback=_warn_if_url_and_staging_set)
+openid_option = click.option(
+    '--openid-api', envvar='BODHI_OPENID_API',
+    default=openidproxyclient.FEDORA_OPENID_API,
+    help=('URL of an OpenID API to use to authenticate to Bodhi. Ignored if --staging is set. Can '
+          'be set with BODHI_OPENID_API environment variable'),
+    callback=_warn_if_url_and_staging_set)
 staging_option = click.option('--staging', help='Use the staging bodhi instance',
                               is_flag=True, default=False)
 debug_option = click.option('--debug', help='Display debugging information.',
@@ -123,6 +129,7 @@ save_edit_options = [
     click.option('--password', hide_input=True),
     click.option('--wait', is_flag=True, default=False,
                  help='Wait and ensure that the override is active'),
+    openid_option,
     staging_option,
     url_option,
     debug_option]
@@ -166,6 +173,7 @@ release_options = [
     click.option('--mail-template', help='Name of the email template for this release'),
     click.option('--composed-by-bodhi/--not-composed-by-bodhi', is_flag=True, default=True,
                  help='The flag that indicates whether the release is composed by Bodhi or not'),
+    openid_option,
     staging_option,
     url_option,
     debug_option]
@@ -233,7 +241,7 @@ def handle_errors(method):
     return wrapper
 
 
-def _save_override(url, user, password, staging, edit=False, **kwargs):
+def _save_override(url, user, password, staging, edit=False, openid_api=None, **kwargs):
     """
     Create or edit a buildroot override.
 
@@ -246,7 +254,8 @@ def _save_override(url, user, password, staging, edit=False, **kwargs):
         edit (bool): Set to True to edit an existing buildroot override.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging)
+    client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging,
+                                  openid_api=openid_api)
     resp = client.save_override(nvr=kwargs['nvr'],
                                 duration=kwargs['duration'],
                                 notes=kwargs['notes'],
@@ -359,9 +368,10 @@ def require_severity_for_security_update(type, severity):
 @click.argument('builds')
 @click.option('--file', help='A text file containing all the update details')
 @handle_errors
+@openid_option
 @url_option
 @debug_option
-def new(user, password, url, debug, **kwargs):
+def new(user, password, url, debug, openid_api, **kwargs):
     # User Docs that show in the --help
     """
     Create a new update.
@@ -377,11 +387,12 @@ def new(user, password, url, debug, **kwargs):
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
         debug (bool): If the --debug flag was set
+        openid_api (str): A URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
 
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
-                                  staging=kwargs['staging'])
+                                  staging=kwargs['staging'], openid_api=openid_api)
 
     if kwargs['file'] is None:
         updates = [kwargs]
@@ -432,10 +443,11 @@ def _validate_edit_update(ctx, param, value):
               type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
 @add_options(new_edit_options)
 @click.argument('update', callback=_validate_edit_update)
+@openid_option
 @url_option
 @debug_option
 @handle_errors
-def edit(user, password, url, debug, **kwargs):
+def edit(user, password, url, debug, openid_api, **kwargs):
     # User Docs that show in the --help
     """
     Edit an existing update.
@@ -452,10 +464,11 @@ def edit(user, password, url, debug, **kwargs):
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
         debug (bool): If the --debug flag was set
+        openid_api (str): A URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
-                                  staging=kwargs['staging'])
+                                  staging=kwargs['staging'], openid_api=openid_api)
 
     kwargs['notes'] = _get_notes(**kwargs)
 
@@ -574,11 +587,12 @@ def query(url, debug, mine=False, rows=None, **kwargs):
 @click.argument('state')
 @click.option('--user')
 @click.option('--password', hide_input=True)
+@openid_option
 @staging_option
 @url_option
 @debug_option
 @handle_errors
-def request(update, state, user, password, url, **kwargs):
+def request(update, state, user, password, url, openid_api, **kwargs):
     # User Docs that show in the --help
     """
     Change an update's request status.
@@ -601,10 +615,11 @@ def request(update, state, user, password, url, **kwargs):
         staging (bool): Whether to use the staging server or not.
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
+        openid_api (str): The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
-                                  staging=kwargs['staging'])
+                                  staging=kwargs['staging'], openid_api=openid_api)
 
     try:
         resp = client.request(update, state)
@@ -620,11 +635,12 @@ def request(update, state, user, password, url, **kwargs):
 @click.option('--karma', default=0, type=click.INT, help='The karma for this comment (+1/0/-1)')
 @click.option('--user')
 @click.option('--password', hide_input=True)
+@openid_option
 @staging_option
 @url_option
 @debug_option
 @handle_errors
-def comment(update, text, karma, user, password, url, **kwargs):
+def comment(update, text, karma, user, password, url, openid_api, **kwargs):
     # User Docs that show in the --help
     """
     Comment on an update.
@@ -646,11 +662,12 @@ def comment(update, text, karma, user, password, url, **kwargs):
         staging (bool): Whether to use the staging server or not.
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
+        openid_api (str): The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
 
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
-                                  staging=kwargs['staging'])
+                                  staging=kwargs['staging'], openid_api=openid_api)
     resp = client.comment(update, text, karma)
     print_resp(resp, client)
 
@@ -761,11 +778,12 @@ def _get_notes(**kwargs):
     '--test', multiple=True,
     help="Waive the specifiy test(s), to automatically waive all unsatisfied "
     "requirements, specify --test=all")
+@openid_option
 @staging_option
 @url_option
 @debug_option
 @handle_errors
-def waive(update, show, test, comment, url, **kwargs):
+def waive(update, show, test, comment, url, openid_api, **kwargs):
     # User Docs that show in the --help
     """
     Show or waive unsatified requirements (ie: missing or failing tests) on an existing update.
@@ -785,9 +803,10 @@ def waive(update, show, test, comment, url, **kwargs):
         comment (unicode): A comment explaining the waiver.
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
+        openid_api (str): The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
+    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'], openid_api=openid_api)
 
     if show and test:
         click.echo(
@@ -888,7 +907,7 @@ def query_buildroot_overrides(url, user=None, mine=False, packages=None,
 @overrides.command('save')
 @add_options(save_edit_options)
 @handle_errors
-def save_buildroot_overrides(user, password, url, staging, **kwargs):
+def save_buildroot_overrides(user, password, url, staging, openid_api, **kwargs):
     # Docs that show in the --help
     """
     Create a buildroot override.
@@ -905,16 +924,18 @@ def save_buildroot_overrides(user, password, url, staging, **kwargs):
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
         staging (bool): Whether to use the staging server or not.
+        openid_api (str): A URL for the OpenID API to authenticate with Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    _save_override(url=url, user=user, password=password, staging=staging, **kwargs)
+    _save_override(url=url, user=user, password=password, staging=staging, openid_api=openid_api,
+                   **kwargs)
 
 
 @overrides.command('edit')
 @add_options(save_edit_options)
 @click.option('--expire', help='Expire the override', is_flag=True, default=False)
 @handle_errors
-def edit_buildroot_overrides(user, password, url, staging, **kwargs):
+def edit_buildroot_overrides(user, password, url, staging, openid_api, **kwargs):
     # Docs that show in the --help
     """
     Edit a buildroot override.
@@ -931,9 +952,11 @@ def edit_buildroot_overrides(user, password, url, staging, **kwargs):
         url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
         staging (bool): Whether to use the staging server or not.
+        openid_api (str): A URL for the OpenID API to authenticate with Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
-    _save_override(url=url, user=user, password=password, staging=staging, edit=True, **kwargs)
+    _save_override(url=url, user=user, password=password, staging=staging, edit=True,
+                   openid_api=openid_api, **kwargs)
 
 
 def _generate_wait_repo_command(override, client):
@@ -1048,10 +1071,10 @@ def releases():
 @releases.command(name='create')
 @handle_errors
 @add_options(release_options)
-def create_release(user, password, url, debug, composed_by_bodhi, **kwargs):
+def create_release(user, password, url, debug, composed_by_bodhi, openid_api, **kwargs):
     """Create a release."""
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
-                                  staging=kwargs['staging'])
+                                  staging=kwargs['staging'], openid_api=openid_api)
     kwargs['csrf_token'] = client.csrf()
     kwargs['composed_by_bodhi'] = composed_by_bodhi
 
@@ -1062,10 +1085,10 @@ def create_release(user, password, url, debug, composed_by_bodhi, **kwargs):
 @handle_errors
 @add_options(release_options)
 @click.option('--new-name', help='New release name (eg: F20)')
-def edit_release(user, password, url, debug, composed_by_bodhi, **kwargs):
+def edit_release(user, password, url, debug, composed_by_bodhi, openid_api, **kwargs):
     """Edit an existing release."""
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
-                                  staging=kwargs['staging'])
+                                  staging=kwargs['staging'], openid_api=openid_api)
     csrf = client.csrf()
 
     edited = kwargs.pop('name')

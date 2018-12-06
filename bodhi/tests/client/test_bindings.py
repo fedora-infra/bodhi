@@ -33,6 +33,7 @@ from bodhi.tests.utils import compare_output
 builtin_module_name = 'builtins' if six.PY3 else '__builtin__'
 
 
+@mock.patch('fedora.client.openidproxyclient.FEDORA_OPENID_API', 'default')
 class TestBodhiClient___init__(unittest.TestCase):
     """
     This class contains tests for the BodhiClient.__init__() method.
@@ -44,6 +45,22 @@ class TestBodhiClient___init__(unittest.TestCase):
         client = bindings.BodhiClient(base_url='http://localhost:6543')
 
         self.assertEqual(client.base_url, 'http://localhost:6543/')
+        self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API, 'default')
+
+    def test_openid_api(self):
+        """Test the openid_api parameter."""
+        client = bindings.BodhiClient(
+            base_url='http://example.com/bodhi/', username='some_user', password='s3kr3t',
+            staging=False, timeout=60, openid_api='https://example.com/api/v1/')
+
+        self.assertEqual(client.base_url, 'http://example.com/bodhi/')
+        self.assertEqual(client.login_url, 'http://example.com/bodhi/login')
+        self.assertEqual(client.username, 'some_user')
+        self.assertEqual(client.timeout, 60)
+        self.assertEqual(client._password, 's3kr3t')
+        self.assertEqual(client.csrf_token, None)
+        self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API,
+                         'https://example.com/api/v1/')
 
     def test_staging_false(self):
         """
@@ -58,13 +75,15 @@ class TestBodhiClient___init__(unittest.TestCase):
         self.assertEqual(client.timeout, 60)
         self.assertEqual(client._password, 's3kr3t')
         self.assertEqual(client.csrf_token, None)
+        self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API, 'default')
 
     def test_staging_true(self):
         """
         Test with staging set to True.
         """
-        client = bindings.BodhiClient(base_url='http://example.com/bodhi/', username='some_user',
-                                      password='s3kr3t', staging=True, retries=5)
+        client = bindings.BodhiClient(
+            base_url='http://example.com/bodhi/', username='some_user', password='s3kr3t',
+            staging=True, retries=5, openid_api='ignored')
 
         self.assertEqual(client.base_url, bindings.STG_BASE_URL)
         self.assertEqual(client.login_url, bindings.STG_BASE_URL + 'login')
@@ -73,6 +92,7 @@ class TestBodhiClient___init__(unittest.TestCase):
         self.assertEqual(client.retries, 5)
         self.assertEqual(client._password, 's3kr3t')
         self.assertEqual(client.csrf_token, None)
+        self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API, bindings.STG_OPENID_API)
 
 
 class TestBodhiClient_comment(unittest.TestCase):

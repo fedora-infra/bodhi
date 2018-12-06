@@ -1118,6 +1118,7 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
             params={'page': 5})
 
 
+@mock.patch.dict(os.environ, {'BODHI_OPENID_API': 'https://id.example.com/api/v1/'})
 class TestRequest(unittest.TestCase):
     """
     This class tests the request() function.
@@ -1154,8 +1155,9 @@ class TestRequest(unittest.TestCase):
             )
         ]
         self.assertEqual(send_request.mock_calls, calls)
-        __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user',
-                                         password='s3kr3t', staging=False)
+        __init__.assert_called_once_with(
+            base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user', password='s3kr3t',
+            staging=False, openid_api='https://id.example.com/api/v1/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -1183,8 +1185,9 @@ class TestRequest(unittest.TestCase):
             'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
                   'update': u'bodhi-2.2.4-99.el7'})
-        __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user',
-                                         password='s3kr3t', staging=False)
+        __init__.assert_called_once_with(
+            base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user', password='s3kr3t',
+            staging=False, openid_api='https://id.example.com/api/v1/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
