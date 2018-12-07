@@ -21,8 +21,17 @@ from datetime import datetime, timedelta
 import copy
 
 import mock
+import webtest
 
-from bodhi.server.models import BuildrootOverride, RpmBuild, RpmPackage, Release, User
+from bodhi.server.models import (
+    BuildrootOverride,
+    RpmBuild,
+    RpmPackage,
+    Release,
+    User,
+    Update,
+    TestGatingStatus,
+)
 from bodhi.server import main
 from bodhi.tests.server import base
 
@@ -306,6 +315,37 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEqual(o['expired_date'], None)
 
     @mock.patch('bodhi.server.notifications.publish')
+    def test_create_override_for_build_with_test_gating_status_failed(self, publish):
+        """
+        Test that Override is not created when the test gating status is failed.
+        """
+        release = Release.get(u'F17')
+        package = RpmPackage(name=u'not-bodhi')
+        self.db.add(package)
+        build = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
+        update = Update.query.first()
+        update.builds.append(build)
+        update.test_gating_status = TestGatingStatus.failed
+        self.db.add(build)
+        self.db.flush()
+
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+
+        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+                'expiration_date': expiration_date,
+                'csrf_token': self.get_csrf_token()}
+        res = self.app.post('/overrides/', data, status=400)
+
+        publish.assert_not_called()
+
+        errors = res.json_body['errors']
+        self.assertEqual(len(errors), 1)
+        self.assertEqual(errors[0]['name'], 'nvr')
+        self.assertEqual(errors[0]['description'],
+                         "Cannot create a buildroot override if "
+                         "build's test gating status is failed.")
+
+    @mock.patch('bodhi.server.notifications.publish')
     def test_create_duplicate_override(self, publish):
         release = Release.get(u'F17')
         package = RpmPackage(name=u'not-bodhi')
@@ -342,7 +382,7 @@ _@guest ({})_
 
 _____________
 new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
-        self.assertEquals(o['notes'], new_notes)
+        self.assertEqual(o['notes'], new_notes)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_multiple_nvr(self, publish):
@@ -433,7 +473,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
 
         old_build = RpmBuild.get(u'bodhi-2.0-1.fc17')
 
-        self.assertNotEquals(old_build.override['expired_date'], None)
+        self.assertNotEqual(old_build.override['expired_date'], None)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_cannot_edit_override_build(self, publish):
@@ -609,7 +649,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         self.assertEqual(override['build'], o['build'])
         self.assertEqual(override['notes'], o['notes'])
         self.assertEqual(override['expiration_date'], o['expiration_date'])
-        self.assertNotEquals(override['expired_date'], None)
+        self.assertNotEqual(override['expired_date'], None)
         publish.assert_called_once_with(
             topic='buildroot_override.untag', msg=mock.ANY)
 
@@ -681,7 +721,7 @@ class TestOverridesWebViews(base.BaseTestCase):
             'authtkt.secure': True,
         })
         with mock.patch('bodhi.server.Session.remove'):
-            app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+            app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
 
         resp = app.get('/overrides/bodhi-2.0-1.fc17',
                        status=200, headers={'Accept': 'text/html'})
@@ -707,7 +747,7 @@ class TestOverridesWebViews(base.BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
         resp = app.get('/overrides/new',
                        status=403, headers={'Accept': 'text/html'})
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', resp)

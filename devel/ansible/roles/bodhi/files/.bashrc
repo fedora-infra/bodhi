@@ -14,7 +14,6 @@ alias bdiff-cover="btest; diff-cover /home/vagrant/bodhi/coverage.xml --compare-
 alias bdocs="make -C /home/vagrant/bodhi/docs clean && make -C /home/vagrant/bodhi/docs html && make -C /home/vagrant/bodhi/docs man"
 alias blog="sudo journalctl -u bodhi"
 alias brestart="sudo systemctl restart bodhi && echo 'The Application is running on http://localhost:6543'"
-alias bshell="pshell /home/vagrant/bodhi/development.ini"
 alias bstart="sudo systemctl start bodhi && echo 'The Application is running on http://localhost:6543'"
 alias bstop="sudo systemctl stop bodhi"
 alias bteststyle="flake8-3 && pydocstyle bodhi"

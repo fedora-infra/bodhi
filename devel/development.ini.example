@@ -26,7 +26,6 @@ pyramid.debug_routematch = true
 pyramid.default_locale_name = en
 pyramid.includes =
     pyramid_debugtoolbar
-    pyramid_tm
 debugtoolbar.hosts = 127.0.0.1 ::1
 sqlalchemy.url = sqlite:///%(here)s/bodhi.db
 authtkt.secret = changethisinproduction!
@@ -44,6 +43,9 @@ cache.second.expire = 1
 cache.short_term.expire = 60
 cache.default_term.expire = 300
 cache.long_term.expire = 3600
+# Uncomment this line and add your username here to enable ACL rights in the development environment
+# acl_dummy_committer = mattia
+
 # If you want to test composing containers in development, it can be handy to run your own container
 # registry locally. To do that, you can run a container registry like this:
 # 

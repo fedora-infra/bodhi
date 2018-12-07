@@ -26,6 +26,7 @@ from cornice.validators import colander_body_validator, colander_querystring_val
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 from requests import RequestException, Timeout as RequestsTimeout
+import six
 
 from bodhi.server import log, security
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
@@ -147,12 +148,15 @@ def get_update_for_editing(request):
             severities: The possible values for update severity.
             suggestions: The possible values for update suggestion.
     """
+    suggestions = list(bodhi.server.models.UpdateSuggestion.values())
+    if six.PY2:  # pragma: no cover
+        suggestions = reversed(suggestions)
     return dict(
         update=request.validated['update'],
         types=reversed(list(bodhi.server.models.UpdateType.values())),
         severities=sorted(
             list(bodhi.server.models.UpdateSeverity.values()), key=bodhi.server.util.sort_severity),
-        suggestions=reversed(list(bodhi.server.models.UpdateSuggestion.values())),
+        suggestions=suggestions,
     )
 
 
@@ -200,7 +204,7 @@ def set_request(request):
     try:
         update.set_request(request.db, action, request.user.name)
     except BodhiException as e:
-        log.exception("Failed to set the request")
+        log.error("Failed to set the request: %s", e)
         request.errors.add('body', 'request', str(e))
     except Exception as e:
         log.exception("Unhandled exception in set_request")
@@ -585,9 +589,10 @@ def waive_test_results(request):
     try:
         update.waive_test_results(request.user.name, comment, tests)
     except LockedUpdateException as e:
+        log.warning(str(e))
         request.errors.add('body', 'request', str(e))
     except BodhiException as e:
-        log.exception("Failed to waive the test results")
+        log.error("Failed to waive the test results: %s", e)
         request.errors.add('body', 'request', str(e))
     except Exception as e:
         log.exception("Unhandled exception in waive_test_results")
@@ -615,15 +620,15 @@ def get_test_results(request):
     try:
         decision = update.get_test_gating_info()
     except RequestsTimeout as e:
-        log.exception("Error querying greenwave for test results - timed out")
+        log.error("Error querying greenwave for test results - timed out")
         request.errors.add('body', 'request', str(e))
         request.errors.status = 504
     except (RequestException, RuntimeError) as e:
-        log.exception("Error querying greenwave for test results")
+        log.error("Error querying greenwave for test results: %s", e)
         request.errors.add('body', 'request', str(e))
         request.errors.status = 502
     except BodhiException as e:
-        log.exception("Failed to query greenwave for test results")
+        log.error("Failed to query greenwave for test results: %s", e)
         request.errors.add('body', 'request', str(e))
         request.errors.status = 501
     except Exception as e:

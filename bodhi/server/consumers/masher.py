@@ -34,6 +34,11 @@ import tempfile
 import threading
 import time
 from datetime import datetime
+try:
+    from http.client import IncompleteRead
+except ImportError:  # pragma: no cover
+    # Python 2 does not have this Exception.
+    IncompleteRead = None
 
 import fedmsg.consumers
 import jinja2
@@ -1222,6 +1227,8 @@ class PungiComposerThread(ComposerThread):
             return
         self.log.info('Waiting for pungi process to finish')
         out, err = pungi_process.communicate()
+        out = out.decode()
+        err = err.decode()
         self.devnull.close()
         if pungi_process.returncode != 0:
             self.log.error('Pungi exited with exit code %d', pungi_process.returncode)
@@ -1318,11 +1325,11 @@ class PungiComposerThread(ComposerThread):
             try:
                 self.log.info('Polling %s' % master_repomd_url)
                 masterrepomd = urllib2.urlopen(master_repomd_url)
-            except (URLError, HTTPError):
+                newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
+            except (IncompleteRead, URLError, HTTPError):
                 self.log.exception('Error fetching repomd.xml')
                 time.sleep(200)
                 continue
-            newsum = hashlib.sha1(masterrepomd.read().encode('utf-8')).hexdigest()
             if newsum == checksum:
                 self.log.info("master repomd.xml matches!")
                 notifications.publish(

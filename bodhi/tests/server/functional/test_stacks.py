@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright © 2014-2018 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -15,6 +20,7 @@
 import copy
 
 import mock
+import webtest
 
 from bodhi.server import main
 from bodhi.server.models import Group, RpmPackage, Stack, User
@@ -268,7 +274,7 @@ class TestStacksService(base.BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.get('/stacks/new', status=403)
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)

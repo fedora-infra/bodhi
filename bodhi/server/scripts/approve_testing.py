@@ -25,6 +25,7 @@ spent in the testing repository.
 
 import os
 import sys
+import logging
 
 from pyramid.paster import get_appsettings
 import six
@@ -32,6 +33,10 @@ import six
 from ..models import Update, UpdateStatus
 from ..config import config
 from bodhi.server import Session, initialize_db, notifications
+
+
+logger = logging.getLogger('approve-testing')
+logging.basicConfig(level=logging.INFO)
 
 
 def usage(argv):

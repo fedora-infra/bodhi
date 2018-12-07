@@ -19,6 +19,7 @@
 """This module contains tests for bodhi.server.services.updates."""
 from datetime import datetime, timedelta
 import copy
+import re
 import textwrap
 import time
 
@@ -28,6 +29,7 @@ import mock
 import requests
 import six
 from six.moves.urllib import parse as urlparse
+from webtest import TestApp
 
 from bodhi.server import main
 from bodhi.server.config import config
@@ -36,7 +38,8 @@ from bodhi.server.models import (
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
     UpdateSeverity, UpdateSuggestion, User, TestGatingStatus)
 from bodhi.server.util import call_api
-from bodhi.tests.server.base import BaseTestCase, BodhiTestApp
+from bodhi.tests.server.base import BaseTestCase
+from bodhi.server.exceptions import BodhiException, LockedUpdateException
 
 
 YEAR = time.localtime().tm_year
@@ -163,7 +166,7 @@ class TestNewUpdate(BaseTestCase):
         self.db.add(user)
         self.db.commit()
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
         update_json = self.get_update(u'bodhi-2.1-1.fc17')
         update_json['csrf_token'] = self.get_csrf_token(app)
 
@@ -191,7 +194,7 @@ class TestNewUpdate(BaseTestCase):
         user.groups.append(group)
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'bodhi', session=self.db, **self.app_settings))
         update = self.get_update(u'bodhi-2.1-1.fc17')
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', update)
@@ -217,7 +220,7 @@ class TestNewUpdate(BaseTestCase):
     def test_invalid_acl_system(self, *args):
         with mock.patch.dict(config, {'acl_system': 'null'}):
             res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-2.fc17'),
-                                     status=400)
+                                     status=403)
 
         assert "guest does not have commit access to bodhi" in res, res
 
@@ -473,25 +476,25 @@ class TestNewUpdate(BaseTestCase):
         r = self.app.post_json('/updates/', data, status=200)
 
         up = r.json_body
-        self.assertEquals(up['title'], u'mariadb-10.1-10.f28flatpak')
-        self.assertEquals(up['status'], u'pending')
-        self.assertEquals(up['request'], u'testing')
-        self.assertEquals(up['user']['name'], u'guest')
-        self.assertEquals(up['release']['name'], u'F28F')
-        self.assertEquals(up['type'], u'bugfix')
-        self.assertEquals(up['content_type'], u'flatpak')
-        self.assertEquals(up['severity'], u'unspecified')
-        self.assertEquals(up['suggest'], u'unspecified')
-        self.assertEquals(up['close_bugs'], True)
-        self.assertEquals(up['notes'], u'this is a test update')
+        self.assertEqual(up['title'], u'mariadb-10.1-10.f28flatpak')
+        self.assertEqual(up['status'], u'pending')
+        self.assertEqual(up['request'], u'testing')
+        self.assertEqual(up['user']['name'], u'guest')
+        self.assertEqual(up['release']['name'], u'F28F')
+        self.assertEqual(up['type'], u'bugfix')
+        self.assertEqual(up['content_type'], u'flatpak')
+        self.assertEqual(up['severity'], u'unspecified')
+        self.assertEqual(up['suggest'], u'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], u'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
-        self.assertEquals(up['date_modified'], None)
-        self.assertEquals(up['date_approved'], None)
-        self.assertEquals(up['date_pushed'], None)
-        self.assertEquals(up['locked'], False)
-        self.assertEquals(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
-        self.assertEquals(up['karma'], 0)
-        self.assertEquals(up['requirements'], 'rpmlint')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
+        self.assertEqual(up['karma'], 0)
+        self.assertEqual(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -796,6 +799,30 @@ class TestSetRequest(BaseTestCase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.set_request',
+                side_effect=BodhiException('BodhiException. oops!'))
+    @mock.patch('bodhi.server.services.updates.Update.check_requirements',
+                return_value=(True, "a fake reason"))
+    @mock.patch('bodhi.server.services.updates.log.error')
+    def test_BodhiException_exception(self, log_error, check_requirements, send_request, *args):
+        """Ensure that an BodhiException Exception is handled by set_request()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+        up.release.state = ReleaseState.current
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
+
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'BodhiException. oops!')
+        log_error.assert_called_once()
+        self.assertEqual("Failed to set the request: %s", log_error.call_args_list[0][0][0])
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.services.updates.Update.set_request',
                 side_effect=IOError('IOError. oops!'))
     @mock.patch('bodhi.server.services.updates.Update.check_requirements',
                 return_value=(True, "a fake reason"))
@@ -828,13 +855,18 @@ class TestEditUpdateForm(BaseTestCase):
             '/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year),
             headers={'accept': 'text/html'})
         self.assertIn('Editing an update requires JavaScript', resp)
+        # Make sure that unspecified comes first, as it should be the default.
+        regex = r''
+        for value in ('unspecified', 'reboot', 'logout'):
+            regex = regex + r'name="suggest" value="{}".*'.format(value)
+        self.assertTrue(re.search(regex, resp.body.decode('utf8').replace('\n', ' ')))
 
     def test_edit_without_permission(self):
         """
         Test a logged in User without permissions on the update can't see the form
         """
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'anonymous', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'anonymous', session=self.db, **self.app_settings))
 
         resp = app.get(
             '/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year), status=400,
@@ -851,7 +883,7 @@ class TestEditUpdateForm(BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
         resp = app.get('/updates/FEDORA-2017-a3bbe1a8f2/edit', status=403,
                        headers={'accept': 'text/html'})
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', resp)
@@ -1039,7 +1071,7 @@ class TestUpdatesService(BaseTestCase):
         user2.groups.append(group2)
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', up_data)
@@ -1048,7 +1080,7 @@ class TestUpdatesService(BaseTestCase):
             topic='update.request.testing', msg=mock.ANY)
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'lloyd', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'lloyd', session=self.db, **self.app_settings))
         update = self.get_update(nvr)
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         update['notes'] = u'testing!!!'
@@ -1077,7 +1109,7 @@ class TestUpdatesService(BaseTestCase):
         user2.groups.append(group2)
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', up_data)
@@ -1091,7 +1123,7 @@ class TestUpdatesService(BaseTestCase):
 
         # Try and submit the update to stable as a non-provenpackager
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
         post_data = dict(update=nvr, request='stable',
                          csrf_token=app.get('/csrf').json_body['csrf_token'])
         res = app.post_json('/updates/%s/request' % str(nvr), post_data, status=400)
@@ -1131,7 +1163,7 @@ class TestUpdatesService(BaseTestCase):
 
         # Try and submit the update to stable as a proventester
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
 
         res = app.post_json('/updates/%s/request' % str(nvr),
                             dict(update=nvr, request='stable',
@@ -1141,7 +1173,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(res.json_body['update']['request'], 'stable')
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
 
         res = app.post_json('/updates/%s/request' % str(nvr),
                             dict(update=nvr, request='obsolete',
@@ -1157,14 +1189,14 @@ class TestUpdatesService(BaseTestCase):
 
         # Test that bob has can_edit True, provenpackager
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'bob', session=self.db, **self.app_settings))
 
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], True)
 
         # Test that ralph has can_edit True, they submitted it.
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'ralph', session=self.db, **self.app_settings))
 
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], True)
@@ -1172,7 +1204,7 @@ class TestUpdatesService(BaseTestCase):
         # Test that someuser has can_edit False, they are unrelated
         # This check *failed* with the old acls code.
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, testing=u'someuser', session=self.db, **self.app_settings))
+            app = TestApp(main({}, testing=u'someuser', session=self.db, **self.app_settings))
 
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], False)
@@ -1186,7 +1218,7 @@ class TestUpdatesService(BaseTestCase):
         })
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+            app = TestApp(main({}, session=self.db, **anonymous_settings))
 
         res = app.get('/updates/%s' % str(nvr), status=200)
         self.assertEqual(res.json_body['can_edit'], False)
@@ -1627,7 +1659,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(len(body['updates']), 1)
         update2 = body['updates'][0]
 
-        self.assertNotEquals(update1, update2)
+        self.assertNotEqual(update1, update2)
 
     def test_list_updates_by_approved_since(self):
         now = datetime.utcnow()
@@ -5214,6 +5246,53 @@ class TestWaiveTestResults(BaseTestCase):
         self.assertEqual(up.test_gating_status, TestGatingStatus.failed)
 
     @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
+                side_effect=LockedUpdateException('LockedUpdateException. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.warning')
+    def test_LockedUpdateException_exception(self, log_warning, waive_test_results, *args):
+        """Ensure that an LockedUpdateException Exception is handled by waive_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.test_gating_status = TestGatingStatus.failed
+        up.locked = False
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=400)
+
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'LockedUpdateException. oops!')
+        log_warning.assert_called_once_with('LockedUpdateException. oops!')
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should not have been altered.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.failed)
+
+    @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
+                side_effect=BodhiException('BodhiException. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.error')
+    def test_BodhiException_exception(self, log_error, waive_test_results, *args):
+        """Ensure that an BodhiException Exception is handled by waive_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.test_gating_status = TestGatingStatus.failed
+        up.locked = False
+
+        post_data = dict(update=nvr, request='stable',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+        res = self.app.post_json('/updates/%s/waive-test-results' % str(nvr), post_data, status=400)
+
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'BodhiException. oops!')
+        log_error.assert_called_once()
+        self.assertEqual("Failed to waive the test results: %s", log_error.call_args_list[0][0][0])
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        # The test gating status should not have been altered.
+        self.assertEqual(up.test_gating_status, TestGatingStatus.failed)
+
+    @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
                 side_effect=IOError('IOError. oops!'))
     @mock.patch('bodhi.server.services.updates.log.exception')
     def test_unexpected_exception(self, log_exception, waive_test_results, *args):
@@ -5660,6 +5739,70 @@ class TestGetTestResults(BaseTestCase):
                          "No greenwave_api_url specified")
 
     @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
+                side_effect=requests.Timeout('RequestsTimeout. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.error')
+    def test_RequestsTimeout_exception(self, log_error, get_test_gating_info, *args):
+        """Ensure that an RequestsTimeout Exception is handled by get_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=504)
+
+        self.assertEqual(res.status_code, 504)
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'RequestsTimeout. oops!')
+        log_error.assert_called_once()
+        self.assertEqual(
+            "Error querying greenwave for test results - timed out",
+            log_error.call_args_list[0][0][0],
+        )
+
+    @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
+                side_effect=RuntimeError('RuntimeError. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.error')
+    def test_RuntimeError_exception(self, log_error, get_test_gating_info, *args):
+        """Ensure that an RuntimeError Exception is handled by get_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=502)
+
+        self.assertEqual(res.status_code, 502)
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'RuntimeError. oops!')
+        log_error.assert_called_once()
+        self.assertEqual(
+            "Error querying greenwave for test results: %s", log_error.call_args_list[0][0][0]
+        )
+
+    @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
+                side_effect=BodhiException('BodhiException. oops!'))
+    @mock.patch('bodhi.server.services.updates.log.error')
+    def test_BodhiException_exception(self, log_error, get_test_gating_info, *args):
+        """Ensure that an BodhiException Exception is handled by get_test_results()."""
+        nvr = u'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Update).filter_by(title=nvr).one()
+        up.locked = False
+
+        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=501)
+
+        self.assertEqual(res.status_code, 501)
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         u'BodhiException. oops!')
+        log_error.assert_called_once()
+        self.assertEqual(
+            "Failed to query greenwave for test results: %s", log_error.call_args_list[0][0][0]
+        )
+
+    @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
                 side_effect=IOError('IOError. oops!'))
     @mock.patch('bodhi.server.services.updates.log.exception')
     def test_unexpected_exception(self, log_exception, get_test_gating_info, *args):
@@ -5804,7 +5947,7 @@ class TestGetTestResults(BaseTestCase):
         call_api.return_value = {"foo": "bar"}
 
         with mock.patch('bodhi.server.Session.remove'):
-            app = BodhiTestApp(main(
+            app = TestApp(main(
                 {}, testing=u'bodhi', session=self.db,
                 greenwave_api_url='https://greenwave.api', **self.app_settings))
             res = app.get('/updates/%s/get-test-results' % str(nvr))
@@ -5843,7 +5986,7 @@ class TestGetTestResults(BaseTestCase):
             'greenwave_api_url': 'https://greenwave.api',
         })
         # with mock.patch('bodhi.server.Session.remove'):
-        app = BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        app = TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.get('/updates/%s/get-test-results' % nvr, status=404)
 
         self.assertEqual(

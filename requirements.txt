@@ -8,7 +8,6 @@ cryptography
 dogpile.cache
 fedmsg[consumers]
 feedgen
-iniparse
 jinja2
 kitchen
 markdown
@@ -21,7 +20,6 @@ pylibravatar
 pyramid~=1.7
 pyramid_fas_openid
 pyramid_mako
-pyramid_tm
 python-bugzilla
 python-fedora
 simplemediawiki

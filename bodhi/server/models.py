@@ -48,7 +48,6 @@ from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, flash_log, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
-import bodhi.server.util
 
 if six.PY2:
     from pkgdb2client import PkgDB
@@ -73,6 +72,17 @@ class EnumSymbol(object):
         self.name = name
         self.value = value
         self.description = description
+
+    def __lt__(self, other):
+        """
+        Return True if self.value is less than other.value.
+
+        Args:
+            other (EnumSymbol): The other EnumSymbol we are being compared to.
+        Returns:
+            bool: True if self.value is less than other.value, False otherwise.
+        """
+        return self.value < other.value
 
     def __reduce__(self):
         """
@@ -2016,7 +2026,7 @@ class Update(Base):
         }
         api_url = '{}/decision'.format(config.get('greenwave_api_url'))
 
-        return bodhi.server.util.greenwave_api_post(api_url, data)
+        return util.greenwave_api_post(api_url, data)
 
     def update_test_gating_status(self):
         """Query Greenwave about this update and set the test_gating_status as appropriate."""
@@ -2715,7 +2725,7 @@ class Update(Base):
                 'comment': comment
             }
             log.debug('Waiving test results: %s' % data)
-            bodhi.server.util.waiverdb_api_post(
+            util.waiverdb_api_post(
                 '{}/waivers/'.format(config.get('waiverdb_api_url')), data)
 
         self.test_gating_status = TestGatingStatus.waiting
@@ -3285,7 +3295,7 @@ class Update(Base):
             # query results for this update
             query = dict(type='bodhi_update', item=self.alias, since=since,
                          testcases=','.join(requirements))
-            results = list(bodhi.server.util.taskotron_results(settings, **query))
+            results = list(util.taskotron_results(settings, **query))
 
             # query results for each build
             # retrieve timestamp for each build so that queries can be optimized
@@ -3309,7 +3319,7 @@ class Update(Base):
 
                 query = dict(type='koji_build', item=build.nvr, since=ts,
                              testcases=','.join(requirements))
-                build_results = list(bodhi.server.util.taskotron_results(settings, **query))
+                build_results = list(util.taskotron_results(settings, **query))
                 results.extend(build_results)
 
         except Exception as e:

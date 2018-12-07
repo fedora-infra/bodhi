@@ -8,7 +8,7 @@ bfedmsg:     Display the log of Bodhi's fedmsgs.
 blog:        View Bodhi's log. (Support all the systemctl options, such as -lf)
 bresetdb:    Drop and reimport the database.
 brestart:    Restart the Bodhi service.
-bshell:      Get a handy python shell initialized with Bodhi models.
+bodhi-shell: Get a handy python shell initialized with Bodhi models.
 bstart:      Start the Bodhi service.
 bstop:       Stop the Bodhi service.
 btest:       Run Bodhi's test suite.

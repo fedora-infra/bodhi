@@ -128,6 +128,7 @@ class TestGenerateCaptcha(unittest.TestCase):
         cipherkey, url = captcha.generate_captcha(None, request)
 
         self.assertEqual(request.session['captcha'], cipherkey)
+        self.assertTrue(isinstance(cipherkey, six.text_type))
         request.route_url.assert_called_once_with('captcha_image', cipherkey=cipherkey)
         self.assertEqual(url, request.route_url.return_value)
         # Let's cheat and find out what the correct value for this cipherkey is and make sure it is

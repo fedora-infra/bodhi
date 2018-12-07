@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2014-2017 Red Hat, Inc. and others.
+# Copyright © 2014-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -21,6 +21,7 @@ import copy
 from datetime import datetime, timedelta
 
 import mock
+import webtest
 
 from bodhi.server import main
 from bodhi.server.models import (Comment, Release, Update, UpdateRequest, UpdateStatus, UpdateType,
@@ -245,7 +246,7 @@ class TestCommentsService(base.BaseTestCase):
             'authtkt.secure': True,
         })
         with mock.patch('bodhi.server.Session.remove'):
-            app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+            app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
 
         comment = {
             u'update': 'bodhi-2.0-1.fc17',
@@ -370,7 +371,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 1)
         comment2 = body['comments'][0]
 
-        self.assertNotEquals(comment1, comment2)
+        self.assertNotEqual(comment1, comment2)
 
     def test_list_comments_by_since(self):
         tomorrow = datetime.utcnow() + timedelta(days=1)

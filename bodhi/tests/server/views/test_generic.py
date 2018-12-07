@@ -19,8 +19,10 @@
 
 from datetime import datetime
 import copy
+import re
 
 import mock
+import webtest
 
 from bodhi.server import main, util
 from bodhi.server.models import (
@@ -363,7 +365,7 @@ class TestGenericViews(base.BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.post('/popup_toggle', status=403)
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
@@ -381,7 +383,7 @@ class TestGenericViews(base.BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.get('/overrides/new', status=403)
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
@@ -392,6 +394,11 @@ class TestGenericViews(base.BaseTestCase):
         # Test that a logged in user sees the New Update form
         res = self.app.get('/updates/new')
         self.assertIn('Creating a new update requires JavaScript', res)
+        # Make sure that unspecified comes first, as it should be the default.
+        regex = r''
+        for value in ('unspecified', 'reboot', 'logout'):
+            regex = regex + r'name="suggest" value="{}".*'.format(value)
+        self.assertTrue(re.search(regex, res.body.decode('utf8').replace('\n', ' ')))
 
         # Test that the unlogged in user cannot see the New Update form
         anonymous_settings = copy.copy(self.app_settings)
@@ -399,7 +406,7 @@ class TestGenericViews(base.BaseTestCase):
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
-        app = base.BodhiTestApp(main({}, session=self.db, **anonymous_settings))
+        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
         res = app.get('/updates/new', status=403)
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
