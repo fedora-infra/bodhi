@@ -35,8 +35,7 @@ def upgrade():
     """
     Add side tag enums to the update_status enum.
 
-    Side tags add three new enums to the update_status enum: side_tag_active, side_tag_merging, and
-    side_tag_expired.
+    Side tags add three new enums to the update_status enum: side_tag_active and side_tag_expired.
     """
     op.execute('COMMIT')  # See https://bitbucket.org/zzzeek/alembic/issue/123
     try:
