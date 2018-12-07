@@ -565,6 +565,7 @@ class TestValidateOverrideBuild(BaseTestCase):
         request.db = self.db
         request.errors = Errors()
         request.koji.listTags.side_effect = IOError('You forgot to pay your ISP.')
+        request.validated = {'edited': None}
 
         validators._validate_override_build(request, 'does not exist', self.db)
 
@@ -581,6 +582,7 @@ class TestValidateOverrideBuild(BaseTestCase):
         request.db = self.db
         request.errors = Errors()
         request.koji.listTags.return_value = [{'name': 'invalid'}]
+        request.validated = {'edited': None}
         build = models.Build.query.first()
         build.release = None
         self.db.commit()
@@ -602,6 +604,7 @@ class TestValidateOverrideBuild(BaseTestCase):
         request.db = self.db
         request.errors = Errors()
         request.koji.listTags.return_value = [{'name': release.candidate_tag}]
+        request.validated = {'edited': None}
         build = models.Build.query.first()
         build.release = None
         self.db.commit()
@@ -620,6 +623,7 @@ class TestValidateOverrideBuild(BaseTestCase):
         request.db = self.db
         request.errors = Errors()
         request.koji.listTags.return_value = [{'name': release.stable_tag}]
+        request.validated = {'edited': None}
         get_session.return_value.listTags.return_value = request.koji.listTags.return_value
         build = models.Build.query.first()
 
@@ -629,6 +633,25 @@ class TestValidateOverrideBuild(BaseTestCase):
             request.errors,
             [{'location': 'body', 'name': 'nvr',
               'description': "Invalid build.  It must be tagged as either candidate or testing."}])
+        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+
+    def test_test_gating_status_is_failed(self):
+        """If a build's test gating status is failed, the validator should complain."""
+        request = mock.Mock()
+        request.db = self.db
+        request.errors = Errors()
+        request.validated = {'edited': None}
+        build = models.Build.query.first()
+        build.update.test_gating_status = models.TestGatingStatus.failed
+        self.db.commit()
+
+        validators._validate_override_build(request, build.nvr, self.db)
+
+        self.assertEqual(
+            request.errors,
+            [{'location': 'body', 'name': 'nvr',
+              'description': "Cannot create a buildroot override if build's "
+                             "test gating status is failed."}])
         self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
 
 
