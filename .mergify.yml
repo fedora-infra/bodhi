@@ -29,7 +29,7 @@ pull_request_rules:
   - status-success=pip-python2-diff-cover
   - status-success=pip-python3-unit
   - status-success=pip-python3-diff-cover
-  - status-success=f29-python2-integration
+  - status-success=f29-python3-integration
   name: default
 - actions:
     merge:
