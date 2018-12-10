@@ -88,9 +88,9 @@ class TestBugzilla(unittest.TestCase):
         self.assertTrue(return_value is bz._bz)
         self.assertEqual(_connect.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.info')
+    @mock.patch('bodhi.server.bugs.log.error')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_close_fault(self, info):
+    def test_close_fault(self, error):
         """Assert that an xmlrpc Fault is caught and logged by close()."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -101,7 +101,9 @@ class TestBugzilla(unittest.TestCase):
         # This should not raise an Exception.
         bz.close(12345, {'bodhi': 'bodhi-3.1.0-1.fc27'}, 'whabam!')
 
-        info.assert_called_once_with('Unable to close bug #12345')
+        error.assert_called_once_with(
+            ('Unable to close bug #12345: a fault has occurred\nFault code: 410\nFault string: You '
+             'must log in before using this part of Red Hat Bugzilla.'))
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
@@ -192,8 +194,8 @@ class TestBugzilla(unittest.TestCase):
         # No exceptions should have been logged
         self.assertEqual(info.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.info')
-    def test_comment_too_long(self, info):
+    @mock.patch('bodhi.server.bugs.log.error')
+    def test_comment_too_long(self, error):
         """Assert that the comment() method gets angry if the comment is too long."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -204,11 +206,11 @@ class TestBugzilla(unittest.TestCase):
 
         self.assertEqual(bz._bz.getbug.call_count, 0)
         # An exception should have been logged
-        info.assert_called_once_with(
+        error.assert_called_once_with(
             u'Comment too long for bug #1411188:  {}'.format(long_comment))
 
-    @mock.patch('bodhi.server.bugs.log.info')
-    def test_comment_too_many_attempts(self, info):
+    @mock.patch('bodhi.server.bugs.log.error')
+    def test_comment_too_many_attempts(self, error):
         """Assert that only 5 attempts are made to comment before giving up."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -225,12 +227,12 @@ class TestBugzilla(unittest.TestCase):
                          [('A nice message.',) for i in range(5)])
         # Five exceptions should have been logged
         self.assertEqual(
-            [c[1] for c in info.mock_calls],
+            [c[1] for c in error.mock_calls],
             [(('\nA fault has occurred \nFault code: 42 \nFault string: Someone turned the '
                'microwave on and now the WiFi is down.'),) for i in range(5)])
 
-    @mock.patch('bodhi.server.bugs.log.info')
-    def test_comment_unexpected_exception(self, info):
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_comment_unexpected_exception(self, exception):
         """Test the comment() method with an unexpected Exception."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -241,7 +243,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A nice message.')
-        info.assert_called_once_with('Unable to add comment to bug #1411188')
+        exception.assert_called_once_with('Unable to add comment to bug #1411188')
 
     def test_get_url(self):
         """
@@ -307,8 +309,8 @@ class TestBugzilla(unittest.TestCase):
         info.assert_called_once_with("Skipping set modified on 'not fedora!' bug #1411188")
         self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.info')
-    def test_modified_exception(self, info_log):
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_modified_exception(self, exception_log):
         """Test the modified() method logs an exception if encountered"""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -317,11 +319,11 @@ class TestBugzilla(unittest.TestCase):
         bz.modified(1411188, 'A mean message.')
 
         bz._bz.getbug.assert_called_once_with(1411188)
-        info_log.assert_called_once_with("Unable to alter bug #1411188")
+        exception_log.assert_called_once_with("Unable to alter bug #1411188")
         self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
 
-    @mock.patch('bodhi.server.bugs.log.info')
-    def test_update_details_exception(self, mock_infolog):
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_update_details_exception(self, mock_exceptionlog):
         """Test we log an exception if update_details raises one"""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
@@ -329,7 +331,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz.update_details(0, 0)
 
-        mock_infolog.assert_called_once_with('Unknown exception from Bugzilla')
+        mock_exceptionlog.assert_called_once_with('Unknown exception from Bugzilla')
 
     def test_update_details_keywords_str(self):
         """Assert that we split the keywords into a list when they are a str."""
@@ -357,9 +359,9 @@ class TestBugzilla(unittest.TestCase):
         self.assertIs(bug_entity.parent, True)
         self.assertEqual(bug_entity.title, 'Fedora gets you, good job guys!')
 
-    @mock.patch('bodhi.server.bugs.log.info')
-    def test_update_details_xmlrpc_fault(self, info):
-        """Test we log an info if update_details raises one"""
+    @mock.patch('bodhi.server.bugs.log.error')
+    def test_update_details_xmlrpc_fault(self, error):
+        """Test we log an error if update_details raises one"""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
         bz._bz.getbug.side_effect = xmlrpc_client.Fault(42, 'You found the meaning.')
@@ -370,11 +372,12 @@ class TestBugzilla(unittest.TestCase):
 
         self.assertEqual(bug.title, 'Invalid bug number')
         bz._bz.getbug.assert_called_once_with(123)
-        info.assert_called_once_with('Got fault from Bugzilla')
+        error.assert_called_once_with(
+            'Got fault from Bugzilla: fault code: 42, fault string: You found the meaning.')
 
-    @mock.patch('bodhi.server.bugs.log.info')
+    @mock.patch('bodhi.server.bugs.log.exception')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
-    def test_on_qa_failure(self, info):
+    def test_on_qa_failure(self, exception):
         """
         Test the on_qa() method with a failure case.
         """
@@ -389,7 +392,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.setstatus.assert_called_once_with('ON_QA',
                                                                      comment='A mean message.')
-        info.assert_called_once_with('Unable to alter bug #1411188')
+        exception.assert_called_once_with('Unable to alter bug #1411188')
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
