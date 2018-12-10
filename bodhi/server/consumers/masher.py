@@ -93,7 +93,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
 
     A fedmsg consumer that listens for messages from releng members.
 
-    An updates "compose" consists of::
+    An updates "compose" consists of:
 
     - Verify that the message was sent by someone in releng
     - Determine which updates to push
@@ -239,7 +239,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         """Begin the push process.
 
         Here we organize & prioritize the updates, and fire off separate
-        threads for each reop tag being mashed.
+        threads for each repo tag being mashed.
 
         If there are any security updates in the push, then those repositories
         will be executed before all others.
