@@ -154,14 +154,14 @@ class Bugzilla(BugTracker):
                     break
                 except xmlrpc_client.Fault as e:
                     attempts += 1
-                    log.info(
+                    log.error(
                         "\nA fault has occurred \nFault code: %d \nFault string: %s" %
                         (e.faultCode, e.faultString))
         except InvalidComment:
-            log.info(
+            log.error(
                 "Comment too long for bug #%d:  %s" % (bug_id, comment))
         except Exception:
-            log.info("Unable to add comment to bug #%d" % bug_id)
+            log.exception("Unable to add comment to bug #%d" % bug_id)
 
     def on_qa(self, bug_id, comment):
         """
@@ -188,7 +188,7 @@ class Bugzilla(BugTracker):
             else:
                 bug.addcomment(comment)
         except Exception:
-            log.info("Unable to alter bug #%d" % bug_id)
+            log.exception("Unable to alter bug #%d" % bug_id)
 
     def close(self, bug_id, versions, comment):
         """
@@ -230,8 +230,10 @@ class Bugzilla(BugTracker):
                     args['fixedin'] = " ".join([fixedin_str, version]).strip()
 
             bug.close('ERRATA', **args)
-        except xmlrpc_client.Fault:
-            log.info("Unable to close bug #%d" % bug_id)
+        except xmlrpc_client.Fault as e:
+            log.error(
+                "Unable to close bug #%d: a fault has occurred\nFault code: %d\nFault string: %s" %
+                (bug_id, e.faultCode, e.faultString))
 
     def update_details(self, bug, bug_entity):
         """
@@ -246,12 +248,13 @@ class Bugzilla(BugTracker):
         if not bug:
             try:
                 bug = self.bz.getbug(bug_entity.bug_id)
-            except xmlrpc_client.Fault:
+            except xmlrpc_client.Fault as e:
                 bug_entity.title = 'Invalid bug number'
-                log.info("Got fault from Bugzilla")
+                log.error("Got fault from Bugzilla: fault code: %d, fault string: %s" % (
+                    e.faultCode, e.faultString))
                 return
             except Exception:
-                log.info("Unknown exception from Bugzilla")
+                log.exception("Unknown exception from Bugzilla")
                 return
         if bug.product == 'Security Response':
             bug_entity.parent = True
@@ -287,7 +290,7 @@ class Bugzilla(BugTracker):
             else:
                 bug.addcomment(comment)
         except Exception:
-            log.info("Unable to alter bug #%d" % bug_id)
+            log.exception("Unable to alter bug #%d" % bug_id)
 
 
 def set_bugtracker():
