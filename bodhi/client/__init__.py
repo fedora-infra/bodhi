@@ -164,6 +164,8 @@ release_options = [
                                                'archived']),
                  help='The state of the release'),
     click.option('--mail-template', help='Name of the email template for this release'),
+    click.option('--composed-by-bodhi/--not-composed-by-bodhi', is_flag=True, default=True,
+                 help='The flag that indicates whether the release is composed by Bodhi or not'),
     staging_option,
     url_option,
     debug_option]
@@ -1046,11 +1048,12 @@ def releases():
 @releases.command(name='create')
 @handle_errors
 @add_options(release_options)
-def create_release(user, password, url, debug, **kwargs):
+def create_release(user, password, url, debug, composed_by_bodhi, **kwargs):
     """Create a release."""
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
     kwargs['csrf_token'] = client.csrf()
+    kwargs['composed_by_bodhi'] = composed_by_bodhi
 
     save(client, **kwargs)
 
@@ -1059,7 +1062,7 @@ def create_release(user, password, url, debug, **kwargs):
 @handle_errors
 @add_options(release_options)
 @click.option('--new-name', help='New release name (eg: F20)')
-def edit_release(user, password, url, debug, **kwargs):
+def edit_release(user, password, url, debug, composed_by_bodhi, **kwargs):
     """Edit an existing release."""
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'])
@@ -1080,6 +1083,7 @@ def edit_release(user, password, url, debug, **kwargs):
 
     data['edited'] = edited
     data['csrf_token'] = csrf
+    data['composed_by_bodhi'] = composed_by_bodhi
 
     new_name = kwargs.pop('new_name')
 
@@ -1202,6 +1206,7 @@ def print_release(release):
     click.echo("  Override Tag:        %s" % release['override_tag'])
     click.echo("  State:               %s" % release['state'])
     click.echo("  Email Template:      %s" % release['mail_template'])
+    click.echo("  Composed by Bodhi:   %s" % release['composed_by_bodhi'])
 
 
 def print_errors(data):

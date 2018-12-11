@@ -134,6 +134,7 @@ def test_releases_info(bodhi_container, db_container):
   Override Tag:        {override_tag}
   State:               {state}
   Email Template:      {mail_template}
+  Composed by Bodhi:   {composed_by_bodhi}
 """.format(**release)
         assert result.output == expected
 
