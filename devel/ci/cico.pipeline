@@ -120,7 +120,8 @@ def test_release = { String release ->
             bodhi_ci(release, 'diff_cover', 'python3-diff-cover', '--no-build --no-init -p 3')
         },
         integration: {
-            bodhi_ci(release, 'integration', 'python3-integration', '--no-init -p 3')
+            bodhi_ci(release, 'integration-build', 'python3-integration-build', '-p 3')
+            bodhi_ci(release, 'integration', 'python3-integration', '--no-build --no-init -p 3')
         }
     )
 }

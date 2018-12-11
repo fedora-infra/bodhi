@@ -182,7 +182,15 @@ def build(concurrency, container_runtime, failfast, release, tty):
 def clean(concurrency, container_runtime, init, release, tty):
     """Remove all builds pertaining to Bodhi CI."""
     buffer_output = concurrency != 1 or len(release) != 1
-    clean_jobs = [CleanJob(r, buffer_output=buffer_output) for r in release]
+    clean_jobs = [
+        CleanJob(r, buffer_output=buffer_output) for r in release
+    ] + [
+        IntegrationCleanJob(app_name="bodhi", release=r, buffer_output=buffer_output)
+        for r in release
+    ] + [
+        IntegrationCleanJob(app_name=app_name, release="prod", buffer_output=buffer_output)
+        for app_name in ("resultsdb", "waiverdb", "greenwave")
+    ]
     _run_jobs(clean_jobs)
 
 
@@ -272,6 +280,18 @@ def unit(archive, concurrency, container_runtime, no_build, failfast, init, pyve
     """Run the unit tests."""
     _run_jobs(_build_jobs_list('unit', concurrency, release, pyvers=pyver, archive=archive,
                                archive_path=archive_path))
+
+
+@cli.command("integration-build")
+@concurrency_option
+@container_runtime_option
+@failfast_option
+@pyver_option
+@releases_option
+@tty_option
+def integration_build(concurrency, container_runtime, failfast, pyver, release, tty):
+    """Build the containers for integration testing."""
+    _run_jobs(_build_jobs_list('integration-build', concurrency, release, pyvers=pyver))
 
 
 @cli.command()
@@ -989,6 +1009,29 @@ class IntegrationJob(Job):
             )
 
 
+class IntegrationCleanJob(Job):
+    """
+    Define a Job for removing all container images built by bodhi-ci.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    _label = 'integration-clean'
+
+    def __init__(self, app_name, *args, **kwargs):
+        """
+        Initialize the IntegrationCleanJob.
+
+        See the superclass's docblock for details about accepted parameters.
+        """
+        super(IntegrationCleanJob, self).__init__(*args, **kwargs)
+
+        self._container_image = '{}-integration-{}'.format(CONTAINER_NAME, app_name)
+        if app_name == "bodhi":
+            self._container_image = "{}/{}".format(self._container_image, self.release)
+        self._command = [container_runtime, 'rmi', self._container_image]
+
+
 def _build_jobs_list(
         command: str, concurrency: int, releases: typing.Sequence[str],
         pyvers: typing.Sequence[int] = None, archive: bool = False,
@@ -1018,16 +1061,15 @@ def _build_jobs_list(
     else:
         buffer_output = concurrency != 1 and len(releases) != 1
     jobs = []  # type: typing.List[Job]
-    if command in ('all', 'integration') and 3 in pyvers:
+    if command in ('all', 'integration-build', 'integration') and 3 in pyvers:
         integration_deps_build_jobs = [
-            IntegrationBuildJob(app_name="resultsdb", release="prod", buffer_output=buffer_output),
-            IntegrationBuildJob(app_name="waiverdb", release="prod", buffer_output=buffer_output),
-            IntegrationBuildJob(app_name="greenwave", release="prod", buffer_output=buffer_output),
+            IntegrationBuildJob(app_name=app_name, release="prod", buffer_output=buffer_output)
+            for app_name in ("resultsdb", "waiverdb", "greenwave")
         ]
         jobs.extend(integration_deps_build_jobs)
     for release in releases:
         if command in ('all', 'build', 'docs', 'flake8', 'mypy', 'pydocstyle', 'diff_cover',
-                       'unit'):
+                       'unit', 'integration-build', 'integration'):
             # We don't want to build non-pip releases if the command is mypy; mypy only uses pip.
             if command != 'mypy' or release == 'pip':
                 build_job = BuildJob(release, buffer_output=buffer_output)
@@ -1059,11 +1101,12 @@ def _build_jobs_list(
                         archive=archive, archive_path=archive_path, pyver=pyver,
                         release=release, depends_on=unit_job, buffer_output=buffer_output)
                     jobs.append(diff_cover_job)
-        if command in ('all', 'integration') and 3 in pyvers:
+        if command in ('all', 'integration-build', 'integration') and 3 in pyvers:
             integration_build_job = IntegrationBodhiBuildJob(
                 release=release, depends_on=build_job, buffer_output=buffer_output
             )
             jobs.append(integration_build_job)
+        if command in ('all', 'integration') and 3 in pyvers:
             integration_job = IntegrationJob(
                 archive=archive, archive_path=archive_path, pyver=3, release=release,
                 depends_on=integration_deps_build_jobs + [integration_build_job],
