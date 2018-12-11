@@ -289,7 +289,7 @@ def test_updates_download(bodhi_container, db_container):
     # Fetch the last updates from the DB
     builds = []
     db_ip = db_container.get_IPv4s()[0]
-    query_updates = "SELECT id, alias FROM updates ORDER BY date_submitted DESC LIMIT 3"
+    query_updates = "SELECT id, alias, title FROM updates ORDER BY date_submitted DESC LIMIT 3"
     query_builds = "SELECT nvr FROM builds WHERE update_id = %s ORDER BY nvr"
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
     with conn:
@@ -311,6 +311,7 @@ def test_updates_download(bodhi_container, db_container):
     with replace_file(bodhi_container, "/usr/bin/koji", koji_mock):
         result = _run_cli(bodhi_container, cmd)
     assert result.exit_code == 0
+    for update in updates:
+        assert "Downloading packages from {}".format(update['title']) in result.output
     for build_id in builds:
-        assert "Downloading packages from {}".format(build_id) in result.output
         assert "TESTING CALL /usr/bin/koji download-build {}".format(build_id) in result.output
