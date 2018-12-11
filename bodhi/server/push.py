@@ -205,9 +205,12 @@ def _filter_releases(session, query, releases=None):
     # We will store models.Release object here that we want to filter by
     _releases = []
 
+    # Filter only releases composed by Bodhi.
+    releases_query = session.query(Release).filter(Release.composed_by_bodhi == True)
+
     if releases:
         for r in releases.split(','):
-            release = session.query(Release).filter(
+            release = releases_query.filter(
                 or_(Release.name == r,
                     Release.name == r.upper(),
                     Release.version == r)).first()
@@ -218,8 +221,8 @@ def _filter_releases(session, query, releases=None):
     else:
         # Since the user didn't ask for specific Releases, let's just filter for releases that are
         # current or pending.
-        _releases = session.query(Release).filter(or_(Release.state == ReleaseState.current,
-                                                      Release.state == ReleaseState.pending))
+        _releases = releases_query.filter(or_(Release.state == ReleaseState.current,
+                                              Release.state == ReleaseState.pending))
 
     return query.filter(or_(*[Update.release == r for r in _releases]))
 
