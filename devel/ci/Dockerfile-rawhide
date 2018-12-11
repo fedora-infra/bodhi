@@ -8,21 +8,27 @@ RUN dnf install --disablerepo rawhide-modular -y \
     findutils \
     git \
     liberation-mono-fonts \
+    python3-dnf \
+    python3-yaml \
     make \
     python2-click \
     python2-fedora \
     python2-koji \
     python2-mock \
     python2-munch \
+    python2-pytest \
     python2-pytest-cov \
+    python2-six \
     python3-alembic \
     python3-arrow \
     python3-bleach \
     python3-bugzilla \
+    python3-click \
     python3-colander \
     python3-cornice \
     python3-cornice-sphinx \
     python3-createrepo_c \
+    python3-cryptography \
     python3-diff-cover \
     python3-dogpile-cache \
     python3-fedmsg \
@@ -30,6 +36,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-feedgen \
     python3-flake8 \
     python3-hawkey \
+    python3-jinja2 \
     python3-kitchen \
     python3-koji \
     python3-libcomps \
@@ -37,17 +44,21 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-markdown \
     python3-mock \
     python3-munch \
+    python3-openid \
     python3-pillow \
     python3-pydocstyle \
     python3-pylibravatar \
+    python3-pyramid \
     python3-pyramid-fas-openid \
     python3-pyramid-mako \
     python3-pytest \
     python3-pytest-cov \
     python3-responses \
     python3-simplemediawiki \
+    python3-six \
     python3-sqlalchemy \
     python3-sqlalchemy_schemadisplay \
+    python3-waitress \
     python3-webtest
 
 # Fake pungi being installed so we can avoid it and all its dependencies

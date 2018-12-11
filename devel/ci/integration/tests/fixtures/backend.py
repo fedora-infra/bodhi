@@ -44,7 +44,7 @@ def docker_network(docker_backend):
         conu.DockerBackend: The Docker backend fixture.
 
     Yields:
-        str: The Docker network ID.
+        dict: The Docker network.
     """
     network = docker_backend.d.create_network("bodhi_test", driver="bridge")
     yield network

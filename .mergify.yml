@@ -14,12 +14,14 @@ pull_request_rules:
   - status-success=f28-python2-unit
   - status-success=f28-python3-unit
   - status-success=f28-python3-diff-cover
+  - status-success=f28-python3-integration
   - status-success=f29-docs
   - status-success=f29-flake8
   - status-success=f29-pydocstyle
   - status-success=f29-python2-unit
   - status-success=f29-python3-unit
   - status-success=f29-python3-diff-cover
+  - status-success=f29-python3-integration
   - status-success=pip-docs
   - status-success=pip-flake8
   - status-success=pip-mypy
@@ -27,7 +29,7 @@ pull_request_rules:
   - status-success=pip-python2-unit
   - status-success=pip-python3-unit
   - status-success=pip-python3-diff-cover
-  - status-success=f29-python3-integration
+  - status-success=pip-python3-integration
   name: default
 - actions:
     merge:
@@ -45,12 +47,14 @@ pull_request_rules:
   - status-success=f28-python2-unit
   - status-success=f28-python3-unit
   - status-success=f28-python3-diff-cover
+  - status-success=f28-python3-integration
   - status-success=f29-docs
   - status-success=f29-flake8
   - status-success=f29-pydocstyle
   - status-success=f29-python2-unit
   - status-success=f29-python3-unit
   - status-success=f29-python3-diff-cover
+  - status-success=f29-python3-integration
   - status-success=pip-docs
   - status-success=pip-flake8
   - status-success=pip-mypy
@@ -58,6 +62,7 @@ pull_request_rules:
   - status-success=pip-python2-unit
   - status-success=pip-python3-unit
   - status-success=pip-python3-diff-cover
+  - status-success=pip-python3-integration
   name: default-from-bowlofeggs
 - actions:
     backport:
