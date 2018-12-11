@@ -22,6 +22,7 @@ import unittest
 
 import mock
 from cornice.errors import Errors
+from fedora_messaging import api, testing as fml_testing
 from pyramid import exceptions
 
 from bodhi.tests.server.base import BaseTestCase
@@ -56,7 +57,8 @@ class TestValidateCSRFToken(BaseTestCase):
                    'csrf_token': self.get_csrf_token()}
 
         # This should not cause any error.
-        self.app.post_json('/comments/', comment, status=200)
+        with fml_testing.mock_sends(api.Message):
+            self.app.post_json('/comments/', comment, status=200)
 
 
 class TestGetValidRequirements(unittest.TestCase):

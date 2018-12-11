@@ -21,6 +21,7 @@ import copy
 
 import mock
 import webtest
+from fedora_messaging import api, testing as fml_testing
 
 from bodhi.server import main
 from bodhi.server.models import Group, RpmPackage, Stack, User
@@ -117,7 +118,8 @@ class TestStacksService(base.BaseTestCase):
         self.db.commit()
         attrs = {'name': u'KDE', 'packages': 'kde-filesystem kdegames',
                  'csrf_token': self.get_csrf_token()}
-        res = self.app.post("/stacks/", attrs, status=200)
+        with fml_testing.mock_sends(api.Message):
+            res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEqual(body['name'], 'KDE')
         r = self.db.query(Stack).filter(Stack.name == attrs["name"]).one()
@@ -149,7 +151,8 @@ class TestStacksService(base.BaseTestCase):
         attrs = {"name": u"Hackey", "packages": "nethack",
                  "requirements": u"rpmlint",
                  "csrf_token": self.get_csrf_token()}
-        res = self.app.post("/stacks/", attrs)
+        with fml_testing.mock_sends(api.Message):
+            res = self.app.post("/stacks/", attrs)
         body = res.json_body['stack']
         self.assertEqual(body['name'], 'Hackey')
         r = self.db.query(Stack).filter(Stack.name == attrs["name"]).one()
@@ -164,7 +167,8 @@ class TestStacksService(base.BaseTestCase):
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'description': 'foo', 'requirements': 'upgradepath',
                  'csrf_token': self.get_csrf_token()}
-        res = self.app.post("/stacks/", attrs, status=200)
+        with fml_testing.mock_sends(api.Message):
+            res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEqual(body['name'], 'GNOME')
         self.assertEqual(len(body['packages']), 2)
@@ -181,7 +185,8 @@ class TestStacksService(base.BaseTestCase):
         self.assertEqual(package.requirements, None)
 
     def test_delete_stack(self):
-        res = self.app.delete("/stacks/GNOME")
+        with fml_testing.mock_sends(api.Message):
+            res = self.app.delete("/stacks/GNOME")
         self.assertEqual(res.json_body['status'], 'success')
         self.assertEqual(self.db.query(Stack).count(), 0)
 
@@ -191,7 +196,8 @@ class TestStacksService(base.BaseTestCase):
         self.db.commit()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music',
                  'csrf_token': self.get_csrf_token()}
-        res = self.app.post("/stacks/", attrs, status=200)
+        with fml_testing.mock_sends(api.Message):
+            res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEqual(body['name'], 'GNOME')
         self.assertEqual(len(body['packages']), 1)
@@ -237,7 +243,8 @@ class TestStacksService(base.BaseTestCase):
         self.db.commit()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'csrf_token': self.get_csrf_token()}
-        res = self.app.post("/stacks/", attrs, status=200)
+        with fml_testing.mock_sends(api.Message):
+            res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEqual(body['name'], 'GNOME')
         self.assertEqual(len(body['packages']), 2)
@@ -255,7 +262,8 @@ class TestStacksService(base.BaseTestCase):
         self.db.commit()
         attrs = {'name': 'GNOME', 'packages': 'gnome-music gnome-shell',
                  'csrf_token': self.get_csrf_token()}
-        res = self.app.post("/stacks/", attrs, status=200)
+        with fml_testing.mock_sends(api.Message):
+            res = self.app.post("/stacks/", attrs, status=200)
         body = res.json_body['stack']
         self.assertEqual(body['name'], 'GNOME')
         self.assertEqual(len(body['packages']), 2)

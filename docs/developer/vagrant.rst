@@ -22,6 +22,12 @@ guest's port 6543, so you can now visit http://localhost:6543 with your browser 
 development instance if your browser is on the same host as the Vagrant host. If not, you will need
 to connect to port 6543 on your Vagrant host, which is an exercise left for the reader.
 
+The ``Vagrantfile`` also sets up a port forward from the host machine's port
+15672 to the Vagrant guest's port 15672. The Vagrant guest runs an AMQP message
+broker (RabbitMQ) which has a web interface for monitoring and administration
+at http://localhost:15672. The default username is "guest" and the password is
+"guest".
+
 
 .. _Vagrant: https://www.vagrantup.com
 

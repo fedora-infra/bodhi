@@ -20,6 +20,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  # if you have other services listening on your host's port 80.
  config.vm.network "forwarded_port", guest: 6543, host: 6543
 
+ # Forward traffic on the host to the RabbitMQ management UI on the guest.
+ # This allows developers to view message queues at http://localhost:15672/
+ config.vm.network "forwarded_port", guest: 15672, host: 15672
+
  # This is an optional plugin that, if installed, updates the host's /etc/hosts
  # file with the hostname of the guest VM. In Fedora it is packaged as
  # ``vagrant-hostmanager``

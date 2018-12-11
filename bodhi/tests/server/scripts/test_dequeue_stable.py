@@ -22,6 +22,7 @@ This module contains tests for the bodhi.server.scripts.dequeue_stable module.
 from datetime import datetime, timedelta
 
 from click import testing
+from fedora_messaging import api, testing as fml_testing
 import mock
 
 from bodhi.server import config, models
@@ -54,7 +55,8 @@ class TestDequeueStable(BaseTestCase):
         self.db.add(update_2)
         self.db.commit()
 
-        result = runner.invoke(dequeue_stable.dequeue_stable, [])
+        with fml_testing.mock_sends(api.Message):
+            result = runner.invoke(dequeue_stable.dequeue_stable, [])
 
         self.assertEqual(result.exit_code, 0)
         self.assertTrue(config.config['not_yet_tested_msg'] in result.output)
@@ -84,7 +86,8 @@ class TestDequeueStable(BaseTestCase):
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         self.db.commit()
 
-        result = runner.invoke(dequeue_stable.dequeue_stable, [])
+        with fml_testing.mock_sends(api.Message):
+            result = runner.invoke(dequeue_stable.dequeue_stable, [])
         self.assertEqual(result.exit_code, 0)
 
         update = self.db.query(models.Update).all()[0]

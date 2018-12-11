@@ -9,6 +9,7 @@ RUN dnf upgrade -y libsolv || echo "We are not trying to test dnf upgrade, so ig
 RUN dnf upgrade -y || echo "We are not trying to test dnf upgrade, so ignoring dnf failure."
 RUN dnf install --disablerepo rawhide-modular -y \
     createrepo_c \
+    fedora-messaging \
     findutils \
     git \
     liberation-mono-fonts \
@@ -79,6 +80,8 @@ RUN dnf install --disablerepo rawhide-modular -y \
 
 # sqlalchemy_schemadisplay is not packaged for Python 3 in Fedora < 30
 RUN pip-3 install sqlalchemy_schemadisplay
+# fedora_messaging isn't packaged for Python 2 in Fedora
+RUN pip install fedora_messaging
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji

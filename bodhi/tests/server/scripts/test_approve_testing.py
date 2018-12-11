@@ -21,6 +21,7 @@ This module contains tests for the bodhi.server.scripts.approve_testing module.
 """
 from datetime import datetime, timedelta
 
+from fedora_messaging import api, testing as fml_testing
 from mock import patch
 from six import StringIO
 
@@ -169,7 +170,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
                 # Now we will run main() again, but this time we expect Bodhi not to add any
                 # further comments.
@@ -201,7 +203,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
                 # Now we will run main() again, but this time we expect Bodhi not to add any
                 # further comments.
@@ -235,7 +238,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
                 # Now we will run main() again, but this time we expect Bodhi not to add any
                 # further comments.
@@ -266,7 +270,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
                 # Now we will run main() again, but this time we expect Bodhi not to add any
                 # further comments.
@@ -298,7 +303,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -322,7 +328,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -346,7 +353,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
@@ -374,7 +382,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message, api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -396,7 +405,8 @@ class TestMain(BaseTestCase):
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
-        self.db.commit()
+        with fml_testing.mock_sends(api.Message):
+            self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
@@ -428,9 +438,11 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
                 update.comment(self.db, u"Removed build", 0, u'bodhi')
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)

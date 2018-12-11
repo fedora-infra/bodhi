@@ -1542,6 +1542,7 @@ class TestUpdateEdit(BaseTestCase):
             build.nvr: {
                 'nvr': build._get_n_v_r(), 'info': buildsys.get_session().getBuild(build.nvr)}}
         request.db = self.db
+        request.user.name = 'tester'
         update.release.pending_signing_tag = ''
         self.db.flush()
 
