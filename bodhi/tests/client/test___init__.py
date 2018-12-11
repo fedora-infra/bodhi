@@ -1278,27 +1278,6 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
-    def test_existing_override_error_message(self, send_request):
-        """
-        Assert that the error message is provided if we try to save an existing override
-        """
-        exception_message = "Buildroot override for js-tag-it-2.0-1.fc25 already exists"
-        send_request.side_effect = bindings.BodhiClientException(exception_message)
-        runner = testing.CliRunner()
-
-        result = runner.invoke(
-            client.save_buildroot_overrides,
-            ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
-
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn("The `overrides save` command is used for creating a new override",
-                      result.output)
-        self.assertIn("Use `overrides edit` to edit an existing override",
-                      result.output)
-
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
     @mock.patch('bodhi.client.subprocess.call', return_value=0)
     def test_wait_flag(self, call, send_request):
         """
@@ -1319,7 +1298,10 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--wait'])
 
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT)
+        expected_output = (
+            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'.format(
+                client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
+        self.assertEqual(result.output, expected_output)
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
             stderr=-1, stdout=-1)
@@ -1327,7 +1309,7 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
-    @mock.patch('bodhi.client.subprocess.call', return_value=1)
+    @mock.patch('bodhi.client.subprocess.call', return_value=42)
     def test_wait_flag_fail(self, call, send_request):
         """
         Assert correct behavior when the command execution due to --wait flag fails.
@@ -1346,9 +1328,12 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
             client.save_buildroot_overrides,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--wait'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT +
-                         'WARNING: ensuring active override failed for js-tag-it-2.0-1.fc25\n')
+        self.assertEqual(result.exit_code, 42)
+        expected_output = (
+            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'
+            'WARNING: ensuring active override failed for js-tag-it-2.0-1.fc25\n')
+        expected_output = expected_output.format(client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT)
+        self.assertEqual(result.output, expected_output)
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
             stderr=-1, stdout=-1)
@@ -1859,7 +1844,10 @@ class TestEditBuildrootOverrides(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--wait'])
 
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT)
+        expected_output = (
+            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'.format(
+                client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
+        self.assertEqual(result.output, expected_output)
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
             stderr=-1, stdout=-1)
@@ -1867,7 +1855,7 @@ class TestEditBuildrootOverrides(unittest.TestCase):
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
-    @mock.patch('bodhi.client.subprocess.call', return_value=1)
+    @mock.patch('bodhi.client.subprocess.call', return_value=24)
     def test_wait_flag_fail(self, call, send_request):
         """
         Assert correct behavior when the command execution due to --wait flag fails.
@@ -1886,9 +1874,12 @@ class TestEditBuildrootOverrides(unittest.TestCase):
             client.edit_buildroot_overrides,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--wait'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT +
-                         'WARNING: ensuring active override failed for js-tag-it-2.0-1.fc25\n')
+        self.assertEqual(result.exit_code, 24)
+        expected_output = (
+            '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'
+            'WARNING: ensuring active override failed for js-tag-it-2.0-1.fc25\n')
+        expected_output = expected_output.format(client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT)
+        self.assertEqual(result.output, expected_output)
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
             stderr=-1, stdout=-1)
