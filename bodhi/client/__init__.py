@@ -121,6 +121,8 @@ save_edit_options = [
                  help='Notes on why this override is in place.'),
     click.option('--user'),
     click.option('--password', hide_input=True),
+    click.option('--wait', is_flag=True, default=False,
+                 help='Wait and ensure that the override is active'),
     staging_option,
     url_option,
     debug_option]
@@ -248,7 +250,18 @@ def _save_override(url, user, password, staging, edit=False, **kwargs):
                                 notes=kwargs['notes'],
                                 edit=edit,
                                 expired=kwargs.get('expire', False))
-    print_resp(resp, client)
+
+    if kwargs['wait']:
+        print_resp(resp, client, override_hint=False)
+        command = _generate_wait_repo_command(resp, client)
+        if command:
+            click.echo("\n\nRunning {}\n".format(' '.join(command)))
+            ret = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if ret:
+                click.echo("WARNING: ensuring active override failed for {}".format(resp.build.nvr))
+                sys.exit(ret)
+    else:
+        print_resp(resp, client, override_hint=True)
 
 
 @click.group()
@@ -921,6 +934,25 @@ def edit_buildroot_overrides(user, password, url, staging, **kwargs):
     _save_override(url=url, user=user, password=password, staging=staging, edit=True, **kwargs)
 
 
+def _generate_wait_repo_command(override, client):
+    """
+    Generate and return a koji wait-repo command for the given override, if possible.
+
+    Args:
+        override (munch.Munch): A Munch of the Override we want to print a hint about.
+        client (bodhi.client.bindings.BodhiClient): A BodhiClient that we can use to query the
+            server for Releases.
+    Returns:
+        tuple or None: If we know the release for the override's build, we return a tuple suitable
+            for passing to subprocess.Popen for a koji command that will wait on the repo. If we
+            can't we return None.
+    """
+    if 'release_id' in override.build:
+        release = client.get_releases(ids=[override.build.release_id])['releases'][0]
+        return ('koji', 'wait-repo', '{}-build'.format(release.dist_tag),
+                '--build={}'.format(override.build.nvr))
+
+
 def _print_override_koji_hint(override, client):
     """
     Print a human readable hint about how to use koji wait-repo to monitor an override, if possible.
@@ -935,15 +967,14 @@ def _print_override_koji_hint(override, client):
         client (bodhi.client.bindings.BodhiClient): A BodhiClient that we can use to query the
             server for Releases.
     """
-    if 'release_id' in override.build:
-        release = client.get_releases(ids=[override.build.release_id])['releases'][0]
+    command = _generate_wait_repo_command(override, client)
+    if command:
         click.echo(
             '\n\nUse the following to ensure the override is active:\n\n'
-            '\t$ koji wait-repo {}-build --build={}\n'.format(
-                release.dist_tag, override.build.nvr))
+            '\t$ {}\n'.format(' '.join(command)))
 
 
-def print_resp(resp, client, verbose=False):
+def print_resp(resp, client, verbose=False, override_hint=True):
     """
     Print a human readable rendering of the given server response to the terminal.
 
@@ -951,6 +982,8 @@ def print_resp(resp, client, verbose=False):
         resp (munch.Munch): The response from the server.
         client (bodhi.client.bindings.BodhiClient): A BodhiClient.
         verbose (bool): If True, show more detailed output. Defaults to False.
+        override_hint (bool): If True, show a hint to the user about how to wait on a buildroot
+            override. Defaults to True.
     """
     if 'updates' in resp:
         if len(resp.updates) == 1:
@@ -968,7 +1001,8 @@ def print_resp(resp, client, verbose=False):
     elif 'overrides' in resp:
         if len(resp.overrides) == 1:
             click.echo(client.override_str(resp.overrides[0], minimal=False))
-            _print_override_koji_hint(resp.overrides[0], client)
+            if override_hint:
+                _print_override_koji_hint(resp.overrides[0], client)
         else:
             for override in resp.overrides:
                 click.echo(client.override_str(override).strip())
@@ -976,7 +1010,8 @@ def print_resp(resp, client, verbose=False):
             '%s overrides found (%d shown)' % (resp.total, len(resp.overrides)))
     elif 'build' in resp:
         click.echo(client.override_str(resp, minimal=False))
-        _print_override_koji_hint(resp, client)
+        if override_hint:
+            _print_override_koji_hint(resp, client)
     elif 'comment' in resp:
         click.echo('The following comment was added to %s' % resp.comment['update'].title)
         click.echo(resp.comment.text)
