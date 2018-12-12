@@ -78,8 +78,18 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
   `mailing list <https://lists.fedoraproject.org/archives/list/bodhi@lists.fedorahosted.org/>`_.
 
 
+Issues
+======
+
+Bodhi uses GitHub's `issue tracker <https://github.com/fedora-infra/bodhi/issues>`_ and
+`kanban boards <https://github.com/fedora-infra/bodhi/projects>`_ to track and plan issues and work.
+If you aren't sure what you'd like to work on, take a look at Bodhi's
+`labels <https://github.com/fedora-infra/bodhi/labels>`_ which are used to categorize the various
+issues. Each label has a short description explaining its purpose.
+
+
 Easy Fix
-========
+--------
 
 If you are looking for some easy tasks to get started with Bodhi development, have a look at Bodhi's
 `EasyFix`_ tickets.
