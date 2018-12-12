@@ -11,6 +11,17 @@ get started, simply use these commands::
     $ sudo systemctl enable libvirtd
     $ sudo systemctl start libvirtd
 
+Optionally, you can configure libvirt not to ask for your password every time you use Vagrant to
+start or stop a guest. To do this, create ``/etc/polkit-1/localauthority/50-local.d/libvirt.pkla``
+on your host with the following contents, substituting ``yourname`` with your own username::
+
+   [Allow yourname libvirt management permissions]
+   Identity=unix-user:yourname
+   Action=org.libvirt.unix.manage
+   ResultAny=yes
+   ResultInactive=yes
+   ResultActive=yes
+
 Check out the code and run ``vagrant up``::
 
     $ git clone https://github.com/fedora-infra/bodhi
