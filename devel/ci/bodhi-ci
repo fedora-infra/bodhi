@@ -861,8 +861,8 @@ class IntegrationJob(Job):
 
 
 def _build_jobs_list(
-        command: str, concurrency: int, releases: typing.Iterable[str],
-        pyvers: typing.Iterable[int] = None, archive: bool = False,
+        command: str, concurrency: int, releases: typing.Sequence[str],
+        pyvers: typing.Sequence[int] = None, archive: bool = False,
         archive_path: str = '') -> typing.List[Job]:
     """
     Build and return a list of jobs to be run for the given command.
@@ -877,13 +877,15 @@ def _build_jobs_list(
     Returns:
         A list of Jobs to be run.
     """
+    if pyvers is None:
+        pyvers = tuple()
     if command == 'all':
         buffer_output = concurrency != 1
     elif command in ('diff_cover', 'unit'):
         buffer_output = concurrency != 1 and (len(releases) != 1 or len(pyvers) != 1)
     else:
         buffer_output = concurrency != 1 and len(releases) != 1
-    jobs = []
+    jobs = []  # type: typing.List[Job]
     for release in releases:
         if command in ('all', 'build', 'docs', 'flake8', 'pydocstyle', 'diff_cover', 'unit'):
             build_job = BuildJob(release, jobs, buffer_output=buffer_output)
