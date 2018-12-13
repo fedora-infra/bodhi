@@ -240,6 +240,19 @@ def flake8(concurrency, container_runtime, failfast, init, no_build, release, tt
 @no_build_option
 @releases_option
 @tty_option
+def mypy(concurrency, container_runtime, failfast, init, no_build, release, tty):
+    """Run mypy tests."""
+    _run_jobs(_build_jobs_list('mypy', concurrency, release))
+
+
+@cli.command()
+@concurrency_option
+@container_runtime_option
+@failfast_option
+@init_option
+@no_build_option
+@releases_option
+@tty_option
 def pydocstyle(concurrency, container_runtime, failfast, init, no_build, release, tty):
     """Run pydocstyle tests."""
     _run_jobs(_build_jobs_list('pydocstyle', concurrency, release))
@@ -302,8 +315,13 @@ class Job(object):
         skipped (bool): If True, this Job was skipped.
     """
 
+    # A template to name the image that is built. CONTAINER_NAME and the release gets substituted
+    # into the {}'s.
+    _container_image_template = '{}/{}'
+
     def __init__(self, release: str, all_jobs: typing.List['Job'],
-                 depends_on: typing.List['Job'] = None, buffer_output: bool = False):
+                 depends_on: typing.Union[typing.List['Job'], 'Job'] = None,
+                 buffer_output: bool = False):
         """
         Initialize the new Job.
 
@@ -330,8 +348,8 @@ class Job(object):
         self.returncode = None
         self.skipped = False
         self._all_jobs = all_jobs
-        self._container_image = '{}/{}'.format(CONTAINER_NAME, self.release)
-        self._popen_kwargs = {'shell': False}
+        self._container_image = self._container_image_template.format(CONTAINER_NAME, self.release)
+        self._popen_kwargs = {'shell': False}  # type: typing.Mapping[str, typing.Union[bool, int]]
         if buffer_output:
             # Let's buffer the output so the user doesn't see a jumbled mess.
             self._popen_kwargs['stdout'] = subprocess.PIPE
@@ -515,6 +533,11 @@ class BuildJob(Job):
     """
 
     _label = 'build'
+    # A template for finding the name of the Dockerfile to be used for this BuildJob. The release
+    # gets substituted into the {}'s.
+    _dockerfile_template = 'Dockerfile-{}'
+    # Extra arguments to be passed to the container build command.
+    _build_args = ['--force-rm', '--pull']
 
     def __init__(self, *args, **kwargs):
         """
@@ -524,9 +547,13 @@ class BuildJob(Job):
         """
         super(BuildJob, self).__init__(*args, **kwargs)
 
-        dockerfile = os.path.join(PROJECT_PATH, 'devel', 'ci', 'Dockerfile-{}'.format(self.release))
-        self._command = [container_runtime, 'build', '--force-rm', '--pull', '-t',
-                         self._container_image, '-f', dockerfile, '.']
+        dockerfile = os.path.join(PROJECT_PATH, 'devel', 'ci',
+                                  self._dockerfile_template.format(self.release))
+        self._command = [container_runtime, 'build', '-t', self._container_image,
+                         '-f', dockerfile, '.']
+        if self._build_args:
+            for arg in reversed(self._build_args):
+                self._command.insert(2, arg)
 
     async def run(self):
         """
@@ -665,6 +692,42 @@ class Flake8Job(Job):
             self._command = ['/usr/local/bin/flake8']
         else:
             self._command = ['/usr/bin/flake8']
+        self._convert_command_for_container()
+
+
+class MyPyBuildJob(BuildJob):
+    """
+    Define a Job for building mypy container images.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    # We don't want the --pull build arg because we are based on a container built by bodhi-ci.
+    _build_args = []  # type: typing.List[str]
+    _container_image_template = '{}/{}/mypy'
+    _dockerfile_template = 'Dockerfile-mypy-{}'
+    _label = 'mypy-build'
+
+
+class MyPyJob(Job):
+    """
+    Define a Job for running mypy.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    _container_image_template = '{}/{}/mypy'
+    _label = 'mypy'
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the MyPyJob.
+
+        See the superclass's docblock for details about accepted parameters.
+        """
+        super(MyPyJob, self).__init__(*args, **kwargs)
+
+        self._command = ['/usr/local/bin/mypy', 'devel/ci/bodhi-ci']
         self._convert_command_for_container()
 
 
@@ -881,21 +944,33 @@ def _build_jobs_list(
         pyvers = tuple()
     if command == 'all':
         buffer_output = concurrency != 1
+    elif command == 'mypy':
+        # mypy always only has one container and no releases.
+        buffer_output = False
     elif command in ('diff_cover', 'unit'):
         buffer_output = concurrency != 1 and (len(releases) != 1 or len(pyvers) != 1)
     else:
         buffer_output = concurrency != 1 and len(releases) != 1
     jobs = []  # type: typing.List[Job]
     for release in releases:
-        if command in ('all', 'build', 'docs', 'flake8', 'pydocstyle', 'diff_cover', 'unit'):
-            build_job = BuildJob(release, jobs, buffer_output=buffer_output)
-            jobs.append(build_job)
+        if command in ('all', 'build', 'docs', 'flake8', 'mypy', 'pydocstyle', 'diff_cover',
+                       'unit'):
+            # We don't want to build non-pip releases if the command is mypy; mypy only uses pip.
+            if command != 'mypy' or release == 'pip':
+                build_job = BuildJob(release, jobs, buffer_output=buffer_output)
+                jobs.append(build_job)
         if command in ('all', 'docs'):
             docs_job = DocsJob(release, jobs, depends_on=build_job, buffer_output=buffer_output)
             jobs.append(docs_job)
         if command in ('all', 'flake8'):
             flake8_job = Flake8Job(release, jobs, depends_on=build_job, buffer_output=buffer_output)
             jobs.append(flake8_job)
+        if command in ('all', 'mypy') and release == 'pip':
+            mypy_build_job = MyPyBuildJob(release, jobs, depends_on=build_job,
+                                          buffer_output=buffer_output)
+            mypy_job = MyPyJob(release, jobs, depends_on=mypy_build_job,
+                               buffer_output=buffer_output)
+            jobs.extend([mypy_build_job, mypy_job])
         if command in ('all', 'pydocstyle'):
             pydocstyle_job = PydocstyleJob(release, jobs, depends_on=build_job,
                                            buffer_output=buffer_output)
