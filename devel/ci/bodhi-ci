@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Bodhi's CI command tool."""
 import asyncio
+import datetime
 import functools
 import multiprocessing
 import os
@@ -374,6 +375,7 @@ class Job(object):
                 # It's possible that we got cancelled while we were waiting on the Semaphore.
                 if not self.cancelled:
                     self._pre_start_hook()
+                    self._start_time = datetime.datetime.utcnow()
                     process = await asyncio.create_subprocess_exec(*self._command,
                                                                    **self._popen_kwargs)
 
@@ -414,6 +416,7 @@ class Job(object):
             if self._stdout and (self.returncode == 0 or self.cancelled):
                 click.echo(self.output)
 
+            self._finish_time = datetime.datetime.utcnow()
             # Kick off any tasks that were waiting for us to finish.
             self.complete.set()
 
@@ -434,16 +437,19 @@ class Job(object):
         if self.cancelled:
             color_start = '\033[0;33m' if tty else ''
             color_end = '\033[0m' if tty else ''
-            return '{}:  {}CANCELED{}\n'.format(self.label, color_start, color_end)
+            return '{}:  {}CANCELED{}  [{}]\n'.format(self.label, color_start, color_end,
+                                                      self._finish_time - self._start_time)
         if self.returncode == 0:
             color_start = '\033[0;32m' if tty else ''
             color_end = '\033[0m' if tty else ''
-            return '{}:  {}SUCCESS!{}\n'.format(self.label, color_start, color_end)
+            return '{}:  {}SUCCESS!{}  [{}]\n'.format(self.label, color_start, color_end,
+                                                      self._finish_time - self._start_time)
         else:
             color_start = '\033[0;31m' if tty else ''
             color_end = '\033[0m' if tty else ''
-            return '{}:  {}FAILED{}  (exited with code: {})\n'.format(
-                self.label, color_start, color_end, self.returncode)
+            return '{}:  {}FAILED{}    [{}] (exited with code: {})\n'.format(
+                self.label, color_start, color_end, self._finish_time - self._start_time,
+                self.returncode)
 
     def _convert_command_for_container(self, archive=False, archive_path=''):
         """
