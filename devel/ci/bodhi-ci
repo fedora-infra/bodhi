@@ -300,16 +300,19 @@ class Job(object):
         skipped (bool): If True, this Job was skipped.
     """
 
-    def __init__(self, release, depends_on=None, buffer_output=False):
+    def __init__(self, release: str, all_jobs: typing.List['Job'],
+                 depends_on: typing.List['Job'] = None, buffer_output: bool = False):
         """
         Initialize the new Job.
 
         Args:
-            release (str): The release this Job pertains to.
-            depends_on (list of Job): A list of Job that this Job should wait to complete before
+            release: The release this Job pertains to.
+            all_jobs: The list of all Jobs running. Used to print out progress reports as the Job
+                progresses.
+            depends_on: A list of Job that this Job should wait to complete before
                 starting. It is also possible to provide a Job instance if there is a single
                 dependency.
-            buffer_output (bool): If True, this Job will buffer its stdout and stderr into its
+            buffer_output: If True, this Job will buffer its stdout and stderr into its
                 output property. If False, child processes will send their output straign to stdout
                 and stderr.
         """
@@ -321,8 +324,10 @@ class Job(object):
         self.cancelled = False
         # Used to block dependent processes until this Job is done.
         self.complete = asyncio.Event()
+        self.started = False
         self.returncode = None
         self.skipped = False
+        self._all_jobs = all_jobs
         self._container_image = '{}/{}'.format(CONTAINER_NAME, self.release)
         self._popen_kwargs = {'shell': False}
         if buffer_output:
@@ -376,6 +381,7 @@ class Job(object):
                 if not self.cancelled:
                     self._pre_start_hook()
                     self._start_time = datetime.datetime.utcnow()
+                    self.started = True
                     process = await asyncio.create_subprocess_exec(*self._command,
                                                                    **self._popen_kwargs)
 
@@ -401,7 +407,6 @@ class Job(object):
                         self.returncode = process.returncode
 
             if self.returncode:
-                click.echo(self.summary_line)
                 # If there was a failure, we need to raise an Exception in case the failfast flag
                 # was set, so that _run_jobs() can cancel the remaining tasks.
                 error = RuntimeError()
@@ -413,12 +418,13 @@ class Job(object):
         finally:
             # If the job's been cancelled or successful, let's go ahead and print its output now.
             # Failed jobs will have their output printed at the end.
-            if self._stdout and (self.returncode == 0 or self.cancelled):
+            if self.output and (self.returncode == 0 or self.cancelled):
                 click.echo(self.output)
 
             self._finish_time = datetime.datetime.utcnow()
             # Kick off any tasks that were waiting for us to finish.
             self.complete.set()
+            _print_status(self._all_jobs)
 
         return self
 
@@ -434,20 +440,29 @@ class Job(object):
         Returns:
             str: A summary line suitable to print at the end of the process.
         """
+        blue_start = '\033[0;34m' if tty else ''
+        yellow_start = '\033[0;33m' if tty else ''
+        color_end = '\033[0m' if tty else ''
+        if not self.complete.is_set():
+            if not self.started:
+                return '{}:  {}WAITING{}'.format(self.label, blue_start, color_end)
+            else:
+                return '{}:  {}RUNNING{}'.format(self.label, yellow_start, color_end)
         if self.cancelled:
-            color_start = '\033[0;33m' if tty else ''
-            color_end = '\033[0m' if tty else ''
-            return '{}:  {}CANCELED{}  [{}]\n'.format(self.label, color_start, color_end,
-                                                      self._finish_time - self._start_time)
+            if hasattr(self, '_start_time'):
+                return '{}:  {}CANCELED{}  [{}]'.format(self.label, yellow_start, color_end,
+                                                        self._finish_time - self._start_time)
+            return '{}:  {}CANCELED{}'.format(self.label, yellow_start, color_end)
+        if self.skipped:
+            return '{}:  {}SKIPPED{}'.format(self.label, blue_start, color_end)
         if self.returncode == 0:
             color_start = '\033[0;32m' if tty else ''
-            color_end = '\033[0m' if tty else ''
-            return '{}:  {}SUCCESS!{}  [{}]\n'.format(self.label, color_start, color_end,
-                                                      self._finish_time - self._start_time)
+            return '{}:  {}SUCCESS!{}  [{}]'.format(self.label, color_start, color_end,
+                                                    self._finish_time - self._start_time)
         else:
             color_start = '\033[0;31m' if tty else ''
             color_end = '\033[0m' if tty else ''
-            return '{}:  {}FAILED{}    [{}] (exited with code: {})\n'.format(
+            return '{}:  {}FAILED{}    [{}] (exited with code: {})'.format(
                 self.label, color_start, color_end, self._finish_time - self._start_time,
                 self.returncode)
 
@@ -869,23 +884,23 @@ def _build_jobs_list(
     jobs = []
     for release in releases:
         if command in ('all', 'build', 'docs', 'flake8', 'pydocstyle', 'diff_cover', 'unit'):
-            build_job = BuildJob(release, buffer_output=buffer_output)
+            build_job = BuildJob(release, jobs, buffer_output=buffer_output)
             jobs.append(build_job)
         if command in ('all', 'docs'):
-            docs_job = DocsJob(release, depends_on=build_job, buffer_output=buffer_output)
+            docs_job = DocsJob(release, jobs, depends_on=build_job, buffer_output=buffer_output)
             jobs.append(docs_job)
         if command in ('all', 'flake8'):
-            flake8_job = Flake8Job(release, depends_on=build_job, buffer_output=buffer_output)
+            flake8_job = Flake8Job(release, jobs, depends_on=build_job, buffer_output=buffer_output)
             jobs.append(flake8_job)
         if command in ('all', 'pydocstyle'):
-            pydocstyle_job = PydocstyleJob(release, depends_on=build_job,
+            pydocstyle_job = PydocstyleJob(release, jobs, depends_on=build_job,
                                            buffer_output=buffer_output)
             jobs.append(pydocstyle_job)
         if command in ('all', 'diff_cover', 'unit'):
             for pyver in pyvers:
                 unit_job = UnitJob(
                     archive=archive, archive_path=archive_path, pyver=pyver, release=release,
-                    depends_on=build_job, buffer_output=buffer_output)
+                    depends_on=build_job, buffer_output=buffer_output, all_jobs=jobs)
                 jobs.append(unit_job)
                 if command in ('all', 'diff_cover'):
                     if pyver == 2 and release not in ('f27', 'f28', 'f29', 'pip'):
@@ -894,19 +909,24 @@ def _build_jobs_list(
                         continue
                     diff_cover_job = DiffCoverJob(
                         archive=archive, archive_path=archive_path, pyver=pyver,
-                        release=release, depends_on=unit_job, buffer_output=buffer_output)
+                        release=release, depends_on=unit_job, buffer_output=buffer_output,
+                        all_jobs=jobs)
                     jobs.append(diff_cover_job)
     if command in ('all', 'integration') and 3 in pyvers and "f29" in releases:
         build_jobs = [
-            IntegrationBuildJob(app_name="resultsdb", release="f29", buffer_output=buffer_output),
-            IntegrationBuildJob(app_name="waiverdb", release="f29", buffer_output=buffer_output),
-            IntegrationBuildJob(app_name="greenwave", release="f29", buffer_output=buffer_output),
-            IntegrationBuildJob(app_name="bodhi", release="f29", buffer_output=buffer_output),
+            IntegrationBuildJob(app_name="resultsdb", release="f29", all_jobs=jobs,
+                                buffer_output=buffer_output),
+            IntegrationBuildJob(app_name="waiverdb", release="f29", all_jobs=jobs,
+                                buffer_output=buffer_output),
+            IntegrationBuildJob(app_name="greenwave", release="f29", all_jobs=jobs,
+                                buffer_output=buffer_output),
+            IntegrationBuildJob(app_name="bodhi", release="f29", all_jobs=jobs,
+                                buffer_output=buffer_output),
         ]
         jobs.extend(build_jobs)
         integration_job = IntegrationJob(
             archive=archive, archive_path=archive_path, pyver=3, release="f29",
-            depends_on=build_jobs, buffer_output=buffer_output)
+            depends_on=build_jobs, buffer_output=buffer_output, all_jobs=jobs)
         jobs.append(integration_job)
 
     return jobs
@@ -926,14 +946,26 @@ def _cancel_jobs(jobs):
             job.cancelled = True
 
 
+def _print_status(jobs: typing.List[Job]):
+    """
+    Print a status report on all the jobs.
+
+    Args:
+        jobs: A list of the Jobs to report on.
+    """
+    for job in jobs:
+        click.echo(job.summary_line)
+    click.echo('\n')
+
+
 def _process_results(loop, done, pending):
     """
-    Process the finished and pendings tasks and return error output, a summary, and an exit code.
+    Process the finished and pendings tasks and return error output and an exit code.
 
     This function is used by _run_processes() to generate the final stdout to be printed (which is
     going to be the output of the failed tasks since the cancelled tasks and successful tasks
-    already had their output printed), a summary block for humans to read, and an exit code that
-    bodhi-ci should use. Any pending tasks will be cancelled.
+    already had their output printed) and an exit code that bodhi-ci should use. Any pending tasks
+    will be cancelled.
 
     Args:
         loop (asyncio.AbstractEventLoop): The event loop. This is used to cancel any pending tasks.
@@ -942,13 +974,11 @@ def _process_results(loop, done, pending):
             canceled.
     Returns:
         dict: A dictionary with three keys:
-            'summary': Indexing a str summarizing the jobs.
             'output': The output that should be printed.
             'returncode': The exit code that bodhi-ci should exit with.
     """
     returncode = 0
     error_output = ''
-    summary = ''
 
     if pending:
         for task in pending:
@@ -963,17 +993,13 @@ def _process_results(loop, done, pending):
             result = task.result()
         except RuntimeError as e:
             result = e.result
-        if not result.skipped:
-            summary = summary + result.summary_line
         if not result.cancelled and result.returncode:
-            error_output = '{}\n{}'.format(error_output, result.output)
+            if result.output:
+                error_output = '{}\n{}'.format(error_output, result.output)
             if not returncode:
                 returncode = result.returncode
 
-    # Let's sort the summary lexicographically so releases show near each other.
-    summary = '\n'.join(sorted([l for l in summary.split('\n')]))
-
-    return {'summary': summary, 'output': error_output, 'returncode': returncode}
+    return {'output': error_output, 'returncode': returncode}
 
 
 def _run_jobs(jobs):
@@ -982,13 +1008,14 @@ def _run_jobs(jobs):
 
     Start a process for each Job. The stdout and stderr for each process is written to the
     terminal. Processes that exited with code 0 or were cancelled are output first, followed by any
-    processes that failed. Lastly, a summary report for the jobs is printed, indicating success or
-    failure for each one. If any jobs failed, one of the failed jobs' exit code will be used to exit
-    this process.
+    processes that failed. If any jobs failed, one of the failed jobs' exit code will be used to
+    exit this process.
 
     Args:
         jobs (list): A list of Jobs to run.
     """
+    _print_status(jobs)
+
     if not jobs:
         click.echo("No jobs!")
         sys.exit(3)
@@ -1010,9 +1037,8 @@ def _run_jobs(jobs):
     finally:
         _stop_all_jobs(loop)
 
-    # Now it's time to print any error output we collected and the summary, then exit or return.
+    # Now it's time to print any error output we collected, then exit or return.
     click.echo(results['output'])
-    click.echo('\n\n{}'.format(results['summary']))
     if results['returncode']:
         sys.exit(results['returncode'])
 
@@ -1030,7 +1056,8 @@ def _stop_all_jobs(loop):
     """
     args = [container_runtime, 'ps', '--filter=label={}'.format(CONTAINER_LABEL), '-q']
     processes = subprocess.check_output(args).decode()
-    stop_jobs = [StopJob(process).run() for process in processes.split('\n') if process]
+    stop_jobs = [StopJob(process, all_jobs=[]).run()
+                 for process in processes.split('\n') if process]
 
     # If you give run_until_complete a future with no tasks, you will haz a sad (that's the
     # technical wording for a ValueError).
