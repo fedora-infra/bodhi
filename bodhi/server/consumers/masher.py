@@ -1319,7 +1319,7 @@ class PungiComposerThread(ComposerThread):
                 self.log.info('Polling %s' % master_repomd_url)
                 masterrepomd = urlopen(master_repomd_url)
                 newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
-            except (IncompleteRead, URLError, HTTPError):
+            except (ConnectionResetError, IncompleteRead, URLError, HTTPError):
                 self.log.exception('Error fetching repomd.xml')
                 time.sleep(200)
                 continue

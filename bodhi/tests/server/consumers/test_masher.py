@@ -3097,6 +3097,55 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
     @mock.patch('bodhi.server.consumers.masher.urlopen')
+    def test_connectionreseterror(self, urlopen, sleep, publish, save):
+        """
+        Assert that an ConnectionResetError is properly caught and logged, and that the
+        algorithm continues.
+        """
+        fake_url = mock.MagicMock()
+        fake_url.read.return_value = b'---\nyaml: rules'
+        urlopen.side_effect = [ConnectionResetError(104, 'Connection reset by peer'), fake_url]
+        t = PungiComposerThread(self.semmock, self._make_msg()['body']['msg']['composes'][0],
+                                'bowlofeggs', log, self.Session, self.tempdir)
+        t.compose = self.db.query(Compose).one()
+        t.id = 'f26-updates-testing'
+        t.log = mock.MagicMock()
+        t.path = os.path.join(self.tempdir, t.id + '-' + time.strftime("%y%m%d.%H%M"))
+        for arch in ['aarch64', 'x86_64']:
+            repodata = os.path.join(t.path, 'compose', 'Everything', arch, 'os', 'repodata')
+            os.makedirs(repodata)
+            with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
+                repomd.write('---\nyaml: rules')
+
+        t._wait_for_sync()
+
+        expected_calls = [
+            mock.call(topic='mashtask.sync.wait', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True),
+            mock.call(topic='mashtask.sync.done', msg={'repo': t.id, 'agent': 'bowlofeggs'},
+                      force=True)]
+        publish.assert_has_calls(expected_calls)
+        # Since os.listdir() isn't deterministic about the order of the items it returns, the test
+        # won't be deterministic about which of arch URL gets used. However, either one of them
+        # would be correct so we will just assert that the one that is used is used correctly.
+        arch = 'x86_64' if 'x86_64' in urlopen.mock_calls[0][1][0] else 'aarch64'
+        expected_calls = [
+            mock.call('http://example.com/pub/fedora/linux/updates/testing/17/'
+                      '{}/repodata.repomd.xml'.format(arch))
+            for i in range(2)]
+        urlopen.assert_has_calls(expected_calls)
+        t.log.exception.assert_called_once_with('Error fetching repomd.xml')
+        sleep.assert_called_once_with(200)
+        save.assert_called_once_with(ComposeState.syncing_repo)
+
+    @mock.patch.dict(
+        'bodhi.server.consumers.masher.config',
+        {'fedora_testing_master_repomd':
+            'http://example.com/pub/fedora/linux/updates/testing/%s/%s/repodata.repomd.xml'})
+    @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
+    @mock.patch('bodhi.server.consumers.masher.notifications.publish')
+    @mock.patch('bodhi.server.consumers.masher.time.sleep')
+    @mock.patch('bodhi.server.consumers.masher.urlopen')
     def test_incompleteread(self, urlopen, sleep, publish, save):
         """
         Assert that an IncompleteRead is properly caught and logged, and that the code continues.
