@@ -468,6 +468,18 @@ class TestComposeState2HTML(unittest.TestCase):
         self.assertEqual(util.composestate2html(None, ComposeState.cleaning),
                          "<span class='label label-warning'>Cleaning old composes</span>")
 
+    def test_syncing_repo(self):
+        """Assert correct return value with the syncing_repo state."""
+        self.assertEqual(
+            util.composestate2html(None, ComposeState.syncing_repo),
+            "<span class='label label-warning'>Wait for the repo to hit the master mirror</span>",
+        )
+
+    def test_signing_repo(self):
+        """Assert correct return value with the signing_repo state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.signing_repo),
+                         "<span class='label label-warning'>Signing repo</span>")
+
 
 class TestCanWaiveTestResults(base.BaseTestCase):
     """Test the can_waive_test_results() function."""
