@@ -66,16 +66,16 @@ pull_request_rules:
 - actions:
     backport:
       branches:
-      - '3.10'
-  conditions:
-  - label!=no-mergify
-  - label=3.10-backports
-  name: backport 3.10
-- actions:
-    backport:
-      branches:
       - '3.11'
   conditions:
   - label!=no-mergify
   - label=3.11-backports
   name: backport 3.11
+- actions:
+    backport:
+      branches:
+      - '3.12'
+  conditions:
+  - label!=no-mergify
+  - label=3.12-backports
+  name: backport 3.12
