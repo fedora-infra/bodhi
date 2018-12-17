@@ -93,7 +93,10 @@ class Bugzilla(BugTracker):
         password = config.get('bodhi_password')
         url = config.get("bz_server")
         log.info("Using BZ URL %s" % url)
-        if user and password:
+        if config['bugzilla_api_key']:
+            self._bz = bugzilla.Bugzilla(url=url, api_key=config.get('bugzilla_api_key'),
+                                         cookiefile=None, tokenfile=None)
+        elif user and password:
             self._bz = bugzilla.Bugzilla(url=url,
                                          user=user, password=password,
                                          cookiefile=None, tokenfile=None)
