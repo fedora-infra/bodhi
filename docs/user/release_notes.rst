@@ -2,6 +2,36 @@
 Release notes
 =============
 
+v3.12.0
+-------
+
+This is a small feature release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No special actions are needed when applying this update.
+
+
+Features
+^^^^^^^^
+
+* Add a new ``bugzilla_api_key`` setting so that Bodhi can authenticate with an API key instead of
+  a username and password. It is hoped that this will solve an issue Bodhi has been experiencing
+  with Red Hat's Bugzilla instance since it upgraded to version 5, where Bodhi is often told it
+  needs to log in to Bugzilla when making changes to issues (:issue:`2827`).
+* Logging around Bodhi's use of the Bugzilla API is expanded (:issue:`2831`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.12.0:
+
+* Randy Barlow
+
+
 v3.11.3
 -------
 
