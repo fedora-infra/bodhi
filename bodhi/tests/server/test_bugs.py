@@ -36,6 +36,18 @@ class TestBugzilla(unittest.TestCase):
         self.assertIsNone(bz._bz)
 
     @mock.patch('bodhi.server.bugs.bugzilla.Bugzilla.__init__', return_value=None)
+    def test__connect_with_api_key(self, __init__):
+        """Test the _connect() method when the config contains an api_key."""
+        bz = bugs.Bugzilla()
+        patch_config = {'bz_server': 'https://example.com/bz', 'bugzilla_api_key': 'api_key'}
+
+        with mock.patch.dict('bodhi.server.bugs.config', patch_config):
+            bz._connect()
+
+        __init__.assert_called_once_with(url='https://example.com/bz', api_key='api_key',
+                                         cookiefile=None, tokenfile=None)
+
+    @mock.patch('bodhi.server.bugs.bugzilla.Bugzilla.__init__', return_value=None)
     def test__connect_with_creds(self, __init__):
         """Test the _connect() method when the config contains credentials."""
         bz = bugs.Bugzilla()
@@ -47,6 +59,20 @@ class TestBugzilla(unittest.TestCase):
 
         __init__.assert_called_once_with(url='https://example.com/bz', user='bodhi@example.com',
                                          password='bodhi_secret', cookiefile=None, tokenfile=None)
+
+    @mock.patch('bodhi.server.bugs.bugzilla.Bugzilla.__init__', return_value=None)
+    def test__connect_with_creds_and_api_key(self, __init__):
+        """Test the _connect() method when the config contains credentials and an api_key."""
+        bz = bugs.Bugzilla()
+        patch_config = {'bodhi_email': 'bodhi@example.com', 'bodhi_password': 'bodhi_secret',
+                        'bz_server': 'https://example.com/bz', 'bugzilla_api_key': 'api_key'}
+
+        with mock.patch.dict('bodhi.server.bugs.config', patch_config):
+            bz._connect()
+
+        # Using an API key should cause the credentials to be ignored.
+        __init__.assert_called_once_with(url='https://example.com/bz', api_key='api_key',
+                                         cookiefile=None, tokenfile=None)
 
     @mock.patch('bodhi.server.bugs.bugzilla.Bugzilla.__init__', return_value=None)
     def test__connect_without_creds(self, __init__):
