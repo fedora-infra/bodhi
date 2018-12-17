@@ -138,6 +138,9 @@ class TestPublish(base.BaseTestCase):
 
         self.assertIn('messages', session.info)
         for expected, actual in zip(expected_msgs, session.info['messages']):
+            # fedora-messages <= 1.1.0 include this in equality checks
+            del expected._headers['sent-at']
+            del actual._headers['sent-at']
             self.assertEqual(expected, actual)
         self.assertEqual(0, mock_init.call_count)
 
