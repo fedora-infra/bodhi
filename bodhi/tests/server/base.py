@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2016-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -18,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Contains a useful base test class that helps with common testing needs for bodhi.server."""
 from contextlib import contextmanager
+import mock
 import os
 import subprocess
 import unittest
@@ -25,7 +25,6 @@ import unittest
 from webtest import TestApp
 from sqlalchemy import event
 import createrepo_c
-import mock
 
 from bodhi.server import (bugs, buildsys, models, initialize_db, Session, config, main, metadata,
                           webapp)

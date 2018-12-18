@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2014-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -18,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import copy
+import mock
 from datetime import datetime, timedelta
 
 from fedora_messaging import api, testing as fml_testing
-import mock
 import webtest
 
 from bodhi.server import main

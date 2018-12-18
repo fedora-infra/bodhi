@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -28,8 +27,6 @@ import colander
 import koji
 import pyramid.threadlocal
 import rpm
-from six.moves import map
-import six
 
 from . import captcha
 from . import log
@@ -359,9 +356,7 @@ def validate_acls(request, **kwargs):
         return
     user = User.get(request.user.name)
     committers = []
-    watchers = []
     groups = []
-    notify_groups = []
 
     # There are two different code-paths that could pass through this validator
     # One of them is for submitting something new with a list of builds (a new
@@ -457,20 +452,7 @@ def validate_acls(request, **kwargs):
                 request.errors.add('body', 'builds', error)
                 return
 
-        if acl_system == 'pkgdb':
-            try:
-                people, groups = package.get_pkg_pushers(
-                    release.branch, config)
-                committers, watchers = people
-                groups, notify_groups = groups
-            except Exception as e:
-                log.exception(e)
-                request.errors.add('body', 'builds',
-                                   "Unable to access the Package "
-                                   "Database to check ACLs. Please "
-                                   "try again later.")
-                return
-        elif acl_system == 'pagure':
+        if acl_system == 'pagure':
             try:
                 committers, groups = package.get_pkg_committers_from_pagure()
                 people = committers
@@ -478,7 +460,7 @@ def validate_acls(request, **kwargs):
                 # If it's a RuntimeError, then the error will be logged
                 # and we can return the error to the user as is
                 log.error(error)
-                request.errors.add('body', 'builds', six.text_type(error))
+                request.errors.add('body', 'builds', str(error))
                 return
             except Exception as error:
                 # This is an unexpected error, so let's log it and give back

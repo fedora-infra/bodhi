@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2016-2018 Red Hat, Inc. and Caleigh Runge-Hotman
 #
 # This file is part of Bodhi.
@@ -20,9 +19,9 @@
 
 import copy
 import json
+import mock
 import unittest
 
-import mock
 import sqlalchemy
 
 from bodhi.server import config, exceptions, models, util

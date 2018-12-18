@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2014-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -19,9 +18,9 @@
 
 from datetime import datetime
 import copy
+import mock
 import re
 
-import mock
 import webtest
 
 from bodhi.server import main, util

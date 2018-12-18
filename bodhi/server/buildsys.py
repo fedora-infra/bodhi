@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.

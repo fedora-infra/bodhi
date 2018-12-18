@@ -1,5 +1,7 @@
-# -*- coding: utf-8 -*-
-
+# Copyright © 2016-2018 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -14,11 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for the bodhi.server.consumers.signed module."""
-from __future__ import absolute_import, unicode_literals
-
-import unittest
 
 import mock
+import unittest
 
 from bodhi.server.consumers import signed
 

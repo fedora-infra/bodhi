@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2011-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -21,6 +20,7 @@
 from collections import defaultdict
 from datetime import datetime
 from textwrap import wrap
+from urllib.parse import quote
 import copy
 import hashlib
 import json
@@ -31,7 +31,6 @@ import time
 import uuid
 
 from simplemediawiki import MediaWiki
-from six.moves.urllib.parse import quote
 from sqlalchemy import (and_, Boolean, Column, DateTime, event, ForeignKey,
                         Integer, or_, Table, Unicode, UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
@@ -40,7 +39,6 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.sql import text
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
-import six
 
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
@@ -48,9 +46,6 @@ from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
-
-if six.PY2:
-    from pkgdb2client import PkgDB
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
@@ -119,7 +114,7 @@ class EnumSymbol(object):
         Returns:
             unicode: A string representation of this EnumSymbol's value.
         """
-        return six.text_type(self.value)
+        return str(self.value)
 
     __str__ = __unicode__
 
@@ -166,7 +161,7 @@ class EnumMeta(type):
         return iter(cls._reg.values())
 
 
-class DeclEnum(six.with_metaclass(EnumMeta, object)):
+class DeclEnum(metaclass=EnumMeta):
     """Declarative enumeration."""
 
     _reg = {}
@@ -414,11 +409,11 @@ class BodhiBase(object):
                 continue
             d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
 
-        for key, value in six.iteritems(d):
+        for key, value in d.items():
             if isinstance(value, datetime):
                 d[key] = value.strftime('%Y-%m-%d %H:%M:%S')
             if isinstance(value, EnumSymbol):
-                d[key] = six.text_type(value)
+                d[key] = str(value)
 
         # If explicitly asked to, we will overwrite some fields if the
         # corresponding condition of each evaluates to True.
@@ -1049,44 +1044,6 @@ class Package(Base):
             str: The name of this package.
         """
         return self.name
-
-    def get_pkg_pushers(self, branch, settings):  # pragma: no cover
-        """
-        Return users who can commit and are watching a package.
-
-        pragma: no cover is used on this method because pkgdb support is planned to be dropped in
-        Bodhi. See https://github.com/fedora-infra/bodhi/issues/1970
-
-        Return two two-tuples of lists:
-            * The first tuple is for usernames. The second tuple is for groups.
-            * The first list of the tuples is for committers. The second is for
-              watchers.
-        """
-        watchers = []
-        committers = []
-        watchergroups = []
-        committergroups = []
-
-        pkgdb = PkgDB(settings.get('pkgdb_url'))
-        acls = pkgdb.get_package(self.name, branches=branch)
-
-        for package in acls['packages']:
-            for acl in package.get('acls', []):
-                if acl['status'] == 'Approved':
-                    if acl['acl'] == 'watchcommits':
-                        name = acl['fas_name']
-                        if name.startswith('group::'):
-                            watchergroups.append(name.split('::')[1])
-                        else:
-                            watchers.append(name)
-                    elif acl['acl'] == 'commit':
-                        name = acl['fas_name']
-                        if name.startswith('group::'):
-                            committergroups.append(name.split('::')[1])
-                        else:
-                            committers.append(name)
-
-        return (committers, watchers), (committergroups, watchergroups)
 
     def get_pkg_committers_from_pagure(self):
         """
@@ -2551,7 +2508,7 @@ class Update(Base):
         """
         log.debug('Attempting to set request %s' % action)
         notes = []
-        if isinstance(action, six.string_types):
+        if isinstance(action, str):
             action = UpdateRequest.from_string(action)
         if self.status and action.description == self.status.description:
             log.info("%s already %s" % (self.title, action.description))

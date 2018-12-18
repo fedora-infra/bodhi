@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2007-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -19,8 +18,8 @@
 """Test the bodhi.server package."""
 
 from datetime import datetime, timedelta
-
 import mock
+
 import sqlalchemy
 
 from bodhi.server.models import (

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2014-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -19,9 +18,9 @@
 
 from datetime import datetime, timedelta
 import copy
+import mock
 
 from fedora_messaging import api, testing as fml_testing
-import mock
 import webtest
 
 from bodhi.server.models import (

@@ -2,10 +2,7 @@
 <%namespace name="captcha" module="bodhi.server.captcha"/>
 <%namespace name="json" module="json"/>
 <%
-  try:
-    from urllib.parse import urljoin
-  except ImportError:
-    from urlparse import urljoin
+  from urllib.parse import urljoin
 %>
 
 <%block name="pagetitle">

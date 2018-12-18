@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -24,7 +23,6 @@ import smtplib
 
 from kitchen.iterutils import iterate
 from kitchen.text.converters import to_unicode, to_bytes
-import six
 
 from bodhi.server import log
 from bodhi.server.config import config
@@ -43,7 +41,7 @@ MESSAGES = {
         'fields': lambda agent, x: {
             'email': agent,
             'release': x.release.long_name,
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -55,7 +53,7 @@ MESSAGES = {
             'package': x.title,
             'email': agent,
             'release': '%s %s' % (x.release.long_name, x.status),
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -67,7 +65,7 @@ MESSAGES = {
             'package': x.title,
             'email': agent,
             'release': '%s %s' % (x.release.long_name, x.status),
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -78,7 +76,7 @@ MESSAGES = {
         'fields': lambda agent, x: {
             'package': x.title,
             'release': '%s %s' % (x.release.long_name, x.status),
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -89,7 +87,7 @@ MESSAGES = {
 """,
         'fields': lambda agent, x: {
             'submitter': agent,
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -100,7 +98,7 @@ MESSAGES = {
 """,
         'fields': lambda agent, x: {
             'submitter': agent,
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -110,7 +108,7 @@ MESSAGES = {
 """,
         'fields': lambda agent, x: {
             'submitter': agent,
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -119,7 +117,7 @@ MESSAGES = {
 The following update has been unpushed\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -129,7 +127,7 @@ The following update has been unpushed\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
             'submitter': agent,
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -140,7 +138,7 @@ The following update has been unpushed\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
             'submitter': agent,
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -149,7 +147,7 @@ The following update has been unpushed\n\n%(updatestr)s
 The following update has been moved from Testing to Stable:\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -161,7 +159,7 @@ automatically marked as stable.\n
 """,
         'fields': lambda agent, x: {
             'karma': x.karma,
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -174,7 +172,7 @@ repository.\n
 """,
         'fields': lambda agent, x: {
             'karma': x.karma,
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -191,7 +189,7 @@ To reply to this comment, please visit the URL at the bottom of this mail
         'fields': lambda agent, x: {
             'package': x.title,
             'comment': x.comments[-1],
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -218,7 +216,7 @@ or by running the following command with the bodhi-client:
         'fields': lambda agent, x: {
             'package': x.title,
             'stablekarma': x.stable_karma,
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -236,7 +234,7 @@ link below:
         'fields': lambda agent, x: {
             'package': x.title,
             'submitter': agent,
-            'updatestr': six.text_type(x)
+            'updatestr': str(x)
         }
     },
 
@@ -281,7 +279,7 @@ def get_template(update, use_template='fedora_errata_template'):
     """
     from bodhi.server.models import UpdateStatus, UpdateType
     use_template = read_template(use_template)
-    line = six.text_type('-' * 80) + '\n'
+    line = str('-' * 80) + '\n'
     templates = []
 
     for build in update.builds:

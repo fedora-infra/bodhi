@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2014-2017 Red Hat, Inc. and others
 #
 # This file is part of Bodhi.
@@ -26,7 +25,6 @@ from pyramid.exceptions import HTTPForbidden
 from pyramid.httpexceptions import HTTPFound
 import cornice.errors
 import sqlalchemy as sa
-import six
 
 from bodhi.server import log, models
 from bodhi.server.config import config
@@ -56,7 +54,7 @@ def get_top_testers():
         .filter(models.Comment.timestamp > start_time)
 
     for user in blacklist:
-        query = query.filter(models.User.name != six.text_type(user))
+        query = query.filter(models.User.name != str(user))
 
     return query\
         .group_by(models.User)\
@@ -242,8 +240,6 @@ def new_update(request):
     if not user:
         raise HTTPForbidden("You must be logged in.")
     suggestions = list(models.UpdateSuggestion.values())
-    if six.PY2:  # pragma: no cover
-        suggestions = reversed(suggestions)
     return dict(
         update=None,
         types=reversed(list(models.UpdateType.values())),
@@ -331,7 +327,7 @@ def latest_builds(request):
     builds = {}
     koji = request.koji
     package = request.params.get('package')
-    for tag_type, tags in six.iteritems(models.Release.get_tags(request.db)[0]):
+    for tag_type, tags in models.Release.get_tags(request.db)[0].items():
         for tag in tags:
             try:
                 for build in koji.getLatestBuilds(tag, package=package):
@@ -390,7 +386,7 @@ def popup_toggle(request):
     userid = request.authenticated_userid
     if userid is None:
         raise HTTPForbidden("You must be logged in.")
-    user = request.db.query(models.User).filter_by(name=six.text_type(userid)).first()
+    user = request.db.query(models.User).filter_by(name=str(userid)).first()
 
     # Toggle the value.
     user.show_popups = not user.show_popups

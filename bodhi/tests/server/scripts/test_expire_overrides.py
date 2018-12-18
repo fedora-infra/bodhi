@@ -1,3 +1,7 @@
+# Copyright © 2016-2018 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -14,12 +18,12 @@
 """
 This module contains tests for the bodhi.server.scripts.expire_overrides module.
 """
+import mock
 import unittest
 from datetime import timedelta
+from io import StringIO
 
-import mock
 from fedora_messaging import api, testing as fml_testing
-from six import StringIO
 
 from bodhi.server import models
 from bodhi.server.scripts import expire_overrides

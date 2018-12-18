@@ -114,7 +114,6 @@ def test_release = { String release ->
         },
         unitpy2: {
             bodhi_ci(release, 'unit', 'python2-unit', '--no-build --no-init -p 2')
-            bodhi_ci(release, 'diff_cover', 'python2-diff-cover', '--no-build --no-init -p 2')
         },
         unitpy3: {
             bodhi_ci(release, 'unit', 'python3-unit', '--no-build --no-init -p 3')

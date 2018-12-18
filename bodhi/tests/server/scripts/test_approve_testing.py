@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2016-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -20,10 +19,10 @@
 This module contains tests for the bodhi.server.scripts.approve_testing module.
 """
 from datetime import datetime, timedelta
+from io import StringIO
+from mock import patch
 
 from fedora_messaging import api, testing as fml_testing
-from mock import patch
-from six import StringIO
 
 from bodhi.server.config import config
 from bodhi.server import models

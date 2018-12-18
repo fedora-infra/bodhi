@@ -848,8 +848,8 @@ class UnitJob(Job):
         test_command = ('({} setup.py develop && {} {} || (cp *.xml /results && exit 1)) '
                         '&& cp *.xml /results')
 
-        if pyver == 2 and self.release not in ('f28', 'f29', 'pip'):
-            # We do not support the server on Fedora >= 30:
+        if pyver == 2:
+            # We do not support the server on Python 2:
             test_command = (
                 'rm requirements.txt && touch requirements.txt && rm .coveragerc && '
                 'rm -rf bodhi/tests/server && {}'.format(test_command))
@@ -1011,9 +1011,8 @@ def _build_jobs_list(
                     depends_on=build_job, buffer_output=buffer_output)
                 jobs.append(unit_job)
                 if command in ('all', 'diff_cover'):
-                    if pyver == 2 and release not in ('f27', 'f28', 'f29', 'pip'):
-                        # We don't support Python 2 on the server for Fedora >= 30, so don't
-                        # enforce coverage there.
+                    if pyver == 2:
+                        # We don't support Python 2 on the server, so don't enforce coverage there.
                         continue
                     diff_cover_job = DiffCoverJob(
                         archive=archive, archive_path=archive_path, pyver=pyver,

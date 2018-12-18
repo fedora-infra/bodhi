@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2016-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -19,10 +18,10 @@
 """This test suite contains tests for the bodhi.server.buildsys module."""
 
 from threading import Lock
+import mock
 import unittest
 
 import koji
-import mock
 
 from bodhi.server import buildsys
 

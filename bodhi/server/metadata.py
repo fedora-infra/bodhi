@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -26,7 +25,6 @@ import tempfile
 
 from kitchen.text.converters import to_bytes
 import createrepo_c as cr
-import six
 
 from bodhi.server import util
 from bodhi.server.buildsys import get_session
@@ -159,7 +157,7 @@ class UpdateInfoMetadata(object):
         log.debug("%d builds found" % len(kojiBuilds))
         for build in kojiBuilds:
             self.builds[build['nvr']] = build
-            build_obj = self.db.query(Build).filter_by(nvr=six.text_type(build['nvr'])).first()
+            build_obj = self.db.query(Build).filter_by(nvr=str(build['nvr'])).first()
             if build_obj:
                 if build_obj.update:
                     self.updates.add(build_obj.update)

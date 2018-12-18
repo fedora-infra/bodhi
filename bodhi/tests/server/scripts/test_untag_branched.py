@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2016-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -20,9 +19,8 @@
 This module contains tests for the bodhi.server.scripts.untag_branched module.
 """
 from datetime import datetime, timedelta
-
+from io import StringIO
 from mock import call, patch
-from six import StringIO
 
 from bodhi.server import models
 from bodhi.server.scripts import untag_branched

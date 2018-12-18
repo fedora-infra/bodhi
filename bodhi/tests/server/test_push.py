@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2016-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -19,10 +18,10 @@
 """This test suite contains tests on the bodhi.server.push module."""
 
 from datetime import datetime
+import mock
 
 from click.testing import CliRunner
 import click
-import mock
 
 from bodhi.server import push
 from bodhi.server import models

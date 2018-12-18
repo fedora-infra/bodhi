@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2013-2017 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -28,7 +27,6 @@ import sys
 import logging
 
 from pyramid.paster import get_appsettings
-import six
 
 from ..models import Update, UpdateStatus
 from ..config import config
@@ -101,7 +99,7 @@ def main(argv=sys.argv):
             # not reached the karma threshold.
             if update.meets_testing_requirements:
                 print('%s now meets testing requirements' % update.title)
-                text = six.text_type(
+                text = str(
                     config.get('testing_approval_msg') % update.mandatory_days_in_testing)
                 update.comment(db, text, author=u'bodhi')
 

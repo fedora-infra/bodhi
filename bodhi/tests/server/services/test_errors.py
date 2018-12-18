@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright © 2017 Red Hat, Inc.
+# Copyright © 2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -18,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.errors.py"""
 import mock
-import six
 
 from bodhi.tests.server import base
 
@@ -40,5 +38,4 @@ class TestHTMLHandlerErrors(base.BaseTestCase):
         self.assertIn("Traceback (most recent call last):\n", error_log_message)
         self.assertIn("summary=status2summary(errors.status),\n", error_log_message)
         self.assertIn("raise effect\n", error_log_message)
-        exception_str = 'IOError' if six.PY2 else 'OSError'
-        self.assertIn(exception_str + ": random error\n", error_log_message)
+        self.assertIn("OSError: random error\n", error_log_message)

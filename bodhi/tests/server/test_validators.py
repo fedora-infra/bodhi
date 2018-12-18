@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2017-2018 Red Hat, Inc.
 #
 # This file is part of bodhi.
@@ -18,15 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.validators."""
 import datetime
+import mock
 import unittest
 
-import mock
 from cornice.errors import Errors
 from fedora_messaging import api, testing as fml_testing
 from pyramid import exceptions
 
 from bodhi.tests.server.base import BaseTestCase
-from bodhi.server import buildsys, captcha, config, models, validators
+from bodhi.server import buildsys, captcha, models, validators
 
 
 class TestValidateCSRFToken(BaseTestCase):
@@ -124,32 +123,6 @@ class TestValidateAcls(BaseTestCase):
 
         self.assertEqual(len(request.errors), 0)
         gpcfp.assert_called_once_with()
-
-    @mock.patch('bodhi.server.models.Package.get_pkg_pushers',
-                return_value=((['guest'], []), ([], [])))
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pkgdb'})
-    def test_pkgdb_allowed(self, get_pkg_pushers):
-        """Test the integration with pkgdb."""
-        request = self.get_mock_request()
-
-        validators.validate_acls(request)
-
-        self.assertEqual(len(request.errors), 0)
-        get_pkg_pushers.assert_called_once_with('f17', config.config)
-
-    @mock.patch('bodhi.server.models.Package.get_pkg_pushers',
-                return_value=(([], []), (['some_group_guest_is_not_in'], [])))
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pkgdb'})
-    def test_pkgdb_disallowed(self, get_pkg_pushers):
-        """Test the integration with pkgdb."""
-        request = self.get_mock_request()
-
-        validators.validate_acls(request)
-
-        error = [{'location': 'body', 'name': 'builds',
-                  'description': 'guest does not have commit access to bodhi'}]
-        self.assertEqual(request.errors, error)
-        get_pkg_pushers.assert_called_once_with('f17', config.config)
 
     def test_unable_to_infer_content_type(self):
         """Test the error handler for when Bodhi cannot determine the content type of a build."""

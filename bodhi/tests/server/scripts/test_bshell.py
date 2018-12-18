@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2018 Sebastian Wojciechowski
 #
 # This file is part of Bodhi.
@@ -20,10 +19,10 @@
 This module contains tests for the bodhi.server.scripts.bshell module.
 """
 
+from mock import patch
 import unittest
 
 from click import testing
-from mock import patch
 
 from bodhi.server.scripts import bshell
 
