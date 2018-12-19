@@ -124,7 +124,7 @@ node('bodhi') {
     // diff-cover sometimes fails to identify origin/develop, so let's check out the develop branch
     // and then switch back to the commit we are testing so there is a develop branch available
     // for diff-cover to use later. See https://github.com/Bachmann1234/diff-cover/issues/55
-    sh 'git checkout -b the_commit_we_are_testing'
+    sh 'git branch -f the_commit_we_are_testing HEAD'
     sh 'git checkout develop'
     sh 'git checkout the_commit_we_are_testing'
 
