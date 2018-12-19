@@ -320,6 +320,9 @@ class BodhiConfig(dict):
         'bugtracker': {
             'value': None,
             'validator': _validate_none_or(six.text_type)},
+        'bugzilla_api_key': {
+            'value': None,
+            'validator': _validate_none_or(six.text_type)},
         'buildroot_limit': {
             'value': 31,
             'validator': int},

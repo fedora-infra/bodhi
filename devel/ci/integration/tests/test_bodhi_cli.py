@@ -256,7 +256,9 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
             date=comment.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             karma=comment.karma,
         ) in result.output
-        assert comment.text.strip() in result.output
+        # Comments are formatted too
+        for index, comment_line in enumerate(textwrap.wrap(comment.text, width=66)):
+            assert comment_line in result.output
     assert "1 updates found (1 shown)" in result.output
     # CI Status
     gw_ip = greenwave_container.get_IPv4s()[0]
