@@ -23,15 +23,6 @@ If you are interested in contributing to Bodhi, you can read the
 .. _developer documentation: https://bodhi.fedoraproject.org/docs/developer/index.html
 
 
-Meetings
-========
-
-There is a meeting every four weeks between Bodhi developers and stakeholder,
-held on IRC. If you would like to attend, you can see details here:
-
-https://apps.fedoraproject.org/calendar/meeting/4667/
-
-
 IRC
 ===
 
