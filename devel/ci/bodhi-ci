@@ -508,8 +508,8 @@ class BuildJob(Job):
         super(BuildJob, self).__init__(*args, **kwargs)
 
         dockerfile = os.path.join(PROJECT_PATH, 'devel', 'ci', 'Dockerfile-{}'.format(self.release))
-        self._command = [container_runtime, 'build', '--pull', '-t', self._container_image,
-                         '-f', dockerfile, '.']
+        self._command = [container_runtime, 'build', '--force-rm', '--pull', '-t',
+                         self._container_image, '-f', dockerfile, '.']
 
     async def run(self):
         """
@@ -797,8 +797,8 @@ class IntegrationBuildJob(BuildJob):
         self._label = 'integration-build-{}'.format(app_name)
         self._container_image = '{}-integration-{}'.format(CONTAINER_NAME, app_name)
         dockerfile = os.path.join(PROJECT_PATH, 'devel', 'ci', 'integration', app_name, 'Dockerfile')
-        self._command = [container_runtime, 'build', '--pull', '-t', self._container_image,
-                         '-f', dockerfile, '.']
+        self._command = [container_runtime, 'build', '--force-rm', '--pull', '-t',
+                         self._container_image, '-f', dockerfile, '.']
 
 
 class IntegrationJob(Job):
