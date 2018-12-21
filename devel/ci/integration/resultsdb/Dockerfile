@@ -1,4 +1,4 @@
-FROM centos:7
+FROM registry.centos.org/centos:7
 LABEL \
   name="resultsdb" \
   vendor="Fedora Infrastructure" \

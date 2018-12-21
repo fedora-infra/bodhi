@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2018-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+from conu.backend.docker.container_parameters import DockerContainerParameters
 import pytest
 
 from ..utils import make_db_and_user
@@ -38,6 +39,8 @@ def resultsdb_container(docker_backend, docker_network, db_container):
     # Define the container and start it
     image_name = "bodhi-ci-integration-resultsdb"
     image = docker_backend.ImageClass(image_name)
+    container_parameters = DockerContainerParameters(
+        env_variables={'POSTGRES_USER': 'postgres', 'POSTGRES_PASSWORD': 'bodhi'})
     container = image.run_via_api()
     container.start()
     docker_backend.d.connect_container_to_network(

@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2018-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+
+from conu.backend.docker.container_parameters import DockerContainerParameters
 import pytest
 
 
@@ -34,10 +36,13 @@ def db_container(docker_backend, docker_network):
         conu.DockerContainer: The PostgreSQL container.
     """
     image = docker_backend.ImageClass(
-        os.environ.get("BODHI_INTEGRATION_POSTGRESQL_IMAGE", "postgres"),
+        os.environ.get("BODHI_INTEGRATION_POSTGRESQL_IMAGE",
+                       "registry.fedoraproject.org/f29/postgresql"),
         tag="latest"
     )
-    container = image.run_via_api()
+    container_parameters = DockerContainerParameters(
+        env_variables={'POSTGRESQL_ADMIN_PASSWORD': 'bodhi'})
+    container = image.run_via_api(container_parameters)
     container.start()
     docker_backend.d.connect_container_to_network(
         container.get_id(), docker_network["Id"], aliases=["db"],
@@ -46,6 +51,8 @@ def db_container(docker_backend, docker_network):
     container.execute(
         ["/usr/bin/pg_isready", "-q", "-t", "16"]
     )
+    for log in container.logs():
+        print(log)
     yield container
     container.kill()
     container.delete()

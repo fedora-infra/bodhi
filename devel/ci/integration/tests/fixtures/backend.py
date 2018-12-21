@@ -49,4 +49,7 @@ def docker_network(docker_backend):
     """
     network = docker_backend.d.create_network(f"bodhi_test-{uuid.uuid4()}", driver="bridge")
     yield network
-    docker_backend.d.remove_network(network["Id"])
+    try:
+        docker_backend.d.remove_network(network["Id"])
+    except Exception as e:
+        print(e)
