@@ -114,6 +114,11 @@ def test_release = { String release ->
         unitpy3: {
             bodhi_ci(release, 'unit', 'python3-unit', '--no-build --no-init -p 3')
             bodhi_ci(release, 'diff_cover', 'python3-diff-cover', '--no-build --no-init -p 3')
+        },
+        integration: {
+            if(release == 'f29') {
+                bodhi_ci(release, 'integration', 'python3-integration', '--no-build --no-init -p 3')
+            }
         }
     )
 }
@@ -155,9 +160,6 @@ node('bodhi') {
             f29: {test_release('f29')},
             pip: {test_release('pip')},
             rawhide: {test_release('rawhide')},
-            integration: {
-                bodhi_ci('f29', 'integration', 'python3-integration', '--no-build --no-init -p 3')
-            }
         )
     } catch (e) {
         currentBuild.result = "FAILURE"
