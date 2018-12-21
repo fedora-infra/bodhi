@@ -182,7 +182,9 @@ def build(concurrency, container_runtime, failfast, release, tty):
 def clean(concurrency, container_runtime, init, release, tty):
     """Remove all builds pertaining to Bodhi CI."""
     buffer_output = concurrency != 1 or len(release) != 1
-    clean_jobs = [CleanJob(r, buffer_output=buffer_output) for r in release]
+    clean_jobs = []
+    for r in release:
+        clean_jobs.append(CleanJob(r, buffer_output=buffer_output, all_jobs=clean_jobs))
     _run_jobs(clean_jobs)
 
 
