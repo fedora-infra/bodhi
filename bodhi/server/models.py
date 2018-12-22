@@ -1982,7 +1982,8 @@ class Update(Base):
         data = {
             'product_version': self.product_version,
             'decision_context': decision_context,
-            'subject': self.greenwave_subject
+            'subject': self.greenwave_subject,
+            'verbose': True,
         }
         api_url = '{}/decision'.format(config.get('greenwave_api_url'))
 
