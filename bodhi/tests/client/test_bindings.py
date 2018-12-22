@@ -1334,7 +1334,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
     @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
     def test_ci_status_errors(self, get_test_status):
-        """Test that severity is rendered."""
+        """Ensure that ci error is displayed"""
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
         get_test_status.return_value = munch.Munch(
@@ -1346,7 +1346,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
     @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
     def test_ci_status(self, get_test_status):
-        """Test that severity is rendered."""
+        """Ensure that ci information is displayed"""
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
         get_test_status.return_value = munch.Munch(
@@ -1387,7 +1387,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
         client_test_data.EXAMPLE_UPDATE_MUNCH,
         {'notes': 'This note contains:\n* multiline formatting\n* bullet points\n\n'})
     def test_notes_multiline(self):
-        """Test that severity is rendered."""
+        """Ensure that multiline notes are rendered"""
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
