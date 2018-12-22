@@ -282,7 +282,8 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
                 for b in update.builds
             ] + [
                 {"item": update.alias, "type": "bodhi_update"}
-            ]
+            ],
+            "verbose": True,
         }),
     ).json()
     assert "summary" in greenwave_result

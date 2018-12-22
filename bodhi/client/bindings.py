@@ -830,14 +830,34 @@ class BodhiClient(OpenIdBaseClient):
 
         if test_status:
             info = None
+            waivers = None
             if 'errors' in test_status:
                 info = '\n'.join([el.description for el in test_status.errors])
             elif 'decision' in test_status:
                 info = test_status.decision.summary
+                waivers = test_status.decision.waivers
             else:
                 log.debug('No `errors` nor `decision` in the data returned')
             if info:
                 update_lines.append(line_formatter.format('CI Status', info))
+            if waivers:
+                waivers_lines = []
+                for waiver in waivers:
+                    dt = datetime.datetime.strptime(waiver['timestamp'], '%Y-%m-%dT%H:%M:%S.%f')
+                    waivers_lines.append('{0} - {1}'.format(
+                        waiver['username'], dt.strftime('%Y-%m-%d %H:%M:%S')))
+                    waivers_lines += wrap_line(waiver['comment'])
+                    waivers_lines.append('build: {}'.format(waiver['subject_identifier']))
+                    waivers_lines.append('testcase: {}'.format(waiver['testcase']))
+
+                update_lines.append(line_formatter.format('Waivers', waivers_lines[0]))
+                waiver_line_formatter = line_formatter.replace(': ', '  ')
+                update_lines += [
+                    waiver_line_formatter.format(indent, line)
+                    for indent, line in six.moves.zip(
+                        itertools.repeat(' ', len(waivers_lines) - 1),
+                        waivers_lines[1:])
+                ]
 
         if update['request'] is not None:
             update_lines.append(line_formatter.format('Request', update['request']))
