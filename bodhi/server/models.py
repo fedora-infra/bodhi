@@ -46,7 +46,7 @@ from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
-    avatar as get_avatar, build_evr, flash_log, get_critpath_components,
+    avatar as get_avatar, build_evr, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
 
 if six.PY2:
@@ -2568,11 +2568,11 @@ class Update(Base):
             self.comment(db, u'This update has been unpushed.', author=username)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
-            flash_log("%s has been unpushed." % self.title)
+            log.debug("%s has been unpushed." % self.title)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete(db)
-            flash_log("%s has been obsoleted." % self.title)
+            log.debug("%s has been obsoleted." % self.title)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
@@ -2583,7 +2583,7 @@ class Update(Base):
                 and action is UpdateRequest.revoke:
             self.status = UpdateStatus.unpushed
             self.revoke()
-            flash_log("%s has been revoked." % self.title)
+            log.debug("%s has been revoked." % self.title)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
@@ -2594,14 +2594,14 @@ class Update(Base):
                 self.status is UpdateStatus.testing and action is UpdateRequest.revoke:
             self.status = UpdateStatus.testing
             self.revoke()
-            flash_log("%s has been revoked." % self.title)
+            log.debug("%s has been revoked." % self.title)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
 
         elif action is UpdateRequest.revoke:
             self.revoke()
-            flash_log("%s has been revoked." % self.title)
+            log.debug("%s has been revoked." % self.title)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
@@ -2683,7 +2683,7 @@ class Update(Base):
 
         notes = notes and '. '.join(notes) + '.' or ''
         flash_notes = flash_notes and '. %s' % flash_notes
-        flash_log(
+        log.debug(
             "%s has been submitted for %s. %s%s" % (
                 self.title, action.description, notes, flash_notes))
         self.comment(db, u'This update has been submitted for %s by %s. %s' % (
@@ -3020,7 +3020,7 @@ class Update(Base):
                 and self.karma <= self.unstable_karma:
             log.info("%s has reached unstable karma thresholds" % self.title)
             self.obsolete(db)
-            flash_log("%s has been obsoleted." % self.title)
+            log.debug("%s has been obsoleted." % self.title)
         return
 
     def comment(self, session, text, karma=0, author=None, anonymous=False,
