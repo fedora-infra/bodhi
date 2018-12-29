@@ -90,6 +90,7 @@ def main(argv=sys.argv):
                 print('%s now reaches stable karma threshold' % update.title)
                 text = config.get('testing_approval_msg_based_on_karma')
                 update.comment(db, text, author=u'bodhi')
+                db.commit()
                 continue
 
             # If autokarma updates have reached the testing threshold, say something! Keep in mind
@@ -106,8 +107,8 @@ def main(argv=sys.argv):
                 notifications.publish(
                     topic='update.requirements_met.stable',
                     msg=dict(update=update))
+                db.commit()
 
-        db.commit()
     except Exception as e:
         print(str(e))
         db.rollback()
