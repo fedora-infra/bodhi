@@ -35,7 +35,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
     """This test class contains tests for the UpdatesHandler.consume() method."""
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
-    def test_edited_update_bug_not_in_update(self, work_on_bugs, fetch_test_cases, sleep):
+    def test_edited_update_bug_not_in_database(self, work_on_bugs, fetch_test_cases, sleep):
         """
         Test with a message that indicates that the update is being edited, and the list of bugs
         contains one that UpdatesHandler does not find in the database.
@@ -50,11 +50,59 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
             'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
                              'new_bugs': ['12345', '123456']}}}
 
-        self.assertRaises(AssertionError, h.consume, message)
+        h.consume(message)
 
-        self.assertEqual(work_on_bugs.call_count, 0)
-        self.assertEqual(fetch_test_cases.call_count, 0)
+        self.assertEqual(work_on_bugs.call_count, 1)
+        self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][0],
+                                   sqlalchemy.orm.session.Session))
+        self.assertEqual(work_on_bugs.mock_calls[0][1][1].title, u'bodhi-2.0-1.fc17')
+        self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][2]], [12345, 123456])
+        self.assertEqual(fetch_test_cases.call_count, 1)
+        self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][0],
+                                   sqlalchemy.orm.session.Session))
         sleep.assert_called_once_with(1)
+
+        # Inexisting bug with id '123456' should now exists in DB as a bug attached to update
+        bug = models.Bug.query.filter_by(bug_id=123456).one()
+        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        self.assertIn(bug, update.bugs)
+
+    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
+    def test_edited_update_bug_not_in_update(self, work_on_bugs, fetch_test_cases, sleep):
+        """
+        Test with a message that indicates that the update is being edited, and the list of bugs
+        contains one that UpdatesHandler does not find in the update.
+        """
+        bug = models.Bug(bug_id=123456)
+        self.db.add(bug)
+        self.db.commit()
+        hub = mock.MagicMock()
+        hub.config = {'environment': 'environment',
+                      'topic_prefix': 'topic_prefix'}
+        h = updates.UpdatesHandler(hub)
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        message = {
+            'topic': 'bodhi.update.edit',
+            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
+                             'new_bugs': ['12345', '123456']}}}
+
+        h.consume(message)
+
+        self.assertEqual(work_on_bugs.call_count, 1)
+        self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][0],
+                                   sqlalchemy.orm.session.Session))
+        self.assertEqual(work_on_bugs.mock_calls[0][1][1].title, u'bodhi-2.0-1.fc17')
+        self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][2]], [12345, 123456])
+        self.assertEqual(fetch_test_cases.call_count, 1)
+        self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][0],
+                                   sqlalchemy.orm.session.Session))
+        sleep.assert_called_once_with(1)
+
+        # Bug with id '123456' should be attached to update
+        bug = models.Bug.query.filter_by(bug_id=123456).one()
+        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        self.assertIn(bug, update.bugs)
 
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
     # can ensure that we aren't raising Exceptions from them, while allowing us to only assert that
