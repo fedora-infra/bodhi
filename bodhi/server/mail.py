@@ -431,7 +431,7 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     _send_mail(from_addr, to_addr, body)
 
 
-def send(to, msg_type, update, sender=None, agent=None):
+def send(to, msg_type, update, sender=None, agent='bodhi'):
     """
     Send an update notification email to a given recipient.
 
@@ -444,8 +444,6 @@ def send(to, msg_type, update, sender=None, agent=None):
             "bodhi_email" setting will be used as the From: header.
         agent (basestring): The username that performed the action that generated this e-mail.
     """
-    assert agent, 'No agent given'
-
     critpath = getattr(update, 'critpath', False) and '[CRITPATH] ' or ''
     headers = {}
 
