@@ -615,6 +615,9 @@ $(document).ready(function(){
                     title="Update is locked and cannot be edited. Locking of an update usually occurs when a push is in progress.">
               <span class="fa fa-pencil"></span> Edit
             </button>
+          % if self.util.can_waive_test_results(update):
+            <a id='waive' class="btn btn-sm btn-primary hidden" data-toggle="modal" data-target="#waive_test_results">Waive Test Results</a>
+          % endif
           </div>
         % endif
       % endif
