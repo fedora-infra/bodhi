@@ -1031,8 +1031,9 @@ def print_resp(resp, client, verbose=False, override_hint=True):
         else:
             for override in resp.overrides:
                 click.echo(client.override_str(override).strip())
-        click.echo(
-            '%s overrides found (%d shown)' % (resp.total, len(resp.overrides)))
+        if 'total' in resp:
+            click.echo(
+                '%s overrides found (%d shown)' % (resp.total, len(resp.overrides)))
     elif 'build' in resp:
         click.echo(client.override_str(resp, minimal=False))
         if override_hint:
