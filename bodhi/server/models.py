@@ -3029,7 +3029,7 @@ class Update(Base):
         """Add a comment to this update.
 
         If the karma reaches the 'stable_karma' value, then request that this update be marked
-        as stable.  If it reaches the 'unstable_karma', it is unpushed.
+        as stable. If it reaches the 'unstable_karma', it is unpushed.
         """
         if not author:
             raise ValueError('You must provide a comment author')
