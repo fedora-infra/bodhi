@@ -107,6 +107,11 @@ def test_release = { String release ->
         docs: {bodhi_ci(release, 'docs', 'docs', '--no-build --no-init')},
         flake8: {bodhi_ci(release, 'flake8', 'flake8', '--no-build --no-init')},
         pydocstyle: {bodhi_ci(release, 'pydocstyle', 'pydocstyle', '--no-build --no-init')},
+        mypy: {
+            if(release == 'pip') {
+                bodhi_ci(release, 'mypy', 'mypy', '--no-build --no-init')
+            }
+        },
         unitpy2: {
             bodhi_ci(release, 'unit', 'python2-unit', '--no-build --no-init -p 2')
             bodhi_ci(release, 'diff_cover', 'python2-diff-cover', '--no-build --no-init -p 2')
@@ -114,18 +119,24 @@ def test_release = { String release ->
         unitpy3: {
             bodhi_ci(release, 'unit', 'python3-unit', '--no-build --no-init -p 3')
             bodhi_ci(release, 'diff_cover', 'python3-diff-cover', '--no-build --no-init -p 3')
+        },
+        integration: {
+            if(release == 'f29') {
+                bodhi_ci(release, 'integration', 'python3-integration', '--no-build --no-init -p 3')
+            }
         }
     )
 }
 
 
 node('bodhi') {
-    commit_hash = checkout(scm).GIT_COMMIT
+    checkout scm
     // diff-cover sometimes fails to identify origin/develop, so let's check out the develop branch
-    // and then switch back to the commit hash we are testing so there is a develop branch available
+    // and then switch back to the commit we are testing so there is a develop branch available
     // for diff-cover to use later. See https://github.com/Bachmann1234/diff-cover/issues/55
+    sh 'git branch -f the_commit_we_are_testing HEAD'
     sh 'git checkout develop'
-    sh 'git checkout ' + commit_hash
+    sh 'git checkout the_commit_we_are_testing'
 
     stage('Allocate Duffy node') {
         env.CICO_API_KEY = readFile("${env.HOME}/duffy.key").trim()
@@ -154,9 +165,6 @@ node('bodhi') {
             f29: {test_release('f29')},
             pip: {test_release('pip')},
             rawhide: {test_release('rawhide')},
-            integration: {
-                bodhi_ci('f29', 'integration', 'python3-integration', '--no-build --no-init -p 3')
-            }
         )
     } catch (e) {
         currentBuild.result = "FAILURE"

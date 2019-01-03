@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2018 Sebastian Wojciechowski
+# Copyright © 2018-2019 Sebastian Wojciechowski and Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -45,13 +45,13 @@ karma: 1
 karma_critpath: 0
 text: wow. amaze.
 timestamp: 1984-11-02 00:00:00
-update_alias: FEDORA-2018-a3bbe1a8f2
+update_alias: {}
 username: guest
 
 ----> Updates: <----
 
 Update no 1:
-alias: FEDORA-2018-a3bbe1a8f2
+alias: {}
 autokarma: True
 bugs: [12345]
 builds: ['bodhi-2.0-1.fc17']
@@ -73,9 +73,9 @@ user: guest
 EXPECTED_JSON_OUTPUT = (
     '{"guest": {"comments": [{"anonymous": false, "karma": 1, "karma_critpath": 0, "text":'
     ' "wow. amaze.", "timestamp": "1984-11-02 00:00:00", "update_alias": '
-    '"FEDORA-2018-a3bbe1a8f2", "username": "guest"}], "email": null, "groups": '
+    '"ALIAS", "username": "guest"}], "email": null, "groups": '
     '["packager"], "name": "guest", "show_popups": true, "updates": [{"alias": '
-    '"FEDORA-2018-a3bbe1a8f2", "autokarma": true, "bugs": [12345], "builds": '
+    '"ALIAS", "autokarma": true, "bugs": [12345], "builds": '
     '["bodhi-2.0-1.fc17"], "close_bugs": true, "date_submitted": "1984-11-02 00:00:00", '
     '"notes": "Useful details!", "release_name": "F17", "require_bugs": false, '
     '"require_testcases": false, "requirements": "rpmlint", "severity": "medium", '
@@ -111,6 +111,7 @@ class TestSar(BaseTestCase):
         comment.timestamp = now
         self.db.commit()
         expected_output = EXPECTED_JSON_OUTPUT.replace("1984-11-02 00:00:00", now_str, 1)
+        expected_output = expected_output.replace('ALIAS', comment.update.alias)
 
         runner = testing.CliRunner()
         r = runner.invoke(sar.get_user_data, ["--username=" + "guest"])
@@ -127,6 +128,7 @@ class TestSar(BaseTestCase):
         comment.timestamp = now
         self.db.commit()
         expected_output = EXPECTED_JSON_OUTPUT.replace("1984-11-02 00:00:00", now_str, 1)
+        expected_output = expected_output.replace('ALIAS', comment.update.alias)
 
         runner = testing.CliRunner()
         r = runner.invoke(sar.get_user_data)
@@ -142,6 +144,7 @@ class TestSar(BaseTestCase):
         comment.timestamp = now
         self.db.commit()
         expected_output = EXPECTED_USER_DATA_OUTPUT.replace("1984-11-02 00:00:00", now_str, 1)
+        expected_output = expected_output.format(comment.update.alias, comment.update.alias)
 
         runner = testing.CliRunner()
         r = runner.invoke(sar.get_user_data, ["--username=" + "guest", "--human-readable"])

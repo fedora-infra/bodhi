@@ -1118,6 +1118,7 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
             params={'page': 5})
 
 
+@mock.patch.dict(os.environ, {'BODHI_OPENID_API': 'https://id.example.com/api/v1/'})
 class TestRequest(unittest.TestCase):
     """
     This class tests the request() function.
@@ -1154,8 +1155,9 @@ class TestRequest(unittest.TestCase):
             )
         ]
         self.assertEqual(send_request.mock_calls, calls)
-        __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user',
-                                         password='s3kr3t', staging=False)
+        __init__.assert_called_once_with(
+            base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user', password='s3kr3t',
+            staging=False, openid_api='https://id.example.com/api/v1/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -1183,8 +1185,9 @@ class TestRequest(unittest.TestCase):
             'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
                   'update': u'bodhi-2.2.4-99.el7'})
-        __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user',
-                                         password='s3kr3t', staging=False)
+        __init__.assert_called_once_with(
+            base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user', password='s3kr3t',
+            staging=False, openid_api='https://id.example.com/api/v1/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1916,7 +1919,7 @@ class TestCreate(unittest.TestCase):
                   'testing_tag': None, 'pending_stable_tag': None, 'long_name': None, 'state': None,
                   'version': None, 'override_tag': None, 'branch': None, 'id_prefix': None,
                   'pending_testing_tag': None, 'pending_signing_tag': None, 'stable_tag': None,
-                  'candidate_tag': None, 'mail_template': None})
+                  'candidate_tag': None, 'mail_template': None, 'composed_by_bodhi': True})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -1976,7 +1979,7 @@ class TestEditRelease(unittest.TestCase):
                       'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
                       'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
                       'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'fedora_errata_template'}))
+                      'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True}))
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -2012,7 +2015,7 @@ class TestEditRelease(unittest.TestCase):
                       'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
                       'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
                       'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'fedora_errata_template'}))
+                      'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True}))
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2082,7 +2085,42 @@ class TestEditRelease(unittest.TestCase):
                       'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
                       'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
                       'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'edited_fedora_errata_template'}))
+                      'mail_template': 'edited_fedora_errata_template', 'composed_by_bodhi': True}))
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_RELEASE_MUNCH, autospec=True)
+    def test_edit_not_composed_by_bodhi_flag(self, send_request):
+        """
+        Assert correct behavior while editing 'composed_by_bodhi' flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit_release,
+            ['--name', 'F27', '--not-composed-by-bodhi'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
+        bindings_client = send_request.mock_calls[0][1][0]
+        self.assertEqual(send_request.call_count, 2)
+        self.assertEqual(send_request.mock_calls[0],
+                         mock.call(bindings_client, 'releases/F27', verb='GET', auth=True))
+        self.assertEqual(
+            send_request.mock_calls[1],
+            mock.call(
+                bindings_client, 'releases/', verb='POST', auth=True,
+                data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
+                      'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
+                      'pending_stable_tag': 'f27-updates-pending',
+                      'pending_signing_tag': 'f27-signing-pending',
+                      'long_name': 'Fedora 27', 'state': 'pending',
+                      'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
+                      'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
+                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
+                      'mail_template': 'fedora_errata_template',
+                      'composed_by_bodhi': False}))
 
 
 class TestInfo(unittest.TestCase):

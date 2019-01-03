@@ -93,3 +93,13 @@ the host::
 
 If you wish to use a custom ``Vagrantfile``, you can set the environment variable
 ``VAGRANT_VAGRANTFILE`` as a path to a script.
+
+
+Authentication
+^^^^^^^^^^^^^^
+
+The Vagrant environment will configure Bodhi server and Bodhi's CLI to use Fedora's staging Ipsilon
+server for authentication. This means you will need to ensure you have an account on Fedora's
+staging account system. If you need to make an account, you can do so
+`here <https://admin.stg.fedoraproject.org/accounts/>`_. This is done to prevent accidental changes
+to Fedora's production instance during development.

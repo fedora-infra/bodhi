@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2018-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -134,6 +134,7 @@ def test_releases_info(bodhi_container, db_container):
   Override Tag:        {override_tag}
   State:               {state}
   Email Template:      {mail_template}
+  Composed by Bodhi:   {composed_by_bodhi}
 """.format(**release)
         assert result.output == expected
 
@@ -234,7 +235,9 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
         "Autokarma: {u.autokarma}  [{u.unstable_karma}, {u.stable_karma}]"
     ).format(u=update)
     assert expected_autokarma in result.output
-    assert "Request: {}".format(update.request) in result.output
+    # If the update doesn't have a request, the CLI does not render the Request: line.
+    if update.request:
+        assert "Request: {}".format(update.request) in result.output
     # Notes are formatted
     formatted_notes = list(itertools.chain(*[
         textwrap.wrap(line, width=66)
@@ -256,7 +259,9 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
             date=comment.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             karma=comment.karma,
         ) in result.output
-        assert comment.text.strip() in result.output
+        # Comments are formatted too
+        for index, comment_line in enumerate(textwrap.wrap(comment.text, width=66)):
+            assert comment_line in result.output
     assert "1 updates found (1 shown)" in result.output
     # CI Status
     gw_ip = greenwave_container.get_IPv4s()[0]

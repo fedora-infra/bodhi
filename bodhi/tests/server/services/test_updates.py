@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2011-2018 Red Hat, Inc. and others.
+# Copyright 2011-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -35,7 +35,7 @@ from webtest import TestApp
 from bodhi.server import main
 from bodhi.server.config import config
 from bodhi.server.models import (
-    BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
+    Build, BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
     UpdateSeverity, UpdateSuggestion, User, TestGatingStatus)
 from bodhi.server.util import call_api
@@ -5487,7 +5487,7 @@ class TestWaiveTestResults(BaseTestCase):
                 'subject': [
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                    {'item': up.alias, 'type': 'bodhi_update'}
                 ]
             }
         )
@@ -5560,7 +5560,7 @@ class TestWaiveTestResults(BaseTestCase):
                 'subject': [
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                    {'item': up.alias, 'type': 'bodhi_update'}
                 ]
             }
         )
@@ -5653,7 +5653,7 @@ class TestWaiveTestResults(BaseTestCase):
                 'subject': [
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                    {'item': up.alias, 'type': 'bodhi_update'}
                 ]
             }
         )
@@ -5730,7 +5730,7 @@ class TestWaiveTestResults(BaseTestCase):
                 'subject': [
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                    {'item': up.alias, 'type': 'bodhi_update'}
                 ]
             }
         )
@@ -5823,7 +5823,7 @@ class TestWaiveTestResults(BaseTestCase):
                 'subject': [
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                    {'item': up.alias, 'type': 'bodhi_update'}
                 ]
             }
         )
@@ -5961,14 +5961,12 @@ class TestGetTestResults(BaseTestCase):
         Ensure if all conditions are met we do try to call greenwave with the proper
         argument but that call raises an error.
         """
-        nvr = u'bodhi-2.0-1.fc17'
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.locked = False
         call_api.side_effect = requests.exceptions.HTTPError(
             'Un-expected error foo bar')
 
-        up = self.db.query(Update).filter_by(title=nvr).one()
-        up.locked = False
-
-        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=502)
+        res = self.app.get('/updates/%s/get-test-results' % str(update.builds[0].nvr), status=502)
 
         call_api.assert_called_once_with(
             'https://greenwave.api/decision',
@@ -5978,7 +5976,7 @@ class TestGetTestResults(BaseTestCase):
                 'subject': [
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                    {'item': update.alias, 'type': 'bodhi_update'}
                 ]
             },
             method='POST',
@@ -6006,11 +6004,11 @@ class TestGetTestResults(BaseTestCase):
         Ensure if all conditions are met we do try to call greenwave with the proper
         argument but that call raises a TimeOut error.
         """
-        nvr = u'bodhi-2.0-1.fc17'
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         call_api.side_effect = requests.exceptions.Timeout(
             'Request to greenwave timed out')
 
-        res = self.app.get('/updates/%s/get-test-results' % str(nvr), status=504)
+        res = self.app.get('/updates/%s/get-test-results' % str(update.builds[0].nvr), status=504)
 
         call_api.assert_called_once_with(
             'https://greenwave.api/decision',
@@ -6020,7 +6018,7 @@ class TestGetTestResults(BaseTestCase):
                 'subject': [
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                    {'item': update.alias, 'type': 'bodhi_update'}
                 ]
             },
             method='POST',
@@ -6048,10 +6046,10 @@ class TestGetTestResults(BaseTestCase):
         Ensure if all conditions are met we do try to call greenwave with the proper
         argument.
         """
-        nvr = u'bodhi-2.0-1.fc17'
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         call_api.return_value = {"foo": "bar"}
 
-        res = self.app.get('/updates/%s/get-test-results' % str(nvr))
+        res = self.app.get('/updates/%s/get-test-results' % str(update.builds[0].nvr))
 
         call_api.assert_called_once_with(
             'https://greenwave.api/decision',
@@ -6061,7 +6059,7 @@ class TestGetTestResults(BaseTestCase):
                 'subject': [
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                    {'item': update.alias, 'type': 'bodhi_update'}
                 ]
             },
             method='POST',
@@ -6077,14 +6075,14 @@ class TestGetTestResults(BaseTestCase):
         Ensure if all conditions are met we do try to call greenwave with the proper
         argument.
         """
-        nvr = u'bodhi-2.0-1.fc17'
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         call_api.return_value = {"foo": "bar"}
 
         with mock.patch('bodhi.server.Session.remove'):
             app = TestApp(main(
                 {}, testing=u'bodhi', session=self.db,
                 greenwave_api_url='https://greenwave.api', **self.app_settings))
-            res = app.get('/updates/%s/get-test-results' % str(nvr))
+            res = app.get('/updates/%s/get-test-results' % str(update.builds[0].nvr))
 
         call_api.assert_called_once_with(
             'https://greenwave.api/decision',
@@ -6094,7 +6092,7 @@ class TestGetTestResults(BaseTestCase):
                 'subject': [
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                    {'item': u'FEDORA-2018-a3bbe1a8f2', 'type': 'bodhi_update'}
+                    {'item': update.alias, 'type': 'bodhi_update'}
                 ]
             },
             method='POST',
