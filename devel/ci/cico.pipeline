@@ -107,6 +107,11 @@ def test_release = { String release ->
         docs: {bodhi_ci(release, 'docs', 'docs', '--no-build --no-init')},
         flake8: {bodhi_ci(release, 'flake8', 'flake8', '--no-build --no-init')},
         pydocstyle: {bodhi_ci(release, 'pydocstyle', 'pydocstyle', '--no-build --no-init')},
+        mypy: {
+            if(release == 'pip') {
+                bodhi_ci(release, 'mypy', 'mypy', '--no-build --no-init')
+            }
+        },
         unitpy2: {
             bodhi_ci(release, 'unit', 'python2-unit', '--no-build --no-init -p 2')
             bodhi_ci(release, 'diff_cover', 'python2-diff-cover', '--no-build --no-init -p 2')

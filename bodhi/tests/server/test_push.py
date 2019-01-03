@@ -725,6 +725,91 @@ class TestPush(base.BaseTestCase):
 
     @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
+    def test_create_composes_for_releases_marked_as_composed_by_bodhi(self, publish, mock_init):
+        """
+        Assert that composes are created only for releases marked as 'composed_by_bodhi'.
+        """
+        f25 = models.Release(
+            name=u'F25', long_name=u'Fedora 25',
+            id_prefix=u'FEDORA', version=u'25',
+            dist_tag=u'f25', stable_tag=u'f25-updates',
+            testing_tag=u'f25-updates-testing',
+            candidate_tag=u'f25-updates-candidate',
+            pending_signing_tag=u'f25-updates-testing-signing',
+            pending_testing_tag=u'f25-updates-testing-pending',
+            pending_stable_tag=u'f25-updates-pending',
+            override_tag=u'f25-override',
+            branch=u'f25', state=models.ReleaseState.current)
+        f26 = models.Release(
+            name=u'F26', long_name=u'Fedora 26',
+            id_prefix=u'FEDORA', version=u'26',
+            dist_tag=u'f26', stable_tag=u'f26-updates',
+            testing_tag=u'f26-updates-testing',
+            candidate_tag=u'f26-updates-candidate',
+            pending_signing_tag=u'f26-updates-testing-signing',
+            pending_testing_tag=u'f26-updates-testing-pending',
+            pending_stable_tag=u'f26-updates-pending',
+            override_tag=u'f26-override',
+            branch=u'f26', state=models.ReleaseState.current)
+        self.db.add(f25)
+        self.db.add(f26)
+        self.db.commit()
+        # Let's make an update for each release
+        python_nose = self.create_update([u'python-nose-1.3.7-11.fc25'], u'F25')
+        # Let's make nose a security update to test that its compose gets sorted first.
+        python_nose.type = models.UpdateType.security
+        python_paste_deploy = self.create_update([u'python-paste-deploy-1.5.2-8.fc26'], u'F26')
+        python_nose.builds[0].signed = True
+        python_paste_deploy.builds[0].signed = True
+        # Let's mark Fedora 17 release as not composed by Bodhi
+        f17_release = self.db.query(models.Release).filter_by(
+            name=u'F17').one()
+        f17_release.composed_by_bodhi = False
+        self.db.commit()
+        cli = CliRunner()
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
+        self.assertEqual(result.exit_code, 0)
+        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
+        self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
+        f25_python_nose = self.db.query(models.Update).filter_by(
+            title=u'python-nose-1.3.7-11.fc25').one()
+        f26_python_paste_deploy = self.db.query(models.Update).filter_by(
+            title=u'python-paste-deploy-1.5.2-8.fc26').one()
+        publish.assert_called_once_with(
+            topic='masher.start',
+            msg={
+                'composes': [f25_python_nose.compose.__json__(composer=True),
+                             f26_python_paste_deploy.compose.__json__(composer=True)],
+                'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
+            force=True)
+
+        # The Fedora 17 updates should not have been locked and composed.
+        f17_python_nose = self.db.query(models.Update).filter_by(
+            title=u'python-nose-1.3.7-11.fc17').one()
+        f17_python_paste_deploy = self.db.query(models.Update).filter_by(
+            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        self.assertFalse(f17_python_nose.locked)
+        self.assertIsNone(f17_python_nose.date_locked)
+        self.assertIsNone(f17_python_nose.compose)
+        self.assertFalse(f17_python_paste_deploy.locked)
+        self.assertIsNone(f17_python_paste_deploy.date_locked)
+        self.assertIsNone(f17_python_paste_deploy.compose)
+        # The new updates should both be locked.
+        self.assertTrue(f25_python_nose.locked)
+        self.assertTrue(f25_python_nose.date_locked <= datetime.utcnow())
+        self.assertTrue(f26_python_paste_deploy.locked)
+        self.assertTrue(f26_python_paste_deploy.date_locked <= datetime.utcnow())
+        # The new updates should also be associated with the new Composes.
+        self.assertEqual(f25_python_nose.compose.release.id, f25.id)
+        self.assertEqual(f25_python_nose.compose.request, models.UpdateRequest.testing)
+        self.assertEqual(f26_python_paste_deploy.compose.release.id, f26.id)
+        self.assertEqual(f26_python_paste_deploy.compose.request, models.UpdateRequest.testing)
+
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
+    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     def test_request_flag(self, publish, mock_init):
         """
         Assert that the --request flag works correctly.
