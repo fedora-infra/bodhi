@@ -48,8 +48,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-simplemediawiki \
     python3-sqlalchemy \
     python3-sqlalchemy_schemadisplay \
-    python3-webtest \
-    python3-yaml
+    python3-webtest
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji
