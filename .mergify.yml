@@ -6,7 +6,7 @@ pull_request_rules:
       strict: true
   conditions:
   - label!=no-mergify
-  - approved-reviews-by=bowlofeggs
+  - approved-reviews-by=@fedora-infra/bodhi
   - status-success=DCO
   - status-success=f28-docs
   - status-success=f28-flake8
@@ -24,6 +24,7 @@ pull_request_rules:
   - status-success=f29-python3-diff-cover
   - status-success=pip-docs
   - status-success=pip-flake8
+  - status-success=pip-mypy
   - status-success=pip-pydocstyle
   - status-success=pip-python2-unit
   - status-success=pip-python2-diff-cover
@@ -38,7 +39,7 @@ pull_request_rules:
       strict: true
   conditions:
   - label!=no-mergify
-  - author=bowlofeggs
+  - author=@fedora-infra/bodhi
   - "#approved-reviews-by>=1"
   - status-success=DCO
   - status-success=f28-docs
@@ -57,6 +58,7 @@ pull_request_rules:
   - status-success=f29-python3-diff-cover
   - status-success=pip-docs
   - status-success=pip-flake8
+  - status-success=pip-mypy
   - status-success=pip-pydocstyle
   - status-success=pip-python2-unit
   - status-success=pip-python2-diff-cover

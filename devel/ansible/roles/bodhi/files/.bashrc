@@ -38,6 +38,7 @@ function btest {
 }
 
 export BODHI_URL="http://localhost:6543/"
+export BODHI_OPENID_API="https://id.stg.fedoraproject.org/api/v1/"
 export PYTHONWARNINGS="once"
 export BODHI_CI_ARCHIVE_PATH="/home/vagrant/bodhi-ci-test_results/"
 

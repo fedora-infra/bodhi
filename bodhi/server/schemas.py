@@ -424,6 +424,10 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
         missing="fedora_errata_template",
         validator=colander.OneOf(MAIL_TEMPLATES)
     )
+    composed_by_bodhi = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        missing=True,
+    )
 
 
 class ListStackSchema(PaginatedSchema, SearchableSchema):
