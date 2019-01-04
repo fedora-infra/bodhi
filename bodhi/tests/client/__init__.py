@@ -902,10 +902,10 @@ EXPECTED_EXPIRED_OVERRIDES_OUTPUT = u"""========================================
 """
 
 EXAMPLE_RELEASE_MUNCH = Munch({
-    u'dist_tag': u'f27', u'name': u'F27', u'testing_tag': u'f27-updates-testing',
+    u'dist_tag': u'f27', u'testing_tag': u'f27-updates-testing', u'branch': u'f27',
     u'pending_stable_tag': u'f27-updates-pending', u'pending_signing_tag': u'f27-signing-pending',
-    u'long_name': u'Fedora 27', u'state': u'pending', u'version': u'27',
-    u'override_tag': u'f27-override', u'branch': u'f27', u'id_prefix': u'FEDORA',
+    u'long_name': u'Fedora 27', u'state': u'pending', u'version': u'27', u'name': u'F27',
+    u'override_tag': u'f27-override', u'id_prefix': u'FEDORA', u'composed_by_bodhi': True,
     u'pending_testing_tag': u'f27-updates-testing-pending', u'stable_tag': u'f27-updates',
     u'candidate_tag': u'f27-updates-candidate', 'mail_template': 'fedora_errata_template'})
 
@@ -926,6 +926,7 @@ EXPECTED_RELEASE_OUTPUT = """Saved release:
   Override Tag:        f27-override
   State:               pending
   Email Template:      fedora_errata_template
+  Composed by Bodhi:   True
 """
 
 EXAMPLE_ARCHIVED_RELEASE_MUNCH = Munch({
@@ -936,7 +937,7 @@ EXAMPLE_ARCHIVED_RELEASE_MUNCH = Munch({
     u'pending_signing_tag': u'f26-signing-pending',
     u'pending_testing_tag': u'f26-updates-testing-pending',
     u'candidate_tag': u'f26-updates-candidate', u'stable_tag': u'f26-updates',
-    u'override_tag': u'f26-override'
+    u'override_tag': u'f26-override', u'composed_by_bodhi': True
 })
 
 EXAMPLE_CURRENT_RELEASE_MUNCH = Munch({
@@ -947,7 +948,7 @@ EXAMPLE_CURRENT_RELEASE_MUNCH = Munch({
     u'pending_signing_tag': u'f28-signing-pending',
     u'pending_testing_tag': u'f28-updates-testing-pending',
     u'candidate_tag': u'f28-updates-candidate', u'stable_tag': u'f28-updates',
-    u'override_tag': u'f28-override'
+    u'override_tag': u'f28-override', u'composed_by_bodhi': True
 })
 
 EXAMPLE_PENDING_RELEASE_MUNCH = Munch({
@@ -958,7 +959,7 @@ EXAMPLE_PENDING_RELEASE_MUNCH = Munch({
     u'pending_signing_tag': u'f29-signing-pending',
     u'pending_testing_tag': u'f29-updates-testing-pending',
     u'candidate_tag': u'f29-updates-candidate', u'stable_tag': u'f29-updates',
-    u'override_tag': u'f29-override'
+    u'override_tag': u'f29-override', u'composed_by_bodhi': True
 })
 
 EXAMPLE_RELEASE_MUNCH_NO_ARCHIVED = Munch({

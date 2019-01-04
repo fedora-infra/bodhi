@@ -521,6 +521,41 @@ $(document).ready(function(){
 });
 </script>
 
+<script type="text/javascript">
+$(document).ready(function(){
+    var button = document.getElementById('copybutton')
+
+    button.addEventListener('click', function(event) {
+        if (document.selection) { 
+            document.selection.empty();
+            var range = document.body.createTextRange();
+            range.moveToElementText(document.getElementById('commandtext'));
+            range.select().createTextRange();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.log('Oops, unable to copy');
+            }
+
+        } else if (window.getSelection) {
+            if (window.getSelection().empty) {  // Chrome
+                window.getSelection().empty();
+            } else if (window.getSelection().removeAllRanges) {  // Firefox
+                window.getSelection().removeAllRanges();
+            }
+            var range = document.createRange();
+            range.selectNode(document.getElementById('commandtext'));
+            window.getSelection().addRange(range);
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.log('Oops, unable to copy');
+            }
+        }
+    });
+});
+</script>
+
 <div class="subheader p-t-2">
 <div class="container">
 <div class="row">
@@ -641,7 +676,9 @@ $(document).ready(function(){
         <div class="col-md-9">
           % if update.notes:
           ${self.util.markup(update.notes) | n}
+          ${update.content_type}
           % endif
+
           % if not 'unspecified' in update.suggest:
           <div class="alert alert-info">
             % if 'logout' in update.suggest:
@@ -656,6 +693,15 @@ $(document).ready(function(){
             properly.
             % endif
           </div>
+          % endif
+
+          % if update.content_type:
+          % if update.content_type.description == 'RPM' and ('testing' in update.status or 'stable' in update.status):
+          <div class="p-t-1">
+          <h4>How to install</h4>
+            <pre style="position: relative;"><span class="label label-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${self.util.update_install_command(update)}</code></pre>
+          </div>
+          % endif
           % endif
 
           <div class="p-t-3">

@@ -174,7 +174,8 @@ def _days_since(data_str):
 class BodhiClient(OpenIdBaseClient):
     """Python bindings to the Bodhi server REST API."""
 
-    def __init__(self, base_url=BASE_URL, username=None, password=None, staging=False, **kwargs):
+    def __init__(self, base_url=BASE_URL, username=None, password=None, staging=False,
+                 openid_api=None, **kwargs):
         """
         Initialize the Bodhi client.
 
@@ -184,9 +185,14 @@ class BodhiClient(OpenIdBaseClient):
             username (basestring): The username to use to authenticate with the server.
             password (basestring): The password to use to authenticate with the server.
             staging (bool): If True, use the staging server. If False, use base_url.
+            opennid_api (str or None): If not None, the URL to an OpenID API to use to authenticate
+                to Bodhi. Ignored if staging is True.
             kwargs (dict): Other keyword arguments to pass on to
                            :class:`fedora.client.OpenIdBaseClient`
         """
+        if openid_api:
+            fedora.client.openidproxyclient.FEDORA_OPENID_API = openid_api
+
         if staging:
             fedora.client.openidproxyclient.FEDORA_OPENID_API = STG_OPENID_API
             base_url = STG_BASE_URL
