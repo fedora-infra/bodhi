@@ -79,7 +79,6 @@ setup(
         'flake8',
         'pytest',
         'pytest-cov',
-        'pyyaml',
         'webtest',
         'mock',
         'six',
