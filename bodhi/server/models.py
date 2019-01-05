@@ -2546,7 +2546,6 @@ class Update(Base):
         # keep the status at testing
         elif self.request in (UpdateRequest.stable, UpdateRequest.batched) and \
                 self.status is UpdateStatus.testing and action is UpdateRequest.revoke:
-            self.status = UpdateStatus.testing
             self.revoke()
             log.debug("%s has been revoked." % self.title)
             notifications.publish(topic=topic, msg=dict(
