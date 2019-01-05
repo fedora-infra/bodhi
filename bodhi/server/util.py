@@ -98,16 +98,6 @@ def get_rpm_header(nvr, tries=0):
     raise ValueError("No rpm headers found in koji for %r" % nvr)
 
 
-def flash_log(msg):
-    """
-    Log the given message at debug level.
-
-    Args:
-        msg (basestring): The message to log.
-    """
-    log.debug(msg)
-
-
 def build_evr(build):
     """
     Return a tuple of strings of the given build's epoch, version, and release.
