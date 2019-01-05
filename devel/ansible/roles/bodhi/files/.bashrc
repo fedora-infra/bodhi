@@ -34,7 +34,7 @@ function bresetdb {
 
 function btest {
     find /home/vagrant/bodhi -name "*.pyc" -delete;
-    bteststyle && bdocs && py.test-2 $@ /home/vagrant/bodhi/ && py.test-3 $@ /home/vagrant/bodhi/
+    bteststyle && bdocs && py.test-2 $@ /home/vagrant/bodhi/bodhi/tests/ && py.test-3 $@ /home/vagrant/bodhi/bodhi/tests/
 }
 
 export BODHI_URL="http://localhost:6543/"
