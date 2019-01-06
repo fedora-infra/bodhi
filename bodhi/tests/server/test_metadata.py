@@ -32,6 +32,7 @@ from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
 from bodhi.server.config import config
 from bodhi.server.models import Release, Update, UpdateRequest, UpdateStatus
 from bodhi.server.metadata import UpdateInfoMetadata
+import bodhi.server.metadata as bodhi_metadata
 from bodhi.tests.server import base, create_update
 
 
@@ -270,14 +271,19 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         shutil.rmtree(self._new_mash_stage_dir)
         super(TestUpdateInfoMetadata, self).tearDown()
 
-    def _verify_updateinfo(self, repodata):
+    def _verify_updateinfos(self, repodata):
         updateinfos = glob.glob(join(repodata, "*-updateinfo.xml*"))
-        assert len(updateinfos) == 1, "We generated %d updateinfo metadata" % len(updateinfos)
-        updateinfo = updateinfos[0]
-        hash = basename(updateinfo).split("-", 1)[0]
-        hashed = sha256(open(updateinfo, 'rb').read()).hexdigest()
-        assert hash == hashed, "File: %s\nHash: %s" % (basename(updateinfo), hashed)
-        return updateinfo
+        if hasattr(createrepo_c, 'ZCK_COMPRESSION'):
+            assert len(updateinfos) == 2, "We generated %d updateinfo metadata" % len(updateinfos)
+        else:
+            assert len(updateinfos) == 1, "We generated %d updateinfo metadata" % len(updateinfos)
+        for updateinfo in updateinfos:
+            hash = basename(updateinfo).split("-", 1)[0]
+            with open(updateinfo, 'rb') as fn:
+                hashed = sha256(fn.read()).hexdigest()
+            assert hash == hashed, "File: %s\nHash: %s" % (basename(updateinfo), hashed)
+
+        return updateinfos
 
     def get_notice(self, uinfo, title):
         for record in uinfo.updates:
@@ -337,44 +343,167 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
 
         # Insert the updateinfo.xml into the repository
         md.insert_updateinfo(self.tempcompdir)
-        updateinfo = self._verify_updateinfo(self.repodata)
+        updateinfos = self._verify_updateinfos(self.repodata)
 
-        # Read an verify the updateinfo.xml.gz
-        uinfo = createrepo_c.UpdateInfo(updateinfo)
-        notice = self.get_notice(uinfo, 'mutt-1.5.14-1.fc13')
-        self.assertIsNone(notice)
+        for updateinfo in updateinfos:
+            # Read an verify the updateinfo.xml.gz
+            uinfo = createrepo_c.UpdateInfo(updateinfo)
+            notice = self.get_notice(uinfo, 'mutt-1.5.14-1.fc13')
+            self.assertIsNone(notice)
 
-        self.assertEqual(len(uinfo.updates), 1)
-        notice = uinfo.updates[0]
+            self.assertEqual(len(uinfo.updates), 1)
+            notice = uinfo.updates[0]
 
-        self.assertIsNotNone(notice)
-        self.assertEqual(notice.title, update.title)
-        self.assertEqual(notice.release, update.release.long_name)
-        self.assertEqual(notice.status, update.status.value)
-        if update.date_modified:
-            self.assertEqual(notice.updated_date, update.date_modified)
-        self.assertEqual(notice.fromstr, config.get('bodhi_email'))
-        self.assertEqual(notice.rights, config.get('updateinfo_rights'))
-        self.assertEqual(notice.description, update.notes)
-        self.assertEqual(notice.id, update.alias)
-        self.assertEqual(notice.severity, 'Moderate')
-        bug = notice.references[0]
-        self.assertEqual(bug.href, update.bugs[0].url)
-        self.assertEqual(bug.id, '12345')
-        self.assertEqual(bug.type, 'bugzilla')
+            self.assertIsNotNone(notice)
+            self.assertEqual(notice.title, update.title)
+            self.assertEqual(notice.release, update.release.long_name)
+            self.assertEqual(notice.status, update.status.value)
+            if update.date_modified:
+                self.assertEqual(notice.updated_date, update.date_modified)
+            self.assertEqual(notice.fromstr, config.get('bodhi_email'))
+            self.assertEqual(notice.rights, config.get('updateinfo_rights'))
+            self.assertEqual(notice.description, update.notes)
+            self.assertEqual(notice.id, update.alias)
+            self.assertEqual(notice.severity, 'Moderate')
+            bug = notice.references[0]
+            self.assertEqual(bug.href, update.bugs[0].url)
+            self.assertEqual(bug.id, '12345')
+            self.assertEqual(bug.type, 'bugzilla')
 
-        col = notice.collections[0]
-        self.assertEqual(col.name, update.release.long_name)
-        self.assertEqual(col.shortname, update.release.name)
+            col = notice.collections[0]
+            self.assertEqual(col.name, update.release.long_name)
+            self.assertEqual(col.shortname, update.release.name)
 
-        pkg = col.packages[0]
-        self.assertEqual(pkg.epoch, '0')
-        self.assertEqual(pkg.name, 'TurboGears')
+            pkg = col.packages[0]
+            self.assertEqual(pkg.epoch, '0')
+            self.assertEqual(pkg.name, 'TurboGears')
+            self.assertEqual(
+                pkg.src,
+                ('https://download.fedoraproject.org/pub/fedora/linux/updates/testing/17/SRPMS/T/'
+                 'TurboGears-1.0.2.2-2.fc17.src.rpm'))
+            self.assertEqual(pkg.version, '1.0.2.2')
+            self.assertFalse(pkg.reboot_suggested)
+            self.assertEqual(pkg.arch, 'src')
+            self.assertEqual(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')
+
+    @mock.patch('bodhi.server.metadata.cr')
+    def test_zchunk_metadata_coverage_xz_compression(self, mock_cr):
+        """
+        Let's test that we skip zchunk files, because we don't want to zchunk zchunk files.
+
+        This test makes sure we reach 100% coverage by mocking createrepo.
+
+        cr.ZCK_COMPRESSION is only defined when createrepo_c supports zchunk, but createrepo_c's
+        zchunk support is only available in createrepo_c >= 0.12.0, and it is also a build flag,
+        so we can't be sure that the createrepo_c we work with has that feature.
+
+        This function is designed to *only* make sure we reach 100% coverage and isn't meant
+        to test whether zchunk is working correctly.  _test_extended_metadata will take care
+        of testing both the regular and zchunked updateinfo if zchunk is enabled
+        """
+        mock_cr.ZCK_COMPRESSION = 99
+        mock_repomd = mock.MagicMock()
+        mock_repomd.xml_dump = mock.MagicMock(return_value="test data")
+        mock_cr.Repomd = mock.MagicMock(return_value=mock_repomd)
+
+        bodhi_metadata.insert_in_repo(bodhi_metadata.cr.XZ_COMPRESSION, self.tempcompdir,
+                                      'garbage', 'zck', '/dev/null')
+
+        mock_cr.Repomd.assert_called_once_with(os.path.join(self.tempcompdir, 'repomd.xml'))
         self.assertEqual(
-            pkg.src,
-            ('https://download.fedoraproject.org/pub/fedora/linux/updates/testing/17/SRPMS/T/'
-             'TurboGears-1.0.2.2-2.fc17.src.rpm'))
-        self.assertEqual(pkg.version, '1.0.2.2')
-        self.assertFalse(pkg.reboot_suggested)
-        self.assertEqual(pkg.arch, 'src')
-        self.assertEqual(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')
+            mock_cr.RepomdRecord.mock_calls,
+            [mock.call('garbage', os.path.join(self.tempcompdir, 'garbage.zck')),
+             mock.call().compress_and_fill(mock_cr.SHA256, mock_cr.XZ_COMPRESSION),
+             mock.call().compress_and_fill().rename_file(),
+             mock.call('garbage_zck', os.path.join(self.tempcompdir, 'garbage.zck')),
+             mock.call().compress_and_fill(mock_cr.SHA256, mock_cr.ZCK_COMPRESSION),
+             mock.call().compress_and_fill().rename_file()])
+        rec = mock_cr.RepomdRecord.return_value
+        rec_comp = rec.compress_and_fill.return_value
+        self.assertEqual(rec_comp.type, 'garbage')
+        self.assertEqual(
+            mock_cr.Repomd.return_value.set_record.mock_calls,
+            [mock.call(rec_comp), mock.call(rec_comp)])
+
+        with open(os.path.join(self.tempcompdir, 'repomd.xml')) as repomd_file:
+            repomd_contents = repomd_file.read()
+
+        self.assertEqual(repomd_contents, 'test data')
+        self.assertFalse(os.path.exists(os.path.join(self.tempcompdir, 'garbage.zck')))
+
+    @mock.patch('bodhi.server.metadata.cr')
+    def test_zchunk_metadata_coverage_zchunk_skipped(self, mock_cr):
+        """
+        Let's test that we skip zchunk files, because we don't want to zchunk zchunk files.
+
+        This test makes sure we reach 100% coverage by mocking createrepo.
+
+        cr.ZCK_COMPRESSION is only defined when createrepo_c supports zchunk, but createrepo_c's
+        zchunk support is only available in createrepo_c >= 0.12.0, and it is also a build flag,
+        so we can't be sure that the createrepo_c we work with has that feature.
+
+        This function is designed to *only* make sure we reach 100% coverage and isn't meant
+        to test whether zchunk is working correctly.  _test_extended_metadata will take care
+        of testing both the regular and zchunked updateinfo if zchunk is enabled
+        """
+        mock_cr.ZCK_COMPRESSION = 99
+        mock_repomd = mock.MagicMock()
+        mock_repomd.xml_dump = mock.MagicMock(return_value="test data")
+        mock_cr.Repomd = mock.MagicMock(return_value=mock_repomd)
+
+        bodhi_metadata.insert_in_repo(99, self.tempcompdir, 'garbage', 'zck', '/dev/null')
+
+        mock_cr.Repomd.assert_called_once_with(os.path.join(self.tempcompdir, 'repomd.xml'))
+        mock_cr.RepomdRecord.assert_called_once_with('garbage',
+                                                     os.path.join(self.tempcompdir, 'garbage.zck'))
+        rec = mock_cr.RepomdRecord.return_value
+        rec.compress_and_fill.assert_called_once_with(mock_cr.SHA256, mock_cr.ZCK_COMPRESSION)
+        rec_comp = rec.compress_and_fill.return_value
+        rec_comp.rename_file.assert_called_once_with()
+        self.assertEqual(rec_comp.type, 'garbage')
+        mock_cr.Repomd.return_value.set_record.assert_called_once_with(rec_comp)
+
+        with open(os.path.join(self.tempcompdir, 'repomd.xml')) as repomd_file:
+            repomd_contents = repomd_file.read()
+
+        self.assertEqual(repomd_contents, 'test data')
+        self.assertFalse(os.path.exists(os.path.join(self.tempcompdir, 'garbage.zck')))
+
+    @mock.patch('bodhi.server.metadata.cr')
+    def test_zchunk_metadata_coverage_zchunk_unsupported(self, mock_cr):
+        """
+        Let's test that we skip zchunk compression when it is unsupported by createrepo_c.
+
+        This test makes sure we reach 100% coverage by mocking createrepo.
+
+        cr.ZCK_COMPRESSION is only defined when createrepo_c supports zchunk, but createrepo_c's
+        zchunk support is only available in createrepo_c >= 0.12.0, and it is also a build flag,
+        so we can't be sure that the createrepo_c we work with has that feature.
+
+        This function is designed to *only* make sure we reach 100% coverage and isn't meant
+        to test whether zchunk is working correctly.  _test_extended_metadata will take care
+        of testing both the regular and zchunked updateinfo if zchunk is enabled
+        """
+        del mock_cr.ZCK_COMPRESSION
+        mock_repomd = mock.MagicMock()
+        mock_repomd.xml_dump = mock.MagicMock(return_value="test data")
+        mock_cr.Repomd = mock.MagicMock(return_value=mock_repomd)
+
+        bodhi_metadata.insert_in_repo(bodhi_metadata.cr.XZ_COMPRESSION, self.tempcompdir,
+                                      'garbage', 'xz', '/dev/null')
+
+        mock_cr.Repomd.assert_called_once_with(os.path.join(self.tempcompdir, 'repomd.xml'))
+        mock_cr.RepomdRecord.assert_called_once_with('garbage',
+                                                     os.path.join(self.tempcompdir, 'garbage.xz'))
+        rec = mock_cr.RepomdRecord.return_value
+        rec.compress_and_fill.assert_called_once_with(mock_cr.SHA256, mock_cr.XZ_COMPRESSION)
+        rec_comp = rec.compress_and_fill.return_value
+        rec_comp.rename_file.assert_called_once_with()
+        self.assertEqual(rec_comp.type, 'garbage')
+        mock_cr.Repomd.return_value.set_record.assert_called_once_with(rec_comp)
+
+        with open(os.path.join(self.tempcompdir, 'repomd.xml')) as repomd_file:
+            repomd_contents = repomd_file.read()
+
+        self.assertEqual(repomd_contents, 'test data')
+        self.assertFalse(os.path.exists(os.path.join(self.tempcompdir, 'garbage.zck')))
