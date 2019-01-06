@@ -20,6 +20,7 @@ Backwards incompatible changes
   (:issue:`2759`).
 * Support for ``active_releases`` parameter in updates query API was droped (:issue:`2815`).
 * The ``/updates/ALIAS/TITLE`` API has been removed (:issue:`2869`).
+* Support for update's old_updateid was dropped (:issue:`2903`).
 
 
 Dependency changes
