@@ -510,6 +510,8 @@ def composestate2html(context, state):
         'punging': 'warning',
         'notifying': 'warning',
         'cleaning': 'warning',
+        'syncing_repo': 'warning',
+        'signing_repo': 'warning',
         'success': 'success',
         'failed': 'danger',
     }[state.value]
