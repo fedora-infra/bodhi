@@ -1545,26 +1545,6 @@ class TestUpdatesService(BaseTestCase):
             res.json_body['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_old_bodhi1_redirect(self, publish, *args):
-        # Create it
-        title = 'bodhi-2.0.0-1.fc17'
-        self.app.post_json('/updates/', self.get_update(title))
-        publish.assert_called_once_with(
-            topic='update.request.testing', msg=mock.ANY)
-
-        # Get it once with just the title
-        url = '/updates/%s' % title
-        res = self.app.get(url)
-        update = res.json_body['update']
-
-        # Now try the old bodhi1 url.  Redirect should take place.
-        url = '/updates/%s/%s' % (update['alias'], update['title'])
-        res = self.app.get(url, status=302)
-        target = 'http://localhost/updates/%s' % update['alias']
-        self.assertEqual(res.headers['Location'], target)
-
     def test_404(self):
         self.app.get('/a', status=404)
 

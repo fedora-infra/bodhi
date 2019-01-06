@@ -19,6 +19,7 @@ Backwards incompatible changes
 * Bodhi server no longer supports Python 2. Python 3 is the only supported Python release
   (:issue:`2759`).
 * Support for ``active_releases`` parameter in updates query API was droped (:issue:`2815`).
+* The ``/updates/ALIAS/TITLE`` API has been removed (:issue:`2869`).
 
 
 Dependency changes
