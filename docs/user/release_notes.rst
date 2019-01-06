@@ -16,6 +16,7 @@ Backwards incompatible changes
 * The ``/admin/`` API has been removed (:issue:`1985`).
 * Bodhi server no longer supports Python 2. Python 3 is the only supported Python release
   (:issue:`2759`).
+* The ``/masher`` API has been removed (:issue:`2024`).
 
 
 Dependency changes

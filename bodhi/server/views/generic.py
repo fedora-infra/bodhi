@@ -337,19 +337,6 @@ def latest_builds(request):
     return builds
 
 
-@view_config(route_name='masher_status', renderer='masher.html')
-def masher_status(request):
-    """
-    Return the masher status page.
-
-    Args:
-        request (pyramid.util.Request): The current request. Unused.
-    Returns:
-        dict: An empty dictionary.
-    """
-    return dict()
-
-
 @view_config(route_name='new_override', renderer='override.html')
 def new_override(request):
     """
