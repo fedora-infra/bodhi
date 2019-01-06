@@ -568,12 +568,6 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         missing=None,
     )
 
-    active_releases = Releases(
-        colander.Boolean(true_choices=('true', '1')),
-        location="querystring",
-        missing=False,
-    )
-
     packages = Packages(
         colander.Sequence(accept_scalar=True),
         location="querystring",
