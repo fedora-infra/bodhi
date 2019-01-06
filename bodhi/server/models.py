@@ -880,8 +880,8 @@ class Release(Base):
         Return the number of days that updates in this release must spend in testing.
 
         Returns:
-            int or None: The number of days in testing that updates in this release must spend in
-            testing. If the release isn't configured to have mandatory testing time, ``None`` is
+            int: The number of days in testing that updates in this release must spend in
+            testing. If the release isn't configured to have mandatory testing time, 0 is
             returned.
         """
         name = self.name.lower().replace('-', '')
