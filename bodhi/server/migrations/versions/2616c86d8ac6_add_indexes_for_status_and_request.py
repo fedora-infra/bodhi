@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2017 Till Maas
 #
 # This file is part of Bodhi.

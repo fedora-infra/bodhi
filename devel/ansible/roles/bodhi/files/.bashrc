@@ -10,7 +10,7 @@ fi
 
 shopt -s expand_aliases
 alias bci="sudo -E /home/vagrant/bodhi/devel/ci/bodhi-ci"
-alias bdiff-cover="btest; diff-cover /home/vagrant/bodhi/coverage.xml --compare-branch=develop --fail-under=100"
+alias bdiff-cover="py.test-3 $@ /home/vagrant/bodhi/; diff-cover /home/vagrant/bodhi/coverage.xml --compare-branch=develop --fail-under=100"
 alias bdocs="make -C /home/vagrant/bodhi/docs clean && make -C /home/vagrant/bodhi/docs html && make -C /home/vagrant/bodhi/docs man"
 alias blog="sudo journalctl -u bodhi"
 alias brestart="sudo systemctl restart bodhi && echo 'The Application is running on http://localhost:6543'"
@@ -34,7 +34,7 @@ function bresetdb {
 
 function btest {
     find /home/vagrant/bodhi -name "*.pyc" -delete;
-    bteststyle && bdocs && py.test-2 $@ /home/vagrant/bodhi/bodhi/tests/ && py.test-3 $@ /home/vagrant/bodhi/bodhi/tests/
+    bteststyle && bdocs && bci unit -r f29
 }
 
 export BODHI_URL="http://localhost:6543/"

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2015-2018 Red Hat Inc., and others.
 #
 # This file is part of Bodhi.
@@ -122,11 +121,21 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
             if not update:
                 raise BodhiException("Couldn't find alias '%s' in DB" % alias)
 
+            bugs = []
             if topic.endswith('update.edit'):
-                bugs = [Bug.get(idx) for idx in msg['new_bugs']]
-                # Sanity check
-                for bug in bugs:
-                    assert bug in update.bugs
+                for idx in msg['new_bugs']:
+                    bug = Bug.get(idx)
+
+                    # Sanity check
+                    if bug is None or bug not in update.bugs:
+                        update_bugs_ids = [b.bug_id for b in update.bugs]
+                        update.update_bugs(update_bugs_ids + [idx], session)
+
+                        # Now, after update.update_bugs, bug with idx should exists in DB
+                        bug = Bug.get(idx)
+
+                    bugs.append(bug)
+
             elif topic.endswith('update.request.testing'):
                 bugs = update.bugs
             else:

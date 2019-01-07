@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright © 2017 Red Hat, Inc.
+# Copyright © 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -17,10 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Contains tests for the bodhi.server.scripts.initializedb module."""
-import unittest
 
+from io import StringIO
 import mock
-from six import StringIO
+import unittest
 
 from bodhi.server.scripts import initializedb
 

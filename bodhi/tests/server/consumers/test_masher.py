@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2007-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -16,28 +15,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+from urllib.error import HTTPError, URLError
+import urllib.parse as urlparse
 import datetime
 import dummy_threading
 import errno
 import json
+import mock
 import os
 import shutil
 import tempfile
 import time
 import unittest
-try:
-    from http.client import IncompleteRead
-except ImportError:
-    # Python 2 does not have this Exception.
-    IncompleteRead = None
+from http.client import IncompleteRead
 
 from click import testing
 from fedora_messaging import api
 from fedora_messaging.testing import mock_sends
-import mock
-import six
-import six.moves.urllib.parse as urlparse
-from six.moves.urllib.error import HTTPError, URLError
 
 from bodhi.server import buildsys, exceptions, log, push
 from bodhi.server.config import config
@@ -1596,7 +1590,7 @@ testmodule:master:20172:2
             t._raise_on_get_build_multicall_error([], build)
 
         self.assertEqual(
-            six.text_type(exc.exception),
+            str(exc.exception),
             'Empty list returned for getBuild("%s").' % (build.nvr))
 
     def test_mash_module_koji_multicall_result_dict(self):
@@ -1612,7 +1606,7 @@ testmodule:master:20172:2
             t._raise_on_get_build_multicall_error({}, build)
 
         self.assertEqual(
-            six.text_type(exc.exception),
+            str(exc.exception),
             'Unexpected data returned for getBuild("%s"): {}.' % (build.nvr))
 
     @mock.patch(**mock_failed_taskotron_results)
@@ -2566,7 +2560,7 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
         with self.assertRaises(ValueError) as exc:
             t._get_master_repomd_url('aarch64')
 
-        self.assertEqual(six.text_type(exc.exception),
+        self.assertEqual(str(exc.exception),
                          'Could not find any of fedora_17_testing_alt_master_repomd,'
                          'fedora_testing_alt_master_repomd in the config file')
 
@@ -2694,7 +2688,7 @@ class TestComposerThread__perform_tag_actions(ComposerThreadBaseTestCase):
         with self.assertRaises(Exception) as exc:
             t._perform_tag_actions()
 
-        self.assertEqual(six.text_type(exc.exception), "Failed to move builds: ['failed_task_1']")
+        self.assertEqual(str(exc.exception), "Failed to move builds: ['failed_task_1']")
         # Since the task didn't really fail (we just mocked that it did) the DevBuildsys should have
         # registered that the move occurred.
         self.assertEqual(buildsys.DevBuildsys.__moved__,
@@ -2933,7 +2927,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
+    @mock.patch('bodhi.server.consumers.masher.urlopen')
     def test_checksum_match_immediately(self, urlopen, publish, save):
         """
         Assert correct operation when the repomd checksum matches immediately.
@@ -2978,7 +2972,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
+    @mock.patch('bodhi.server.consumers.masher.urlopen')
     def test_no_checkarch(self, urlopen, publish, save):
         """
         Assert error when no checkarch is found.
@@ -3009,7 +3003,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
+    @mock.patch('bodhi.server.consumers.masher.urlopen')
     def test_checksum_match_third_try(self, urlopen, sleep, publish, save):
         """
         Assert correct operation when the repomd checksum matches on the third try.
@@ -3054,7 +3048,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
+    @mock.patch('bodhi.server.consumers.masher.urlopen')
     def test_httperror(self, urlopen, sleep, publish, save):
         """
         Assert that an HTTPError is properly caught and logged, and that the algorithm continues.
@@ -3095,7 +3089,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         sleep.assert_called_once_with(200)
         save.assert_called_once_with(ComposeState.syncing_repo)
 
-    @unittest.skipIf(six.PY2, "Python 2 does not have the IncompleteRead Exception.")
     @mock.patch.dict(
         'bodhi.server.consumers.masher.config',
         {'fedora_testing_master_repomd':
@@ -3103,7 +3096,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
+    @mock.patch('bodhi.server.consumers.masher.urlopen')
     def test_incompleteread(self, urlopen, sleep, publish, save):
         """
         Assert that an IncompleteRead is properly caught and logged, and that the code continues.
@@ -3151,7 +3144,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
+    @mock.patch('bodhi.server.consumers.masher.urlopen',
                 mock.MagicMock(side_effect=Exception('urlopen should not be called')))
     def test_missing_config_key(self, publish, save):
         """
@@ -3171,7 +3164,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         with self.assertRaises(ValueError) as exc:
             t._wait_for_sync()
 
-        self.assertEqual(six.text_type(exc.exception),
+        self.assertEqual(str(exc.exception),
                          'Could not find any of fedora_17_testing_master_repomd,'
                          'fedora_testing_master_repomd in the config file')
         publish.assert_called_once_with(topic='mashtask.sync.wait',
@@ -3182,7 +3175,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen',
+    @mock.patch('bodhi.server.consumers.masher.urlopen',
                 mock.MagicMock(side_effect=Exception('urlopen should not be called')))
     def test_missing_repomd(self, publish, save):
         """
@@ -3212,7 +3205,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.masher.notifications.publish')
     @mock.patch('bodhi.server.consumers.masher.time.sleep')
-    @mock.patch('bodhi.server.consumers.masher.urllib2.urlopen')
+    @mock.patch('bodhi.server.consumers.masher.urlopen')
     def test_urlerror(self, urlopen, sleep, publish, save):
         """
         Assert that a URLError is properly caught and logged, and that the algorithm continues.

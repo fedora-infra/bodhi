@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2017 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -17,9 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.scripts.manage_releases."""
-import unittest
 
 import mock
+import unittest
 
 from bodhi.server.scripts import manage_releases
 from bodhi.client import cli

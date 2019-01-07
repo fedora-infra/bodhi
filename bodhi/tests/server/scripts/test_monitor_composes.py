@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -20,9 +19,9 @@
 This module contains tests for the bodhi.server.scripts.monitor_composes module.
 """
 import json
+import mock
 
 from click import testing
-import mock
 
 from bodhi.server import models
 from bodhi.server.scripts import monitor_composes

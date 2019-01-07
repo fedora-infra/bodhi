@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2011-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -18,7 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test suite for bodhi.server.models"""
 from datetime import datetime, timedelta
+import html.parser
 import json
+import mock
 import pickle
 import time
 import unittest
@@ -27,9 +28,6 @@ import uuid
 from pyramid.testing import DummyRequest
 from sqlalchemy.exc import IntegrityError
 import cornice
-import mock
-from six.moves.html_parser import HTMLParser
-import six
 
 from bodhi.server import models as model, buildsys, mail, util, Session
 from bodhi.server.config import config
@@ -74,7 +72,7 @@ class ModelTest(BaseTestCase):
         pass
 
     def test_query_obj(self):
-        for key, value in six.iteritems(self.attrs):
+        for key, value in self.attrs.items():
             self.assertEqual(getattr(self.obj, key), value)
 
     def test_json(self):
@@ -206,7 +204,7 @@ class TestBodhiBase(BaseTestCase):
         self.assertEqual(
             j,
             {'release_id': 1, 'ci_url': b.ci_url, 'epoch': b.epoch, 'nvr': b.nvr,
-             'signed': b.signed, 'type': six.text_type(b.type.value)})
+             'signed': b.signed, 'type': str(b.type.value)})
 
     def test_grid_columns(self):
         """Assert correct return value from the grid_columns() method."""
@@ -552,8 +550,8 @@ class TestEnumSymbol(unittest.TestCase):
         """Ensure correct operation of the __unicode__() method."""
         s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
 
-        self.assertEqual(six.text_type(s), 'value')
-        self.assertEqual(type(six.text_type(s)), six.text_type)
+        self.assertEqual(str(s), 'value')
+        self.assertEqual(type(str(s)), str)
 
 
 class TestCompose(BaseTestCase):
@@ -930,7 +928,7 @@ class TestModulePackage(ModelTest, unittest.TestCase):
             self.package.builds.append(build2)
 
         self.assertEqual(
-            six.text_type(exc_context.exception),
+            str(exc_context.exception),
             ("A RPM Build cannot be associated with a Module Package. A Package's "
              "builds must be the same type as the package."))
 
@@ -943,7 +941,7 @@ class TestModulePackage(ModelTest, unittest.TestCase):
             self.package.builds = [build1, build2]
 
         self.assertEqual(
-            six.text_type(exc_context.exception),
+            str(exc_context.exception),
             ("A RPM Build cannot be associated with a Module Package. A Package's "
              "builds must be the same type as the package."))
 
@@ -965,7 +963,7 @@ class TestModulePackage(ModelTest, unittest.TestCase):
             build2.package = self.package
 
         self.assertEqual(
-            six.text_type(exc_context.exception),
+            str(exc_context.exception),
             ("A RPM Build cannot be associated with a Module Package. A Package's "
              "builds must be the same type as the package."))
 
@@ -1225,7 +1223,7 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
             self.package.builds.append(build2)
 
         self.assertEqual(
-            six.text_type(exc_context.exception),
+            str(exc_context.exception),
             ("A Module Build cannot be associated with a RPM Package. A Package's "
              "builds must be the same type as the package."))
 
@@ -1247,7 +1245,7 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
             build2.package = self.package
 
         self.assertEqual(
-            six.text_type(exc_context.exception),
+            str(exc_context.exception),
             ("A Module Build cannot be associated with a RPM Package. A Package's "
              "builds must be the same type as the package."))
 
@@ -1983,7 +1981,7 @@ class TestUpdate(ModelTest):
 
         subject = self.obj.greenwave_subject_json
 
-        self.assertTrue(isinstance(subject, six.string_types))
+        self.assertTrue(isinstance(subject, str))
         self.assertEqual(
             json.loads(subject),
             [{'item': u'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -2474,7 +2472,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.beautify_title(nvr=True),
                          u'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, and 1 more')
 
-        p = HTMLParser()
+        p = html.parser.HTMLParser()
         self.assertEqual(
             p.unescape(update.beautify_title(amp=True)), u'TurboGears, TurboGears, & 1 more')
         self.assertEqual(p.unescape(update.beautify_title(amp=True, nvr=True)),
@@ -3097,7 +3095,7 @@ class TestUpdate(ModelTest):
         # The update should be eligible to receive the testing_approval_msg now.
         self.assertEqual(self.obj.meets_testing_requirements, True)
         # Add the testing_approval_message
-        text = six.text_type(config.get('testing_approval_msg') % self.obj.days_in_testing)
+        text = str(config.get('testing_approval_msg') % self.obj.days_in_testing)
         self.obj.comment(self.db, text, author=u'bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
@@ -3215,7 +3213,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
         self.obj.comment(self.db, u'testing', author=u'hunter3', anonymous=False, karma=1)
         # Add the testing_approval_message
-        text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
+        text = config.get('testing_approval_msg_based_on_karma')
         self.obj.comment(self.db, text, author=u'bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2017 Caleigh Runge-Hottman and Red Hat, Inc.
 #
 # This file is part of Bodhi.

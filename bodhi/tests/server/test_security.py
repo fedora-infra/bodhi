@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2014-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -17,13 +16,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test the bodhi.server.security module."""
+
+import mock
 import unittest
 
 from cornice import errors
 from pyramid import testing
 from pyramid.security import Allow, ALL_PERMISSIONS, DENY_ALL
 from zope.interface import interfaces
-import mock
 
 from bodhi.server import models, security
 from bodhi.tests.server import base

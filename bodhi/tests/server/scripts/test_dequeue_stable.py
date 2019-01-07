@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2017 Caleigh Runge-Hottman and Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -20,10 +19,10 @@
 This module contains tests for the bodhi.server.scripts.dequeue_stable module.
 """
 from datetime import datetime, timedelta
+import mock
 
 from click import testing
 from fedora_messaging import api, testing as fml_testing
-import mock
 
 from bodhi.server import config, models
 from bodhi.server.scripts import dequeue_stable

@@ -12,15 +12,10 @@ RUN dnf install --disablerepo rawhide-modular -y \
     findutils \
     git \
     liberation-mono-fonts \
-    packagedb-cli \
-    python2-createrepo_c \
-    python2-hawkey \
-    python2-jinja2 \
     python2-koji \
-    python2-librepo \
-    python2-yaml \
     python3-createrepo_c \
     python3-hawkey \
+    python3-koji \
     python3-yaml \
     createrepo_c \
     gcc \
@@ -31,21 +26,20 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-librepo \
     python3-simplemediawiki \
     redhat-rpm-config \
-    python2-libcomps \
     python3-libcomps
 
 COPY requirements.txt /bodhi/requirements.txt
 
-RUN pip-2 install -r /bodhi/requirements.txt
 RUN pip-3 install -r /bodhi/requirements.txt
 RUN pip-2 install \
+    click \
     diff-cover \
     mock \
-    responses \
     pytest \
     pytest-cov \
-    webtest
+    python-fedora
 RUN pip-3 install \
+    alembic \
     cornice_sphinx \
     diff-cover \
     flake8 \

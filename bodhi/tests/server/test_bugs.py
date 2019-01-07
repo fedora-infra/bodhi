@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -18,11 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for bodhi.server.bugs."""
 
-from __future__ import division
 import unittest
-
 import mock
-from six.moves import xmlrpc_client
+import xmlrpc.client
 
 from bodhi.server import bugs, models
 
@@ -122,7 +119,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz = mock.MagicMock()
         bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.product = 'aproduct'
-        bz._bz.getbug.return_value.close.side_effect = xmlrpc_client.Fault(
+        bz._bz.getbug.return_value.close.side_effect = xmlrpc.client.Fault(
             410, 'You must log in before using this part of Red Hat Bugzilla.')
 
         # This should not raise an Exception.
@@ -279,7 +276,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz = mock.MagicMock()
         bz._bz.getbug.return_value.private = False
         bz._bz.getbug.return_value.addcomment.side_effect = \
-            xmlrpc_client.Fault(
+            xmlrpc.client.Fault(
                 42,
                 'Someone turned the microwave on and now the WiFi is down.'
             )
@@ -448,7 +445,7 @@ class TestBugzilla(unittest.TestCase):
         """Test we log an error if update_details raises one"""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
-        bz._bz.getbug.side_effect = xmlrpc_client.Fault(42, 'You found the meaning.')
+        bz._bz.getbug.side_effect = xmlrpc.client.Fault(42, 'You found the meaning.')
         bug = mock.MagicMock()
         bug.bug_id = 123
 
@@ -464,7 +461,7 @@ class TestBugzilla(unittest.TestCase):
         """Test we set the bug as private and log the info"""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
-        bz._bz.getbug.side_effect = xmlrpc_client.Fault(102, 'The bug is private.')
+        bz._bz.getbug.side_effect = xmlrpc.client.Fault(102, 'The bug is private.')
         bug = mock.MagicMock()
         bug.bug_id = 123
 

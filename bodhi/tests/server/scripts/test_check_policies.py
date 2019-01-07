@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -17,11 +16,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for the bodhi.server.scripts.check_policies module."""
+
+from mock import patch
 import datetime
 import json
 
 from click import testing
-from mock import patch
 
 from bodhi.server import models
 from bodhi.server.scripts import check_policies

@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright © 2013-2017 Red Hat, Inc. and others.
+# Copyright © 2013-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -18,13 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines utilities for accessing Bugzilla."""
 
+from xmlrpc import client as xmlrpc_client
 import logging
 
 from collections import namedtuple
 from kitchen.text.converters import to_unicode
 import bugzilla
-import six
-from six.moves import xmlrpc_client
 
 from bodhi.server.config import config
 
@@ -276,7 +274,7 @@ class Bugzilla(BugTracker):
         if bug.product == 'Security Response':
             bug_entity.parent = True
         bug_entity.title = to_unicode(bug.short_desc)
-        if isinstance(bug.keywords, six.string_types):
+        if isinstance(bug.keywords, str):
             keywords = bug.keywords.split()
         else:  # python-bugzilla 0.8.0+
             keywords = bug.keywords

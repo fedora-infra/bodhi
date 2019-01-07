@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -17,12 +16,13 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Tests for bodhi.server.mail."""
+
+import mock
 import os
 import smtplib
 import unittest
 
 from kitchen.text import converters
-import mock
 
 from bodhi.server import config, mail, models
 from bodhi.server.util import get_absolute_path

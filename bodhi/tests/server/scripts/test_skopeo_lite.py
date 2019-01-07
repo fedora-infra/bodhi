@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -20,8 +19,10 @@
 
 from base64 import b64encode
 from contextlib import contextmanager
+from urllib.parse import urlparse
 import hashlib
 import json
+import mock
 import os
 import re
 import shutil
@@ -29,12 +30,9 @@ import tempfile
 import uuid
 
 from click import testing
-import mock
 import pytest
 import responses
 import requests
-from six import binary_type, text_type
-from six.moves.urllib.parse import urlparse
 
 from bodhi.server.scripts import skopeo_lite
 from bodhi.server.scripts.skopeo_lite import (MEDIA_TYPE_MANIFEST_V2, MEDIA_TYPE_LIST_V2,
@@ -62,17 +60,17 @@ def registry_hostname(registry):
 
 
 def to_bytes(value):
-    if isinstance(value, binary_type):
+    if isinstance(value, bytes):
         return value
     else:
         return value.encode('utf-8')
 
 
 def to_text(value):
-    if isinstance(value, text_type):
+    if isinstance(value, str):
         return value
     else:
-        return text_type(value, 'utf-8')
+        return str(value, 'utf-8')
 
 
 def make_digest(blob):
@@ -258,7 +256,7 @@ class MockRegistry(object):
         assert uuid in repo['uploads']
         del repo['uploads'][uuid]
 
-        if isinstance(req.body, binary_type) or isinstance(req.body, text_type):
+        if isinstance(req.body, (bytes, str)):
             blob = req.body
         else:
             blob = req.body.read()
@@ -603,14 +601,14 @@ def mock_system_certs():
     old_exists = os.path.exists
 
     def isdir(path):
-        if isinstance(path, text_type) and path.startswith('/etc/'):
+        if isinstance(path, str) and path.startswith('/etc/'):
             return path in ('/etc/docker/certs.d/registry1.example.com',
                             '/etc/docker/certs.d/registry2.example.com')
         else:
             return old_isdir(path)
 
     def listdir(path):
-        if isinstance(path, text_type) and path.startswith('/etc/'):
+        if isinstance(path, str) and path.startswith('/etc/'):
             if path in ('/etc/docker/certs.d/registry1.example.com',
                         '/etc/docker/certs.d/registry2.example.com'):
                 return ('client.cert', 'client.key')
@@ -620,7 +618,7 @@ def mock_system_certs():
             return old_listdir(path)
 
     def exists(path):
-        if isinstance(path, text_type) and path.startswith('/etc/'):
+        if isinstance(path, str) and path.startswith('/etc/'):
             return path in ('/etc/docker/certs.d/registry1.example.com/client.cert',
                             '/etc/docker/certs.d/registry1.example.com/client.key',
                             '/etc/docker/certs.d/registry2.example.com/client.cert',

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2018-2019 Sebastian Wojciechowski and Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -19,11 +18,12 @@
 """
 This module contains tests for the bodhi.server.scripts.sar module.
 """
+
+import mock
 import os
 from datetime import datetime
 
 from click import testing
-import mock
 
 from bodhi.server import models
 from bodhi.server.scripts import sar

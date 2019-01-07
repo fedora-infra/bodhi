@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2017, 2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -41,8 +40,8 @@ class TestAlembic(unittest.TestCase):
         """
         alembic = None
         # Fedora calls the executable alembic-3, but the pip installed alembic will be alembic.
-        for executable in ('alembic-3', 'alembic'):
-            if os.path.exists(os.path.join('/', 'usr', 'bin', executable)):
+        for executable in ('/usr/local/bin/alembic', '/usr/bin/alembic-3'):
+            if os.path.exists(executable):
                 alembic = executable
                 break
 
