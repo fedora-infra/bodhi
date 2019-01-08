@@ -445,5 +445,6 @@ def exception_view(exc, request):
 
         errors = cornice.errors.Errors(status=status)
         errors.add('body', description=description)
+        request.errors = errors
 
-    return bodhi.server.services.errors.html_handler(errors, request)
+    return bodhi.server.services.errors.html_handler(request)
