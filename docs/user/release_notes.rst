@@ -20,6 +20,7 @@ Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
 * pkgdb is no longer required (:issue:`1970`).
+* jQuery is now required to be provided externally to Bodhi (:issue:`2533`).
 * six is no longer required for the server (:issue:`2759`).
 
 

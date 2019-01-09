@@ -1,0 +1,1 @@
+/usr/share/javascript/jquery/latest/jquery.min.js
