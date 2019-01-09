@@ -22,7 +22,7 @@ function WebSocketSetup(attempts) {
 
   if ("WebSocket" in window) {
     // Let us open a web socket
-    var socket_url = "wss://hub.fedoraproject.org:9939";
+    var socket_url = settings.fedmsg_gateway;
     //var socket_url = "wss://209.132.181.16:9939";
     var ws = new WebSocket(socket_url);
     ws.onopen = function(e) {
