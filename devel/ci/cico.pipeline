@@ -131,11 +131,11 @@ def test_release = { String release ->
 
 node('bodhi') {
     checkout scm
-    // diff-cover sometimes fails to identify origin/develop, so let's check out the develop branch
-    // and then switch back to the commit we are testing so there is a develop branch available
+    // diff-cover sometimes fails to identify origin/3.13, so let's check out the 3.13 branch
+    // and then switch back to the commit we are testing so there is a 3.13 branch available
     // for diff-cover to use later. See https://github.com/Bachmann1234/diff-cover/issues/55
     sh 'git branch -f the_commit_we_are_testing HEAD'
-    sh 'git checkout develop'
+    sh 'git checkout 3.13'
     sh 'git checkout the_commit_we_are_testing'
 
     stage('Allocate Duffy node') {
