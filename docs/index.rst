@@ -59,6 +59,7 @@ Contributor Guide
    :maxdepth: 2
 
    developer/index
+   developer/releases
    developer/vagrant
    developer/virtualenv
    developer/models
