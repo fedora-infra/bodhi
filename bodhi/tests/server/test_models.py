@@ -1,4 +1,4 @@
-# Copyright © 2011-2018 Red Hat, Inc. and others.
+# Copyright © 2011-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -1857,7 +1857,6 @@ class TestUpdate(ModelTest):
                 nvr=u'TurboGears-1.0.8-3.fc11', package=model.RpmPackage(**TestRpmPackage.attrs),
                 release=release)],
             bugs=[model.Bug(bug_id=1), model.Bug(bug_id=2)],
-            cves=[model.CVE(cve_id=u'CVE-2009-0001')],
             release=release,
             user=model.User(name=u'lmacken'))
 
@@ -2488,9 +2487,6 @@ class TestUpdate(ModelTest):
 
     def test_bugstring(self):
         self.assertEqual(self.obj.get_bugstring(), u'1 2')
-
-    def test_cvestring(self):
-        self.assertEqual(self.obj.get_cvestring(), u'CVE-2009-0001')
 
     def test_assign_alias(self):
         update = self.obj
@@ -3373,10 +3369,6 @@ class TestUpdate(ModelTest):
         bug.close_bug(self.obj)
         self.obj.status = UpdateStatus.testing
         bug.add_comment(self.obj)
-
-    def test_cve(self):
-        cve = self.obj.cves[0]
-        self.assertEqual(cve.url, 'http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2009-0001')
 
     def test_expand_messages(self):
         """Ensure all messages can be expanded properly"""

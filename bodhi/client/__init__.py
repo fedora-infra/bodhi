@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2014-2018 Red Hat, Inc. and others.
+# Copyright © 2014-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -518,7 +518,6 @@ def edit(user, password, url, debug, openid_api, **kwargs):
 @click.option('--bugs', help='A list of bug numbers')
 @click.option('--critpath', is_flag=True, default=None,
               help='Query only critical path packages')
-@click.option('--cves', help='Query by CVE id')
 @click.option('--packages', help='Query by package name(s)')
 @click.option('--content-type', help='Query updates based on content type',
               type=click.Choice(['rpm', 'module']))  # And someday, container.
@@ -675,7 +674,6 @@ def comment(update, text, karma, user, password, url, openid_api, **kwargs):
 @click.option('--arch',
               help=('Specify arch of packages to download, "all" will retrieve packages from all '
                     'architectures'))
-@click.option('--cves', help='Download update(s) by CVE(s) (comma-separated list)')
 @click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
 @url_option
@@ -702,9 +700,9 @@ def download(url, **kwargs):
     del(kwargs['staging'])
     del(kwargs['arch'])
     # At this point we need to have reduced the kwargs dict to only our
-    # query options (cves, updateid, builds)
+    # query options (updateid or builds)
     if not any(kwargs.values()):
-        click.echo("ERROR: must specify at least one of --cves, --updateid, --builds")
+        click.echo("ERROR: must specify at least one of --updateid or --builds")
         sys.exit(1)
 
     # As the query method doesn't let us construct OR queries, we're

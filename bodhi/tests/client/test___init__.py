@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2016-2018 Red Hat, Inc. and others.
+# Copyright © 2016-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -175,16 +175,13 @@ class TestDownload(unittest.TestCase):
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request')
     def test_empty_options(self, send_request):
-        """
-        Assert we return an error if either --cves --updateid or --builds are not
-        used.
-        """
+        """Assert we return an error if either --updateid or --builds are not used."""
         runner = testing.CliRunner()
 
         result = runner.invoke(client.download)
 
         self.assertEqual(result.output,
-                         u'ERROR: must specify at least one of --cves, --updateid, --builds\n')
+                         u'ERROR: must specify at least one of --updateid or --builds\n')
         send_request.assert_not_called()
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -743,7 +740,7 @@ class TestQuery(unittest.TestCase):
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                     'modified_before': None, 'pushed': None, 'pushed_since': None,
                     'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                    'type': None, 'cves': None, 'rows_per_page': None, 'page': None,
+                    'type': None, 'rows_per_page': None, 'page': None,
                 }
             ),
             mock.call(
@@ -784,7 +781,7 @@ class TestQuery(unittest.TestCase):
                 'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                 'modified_before': None, 'pushed': None, 'pushed_since': None,
                 'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                'type': None, 'cves': None, 'rows_per_page': None, 'page': None})
+                'type': None, 'rows_per_page': None, 'page': None})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -817,7 +814,7 @@ class TestQuery(unittest.TestCase):
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                     'modified_before': None, 'pushed': None, 'pushed_since': None,
                     'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                    'type': None, 'cves': None, 'rows_per_page': None, 'page': None
+                    'type': None, 'rows_per_page': None, 'page': None
                 }
             ),
             mock.call(
@@ -858,7 +855,7 @@ class TestQuery(unittest.TestCase):
                     'staging': False, 'modified_since': None, 'modified_before': None,
                     'pushed': None, 'pushed_since': None, 'pushed_before': None,
                     'user': 'dudemcpants', 'critpath': None, 'packages': None,
-                    'type': None, 'cves': None, 'rows_per_page': None, 'page': None,
+                    'type': None, 'rows_per_page': None, 'page': None,
                 }
             ),
             mock.call(
@@ -898,7 +895,7 @@ class TestQuery(unittest.TestCase):
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                     'modified_before': None, 'pushed': None, 'pushed_since': None,
                     'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                    'type': None, 'cves': None, 'rows_per_page': 10, 'page': None
+                    'type': None, 'rows_per_page': 10, 'page': None
                 }
             ),
             mock.call(
@@ -937,7 +934,7 @@ class TestQuery(unittest.TestCase):
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                     'modified_before': None, 'pushed': None, 'pushed_since': None,
                     'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                    'type': None, 'cves': None, 'rows_per_page': None, 'page': 5
+                    'type': None, 'rows_per_page': None, 'page': 5
                 },
             ),
             mock.call(
@@ -976,7 +973,7 @@ class TestQuery(unittest.TestCase):
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                     'modified_before': None, 'pushed': None, 'pushed_since': None,
                     'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                    'type': None, 'cves': None, 'rows_per_page': None, 'page': None
+                    'type': None, 'rows_per_page': None, 'page': None
                 },
             ),
             mock.call(

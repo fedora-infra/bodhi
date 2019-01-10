@@ -13,6 +13,8 @@ Backwards incompatible changes
 
 * Integration with pkgdb is no longer supported (:issue:`1970`).
 * The ``/admin/`` API has been removed (:issue:`1985`).
+* Support for CVE tracking was dropped. It was technically not possible to use the feature, so it
+  is unlikely to affect any deployments (:issue:`1998`).
 * The ``/masher`` API has been removed (:issue:`2024`).
 * The ``bodhi-monitor-composes`` script has been removed (:issue:`2171`).
 * The stacks feature has been removed (:issue:`2241`).
@@ -35,7 +37,10 @@ Dependency changes
 Server upgrade instructions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-No special actions are needed when applying this update.
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
 
 
 Features

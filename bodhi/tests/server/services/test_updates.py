@@ -1928,44 +1928,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(res.json_body['errors'][0]['description'],
                          '"lalala" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
 
-    def test_list_updates_by_cves(self):
-        res = self.app.get("/updates/", {"cves": "CVE-1985-0110"})
-        body = res.json_body
-        self.assertEqual(len(body['updates']), 1)
-
-        up = body['updates'][0]
-        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEqual(up['status'], u'pending')
-        self.assertEqual(up['request'], u'testing')
-        self.assertEqual(up['user']['name'], u'guest')
-        self.assertEqual(up['release']['name'], u'F17')
-        self.assertEqual(up['type'], u'bugfix')
-        self.assertEqual(up['severity'], u'medium')
-        self.assertEqual(up['suggest'], u'unspecified')
-        self.assertEqual(up['close_bugs'], True)
-        self.assertEqual(up['notes'], u'Useful details!')
-        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
-        self.assertEqual(up['date_pushed'], None)
-        self.assertEqual(up['locked'], False)
-        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEqual(up['karma'], 1)
-
-    def test_list_updates_by_unexisting_cve(self):
-        res = self.app.get('/updates/', {"cves": "CVE-2013-1015"})
-        body = res.json_body
-        self.assertEqual(len(body['updates']), 0)
-
-    def test_list_updates_by_invalid_cve(self):
-        res = self.app.get('/updates/', {"cves": "WTF-ZOMG-BBQ"},
-                           status=400)
-        body = res.json_body
-        self.assertEqual(len(body.get('updates', [])), 0)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'cves.0')
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         '"WTF-ZOMG-BBQ" is not a valid CVE id')
-
     def test_list_updates_by_date_submitted_invalid_date(self):
         """test filtering by submitted date with an invalid date"""
         res = self.app.get('/updates/', {"submitted_since": "11-01-1984"}, status=400)

@@ -351,7 +351,6 @@ class BodhiClient(OpenIdBaseClient):
             approved_since (basestring): A datetime string.
             builds (basestring): A space or comma delimited string of build nvrs.
             critpath (bool): A boolean to query only critical path updates.
-            cves (basestring): Filter by CVE IDs.
             locked (bool): A boolean to filter only locked updates.
             modified_before (basestring): A datetime string to query updates that have been modified
                 before a certain time.

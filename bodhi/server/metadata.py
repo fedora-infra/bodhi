@@ -1,4 +1,4 @@
-# Copyright 2007-2018 Red Hat, Inc. and others.
+# Copyright 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -274,14 +274,6 @@ class UpdateInfoMetadata(object):
             ref.id = to_bytes(bug.bug_id)
             ref.href = to_bytes(bug.url)
             ref.title = to_bytes(bug.title)
-            rec.append_reference(ref)
-
-        # Create references for each CVE
-        for cve in update.cves:
-            ref = cr.UpdateReference()
-            ref.type = 'cve'
-            ref.id = to_bytes(cve.cve_id)
-            ref.href = to_bytes(cve.url)
             rec.append_reference(ref)
 
         self.uinfo.append(rec)

@@ -182,12 +182,8 @@ The ``updates`` command allows users to interact with bodhi updates.
 
 ``bodhi updates download [options]``
 
-    Download update(s) given by CVE(s), ID(s), or NVR(s). One of ``--cves``, ``--updateid``, or
+    Download update(s) given by ID(s) or NVR(s). One of ``--updateid`` or
     ``builds`` is required. The download subcommand supports the following options:
-
-    ``--cves <cves>``
-
-        A comma-separated list of CVEs that identify updates you would like to download.
 
     ``--updateid <ids>``
 
@@ -364,10 +360,6 @@ The ``updates`` command allows users to interact with bodhi updates.
     ``--critpath``
 
         Query for updates submitted for the critical path.
-
-    ``--cves <cves>``
-
-        Query for updates related to the given CVEs, given as a comma-separated list.
 
     ``--mine``
 

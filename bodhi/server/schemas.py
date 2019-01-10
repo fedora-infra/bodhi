@@ -16,7 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A set of API schemas to validate input and generate documentation."""
-import re
 import os
 
 import colander
@@ -34,8 +33,6 @@ from bodhi.server.models import (
 )
 from bodhi.server.validators import validate_csrf_token
 
-
-CVE_REGEX = re.compile(r"CVE-[0-9]{4,4}-[0-9]{4,}")
 
 # Retrieving list of templates from filesystem for `mail_template` validation in SaveReleaseSchema
 template_directory = util.get_absolute_path(config.get('mail.templates_basepath'))
@@ -62,25 +59,6 @@ class Builds(colander.SequenceSchema):
     """A SequenceSchema to validate a list of Build objects."""
 
     build = colander.SchemaNode(colander.String())
-
-
-class CVE(colander.String):
-    """A String schema to validate a CVE."""
-
-    def deserialize(self, node, cstruct):
-        """Parse a CVE out of a given API CVE parameter."""
-        value = super(CVE, self).deserialize(node, cstruct)
-
-        if CVE_REGEX.match(value) is None:
-            raise colander.Invalid(node, '"%s" is not a valid CVE id' % value)
-
-        return value
-
-
-class CVEs(colander.SequenceSchema):
-    """A SequenceSchema to validate a list of CVE objects."""
-
-    cve = colander.SchemaNode(CVE())
 
 
 class Packages(colander.SequenceSchema):
@@ -500,13 +478,6 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",
         missing=None,
-    )
-
-    cves = CVEs(
-        colander.Sequence(accept_scalar=True),
-        location="querystring",
-        missing=None,
-        preparer=[util.splitter],
     )
 
     locked = colander.SchemaNode(

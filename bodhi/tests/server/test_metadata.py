@@ -1,4 +1,4 @@
-# Copyright 2007-2018 Red Hat, Inc. and others.
+# Copyright 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -90,15 +90,11 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         self.assertEqual(md.uinfo.updates[0].description, update.notes)
         self.assertEqual(md.uinfo.updates[0].id, update.alias)
         self.assertEqual(md.uinfo.updates[0].severity, 'Moderate')
-        self.assertEqual(len(md.uinfo.updates[0].references), 2)
+        self.assertEqual(len(md.uinfo.updates[0].references), 1)
         bug = md.uinfo.updates[0].references[0]
         self.assertEqual(bug.href, update.bugs[0].url)
         self.assertEqual(bug.id, '12345')
         self.assertEqual(bug.type, 'bugzilla')
-        cve = md.uinfo.updates[0].references[1]
-        self.assertEqual(cve.type, 'cve')
-        self.assertEqual(cve.href, update.cves[0].url)
-        self.assertEqual(cve.id, update.cves[0].cve_id)
         self.assertEqual(len(md.uinfo.updates[0].collections), 1)
         col = md.uinfo.updates[0].collections[0]
         self.assertEqual(col.name, update.release.long_name)
@@ -366,10 +362,6 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         self.assertEqual(bug.href, update.bugs[0].url)
         self.assertEqual(bug.id, '12345')
         self.assertEqual(bug.type, 'bugzilla')
-        cve = notice.references[1]
-        self.assertEqual(cve.type, 'cve')
-        self.assertEqual(cve.href, update.cves[0].url)
-        self.assertEqual(cve.id, update.cves[0].cve_id)
 
         col = notice.collections[0]
         self.assertEqual(col.name, update.release.long_name)

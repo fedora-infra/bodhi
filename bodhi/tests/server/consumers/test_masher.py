@@ -1,4 +1,4 @@
-# Copyright © 2007-2018 Red Hat, Inc.
+# Copyright © 2007-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -590,8 +590,6 @@ References:
 
   [ 1 ] Bug #12345 - None
         https://bugzilla.redhat.com/show_bug.cgi?id=12345
-  [ 2 ] CVE-1985-0110
-        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110
 --------------------------------------------------------------------------------
 
 """ % time.strftime('%Y'))
@@ -611,8 +609,7 @@ References:
              'Information:\n\nUseful details!\n----------------------------------------------------'
              '----------------------------\nChangeLog:\n\n-----------------------------------------'
              '---------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None'
-             '\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n  [ 2 ] CVE-1985-0110'
-             '\n        http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-1985-0110\n----------'
+             '\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n----------'
              '----------------------------------------------------------------------\n\n') % (
                 config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
 

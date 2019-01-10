@@ -1,4 +1,4 @@
-# Copyright © 2007-2018 Red Hat, Inc.
+# Copyright © 2007-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -23,7 +23,7 @@ import mock
 import sqlalchemy
 
 from bodhi.server.models import (
-    Bug, BuildrootOverride, Comment, CVE, Group, RpmPackage, Release, ReleaseState, RpmBuild,
+    Bug, BuildrootOverride, Comment, Group, RpmPackage, Release, ReleaseState, RpmBuild,
     Update, TestGatingStatus, UpdateRequest, UpdateSeverity, UpdateType, User, TestCase)
 
 
@@ -118,9 +118,6 @@ def populate(db):
     bug = Bug(bug_id=12345)
     db.add(bug)
     update.bugs.append(bug)
-    cve = CVE(cve_id=u"CVE-1985-0110")
-    db.add(cve)
-    update.cves.append(cve)
 
     comment = Comment(karma=1, text=u"wow. amaze.")
     db.add(comment)

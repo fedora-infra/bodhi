@@ -742,16 +742,6 @@ update_bug_table = Table(
     Column('update_id', Integer, ForeignKey('updates.id')),
     Column('bug_id', Integer, ForeignKey('bugs.id')))
 
-update_cve_table = Table(
-    'update_cve_table', metadata,
-    Column('update_id', Integer, ForeignKey('updates.id')),
-    Column('cve_id', Integer, ForeignKey('cves.id')))
-
-bug_cve_table = Table(
-    'bug_cve_table', metadata,
-    Column('bug_id', Integer, ForeignKey('bugs.id')),
-    Column('cve_id', Integer, ForeignKey('cves.id')))
-
 user_package_table = Table(
     'user_package_table', metadata,
     Column('user_id', Integer, ForeignKey('users.id')),
@@ -1629,8 +1619,6 @@ class Update(Base):
             contained in this update.
         bugs (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Bug` objects
             associated with this update.
-        cves (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`CVE` objects
-            associated with this update.
         user_id (int): A foreign key to the :class:`User` that created this update.
         test_gating_status (EnumSymbol): The test gating status of the update. This must be one
             of the values defined in :class:`TestGatingStatus` or ``None``. None indicates that
@@ -1645,7 +1633,7 @@ class Update(Base):
     """
 
     __tablename__ = 'updates'
-    __exclude_columns__ = ('id', 'user_id', 'release_id', 'cves')
+    __exclude_columns__ = ('id', 'user_id', 'release_id')
     __include_extras__ = ('meets_testing_requirements', 'url',)
     __get_by__ = ('title', 'alias')
 
@@ -1709,7 +1697,6 @@ class Update(Base):
 
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table, backref='updates')
-    cves = relationship('CVE', secondary=update_cve_table, backref='updates')
 
     user_id = Column(Integer, ForeignKey('users.id'))
 
@@ -2336,15 +2323,6 @@ class Update(Base):
             val = u' '.join([str(bug.bug_id) for bug in self.bugs])
         return val
 
-    def get_cvestring(self):
-        """
-        Return a space-delimited string of CVE ids for this update.
-
-        Returns:
-            basestring: A space-separated list of CVE ids.
-        """
-        return u' '.join([cve.cve_id for cve in self.cves])
-
     def get_bug_karma(self, bug):
         """
         Return the karma for this update for the given bug.
@@ -2816,8 +2794,6 @@ class Update(Base):
         if len(self.bugs):
             bugs = self.get_bugstring(show_titles=True)
             val += u"\n       Bugs: %s" % bugs
-        if len(self.cves):
-            val += u"\n       CVEs: %s" % self.get_cvestring()
         if self.notes:
             notes = wrap(
                 self.notes, width=67, subsequent_indent=' ' * 11 + ': ')
@@ -2887,35 +2863,6 @@ class Update(Base):
 
         session.flush()
         return new
-
-    def update_cves(self, cves, session):  # pragma: no cover
-        """
-        Create any new CVES, and remove any missing ones.
-
-        This method cannot possibly work:
-            https://github.com/fedora-infra/bodhi/issues/1998#issuecomment-344332011
-
-        This method has pragma: no cover on it because of the combination of it not working (see
-        above), and because the CVE feature is planned for removal in a future X release of Bodhi
-        since it has never been used.
-
-        Args:
-            cves (list): A list of basestrings of CVE identifiers.
-            session (sqlalchemy.orm.session.Session): A database session.
-        """
-        for cve in self.cves:
-            if cve.cve_id not in cves and len(cve.updates) == 0:
-                log.debug("Destroying stray CVE #%s" % cve.cve_id)
-                session.delete(cve)
-        for cve_id in cves:
-            cve = CVE.query.filter_by(cve_id=cve_id).one()
-            if cve not in self.cves:
-                self.cves.append(cve)
-                log.debug("Creating new CVE: %s" % cve_id)
-                cve = CVE(cve_id=cve_id)
-                session.save(cve)
-                self.cves.append(cve)
-        session.flush()
 
     def obsolete_if_unstable(self, db):
         """
@@ -3997,36 +3944,6 @@ class Comment(Base):
                                               self.timestamp, karma, self.text)
 
 
-class CVE(Base):
-    """
-    Represents a CVE.
-
-    Attributes:
-        cve_id (unicode): The CVE identifier for this CVE.
-        updates (sqlalchemy.orm.collections.InstrumentedList): An iterable of
-            :class:`Updates <Update>` associated with this CVE.
-        bugs (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Bugs <Bug>`
-            associated with this CVE.
-    """
-
-    __tablename__ = 'cves'
-    __exclude_columns__ = ('id', 'updates', 'bugs')
-    __get_by__ = ('cve_id',)
-
-    cve_id = Column(Unicode(13), unique=True, nullable=False)
-
-    @property
-    def url(self):
-        """
-        Return a URL about this CVE.
-
-        Returns:
-            str: A URL describing this CVE.
-        """
-        return "http://www.cve.mitre.org/cgi-bin/cvename.cgi?name=%s" % \
-            self.cve_id
-
-
 class Bug(Base):
     """
     Represents a Bugzilla bug.
@@ -4038,12 +3955,10 @@ class Bug(Base):
         url (unicode): The URL for the bug. Inaccessible due to being overridden by the url
             property (https://github.com/fedora-infra/bodhi/issues/1995).
         parent (bool): True if this is a parent tracker bug for release-specific bugs.
-        cves (sqlalchemy.orm.collections.InstrumentedList): An interable of :class:`CVEs <CVE>` this
-            bug is associated with.
     """
 
     __tablename__ = 'bugs'
-    __exclude_columns__ = ('id', 'cves', 'updates')
+    __exclude_columns__ = ('id', 'updates')
     __get_by__ = ('bug_id',)
 
     # Bug number. If None, assume ``url`` points to an external bug tracker
@@ -4060,9 +3975,6 @@ class Bug(Base):
 
     # If this bug is a parent tracker bug for release-specific bugs
     parent = Column(Boolean, default=False)
-
-    # List of Mitre CVE's associated with this bug
-    cves = relationship(CVE, secondary=bug_cve_table, backref='bugs')
 
     # Is it public or private
     private = Column(Boolean, default=False)

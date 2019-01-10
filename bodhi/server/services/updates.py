@@ -1,4 +1,4 @@
-# Copyright © 2014-2017 Red Hat, Inc. and others.
+# Copyright © 2014-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -32,7 +32,6 @@ from bodhi.server.models import (
     Update,
     Bug,
     ContentType,
-    CVE,
     UpdateRequest,
     ReleaseState,
     Build,
@@ -272,11 +271,6 @@ def query_updates(request):
     critpath = data.get('critpath')
     if critpath is not None:
         query = query.filter(Update.critpath == critpath)
-
-    cves = data.get('cves')
-    if cves is not None:
-        query = query.join(Update.cves)
-        query = query.filter(or_(*[CVE.cve_id == cve_id for cve_id in cves]))
 
     like = data.get('like')
     if like is not None:

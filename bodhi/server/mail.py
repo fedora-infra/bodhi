@@ -1,4 +1,4 @@
-# Copyright 2007-2018 Red Hat, Inc. and others.
+# Copyright 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -310,10 +310,10 @@ def get_template(update, use_template='fedora_errata_template'):
                 '\n'.join(wrap(update.notes, width=80))
             info['notes'] += line
 
-        # Add this updates referenced Bugzillas and CVEs
+        # Add this updates referenced Bugzillas
         i = 1
         info['references'] = ""
-        if len(update.bugs) or len(update.cves):
+        if len(update.bugs):
             info['references'] = u"References:\n\n"
             parent = True in [bug.parent for bug in update.bugs]
             for bug in update.bugs:
@@ -328,10 +328,6 @@ def get_template(update, use_template='fedora_errata_template'):
                          and not bug.private) and ' - %s' % bug.title or ''
                 info['references'] += u"  [ %d ] Bug #%d%s\n        %s\n" % \
                                       (i, bug.bug_id, title, bug.url)
-                i += 1
-            for cve in update.cves:
-                info['references'] += u"  [ %d ] %s\n        %s\n" % \
-                                      (i, cve.cve_id, cve.url)
                 i += 1
             info['references'] += line
 
