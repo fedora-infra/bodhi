@@ -1103,8 +1103,6 @@ class Package(Base):
         # container. Flatpaks build directly from the 'modules' namespace
         if self.type.name == 'container':
             namespace = self.type.name
-        elif self.type.name == 'flatpak':
-            namespace = 'modules'
         else:
             namespace = self.type.name + 's'
         package_pagure_url = '{0}/api/0/{1}/{2}?expand_group=1'.format(
