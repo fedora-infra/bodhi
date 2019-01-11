@@ -2668,7 +2668,8 @@ class TestWaive(unittest.TestCase):
             munch.Munch({
                 'decision': munch.Munch({
                     'summary': 'All tests passed',
-                    'unsatisfied_requirements': []
+                    'unsatisfied_requirements': [],
+                    'waivers': [],
                 }),
             })
         ]
@@ -2714,7 +2715,8 @@ class TestWaive(unittest.TestCase):
             munch.Munch({
                 'decision': munch.Munch({
                     'summary': 'All tests passed',
-                    'unsatisfied_requirements': []
+                    'unsatisfied_requirements': [],
+                    'waivers': [],
                 }),
             })
         ]
