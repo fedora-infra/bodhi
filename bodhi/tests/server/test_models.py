@@ -1073,7 +1073,7 @@ class TestFlatpakPackage(ModelTest, unittest.TestCase):
             "custom_keys": [],
             "date_created": "1494947106",
             "description": "Flatpak Runtime",
-            "fullname": "modules/flatpak-runtime",
+            "fullname": "flatpaks/flatpak-runtime",
             "group_details": {},
             "id": 2,
             "milestones": {},
@@ -1094,7 +1094,7 @@ class TestFlatpakPackage(ModelTest, unittest.TestCase):
 
         self.assertEqual(rv, (['otaylor'], []))
         http_session.get.assert_called_once_with(
-            ('https://src.fedoraproject.org/pagure/api/0/modules/flatpak-runtime'
+            ('https://src.fedoraproject.org/pagure/api/0/flatpaks/flatpak-runtime'
              '?expand_group=1'),
             timeout=60)
 
