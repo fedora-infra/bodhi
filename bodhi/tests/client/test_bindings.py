@@ -1350,11 +1350,38 @@ class TestBodhiClient_update_str(unittest.TestCase):
         client = bindings.BodhiClient()
         client.base_url = 'http://example.com/tests/'
         get_test_status.return_value = munch.Munch(
-            {'decision': munch.Munch({'summary': 'no tests required'})})
+            {'decision': munch.Munch({'summary': 'no tests required', 'waivers': []})}
+        )
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
         self.assertIn('CI Status: no tests required\n', text)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
+    def test_waived_tests(self, get_test_status):
+        """Ensure that information about waived tests is rendered"""
+        client = bindings.BodhiClient()
+        client.base_url = 'http://example.com/tests/'
+        get_test_status.return_value = munch.Munch(
+            {'decision': munch.Munch({
+                'summary': 'no tests required',
+                'waivers': [{'comment': 'This is fine. See BZ#1566485', 'id': 150,
+                             'product_version': 'fedora-28', 'proxied_by': None,
+                             'subject': {'item': 'slop-7.4-1.fc28', 'type': 'koji_build'},
+                             'subject_identifier': 'slop-7.4-1.fc28', 'subject_type': 'koji_build',
+                             'testcase': 'dist.rpmlint', 'timestamp': '2018-06-29T00:20:20.425844',
+                             'username': 'netvor', 'waived': True}]})}
+        )
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        self.assertIn(
+            '     Waivers: netvor - 2018-06-29 00:20:20\n'
+            '              This is fine. See BZ#1566485\n'
+            '              build: slop-7.4-1.fc28\n'
+            '              testcase: dist.rpmlint\n',
+            text,
+        )
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
