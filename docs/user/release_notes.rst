@@ -34,6 +34,7 @@ Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
 * Bodhi no longer requires ``iniparse`` (:commit:`a910b615`).
+* Bodhi now requires ``fedora_messaging`` (:commit:`e30c5f21`).
 
 
 Server upgrade instructions
