@@ -1341,6 +1341,65 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
             stderr=-1, stdout=-1)
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_create_multiple_overrides(self, send_request):
+        """
+        Assert correct behavior when user creates multiple overrides.
+        """
+        runner = testing.CliRunner()
+
+        def _send_request(*args, **kwargs):
+            """Mock the response from send_request()."""
+            response = client_test_data.EXAMPLE_QUERY_OVERRIDES_MUNCH
+            del response['total']
+            return response
+
+        send_request.side_effect = _send_request
+        expected_output = client_test_data.EXPECTED_QUERY_OVERRIDES_OUTPUT
+        expected_output = expected_output.replace("11 overrides found (11 shown)\n", "")
+
+        overrides_nvrs = [
+            'nodejs-grunt-wrap-0.3.0-2.fc25',
+            'python-pyramid-1.5.6-3.el7',
+            'erlang-esip-1.0.8-1.fc25',
+            'erlang-stun-1.0.7-1.fc25',
+            'erlang-iconv-1.0.2-1.fc25',
+            'erlang-stringprep-1.0.6-1.fc25',
+            'erlang-fast_tls-1.0.7-1.fc25',
+            'erlang-fast_yaml-1.0.6-1.fc25',
+            'erlang-fast_xml-1.1.15-1.fc25',
+            'python-fedmsg-atomic-composer-2016.3-1.el7',
+            'python-fedmsg-atomic-composer-2016.3-1.fc24',
+        ]
+
+        overrides_nvrs_str = " ".join(overrides_nvrs)
+
+        result = runner.invoke(
+            client.save_buildroot_overrides,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', overrides_nvrs_str, '--url',
+             'http://localhost:6543/'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, expected_output)
+        bindings_client = send_request.mock_calls[0][1][0]
+        # datetime is a C extension that can't be mocked, so let's just assert that the time is
+        # about a week away.
+        expire_time = send_request.mock_calls[0][2]['data']['expiration_date']
+        self.assertTrue((datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5))
+        # There should be one calls to send_request().
+        self.assertEqual(send_request.call_count, 1)
+        self.assertEqual(
+            send_request.mock_calls[0],
+            mock.call(
+                bindings_client, 'overrides/', verb='POST', auth=True,
+                data={
+                    'expiration_date': expire_time,
+                    'notes': u'No explanation given...', 'nvr': overrides_nvrs_str,
+                    'csrf_token': 'a_csrf_token'}))
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
 
 class TestWarnIfUrlAndStagingSet(unittest.TestCase):
     """
