@@ -1315,7 +1315,6 @@ class Build(Base):
     release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
     update_id = Column(Integer, ForeignKey('updates.id'))
-    ci_url = Column(UnicodeText, default=None, nullable=True)
 
     release = relationship('Release', backref='builds', lazy=False)
 

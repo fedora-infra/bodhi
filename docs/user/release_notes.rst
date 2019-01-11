@@ -18,6 +18,7 @@ Backwards incompatible changes
 * The ``bodhi-manage-releases`` script has been removed (:issue:`2420`).
 * Bodhi server no longer supports Python 2. Python 3 is the only supported Python release
   (:issue:`2759`).
+* Support for the ``ci_url`` on the ``Build`` object was dropped (:issue:`2782`).
 * Support for ``active_releases`` parameter in updates query API was droped (:issue:`2815`).
 * The ``/updates/ALIAS/TITLE`` API has been removed (:issue:`2869`).
 * Support for update's old_updateid was dropped (:issue:`2903`).
