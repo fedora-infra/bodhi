@@ -475,7 +475,7 @@ class BodhiConfig(dict):
             'value': True,
             'validator': _validate_bool},
         'mail.templates_basepath': {
-            'value': 'bodhi:server/email/templates/',
+            'value': '/etc/bodhi/email_templates/',
             'validator': str},
         'mako.directories': {
             'value': 'bodhi:server/templates',

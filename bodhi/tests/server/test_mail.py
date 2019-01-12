@@ -25,7 +25,6 @@ import unittest
 from kitchen.text import converters
 
 from bodhi.server import config, mail, models
-from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base
 
 
@@ -180,9 +179,8 @@ class TestGetTemplate(base.BaseTestCase):
         """Reading from invalid template name should log appropriate error."""
         name = "invalid_template_name"
         location = config.config.get('mail.templates_basepath')
-        directory = get_absolute_path(location)
         file_name = "%s.tpl" % (name)
-        template_path = os.path.join(directory, file_name)
+        template_path = os.path.join(location, file_name)
 
         mail.read_template(name)
 
@@ -195,9 +193,8 @@ class TestGetTemplate(base.BaseTestCase):
         """IOError while opening template file should be logged appropriately."""
         name = "fedora_errata_template"
         location = config.config.get('mail.templates_basepath')
-        directory = get_absolute_path(location)
         file_name = "%s.tpl" % (name)
-        template_path = os.path.join(directory, file_name)
+        template_path = os.path.join(location, file_name)
 
         with mock.patch('bodhi.server.mail.open', side_effect=IOError()):
             mail.read_template(name)

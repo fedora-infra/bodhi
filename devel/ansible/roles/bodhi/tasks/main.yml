@@ -196,6 +196,17 @@
       dest: /etc/motd
       mode: 0644
 
+- name: Create /etc/bodhi
+  file:
+    path: /etc/bodhi/
+    state: directory
+
+- name: Copy email templates to /etc/bodhi/email_templates
+  command: cp -r /home/vagrant/bodhi/bodhi/server/email/templates /etc/bodhi/email_templates
+  args:
+      creates: /etc/bodhi/email_templates
+
+
 - name: Set up the RabbitMQ broker
   import_tasks: rabbitmq.yml
 

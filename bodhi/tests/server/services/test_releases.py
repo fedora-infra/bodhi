@@ -23,7 +23,6 @@ import webtest
 from bodhi import server
 from bodhi.server.config import config
 from bodhi.server.models import Release, ReleaseState, Update, UpdateStatus
-from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base, create_update
 
 
@@ -350,8 +349,7 @@ class TestReleasesService(base.BaseTestCase):
         """Test appropriate error is returned when provided `mail_template` doesn't exist."""
         name = u"F22"
         location = config.get('mail.templates_basepath')
-        directory = get_absolute_path(location)
-        template_list = [os.path.splitext(file)[0] for file in os.listdir(directory)]
+        template_list = [os.path.splitext(file)[0] for file in os.listdir(location)]
         template_vals = ", ".join(template_list)
 
         res = self.app.get('/releases/%s' % name, status=200)

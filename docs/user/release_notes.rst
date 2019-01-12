@@ -12,6 +12,7 @@ Backwards incompatible changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Integration with pkgdb is no longer supported (:issue:`1970`).
+* Email templates are now stored in ``/etc/bodhi/email_templates/`` (:issue:`2753`).
 * Bodhi server no longer supports Python 2. Python 3 is the only supported Python release
   (:issue:`2759`).
 

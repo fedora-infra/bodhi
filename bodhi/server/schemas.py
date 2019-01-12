@@ -38,7 +38,7 @@ from bodhi.server.validators import validate_csrf_token
 CVE_REGEX = re.compile(r"CVE-[0-9]{4,4}-[0-9]{4,}")
 
 # Retrieving list of templates from filesystem for `mail_template` validation in SaveReleaseSchema
-template_directory = util.get_absolute_path(config.get('mail.templates_basepath'))
+template_directory = config.get('mail.templates_basepath')
 MAIL_TEMPLATES = [os.path.splitext(file)[0] for file in os.listdir(template_directory)]
 
 

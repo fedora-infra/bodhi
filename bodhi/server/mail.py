@@ -26,7 +26,7 @@ from kitchen.text.converters import to_unicode, to_bytes
 
 from bodhi.server import log
 from bodhi.server.config import config
-from bodhi.server.util import get_rpm_header, get_absolute_path
+from bodhi.server.util import get_rpm_header
 
 
 #
@@ -251,9 +251,8 @@ def read_template(name):
         basestring: The text read from the file.
     """
     location = config.get('mail.templates_basepath')
-    directory = get_absolute_path(location)
     file_name = "%s.tpl" % (name)
-    template_path = os.path.join(directory, file_name)
+    template_path = os.path.join(location, file_name)
 
     if os.path.exists(template_path):
         try:
