@@ -13,6 +13,7 @@ Backwards incompatible changes
 
 * The ``bodhi-manage-releases`` script has been removed (:issue:`2420`).
 * Integration with pkgdb is no longer supported (:issue:`1970`).
+* The ``/admin/`` API has been removed (:issue:`1985`).
 * Bodhi server no longer supports Python 2. Python 3 is the only supported Python release
   (:issue:`2759`).
 

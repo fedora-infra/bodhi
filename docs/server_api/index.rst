@@ -19,7 +19,6 @@ sections of the API by following the links below:
 .. toctree::
    :maxdepth: 2
 
-   admin
    builds
    comments
    composes
