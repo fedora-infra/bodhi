@@ -957,11 +957,11 @@ Features
 * There is now a man page for :doc:`man_pages/bodhi-dequeue-stable`.
 * The composer backend no longer uses lock files, but instead stores its state in the database. This
   is a mix of feature, bug fix, and refactor. The feature is that there is now a
-  :doc:`man_pages/bodhi-monitor-composes` CLI tool that allows admins to monitor the progress of
-  running composes. This also fixed a few bugs in the process, such as allowing users to comment on
-  updates while they are being composed. More than anything, it is a refactor as it allows us to add
-  a compose management API which will enable Fedora to add container support to Bodhi in the future
-  (:issue:`717`, :issue:`1245`, :issue:`2014`).
+  ``bodhi-monitor-composes`` CLI tool that allows admins to monitor the progress of running composes.
+  This also fixed a few bugs in the process, such as allowing users to comment on updates while they
+  are being composed. More than anything, it is a refactor as it allows us to add a compose management
+  API which will enable Fedora to add container support to Bodhi in the future (:issue:`717`,
+  :issue:`1245`, :issue:`2014`).
 
 
 Bugs
