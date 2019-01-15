@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2017-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -17,10 +16,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import unittest
-
 import mock
-import six
+import unittest
 
 from bodhi.server import config
 
@@ -267,7 +264,7 @@ class GenerateListValidatorTests(unittest.TestCase):
         result = config._generate_list_validator('|')('thing 1| thing 2')
 
         self.assertEqual(result, [u'thing 1', u'thing 2'])
-        self.assertTrue(all([isinstance(v, six.text_type) for v in result]))
+        self.assertTrue(all([isinstance(v, str) for v in result]))
 
     def test_custom_validator(self):
         """Test with a non-default validator."""
@@ -281,7 +278,7 @@ class GenerateListValidatorTests(unittest.TestCase):
         result = config._generate_list_validator()('play it again sam')
 
         self.assertEqual(result, [u'play', u'it', u'again', u'sam'])
-        self.assertTrue(all([isinstance(v, six.text_type) for v in result]))
+        self.assertTrue(all([isinstance(v, str) for v in result]))
 
     def test_with_list(self):
         """Test with a list."""
@@ -346,7 +343,7 @@ class ValidateColorTests(unittest.TestCase):
         color = config._validate_color('#65FE00')
 
         self.assertEqual(color, u'#65FE00')
-        self.assertTrue(isinstance(color, six.text_type))
+        self.assertTrue(isinstance(color, str))
 
     def test_wrong_base(self):
         """A string that isn't a base-16 number should raise a ValueError."""
@@ -392,26 +389,19 @@ class ValidateFernetKey(unittest.TestCase):
         result = config._validate_fernet_key(key)
 
         self.assertEqual(result, key)
-        if six.PY2:
-            self.assertIs(type(result), str)
-        else:
-            self.assertIs(type(result), bytes)
+        self.assertIs(type(result), bytes)
 
     def test_valid_key_text_type(self):
-        """Assert that we can pass a six.text_type and get the right type back."""
-        key = six.text_type('gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA=')
+        """Assert that we can pass a str and get the right type back."""
+        key = str('gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA=')
 
         result = config._validate_fernet_key(key)
 
-        if six.PY3:
-            # In Python 3, this will become a byte array and the equality test later will fail.
-            # Let's encode key to assert the right thing happens there.
-            key = key.encode('utf-8')
+        # In Python 3, this will become a byte array and the equality test later will fail.
+        # Let's encode key to assert the right thing happens there.
+        key = key.encode('utf-8')
         self.assertEqual(result, key)
-        if six.PY2:
-            self.assertIs(type(result), str)
-        else:
-            self.assertIs(type(result), bytes)
+        self.assertIs(type(result), bytes)
 
     def test_wrong_length_key(self):
         """An key with wrong length should raise a ValueError."""
@@ -425,16 +415,16 @@ class ValidateNoneOrTests(unittest.TestCase):
     """Test the _validate_none_or() function."""
     def test_with_none(self):
         """Assert that None is allowed."""
-        result = config._validate_none_or(six.text_type)(None)
+        result = config._validate_none_or(str)(None)
 
         self.assertTrue(result is None)
 
     def test_with_string(self):
         """Assert that a string is validated and converted to unicode."""
-        result = config._validate_none_or(six.text_type)('unicode?')
+        result = config._validate_none_or(str)('unicode?')
 
         self.assertEqual(result, u'unicode?')
-        self.assertTrue(isinstance(result, six.text_type))
+        self.assertTrue(isinstance(result, str))
 
 
 class ValidatePathTests(unittest.TestCase):
@@ -451,7 +441,7 @@ class ValidatePathTests(unittest.TestCase):
         result = config.validate_path(__file__)
 
         self.assertEqual(result, __file__)
-        self.assertTrue(isinstance(result, six.text_type))
+        self.assertTrue(isinstance(result, str))
 
 
 class ValidateRstrippedStrTests(unittest.TestCase):
@@ -483,7 +473,7 @@ class ValidateSecretTests(unittest.TestCase):
         result = config._validate_secret('secret')
 
         self.assertEqual(result, u'secret')
-        self.assertTrue(isinstance(result, six.text_type))
+        self.assertTrue(isinstance(result, str))
 
 
 class ValidateTLSURL(unittest.TestCase):
@@ -500,4 +490,4 @@ class ValidateTLSURL(unittest.TestCase):
         result = config._validate_tls_url('https://example.com')
 
         self.assertEqual(result, u'https://example.com')
-        self.assertTrue(isinstance(result, six.text_type))
+        self.assertTrue(isinstance(result, str))

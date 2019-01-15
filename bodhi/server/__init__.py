@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -29,7 +28,6 @@ from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
-import six
 
 from bodhi.server import bugs, buildsys
 from bodhi.server.config import config as bodhi_config
@@ -72,7 +70,7 @@ def get_user(request):
     from bodhi.server.models import User
     userid = request.unauthenticated_userid
     if userid is not None:
-        user = request.db.query(User).filter_by(name=six.text_type(userid)).first()
+        user = request.db.query(User).filter_by(name=str(userid)).first()
         # Why munch?  https://github.com/fedora-infra/bodhi/issues/473
         return munchify(user.__json__(request=request))
 

@@ -12,14 +12,12 @@ pull_request_rules:
   - status-success=f28-flake8
   - status-success=f28-pydocstyle
   - status-success=f28-python2-unit
-  - status-success=f28-python2-diff-cover
   - status-success=f28-python3-unit
   - status-success=f28-python3-diff-cover
   - status-success=f29-docs
   - status-success=f29-flake8
   - status-success=f29-pydocstyle
   - status-success=f29-python2-unit
-  - status-success=f29-python2-diff-cover
   - status-success=f29-python3-unit
   - status-success=f29-python3-diff-cover
   - status-success=pip-docs
@@ -27,7 +25,6 @@ pull_request_rules:
   - status-success=pip-mypy
   - status-success=pip-pydocstyle
   - status-success=pip-python2-unit
-  - status-success=pip-python2-diff-cover
   - status-success=pip-python3-unit
   - status-success=pip-python3-diff-cover
   - status-success=f29-python3-integration
@@ -46,14 +43,12 @@ pull_request_rules:
   - status-success=f28-flake8
   - status-success=f28-pydocstyle
   - status-success=f28-python2-unit
-  - status-success=f28-python2-diff-cover
   - status-success=f28-python3-unit
   - status-success=f28-python3-diff-cover
   - status-success=f29-docs
   - status-success=f29-flake8
   - status-success=f29-pydocstyle
   - status-success=f29-python2-unit
-  - status-success=f29-python2-diff-cover
   - status-success=f29-python3-unit
   - status-success=f29-python3-diff-cover
   - status-success=pip-docs
@@ -61,18 +56,9 @@ pull_request_rules:
   - status-success=pip-mypy
   - status-success=pip-pydocstyle
   - status-success=pip-python2-unit
-  - status-success=pip-python2-diff-cover
   - status-success=pip-python3-unit
   - status-success=pip-python3-diff-cover
   name: default-from-bowlofeggs
-- actions:
-    backport:
-      branches:
-      - '3.11'
-  conditions:
-  - label!=no-mergify
-  - label=3.11-backports
-  name: backport 3.11
 - actions:
     backport:
       branches:
@@ -81,3 +67,11 @@ pull_request_rules:
   - label!=no-mergify
   - label=3.12-backports
   name: backport 3.12
+- actions:
+    backport:
+      branches:
+      - '3.13'
+  conditions:
+  - label!=no-mergify
+  - label=3.13-backports
+  name: backport 3.13

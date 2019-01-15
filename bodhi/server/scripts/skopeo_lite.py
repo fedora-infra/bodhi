@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -37,6 +36,7 @@ Some other things that aren't implemented (but could be added if necessary):
  - Handling foreign layers
 """
 
+from urllib.parse import urlparse, urlunparse
 import json
 import logging
 import os
@@ -46,7 +46,6 @@ import tempfile
 import click
 import requests
 from requests.exceptions import SSLError, ConnectionError
-from six.moves.urllib.parse import urlparse, urlunparse
 
 
 @click.group()

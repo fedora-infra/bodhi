@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2016-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -18,12 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for bodhi.server.captcha."""
 
+import mock
 import unittest
 
-import mock
 import PIL.Image
 from pyramid.httpexceptions import HTTPGone, HTTPNotFound
-import six
 
 from bodhi.server import captcha
 from bodhi.server.config import config
@@ -93,7 +91,7 @@ class TestDecrypt(unittest.TestCase):
         with self.assertRaises(HTTPNotFound) as exc:
             captcha.decrypt(base64_unsafe_message, config)
 
-        self.assertEqual(six.text_type(exc.exception), '$@#his3##d*f is garbage')
+        self.assertEqual(str(exc.exception), '$@#his3##d*f is garbage')
 
     @mock.patch.dict(config, {'captcha.secret': 'gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA='})
     def test_invalid_token(self):
@@ -106,7 +104,7 @@ class TestDecrypt(unittest.TestCase):
 
     @mock.patch.dict(config, {'captcha.secret': 'gFqE6rcBXVLssjLjffsQsAa-nlm5Bg06MTKrVT9hsMA='})
     def test_text_type_cipherkey(self):
-        """Ensure that decrypt can decrypt what encrypt generated, when it is a six.text_type."""
+        """Ensure that decrypt can decrypt what encrypt generated, when it is a str."""
         plaintext = "don't let eve see this!"
         bobs_message = captcha.encrypt(plaintext, config).decode('utf-8')
 
@@ -128,7 +126,7 @@ class TestGenerateCaptcha(unittest.TestCase):
         cipherkey, url = captcha.generate_captcha(None, request)
 
         self.assertEqual(request.session['captcha'], cipherkey)
-        self.assertTrue(isinstance(cipherkey, six.text_type))
+        self.assertTrue(isinstance(cipherkey, str))
         request.route_url.assert_called_once_with('captcha_image', cipherkey=cipherkey)
         self.assertEqual(url, request.route_url.return_value)
         # Let's cheat and find out what the correct value for this cipherkey is and make sure it is

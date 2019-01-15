@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2014-2018 Red Hat Inc., and others.
 #
 # This file is part of Bodhi.
@@ -324,6 +323,23 @@ def save_release(request):
             log.info("Editing release: %s" % edited)
             r = request.db.query(Release).filter(Release.name == edited).one()
             for k, v in data.items():
+                # We have to change updates status to obsolete
+                # if state of release changes to archived
+                if k == "state" and v == ReleaseState.archived and \
+                        r.state != ReleaseState.archived:
+                    updates = request.db.query(Update).filter(Update.release_id == r.id).filter(
+                        Update.status.notin_(
+                            [UpdateStatus.obsolete, UpdateStatus.stable, UpdateStatus.unpushed]
+                        )
+                    ).all()
+                    for u in updates:
+                        u.status = UpdateStatus.obsolete
+                        u.comment(
+                            request.db,
+                            'This update is marked obsolete because '
+                            'the {} release is archived.'.format(u.release.name),
+                            author='bodhi',
+                        )
                 setattr(r, k, v)
 
     except Exception as e:

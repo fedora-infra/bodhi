@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -34,18 +33,12 @@ import tempfile
 import threading
 import time
 from datetime import datetime
-try:
-    from http.client import IncompleteRead
-except ImportError:  # pragma: no cover
-    # Python 2 does not have this Exception.
-    IncompleteRead = None
+from http.client import IncompleteRead
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 
 import fedmsg.consumers
 import jinja2
-from six.moves import zip
-from six.moves.urllib import request as urllib2
-from six.moves.urllib.error import HTTPError, URLError
-import six
 
 from bodhi.server import bugs, initialize_db, log, buildsys, notifications, mail
 from bodhi.server.config import config, validate_path
@@ -346,7 +339,7 @@ class ComposerThread(threading.Thread):
             with self.db_factory() as session:
                 self.db = session
                 self.compose = Compose.from_dict(session, self._compose)
-                self.compose.error_message = six.text_type(e)
+                self.compose.error_message = str(e)
                 self.save_state(ComposeState.failed)
 
             self.log.exception('ComposerThread failed. Transaction rolled back.')
@@ -754,7 +747,7 @@ class ComposerThread(threading.Thread):
         crithead = u'The following %s Critical Path updates have yet to be approved:\n Age URL\n'
         testhead = u'The following builds have been pushed to %s updates-testing\n\n'
 
-        for prefix, content in six.iteritems(self.testing_digest):
+        for prefix, content in self.testing_digest.items():
             release = self.db.query(Release).filter_by(long_name=prefix).one()
             test_list_key = '%s_test_announce_list' % (
                 release.id_prefix.lower().replace('-', '_'))
@@ -1324,7 +1317,7 @@ class PungiComposerThread(ComposerThread):
         while True:
             try:
                 self.log.info('Polling %s' % master_repomd_url)
-                masterrepomd = urllib2.urlopen(master_repomd_url)
+                masterrepomd = urlopen(master_repomd_url)
                 newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
             except (IncompleteRead, URLError, HTTPError):
                 self.log.exception('Error fetching repomd.xml')

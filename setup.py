@@ -1,11 +1,6 @@
-# The following two imports are required to shut up an
-# atexit error when running tests with python 2.7
-from setuptools import setup, find_packages  # noqa
-import logging  # noqa
-import multiprocessing  # noqa
-import os  # noqa
-import setuptools.command.egg_info  # noqa
-import sys  # noqa
+from setuptools import setup, find_packages
+import os
+import setuptools.command.egg_info
 
 
 def get_requirements(requirements_file='requirements.txt'):
@@ -50,7 +45,6 @@ CLASSIFIERS = [
     'Intended Audience :: System Administrators',
     'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
     'Operating System :: POSIX :: Linux',
-    'Programming Language :: Python :: 2.7',
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.6',
     'Programming Language :: Python :: 3.7',
@@ -70,7 +64,7 @@ setup(
     version=VERSION,
     description='bodhi common package',
     long_description=README,
-    classifiers=CLASSIFIERS,
+    classifiers=CLASSIFIERS + ['Programming Language :: Python :: 2.7'],
     license=LICENSE,
     maintainer=MAINTAINER,
     maintainer_email=MAINTAINER_EMAIL,
@@ -105,7 +99,7 @@ setup(
     version=VERSION,
     description='bodhi client',
     long_description=README,
-    classifiers=CLASSIFIERS,
+    classifiers=CLASSIFIERS + ['Programming Language :: Python :: 2.7'],
     license=LICENSE,
     maintainer=MAINTAINER,
     maintainer_email=MAINTAINER_EMAIL,
@@ -164,7 +158,6 @@ setup(
     bodhi-monitor-composes = bodhi.server.scripts.monitor_composes:monitor
     bodhi-untag-branched = bodhi.server.scripts.untag_branched:main
     bodhi-approve-testing = bodhi.server.scripts.approve_testing:main
-    bodhi-manage-releases = bodhi.server.scripts.manage_releases:main
     bodhi-check-policies = bodhi.server.scripts.check_policies:check
     bodhi-skopeo-lite = bodhi.server.scripts.skopeo_lite:main
     bodhi-sar = bodhi.server.scripts.sar:get_user_data

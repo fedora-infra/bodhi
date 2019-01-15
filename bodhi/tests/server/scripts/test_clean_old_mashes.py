@@ -14,13 +14,14 @@
 """
 This module contains tests for the bodhi.server.scripts.clean_old_mashes module.
 """
+
+from mock import patch
 import os
 import shutil
 import tempfile
 import unittest
 
 from click import testing
-from mock import patch
 
 from bodhi.server import config
 from bodhi.server.scripts import clean_old_mashes

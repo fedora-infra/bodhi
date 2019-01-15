@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -20,6 +19,7 @@
 
 from collections import defaultdict, OrderedDict
 from contextlib import contextmanager
+from urllib.parse import urlencode
 import functools
 import hashlib
 import json
@@ -43,9 +43,6 @@ import librepo
 import markdown
 import requests
 import rpm
-from six.moves import map
-from six.moves.urllib.parse import urlencode
-import six
 
 from bodhi.server import ffmarkdown, log, buildsys, Session
 from bodhi.server.config import config
@@ -96,16 +93,6 @@ def get_rpm_header(nvr, tries=0):
         return result
 
     raise ValueError("No rpm headers found in koji for %r" % nvr)
-
-
-def flash_log(msg):
-    """
-    Log the given message at debug level.
-
-    Args:
-        msg (basestring): The message to log.
-    """
-    log.debug(msg)
 
 
 def build_evr(build):
@@ -226,13 +213,7 @@ def get_critpath_components(collection='master', component_type='rpm', component
         log.warning('The critpath.type of "{0}" does not support searching for'
                     ' non-RPM components'.format(component_type))
 
-    if critpath_type == 'pkgdb':
-        from pkgdb2client import PkgDB
-        pkgdb = PkgDB(config.get('pkgdb_url'))
-        results = pkgdb.get_critpath_packages(branches=collection)
-        if collection in results['pkgs']:
-            critpath_components = results['pkgs'][collection]
-    elif critpath_type == 'pdc':
+    if critpath_type == 'pdc':
         critpath_components = get_critpath_components_from_pdc(
             collection, component_type, components)
     else:
@@ -413,7 +394,7 @@ def splitter(value):
 
     items = []
     for v in iterate(value):
-        if isinstance(v, six.string_types):
+        if isinstance(v, str):
             for item in v.replace(',', ' ').split():
                 items.append(item)
 
@@ -520,6 +501,8 @@ def composestate2html(context, state):
         'punging': 'warning',
         'notifying': 'warning',
         'cleaning': 'warning',
+        'syncing_repo': 'warning',
+        'signing_repo': 'warning',
         'success': 'success',
         'failed': 'danger',
     }[state.value]
@@ -537,7 +520,7 @@ def status2html(context, status):
     Returns:
         basestring: An HTML span tag representing the UpdateStatus.
     """
-    status = six.text_type(status)
+    status = str(status)
     cls = {
         'pending': 'primary',
         'testing': 'warning',
@@ -612,7 +595,7 @@ def state2class(context, state):
         basestring: A string representing the classification of the given ReleaseState. Can return
             'danger', 'warning', 'success', or 'default active'.
     """
-    state = six.text_type(state)
+    state = str(state)
     cls = {
         'disabled': 'default active',
         'pending': 'warning',
@@ -633,7 +616,7 @@ def type2color(context, t):
         basestring: A string in the format rgba(RED, GREEN, BLUE, ALPHA), where RED, GREEN, BLUE,
             and ALPHA are replaced with numerical values to represent a color.
     """
-    t = six.text_type(t)
+    t = str(t)
     cls = {
         'bugfix': 'rgba(150,180,205,0.5)',
         'security': 'rgba(205,150,180,0.5)',
@@ -724,7 +707,7 @@ def type2html(context, kind):
     Returns:
         basestring: An HTML span tag representing the UpdateType.
     """
-    kind = six.text_type(kind)
+    kind = str(kind)
     cls = {
         'security': 'danger',
         'bugfix': 'warning',
@@ -746,7 +729,7 @@ def type2icon(context, kind):
     Returns:
         basestring: An HTML span tag representing the UpdateType.
     """
-    kind = six.text_type(kind)
+    kind = str(kind)
     cls = {
         'security': 'danger',
         'bugfix': 'warning',
@@ -782,7 +765,7 @@ def severity2html(context, severity):
     Returns:
         basestring: An HTML span tag representing the UpdateSeverity.
     """
-    severity = six.text_type(severity)
+    severity = str(severity)
     cls = {
         'urgent': 'danger',
         'high': 'warning',
@@ -804,7 +787,7 @@ def request2html(context, request):
     Returns:
         basestring: An HTML span tag representing the UpdateRequest.
     """
-    request = six.text_type(request)
+    request = str(request)
     cls = {
         'unpush': 'danger',
         'obsolete': 'default',
@@ -1535,9 +1518,9 @@ def update_install_command(context, update):
     Returns:
         basestring: The dnf command to install the Update.
     """
-    status = six.text_type(update.status)
+    status = str(update.status)
     alias = update.alias
-    update_type = six.text_type(update.type)
+    update_type = str(update.type)
 
     if status != 'stable' and status != 'testing':
         raise ValueError('Only updates in stable or testing can be installed!')

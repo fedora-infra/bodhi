@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -18,23 +17,18 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from xml.etree import ElementTree
 import json
+import mock
 import os
 import shutil
 import subprocess
 import tempfile
 import unittest
 
-import mock
-import six
-
 from bodhi.server import util, models
 from bodhi.server.config import config
 from bodhi.server.models import (ComposeState, TestGatingStatus, Update, UpdateRequest,
                                  UpdateSeverity, UpdateStatus, UpdateType)
 from bodhi.tests.server import base
-
-if six.PY2:
-    import pkgdb2client
 
 
 class TestAvatar(unittest.TestCase):
@@ -468,6 +462,18 @@ class TestComposeState2HTML(unittest.TestCase):
         self.assertEqual(util.composestate2html(None, ComposeState.cleaning),
                          "<span class='label label-warning'>Cleaning old composes</span>")
 
+    def test_syncing_repo(self):
+        """Assert correct return value with the syncing_repo state."""
+        self.assertEqual(
+            util.composestate2html(None, ComposeState.syncing_repo),
+            "<span class='label label-warning'>Wait for the repo to hit the master mirror</span>",
+        )
+
+    def test_signing_repo(self):
+        """Assert correct return value with the signing_repo state."""
+        self.assertEqual(util.composestate2html(None, ComposeState.signing_repo),
+                         "<span class='label label-warning'>Signing repo</span>")
+
 
 class TestCanWaiveTestResults(base.BaseTestCase):
     """Test the can_waive_test_results() function."""
@@ -695,30 +701,6 @@ class TestUtils(base.BaseTestCase):
         """
         self.assertEqual(util.get_critpath_components(), ['kernel', 'glibc'])
 
-    if six.PY2:
-        @mock.patch.object(pkgdb2client.PkgDB, 'get_critpath_packages')
-        @mock.patch.dict(util.config, {
-            'critpath.type': 'pkgdb',
-            'pkgdb_url': 'http://domain.local'
-        })
-        def test_get_critpath_components_pkgdb_success(self, mock_get_critpath):
-            """ Ensure that critpath packages can be found using PkgDB.
-            """
-            # A subset of critpath packages
-            critpath_pkgs = [
-                'pth',
-                'xorg-x11-server-utils',
-                'giflib',
-                'basesystem'
-            ]
-            mock_get_critpath.return_value = {
-                'pkgs': {
-                    'f20': critpath_pkgs
-                }
-            }
-            pkgs = util.get_critpath_components('f20')
-            assert critpath_pkgs == pkgs, pkgs
-
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
     @mock.patch.dict(util.config, {
@@ -736,7 +718,7 @@ class TestUtils(base.BaseTestCase):
             util.get_critpath_components('f25')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = six.text_type(error)
+            actual_error = str(error)
         # We are not testing the whole error message because there is no
         # guarantee of the ordering of the GET parameters.
         assert 'Bodhi failed to get a resource from PDC' in actual_error
@@ -934,7 +916,7 @@ class TestUtils(base.BaseTestCase):
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = six.text_type(error)
+            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
@@ -954,7 +936,7 @@ class TestUtils(base.BaseTestCase):
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = six.text_type(error)
+            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
@@ -975,7 +957,7 @@ class TestUtils(base.BaseTestCase):
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = six.text_type(error)
+            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
@@ -1026,7 +1008,7 @@ class TestUtils(base.BaseTestCase):
                 'http://domain.local/rest_api/v1/component-branch-slas/')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = six.text_type(error)
+            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to get a resource from PDC at the following URL '
@@ -1050,7 +1032,7 @@ class TestUtils(base.BaseTestCase):
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = six.text_type(error)
+            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to get a resource from PDC at the following URL '
@@ -1073,7 +1055,7 @@ class TestUtils(base.BaseTestCase):
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = six.text_type(error)
+            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to get a resource from PDC at the following URL '
@@ -1120,7 +1102,7 @@ class TestUtils(base.BaseTestCase):
                                     data)
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = six.text_type(error)
+            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to send POST request to Greenwave at the following URL '
@@ -1148,7 +1130,7 @@ class TestUtils(base.BaseTestCase):
                                     data)
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = six.text_type(error)
+            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to send POST request to Greenwave at the following URL '
@@ -1175,7 +1157,7 @@ class TestUtils(base.BaseTestCase):
                                     data)
             assert False, 'Did not raise a RuntimeError'
         except RuntimeError as error:
-            actual_error = six.text_type(error)
+            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to send POST request to Greenwave at the following URL '

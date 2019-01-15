@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright 2016-2017 Red Hat, Inc.
+# Copyright 2016-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -18,11 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test module contains tests for bodhi.server.notifications."""
 
+import mock
 import unittest
 
 from fedora_messaging import api, testing as fml_testing, exceptions as fml_exceptions
 from sqlalchemy import exc
-import mock
 
 from bodhi.server import notifications, Session, models
 from bodhi.tests.server import base
@@ -138,6 +137,9 @@ class TestPublish(base.BaseTestCase):
 
         self.assertIn('messages', session.info)
         for expected, actual in zip(expected_msgs, session.info['messages']):
+            # fedora-messages <= 1.1.0 include this in equality checks
+            del expected._headers['sent-at']
+            del actual._headers['sent-at']
             self.assertEqual(expected, actual)
         self.assertEqual(0, mock_init.call_count)
 

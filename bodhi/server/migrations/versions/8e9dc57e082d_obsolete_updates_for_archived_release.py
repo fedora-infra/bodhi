@@ -1,4 +1,5 @@
-# Copyright © 2017 Till Maas
+# -*- coding: utf-8 -*-
+# Copyright (c) 2019 Sebastian Wojciechowski
 #
 # This file is part of Bodhi.
 #
@@ -16,27 +17,27 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-Add indexes for status and request.
+Obsolete updates for archived release.
 
-Revision ID: 2616c86d8ac6
-Revises: da710ff02641
-Create Date: 2017-10-26 20:45:23.152139
+Revision ID: 8e9dc57e082d
+Revises: d986618207bc
+Create Date: 2019-01-06 13:04:35.158562
 """
 from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision = '2616c86d8ac6'
-down_revision = 'da710ff02641'
+revision = '8e9dc57e082d'
+down_revision = 'd986618207bc'
 
 
 def upgrade():
-    """Add indices to the request and status columns on the update table."""
-    op.create_index(op.f('ix_updates_request'), 'updates', ['request'], unique=False)
-    op.create_index(op.f('ix_updates_status'), 'updates', ['status'], unique=False)
+    """Set archived releases updates status to 'obsolete'."""
+    op.execute("UPDATE updates SET status='obsolete' WHERE release_id in \
+                (SELECT id FROM releases WHERE state='archived') AND status NOT IN \
+                ('unpushed', 'obsolete', 'stable')")
 
 
 def downgrade():
-    """Drop indices to the request and status columns on the update table."""
-    op.drop_index(op.f('ix_updates_status'), table_name='updates')
-    op.drop_index(op.f('ix_updates_request'), table_name='updates')
+    """Raise an exception explaining that this migration cannot be reversed."""
+    raise NotImplementedError('This migration cannot be reversed.')

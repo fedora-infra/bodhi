@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2014-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -23,7 +22,7 @@ import webtest
 
 from bodhi import server
 from bodhi.server.config import config
-from bodhi.server.models import Release, ReleaseState, Update
+from bodhi.server.models import Release, ReleaseState, Update, UpdateStatus
 from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base, create_update
 
@@ -367,6 +366,59 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEqual(res.json_body['errors'][0]['name'], 'mail_template')
         self.assertEqual(res.json_body['errors'][0]['description'],
                          u'"invalid_template_name" is not one of {}'.format(template_vals))
+
+    def test_change_release_state_to_archived(self):
+        """
+        Test that when we make release archived, all release updates state will change to
+        'obsolete' or or stay 'stable'/'unpushed'
+        """
+        python_nose = self.create_update([u'python-nose-1.3.7-11.fc17'])
+        python_paste_deploy = self.create_update([u'python-paste-deploy-1.5.2-8.fc17'])
+        firefox = self.create_update([u'firefox-61.0.2-3.fc17'])
+        python_test_update = self.create_update([u'python-test-update.fc22'], 'F22')
+        # Change status of F17 updates
+        python_nose.status = UpdateStatus.stable
+        python_paste_deploy.status = UpdateStatus.obsolete
+        firefox.status = UpdateStatus.unpushed
+        self.db.commit()
+        name = u"F17"
+
+        res = self.app.get('/releases/%s' % name, status=200)
+        r = res.json_body
+
+        r["edited"] = name
+        r["state"] = "archived"
+        r["csrf_token"] = self.get_csrf_token()
+
+        res = self.app.post("/releases/", r, status=200)
+
+        r = self.db.query(Release).filter(Release.name == name).one()
+        self.assertEqual(r.state, ReleaseState.archived)
+
+        # Expect update status not changed
+        python_nose = self.db.query(Update).filter_by(
+            title=u'python-nose-1.3.7-11.fc17').one()
+        self.assertEqual(python_nose.status, UpdateStatus.stable)
+        # Expect update status not changed
+        python_paste_deploy = self.db.query(Update).filter_by(
+            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        self.assertEqual(python_paste_deploy.status, UpdateStatus.obsolete)
+        # Expect update status not changed
+        firefox = self.db.query(Update).filter_by(
+            title=u'firefox-61.0.2-3.fc17').one()
+        self.assertEqual(firefox.status, UpdateStatus.unpushed)
+        # Expect update status changed to 'obsolete'
+        bodhi_update = self.db.query(Update).filter_by(
+            title=u'bodhi-2.0-1.fc17').one()
+        self.assertEqual(bodhi_update.status, UpdateStatus.obsolete)
+        # Check for the comment
+        expected_comment = (u'This update is marked obsolete because the F17 release '
+                            'is archived.')
+        self.assertEqual(bodhi_update.comments[-1].text, expected_comment)
+        # Expect update status not changed
+        python_test_update = self.db.query(Update).filter_by(
+            title=u'python-test-update.fc22').one()
+        self.assertEqual(python_test_update.status, UpdateStatus.pending)
 
     def test_get_single_release_html(self):
         res = self.app.get('/releases/f17', headers={'Accept': 'text/html'})

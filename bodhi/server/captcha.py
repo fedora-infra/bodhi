@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2014-2018 Red Hat, Inc.
 #
 # This file is part of Bodhi.
@@ -21,7 +20,6 @@
 # Authors:  Ralph Bean <rbean@redhat.com>
 """Define utilities and a view pertaining to captcha images for unauthenticated users."""
 
-from __future__ import division
 import base64
 import math
 import random
@@ -31,7 +29,6 @@ from PIL import Image, ImageDraw, ImageFont
 from pyramid.httpexceptions import HTTPGone, HTTPNotFound
 from pyramid.view import view_config
 import cryptography.fernet
-import six
 
 
 def math_generator(plainkey, settings):
@@ -62,7 +59,7 @@ def math_generator(plainkey, settings):
 
     x, y = int(tokens[0]), int(tokens[2])
 
-    value = six.text_type(x + y)
+    value = str(x + y)
     return plainkey, value
 
 
@@ -252,7 +249,7 @@ def decrypt(ciphertext, settings):
     secret = settings['captcha.secret']
     engine = cryptography.fernet.Fernet(secret)
 
-    if isinstance(ciphertext, six.text_type):
+    if isinstance(ciphertext, str):
         ciphertext = ciphertext.encode('utf-8')
 
     try:

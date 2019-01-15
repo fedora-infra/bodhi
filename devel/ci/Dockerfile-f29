@@ -13,31 +13,17 @@ RUN dnf install --disablerepo rawhide-modular -y \
     findutils \
     git \
     liberation-mono-fonts \
-    packagedb-cli \
-    python2-createrepo_c \
-    python2-hawkey \
-    python2-jinja2 \
+    python2-click \
+    python2-fedora \
     python2-koji \
-    python2-librepo \
-    python2-yaml \
+    python3-bugzilla \
     python3-createrepo_c \
     python3-hawkey \
+    python3-koji \
     python3-yaml \
     make \
-    python2-arrow \
-    python2-bleach \
-    python2-colander \
-    python2-dogpile-cache \
-    python2-fedmsg \
-    python2-feedgen \
-    python2-kitchen \
-    python2-markdown \
     python2-mock \
-    python2-pillow \
-    python2-pyramid-mako \
     python2-pytest-cov \
-    python2-responses \
-    python2-sqlalchemy \
     python3-alembic \
     python3-arrow \
     python3-bleach \
@@ -64,24 +50,13 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-simplemediawiki \
     python3-sqlalchemy \
     python3-webtest \
-    python2-alembic \
-    python2-bugzilla \
-    python2-cornice \
     python2-munch \
-    python2-openid \
-    python2-pylibravatar \
-    python2-pyramid-fas-openid \
-    python2-simplemediawiki \
     python3-cornice \
     python3-cornice-sphinx \
-    python2-webtest \
-    python3-pyramid-fas-openid \
-    python2-libcomps
+    python3-pyramid-fas-openid
 
 # sqlalchemy_schemadisplay is not packaged for Python 3 in Fedora < 30
 RUN pip-3 install sqlalchemy_schemadisplay
-# fedora_messaging isn't packaged for Python 2 in Fedora
-RUN pip install fedora_messaging
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2007-2018 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -21,12 +20,12 @@ from datetime import datetime, timedelta
 from hashlib import sha256
 from os.path import join, exists, basename
 import glob
+import mock
 import os
 import shutil
 import tempfile
 
 import createrepo_c
-import mock
 
 from bodhi.server.buildsys import (setup_buildsystem, teardown_buildsystem,
                                    DevBuildsys)

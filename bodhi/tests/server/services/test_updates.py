@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright 2011-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -18,18 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.updates."""
 from datetime import datetime, timedelta
+from mock import ANY
+from urllib import parse as urlparse
 import copy
+import mock
 import re
 import textwrap
 import time
 
 from fedora_messaging import api, testing as fml_testing
-from mock import ANY
 import koji
-import mock
 import requests
-import six
-from six.moves.urllib import parse as urlparse
 from webtest import TestApp
 
 from bodhi.server import main
@@ -204,18 +202,6 @@ class TestNewUpdate(BaseTestCase):
         assert build.update is not None
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
-
-    @mock.patch(**mock_valid_requirements)
-    def test_pkgdb_outage(self, *args):
-        "Test the case where our call to the pkgdb throws an exception"
-        update = self.get_update(u'bodhi-2.0-2.fc17')
-        update['csrf_token'] = self.get_csrf_token()
-
-        with mock.patch.dict('bodhi.server.validators.config',
-                             {'acl_system': 'pkgdb', 'pkgdb_url': 'invalidurl'}):
-            res = self.app.post_json('/updates/', update, status=400)
-
-        assert "Unable to access the Package Database" in res, res
 
     @mock.patch(**mock_valid_requirements)
     def test_invalid_acl_system(self, *args):
@@ -3187,7 +3173,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.status, UpdateStatus.pending)
         self.assertEqual(up.request, UpdateRequest.testing)
 
-        text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
+        text = str(config.get('testing_approval_msg_based_on_karma'))
         up.comment(self.db, text, author=u'bodhi')
         self.assertIn('pushed to stable now if the maintainer wishes', up.comments[-1]['text'])
 
@@ -5019,7 +5005,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(upd.autokarma, False)
         self.assertEqual(upd.pushed, True)
 
-        text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
+        text = str(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author=u'bodhi')
 
         # Checks Push to Stable text in the html page for this update
@@ -5067,7 +5053,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(upd.request, None)
         self.assertEqual(upd.autokarma, False)
 
-        text = six.text_type(config.get('testing_approval_msg_based_on_karma'))
+        text = str(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author=u'bodhi')
 
         # Checks Push to Batched text in the html page for this update
@@ -5488,7 +5474,8 @@ class TestWaiveTestResults(BaseTestCase):
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
-                ]
+                ],
+                'verbose': True,
             }
         )
 
@@ -5561,7 +5548,8 @@ class TestWaiveTestResults(BaseTestCase):
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
-                ]
+                ],
+                'verbose': True,
             }
         )
 
@@ -5654,7 +5642,8 @@ class TestWaiveTestResults(BaseTestCase):
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
-                ]
+                ],
+                'verbose': True,
             }
         )
 
@@ -5731,7 +5720,8 @@ class TestWaiveTestResults(BaseTestCase):
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
-                ]
+                ],
+                'verbose': True,
             }
         )
 
@@ -5824,7 +5814,8 @@ class TestWaiveTestResults(BaseTestCase):
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
-                ]
+                ],
+                'verbose': True,
             }
         )
 
@@ -5977,7 +5968,8 @@ class TestGetTestResults(BaseTestCase):
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
-                ]
+                ],
+                'verbose': True,
             },
             method='POST',
             retries=3,
@@ -6019,7 +6011,8 @@ class TestGetTestResults(BaseTestCase):
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
-                ]
+                ],
+                'verbose': True,
             },
             method='POST',
             retries=3,
@@ -6060,7 +6053,8 @@ class TestGetTestResults(BaseTestCase):
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
-                ]
+                ],
+                'verbose': True,
             },
             method='POST',
             retries=3,
@@ -6093,7 +6087,8 @@ class TestGetTestResults(BaseTestCase):
                     {'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'original_spec_nvr': u'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
-                ]
+                ],
+                'verbose': True,
             },
             method='POST',
             retries=3,

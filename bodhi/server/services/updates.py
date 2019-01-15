@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2014-2017 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -26,7 +25,6 @@ from cornice.validators import colander_body_validator, colander_querystring_val
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 from requests import RequestException, Timeout as RequestsTimeout
-import six
 
 from bodhi.server import log, security
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
@@ -149,8 +147,6 @@ def get_update_for_editing(request):
             suggestions: The possible values for update suggestion.
     """
     suggestions = list(bodhi.server.models.UpdateSuggestion.values())
-    if six.PY2:  # pragma: no cover
-        suggestions = reversed(suggestions)
     return dict(
         update=request.validated['update'],
         types=reversed(list(bodhi.server.models.UpdateType.values())),

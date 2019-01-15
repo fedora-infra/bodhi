@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright © 2013-2017 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
@@ -23,7 +22,6 @@ from pyramid.security import (Allow, ALL_PERMISSIONS, DENY_ALL)
 from pyramid.security import remember, forget
 from pyramid.httpexceptions import HTTPFound
 from pyramid.threadlocal import get_current_registry
-import six
 
 from . import log
 from .models import User, Group
@@ -145,7 +143,7 @@ def remember_me(context, request, info, *args, **kw):
                               request.registry.settings['openid.provider'])
         return HTTPFound(location=request.route_url('home'))
 
-    username = six.text_type(info['identity_url'].split('http://')[1].split('.')[0])
+    username = str(info['identity_url'].split('http://')[1].split('.')[0])
     email = info['sreg']['email']
     log.debug('remember_me: groups = %s' % info['groups'])
     log.info('%s successfully logged in' % username)
