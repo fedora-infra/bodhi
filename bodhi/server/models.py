@@ -1315,7 +1315,6 @@ class Build(Base):
     release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
     update_id = Column(Integer, ForeignKey('updates.id'))
-    ci_url = Column(UnicodeText, default=None, nullable=True)
 
     release = relationship('Release', backref='builds', lazy=False)
 
@@ -1668,7 +1667,6 @@ class Update(Base):
         date_stable (DateTime): The date the update was placed into the stable repository or
             ``None``.
         alias (unicode): The update alias (e.g. FEDORA-EPEL-2009-12345).
-        old_updateid (unicode): The legacy update ID which has been deprecated.
         release_id (int): A foreign key to the releases ``id``.
         release (Release): The ``Release`` object this update relates to via the ``release_id``.
         comments (sqlalchemy.orm.collections.InstrumentedList): A list of the :class:`Comment`
@@ -1736,9 +1734,6 @@ class Update(Base):
 
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(32), unique=True, nullable=True)
-
-    # deprecated: our legacy update ID
-    old_updateid = Column(Unicode(32), default=None)
 
     # One-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)

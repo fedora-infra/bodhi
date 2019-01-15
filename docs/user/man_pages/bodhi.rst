@@ -60,7 +60,7 @@ in more detail in their own sections below.
 
 ``bodhi composes <subcommand> [options] [args]``
 
-    Provides an interface to view composes. Supports one subcommand, ``list``, described below.
+    Provides an interface to view composes. Supports subcommands ``list`` and ``info``, described below.
 
 ``bodhi overrides <subcommand> [options] [args]``
 
@@ -392,10 +392,6 @@ The ``updates`` command allows users to interact with bodhi updates.
     ``--releases <releases>``
 
         Query for updates related to a list of releases, given as a comma-separated list.
-
-    ``--active-releases``
-
-        Query for updates for active releases.
 
     ``--locked``
 

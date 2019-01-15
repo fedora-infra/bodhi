@@ -336,7 +336,6 @@ class BodhiClient(OpenIdBaseClient):
             content_type (basestring): A content type (rpm, module) to limit the query to.
             releases (basestring): A comma separated list of releases that you wish to query updates
                 for.
-            active_releases (bool): A boolean to filter only updates for active releases.
             status (basestring): The update status (``pending``, ``testing``, ``stable``,
                 ``obsolete``, ``unpushed``, ``processing``)
             type (basestring): The type of the update: ``security``, ``bugfix``,
