@@ -195,7 +195,7 @@ def cache_nvrs(request, build):
 @postschema_validator
 def validate_nvrs(request, **kwargs):
     """
-    Ensure the the given builds reference valid Build objects.
+    Ensure that the given builds reference valid Build objects.
 
     Args:
         request (pyramid.util.Request): The current request.

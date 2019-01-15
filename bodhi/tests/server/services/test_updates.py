@@ -1545,26 +1545,6 @@ class TestUpdatesService(BaseTestCase):
             res.json_body['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_old_bodhi1_redirect(self, publish, *args):
-        # Create it
-        title = 'bodhi-2.0.0-1.fc17'
-        self.app.post_json('/updates/', self.get_update(title))
-        publish.assert_called_once_with(
-            topic='update.request.testing', msg=mock.ANY)
-
-        # Get it once with just the title
-        url = '/updates/%s' % title
-        res = self.app.get(url)
-        update = res.json_body['update']
-
-        # Now try the old bodhi1 url.  Redirect should take place.
-        url = '/updates/%s/%s' % (update['alias'], update['title'])
-        res = self.app.get(url, status=302)
-        target = 'http://localhost/updates/%s' % update['alias']
-        self.assertEqual(res.headers['Location'], target)
-
     def test_404(self):
         self.app.get('/a', status=404)
 
@@ -2578,41 +2558,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
-
-    def test_list_updates_by_status_active_release(self):
-        res = self.app.get(
-            '/updates/', {"status": "pending", "active_releases": 'true'})
-        body = res.json_body
-        self.assertEqual(len(body['updates']), 1)
-
-        up = body['updates'][0]
-        self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
-        self.assertEqual(up['status'], u'pending')
-        self.assertEqual(up['request'], u'testing')
-        self.assertEqual(up['user']['name'], u'guest')
-        self.assertEqual(up['release']['name'], u'F17')
-        self.assertEqual(up['type'], u'bugfix')
-        self.assertEqual(up['severity'], u'medium')
-        self.assertEqual(up['suggest'], u'unspecified')
-        self.assertEqual(up['close_bugs'], True)
-        self.assertEqual(up['notes'], u'Useful details!')
-        self.assertEqual(up['date_submitted'], u'1984-11-02 00:00:00')
-        self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
-        self.assertEqual(up['date_pushed'], None)
-        self.assertEqual(up['locked'], False)
-        self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEqual(up['karma'], 1)
-
-    def test_list_updates_by_status_inactive_release(self):
-        rel = self.db.query(Release).filter_by(name='F17').one()
-        rel.state = ReleaseState.archived
-        self.db.commit()
-
-        res = self.app.get(
-            '/updates/', {"status": "pending", "active_releases": 'true'})
-        body = res.json_body
-        self.assertEqual(len(body['updates']), 0)
 
     def test_list_updates_by_unexisting_status(self):
         res = self.app.get('/updates/', {"status": "single"},

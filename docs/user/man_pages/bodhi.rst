@@ -393,10 +393,6 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Query for updates related to a list of releases, given as a comma-separated list.
 
-    ``--active-releases``
-
-        Query for updates for active releases.
-
     ``--locked``
 
         Query for updates that are currently locked.
