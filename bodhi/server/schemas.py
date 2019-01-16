@@ -1,4 +1,4 @@
-# Copyright © 2013-2017 Red Hat, Inc. and others.
+# Copyright © 2013-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -426,47 +426,6 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     composed_by_bodhi = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
         missing=True,
-    )
-
-
-class ListStackSchema(PaginatedSchema, SearchableSchema):
-    """An API schema for bodhi.server.services.stacks.query_stacks()."""
-
-    name = colander.SchemaNode(
-        colander.String(),
-        location="querystring",
-        missing=None,
-    )
-
-    packages = Packages(
-        colander.Sequence(accept_scalar=True),
-        location="querystring",
-        missing=None,
-        preparer=[util.splitter],
-    )
-
-
-class SaveStackSchema(CSRFProtectedSchema, colander.MappingSchema):
-    """An API schema for bodhi.server.services.stacks.save_stack()."""
-
-    name = colander.SchemaNode(
-        colander.String(),
-    )
-
-    packages = Packages(
-        colander.Sequence(accept_scalar=True),
-        missing=None,
-        preparer=[util.splitter],
-    )
-
-    description = colander.SchemaNode(
-        colander.String(),
-        missing=None,
-    )
-
-    requirements = colander.SchemaNode(
-        colander.String(),
-        missing=None,
     )
 
 

@@ -27,6 +27,5 @@ sections of the API by following the links below:
    overrides
    packages
    releases
-   stacks
    updates
    users

@@ -1,4 +1,4 @@
-# Copyright © 2007-2018 Red Hat, Inc. and others.
+# Copyright © 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -282,7 +282,6 @@ def main(global_config, testing=None, session=None, **settings):
     # Views for creating new objects
     config.add_route('new_update', '/updates/new')
     config.add_route('new_override', '/overrides/new')
-    config.add_route('new_stack', '/stacks/new')
 
     # Metrics
     config.add_route('metrics', '/metrics')

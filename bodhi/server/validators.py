@@ -1,4 +1,4 @@
-# Copyright © 2007-2018 Red Hat, Inc. and others.
+# Copyright © 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -40,7 +40,6 @@ from .models import (
     Release,
     RpmBuild,
     ReleaseState,
-    Stack,
     TestCase,
     TestGatingStatus,
     Update,
@@ -1205,25 +1204,6 @@ def validate_captcha(request, **kwargs):
 
         # Nuke this to stop replay attacks.  Once valid, never again.
         del request.session['captcha']
-
-
-@postschema_validator
-def validate_stack(request, **kwargs):
-    """
-    Make sure this singular stack exists.
-
-    Args:
-        request (pyramid.util.Request): The current request.
-        kwargs (dict): The kwargs of the related service definition. Unused.
-    """
-    name = request.matchdict.get('name')
-    stack = Stack.get(name)
-    if stack:
-        request.validated['stack'] = stack
-    else:
-        request.errors.add('querystring', 'stack',
-                           'Invalid stack specified: {}'.format(name))
-        request.errors.status = HTTPNotFound.code
 
 
 def _get_valid_requirements(request, requirements):

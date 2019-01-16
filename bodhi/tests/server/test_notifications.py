@@ -1,4 +1,4 @@
-# Copyright 2016-2018 Red Hat, Inc.
+# Copyright 2016-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -169,11 +169,7 @@ class TestPublish(base.BaseTestCase):
             u'some_package': {
                 u'name': u'so good',
                 u'type': 'base',
-                u'requirements': None,
-                u'stack': None,
-                u'stack_id': None,
-            }
-        }
+                u'requirements': None}}
         package = models.Package(name='so good')
         notifications.publish('demo.topic', {'some_package': package})
         session = Session()
