@@ -591,9 +591,6 @@ class BodhiConfig(dict):
         'stable_from_batched_msg': {
             'value': ('This update has been dequeued from batched and is now entering stable.'),
             'validator': str},
-        'stacks_enabled': {
-            'value': False,
-            'validator': _validate_bool},
         'stats_blacklist': {
             'value': ['bodhi', 'anonymous', 'autoqa', 'taskotron'],
             'validator': _generate_list_validator()},
