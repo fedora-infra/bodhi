@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2018-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from io import BytesIO
-import copy
 import datetime
 import mock
 import re
@@ -34,30 +33,29 @@ class TestRenderers(base.BaseTestCase):
         """
         Test that the renderer returns a jpeg. In this case, the CAPTCHA image.
         """
-
-        settings = copy.copy(self.app_settings)
-        settings.update({
+        new_settings = {
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
             'captcha.secret': '2o78T5zF7OERyAtBfC570ZX2TXvfmI3R5mvw6LkG3W0=',
-            'captcha.image_width': '300',
-            'captcha.image_height': '80',
+            'captcha.image_width': 300,
+            'captcha.image_height': 80,
             'captcha.font_path': '/usr/share/fonts/liberation/LiberationMono-Regular.ttf',
-            'captcha.font_size': '36',
+            'captcha.font_size': 36,
             'captcha.font_color': '#000000',
             'captcha.background_color': '#ffffff',
-            'captcha.padding': '5',
-            'captcha.ttl': '300',
-        })
+            'captcha.padding': 5,
+            'captcha.ttl': 300,
+        }
         with mock.patch('bodhi.server.Session.remove'):
-            app = webtest.TestApp(main({}, session=self.db, **settings))
+            app = webtest.TestApp(main({}, session=self.db, **self.app_settings))
 
-        res = app.get('/updates/FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
-                      status=200,
-                      headers=dict(accept='text/html'))
-        captcha_url = re.search(r'"http://localhost(/captcha/[^"]*)"', str(res)).groups()[0]
-        resp = app.get(captcha_url, status=200)
-        self.assertIn('image/jpeg', resp.headers['Content-Type'])
-        jpegdata = BytesIO(resp.body)
-        img = PIL.Image.open(jpegdata)
-        self.assertEqual(img.size, (300, 80))
+            with mock.patch.dict(app.app.registry.settings, new_settings):
+                res = app.get(
+                    '/updates/FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
+                    status=200, headers=dict(accept='text/html'))
+                captcha_url = re.search(r'"http://localhost(/captcha/[^"]*)"', str(res)).groups()[0]
+                resp = app.get(captcha_url, status=200)
+                self.assertIn('image/jpeg', resp.headers['Content-Type'])
+                jpegdata = BytesIO(resp.body)
+                img = PIL.Image.open(jpegdata)
+                self.assertEqual(img.size, (300, 80))
