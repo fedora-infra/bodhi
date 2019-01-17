@@ -14,7 +14,7 @@ Description
 ``bodhi-untag-branched`` is used to remove the pending and testing tags from updates in a branched
 release.
 
-Since a separate task mashes the branched stable repos, this will leave
+Since a separate task compose the branched stable repos, this will leave
 those stable updates with the testing tags for 1 day before untagging.
 
 

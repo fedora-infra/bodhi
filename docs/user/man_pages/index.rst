@@ -8,7 +8,7 @@ Man pages
    bodhi
    bodhi-approve-testing
    bodhi-check-policies
-   bodhi-clean-old-mashes
+   bodhi-clean-old-composes
    bodhi-expire-overrides
    bodhi-push
    bodhi-sar

@@ -1,17 +1,17 @@
-======================
-bodhi-clean-old-mashes
-======================
+========================
+bodhi-clean-old-composes
+========================
 
 Synopsis
 ========
 
-``bodhi-clean-old-mashes``
+``bodhi-clean-old-composes``
 
 
 Description
 ===========
 
-``bodhi-clean-old-mashes`` deletes all but the 10 newest mash directories.
+``bodhi-clean-old-composes`` deletes all but the 10 newest compose directories.
 
 
 Options

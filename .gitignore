@@ -29,6 +29,6 @@ docs/images/database.png
 dogpile-cache.dbm*
 html-docs
 htmlcov/
-masher/
+composer/
 nosetests.xml
 virtenv

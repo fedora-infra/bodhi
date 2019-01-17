@@ -1,4 +1,4 @@
-# Copyright © 2017-2018 Red Hat, Inc.
+# Copyright © 2017-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -240,7 +240,7 @@ class BodhiConfigValidate(unittest.TestCase):
         """We don't want compose specific paths to be checked for existence."""
         c = config.BodhiConfig()
         c.load_config()
-        for s in ('pungi.cmd', 'mash_dir', 'mash_stage_dir'):
+        for s in ('pungi.cmd', 'compose_dir', 'compose_stage_dir'):
             c[s] = '/does/not/exist'
 
             # This should not raise an Exception.

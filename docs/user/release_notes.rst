@@ -16,6 +16,13 @@ Backwards incompatible changes
 * Support for CVE tracking was dropped. It was technically not possible to use the feature, so it
   is unlikely to affect any deployments (:issue:`1998`).
 * The ``/masher`` API has been removed (:issue:`2024`).
+* The ``Masher`` was renamed to ``Composer``. As a result, the ``bodhi-clean-old-mashes`` script
+  was renamed to ``bodhi-clean-old-composes``, notification topics ``mashtask.start``,
+  ``mashtask.composing``, ``mashtask.complete``, ``mashtask.sync.wait`` and ``mashtask.sync.done``
+  was renamed to ``compose.start``, ``compose.composing``, ``compose.complete``, ``compose.sync.wait``
+  and ``compose.sync.done``, configuration settings ``mash_dir``, ``mash_stage_dir`` and
+  ``max_concurrent_mashes`` was renamed to ``compose_dir``, ``compose_stage_dir`` and
+  ``max_concurrent_composes`` (:issue:`2151`).
 * The ``bodhi-monitor-composes`` script has been removed (:issue:`2171`).
 * The stacks feature has been removed (:issue:`2241`).
 * The ``bodhi-manage-releases`` script has been removed (:issue:`2420`).
