@@ -485,7 +485,6 @@ def new_update(request):
 
             log.info('Editing update: %s' % data['edited'])
 
-            assert len(releases) == 1, "Updates may not span multiple releases"
             data['release'] = list(releases)[0]
             data['builds'] = [b.nvr for b in builds]
             result, _caveats = Update.edit(request, data)
