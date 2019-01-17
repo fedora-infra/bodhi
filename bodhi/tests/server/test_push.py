@@ -1,4 +1,4 @@
-# Copyright © 2016-2018 Red Hat, Inc. and others.
+# Copyright © 2016-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -67,7 +67,7 @@ class TestFilterReleases(base.BaseTestCase):
         self.db.commit()
 
         test_config = base.original_config.copy()
-        test_config['mash_dir'] = '/mashdir/'
+        test_config['compose_dir'] = '/composedir/'
         mock_config = mock.patch.dict('bodhi.server.push.config', test_config)
         mock_config.start()
         self.addCleanup(mock_config.stop)
@@ -192,7 +192,7 @@ Push these 2 updates? [y/N]: y
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 TEST_CERT_PREFIX_FLAG_EXPECTED_OUTPUT = """
@@ -208,7 +208,7 @@ Push these 3 updates? [y/N]: y
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 TEST_YES_FLAG_EXPECTED_OUTPUT = """
@@ -224,7 +224,7 @@ Pushing 3 updates.
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 TEST_LOCKED_UPDATES_EXPECTED_OUTPUT = """Existing composes detected: <Compose: F17 testing>. Do you wish to resume them all? [y/N]: y
@@ -239,7 +239,7 @@ Push these 1 updates? [y/N]: y
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT = """Existing composes detected: <Compose: F17 testing>. Resuming all.
@@ -254,7 +254,7 @@ Pushing 1 updates.
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 TEST_RELEASES_FLAG_EXPECTED_OUTPUT = """
@@ -273,7 +273,7 @@ Push these 2 updates? [y/N]: y
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 TEST_REQUEST_FLAG_EXPECTED_OUTPUT = """
@@ -288,7 +288,7 @@ Push these 2 updates? [y/N]: y
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 TEST_RESUME_FLAG_EXPECTED_OUTPUT = """Resume <Compose: F17 testing>? [y/N]: y
@@ -303,7 +303,7 @@ Push these 1 updates? [y/N]: y
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 TEST_RESUME_AND_YES_FLAGS_EXPECTED_OUTPUT = """Resuming <Compose: F17 testing>.
@@ -318,7 +318,7 @@ Pushing 1 updates.
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 TEST_RESUME_EMPTY_COMPOSE = """Resume <Compose: F17 testing>? [y/N]: y
@@ -334,7 +334,7 @@ Push these 1 updates? [y/N]: y
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT = """Resume <Compose: F17 testing>? [y/N]: y
@@ -350,7 +350,7 @@ Push these 1 updates? [y/N]: y
 
 Locking updates...
 
-Sending masher.start fedmsg
+Sending composer.start fedmsg
 """
 
 
@@ -371,7 +371,7 @@ class TestPush(base.BaseTestCase):
         self.db.commit()
 
         test_config = base.original_config.copy()
-        test_config['mash_dir'] = '/mashdir/'
+        test_config['compose_dir'] = '/composedir/'
         mock_config = mock.patch.dict('bodhi.server.push.config', test_config)
         mock_config.start()
         self.addCleanup(mock_config.stop)
@@ -430,7 +430,7 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_BUILDS_FLAG_EXPECTED_OUTPUT)
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={
                 'composes': [{'security': False, 'release_id': ejabberd.release.id,
                               'request': u'testing', 'content_type': u'rpm'}],
@@ -464,7 +464,7 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.output, TEST_CERT_PREFIX_FLAG_EXPECTED_OUTPUT)
         init.assert_called_once_with(active=True, cert_prefix='some_prefix')
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={
                 'composes': [{'security': False, 'release_id': 1, 'request': u'testing',
                               'content_type': u'rpm'}],
@@ -489,7 +489,7 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.output, TEST_YES_FLAG_EXPECTED_OUTPUT)
         init.assert_called_once_with(active=True, cert_prefix='shell')
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={
                 'composes': [{'security': False, 'release_id': 1, 'request': u'testing',
                               'content_type': u'rpm'}],
@@ -534,7 +534,7 @@ class TestPush(base.BaseTestCase):
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_LOCKED_UPDATES_EXPECTED_OUTPUT)
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
@@ -579,7 +579,7 @@ class TestPush(base.BaseTestCase):
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT)
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
@@ -693,7 +693,7 @@ class TestPush(base.BaseTestCase):
         f26_python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc26').one()
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={
                 'composes': [f25_python_nose.compose.__json__(composer=True),
                              f26_python_paste_deploy.compose.__json__(composer=True)],
@@ -778,7 +778,7 @@ class TestPush(base.BaseTestCase):
         f26_python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc26').one()
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={
                 'composes': [f25_python_nose.compose.__json__(composer=True),
                              f26_python_paste_deploy.compose.__json__(composer=True)],
@@ -835,7 +835,7 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
                  'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
@@ -878,7 +878,7 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
@@ -922,7 +922,7 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
@@ -971,7 +971,7 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
@@ -1028,7 +1028,7 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
@@ -1072,7 +1072,7 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
                  'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
@@ -1112,7 +1112,7 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy = self.db.query(models.Update).filter_by(
             title=u'python-paste-deploy-1.5.2-8.fc17').one()
         publish.assert_called_once_with(
-            topic='masher.start',
+            topic='composer.start',
             msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
                  'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)

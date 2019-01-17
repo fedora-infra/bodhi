@@ -150,7 +150,7 @@ setup(
     main = bodhi.server:main
     [console_scripts]
     initialize_bodhi_db = bodhi.server.scripts.initializedb:main
-    bodhi-clean-old-mashes = bodhi.server.scripts.clean_old_mashes:clean_up
+    bodhi-clean-old-composes = bodhi.server.scripts.clean_old_composes:clean_up
     bodhi-dequeue-stable = bodhi.server.scripts.dequeue_stable:dequeue_stable
     bodhi-push = bodhi.server.push:push
     bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
@@ -161,7 +161,7 @@ setup(
     bodhi-sar = bodhi.server.scripts.sar:get_user_data
     bodhi-shell = bodhi.server.scripts.bshell:get_bodhi_shell
     [moksha.consumer]
-    masher = bodhi.server.consumers.masher:Masher
+    composer = bodhi.server.consumers.composer:Composer
     updates = bodhi.server.consumers.updates:UpdatesHandler
     signed = bodhi.server.consumers.signed:SignedHandler
     """,

@@ -1,4 +1,4 @@
-# Copyright © 2007-2018 Red Hat, Inc. and others.
+# Copyright © 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -16,11 +16,11 @@
 # this program; if not, write to the Free Software Foundation, Inc., 51
 # Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-The Bodhi "Masher".
+The Bodhi "Composer".
 
 This module is responsible for the process of "pushing" updates out. It's
 comprised of a fedmsg consumer that launches threads for each repository being
-mashed.
+composed.
 """
 
 import functools
@@ -46,14 +46,14 @@ from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
-from bodhi.server.scripts import clean_old_mashes
+from bodhi.server.scripts import clean_old_composes
 from bodhi.server.util import (copy_container, sorted_updates, sanity_check_repodata,
                                transactional_session_maker)
 
 
 def checkpoint(method):
     """
-    Decorate a method for skipping sections of the mash when resuming.
+    Decorate a method for skipping sections of the compose when resuming.
 
     Args:
         method (callable): The callable to skip if we are resuming.
@@ -80,9 +80,9 @@ def checkpoint(method):
     return wrapper
 
 
-class Masher(fedmsg.consumers.FedmsgConsumer):
+class Composer(fedmsg.consumers.FedmsgConsumer):
     """
-    The Bodhi Masher.
+    The Bodhi Composer.
 
     A fedmsg consumer that listens for messages from releng members.
 
@@ -101,15 +101,15 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
     - Expire buildroot overrides
     - Remove pending tags
     - Send fedmsgs
-    - mash
+    - compose
 
-    Things to do while we're waiting on mash:
+    Things to do while we're waiting on compose:
 
     - Add testing updates to updates-testing digest
     - Generate/update updateinfo.xml
     - Have a coffee. Have 7 coffees.
 
-    Once mash is done:
+    Once compose is done:
 
     - inject the updateinfo it into the repodata
     - Sanity check the repo
@@ -128,20 +128,20 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         - see if any updates now meet the stable criteria, and set the request
     """
 
-    config_key = 'masher'
+    config_key = 'composer'
 
-    def __init__(self, hub, db_factory=None, mash_dir=config.get('mash_dir'),
+    def __init__(self, hub, db_factory=None, compose_dir=config.get('compose_dir'),
                  *args, **kw):
         """
-        Initialize the Masher.
+        Initialize the Composer.
 
         Args:
             hub (moksha.hub.hub.CentralMokshaHub): The hub this handler is consuming messages from.
                 It is used to look up the hub config values.
             db_factory (bodhi.server.util.TransactionalSessionMaker or None): If given, used as the
-                db_factory for this Masher. If None (the default), a new TransactionalSessionMaker
+                db_factory for this Composer. If None (the default), a new TransactionalSessionMaker
                 is created and used.
-            mash_dir (basestring): The directory in which to place mashes.
+            compose_dir (basestring): The directory in which to place composes.
         Raises:
             ValueError: If pungi.cmd is set to a path that does not exist.
         """
@@ -153,26 +153,26 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
 
         buildsys.setup_buildsystem(config)
         bugs.set_bugtracker()
-        self.mash_dir = mash_dir
+        self.compose_dir = compose_dir
         prefix = hub.config.get('topic_prefix')
         env = hub.config.get('environment')
-        self.topic = prefix + '.' + env + '.' + hub.config.get('masher_topic')
+        self.topic = prefix + '.' + env + '.' + hub.config.get('composer_topic')
         self.valid_signer = hub.config.get('releng_fedmsg_certname')
         if not self.valid_signer:
             log.warning('No releng_fedmsg_certname defined'
                         'Cert validation disabled')
-        self.max_mashes_sem = threading.BoundedSemaphore(config.get('max_concurrent_mashes'))
+        self.max_composes_sem = threading.BoundedSemaphore(config.get('max_concurrent_composes'))
 
         # This will ensure that the configured paths exist, and will raise ValueError if any does
         # not.
-        for setting in ('pungi.cmd', 'mash_dir', 'mash_stage_dir'):
+        for setting in ('pungi.cmd', 'compose_dir', 'compose_stage_dir'):
             try:
                 validate_path(config[setting])
             except ValueError as e:
                 raise ValueError('{} Check the {} setting.'.format(str(e), setting))
 
-        super(Masher, self).__init__(hub, *args, **kw)
-        log.info('Bodhi masher listening on topic: %s' % self.topic)
+        super(Composer, self).__init__(hub, *args, **kw)
+        log.info('Bodhi composer listening on topic: %s' % self.topic)
 
     def consume(self, msg):
         """
@@ -196,7 +196,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         """
         Return a list of dictionaries that represent the :class:`Composes <Compose>` we should run.
 
-        This method is compatible with the unversioned masher.start message, and also version 2.
+        This method is compatible with the unversioned composer.start message, and also version 2.
         If no version is found, it will use the updates listed in the message to create new Compose
         objects and return dictionary representations of them.
 
@@ -232,7 +232,7 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         """Begin the push process.
 
         Here we organize & prioritize the updates, and fire off separate
-        threads for each repo tag being mashed.
+        threads for each repo tag being composed.
 
         If there are any security updates in the push, then those repositories
         will be executed before all others.
@@ -240,21 +240,21 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
         body = msg['body']['msg']
         resume = body.get('resume', False)
         agent = body.get('agent')
-        notifications.publish(topic="mashtask.start", msg=dict(agent=agent), force=True)
+        notifications.publish(topic="compose.start", msg=dict(agent=agent), force=True)
 
         results = []
         threads = []
         for compose in self._get_composes(body):
-            self.log.info('Now starting mashes')
+            self.log.info('Now starting composes')
 
-            masher = get_masher(ContentType.from_string(compose['content_type']))
-            if not masher:
-                self.log.error('Unsupported content type %s submitted for mashing. SKIPPING',
+            composer = get_composer(ContentType.from_string(compose['content_type']))
+            if not composer:
+                self.log.error('Unsupported content type %s submitted for composing. SKIPPING',
                                compose['content_type'])
                 continue
 
-            thread = masher(self.max_mashes_sem, compose, agent, self.log, self.db_factory,
-                            self.mash_dir, resume)
+            thread = composer(self.max_composes_sem, compose, agent, self.log, self.db_factory,
+                              self.compose_dir, resume)
             threads.append(thread)
             thread.start()
 
@@ -269,19 +269,19 @@ class Masher(fedmsg.consumers.FedmsgConsumer):
             self.log.info(result)
 
 
-def get_masher(content_type):
+def get_composer(content_type):
     """
     Return the correct ComposerThread subclass for content_type.
 
     Args:
-        content_type (bodhi.server.models.EnumSymbol): The content type we seek a masher for.
+        content_type (bodhi.server.models.EnumSymbol): The content type we seek a composer for.
     Return:
         ComposerThread or None: Either a ContainerComposerThread, RPMComposerThread, or a
-            ModuleComposerThread, as appropriate, or None if no masher is found.
+            ModuleComposerThread, as appropriate, or None if no composer is found.
     """
-    mashers = [ContainerComposerThread, FlatpakComposerThread,
-               RPMComposerThread, ModuleComposerThread]
-    for possible in mashers:
+    composers = [ContainerComposerThread, FlatpakComposerThread,
+                 RPMComposerThread, ModuleComposerThread]
+    for possible in composers:
         if possible.ctype is content_type:
             return possible
 
@@ -291,7 +291,7 @@ class ComposerThread(threading.Thread):
 
     ctype = None
 
-    def __init__(self, max_concur_sem, compose, agent, log, db_factory, mash_dir, resume=False):
+    def __init__(self, max_concur_sem, compose, agent, log, db_factory, compose_dir, resume=False):
         """
         Initialize the ComposerThread.
 
@@ -300,12 +300,13 @@ class ComposerThread(threading.Thread):
                 number of ComposerThreads run at the same time.
             compose (dict): A dictionary representation of the Compose to run, formatted like the
                 output of :meth:`Compose.__json__`.
-            agent (basestring): The user who is executing the mash.
-            log (logging.Logger): A logger to use for this mash.
+            agent (basestring): The user who is executing the compose.
+            log (logging.Logger): A logger to use for this compose.
             db_factory (bodhi.server.util.TransactionalSessionMaker): A DB session to use while
-                mashing.
-            mash_dir (basestring): A path to a directory to generate the mash in.
-            resume (bool): Whether or not we are resuming a previous failed mash. Defaults to False.
+                composing.
+            compose_dir (basestring): A path to a directory to generate the compose in.
+            resume (bool): Whether or not we are resuming a previous failed compose. Defaults to
+                False.
         """
         super(ComposerThread, self).__init__()
         self.db_factory = db_factory
@@ -331,7 +332,7 @@ class ComposerThread(threading.Thread):
                 self.db = session
                 self.compose = Compose.from_dict(session, self._compose)
                 self._checkpoints = json.loads(self.compose.checkpoints)
-                self.log.info('Starting masher type %s for %s with %d updates',
+                self.log.info('Starting composer type %s for %s with %d updates',
                               self, str(self.compose), len(self.compose.updates))
                 self.save_state(ComposeState.initializing)
                 self.work()
@@ -351,10 +352,10 @@ class ComposerThread(threading.Thread):
 
     def results(self):
         """
-        Yield log string messages about the results of this mash run.
+        Yield log string messages about the results of this compose run.
 
         Yields:
-            basestring: A string for human readers indicating the success of the mash.
+            basestring: A string for human readers indicating the success of the compose.
         """
         attrs = ['name', 'success']
         yield "  name:  %(name)-20s  success:  %(success)s" % dict(
@@ -362,7 +363,7 @@ class ComposerThread(threading.Thread):
         )
 
     def work(self):
-        """Perform the various high-level tasks for the mash."""
+        """Perform the various high-level tasks for the compose."""
         self.id = getattr(self.compose.release, '%s_tag' % self.compose.request.value)
 
         # Set our thread's "name" so it shows up nicely in the logs.
@@ -371,8 +372,8 @@ class ComposerThread(threading.Thread):
 
         # For 'pending' branched releases, we only want to perform repo-related
         # tasks for testing updates. For stable updates, we should just add the
-        # dist_tag and do everything else other than mashing/updateinfo, since
-        # the nightly build-branched cron job mashes for us.
+        # dist_tag and do everything else other than composing/updateinfo, since
+        # the nightly build-branched cron job composes for us.
         self.skip_compose = False
         if self.compose.release.state is ReleaseState.pending \
                 and self.compose.request is UpdateRequest.stable:
@@ -381,7 +382,7 @@ class ComposerThread(threading.Thread):
         self.log.info('Running ComposerThread(%s)' % self.id)
 
         notifications.publish(
-            topic="mashtask.mashing",
+            topic="compose.composing",
             msg=dict(repo=self.id,
                      updates=[u.title for u in self.compose.updates],
                      agent=self.agent,
@@ -432,7 +433,7 @@ class ComposerThread(threading.Thread):
             if config['clean_old_composes']:
                 # Clean old composes
                 self.save_state(ComposeState.cleaning)
-                clean_old_mashes.remove_old_composes()
+                clean_old_composes.remove_old_composes()
 
             self.save_state(ComposeState.success)
             self.success = True
@@ -464,21 +465,21 @@ class ComposerThread(threading.Thread):
             update.obsolete_older_updates(self.db)
 
     def perform_gating(self):
-        """Look for Updates that don't meet testing requirements, and eject them from the mash."""
+        """Eject Updates that don't meet testing requirements from the compose."""
         self.log.debug('Performing gating.')
         for update in self.compose.updates:
             result, reason = update.check_requirements(self.db, config)
             if not result:
                 self.log.warning("%s failed gating: %s" % (update.title, reason))
-                self.eject_from_mash(update, reason)
+                self.eject_from_compose(update, reason)
         # We may have removed some updates from this compose above, and do we don't want future
         # reads on self.compose.updates to see those, so let's mark that attribute expired so
         # sqlalchemy will requery for the composes instead of using its cached copy.
         self.db.expire(self.compose, ['updates'])
 
-    def eject_from_mash(self, update, reason):
+    def eject_from_compose(self, update, reason):
         """
-        Eject the given Update from the current mash for the given human-readable reason.
+        Eject the given Update from the current compose for the given human-readable reason.
 
         Args:
             update (bodhi.server.models.Update): The Update being ejected.
@@ -527,7 +528,7 @@ class ComposerThread(threading.Thread):
     def load_state(self):
         """Load the state of this push so it can be resumed later if necessary."""
         self._checkpoints = json.loads(self.compose.checkpoints)
-        self.log.info('Masher state loaded from %s', self.compose)
+        self.log.info('Composer state loaded from %s', self.compose)
         self.log.info(self.compose.state)
 
     def remove_state(self):
@@ -537,14 +538,14 @@ class ComposerThread(threading.Thread):
 
     def finish(self, success):
         """
-        Clean up pungi configs if the mash was successful, and send logs and fedmsgs.
+        Clean up pungi configs if the compose was successful, and send logs and fedmsgs.
 
         Args:
-            success (bool): True if the mash had been successful, False otherwise.
+            success (bool): True if the compose had been successful, False otherwise.
         """
         self.log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
         notifications.publish(
-            topic="mashtask.complete",
+            topic="compose.complete",
             msg=dict(success=success, repo=self.id, agent=self.agent, ctype=self.ctype.value),
             force=True,
         )
@@ -586,7 +587,7 @@ class ComposerThread(threading.Thread):
                     else:
                         reason = 'Cannot find relevant tag for %s.  None of %s are in %s.'
                         reason = reason % (build.nvr, tags, tag_types[status])
-                        self.eject_from_mash(update, reason)
+                        self.eject_from_compose(update, reason)
                         break
 
                     if self.skip_compose:
@@ -702,12 +703,12 @@ class ComposerThread(threading.Thread):
         self.log.info('Testing digest generation for %s complete' % self.compose.release.name)
 
     def send_notifications(self):
-        """Send fedmsgs to announce completion of mashing for each update."""
+        """Send fedmsgs to announce completion of composing for each update."""
         self.log.info('Sending notifications')
         try:
             agent = os.getlogin()
         except OSError:  # this can happen when building on koji
-            agent = u'masher'
+            agent = u'composer'
         for update in self.compose.updates:
             topic = u'update.complete.%s' % update.request
             notifications.publish(
@@ -879,7 +880,7 @@ class PungiComposerThread(ComposerThread):
 
     pungi_template_config_key = None
 
-    def __init__(self, max_concur_sem, compose, agent, log, db_factory, mash_dir, resume=False):
+    def __init__(self, max_concur_sem, compose, agent, log, db_factory, compose_dir, resume=False):
         """
         Initialize the ComposerThread.
 
@@ -888,25 +889,26 @@ class PungiComposerThread(ComposerThread):
                 number of ComposerThreads run at the same time.
             compose (dict): A dictionary representation of the Compose to run, formatted like the
                 output of :meth:`Compose.__json__`.
-            agent (basestring): The user who is executing the mash.
-            log (logging.Logger): A logger to use for this mash.
+            agent (basestring): The user who is executing the compose.
+            log (logging.Logger): A logger to use for this compose.
             db_factory (bodhi.server.util.TransactionalSessionMaker): A DB session to use while
-                mashing.
-            mash_dir (basestring): A path to a directory to generate the mash in.
-            resume (bool): Whether or not we are resuming a previous failed mash. Defaults to False.
+                composing.
+            compose_dir (basestring): A path to a directory to generate the compose in.
+            resume (bool): Whether or not we are resuming a previous failed compose. Defaults to
+                False.
         """
         super(PungiComposerThread, self).__init__(max_concur_sem, compose, agent, log, db_factory,
-                                                  mash_dir, resume)
+                                                  compose_dir, resume)
         self.devnull = None
-        self.mash_dir = mash_dir
+        self.compose_dir = compose_dir
         self.path = None
 
     def finish(self, success):
         """
-        Clean up pungi configs if the mash was successful, and send logs and fedmsgs.
+        Clean up pungi configs if the compose was successful, and send logs and fedmsgs.
 
         Args:
-            success (bool): True if the mash had been successful, False otherwise.
+            success (bool): True if the compose had been successful, False otherwise.
         """
         if hasattr(self, '_pungi_conf_dir') and os.path.exists(self._pungi_conf_dir) and success:
             # Let's clean up the pungi configs we wrote
@@ -926,9 +928,9 @@ class PungiComposerThread(ComposerThread):
 
     def _compose_updates(self):
         """Start pungi, generate updateinfo, wait for pungi, and wait for the mirrors."""
-        if not os.path.exists(self.mash_dir):
-            self.log.info('Creating %s' % self.mash_dir)
-            os.makedirs(self.mash_dir)
+        if not os.path.exists(self.compose_dir):
+            self.log.info('Creating %s' % self.compose_dir)
+            os.makedirs(self.compose_dir)
 
         composedone = self._checkpoints.get('compose_done')
 
@@ -1008,7 +1010,7 @@ class PungiComposerThread(ComposerThread):
         self.log.info('Generating updateinfo for %s' % self.compose.release.name)
         self.save_state(ComposeState.updateinfo)
         uinfo = UpdateInfoMetadata(self.compose.release, self.compose.request,
-                                   self.db, self.mash_dir)
+                                   self.db, self.compose_dir)
         self.log.info('Updateinfo generation for %s complete' % self.compose.release.name)
         return uinfo
 
@@ -1065,7 +1067,7 @@ class PungiComposerThread(ComposerThread):
             self.log.info('Skipping completed repo: %s', self.path)
             return
 
-        # We have a thread-local devnull FD so that we can close them after the mash is done
+        # We have a thread-local devnull FD so that we can close them after the compose is done
         self.devnull = open(os.devnull, 'wb')
 
         self._create_pungi_config()
@@ -1076,36 +1078,37 @@ class PungiComposerThread(ComposerThread):
                      '--config', config_file,
                      '--quiet',
                      '--print-output-dir',
-                     '--target-dir', self.mash_dir,
-                     '--old-composes', self.mash_dir,
+                     '--target-dir', self.compose_dir,
+                     '--old-composes', self.compose_dir,
                      '--no-latest-link',
                      '--label', self._label]
         pungi_cmd += config.get('pungi.extracmdline')
 
         self.log.info('Running the pungi command: %s', pungi_cmd)
-        mash_process = subprocess.Popen(pungi_cmd,
-                                        # Nope. No shell for you
-                                        shell=False,
-                                        # Should be useless, but just to set something predictable
-                                        cwd=self.mash_dir,
-                                        # Pungi will log the output compose dir to stdout
-                                        stdout=subprocess.PIPE,
-                                        # Stderr should also go to pungi.global.log if it starts
-                                        stderr=subprocess.PIPE,
-                                        # We will never have additional input
-                                        stdin=self.devnull)
-        self.log.info('Pungi running as PID: %s', mash_process.pid)
-        # Since the mash process takes a long time, we can safely just wait 3 seconds to abort the
-        # entire mash early if Pungi fails to start up correctly.
+        compose_process = subprocess.Popen(pungi_cmd,
+                                           # Nope. No shell for you
+                                           shell=False,
+                                           # Should be useless, but just to set something
+                                           # predictable
+                                           cwd=self.compose_dir,
+                                           # Pungi will log the output compose dir to stdout
+                                           stdout=subprocess.PIPE,
+                                           # Stderr should also go to pungi.global.log if it starts
+                                           stderr=subprocess.PIPE,
+                                           # We will never have additional input
+                                           stdin=self.devnull)
+        self.log.info('Pungi running as PID: %s', compose_process.pid)
+        # Since the compose process takes a long time, we can safely just wait 3 seconds to abort
+        # the entire compose early if Pungi fails to start up correctly.
         time.sleep(3)
-        if mash_process.poll() not in [0, None]:
+        if compose_process.poll() not in [0, None]:
             self.log.error('Pungi process terminated with error within 3 seconds! Abandoning!')
-            _, err = mash_process.communicate()
+            _, err = compose_process.communicate()
             self.log.error('Stderr: %s', err)
             self.devnull.close()
             raise Exception('Pungi returned error, aborting!')
 
-        return mash_process
+        return compose_process
 
     def _toss_out_repo(self):
         """Remove a repo from the completed_repo checkpoint.
@@ -1186,7 +1189,9 @@ class PungiComposerThread(ComposerThread):
                             # We have checked the first rpm in the subdir
                             break
             except Exception:
-                self.log.exception('Unable to check pungi mashed repositories, compose thrown out')
+                self.log.exception(
+                    'Unable to check pungi composed repositories, compose thrown out'
+                )
                 self._toss_out_repo()
                 raise
 
@@ -1194,9 +1199,9 @@ class PungiComposerThread(ComposerThread):
 
     def _stage_repo(self):
         """Symlink our updates repository into the staging directory."""
-        stage_dir = config.get('mash_stage_dir')
+        stage_dir = config.get('compose_stage_dir')
         if not os.path.isdir(stage_dir):
-            self.log.info('Creating mash_stage_dir %s', stage_dir)
+            self.log.info('Creating compose_stage_dir %s', stage_dir)
             os.mkdir(stage_dir)
         link = os.path.join(stage_dir, self.id)
         if os.path.islink(link):
@@ -1285,18 +1290,18 @@ class PungiComposerThread(ComposerThread):
         Block until our repomd.xml hits the master mirror.
 
         Raises:
-            Exception: If no folder other than "source" was found in the mash_path.
+            Exception: If no folder other than "source" was found in the compose_path.
         """
         self.log.info('Waiting for updates to hit the master mirror')
         notifications.publish(
-            topic="mashtask.sync.wait",
+            topic="compose.sync.wait",
             msg=dict(repo=self.id, agent=self.agent),
             force=True,
         )
-        mash_path = os.path.join(self.path, 'compose', 'Everything')
+        compose_path = os.path.join(self.path, 'compose', 'Everything')
         checkarch = None
         # Find the first non-source arch to check against
-        for arch in os.listdir(mash_path):
+        for arch in os.listdir(compose_path):
             if arch == 'source':
                 continue
             checkarch = arch
@@ -1304,7 +1309,7 @@ class PungiComposerThread(ComposerThread):
         if not checkarch:
             raise Exception('Not found an arch to _wait_for_sync with')
 
-        repomd = os.path.join(mash_path, arch, 'os', 'repodata', 'repomd.xml')
+        repomd = os.path.join(compose_path, arch, 'os', 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
             self.log.error('Cannot find local repomd: %s', repomd)
             return
@@ -1326,7 +1331,7 @@ class PungiComposerThread(ComposerThread):
             if newsum == checksum:
                 self.log.info("master repomd.xml matches!")
                 notifications.publish(
-                    topic="mashtask.sync.done",
+                    topic="compose.sync.done",
                     msg=dict(repo=self.id, agent=self.agent),
                     force=True,
                 )

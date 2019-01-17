@@ -637,7 +637,7 @@ class UpdateRequest(DeclEnum):
         testing (EnumSymbol): The update is requested to change to testing.
         obsolete (EnumSymbol): The update has been obsoleted by another update.
         unpush (EnumSymbol): The update no longer needs to be released.
-        revoke (EnumSymbol): The unpushed update will no longer be mashed in any repository.
+        revoke (EnumSymbol): The unpushed update will no longer be composed in any repository.
         stable (EnumSymbol): The update is ready to be pushed to the stable repository.
     """
 
@@ -768,9 +768,9 @@ class Release(Base):
         pending_signing_tag (unicode): The koji tag that specifies that a build is waiting to be
             signed, such as 'f27-signing-pending'.
         pending_testing_tag (unicode): The koji tag that indicates that a build is waiting to be
-            mashed into the testing repository, such as 'f27-updates-testing-pending'.
+            composed into the testing repository, such as 'f27-updates-testing-pending'.
         pending_stable_tag (unicode): The koji tag that indicates that a build is waiting to be
-            mashed into the stable repository, such as 'f27-updates-pending'.
+            composed into the stable repository, such as 'f27-updates-pending'.
         override_tag (unicode): The koji tag that is used when a build is added as a buildroot
             override, such as 'f27-override'.
         mail_template (unicode): The notification mail template.
@@ -1591,7 +1591,7 @@ class Update(Base):
         suggest (EnumSymbol): Suggested action a user should take after applying the update.
             This must be one of the values defined in :class:`UpdateSuggestion`.
         locked (bool): Indicates whether or not the update is locked and un-editable.
-            This is usually set by the masher because the update is going through a state
+            This is usually set by the composer because the update is going through a state
             transition.
         pushed (bool): Indicates whether or not the update has been pushed to its requested
             repository.
@@ -1627,7 +1627,7 @@ class Update(Base):
         greenwave_unsatisfied_requirements (unicode): When test_gating_status is failed, Bodhi will
             set this to a JSON representation of the unsatisfied_requirements field from Greewave's
             response.
-        compose (Compose): The :class:`Compose` that this update is currently being mashed in. The
+        compose (Compose): The :class:`Compose` that this update is currently being composed in. The
             update is locked if this is defined.
     """
 
@@ -1714,7 +1714,7 @@ class Update(Base):
         """
         return self.status == UpdateStatus.side_tag_active and self.request is not None
 
-    # WARNING: consumers/masher.py assumes that this validation is performed!
+    # WARNING: consumers/composer.py assumes that this validation is performed!
     @validates('builds')
     def validate_builds(self, key, build):
         """
@@ -2559,7 +2559,7 @@ class Update(Base):
                             action = UpdateRequest.testing
 
         # Add the appropriate 'pending' koji tag to this update, so tools like
-        # AutoQA can mash repositories of them for testing.
+        # AutoQA can compose repositories of them for testing.
         if action is UpdateRequest.testing:
             self.add_tag(self.release.pending_signing_tag)
         elif action is UpdateRequest.stable:
@@ -2683,7 +2683,7 @@ class Update(Base):
         """
         Comment on and close this update's bugs as necessary.
 
-        This typically gets called by the Masher at the end.
+        This typically gets called by the Composer at the end.
         """
         if self.status is UpdateStatus.testing:
             for bug in self.bugs:
@@ -3091,7 +3091,7 @@ class Update(Base):
         Obsolete this update.
 
         Even though unpushing/obsoletion is an "instant" action, changes in the repository will not
-        propagate until the next mash takes place.
+        propagate until the next compose takes place.
 
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
@@ -3572,7 +3572,7 @@ class Compose(Base):
         __exclude_columns__ (tuple): A tuple of columns to exclude when __json__() is called.
         __include_extras__ (tuple): A tuple of attributes to add when __json__() is called.
         __tablename__ (str): The name of the table in the database.
-        checkpoints (unicode): A JSON serialized object describing the checkpoints the masher has
+        checkpoints (unicode): A JSON serialized object describing the checkpoints the composer has
             reached.
         date_created (datetime.datetime): The time this Compose was created.
         error_message (unicode): An error message indicating what happened if the Compose failed.
@@ -3590,8 +3590,8 @@ class Compose(Base):
     """
 
     __exclude_columns__ = ('updates')
-    # We need to include content_type and security so the masher can collate the Composes and so it
-    # can pick the right masher class to use.
+    # We need to include content_type and security so the composer can collate the Composes and so
+    # it can pick the right composer class to use.
     __include_extras__ = ('content_type', 'security', 'update_summary')
     __tablename__ = 'composes'
 
@@ -3745,8 +3745,8 @@ class Compose(Base):
         if composer:
             exclude = ('checkpoints', 'error_message', 'date_created', 'state_date', 'release',
                        'state', 'updates')
-            # We need to include content_type and security so the masher can collate the Composes
-            # and so it can pick the right masher class to use.
+            # We need to include content_type and security so the composer can collate the Composes
+            # and so it can pick the right composer class to use.
             include = ('content_type', 'security')
         return super(Compose, self).__json__(request=request, anonymize=anonymize, exclude=exclude,
                                              include=include)

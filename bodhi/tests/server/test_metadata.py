@@ -234,14 +234,14 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
     def setUp(self):
         super(TestUpdateInfoMetadata, self).setUp()
 
-        self._new_mash_stage_dir = tempfile.mkdtemp()
-        self._mash_stage_dir = config['mash_stage_dir']
-        self._mash_dir = config['mash_dir']
-        config['mash_stage_dir'] = self._new_mash_stage_dir
-        config['mash_dir'] = os.path.join(config['mash_stage_dir'], 'mash')
-        config['cache_dir'] = os.path.join(config['mash_stage_dir'], 'cache')
+        self._new_compose_stage_dir = tempfile.mkdtemp()
+        self._compose_stage_dir = config['compose_stage_dir']
+        self._compose_dir = config['compose_dir']
+        config['compose_stage_dir'] = self._new_compose_stage_dir
+        config['compose_dir'] = os.path.join(config['compose_stage_dir'], 'compose')
+        config['cache_dir'] = os.path.join(config['compose_stage_dir'], 'cache')
         os.makedirs(config['cache_dir'])
-        os.makedirs(os.path.join(config['mash_dir'], 'f17-updates-testing'))
+        os.makedirs(os.path.join(config['compose_dir'], 'f17-updates-testing'))
 
         # Initialize our temporary repo
         base.mkmetadatadir(self.temprepo, updateinfo=False)
@@ -265,10 +265,10 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         }]
 
     def tearDown(self):
-        config['mash_stage_dir'] = self._mash_stage_dir
-        config['mash_dir'] = self._mash_dir
+        config['compose_stage_dir'] = self._compose_stage_dir
+        config['compose_dir'] = self._compose_dir
         config['cache_dir'] = None
-        shutil.rmtree(self._new_mash_stage_dir)
+        shutil.rmtree(self._new_compose_stage_dir)
         super(TestUpdateInfoMetadata, self).tearDown()
 
     def _verify_updateinfos(self, repodata):

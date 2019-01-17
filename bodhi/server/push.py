@@ -1,4 +1,4 @@
-# Copyright © 2007-2018 Red Hat, Inc.
+# Copyright © 2007-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -88,8 +88,8 @@ def push(username, cert_prefix, yes, **kwargs):
         if resume:
             for compose in session.query(Compose).all():
                 if len(compose.updates) == 0:
-                    # Compose objects can end up with 0 updates in them if the masher ejects all the
-                    # updates in a compose for some reason. Composes with no updates cannot be
+                    # Compose objects can end up with 0 updates in them if the composer ejects all
+                    # the updates in a compose for some reason. Composes with no updates cannot be
                     # serialized because their content_type property uses the content_type of the
                     # first update in the Compose. Additionally, it doesn't really make sense to go
                     # forward with running an empty Compose. It makes the most sense to delete them.
@@ -171,12 +171,12 @@ def push(username, cert_prefix, yes, **kwargs):
         composes = [c.__json__(composer=True) for c in composes]
 
     if composes:
-        click.echo('\nSending masher.start fedmsg')
+        click.echo('\nSending composer.start fedmsg')
         # Because we're a script, we want to send to the fedmsg-relay,
         # that's why we say active=True
         bodhi.server.notifications.init(active=True, cert_prefix=cert_prefix)
         bodhi.server.notifications.publish(
-            topic='masher.start',
+            topic='composer.start',
             msg=dict(
                 api_version=2,
                 composes=composes,

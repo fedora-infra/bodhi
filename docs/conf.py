@@ -249,7 +249,7 @@ man_pages = [
      ['Randy Barlow'], 1),
     ('user/man_pages/bodhi-check-policies', 'bodhi-check-policies', u'check policies',
      ['Matt Jia'], 1),
-    ('user/man_pages/bodhi-clean-old-mashes', 'bodhi-clean-old-mashes', u'clean old mashes',
+    ('user/man_pages/bodhi-clean-old-composes', 'bodhi-clean-old-composes', u'clean old composes',
      ['Randy Barlow'], 1),
     ('user/man_pages/bodhi-push', 'bodhi-push', u'push Fedora updates', ['Randy Barlow'], 1),
     ('user/man_pages/initialize_bodhi_db', 'initialize_bodhi_db', u'intialize bodhi\'s database',

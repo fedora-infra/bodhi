@@ -73,9 +73,9 @@ def bodhi_container(
         "default_email_domain": "fedoraproject.org",
         "releng_fedmsg_certname": "bodhi",
         # Only on bodhi-backend
-        # "mash_dir": "/mnt/koji/compose/updates/",
-        # "mash_stage_dir": "/mnt/koji/compose/updates/",
-        "max_concurrent_mashes": "3",
+        # "compose_dir": "/mnt/koji/compose/updates/",
+        # "compose_stage_dir": "/mnt/koji/compose/updates/",
+        "max_concurrent_composes": "3",
         "clean_old_composes": "false",
         "pungi.conf.rpm": "pungi.rpm.conf.j2",
         "pungi.conf.module": "pungi.module.conf.j2",

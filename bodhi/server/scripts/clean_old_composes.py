@@ -1,4 +1,4 @@
-# Copyright © 2016-2018 Red Hat, Inc.
+# Copyright © 2016-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Cleans up old mashes that are left over in mash_dir."""
+"""Cleans up old composes that are left over in compose_dir."""
 import collections
 
 import click
@@ -25,27 +25,28 @@ import shutil
 from bodhi.server import config
 
 
-# How many of the newest mash dirs to keep during cleanup
+# How many of the newest compose dirs to keep during cleanup
 NUM_TO_KEEP = 10
 
 
 @click.command()
 @click.version_option(message='%(version)s')
 def clean_up():
-    """Delete any repo mashes that are older than the newest 10 from each repo series."""
+    """Delete any repo composes that are older than the newest 10 from each repo series."""
     remove_old_composes()
 
 
-# Helper function used in auto clean composes (masher.py)
+# Helper function used in auto clean composes (composer.py)
 def remove_old_composes():
-    """Delete any repo mashes that are older than the newest 10 from each repo series."""
-    mash_dir = config.config['mash_dir']
+    """Delete any repo composes that are older than the newest 10 from each repo series."""
+    compose_dir = config.config['compose_dir']
 
     # This data structure will map the beginning of a group of dirs for the same repo to a list of
     # the dirs that start off the same way.
     pattern_matched_dirs = collections.defaultdict(list)
 
-    for directory in [d for d in os.listdir(mash_dir) if os.path.isdir(os.path.join(mash_dir, d))]:
+    for directory in [d for d in os.listdir(compose_dir)
+                      if os.path.isdir(os.path.join(compose_dir, d))]:
         # If this directory ends with a float, it is a candidate for potential deletion
         try:
             split_dir = directory.split('-')
@@ -66,6 +67,6 @@ def remove_old_composes():
     if dirs_to_delete:
         print('Deleting the following directories:')
         for d in dirs_to_delete:
-            d = os.path.join(mash_dir, d)
+            d = os.path.join(compose_dir, d)
             print(d)
             shutil.rmtree(d)

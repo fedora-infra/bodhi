@@ -12,7 +12,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-This module contains tests for the bodhi.server.scripts.clean_old_mashes module.
+This module contains tests for the bodhi.server.scripts.clean_old_composes module.
 """
 
 from mock import patch
@@ -24,20 +24,20 @@ import unittest
 from click import testing
 
 from bodhi.server import config
-from bodhi.server.scripts import clean_old_mashes
+from bodhi.server.scripts import clean_old_composes
 
 
 class TestCleanUp(unittest.TestCase):
     """
     This class contains tests for the clean_up() function.
     """
-    @patch('bodhi.server.scripts.clean_old_mashes.NUM_TO_KEEP', 2)
+    @patch('bodhi.server.scripts.clean_old_composes.NUM_TO_KEEP', 2)
     def test_clean_up(self):
         """
         Assert that clean_up removes the correct items and leaves the rest in place.
         """
         try:
-            mash_dir = tempfile.mkdtemp()
+            compose_dir = tempfile.mkdtemp()
             # Set up some directories that look similar to what might be found in production, with
             # some directories that don't match the pattern of ending in -<timestamp>.
             dirs = [
@@ -54,15 +54,16 @@ class TestCleanUp(unittest.TestCase):
                 'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
                 'this_should_get_left_alone', 'f23-updates-should_be_untouched',
                 'f23-updates.repocache', 'f23-updates-testing-blank']
-            [os.makedirs(os.path.join(mash_dir, d)) for d in dirs]
+            [os.makedirs(os.path.join(compose_dir, d)) for d in dirs]
             # Now let's make a few files here and there.
-            with open(os.path.join(mash_dir, 'dist-5E-epel-161003.0724', 'oops.txt'), 'w') as oops:
-                oops.write('This mash failed to get cleaned and left this file around, oops!')
-            with open(os.path.join(mash_dir, 'COOL_FILE.txt'), 'w') as cool_file:
+            with open(os.path.join(compose_dir, 'dist-5E-epel-161003.0724', 'oops.txt'),
+                      'w') as oops:
+                oops.write('This compose failed to get cleaned and left this file around, oops!')
+            with open(os.path.join(compose_dir, 'COOL_FILE.txt'), 'w') as cool_file:
                 cool_file.write('This file should be allowed to hang out here because it\'s cool.')
 
-            with patch.dict(config.config, {'mash_dir': mash_dir}):
-                result = testing.CliRunner().invoke(clean_old_mashes.clean_up, [])
+            with patch.dict(config.config, {'compose_dir': compose_dir}):
+                result = testing.CliRunner().invoke(clean_old_composes.clean_up, [])
 
             self.assertEqual(result.exit_code, 0)
             # We expect these and only these directories to remain.
@@ -77,17 +78,17 @@ class TestCleanUp(unittest.TestCase):
                 'f24-updates-161003.1302', 'f24-updates-testing-161001.0424',
                 'this_should_get_left_alone', 'f23-updates-should_be_untouched',
                 'f23-updates.repocache', 'f23-updates-testing-blank'}
-            actual_dirs = set([d for d in os.listdir(mash_dir)
-                               if os.path.isdir(os.path.join(mash_dir, d))])
+            actual_dirs = set([d for d in os.listdir(compose_dir)
+                               if os.path.isdir(os.path.join(compose_dir, d))])
             self.assertEqual(actual_dirs, expected_dirs)
             # The cool file should still be here
-            actual_files = [f for f in os.listdir(mash_dir)
-                            if os.path.isfile(os.path.join(mash_dir, f))]
+            actual_files = [f for f in os.listdir(compose_dir)
+                            if os.path.isfile(os.path.join(compose_dir, f))]
             self.assertEqual(actual_files, ['COOL_FILE.txt'])
             # Make sure the printed output is correct
             expected_output = set(dirs) - expected_dirs
-            expected_output = {os.path.join(mash_dir, d) for d in expected_output}
+            expected_output = {os.path.join(compose_dir, d) for d in expected_output}
             expected_output = expected_output | {'Deleting the following directories:', ''}
             self.assertEqual(set(result.output.split('\n')), expected_output)
         finally:
-            shutil.rmtree(mash_dir)
+            shutil.rmtree(compose_dir)

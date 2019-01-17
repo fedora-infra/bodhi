@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-"""Create metadata files when mashing repositories."""
+"""Create metadata files when composing repositories."""
 from datetime import datetime
 import logging
 import os
@@ -100,22 +100,22 @@ class UpdateInfoMetadata(object):
     """
     This class represents the updateinfo.xml yum metadata.
 
-    It is generated during push time by the bodhi masher based on koji tags
+    It is generated during push time by the bodhi composer based on koji tags
     and is injected into the yum repodata using the `modifyrepo_c` tool,
     which is included in the `createrepo_c` package.
     """
 
-    def __init__(self, release, request, db, mashdir, close_shelf=True):
+    def __init__(self, release, request, db, composedir, close_shelf=True):
         """
         Initialize the UpdateInfoMetadata object.
 
         Args:
-            release (bodhi.server.models.Release): The Release that is being mashed.
-            request (bodhi.server.models.UpdateRequest): The Request that is being mashed.
+            release (bodhi.server.models.Release): The Release that is being composed.
+            request (bodhi.server.models.UpdateRequest): The Request that is being composed.
             db (): A database session to be used for queries.
-            mashdir (basestring): A path to the mashdir.
+            composedir (basestring): A path to the composedir.
             close_shelf (bool): Whether to close the shelve, which is used to cache updateinfo
-                between mashes.
+                between composes.
         """
         self.request = request
         if request is UpdateRequest.stable:

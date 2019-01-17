@@ -1115,7 +1115,7 @@ Features
 * It is now possible to configure a maximum number of mash threads that Bodhi will run at once,
   which is handy if the new Pungi masher has been mean to your NAS. There is a new
   ``max_concurrent_mashes`` setting in production.ini, which defaults to ``2``.
-* There is now a man page for :doc:`man_pages/bodhi-clean-old-mashes`.
+* There is now a man page for ``man_pages/bodhi-clean-old-mashes``.
 * The documentation was reorganized by type of reader (:commit:`14e81a81`).
 * The documentation now uses the Alabaster theme (:commit:`f15351e2`).
 * The CLI now has a ``--arch`` flag that can be used when downloading updates to specify which

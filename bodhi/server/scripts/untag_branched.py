@@ -1,4 +1,4 @@
-# Copyright © 2015-2018 Red Hat, Inc. and others.
+# Copyright © 2015-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -18,7 +18,7 @@
 """
 Used to remove the pending and testing tags from updates in a branched release.
 
-Since a separate task mashes the branched stable repos, this will leave
+Since a separate task composes the branched stable repos, this will leave
 those stable updates with the testing tags for 1 day before untagging.
 
 https://github.com/fedora-infra/bodhi/issues/576

@@ -486,13 +486,13 @@ class BodhiConfig(dict):
         'mandatory_packager_groups': {
             'value': ['packager'],
             'validator': _generate_list_validator()},
-        'mash_dir': {
+        'compose_dir': {
             'value': None,
             'validator': _validate_none_or(str)},
-        'mash_stage_dir': {
+        'compose_stage_dir': {
             'value': None,
             'validator': _validate_none_or(str)},
-        'max_concurrent_mashes': {
+        'max_concurrent_composes': {
             'value': 2,
             'validator': int},
         'max_update_length_for_ui': {
