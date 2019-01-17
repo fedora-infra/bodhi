@@ -51,10 +51,13 @@ Dependency changes
 Server upgrade instructions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+The Bodhi server must be upgraded from Bodhi 3.13.0 or newer to 4.0.0 (i.e., it is not supported to
+upgrade a server older than 3.13.0 directly to 4.0.0 as 4.0.0 has trimmed database migrations from
+the older releases.
+
 This release contains database migrations. To apply them, run::
 
     $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
-
 
 
 Features
