@@ -1,4 +1,4 @@
-# Copyright © 2013-2017 Red Hat, Inc. and others.
+# Copyright © 2013-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -633,6 +633,9 @@ class BodhiConfig(dict):
             'validator': str},
         'wait_for_repo_sig': {
             'value': False,
+            'validator': _validate_bool},
+        'warm_cache_on_start': {
+            'value': True,
             'validator': _validate_bool},
         'wiki_url': {
             'value': 'https://fedoraproject.org/w/api.php',

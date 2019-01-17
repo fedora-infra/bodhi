@@ -316,9 +316,7 @@ def main(global_config, testing=None, session=None, **settings):
     # https://github.com/fedora-infra/bodhi/issues/2294
     from bodhi.server import models
     from bodhi.server.views import generic
-    # Let's warm up the Releases._all_releases cache. We can just call the function - we don't need
-    # to capture the return value.
-    models.Release.all_releases()
+
     # Let's put a cache on the home page stats, but only if it isn't already cached. The cache adds
     # an invalidate attribute to the method, so that's how we can tell. The server would not
     # encounter this function already having a cache in normal operation, but the unit tests do run
@@ -328,9 +326,16 @@ def main(global_config, testing=None, session=None, **settings):
         generic._generate_home_page_stats = get_cacheregion(None).cache_on_arguments()(
             generic._generate_home_page_stats)
 
-    # Let's warm up the home page cache by calling _generate_home_page_stats(). We can ignore the
-    # return value.
-    generic._generate_home_page_stats()
+    if bodhi_config['warm_cache_on_start']:
+        log.info('Warming up caches…')
+
+        # Let's warm up the Releases._all_releases cache. We can just call the function - we don't
+        # need to capture the return value.
+        models.Release.all_releases()
+
+        # Let's warm up the home page cache by calling _generate_home_page_stats(). We can ignore
+        # the return value.
+        generic._generate_home_page_stats()
 
     # Let's close out the db session we used to warm the caches.
     Session.remove()
