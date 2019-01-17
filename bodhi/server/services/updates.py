@@ -34,7 +34,6 @@ from bodhi.server.models import (
     ContentType,
     CVE,
     UpdateRequest,
-    Release,
     ReleaseState,
     Build,
     Package,
@@ -329,15 +328,8 @@ def query_updates(request):
         query = query.filter(Update.date_pushed < pushed_before)
 
     releases = data.get('releases')
-    active_releases = data.get('active_releases')
     if releases is not None:
         query = query.filter(or_(*[Update.release == r for r in releases]))
-    elif active_releases:
-        query = query.filter(
-            Update.release_id == Release.id
-        ).filter(
-            Release.state.in_([ReleaseState.current, ReleaseState.pending])
-        )
 
     # This singular version of the plural "releases" is purely for bodhi1
     # backwards compat (mostly for RSS feeds) - threebean
@@ -413,7 +405,6 @@ def query_updates(request):
         display_user=data.get('display_user', False),
         display_request=data.get('display_request', True),
         package=package,
-        active_releases=active_releases,
     )
 
 

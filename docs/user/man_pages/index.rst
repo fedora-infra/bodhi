@@ -11,8 +11,6 @@ Man pages
    bodhi-clean-old-mashes
    bodhi-dequeue-stable
    bodhi-expire-overrides
-   bodhi-manage-releases
-   bodhi-monitor-composes
    bodhi-push
    bodhi-sar
    bodhi-shell

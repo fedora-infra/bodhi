@@ -53,7 +53,7 @@ release = Service(name='release', path='/releases/{name}',
 releases = Service(name='releases', path='/releases/',
                    description='Fedora Releases',
                    factory=security.AdminACLFactory,
-                   # Note, this 'rw' is not a typo.  the @comments service has
+                   # Note, this 'rw' is not a typo. The @releases service has
                    # a ``post`` section at the bottom.
                    cors_origins=bodhi.server.security.cors_origins_rw)
 

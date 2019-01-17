@@ -203,13 +203,13 @@ class TestBodhiBase(BaseTestCase):
 
         self.assertEqual(
             j,
-            {'release_id': 1, 'ci_url': b.ci_url, 'epoch': b.epoch, 'nvr': b.nvr,
+            {'release_id': 1, 'epoch': b.epoch, 'nvr': b.nvr,
              'signed': b.signed, 'type': str(b.type.value)})
 
     def test_grid_columns(self):
         """Assert correct return value from the grid_columns() method."""
         self.assertEqual(model.Build.grid_columns(), ['nvr', 'release_id', 'signed',
-                                                      'ci_url', 'type', 'epoch'])
+                                                      'type', 'epoch'])
 
     def test_find_child_for_rpm(self):
         subclass = model.Package.find_polymorphic_child(model.ContentType.rpm)
@@ -1130,7 +1130,7 @@ class TestFlatpakPackage(ModelTest, unittest.TestCase):
             "custom_keys": [],
             "date_created": "1494947106",
             "description": "Flatpak Runtime",
-            "fullname": "modules/flatpak-runtime",
+            "fullname": "flatpaks/flatpak-runtime",
             "group_details": {},
             "id": 2,
             "milestones": {},
@@ -1151,7 +1151,7 @@ class TestFlatpakPackage(ModelTest, unittest.TestCase):
 
         self.assertEqual(rv, (['otaylor'], []))
         http_session.get.assert_called_once_with(
-            ('https://src.fedoraproject.org/pagure/api/0/modules/flatpak-runtime'
+            ('https://src.fedoraproject.org/pagure/api/0/flatpaks/flatpak-runtime'
              '?expand_group=1'),
             timeout=60)
 

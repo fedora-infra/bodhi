@@ -5,6 +5,116 @@
 These are the release notes for the 3.x series of Bodhi releases.
 
 
+v3.13.0
+-------
+
+This is a feature release.
+
+
+Deprecations
+^^^^^^^^^^^^
+
+* Authentication with OpenID is deprecated (:issue:`1180`).
+* ``bodhi-untag-branched`` is deprecated (:issue:`1197`).
+* The Update's ``title`` field is deprecated (:issue:`1542`).
+* Integration with pkgdb is deprecated (:issue:`1970`).
+* Support for Python 2 is deprecated (:issue:`1871` and :issue:`2856`).
+* The ``/masher/`` view is deprecated (:issue:`2024`).
+* ``bodhi-monitor-composes`` is deprecated (:issue:`2171`).
+* The stacks feature is deprecated (:issue:`2241`).
+* ``bodhi-manage-releases`` is deprecated (:issue:`2420`).
+* Anonymous comments are deprecated (:issue:`2700`).
+* The ``ci_url`` attribute on Builds is deprecated (:issue:`2782`).
+* The ``active_releases`` query parameter on the Updates query URL is deprecated (:issue:`2815`).
+* Support for fedmsg is deprecated (:issue:`2838`).
+* Support for Bodhi 1's URL scheme is deprecated (:issue:`2869` and :issue:`2903`).
+* The ``/admin/`` API is deprecated (:issue:`2899`).
+* The fedmsg UI integration is deprecated (:issue:`2913`).
+* CVE support is deprecated (:issue:`2915`).
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Bodhi no longer requires ``iniparse`` (:commit:`a910b615`).
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* A new ``bodhi-shell`` CLI is included with the server package that initialized a Python shell with
+  some handy aliases that are useful for debugging Bodhi (:issue:`1792`).
+* Updates that obsolete security updates will now be set as security updates themselves
+  (:issue:`1798`)
+* The CLI no longer crashes when creating multiple buildroot overrides in one command
+  (:issue:`2031`).
+* The CLI can now display information about waivers (:issue:`2267`).
+* Releases can now be marked as not being composed by Bodhi, which will be useful if we want to use
+  Bodhi to tag builds into releases without composing those releases, e.g., Fedora Rawhide
+  (:issue:`2317`).
+* BuildrootOverrides are now prevented for builds that fail the test gating status (:issue:`2537`).
+* The web interface now displays instructions for installing updates (:issue:`2799`).
+* The CLI now has flags that allow users to override the OpenID API URL to use. This is useful
+  for deployments that aren't for Fedora and also for developers, who can use it to authenticate
+  against a different OpenID server than Fedora's production instance (Fedora's staging instance is
+  nice to use for this) (:issue:`2820`).
+* The web UI search box uses a slightly longer delay before issuing the search request
+  (:commit:`51c2fa8c`).
+* Messages can now be published by ``fedora_messaging``, a replacement for ``fedmsg``
+  (:commit:`e30c5f21`).
+* Associating updates with private Bugzilla tickets is now handled gracefully (:commit:`7ac316ac`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* The ``bodhi-approve-testing`` CLI script is now more resilient against failures (:issue:`1016`).
+* The update edit page will return a HTTP 403 instead of a HTTP 400 if a user tries to edit an
+  update they don't have permissions to edit (:issue:`1737`).
+* The ``bodhi`` CLI now has a ``--wait`` flag when creating BuildrootOverrides that will cause
+  ``bodhi`` to wait on Koji to finish adding the override to the buildroot before exiting
+  (:issue:`1807`).
+* The waive button is now displayed on locked updates (:issue:`2271`).
+* Editing an update with the CLI no longer sets the type back to the default of bugfix
+  (:issue:`2528`).
+* ``bodhi-approve-testing`` now sets up a log handler (:issue:`2698`).
+* Some missing commands were added to the ``bodhi`` man page (:commit:`1e6c2596`).
+* A formatting issue was fixed in the command line client (:commit:`996b4ec5`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* ``bodhi-ci`` now has an integration test suite that launches a live Bodhi server, some of its
+  network dependencies, and tests it with some web and CLI requests (:commit:`24304334`).
+* ``bodhi-ci``'s status report now displays the run time for finished tasks (:commit:`26af5ef4`).
+* ``bodhi-ci`` now prints a continuous status report, which is helpful in knowing what it is
+  currently doing (:commit:`f3ca62ad`).
+* We now do type checking enforcement on ``bodhi-ci`` (:commit:`2c070055`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.13.0:
+
+* Aurélien Bompard
+* Jeremy Cline
+* Mattia Verga
+* Ryan Lerch
+* Sebastian Wojciechowski
+* Vismay Golwala
+* Randy Barlow
+
+
 v3.12.0
 -------
 
@@ -783,7 +893,7 @@ Features
 * The :doc:`update_states` are now documented (:commit:`6f4a48a4`).
 * A :doc:`testing` doc was written (:commit:`f1f2d011`).
 * A man page for :doc:`man_pages/bodhi-expire-overrides` was written (:commit:`e4402a32`).
-* A man page for :doc:`man_pages/bodhi-manage-releases` was written (:commit:`84d01668`).
+* A man page for ``bodhi-manage-releases`` was written (:commit:`84d01668`).
 * Update status and request fields are now indexed for more performant searching
   (:commit:`768ccb6c`).
 * ``updateinfo.xml`` now includes the severity level on security updates (:commit:`8c9c1bf9`).
@@ -847,11 +957,11 @@ Features
 * There is now a man page for :doc:`man_pages/bodhi-dequeue-stable`.
 * The composer backend no longer uses lock files, but instead stores its state in the database. This
   is a mix of feature, bug fix, and refactor. The feature is that there is now a
-  :doc:`man_pages/bodhi-monitor-composes` CLI tool that allows admins to monitor the progress of
-  running composes. This also fixed a few bugs in the process, such as allowing users to comment on
-  updates while they are being composed. More than anything, it is a refactor as it allows us to add
-  a compose management API which will enable Fedora to add container support to Bodhi in the future
-  (:issue:`717`, :issue:`1245`, :issue:`2014`).
+  ``bodhi-monitor-composes`` CLI tool that allows admins to monitor the progress of running composes.
+  This also fixed a few bugs in the process, such as allowing users to comment on updates while they
+  are being composed. More than anything, it is a refactor as it allows us to add a compose management
+  API which will enable Fedora to add container support to Bodhi in the future (:issue:`717`,
+  :issue:`1245`, :issue:`2014`).
 
 
 Bugs

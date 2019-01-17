@@ -23,7 +23,7 @@ EXAMPLE_COMMENT_MUNCH = Munch({
         u'bug_feedback': [], u'user_id': 2897, u'author': u'bowlofeggs',
         u'timestamp': u'2017-02-28 18:08:13', u'testcase_feedback': [], u'karma_critpath': 0,
         u'update': Munch({
-            u'date_testing': u'2017-02-13 22:56:06', u'old_updateid': None, u'pushed': True,
+            u'date_testing': u'2017-02-13 22:56:06', u'pushed': True,
             u'require_testcases': False, u'date_stable': None, u'critpath': False,
             u'date_approved': None, u'stable_karma': 3, u'date_pushed': u'2017-02-13 22:56:06',
             u'requirements': u'', u'severity': u'low', u'autokarma': True,
@@ -258,7 +258,6 @@ EXAMPLE_QUERY_MUNCH = Munch({
         u'locked': False,
         u'meets_testing_requirements': True,
         u'notes': u'New package.',
-        u'old_updateid': None,
         u'pushed': True,
         u'release': {u'branch': u'f25',
                      u'candidate_tag': u'f25-updates-candidate',
@@ -363,7 +362,6 @@ EXAMPLE_QUERY_MUNCH_MULTI = Munch({
         u'locked': False,
         u'meets_testing_requirements': True,
         u'notes': u'New package.',
-        u'old_updateid': None,
         u'pushed': True,
         u'release': {u'branch': u'f25',
                      u'candidate_tag': u'f25-updates-candidate',
@@ -430,7 +428,6 @@ EXAMPLE_QUERY_MUNCH_MULTI = Munch({
         u'locked': False,
         u'meets_testing_requirements': True,
         u'notes': u'New package.',
-        u'old_updateid': None,
         u'pushed': True,
         u'release': {u'branch': u'f25',
                      u'candidate_tag': u'f25-updates-candidate',
@@ -718,7 +715,7 @@ bowlofeggs's python-fedmsg-atomic-composer-2016.3-1.fc24 override (expires 2016-
 
 
 EXAMPLE_UPDATE_MUNCH = Munch({
-    u'date_testing': u'2016-10-06 00:55:15', u'old_updateid': None, u'pushed': True,
+    u'date_testing': u'2016-10-06 00:55:15', u'pushed': True,
     u'require_testcases': True, u'date_locked': None, u'critpath': False, u'date_approved': None,
     u'stable_karma': 3, u'date_pushed': u'2016-10-21 13:23:01', u'requirements': u'',
     u'severity': u'unspecified', u'autokarma': True, u'title': u'bodhi-2.2.4-1.el7',
@@ -773,7 +770,7 @@ EXAMPLE_UPDATE_MUNCH = Munch({
 
 SINGLE_UPDATE_MUNCH = Munch({
     u'update': Munch({
-        u'date_testing': u'2016-10-06 00:55:15', u'old_updateid': None, u'pushed': True,
+        u'date_testing': u'2016-10-06 00:55:15', u'pushed': True,
         u'require_testcases': True, u'date_locked': None,
         u'critpath': False, u'date_approved': None,
         u'stable_karma': 3, u'date_pushed': u'2016-10-21 13:23:01', u'requirements': u'',
