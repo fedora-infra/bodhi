@@ -585,7 +585,7 @@ class BodhiConfig(dict):
             'value': None,
             'validator': _validate_none_or(str)},
         'sqlalchemy.url': {
-            'value': 'sqlite:////var/cache/bodhi.db',
+            'value': 'postgresql://localhost/bodhi',
             'validator': str},
         'stable_bug_msg': {
             'value': ('%s has been pushed to the %s repository. If problems still persist, please '

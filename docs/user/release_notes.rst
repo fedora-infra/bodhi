@@ -18,6 +18,7 @@ Backwards incompatible changes
   is unlikely to affect any deployments (:issue:`1998`).
 * The ``processing`` update status has been removed (:issue:`1999`).
 * The ``/masher`` API has been removed (:issue:`2024`).
+* Default sqlalchemy.url setting points to PostgreSQL instead of SQLite (:issue:`2040`).
 * The ``Masher`` was renamed to ``Composer``. As a result, the ``bodhi-clean-old-mashes`` script
   was renamed to ``bodhi-clean-old-composes``, notification topics ``mashtask.start``,
   ``mashtask.composing``, ``mashtask.complete``, ``mashtask.sync.wait`` and ``mashtask.sync.done``

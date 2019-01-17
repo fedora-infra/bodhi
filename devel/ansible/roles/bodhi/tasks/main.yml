@@ -147,12 +147,6 @@
   args:
       creates: /home/vagrant/bodhi/development.ini
 
-- name: Switch the database connection to postgres
-  replace:
-    dest: /home/vagrant/bodhi/development.ini
-    regexp: "^sqlalchemy.url = sqlite.*$"
-    replace: "sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2"
-
 # Bug in zope.interface filled here https://github.com/zopefoundation/zope.interface/issues/114
 - name: Fix namespace-package bug in zope.interface
   copy:

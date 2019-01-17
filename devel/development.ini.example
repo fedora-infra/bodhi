@@ -27,7 +27,7 @@ pyramid.default_locale_name = en
 pyramid.includes =
     pyramid_debugtoolbar
 debugtoolbar.hosts = 127.0.0.1 ::1
-sqlalchemy.url = sqlite:///%(here)s/bodhi.db
+sqlalchemy.url = postgresql://postgres:anypasswordworkslocally@localhost/bodhi2
 authtkt.secret = changethisinproduction!
 session.secret = ChangeThisSecret!!1
 authtkt.secure = false
