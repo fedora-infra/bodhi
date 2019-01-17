@@ -67,7 +67,7 @@
                   <div class="container">
                     <ul class="nav navbar-nav nav-pill pull-xs-right">
                         % if request.user:
-                        % if request.matched_route and request.matched_route.name in ('new_update', 'new_override', 'new_stack'):
+                        % if request.matched_route and request.matched_route.name in ('new_update', 'new_override'):
                         <li class="nav-item dropdown active">
                         % else:
                         <li class="nav-item dropdown">
@@ -83,11 +83,6 @@
                             <a class="dropdown-item" href="${request.route_url('new_override')}">
                                 New Override
                             </a>
-                            % if request.registry.settings.get('stacks_enabled') == True:
-                            <a class="dropdown-item" href="${request.route_url('new_stack')}">
-                                New Stack
-                            </a>
-                            % endif
                           </div>
                         </li>
                         % endif

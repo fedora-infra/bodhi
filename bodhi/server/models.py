@@ -1,4 +1,4 @@
-# Copyright © 2011-2018 Red Hat, Inc. and others.
+# Copyright © 2011-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -21,7 +21,6 @@ from collections import defaultdict
 from datetime import datetime
 from textwrap import wrap
 from urllib.parse import quote
-import copy
 import hashlib
 import json
 import os
@@ -503,46 +502,6 @@ class BodhiBase(object):
         error = "Found no child of %r with identity %r"
         raise NameError(error % (cls, identity))
 
-    def update_relationship(self, name, model, data, db):  # pragma: no cover
-        """
-        Add items to or remove items from a many-to-many relationship.
-
-        pragma: no cover is on this method because it is only used by Stacks, which is not used by
-        Fedora and will likely be removed in the future.
-        See https://github.com/fedora-infra/bodhi/issues/2241
-
-        Args:
-            name (basestring): The name of the relationship column on self, as well as the key in
-                ``data``.
-            model (BodhiBase): The model class of the relationship that we're updating.
-            data (dict): A dict containing the key `name` with a list of values.
-            db (sqlalchemy.orm.session.Session): A database session.
-        Return:
-            tuple: A three-tuple of lists, `new`, `same`, and `removed`, indicating which items have
-            been added and removed, and which remain unchanged.
-        """
-        rel = getattr(self, name)
-        items = data.get(name)
-        new, same, removed = [], copy.copy(items), []
-        if items:
-            for item in items:
-                obj = model.get(item)
-                if not obj:
-                    obj = model(name=item)
-                    db.add(obj)
-                if obj not in rel:
-                    rel.append(obj)
-                    new.append(item)
-                    same.remove(item)
-
-            for item in rel:
-                if item.name not in items:
-                    log.info('Removing %r from %r', item, self)
-                    rel.remove(item)
-                    removed.append(item.name)
-
-        return new, same, removed
-
 
 Base = declarative_base(cls=BodhiBase)
 metadata = Base.metadata
@@ -1006,7 +965,6 @@ class Package(Base):
             objects.
         committers (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`User` objects
             who are committers.
-        stack_id (int): A foreign key to the :class:`Stack`
     """
 
     __tablename__ = 'packages'
@@ -1021,8 +979,6 @@ class Package(Base):
     test_cases = relationship('TestCase', backref='package', order_by="TestCase.id")
     committers = relationship('User', secondary=user_package_table,
                               backref='packages')
-
-    stack_id = Column(Integer, ForeignKey('stacks.id'))
 
     __mapper_args__ = {
         'polymorphic_on': type,
@@ -4237,14 +4193,6 @@ user_group_table = Table('user_group_table', Base.metadata,
                          Column('user_id', Integer, ForeignKey('users.id')),
                          Column('group_id', Integer, ForeignKey('groups.id')))
 
-stack_group_table = Table('stack_group_table', Base.metadata,
-                          Column('stack_id', Integer, ForeignKey('stacks.id')),
-                          Column('group_id', Integer, ForeignKey('groups.id')))
-
-stack_user_table = Table('stack_user_table', Base.metadata,
-                         Column('stack_id', Integer, ForeignKey('stacks.id')),
-                         Column('user_id', Integer, ForeignKey('users.id')))
-
 
 class User(Base):
     """
@@ -4264,8 +4212,7 @@ class User(Base):
     """
 
     __tablename__ = 'users'
-    __exclude_columns__ = ('comments', 'updates', 'packages', 'stacks',
-                           'buildroot_overrides')
+    __exclude_columns__ = ('comments', 'updates', 'packages', 'buildroot_overrides')
     __include_extras__ = ('avatar', 'openid')
     __get_by__ = ('name',)
 
@@ -4323,7 +4270,7 @@ class Group(Base):
 
     __tablename__ = 'groups'
     __get_by__ = ('name',)
-    __exclude_columns__ = ('id', 'stacks',)
+    __exclude_columns__ = ('id',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
@@ -4487,32 +4434,3 @@ class BuildrootOverride(Base):
             topic='buildroot_override.untag',
             msg=dict(override=self),
         )
-
-
-class Stack(Base):
-    """
-    A group of packages that are commonly pushed together as a group.
-
-    Attributes:
-        name (unicode): The name of the stack.
-        packages (sqlalchemy.orm.collections.InstrumentedList): An iterable of
-            :class:`Packages <Package>` associated with this stack.
-        description (unicode): A human readable description of the stack.
-        requirements (unicode): The required tests for the stack.
-        users (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Users <User>`
-            associated with this stack.
-        groups (sqlalchemy.orm.collections.InstrumentedList): An iterable of :class:`Groups <Group>`
-            associated with this stack.
-    """
-
-    __tablename__ = 'stacks'
-    __get_by__ = ('name',)
-
-    name = Column(UnicodeText, unique=True, nullable=False)
-    packages = relationship('Package', backref=backref('stack', lazy=True))
-    description = Column(UnicodeText)
-    requirements = Column(UnicodeText)
-
-    # Many-to-many relationships
-    groups = relationship("Group", secondary=stack_group_table, backref='stacks')
-    users = relationship("User", secondary=stack_user_table, backref='stacks')
