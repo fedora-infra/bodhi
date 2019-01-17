@@ -130,12 +130,9 @@ def test_release = { String release ->
 
 node('bodhi') {
     checkout scm
-    // diff-cover sometimes fails to identify origin/develop, so let's check out the develop branch
-    // and then switch back to the commit we are testing so there is a develop branch available
-    // for diff-cover to use later. See https://github.com/Bachmann1234/diff-cover/issues/55
-    sh 'git branch -f the_commit_we_are_testing HEAD'
-    sh 'git checkout develop'
-    sh 'git checkout the_commit_we_are_testing'
+    // diff-cover needs to be able to reference origin/develop, so let's just fetch all branches.
+    sh 'git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/*'
+    sh 'git fetch -p --no-tags origin'
 
     stage('Allocate Duffy node') {
         env.CICO_API_KEY = readFile("${env.HOME}/duffy.key").trim()

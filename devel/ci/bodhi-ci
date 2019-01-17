@@ -128,7 +128,7 @@ tty_option = click.option('--tty/--no-tty', default=True, help='Allocate a pseud
                           callback=_set_global)
 
 concurrency_semaphore = None
-container_runtime = None
+container_runtime = 'docker'
 failfast = False
 init = True
 # If True, we will try to skip running any builds if suitable builds already exist. Set by
@@ -663,7 +663,7 @@ class DiffCoverJob(Job):
         self.archive_path = archive_path
 
         self._command = ['/usr/bin/diff-cover', '/results/coverage.xml',
-                         '--compare-branch=develop', '--fail-under=100']
+                         '--compare-branch=origin/develop', '--fail-under=100']
         self._label = '{}-py{}'.format(self._label, pyver)
         self._convert_command_for_container(archive=archive, archive_path=archive_path)
 
@@ -1038,14 +1038,14 @@ def _build_jobs_list(
     return jobs
 
 
-def _cancel_jobs(jobs):
+def _cancel_jobs(jobs: typing.List[Job]):
     """
     Mark the given jobs as cancelled.
 
     This is used as the SIGINT handler.
 
     Args:
-        jobs (list): A list of Jobs which will have their cancelled attribute set to True.
+        jobs: A list of Jobs which will have their cancelled attribute set to True.
     """
     for job in jobs:
         if job.returncode is None:
@@ -1096,7 +1096,7 @@ def _process_results(loop, done, pending):
     return {'output': error_output, 'returncode': returncode}
 
 
-def _run_jobs(jobs):
+def _run_jobs(jobs: typing.List[Job]):
     """
     Run the given jobs in parallel.
 
@@ -1106,7 +1106,7 @@ def _run_jobs(jobs):
     exit this process.
 
     Args:
-        jobs (list): A list of Jobs to run.
+        jobs: A list of Jobs to run.
     """
     if not jobs:
         click.echo("No jobs!")
@@ -1138,7 +1138,7 @@ def _run_jobs(jobs):
         sys.exit(results['returncode'])
 
 
-def _stop_all_jobs(loop):
+def _stop_all_jobs(loop: asyncio.AbstractEventLoop):
     """
     Stop all running docker jobs with the CONTAINER_LABEL.
 
@@ -1147,7 +1147,7 @@ def _stop_all_jobs(loop):
     started in this process have been told to stop.
 
     Args:
-        loop (asyncio.AbstractEventLoop): The event loop.
+        loop: The event loop.
     """
     args = [container_runtime, 'ps', '--filter=label={}'.format(CONTAINER_LABEL), '-q']
     processes = subprocess.check_output(args).decode()

@@ -340,11 +340,6 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/api_version')
         self.assertIn('version', res.json_body)
 
-    def test_masher_status(self):
-        """Test that the masher status page displays"""
-        res = self.app.get('/masher/')
-        self.assertIn('<h1>Bodhi Masher Activity</h1>', res)
-
     def test_popup_toggle(self):
         """Check that the toggling of pop-up notifications works"""
         # first we check that popups are enabled by default

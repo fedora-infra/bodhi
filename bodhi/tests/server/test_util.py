@@ -1298,7 +1298,7 @@ class TestUtils(base.BaseTestCase):
         sync, async_ = util.sorted_updates(us)
 
         # This ordering is because:
-        #  u5 contains pkgd-1.0, which is < pkgdb-2.0 from u6
+        #  u5 contains pkgd-1.0, which is < pkgd-2.0 from u6
         #  u2 contains somepkg-1.0, which is < somepkg-2.0 from u1
         self.assertEqual(sync, [u5, u6, u2, u1])
         # This ordering is because neither u3 nor u4 overlap with other updates

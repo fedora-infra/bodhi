@@ -529,8 +529,6 @@ def edit(user, password, url, debug, openid_api, **kwargs):
 @click.option('--pushed-before',
               help='Updates that have been pushed before a certain time')
 @click.option('--releases', help='Updates for specific releases')
-@click.option('--active-releases', is_flag=True, default=None,
-              help='Updates for active releases')
 @click.option('--locked', help='Updates that are in a locked state')
 @click.option('--request', help='Updates with a specific request',
               type=click.Choice(['testing', 'stable', 'unpush', 'batched']))
