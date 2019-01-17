@@ -57,6 +57,8 @@ skopeo.extra_copy_flags = --dest-tls-verify=false
 openid.provider = https://id.stg.fedoraproject.org/openid/
 openid.url = https://id.stg.fedoraproject.org/
 openid_template = {username}.id.stg.fedoraproject.org
+# The cache warming is annoying during development because it takes so long. Let's disable it by default.
+warm_cache_on_start = false
 
 
 [server:main]
