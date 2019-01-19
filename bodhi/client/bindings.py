@@ -337,7 +337,7 @@ class BodhiClient(OpenIdBaseClient):
             releases (basestring): A comma separated list of releases that you wish to query updates
                 for.
             status (basestring): The update status (``pending``, ``testing``, ``stable``,
-                ``obsolete``, ``unpushed``, ``processing``)
+                ``obsolete``, ``unpushed``)
             type (basestring): The type of the update: ``security``, ``bugfix``,
                 ``enhancement``, and ``newpackage``.
             bugs (basestring): A comma separated list of Red Hat Bugzilla IDs.

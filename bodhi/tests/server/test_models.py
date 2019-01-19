@@ -2816,19 +2816,6 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(str(exc.exception), 'Can only revoke an update with an existing request')
 
-    def test_revoke_processing(self):
-        """Revoking a processing Update should raise BodhiException."""
-        self.obj.request = UpdateRequest.stable
-        self.obj.status = UpdateStatus.processing
-
-        with self.assertRaises(BodhiException) as exc:
-            self.obj.revoke()
-
-        self.assertEqual(
-            str(exc.exception),
-            ('Can only revoke a pending, testing, unpushed, or obsolete update, not one that is '
-             'processing'))
-
     @mock.patch('bodhi.server.notifications.publish')
     def test_unstable_karma(self, publish):
         update = self.obj

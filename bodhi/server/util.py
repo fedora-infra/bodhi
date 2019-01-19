@@ -527,7 +527,6 @@ def status2html(context, status):
         'stable': 'success',
         'unpushed': 'danger',
         'obsolete': 'default',
-        'processing': 'info',
     }[status]
     status_desc = {
         'pending': 'The update has not yet been pushed to the testing or stable repositories.',
@@ -535,7 +534,6 @@ def status2html(context, status):
         'stable': 'The package has been released to the stable repository.',
         'unpushed': 'The update has been removed from testing.',
         'obsolete': 'The package has been obsoleted by a different update.',
-        'processing': 'Unused.',
     }[status]
 
     return "<span class='text-muted' data-toggle='tooltip' title='%s'>" % (status_desc) \

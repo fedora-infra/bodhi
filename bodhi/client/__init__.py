@@ -539,7 +539,7 @@ def edit(user, password, url, debug, openid_api, **kwargs):
               help='Updates that have been submitted before a certain time')
 @click.option('--status', help='Filter by update status',
               type=click.Choice(['pending', 'testing', 'stable', 'obsolete',
-                                 'unpushed', 'processing']))
+                                 'unpushed']))
 @click.option('--suggest', help='Filter by post-update user suggestion',
               type=click.Choice(['logout', 'reboot']))
 @click.option('--type', default=None, help='Filter by update type',

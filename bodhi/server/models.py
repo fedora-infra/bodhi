@@ -574,7 +574,6 @@ class UpdateStatus(DeclEnum):
         stable (EnumSymbol): The update is in the stable repository.
         unpushed (EnumSymbol): The update had been in a testing repository, but has been removed.
         obsolete (EnumSymbol): The update has been obsoleted by another update.
-        processing (EnumSymbol): Unused.
         side_tag_active (EnumSymbol): The update's side tag is currently active.
         side_tag_expired (EnumSymbol): The update's side tag has expired.
     """
@@ -584,7 +583,6 @@ class UpdateStatus(DeclEnum):
     stable = 'stable', 'stable'
     unpushed = 'unpushed', 'unpushed'
     obsolete = 'obsolete', 'obsolete'
-    processing = 'processing', 'processing'
     side_tag_active = 'side_tag_active', 'Side tag active'
     side_tag_expired = 'side_tag_expired', 'Side tag expired'
 
