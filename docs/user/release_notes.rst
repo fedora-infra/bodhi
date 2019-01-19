@@ -15,6 +15,7 @@ Backwards incompatible changes
 * The ``/admin/`` API has been removed (:issue:`1985`).
 * Support for CVE tracking was dropped. It was technically not possible to use the feature, so it
   is unlikely to affect any deployments (:issue:`1998`).
+* The ``processing`` update status has been removed (:issue:`1999`).
 * The ``/masher`` API has been removed (:issue:`2024`).
 * The ``Masher`` was renamed to ``Composer``. As a result, the ``bodhi-clean-old-mashes`` script
   was renamed to ``bodhi-clean-old-composes``, notification topics ``mashtask.start``,

@@ -405,7 +405,7 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Query for updates that were submitted before the given timestamp.
 
-    ``--status [pending | testing | stable | obsolete | unpushed | processing]``
+    ``--status [pending | testing | stable | obsolete | unpushed]``
 
         Filter by status.
 
