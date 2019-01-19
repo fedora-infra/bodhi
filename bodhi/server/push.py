@@ -207,6 +207,10 @@ def _filter_releases(session, query, releases=None):
     # Filter only releases composed by Bodhi.
     releases_query = session.query(Release).filter(Release.composed_by_bodhi == True)
 
+    # Filter only releases that are current or pending.
+    releases_query = releases_query.filter(or_(Release.state == ReleaseState.current,
+                                               Release.state == ReleaseState.pending))
+
     if releases:
         for r in releases.split(','):
             release = releases_query.filter(
@@ -214,14 +218,15 @@ def _filter_releases(session, query, releases=None):
                     Release.name == r.upper(),
                     Release.version == r)).first()
             if not release:
-                raise click.BadParameter('Unknown release: %s' % r)
+                raise click.BadParameter(
+                    'Unknown release, or release not allowed to be composed: %s' % r
+                )
             else:
                 _releases.append(release)
     else:
         # Since the user didn't ask for specific Releases, let's just filter for releases that are
         # current or pending.
-        _releases = releases_query.filter(or_(Release.state == ReleaseState.current,
-                                              Release.state == ReleaseState.pending))
+        _releases = releases_query
 
     return query.filter(or_(*[Update.release == r for r in _releases]))
 
