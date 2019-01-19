@@ -1,4 +1,4 @@
-# Copyright © 2016-2019 Red Hat, Inc.
+# Copyright © 2016-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #

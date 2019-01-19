@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-
+# Copyright © 2016-2019 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
