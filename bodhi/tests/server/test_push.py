@@ -140,21 +140,34 @@ class TestFilterReleases(base.BaseTestCase):
         """
         query = self.db.query(models.Update)
 
-        query = push._filter_releases(self.db, query, u'F22')
+        query = push._filter_releases(self.db, query, u'F17')
 
-        # Make sure only F22 made it in.
-        self.assertEqual([u.release.name for u in query], [u'F22'])
+        # Make sure only F17 made it in.
+        self.assertEqual([u.release.name for u in query], [u'F17'])
 
     def test_two_releases(self):
         """
         Test with two releases.
         """
+        # Create yet another release with 'current' state and update for it
+        current_release = self.create_release(u'18')
+        pkg = self.db.query(models.RpmPackage).filter_by(name=u'bodhi').one()
+        current_build = models.RpmBuild(nvr=u'bodhi-2.3.2-1.fc18', release=current_release,
+                                        package=pkg)
+        self.db.add(current_build)
+        current_release_update = models.Update(
+            title=u'bodhi-2.3.2-1.fc18', builds=[current_build], user=self.user,
+            request=models.UpdateRequest.stable, notes=u'Useful details!', release=current_release,
+            date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
+            unstable_karma=-3, type=models.UpdateType.bugfix)
+        self.db.add(current_release_update)
+        self.db.commit()
+
         query = self.db.query(models.Update)
+        query = push._filter_releases(self.db, query, u'F18,F17')
 
-        query = push._filter_releases(self.db, query, u'F22,F17')
-
-        # Make sure F17 and F22 made it in.
-        self.assertEqual(set([u.release.name for u in query]), {u'F17', u'F22'})
+        # Make sure F17 and F18 made it in.
+        self.assertEqual(set([u.release.name for u in query]), {u'F17', u'F18'})
 
     def test_unknown_release(self):
         """
@@ -165,6 +178,18 @@ class TestFilterReleases(base.BaseTestCase):
         with self.assertRaises(click.BadParameter) as ex:
             push._filter_releases(self.db, query, u'RELEASE WITH NO NAME')
             self.assertEqual(str(ex.exception), 'Unknown release: RELEASE WITH NO NAME')
+
+    def test_archived_release(self):
+        """
+        Ensure that we inform the user when they pass archived release.
+        """
+        query = self.db.query(models.Update)
+
+        with self.assertRaises(click.BadParameter) as ex:
+            push._filter_releases(self.db, query, u'F22')
+        self.assertEqual(
+            str(ex.exception), 'Unknown release, or release not allowed to be composed: F22'
+        )
 
 
 TEST_ABORT_PUSH_EXPECTED_OUTPUT = """
