@@ -7,7 +7,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     fedora-messaging \
     findutils \
     git \
-    liberation-mono-fonts \
     python3-dnf \
     python3-yaml \
     make \
@@ -20,7 +19,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-cornice \
     python3-cornice-sphinx \
     python3-createrepo_c \
-    python3-cryptography \
     python3-diff-cover \
     python3-dogpile-cache \
     python3-fedmsg \
@@ -36,7 +34,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-markdown \
     python3-munch \
     python3-openid \
-    python3-pillow \
     python3-psycopg2 \
     python3-pydocstyle \
     python3-pylibravatar \

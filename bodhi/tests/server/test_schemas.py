@@ -25,7 +25,6 @@ class TestSchemas(unittest.TestCase):
 
     def test_schema_unflattening_for_comments(self):
         expected = {
-            'email': 'w@t.com',
             'text': 'this is an update comment',
             'karma': -1,
             'karma_critpath': 1,
@@ -33,7 +32,6 @@ class TestSchemas(unittest.TestCase):
             'testcase_feedback': [{'testcase_name': "wat", 'karma': -1}],
         }
         flat_structure = {
-            'email': 'w@t.com',
             'text': 'this is an update comment',
             'karma': -1,
             'karma_critpath': 1,

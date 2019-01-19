@@ -58,7 +58,7 @@ EXAMPLE_COMMENT_MUNCH = Munch({
                 u'branch': u'f25', u'id_prefix': u'FEDORA',
                 u'pending_testing_tag': u'f25-updates-testing-pending',
                 u'stable_tag': u'f25-updates', u'candidate_tag': u'f25-updates-candidate'})}),
-        u'update_id': 79733, u'karma': 0, u'anonymous': False, u'text': u'i found $10000',
+        u'update_id': 79733, u'karma': 0, u'text': u'i found $10000',
         u'update_title': u'nodejs-grunt-wrap-0.3.0-2.fc25', u'id': 562626,
         u'user': Munch({
             u'openid': u'bowlofeggs.id.fedoraproject.org', u'name': u'bowlofeggs',
@@ -198,8 +198,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
             u'signed': True}],
         u'close_bugs': True,
         u'comments': [
-            {u'anonymous': False,
-             u'bug_feedback': [],
+            {u'bug_feedback': [],
              u'id': 561418,
              u'karma': 0,
              u'karma_critpath': 0,
@@ -215,8 +214,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
                        u'openid': u'bodhi.id.fedoraproject.org',
                        u'show_popups': True},
              u'user_id': 91},
-            {u'anonymous': False,
-             u'bug_feedback': [],
+            {u'bug_feedback': [],
              u'id': 561619,
              u'karma': 0,
              u'karma_critpath': 0,
@@ -232,8 +230,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
                        u'openid': u'bodhi.id.fedoraproject.org',
                        u'show_popups': True},
              u'user_id': 91},
-            {u'anonymous': False,
-             u'bug_feedback': [],
+            {u'bug_feedback': [],
              u'id': 562620,
              u'karma': 0,
              u'karma_critpath': 0,
@@ -727,7 +724,6 @@ EXAMPLE_UPDATE_MUNCH = Munch({
         Munch({
             u'bug_feedback': [], u'user_id': 91, u'timestamp': u'2016-10-05 18:10:22',
             u'testcase_feedback': [], u'karma_critpath': 0, u'update_id': 69704, u'karma': 0,
-            u'anonymous': False,
             u'text': u'This update has been submitted for testing by bowlofeggs. ', u'id': 501425,
             u'user': Munch({
                 u'openid': u'bodhi.id.fedoraproject.org', u'name': u'bodhi', u'show_popups': True,
@@ -736,7 +732,6 @@ EXAMPLE_UPDATE_MUNCH = Munch({
         Munch({
             u'bug_feedback': [], u'user_id': 91, u'timestamp': u'2016-10-05 18:10:27',
             u'testcase_feedback': [], u'karma_critpath': 0, u'update_id': 69704, u'karma': 0,
-            u'anonymous': False,
             u'text': (u'This update has obsoleted [bodhi-2.2.3-1.el7]'
                       u'(https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2016-a0eb4cc41f), and '
                       u'has inherited its bugs and notes.'),
@@ -783,7 +778,6 @@ SINGLE_UPDATE_MUNCH = Munch({
             Munch({
                 u'bug_feedback': [], u'user_id': 91, u'timestamp': u'2016-10-05 18:10:22',
                 u'testcase_feedback': [], u'karma_critpath': 0, u'update_id': 69704, u'karma': 0,
-                u'anonymous': False,
                 u'text': u'This update has been submitted for testing by bowlofeggs. ',
                 u'id': 501425,
                 u'user': Munch({
@@ -794,7 +788,6 @@ SINGLE_UPDATE_MUNCH = Munch({
             Munch({
                 u'bug_feedback': [], u'user_id': 91, u'timestamp': u'2016-10-05 18:10:27',
                 u'testcase_feedback': [], u'karma_critpath': 0, u'update_id': 69704, u'karma': 0,
-                u'anonymous': False,
                 u'text': (u'This update has obsoleted [bodhi-2.2.3-1.el7]'
                           u'(https://bodhi.fedoraproject.org/updates/FEDORA-EPEL-2016-a0eb4cc41f), '
                           u'and has inherited its bugs and notes.'),

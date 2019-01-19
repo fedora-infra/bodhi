@@ -4117,31 +4117,6 @@ class TestUpdatesService(BaseTestCase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test__composite_karma_with_anonymous_comment(self, publish, *args):
-        """
-        The test asserts that _composite_karma returns (0, 0) when an anonymous user
-        gives negative karma to an update.
-        """
-        user = User(name=u'bob')
-        self.db.add(user)
-        self.db.commit()
-
-        nvr = u'bodhi-2.1-1.fc17'
-        args = self.get_update(nvr)
-        self.app.post_json('/updates/', args).json_body
-        publish.assert_called_with(topic='update.request.testing', msg=ANY)
-
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        up.request = None
-        up.status = UpdateStatus.testing
-        self.db.commit()
-
-        up.comment(self.db, u'Not working', author='me', anonymous=True, karma=-1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        self.assertEqual(up._composite_karma, (0, 0))
-
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
     def test__composite_karma_with_no_feedback(self, publish, *args):
         """This test asserts that _composite_karma returns (0, 0) when an update has no feedback."""
         user = User(name=u'bob')

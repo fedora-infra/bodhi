@@ -19,11 +19,9 @@
 from datetime import datetime
 import os
 import logging
-import binascii
 
 from pyramid import settings
 from pyramid.paster import get_appsettings
-import cryptography.fernet
 
 
 log = logging.getLogger('bodhi')
@@ -120,63 +118,6 @@ def _validate_bool(value):
 
     if not isinstance(value, bool):
         raise ValueError('"{}" is not a bool or a string.'.format(value))
-
-    return value
-
-
-def _validate_color(value):
-    """Ensure that value is a valid expression of a color, in the form #dddddd.
-
-    Return the value if it is a valid color expression, or raise ValueError.
-
-    Args:
-        value (basestring): The color to be validated.
-    Returns:
-        unicode: The color.
-    Raises:
-        ValueError: If value is not in the form #dddddd.
-    """
-    e = ValueError('"{}" is not a valid color expression.'.format(value))
-
-    if not isinstance(value, str):
-        raise e
-    if not len(value) == 7:
-        raise e
-    if value[0] != '#':
-        raise e
-    try:
-        int(value[-6:], 16)
-    except ValueError:
-        raise e
-
-    return str(value)
-
-
-def _validate_fernet_key(value):
-    """Ensure the value is not CHANGEME, that it is a Fernet key, and convert it to a str.
-
-    This function is used to ensure that secret values in the config have been set by the user to
-    something other than the default of CHANGEME and that the value can be used as a Fernet key. It
-    is converted to str before returning.
-
-    Args:
-        value (basestring): The value to be validated.
-    Returns:
-        str: The value.
-    Raises:
-        ValueError: If value is "CHANGEME" or if it cannot be used as a Fernet key.
-    """
-    _validate_secret(value)
-
-    if isinstance(value, str):
-        value = value.encode('utf-8')
-
-    try:
-        engine = cryptography.fernet.Fernet(value)
-        # This will raise a ValueError if value is not suitable as a Fernet key.
-        engine.encrypt(b'a secret test string')
-    except (TypeError, binascii.Error):
-        raise ValueError('Fernet key must be 32 url-safe base64-encoded bytes.')
 
     return value
 
@@ -336,33 +277,6 @@ class BodhiConfig(dict):
         'cache_dir': {
             'value': None,
             'validator': _validate_none_or(validate_path)},
-        'captcha.background_color': {
-            'value': '#ffffff',
-            'validator': _validate_color},
-        'captcha.font_color': {
-            'value': '#000000',
-            'validator': _validate_color},
-        'captcha.font_path': {
-            'value': '/usr/share/fonts/liberation/LiberationMono-Regular.ttf',
-            'validator': validate_path},
-        'captcha.font_size': {
-            'value': 36,
-            'validator': int},
-        'captcha.image_height': {
-            'value': 80,
-            'validator': int},
-        'captcha.image_width': {
-            'value': 300,
-            'validator': int},
-        'captcha.padding': {
-            'value': 5,
-            'validator': int},
-        'captcha.secret': {
-            'value': None,
-            'validator': _validate_none_or(_validate_fernet_key)},
-        'captcha.ttl': {
-            'value': 300,
-            'validator': int},
         'clean_old_composes': {
             'value': True,
             'validator': _validate_bool},

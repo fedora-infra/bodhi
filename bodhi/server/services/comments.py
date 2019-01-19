@@ -1,4 +1,4 @@
-# Copyright © 2014-2017 Red Hat, Inc. and others.
+# Copyright © 2014-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -21,7 +21,6 @@ import math
 
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
-from pyramid.httpexceptions import HTTPBadRequest
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_, and_
 
@@ -37,9 +36,7 @@ from bodhi.server.validators import (
     validate_username,
     validate_bug_feedback,
     validate_testcase_feedback,
-    validate_captcha,
 )
-import bodhi.server.captcha
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -125,10 +122,6 @@ def query_comments(request):
     data = request.validated
     query = db.query(Comment)
 
-    anonymous = data.get('anonymous')
-    if anonymous is not None:
-        query = query.filter_by(anonymous=anonymous)
-
     like = data.get('like')
     if like is not None:
         query = query.filter(or_(*[
@@ -196,7 +189,6 @@ def query_comments(request):
                    validate_update,
                    validate_bug_feedback,
                    validate_testcase_feedback,
-                   validate_captcha,
                ))
 def new_comment(request):
     """
@@ -215,18 +207,10 @@ def new_comment(request):
     data.pop('csrf_token')
 
     update = data.pop('update')
-    email = data.pop('email', None)
-    author = email or (request.user and request.user.name)
-    anonymous = bool(email) or not author
-
-    if not author:
-        request.errors.add('body', 'email', 'You must provide an author')
-        request.errors.status = HTTPBadRequest.code
-        return
+    author = request.user and request.user.name
 
     try:
-        comment, caveats = update.comment(
-            session=request.db, author=author, anonymous=anonymous, **data)
+        comment, caveats = update.comment(session=request.db, author=author, **data)
     except ValueError as e:
         request.errors.add('body', 'comment', str(e))
         return

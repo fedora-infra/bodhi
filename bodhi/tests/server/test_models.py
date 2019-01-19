@@ -140,28 +140,6 @@ class TestBodhiBase(BaseTestCase):
         j_with_text['unique_testcase_feedback'] = j['unique_testcase_feedback']
         self.assertEqual(j, j_with_text)
 
-    def test__to_json_anonymize_false(self):
-        """Test _to_json with anonymize set to False."""
-        c = model.Comment.query.all()[0]
-        c.anonymous = True
-
-        j = c._to_json(c, anonymize=False)
-
-        self.assertEqual(
-            j['user'],
-            {'avatar': None, 'email': c.user.email, 'groups': [{'name': 'packager'}],
-             'id': c.user.id, 'name': c.user.name, 'openid': None,
-             'show_popups': c.user.show_popups})
-
-    def test__to_json_anonymize_true(self):
-        """Test _to_json with anonymize set to True."""
-        c = model.Comment.query.all()[0]
-        c.anonymous = True
-
-        j = c._to_json(c, anonymize=True)
-
-        self.assertEqual(j['user'], 'anonymous')
-
     def test__to_json_exclude(self):
         """Test _to_json()'s exclude flag."""
         c = model.Comment.query.all()[0]
@@ -2633,15 +2611,6 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(self.obj.karma, -1)
 
-    def test__composite_karma_ignores_anonymous_karma(self):
-        """Assert that _composite_karma ignores anonymous karma."""
-        self.obj.comment(self.db, u"foo", -1, u'foo')
-        self.obj.comment(self.db, u"foo", -1, u'bar')
-        # This one shouldn't get counted
-        self.obj.comment(self.db, u"foo", 1, u'biz', anonymous=True)
-
-        self.assertEqual(self.obj._composite_karma, (0, -2))
-
     def test__composite_karma_ignores_comments_before_new_build(self):
         """Assert that _composite_karma ignores karma from before a new build karma reset event."""
         self.obj.comment(self.db, u"foo", -1, u'foo')
@@ -3123,7 +3092,7 @@ class TestUpdate(ModelTest):
         self.obj.status = UpdateStatus.testing
         self.obj.stable_karma = 1
         # Now let's add some karma to get it to the required threshold
-        self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter2', karma=1)
 
         # meets_testing_requirement() should return True since the karma threshold has been reached
         self.assertEqual(self.obj.meets_testing_requirements, True)
@@ -3135,7 +3104,7 @@ class TestUpdate(ModelTest):
         """
         update = self.obj
         update.critpath = True
-        update.comment(self.db, u'testing', author=u'enemy', anonymous=False, karma=-1)
+        update.comment(self.db, u'testing', author=u'enemy', karma=-1)
         self.assertEqual(update.meets_testing_requirements, False)
 
     @mock.patch('bodhi.server.notifications.publish')
@@ -3153,9 +3122,9 @@ class TestUpdate(ModelTest):
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=1)
         self.assertEqual(self.obj.days_in_testing, 1)
         # Now let's add some karma to get it to the required threshold
-        self.obj.comment(self.db, u'testing', author=u'hunter1', anonymous=False, karma=1)
-        self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
-        self.obj.comment(self.db, u'testing', author=u'hunter3', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter1', karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter2', karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter3', karma=1)
         # Add the testing_approval_message
         text = config.get('testing_approval_msg_based_on_karma')
         self.obj.comment(self.db, text, author=u'bodhi')
@@ -3179,9 +3148,9 @@ class TestUpdate(ModelTest):
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=1)
         self.assertEqual(self.obj.days_in_testing, 1)
         # Now let's add some karma to get it to the required threshold
-        self.obj.comment(self.db, u'testing', author=u'hunter1', anonymous=False, karma=1)
-        self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
-        self.obj.comment(self.db, u'testing', author=u'hunter3', anonymous=False, karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter1', karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter2', karma=1)
+        self.obj.comment(self.db, u'testing', author=u'hunter3', karma=1)
 
         # met_testing_requirement() should return False since Bodhi has not yet commented on the
         # Update to say that it can now be pushed to stable.
@@ -3219,18 +3188,6 @@ class TestUpdate(ModelTest):
         self.obj.status_comment(self.db)
 
         self.assertEqual([c.text for c in self.obj.comments], ['This update has been obsoleted.'])
-
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_anonymous_comment(self, publish):
-        self.obj.comment(self.db, u'testing', author='me', anonymous=True, karma=1)
-        c = self.obj.comments[-1]
-        self.assertTrue(str(c).endswith('testing'))
-        self.assertEqual(c.anonymous, True)
-        self.assertEqual(c.text, 'testing')
-        publish.assert_called_once_with(
-            topic='update.comment', msg=mock.ANY)
-        args, kwargs = publish.call_args
-        self.assertEqual(kwargs['msg']['comment']['author'], 'anonymous')
 
     @mock.patch.dict(config, {'critpath.num_admin_approvals': 2})
     def test_comment_critpath_unapproved(self):

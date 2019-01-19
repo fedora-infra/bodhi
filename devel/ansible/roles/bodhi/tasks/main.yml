@@ -14,7 +14,6 @@
       - graphviz
       - htop
       - httpie
-      - liberation-mono-fonts
       - libffi-devel
       - libjpeg-devel
       - libjpeg-turbo-devel
@@ -45,7 +44,6 @@
       - python3-markdown
       - python3-munch
       - python3-openid
-      - python3-pillow
       - python3-psycopg2
       - python3-pydocstyle
       - python3-pylibravatar

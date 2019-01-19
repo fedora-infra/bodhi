@@ -123,7 +123,7 @@ def populate(db):
     comment.user = user
     update.comments.append(comment)
 
-    comment = Comment(karma=0, text=u"srsly.  pretty good.", anonymous=True)
+    comment = Comment(karma=0, text=u"srsly.  pretty good.")
     comment.user = anonymous
     db.add(comment)
     update.comments.append(comment)

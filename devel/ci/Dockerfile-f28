@@ -11,7 +11,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     createrepo_c \
     findutils \
     git \
-    liberation-mono-fonts \
     python3-createrepo_c \
     python3-hawkey \
     python3-koji \
@@ -22,7 +21,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-bugzilla \
     python3-click \
     python3-colander \
-    python3-cryptography \
     python3-diff-cover \
     python3-dogpile-cache \
     python3-fedmsg \
@@ -36,7 +34,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-markdown \
     python3-munch \
     python3-openid \
-    python3-pillow \
     python3-psycopg2 \
     python3-pydocstyle \
     python3-pylibravatar \

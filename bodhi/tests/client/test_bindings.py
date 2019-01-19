@@ -104,13 +104,13 @@ class TestBodhiClient_comment(unittest.TestCase):
         client.csrf_token = 'a token'
         client.send_request = mock.MagicMock(return_value='response')
 
-        response = client.comment('bodhi-2.4.0-1.fc25', 'It ate my cat!', karma=-1, email=True)
+        response = client.comment('bodhi-2.4.0-1.fc25', 'It ate my cat!', karma=-1)
 
         self.assertEqual(response, 'response')
         client.send_request.assert_called_once_with(
             'comments/', verb='POST', auth=True,
             data={'update': 'bodhi-2.4.0-1.fc25', 'text': 'It ate my cat!', 'karma': -1,
-                  'email': True, 'csrf_token': 'a token'})
+                  'csrf_token': 'a token'})
 
 
 class TestBodhiClient_compose_str(unittest.TestCase):
@@ -1253,21 +1253,6 @@ class TestBodhiClient_update_str(unittest.TestCase):
         self.assertEqual(
             text,
             "this is a string")
-
-    def test_update_with_anon_comment(self):
-        """Ensure we prepend (anonymous) to a username if an anon comment is rendered"""
-        client = bindings.BodhiClient()
-        client.base_url = 'http://example.com/tests/'
-
-        with mock.patch.dict(
-                client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0], {u'anonymous': True}):
-            text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
-
-        self.assertTrue(compare_output(
-            text,
-            client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-                "Comments: bodhi ",
-                "Comments: bodhi (unauthenticated) ")))
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0],

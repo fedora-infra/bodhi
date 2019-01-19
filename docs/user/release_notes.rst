@@ -34,6 +34,9 @@ Backwards incompatible changes
 * The ``bodhi-monitor-composes`` script has been removed (:issue:`2171`).
 * The stacks feature has been removed (:issue:`2241`).
 * The ``bodhi-manage-releases`` script has been removed (:issue:`2420`).
+* Support for anonymous comments was dropped. As a result, the ``anonymous`` field on the Comment
+  object was removed and comments query API parameter ``anonymous`` was droped. All ``captcha.*``
+  settings were removed (:issue:`2700`).
 * Bodhi client and server no longer support Python 2. Python 3.6+ are the only supported Python
   releases (:issue:`2759`).
 * Support for the ``ci_url`` on the ``Build`` object was dropped (:issue:`2782`).
@@ -54,6 +57,11 @@ Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
 * pkgdb is no longer required (:issue:`1970`).
+* cryptography is no longer required (:issue:`2700`).
+* Fonts are no longer required for the captcha (Bodhi previously defaulted to using
+  liberation-mono-fonts, but this wasn't a strict requirement since the font was configurable)
+  (:issue:`2700`).
+* pillow is no longer required (:issue:`2700`).
 * six is no longer required for the client or server (:issue:`2759`).
 
 

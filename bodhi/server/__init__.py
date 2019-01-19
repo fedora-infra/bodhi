@@ -256,9 +256,8 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_mako_renderer('.html', settings_prefix='mako.')
     config.add_static_view('static', 'bodhi:server/static')
 
-    from bodhi.server.renderers import rss, jpeg
+    from bodhi.server.renderers import rss
     config.add_renderer('rss', rss)
-    config.add_renderer('jpeg', jpeg)
     config.add_renderer('jsonp', JSONP(param_name='callback'))
 
     # i18n
@@ -291,8 +290,6 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_route('latest_candidates', '/latest_candidates')
     config.add_route('latest_builds', '/latest_builds')
 
-    config.add_route('captcha_image', '/captcha/{cipherkey}/')
-
     # pyramid.openid
     config.add_route('login', '/login')
     config.add_view('bodhi.server.security.login', route_name='login')
@@ -308,7 +305,6 @@ def main(global_config, testing=None, session=None, **settings):
 
     config.scan('bodhi.server.views')
     config.scan('bodhi.server.services')
-    config.scan('bodhi.server.captcha')
     config.scan('bodhi.server.webapp')
 
     # Though importing in the middle of this function is the darkest of evils, we cannot do it any

@@ -91,7 +91,7 @@ class TestComment(unittest.TestCase):
         send_request.assert_called_once_with(
             bindings_client, 'comments/', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'text': 'After installing this I found $100.',
-                  'update': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'email': None, 'karma': 1})
+                  'update': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'karma': 1})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
 

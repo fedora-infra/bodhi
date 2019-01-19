@@ -212,7 +212,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -246,7 +246,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -282,7 +282,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -350,7 +350,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -381,7 +381,7 @@ class TestMain(BaseTestCase):
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
         update.date_testing = datetime.utcnow() - timedelta(days=7)
-        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -409,7 +409,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
+        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 

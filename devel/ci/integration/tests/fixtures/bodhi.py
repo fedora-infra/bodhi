@@ -57,7 +57,6 @@ def bodhi_container(
         "sqlalchemy.url": "postgresql://bodhi2@db/bodhi2",
         "pungi.cmd": "/bin/true",
         "dogpile.cache.backend": "dogpile.cache.memory_pickle",
-        "captcha.secret": "VNaWm-coV1VfG_7ZopF7O4Osjsu5DlLZSHkRDB_eMF0=",
         "legal_link": "https://fedoraproject.org/wiki/Legal:Main",
         "privacy_link": "https://fedoraproject.org/wiki/Legal:PrivacyPolicy",
         "datagrepper_url": "https://apps.fedoraproject.org/datagrepper",
