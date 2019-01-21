@@ -50,7 +50,7 @@ def get_db_dump(url):
         with open(compressed_filepath, "wb") as fd:
             for chunk in response.iter_content(chunk_size=128):
                 fd.write(chunk)
-        subprocess.call(["xz", "-d", compressed_filepath])
+        subprocess.check_call(["xz", "-d", compressed_filepath])
     return filepath
 
 
