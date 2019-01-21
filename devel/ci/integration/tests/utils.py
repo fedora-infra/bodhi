@@ -44,6 +44,7 @@ def get_db_dump(url):
     if os.path.exists(filepath):
         return filepath
     response = requests.get(url)
+    assert response.ok
     if url.endswith(".xz"):
         compressed_filepath = "{}.xz".format(filepath)
         with open(compressed_filepath, "wb") as fd:
