@@ -458,8 +458,12 @@ class Job(object):
                     self._pre_start_hook()
                     self._start_time = datetime.datetime.utcnow()
                     self.started = True
-                    process = await asyncio.create_subprocess_exec(*self._command,
-                                                                   **self._popen_kwargs)
+                    if not self._popen_kwargs["shell"]:
+                        process = await asyncio.create_subprocess_exec(
+                            *self._command, **self._popen_kwargs)
+                    else:
+                        process = await asyncio.create_subprocess_shell(
+                            *self._command, **self._popen_kwargs)
 
                     try:
                         self._stdout, stderr = await process.communicate()
@@ -967,6 +971,32 @@ class IntegrationBodhiBuildJob(IntegrationBuildJob):
                          '-f', dockerfile, '.']
 
 
+class IntegrationDumpDownloadJob(BuildJob):
+    """
+    Define a Job for downloading database dumps for integration testing.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    def __init__(self, app_name, *args, **kwargs):
+        """
+        Initialize the IntegrationDumpDownloadJob.
+
+        See the superclass's docblock for details about accepted parameters.
+        """
+        super(IntegrationDumpDownloadJob, self).__init__(*args, **kwargs)
+
+        self._app_name = app_name
+        self._label = 'integration-dump-download-{}'.format(app_name)
+        filepath = os.path.join("devel", "ci", "integration", "dumps", "{}.dump".format(self._app_name))
+        url = "https://infrastructure.fedoraproject.org/infra/db-dumps/{app}.dump.xz".format(app=self._app_name)
+        self._popen_kwargs['shell'] = True
+        self._command = ["curl -o {filepath}.xz -R -z {filepath}.xz {url} && xz -d --keep --force {filepath}.xz".format(url=url, filepath=filepath)]
+
+    def __repr__(self):
+        return "<{} app={!r}>".format(self.__class__.__name__, self._app_name)
+
+
 class IntegrationJob(Job):
     """
     Define a Job for running the integration tests.
@@ -1061,13 +1091,19 @@ def _build_jobs_list(
     else:
         buffer_output = concurrency != 1 and len(releases) != 1
     jobs = []  # type: typing.List[Job]
+    integration_deps_build_jobs = []  # type: typing.List[Job]
     if command in ('all', 'integration-build', 'integration') and 3 in pyvers:
-        integration_deps_build_jobs = [
+        integration_deps_build_jobs.extend([
             IntegrationBuildJob(app_name=app_name, release="prod", buffer_output=buffer_output)
             for app_name in ("resultsdb", "waiverdb", "greenwave")
-        ]
+        ])
+        # Download the DB dumps
+        integration_deps_build_jobs.extend([
+            IntegrationDumpDownloadJob(app_name="waiverdb", release="prod", buffer_output=buffer_output),
+        ])
         jobs.extend(integration_deps_build_jobs)
     for release in releases:
+        integration_build_jobs = []  # type: typing.List[Job]
         if command in ('all', 'build', 'docs', 'flake8', 'mypy', 'pydocstyle', 'diff_cover',
                        'unit', 'integration-build', 'integration'):
             # We don't want to build non-pip releases if the command is mypy; mypy only uses pip.
@@ -1102,14 +1138,17 @@ def _build_jobs_list(
                         release=release, depends_on=unit_job, buffer_output=buffer_output)
                     jobs.append(diff_cover_job)
         if command in ('all', 'integration-build', 'integration') and 3 in pyvers:
-            integration_build_job = IntegrationBodhiBuildJob(
-                release=release, depends_on=build_job, buffer_output=buffer_output
-            )
-            jobs.append(integration_build_job)
+            integration_build_jobs.extend([
+                IntegrationBodhiBuildJob(
+                    release=release, depends_on=build_job, buffer_output=buffer_output),
+                # Download the DB dump too
+                IntegrationDumpDownloadJob(app_name="bodhi2", release="prod", buffer_output=buffer_output),
+            ])
+            jobs.extend(integration_build_jobs)
         if command in ('all', 'integration') and 3 in pyvers:
             integration_job = IntegrationJob(
                 archive=archive, archive_path=archive_path, pyver=3, release=release,
-                depends_on=integration_deps_build_jobs + [integration_build_job],
+                depends_on=integration_deps_build_jobs + integration_build_jobs,
                 buffer_output=buffer_output)
             jobs.append(integration_job)
 

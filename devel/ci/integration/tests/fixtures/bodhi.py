@@ -47,10 +47,7 @@ def bodhi_container(
         conu.DockerContainer: The Bodhi container.
     """
     # Prepare the database
-    make_db_and_user(
-        db_container, "bodhi2",
-        "https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz"
-    )
+    make_db_and_user(db_container, "bodhi2", True)
     image = docker_backend.ImageClass(
         os.environ.get("BODHI_INTEGRATION_IMAGE", "bodhi-ci-integration-bodhi")
     )

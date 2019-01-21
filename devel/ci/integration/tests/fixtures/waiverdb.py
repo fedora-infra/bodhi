@@ -34,10 +34,7 @@ def waiverdb_container(docker_backend, docker_network, db_container):
         conu.DockerContainer: The WaiverDB container.
     """
     # Prepare the database
-    make_db_and_user(
-        db_container, "waiverdb",
-        "https://infrastructure.fedoraproject.org/infra/db-dumps/waiverdb.dump.xz"
-    )
+    make_db_and_user(db_container, "waiverdb", True)
     # Define the container and start it
     image_name = "bodhi-ci-integration-waiverdb"
     image = docker_backend.ImageClass(image_name)
