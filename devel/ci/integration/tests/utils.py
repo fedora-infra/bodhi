@@ -18,42 +18,11 @@
 
 import os
 import shutil
-import subprocess
 import tempfile
 from contextlib import contextmanager
 
-import requests
 
-
-def get_db_dump(url):
-    """Get an app's database dump in the Fedora infrastructure.
-
-    The database dump will be uncompressed and store locally. If the local file
-    exists, it will used and not re-downloaded.
-
-    Args:
-        url (str): The URL to download the dump from.
-
-    Returns:
-        str: The local file path of the dump.
-    """
-    filename = os.path.basename(url)
-    if filename.endswith(".xz"):
-        filename = filename[:-3]
-    filepath = os.path.join("devel", "ci", "integration", "dumps", filename)
-    if os.path.exists(filepath):
-        return filepath
-    response = requests.get(url)
-    if url.endswith(".xz"):
-        compressed_filepath = "{}.xz".format(filepath)
-        with open(compressed_filepath, "wb") as fd:
-            for chunk in response.iter_content(chunk_size=128):
-                fd.write(chunk)
-        subprocess.call(["xz", "-d", compressed_filepath])
-    return filepath
-
-
-def make_db_and_user(db_container, name, dump_url=None):
+def make_db_and_user(db_container, name, use_dump=False):
     """Create a database and a user in PostgreSQL.
 
     Args:
@@ -75,8 +44,9 @@ def make_db_and_user(db_container, name, dump_url=None):
             ).format(name),
         ]
     )
-    if dump_url:
-        db_dump = get_db_dump(dump_url)
+    if use_dump:
+        db_dump = os.path.join("devel", "ci", "integration", "dumps", "{}.dump".format(name))
+        assert os.path.exists(db_dump)
         db_container.copy_to(db_dump, "/tmp/database.dump")
         db_container.execute(["/usr/bin/psql", "-q", "-U", name, "-f", "/tmp/database.dump"])
         db_container.execute(["rm", "/tmp/database.dump"])

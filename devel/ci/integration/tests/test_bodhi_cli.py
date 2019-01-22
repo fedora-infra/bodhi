@@ -21,8 +21,9 @@ import json
 import re
 import textwrap
 
-import psycopg2
 import requests
+import psycopg2
+import pytest
 
 from conu import ConuException
 from munch import Munch
@@ -154,7 +155,7 @@ def test_overrides_query(bodhi_container, db_container):
     result = _run_cli(bodhi_container, ["overrides", "query"])
     assert result.exit_code == 0
     last_line = result.output.split("\n")[-2]
-    assert last_line == "{} overrides found (20 shown)".format(total)
+    assert last_line == "{} overrides found ({} shown)".format(total, min(total, 20))
 
 
 def test_updates_query_total(bodhi_container, db_container):
@@ -172,7 +173,7 @@ def test_updates_query_total(bodhi_container, db_container):
     result = _run_cli(bodhi_container, ["updates", "query"])
     assert result.exit_code == 0
     last_line = result.output.split("\n")[-2]
-    assert last_line == "{} updates found (20 shown)".format(total)
+    assert last_line == "{} updates found ({} shown)".format(total, min(total, 20))
 
 
 def test_updates_query_details(bodhi_container, db_container, greenwave_container):
@@ -209,7 +210,10 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
     with conn:
         with conn.cursor() as curs:
             curs.execute(query_update)
-            update = _db_record_to_munch(curs, curs.fetchone())
+            result = curs.fetchone()
+            if result is None:
+                pytest.skip("No update in the database")
+            update = _db_record_to_munch(curs, result)
             update.comments = []
             curs.execute(query_comments, (update.id, ))
             for record in curs:

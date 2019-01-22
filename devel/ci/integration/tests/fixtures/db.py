@@ -18,7 +18,6 @@
 
 import os
 import pytest
-from conu.backend.docker.container_parameters import DockerContainerParameters
 
 
 @pytest.fixture(scope="session")
@@ -38,11 +37,11 @@ def db_container(docker_backend, docker_network):
         os.environ.get("BODHI_INTEGRATION_POSTGRESQL_IMAGE", "postgres"),
         tag="latest"
     )
-    container = image.run_via_api(
-        DockerContainerParameters(name="db")
-    )
+    container = image.run_via_api()
     container.start()
-    docker_backend.d.connect_container_to_network(container.name, docker_network["Id"])
+    docker_backend.d.connect_container_to_network(
+        container.get_id(), docker_network["Id"], aliases=["db"],
+    )
     container.wait_for_port(5432, timeout=-1)
     yield container
     container.kill()

@@ -182,7 +182,15 @@ def build(concurrency, container_runtime, failfast, release, tty):
 def clean(concurrency, container_runtime, init, release, tty):
     """Remove all builds pertaining to Bodhi CI."""
     buffer_output = concurrency != 1 or len(release) != 1
-    clean_jobs = [CleanJob(r, buffer_output=buffer_output) for r in release]
+    clean_jobs = [
+        CleanJob(r, buffer_output=buffer_output) for r in release
+    ] + [
+        IntegrationCleanJob(app_name="bodhi", release=r, buffer_output=buffer_output)
+        for r in release
+    ] + [
+        IntegrationCleanJob(app_name=app_name, release="prod", buffer_output=buffer_output)
+        for app_name in ("resultsdb", "waiverdb", "greenwave")
+    ]
     _run_jobs(clean_jobs)
 
 
@@ -272,6 +280,18 @@ def unit(archive, concurrency, container_runtime, no_build, failfast, init, pyve
     """Run the unit tests."""
     _run_jobs(_build_jobs_list('unit', concurrency, release, pyvers=pyver, archive=archive,
                                archive_path=archive_path))
+
+
+@cli.command("integration-build")
+@concurrency_option
+@container_runtime_option
+@failfast_option
+@pyver_option
+@releases_option
+@tty_option
+def integration_build(concurrency, container_runtime, failfast, pyver, release, tty):
+    """Build the containers for integration testing."""
+    _run_jobs(_build_jobs_list('integration-build', concurrency, release, pyvers=pyver))
 
 
 @cli.command()
@@ -389,6 +409,9 @@ class Job(object):
             self._popen_kwargs['stderr'] = subprocess.STDOUT
         self._stdout = b''
 
+    def __repr__(self):
+        return "<{} release={!r}>".format(self.__class__.__name__, self.release)
+
     @property
     def label(self):
         """
@@ -435,8 +458,12 @@ class Job(object):
                     self._pre_start_hook()
                     self._start_time = datetime.datetime.utcnow()
                     self.started = True
-                    process = await asyncio.create_subprocess_exec(*self._command,
-                                                                   **self._popen_kwargs)
+                    if not self._popen_kwargs["shell"]:
+                        process = await asyncio.create_subprocess_exec(
+                            *self._command, **self._popen_kwargs)
+                    else:
+                        process = await asyncio.create_subprocess_shell(
+                            *self._command, **self._popen_kwargs)
 
                     try:
                         self._stdout, stderr = await process.communicate()
@@ -907,11 +934,67 @@ class IntegrationBuildJob(BuildJob):
         """
         super(IntegrationBuildJob, self).__init__(*args, **kwargs)
 
+        self._app_name = app_name
         self._label = 'integration-build-{}'.format(app_name)
         self._container_image = '{}-integration-{}'.format(CONTAINER_NAME, app_name)
-        dockerfile = os.path.join(PROJECT_PATH, 'devel', 'ci', 'integration', app_name, 'Dockerfile')
-        self._command = [container_runtime, 'build', '--force-rm', '--pull', '-t',
-                         self._container_image, '-f', dockerfile, '.']
+        dockerfile = os.path.join(
+            PROJECT_PATH, 'devel', 'ci', 'integration', app_name, 'Dockerfile'
+        )
+        self._command = [container_runtime, 'build', '--force-rm', '--pull',
+                         '-t', self._container_image, '-f', dockerfile, '.']
+
+    def __repr__(self):
+        return "<{} app={!r}>".format(self.__class__.__name__, self._app_name)
+
+
+class IntegrationBodhiBuildJob(IntegrationBuildJob):
+    """
+    Build Bodhi in a container image for integration testing.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the IntegrationBodhiBuildJob.
+
+        See the superclass's docblock for details about accepted parameters.
+        """
+        super(IntegrationBodhiBuildJob, self).__init__(*args, app_name="bodhi", **kwargs)
+
+        self._container_image = '{}-integration-bodhi/{}'.format(CONTAINER_NAME, self.release)
+        dockerfile = os.path.join(
+            PROJECT_PATH, 'devel', 'ci', 'integration', 'bodhi',
+            'Dockerfile-{}'.format(self.release),
+        )
+        self._command = [container_runtime, 'build', '--force-rm', '-t', self._container_image,
+                         '-f', dockerfile, '.']
+
+
+class IntegrationDumpDownloadJob(BuildJob):
+    """
+    Define a Job for downloading database dumps for integration testing.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    def __init__(self, app_name, *args, **kwargs):
+        """
+        Initialize the IntegrationDumpDownloadJob.
+
+        See the superclass's docblock for details about accepted parameters.
+        """
+        super(IntegrationDumpDownloadJob, self).__init__(*args, **kwargs)
+
+        self._app_name = app_name
+        self._label = 'integration-dump-download-{}'.format(app_name)
+        filepath = os.path.join("devel", "ci", "integration", "dumps", "{}.dump".format(self._app_name))
+        url = "https://infrastructure.fedoraproject.org/infra/db-dumps/{app}.dump.xz".format(app=self._app_name)
+        self._popen_kwargs['shell'] = True
+        self._command = ["curl -o {filepath}.xz -R -z {filepath}.xz {url} && xz -d --keep --force {filepath}.xz".format(url=url, filepath=filepath)]
+
+    def __repr__(self):
+        return "<{} app={!r}>".format(self.__class__.__name__, self._app_name)
 
 
 class IntegrationJob(Job):
@@ -943,17 +1026,40 @@ class IntegrationJob(Job):
 
         self.pyver = pyver
         self._command = [sys.executable, '-m', 'pytest', '--no-cov', 'devel/ci/integration/tests/']
-        bodhi_container_image = '{}-integration-bodhi'.format(CONTAINER_NAME)
+        bodhi_container_image = '{}-integration-bodhi/{}'.format(CONTAINER_NAME, self.release)
         self._popen_kwargs["env"] = os.environ.copy()
         self._popen_kwargs["env"]["BODHI_INTEGRATION_IMAGE"] = bodhi_container_image
         if failfast:
             self._command.append('-x')
         if archive:
             self._command.append(
-                '--junit-xml={}/{}/nosetests.xml'.format(
-                    archive_path, self._label
+                '--junit-xml={}/{}-{}/nosetests.xml'.format(
+                    archive_path, self.release, self._label
                 )
             )
+
+
+class IntegrationCleanJob(Job):
+    """
+    Define a Job for removing all container images built by bodhi-ci.
+
+    See the Job superclass's docblock for details about its attributes.
+    """
+
+    _label = 'integration-clean'
+
+    def __init__(self, app_name, *args, **kwargs):
+        """
+        Initialize the IntegrationCleanJob.
+
+        See the superclass's docblock for details about accepted parameters.
+        """
+        super(IntegrationCleanJob, self).__init__(*args, **kwargs)
+
+        self._container_image = '{}-integration-{}'.format(CONTAINER_NAME, app_name)
+        if app_name == "bodhi":
+            self._container_image = "{}/{}".format(self._container_image, self.release)
+        self._command = [container_runtime, 'rmi', self._container_image]
 
 
 def _build_jobs_list(
@@ -985,9 +1091,21 @@ def _build_jobs_list(
     else:
         buffer_output = concurrency != 1 and len(releases) != 1
     jobs = []  # type: typing.List[Job]
+    integration_deps_build_jobs = []  # type: typing.List[Job]
+    if command in ('all', 'integration-build', 'integration') and 3 in pyvers:
+        integration_deps_build_jobs.extend([
+            IntegrationBuildJob(app_name=app_name, release="prod", buffer_output=buffer_output)
+            for app_name in ("resultsdb", "waiverdb", "greenwave")
+        ])
+        # Download the DB dumps
+        integration_deps_build_jobs.extend([
+            IntegrationDumpDownloadJob(app_name="waiverdb", release="prod", buffer_output=buffer_output),
+        ])
+        jobs.extend(integration_deps_build_jobs)
     for release in releases:
+        integration_build_jobs = []  # type: typing.List[Job]
         if command in ('all', 'build', 'docs', 'flake8', 'mypy', 'pydocstyle', 'diff_cover',
-                       'unit'):
+                       'unit', 'integration-build', 'integration'):
             # We don't want to build non-pip releases if the command is mypy; mypy only uses pip.
             if command != 'mypy' or release == 'pip':
                 build_job = BuildJob(release, buffer_output=buffer_output)
@@ -1019,22 +1137,20 @@ def _build_jobs_list(
                         archive=archive, archive_path=archive_path, pyver=pyver,
                         release=release, depends_on=unit_job, buffer_output=buffer_output)
                     jobs.append(diff_cover_job)
-    if command in ('all', 'integration') and 3 in pyvers and "f29" in releases:
-        build_jobs = [
-            IntegrationBuildJob(app_name="resultsdb", release="f29",
-                                buffer_output=buffer_output),
-            IntegrationBuildJob(app_name="waiverdb", release="f29",
-                                buffer_output=buffer_output),
-            IntegrationBuildJob(app_name="greenwave", release="f29",
-                                buffer_output=buffer_output),
-            IntegrationBuildJob(app_name="bodhi", release="f29",
-                                buffer_output=buffer_output),
-        ]
-        jobs.extend(build_jobs)
-        integration_job = IntegrationJob(
-            archive=archive, archive_path=archive_path, pyver=3, release="f29",
-            depends_on=build_jobs, buffer_output=buffer_output)
-        jobs.append(integration_job)
+        if command in ('all', 'integration-build', 'integration') and 3 in pyvers:
+            integration_build_jobs.extend([
+                IntegrationBodhiBuildJob(
+                    release=release, depends_on=build_job, buffer_output=buffer_output),
+                # Download the DB dump too
+                IntegrationDumpDownloadJob(app_name="bodhi2", release="prod", buffer_output=buffer_output),
+            ])
+            jobs.extend(integration_build_jobs)
+        if command in ('all', 'integration') and 3 in pyvers:
+            integration_job = IntegrationJob(
+                archive=archive, archive_path=archive_path, pyver=3, release=release,
+                depends_on=integration_deps_build_jobs + integration_build_jobs,
+                buffer_output=buffer_output)
+            jobs.append(integration_job)
 
     return jobs
 

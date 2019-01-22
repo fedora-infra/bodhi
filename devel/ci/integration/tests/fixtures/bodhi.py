@@ -20,7 +20,6 @@ import os
 from uuid import uuid4
 
 import pytest
-from conu.backend.docker.container_parameters import DockerContainerParameters
 from six.moves.configparser import ConfigParser
 
 from ..utils import make_db_and_user, edit_file
@@ -48,14 +47,11 @@ def bodhi_container(
         conu.DockerContainer: The Bodhi container.
     """
     # Prepare the database
-    make_db_and_user(
-        db_container, "bodhi2",
-        "https://infrastructure.fedoraproject.org/infra/db-dumps/bodhi2.dump.xz"
-    )
+    make_db_and_user(db_container, "bodhi2", True)
     image = docker_backend.ImageClass(
         os.environ.get("BODHI_INTEGRATION_IMAGE", "bodhi-ci-integration-bodhi")
     )
-    container = image.run_via_api(DockerContainerParameters(name="bodhi"))
+    container = image.run_via_api()
     config_override = {
         "base_address": "https://bodhi.fedoraproject.org/",
         "sqlalchemy.url": "postgresql://bodhi2@db/bodhi2",
@@ -116,7 +112,9 @@ def bodhi_container(
             config.write(config_file)
 
     container.start()
-    docker_backend.d.connect_container_to_network(container.name, docker_network["Id"])
+    docker_backend.d.connect_container_to_network(
+        container.get_id(), docker_network["Id"], aliases=["bodhi"],
+    )
     # Update the database schema
     container.execute(["alembic-3", "-c", "/bodhi/alembic.ini", "upgrade", "head"])
     # we need to wait for the webserver to start serving

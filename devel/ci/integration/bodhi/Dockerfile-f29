@@ -1,82 +1,28 @@
-FROM registry.fedoraproject.org/fedora:29
+FROM bodhi-ci/f29
 LABEL \
   name="bodhi-web" \
   vendor="Fedora Infrastructure" \
   maintainer="Aurelien Bompard <abompard@fedoraproject.org>" \
   license="MIT"
 
+# For integration testing we're using the infrastructure repo
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
+RUN dnf upgrade -y
 
-# While dnf has a --nodocs, it doesen't have a --docs...
-RUN sed -i '/nodocs/d' /etc/dnf/dnf.conf
-
-# Install Bodhi deps
-# 1. bodhi-server
-# 2. bodhi-composer
-# 3. python3-bodhi-client
+# Install Bodhi deps (that were not needed by the unittests container)
 RUN dnf install -y \
-    \
-    fedora-messaging \
     httpd \
     intltool \
-    liberation-mono-fonts \
-    python3-dogpile-cache \
-    python3-koji \
-    python3-librepo \
     python3-mod_wsgi \
-    python3-pillow \
-    "python3dist(alembic)" \
-    "python3dist(arrow)" \
-    "python3dist(bleach)" \
-    "python3dist(click)" \
-    "python3dist(colander)" \
-    "python3dist(cornice)" \
-    "python3dist(cryptography)" \
-    "python3dist(fedmsg)" \
-    "python3dist(feedgen)" \
-    "python3dist(jinja2)" \
-    "python3dist(kitchen)" \
-    "python3dist(markdown)" \
     "python3dist(psycopg2)" \
-    "python3dist(pylibravatar)" \
-    "python3dist(pyramid)" \
-    "python3dist(pyramid-fas-openid)" \
-    "python3dist(pyramid-mako)" \
-    "python3dist(python-bugzilla)" \
-    "python3dist(python-fedora)" \
-    "python3dist(python3-openid)" \
-    "python3dist(simplemediawiki)" \
-    "python3dist(six)" \
-    "python3dist(sqlalchemy)" \
-    "python3dist(waitress)" \
-    \
-    python3-createrepo_c \
-    python3-hawkey \
     skopeo \
-    \
-    /usr/bin/koji \
-    python3-dnf \
-    python3-koji \
-    "python3dist(click)" \
-    "python3dist(iniparse)" \
-    "python3dist(kitchen)" \
-    "python3dist(python-fedora)" \
-    "python3dist(six)" \
-    \
-    fedmsg \
-    fedmsg-base \
-    git
+    /usr/bin/koji
 
 # Create bodhi user
 RUN groupadd -r bodhi && \
     useradd  -r -s /sbin/nologin -d /home/bodhi/ -m -c 'Bodhi Server' -g bodhi bodhi
 
-# Copy source
-WORKDIR /bodhi
-COPY . /bodhi
-
 # Install it
-RUN sed -i -e '/pyramid_debugtoolbar/d' setup.py devel/development.ini.example
 RUN python3 setup.py build && pip3 install .
 
 # Configuration

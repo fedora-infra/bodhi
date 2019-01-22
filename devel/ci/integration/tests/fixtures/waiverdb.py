@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import pytest
-from conu.backend.docker.container_parameters import DockerContainerParameters
 
 from ..utils import make_db_and_user
 
@@ -35,18 +34,15 @@ def waiverdb_container(docker_backend, docker_network, db_container):
         conu.DockerContainer: The WaiverDB container.
     """
     # Prepare the database
-    make_db_and_user(
-        db_container, "waiverdb",
-        "https://infrastructure.fedoraproject.org/infra/db-dumps/waiverdb.dump.xz"
-    )
+    make_db_and_user(db_container, "waiverdb", True)
     # Define the container and start it
     image_name = "bodhi-ci-integration-waiverdb"
     image = docker_backend.ImageClass(image_name)
-    container = image.run_via_api(
-        DockerContainerParameters(name="waiverdb")
-    )
+    container = image.run_via_api()
     container.start()
-    docker_backend.d.connect_container_to_network(container.name, docker_network["Id"])
+    docker_backend.d.connect_container_to_network(
+        container.get_id(), docker_network["Id"], aliases=["waiverdb"],
+    )
     # Add sample data in the database
     container.execute(["waiverdb", "db", "upgrade"])
     # we need to wait for the webserver to start serving
