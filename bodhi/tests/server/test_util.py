@@ -1215,58 +1215,6 @@ class TestUtils(base.BaseTestCase):
         splitspacestring = util.splitter("build-0.1 build-0.2")
         self.assertEqual(splitspacestring, ['build-0.1', 'build-0.2'])
 
-    @mock.patch('bodhi.server.util.requests.get')
-    @mock.patch('bodhi.server.util.log.exception')
-    def test_taskotron_results_non_200(self, log_exception, mock_get):
-        '''Query should stop when error is encountered'''
-        mock_get.return_value.status_code = 500
-        mock_get.return_value.json.return_value = {'error': 'some error'}
-        settings = {'resultsdb_api_url': ''}
-
-        list(util.taskotron_results(settings))
-
-        log_exception.assert_called_once()
-        msg = log_exception.call_args[0][0]
-        self.assertIn('Problem talking to', msg)
-        self.assertIn('status code was %r' % mock_get.return_value.status_code, msg)
-
-    @mock.patch('bodhi.server.util.requests.get')
-    def test_taskotron_results_paging(self, mock_get):
-        '''Next pages should be retrieved'''
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.json.side_effect = [
-            {'data': ['datum1', 'datum2'],
-             'next': 'url2'},
-            {'data': ['datum3'],
-             'next': None}
-        ]
-        settings = {'resultsdb_api_url': ''}
-
-        results = list(util.taskotron_results(settings))
-
-        self.assertEqual(results, ['datum1', 'datum2', 'datum3'])
-        self.assertEqual(mock_get.return_value.json.call_count, 2)
-        self.assertEqual(mock_get.call_count, 2)
-        self.assertEqual(mock_get.call_args[0][0], 'url2')
-        self.assertEqual(mock_get.call_args[1]['timeout'], 60)
-
-    @mock.patch('bodhi.server.util.requests.get')
-    @mock.patch('bodhi.server.util.log.debug')
-    def test_taskotron_results_max_queries(self, log_debug, mock_get):
-        '''Only max_queries should be performed'''
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.json.return_value = {
-            'data': ['datum'],
-            'next': 'next_url'
-        }
-        settings = {'resultsdb_api_url': ''}
-
-        results = list(util.taskotron_results(settings, max_queries=5))
-
-        self.assertEqual(mock_get.call_count, 5)
-        self.assertEqual(results, ['datum'] * 5)
-        self.assertIn('Too many result pages, aborting at', log_debug.call_args[0][0])
-
 
 class TestCMDFunctions(base.BaseTestCase):
     @mock.patch('bodhi.server.log.debug')

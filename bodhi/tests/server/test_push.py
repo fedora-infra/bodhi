@@ -61,7 +61,7 @@ class TestFilterReleases(base.BaseTestCase):
         self.archived_release_update = models.Update(
             builds=[build], user=self.user,
             request=models.UpdateRequest.stable, notes=u'Useful details!', release=archived_release,
-            date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
+            date_submitted=datetime(2016, 10, 28), stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(self.archived_release_update)
         self.db.commit()
@@ -115,12 +115,12 @@ class TestFilterReleases(base.BaseTestCase):
         disabled_release_update = models.Update(
             builds=[disabled_build], user=self.user,
             request=models.UpdateRequest.stable, notes=u'Useful details!', release=disabled_release,
-            date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
+            date_submitted=datetime(2016, 10, 28), stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
         pending_release_update = models.Update(
             builds=[pending_build], user=self.user,
             request=models.UpdateRequest.stable, notes=u'Useful details!', release=pending_release,
-            date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
+            date_submitted=datetime(2016, 10, 28), stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(disabled_release_update)
         self.db.add(pending_release_update)
@@ -158,7 +158,7 @@ class TestFilterReleases(base.BaseTestCase):
         current_release_update = models.Update(
             builds=[current_build], user=self.user,
             request=models.UpdateRequest.stable, notes=u'Useful details!', release=current_release,
-            date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
+            date_submitted=datetime(2016, 10, 28), stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(current_release_update)
         self.db.commit()

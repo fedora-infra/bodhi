@@ -1846,7 +1846,6 @@ class TestUpdateValidateBuilds(BaseTestCase):
             notes=u'Useless details!',
             release=model.Release.query.filter_by(name=u'F17').one(),
             date_submitted=datetime(1984, 11, 2),
-            requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             type=UpdateType.bugfix
@@ -2753,16 +2752,6 @@ class TestUpdate(ModelTest):
                  '{}.{}.critpath.min_karma'.format(release_name, 'stable'): 2}):
             self.assertFalse(self.obj.critpath_approved)
 
-    def test_last_modified_no_dates(self):
-        """last_modified() should raise ValueError if there are no available dates."""
-        self.obj.date_submitted = None
-        self.obj.date_modified = None
-
-        with self.assertRaises(ValueError) as exc:
-            self.obj.last_modified
-
-        self.assertTrue('Update has no timestamps set:' in str(exc.exception))
-
     @mock.patch('bodhi.server.notifications.publish')
     def test_stable_karma(self, publish):
         update = self.obj
@@ -3414,135 +3403,6 @@ class TestUpdate(ModelTest):
             config['bodhi_email'],
             [config['{}_test_announce_list'.format(release_name)]],
             msg.encode('utf-8'))
-
-    def test_check_requirements_empty(self):
-        '''Empty requirements are OK'''
-        update = self.obj
-        settings = {'resultsdb_api_url': ''}
-
-        for req in ['', None]:
-            update.requirements = req
-
-            result, reason = update.check_requirements(None, settings)
-
-            self.assertTrue(result)
-            self.assertEqual(reason, "No checks required.")
-
-    @mock.patch('bodhi.server.models.Update.last_modified',
-                new_callable=mock.PropertyMock)
-    def test_check_requirements_no_last_modified(self, mock_last_modified):
-        '''Missing last_modified should fail the check'''
-        update = self.obj
-        mock_last_modified.return_value = None
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-
-        result, reason = update.check_requirements(None, settings)
-
-        self.assertFalse(result)
-        self.assertIn("Failed to determine last_modified", reason)
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    def test_check_requirements_query_error(self, mock_taskotron_results):
-        '''Error during retrieving results should fail'''
-        update = self.obj
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-        mock_taskotron_results.side_effect = Exception('Query failed')
-
-        result, reason = update.check_requirements(None, settings)
-
-        self.assertFalse(result)
-        self.assertIn("Failed retrieving requirements results", reason)
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    def test_check_requirements_no_results(self, mock_taskotron_results):
-        '''No results for a testcase means fail'''
-        update = self.obj
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-        results = [{'testcase': {'name': 'rpmlint'},
-                    'data': {},
-                    'outcome': 'PASSED'}]
-        mock_taskotron_results.return_value = iter(results)
-
-        result, reason = update.check_requirements(None, settings)
-
-        self.assertFalse(result)
-        self.assertEqual("No result found for required testcase abicheck",
-                         reason)
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    def test_check_requirements_failed_results(self, mock_taskotron_results):
-        '''Failed results for a testcase means fail'''
-        update = self.obj
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-        results = [{'testcase': {'name': 'rpmlint'},
-                    'data': {},
-                    'outcome': 'FAILED'}]
-        mock_taskotron_results.return_value = iter(results)
-
-        result, reason = update.check_requirements(None, settings)
-
-        self.assertFalse(result)
-        self.assertEqual("Required task rpmlint returned FAILED",
-                         reason)
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    def test_check_requirements_pass(self, mock_taskotron_results):
-        '''All testcases pass means pass'''
-        update = self.obj
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-        results = [{'testcase': {'name': 'rpmlint'},
-                    'data': {},
-                    'outcome': 'PASSED'},
-                   {'testcase': {'name': 'abicheck'},
-                    'data': {},
-                    'outcome': 'PASSED'}]
-        mock_taskotron_results.return_value = iter(results)
-
-        result, reason = update.check_requirements(None, settings)
-
-        self.assertTrue(result)
-        self.assertEqual("All checks pass.", reason)
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    @mock.patch('bodhi.server.buildsys.DevBuildsys.multiCall')
-    def test_check_requirements_koji_error(self, mock_multiCall,
-                                           mock_taskotron_results):
-        '''Koji error means fail'''
-        update = self.obj
-        update.requirements = 'rpmlint abicheck'
-        settings = {'resultsdb_api_url': ''}
-        results = []
-        mock_taskotron_results.return_value = iter(results)
-        mock_multiCall.return_value = [{'error code': 'error description'}]
-
-        result, reason = update.check_requirements(None, settings)
-
-        self.assertFalse(result)
-        self.assertIn("Failed retrieving requirements results:", reason)
-        self.assertIn("Error retrieving data from Koji for", reason)
-
-    def test_check_requirements_test_gating_status_failed(self):
-        """check_requirements() should return False when test_gating_status is failed."""
-        self.obj.requirements = ''
-        self.obj.test_gating_status = model.TestGatingStatus.failed
-
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            self.assertEqual(self.obj.check_requirements(self.db, config),
-                             (False, 'Required tests did not pass on this update'))
-
-    def test_check_requirements_test_gating_status_passed(self):
-        """check_requirements() should return True when test_gating_status is passed."""
-        self.obj.requirements = ''
-        self.obj.test_gating_status = model.TestGatingStatus.passed
-
-        with mock.patch.dict(config, {'test_gating.required': True}):
-            self.assertEqual(self.obj.check_requirements(self.db, config),
-                             (True, 'No checks required.'))
 
     def test_num_admin_approvals_after_karma_reset(self):
         """Make sure number of admin approvals is counted correctly for the build."""

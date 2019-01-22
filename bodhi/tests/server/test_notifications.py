@@ -168,8 +168,7 @@ class TestPublish(base.BaseTestCase):
         expected_msg = {
             u'some_package': {
                 u'name': u'so good',
-                u'type': 'base',
-                u'requirements': None}}
+                u'type': 'base'}}
         package = models.Package(name='so good')
         notifications.publish('demo.topic', {'some_package': package})
         session = Session()

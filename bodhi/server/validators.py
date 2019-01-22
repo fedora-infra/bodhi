@@ -50,11 +50,7 @@ from .models import (
     UpdateSuggestion,
     User,
 )
-from .util import (
-    splitter,
-    tokenize,
-    taskotron_results,
-)
+from .util import splitter
 from bodhi.server.config import config
 
 
@@ -1201,53 +1197,6 @@ def validate_captcha(request, **kwargs):
 
         # Nuke this to stop replay attacks.  Once valid, never again.
         del request.session['captcha']
-
-
-def _get_valid_requirements(request, requirements):
-    """
-    Return a list of valid testcases from taskotron.
-
-    Args:
-        request (pyramid.util.Request): The current request.
-        requirements (list): A list of strings that identify test cases.
-    Returns:
-        generator: An iterator over the test case names that exist in taskotron.
-    """
-    if not requirements:
-        return
-
-    testcases = ','.join(requirements)
-    for testcase in taskotron_results(config, 'testcases',
-                                      max_queries=None, limit=100,
-                                      name=testcases):
-        yield testcase['name']
-
-
-@postschema_validator
-def validate_requirements(request, **kwargs):
-    """
-    Validate the requirements parameter for the stack.
-
-    Args:
-        request (pyramid.util.Request): The current request.
-        kwargs (dict): The kwargs of the related service definition. Unused.
-    """
-    requirements = request.validated.get('requirements')
-
-    if requirements is None:  # None is okay
-        request.validated['requirements'] = None
-        return
-
-    requirements = list(tokenize(requirements))
-    valid_requirements = _get_valid_requirements(request, requirements)
-
-    for requirement in requirements:
-        if requirement not in valid_requirements:
-            request.errors.add(
-                'querystring', 'requirements',
-                "Required check doesn't exist : %s" % requirement)
-            request.errors.status = HTTPBadRequest.code
-            return
 
 
 @postschema_validator

@@ -457,7 +457,6 @@ class TestFrontpageView(base.BaseTestCase):
                             notes=u'Useful details!',
                             release=release,
                             date_submitted=datetime(1984, 11, 2),
-                            requirements=u'rpmlint',
                             stable_karma=3,
                             unstable_karma=-3,
                         )

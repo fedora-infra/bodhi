@@ -75,7 +75,7 @@ def create_update(session, build_nvrs, release_name=u'F17'):
     update = Update(
         builds=builds, user=user, request=UpdateRequest.testing,
         notes=u'Useful details!', type=UpdateType.bugfix, date_submitted=datetime(1984, 11, 2),
-        requirements=u'rpmlint', stable_karma=3, unstable_karma=-3, release=release)
+        stable_karma=3, unstable_karma=-3, release=release)
     session.add(update)
     return update
 

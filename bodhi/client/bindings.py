@@ -252,9 +252,6 @@ class BodhiClient(OpenIdBaseClient):
                 editing.
             severity (basestring): The severity of this update (``urgent``, ``high``,
                 ``medium``, ``low``).
-            requirements (basestring): A list of required Taskotron tests that must pass
-                for this update to reach stable. (e.g. ``dist.rpmdeplint``,
-                ``dist.upgradepath``, ``dist.rpmlint``, etc).
             require_bugs (bool): A boolean to require that all of the bugs in your
                 update have been confirmed by testers.
             require_testcases (bool): A boolean to require that this update passes

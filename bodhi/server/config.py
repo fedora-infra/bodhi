@@ -573,9 +573,6 @@ class BodhiConfig(dict):
         'session.secret': {
             'value': 'CHANGEME',
             'validator': _validate_secret},
-        'site_requirements': {
-            'value': 'dist.rpmdeplint dist.upgradepath',
-            'validator': str},
         'skopeo.cmd': {
             'value': '/usr/bin/skopeo',
             'validator': str,

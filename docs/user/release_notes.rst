@@ -33,6 +33,7 @@ Backwards incompatible changes
   ``max_concurrent_composes`` (:issue:`2151`).
 * The ``bodhi-monitor-composes`` script has been removed (:issue:`2171`).
 * The stacks feature has been removed (:issue:`2241`).
+* The requirements feature has been removed (:issue:`2340`).
 * The ``bodhi-manage-releases`` script has been removed (:issue:`2420`).
 * Bodhi client and server no longer support Python 2. Python 3.6+ are the only supported Python
   releases (:issue:`2759`).

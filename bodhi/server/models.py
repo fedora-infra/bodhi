@@ -44,7 +44,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, get_critpath_components,
-    get_rpm_header, header, tokenize, pagure_api_get)
+    get_rpm_header, header, pagure_api_get)
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
@@ -942,8 +942,6 @@ class Package(Base):
 
     Attributes:
         name (unicode): A unicode string that uniquely identifies the package.
-        requirements (unicode): A unicode string that lists space-separated taskotron test
-            results that must pass for this package
         type (int): The polymorphic identity column. This is used to identify what Python
             class to create when loading rows from the database.
         builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects.
@@ -958,7 +956,6 @@ class Package(Base):
     __exclude_columns__ = ('id', 'committers', 'test_cases', 'builds',)
 
     name = Column(UnicodeText, nullable=False)
-    requirements = Column(UnicodeText)
     type = Column(ContentType.db_type(), nullable=False)
 
     builds = relationship('Build', backref=backref('package', lazy='joined'))
@@ -1563,8 +1560,6 @@ class Update(Base):
             karma the update must receive before being automatically marked as stable.
         unstable_karma (int): A positive integer that indicates the amount of "bad"
             karma the update must receive before being automatically marked as unstable.
-        requirements (unicode): A list of taskotron tests that must pass for this
-            update to be considered stable.
         require_bugs (bool): Indicates whether or not positive feedback needs to be
             provided for the associated bugs before the update can be considered
             stable.
@@ -1631,7 +1626,6 @@ class Update(Base):
     autokarma = Column(Boolean, default=True, nullable=False)
     stable_karma = Column(Integer, nullable=False)
     unstable_karma = Column(Integer, nullable=False)
-    requirements = Column(UnicodeText)
     require_bugs = Column(Boolean, default=False)
     require_testcases = Column(Boolean, default=False)
 
@@ -1986,15 +1980,6 @@ class Update(Base):
                     db.flush()
                 bugs.append(bug)
         data['bugs'] = bugs
-
-        # If no requirements are provided, then gather some defaults from the
-        # packages of the associated builds.
-        # See https://github.com/fedora-infra/bodhi/issues/101
-        if not data['requirements']:
-            data['requirements'] = " ".join(list(set(sum([
-                list(tokenize(pkg.requirements)) for pkg in [
-                    build.package for build in data['builds']
-                ] if pkg.requirements], []))))
 
         del(data['edited'])
 
@@ -3116,91 +3101,6 @@ class Update(Base):
         """
         return self.release.long_name.lower().replace(' ', '-')
 
-    def check_requirements(self, session, settings):
-        """
-        Check that an update meets its self-prescribed policy to be pushed.
-
-        Args:
-            session (sqlalchemy.orm.session.Session): A database session. Unused.
-            settings (bodhi.server.config.BodhiConfig): Bodhi's settings.
-        Returns:
-            tuple: A tuple containing (result, reason) where result is a bool
-                and reason is a str.
-        """
-        if config.get('test_gating.required') and not self.test_gating_passed:
-            return (False, "Required tests did not pass on this update")
-
-        requirements = tokenize(self.requirements or '')
-        requirements = list(requirements)
-
-        if not requirements:
-            return True, "No checks required."
-
-        try:
-            # https://github.com/fedora-infra/bodhi/issues/362
-            since = self.last_modified.isoformat().rsplit('.', 1)[0]
-        except Exception as e:
-            log.exception("Failed to determine last_modified from %r : %r",
-                          self.last_modified, str(e))
-            return False, "Failed to determine last_modified: %r" % str(e)
-
-        try:
-            # query results for this update
-            query = dict(type='bodhi_update', item=self.alias, since=since,
-                         testcases=','.join(requirements))
-            results = list(util.taskotron_results(settings, **query))
-
-            # query results for each build
-            # retrieve timestamp for each build so that queries can be optimized
-            koji = buildsys.get_session()
-            koji.multicall = True
-            for build in self.builds:
-                koji.getBuild(build.nvr)
-            buildinfos = koji.multiCall()
-
-            for index, build in enumerate(self.builds):
-                multicall_response = buildinfos[index]
-                if not isinstance(multicall_response, list) \
-                        or not isinstance(multicall_response[0], dict):
-                    msg = ("Error retrieving data from Koji for %r: %r" %
-                           (build.nvr, multicall_response))
-                    log.error(msg)
-                    raise TypeError(msg)
-
-                buildinfo = multicall_response[0]
-                ts = datetime.utcfromtimestamp(buildinfo['completion_ts']).isoformat()
-
-                query = dict(type='koji_build', item=build.nvr, since=ts,
-                             testcases=','.join(requirements))
-                build_results = list(util.taskotron_results(settings, **query))
-                results.extend(build_results)
-
-        except Exception as e:
-            log.exception("Failed retrieving requirements results: %r", str(e))
-            return False, "Failed retrieving requirements results: %r" % str(e)
-
-        for testcase in requirements:
-            relevant = [result for result in results
-                        if result['testcase']['name'] == testcase]
-
-            if not relevant:
-                return False, 'No result found for required testcase %s' % testcase
-
-            by_arch = defaultdict(list)
-            for result in relevant:
-                arch = result['data'].get('arch', ['noarch'])[0]
-                by_arch[arch].append(result)
-
-            for arch, result in by_arch.items():
-                latest = relevant[0]  # resultsdb results are ordered chronologically
-                if latest['outcome'] not in ['PASSED', 'INFO']:
-                    return False, "Required task %s returned %s" % (
-                        latest['testcase']['name'], latest['outcome'])
-
-        # TODO - check require_bugs and require_testcases also?
-
-        return True, "All checks pass."
-
     def check_karma_thresholds(self, db, agent):
         """
         Check if we have reached either karma threshold, and adjust state as necessary.
@@ -3260,40 +3160,6 @@ class Update(Base):
             basestring: A JSON list of the :class:`Builds <Build>` associated with this update.
         """
         return json.dumps([build.nvr for build in self.builds])
-
-    @property
-    def requirements_json(self):
-        """
-        Return a JSON representation of this update's requirements.
-
-        Returns:
-            basestring: A JSON representation of this update's requirements.
-        """
-        return json.dumps(list(tokenize(self.requirements or '')))
-
-    @property
-    def last_modified(self):
-        """
-        Return the last time this update was edited or created.
-
-        This gets used specifically by taskotron/resultsdb queries so we only
-        query for test runs that occur *after* the last time this update
-        (in its current form) was in play.
-
-        Returns:
-            datetime.datetime: The most recent time of modification or creation.
-        Raises:
-            ValueError: If the update has no timestamps set, which should not be possible.
-        """
-        # Prune out None values that have not been set
-        possibilities = [self.date_submitted, self.date_modified]
-        possibilities = [p for p in possibilities if p]
-
-        if not possibilities:  # Should be un-possible.
-            raise ValueError("Update has no timestamps set: %r" % self)
-
-        possibilities.sort()  # Sort smallest to largest (oldest to newest)
-        return possibilities[-1]  # Return the last one
 
     @property
     def critpath_approved(self):

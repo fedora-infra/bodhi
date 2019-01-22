@@ -272,15 +272,6 @@ ${update.notes}
                       % endif
                     ></dd>
 
-                  <dt data-toggle="tooltip" title="If specified, the update will be blocked from stable until all of the listed taskotron tests are passing.">
-                  Required checks <a target="_blank" href="https://fedoraproject.org/wiki/Taskotron/Tasks"><span class="glyphicon glyphicon-question-sign"></span></a></dt>
-                  <dd> <input type="text" name="requirements"
-                  placeholder="Required taskotron tasks"
-                      % if update and update.requirements:
-                      value="${update.requirements}"
-                      % endif
-                    ></dd>
-
                 </dl>
               </div>
             </div>

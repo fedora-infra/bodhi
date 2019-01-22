@@ -27,6 +27,7 @@ from sqlalchemy.sql import or_
 from requests import RequestException, Timeout as RequestsTimeout
 
 from bodhi.server import log, security
+from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
     Update,
@@ -51,7 +52,6 @@ from bodhi.server.validators import (
     validate_release,
     validate_username,
     validate_update_id,
-    validate_requirements,
     validate_bugs,
     validate_request,
     validate_severity,
@@ -188,11 +188,9 @@ def set_request(request):
         return
 
     if action == UpdateRequest.stable:
-        settings = request.registry.settings
-        result, reason = update.check_requirements(request.db, settings)
-        if not result:
+        if config.get('test_gating.required') and not update.test_gating_passed:
             request.errors.add('body', 'request',
-                               'Requirement not met %s' % reason)
+                               'Required tests did not pass on this update')
             return
 
     try:
@@ -413,7 +411,6 @@ def query_updates(request):
                   validate_uniqueness,
                   validate_acls,
                   validate_enums,
-                  validate_requirements,
                   validate_bugs,
                   validate_severity,
               ))

@@ -92,11 +92,10 @@ def get_user_data(username, human_readable):
     sar_data[user.name]['show_popups'] = user.show_popups
     sar_data[user.name]['updates'] = [
         {'autokarma': u.autokarma, 'stable_karma': u.stable_karma,
-         'unstable_karma': u.unstable_karma, 'requirements': u.requirements,
-         'require_bugs': u.require_bugs, 'require_testcases': u.require_testcases,
-         'notes': u.notes, 'type': str(u.type), 'severity': str(u.severity),
-         'suggest': str(u.suggest), 'close_bugs': u.close_bugs, 'alias': u.alias,
-         'builds': [b.nvr for b in u.builds], 'release_name': u.release.name,
+         'unstable_karma': u.unstable_karma, 'require_bugs': u.require_bugs,
+         'require_testcases': u.require_testcases, 'notes': u.notes, 'type': str(u.type),
+         'severity': str(u.severity), 'suggest': str(u.suggest), 'close_bugs': u.close_bugs,
+         'alias': u.alias, 'builds': [b.nvr for b in u.builds], 'release_name': u.release.name,
          'bugs': [b.bug_id for b in u.bugs], 'user': u.user.name,
          'date_submitted': u.date_submitted.strftime('%Y-%m-%d %H:%M:%S')}
         for u in user.updates]

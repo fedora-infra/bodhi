@@ -43,11 +43,6 @@ from bodhi.server.exceptions import BodhiException, LockedUpdateException
 
 YEAR = time.localtime().tm_year
 
-mock_valid_requirements = {
-    'target': 'bodhi.server.validators._get_valid_requirements',
-    'return_value': ['rpmlint', 'upgradepath'],
-}
-
 mock_uuid4_version1 = {
     'target': 'uuid.uuid4',
     'return_value': 'this is a consistent string',
@@ -57,42 +52,17 @@ mock_uuid4_version2 = {
     'return_value': 'this is another consistent string',
 }
 
-mock_taskotron_results = {
-    'target': 'bodhi.server.util.taskotron_results',
-    'return_value': [{
-        "outcome": "PASSED",
-        "data": {},
-        "testcase": {"name": "rpmlint"}
-    }],
-}
-
-mock_failed_taskotron_results = {
-    'target': 'bodhi.server.util.taskotron_results',
-    'return_value': [{
-        "outcome": "FAILED",
-        "data": {},
-        "testcase": {"name": "rpmlint"}
-    }],
-}
-
-mock_absent_taskotron_results = {
-    'target': 'bodhi.server.util.taskotron_results',
-    'return_value': [],
-}
-
 
 class TestNewUpdate(BaseTestCase):
     """
     This class contains tests for the new_update() function.
     """
-    @mock.patch(**mock_valid_requirements)
-    def test_empty_build_name(self, *args):
+    def test_empty_build_name(self):
         res = self.app.post_json('/updates/', self.get_update([u'']), status=400)
         self.assertEqual(res.json_body['errors'][0]['name'], 'builds.0')
         self.assertEqual(res.json_body['errors'][0]['description'], 'Required')
 
-    @mock.patch(**mock_valid_requirements)
-    def test_fail_on_edit_with_empty_build_list(self, *args):
+    def test_fail_on_edit_with_empty_build_list(self):
         update = self.get_update()
         update['edited'] = update['builds']  # the update title..
         update['builds'] = []
@@ -107,10 +77,8 @@ class TestNewUpdate(BaseTestCase):
             res.json_body['errors'][1]['description'],
             'ACL validation mechanism was unable to determine ACLs.')
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_unicode_description(self, publish, *args):
+    def test_unicode_description(self, publish):
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
         update = self.get_update('bodhi-2.0.0-2.fc17')
@@ -123,21 +91,18 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-    @mock.patch(**mock_valid_requirements)
-    def test_duplicate_build(self, *args):
+    def test_duplicate_build(self):
         res = self.app.post_json(
             '/updates/', self.get_update([u'bodhi-2.0-2.fc17', u'bodhi-2.0-2.fc17']), status=400)
         assert 'Duplicate builds' in res, res
 
-    @mock.patch(**mock_valid_requirements)
-    def test_multiple_builds_of_same_package(self, *args):
+    def test_multiple_builds_of_same_package(self):
         res = self.app.post_json('/updates/', self.get_update([u'bodhi-2.0-2.fc17',
                                                                u'bodhi-2.0-3.fc17']),
                                  status=400)
         assert 'Multiple bodhi builds specified' in res, res
 
-    @mock.patch(**mock_valid_requirements)
-    def test_invalid_autokarma(self, *args):
+    def test_invalid_autokarma(self):
         res = self.app.post_json('/updates/', self.get_update(stable_karma=-1),
                                  status=400)
         assert '-1 is less than minimum value 1' in res, res
@@ -145,22 +110,13 @@ class TestNewUpdate(BaseTestCase):
                                  status=400)
         assert '1 is greater than maximum value -1' in res, res
 
-    @mock.patch(**mock_valid_requirements)
-    def test_duplicate_update(self, *args):
+    def test_duplicate_update(self):
         res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-1.fc17'),
                                  status=400)
         assert 'Update for bodhi-2.0-1.fc17 already exists' in res, res
 
-    @mock.patch(**mock_valid_requirements)
-    def test_invalid_requirements(self, *args):
-        update = self.get_update()
-        update['requirements'] = 'rpmlint silly-dilly'
-        res = self.app.post_json('/updates/', update, status=400)
-        assert "Required check doesn't exist" in res, res
-
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_no_privs(self, publish, *args):
+    def test_no_privs(self, publish):
         user = User(name=u'bodhi')
         self.db.add(user)
         self.db.commit()
@@ -181,10 +137,8 @@ class TestNewUpdate(BaseTestCase):
             res.json_body['errors']
         self.assertEqual(publish.call_args_list, [])
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_privs(self, publish, *args):
+    def test_provenpackager_privs(self, publish):
         "Ensure provenpackagers can push updates for any package"
         user = User(name=u'bodhi')
         self.db.add(user)
@@ -203,8 +157,7 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-    @mock.patch(**mock_valid_requirements)
-    def test_invalid_acl_system(self, *args):
+    def test_invalid_acl_system(self):
         with mock.patch.dict(config, {'acl_system': 'null'}):
             res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-2.fc17'),
                                      status=403)
@@ -215,16 +168,14 @@ class TestNewUpdate(BaseTestCase):
         self.app.put_json('/updates/', self.get_update(), status=405)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_post_json_update(self, publish, *args):
+    def test_post_json_update(self, publish):
         self.app.post_json('/updates/', self.get_update('bodhi-2.0.0-1.fc17'))
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_rpm_update(self, publish, *args):
         r = self.app.post_json('/updates/', self.get_update('bodhi-2.0.0-2.fc17'))
@@ -248,13 +199,11 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
         self.assertEqual(up['karma'], 0)
-        self.assertEqual(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_rpm_update_unknown_build(self, publish, *args):
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getBuild',
@@ -269,7 +218,6 @@ class TestNewUpdate(BaseTestCase):
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_rpm_update_koji_error(self, publish, *args):
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getBuild',
@@ -282,9 +230,8 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['errors'][0]['description'],
                          "Koji error getting build: bodhi-2.0.0-2.fc17")
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_koji_config_url(self, publish, *args):
+    def test_koji_config_url(self, publish):
         """
         Test html rendering of default build link
         """
@@ -297,9 +244,8 @@ class TestNewUpdate(BaseTestCase):
         self.assertRegex(str(resp), ('https://koji.fedoraproject.org/koji'
                                      r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_koji_config_url_without_trailing_slash(self, publish, *args):
+    def test_koji_config_url_without_trailing_slash(self, publish):
         """
         Test html rendering of default build link without trailing slash
         """
@@ -312,9 +258,8 @@ class TestNewUpdate(BaseTestCase):
         self.assertRegex(str(resp), ('https://koji.fedoraproject.org/koji'
                                      r'/search\?terms=.*\&amp;type=build\&amp;match=glob'))
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_koji_config_mock_url_without_trailing_slash(self, publish, *args):
+    def test_koji_config_mock_url_without_trailing_slash(self, publish):
         """
         Test html rendering of build link using a mock config variable 'koji_web_url'
         without a trailing slash in it
@@ -330,7 +275,6 @@ class TestNewUpdate(BaseTestCase):
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_uuid4_version1)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_module_update(self, publish, *args):
         # Ensure there are no module packages in the DB to begin with.
@@ -360,15 +304,13 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
         self.assertEqual(up['karma'], 0)
-        self.assertEqual(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
         # At the end, ensure that the right kind of package was created.
         self.assertEqual(self.db.query(ModulePackage).count(), 1)
 
-    @mock.patch(**mock_valid_requirements)
-    def test_multiple_builds_of_same_module_stream(self, *args):
+    def test_multiple_builds_of_same_module_stream(self):
         self.create_release(u'27M')
 
         res = self.app.post_json('/updates/', self.get_update([u'nodejs-6-20170101',
@@ -376,8 +318,7 @@ class TestNewUpdate(BaseTestCase):
                                  status=400)
         assert 'Multiple nodejs:6 builds specified' in res, res
 
-    @mock.patch(**mock_valid_requirements)
-    def test_multiple_builds_of_different_module_stream(self, *args):
+    def test_multiple_builds_of_different_module_stream(self):
         self.create_release(u'27M')
 
         with fml_testing.mock_sends(api.Message):
@@ -395,8 +336,7 @@ class TestNewUpdate(BaseTestCase):
         # At the end, ensure that the right kind of packages were created.
         self.assertEqual(self.db.query(ModulePackage).count(), 2)
 
-    @mock.patch(**mock_valid_requirements)
-    def test_multiple_updates_single_module_steam(self, *args):
+    def test_multiple_updates_single_module_steam(self):
         # Ensure there are no module packages in the DB to begin with.
         self.assertEqual(self.db.query(ModulePackage).count(), 0)
         self.create_release(u'27M')
@@ -425,7 +365,6 @@ class TestNewUpdate(BaseTestCase):
         assert updates[2].request.name == 'testing'
 
     @mock.patch(**mock_uuid4_version1)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_container_update(self, publish, *args):
         self.create_release(u'28C')
@@ -452,12 +391,10 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
         self.assertEqual(up['karma'], 0)
-        self.assertEqual(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
     @mock.patch(**mock_uuid4_version1)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_new_flatpak_update(self, publish, *args):
         self.create_release(u'28F')
@@ -484,14 +421,12 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
         self.assertEqual(up['karma'], 0)
-        self.assertEqual(up['requirements'], 'rpmlint')
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_new_update_with_multiple_bugs(self, publish, *args):
+    def test_new_update_with_multiple_bugs(self, publish):
         update = self.get_update('bodhi-2.0.0-2.fc17')
         update['bugs'] = ['1234', '5678']
         r = self.app.post_json('/updates/', update)
@@ -503,9 +438,8 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['bugs'][2]['bug_id'], 12345)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_new_update_with_multiple_bugs_as_str(self, publish, *args):
+    def test_new_update_with_multiple_bugs_as_str(self, publish):
         update = self.get_update('bodhi-2.0.0-2.fc17')
         update['bugs'] = '1234, 5678'
         r = self.app.post_json('/updates/', update)
@@ -517,9 +451,8 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['bugs'][2]['bug_id'], 12345)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_new_update_with_invalid_bugs_as_str(self, publish, *args):
+    def test_new_update_with_invalid_bugs_as_str(self, publish):
         update = self.get_update('bodhi-2.0.0-2.fc17')
         update['bugs'] = '1234, blargh'
         r = self.app.post_json('/updates/', update, status=400)
@@ -529,8 +462,7 @@ class TestNewUpdate(BaseTestCase):
                          "Invalid bug ID specified: {}".format([u'1234', u'blargh']))
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
-    @mock.patch(**mock_valid_requirements)
-    def test_new_update_with_existing_build(self, *args):
+    def test_new_update_with_existing_build(self):
         """Test submitting a new update with a build already in the database"""
         package = RpmPackage.get(u'bodhi')
         self.db.add(RpmBuild(nvr=u'bodhi-2.0.0-3.fc17', package=package))
@@ -543,8 +475,7 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(resp.json['title'], 'bodhi-2.0.0-3.fc17')
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
-    @mock.patch(**mock_valid_requirements)
-    def test_new_update_with_existing_package(self, *args):
+    def test_new_update_with_existing_package(self):
         """Test submitting a new update with a package that is already in the database."""
         package = RpmPackage(name=u'existing-package')
         self.db.add(package)
@@ -559,8 +490,7 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(package.name, 'existing-package')
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
-    @mock.patch(**mock_valid_requirements)
-    def test_new_update_with_missing_package(self, *args):
+    def test_new_update_with_missing_package(self):
         """Test submitting a new update with a package that is not already in the database."""
         args = self.get_update(u'missing-package-2.4.1-5.fc17')
 
@@ -571,28 +501,8 @@ class TestNewUpdate(BaseTestCase):
         package = self.db.query(RpmPackage).filter_by(name=u'missing-package').one()
         self.assertEqual(package.name, 'missing-package')
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_cascade_package_requirements_to_update(self, publish, *args):
-
-        package = self.db.query(RpmPackage).filter_by(name=u'bodhi').one()
-        package.requirements = u'upgradepath rpmlint'
-        self.db.commit()
-
-        args = self.get_update(u'bodhi-2.0.0-3.fc17')
-        # Don't specify any requirements so that they cascade from the package
-        del args['requirements']
-        r = self.app.post_json('/updates/', args)
-        up = r.json_body
-        self.assertEqual(up['title'], u'bodhi-2.0.0-3.fc17')
-        self.assertTrue('upgradepath' in up['requirements'])
-        self.assertTrue('rpmlint' in up['requirements'])
-        publish.assert_called_once_with(
-            topic='update.request.testing', msg=mock.ANY)
-
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_push_untested_critpath_to_release(self, publish, *args):
+    def test_push_untested_critpath_to_release(self, publish):
         """
         Ensure that we cannot push an untested critpath update directly to
         stable.
@@ -605,9 +515,8 @@ class TestNewUpdate(BaseTestCase):
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_obsoletion(self, publish, *args):
+    def test_obsoletion(self, publish):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         with mock.patch(**mock_uuid4_version1):
@@ -650,9 +559,8 @@ class TestNewUpdate(BaseTestCase):
                              '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
         self.assertEqual(up.comments[-1].text, expected_comment)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_create_new_nonsecurity_update_when_previous_security_one_exists(self, publish, *args):
+    def test_create_new_nonsecurity_update_when_previous_security_one_exists(self, publish):
         """
         Assert that when non-security update obsoletes previous security update, caveat is reported
         and submitted update type is changed to security.
@@ -714,9 +622,8 @@ class TestNewUpdate(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr='bodhi-2.0.0-3.fc17').one().update
         self.assertEqual(up.type, UpdateType.security)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_obsoletion_security_update(self, publish, *args):
+    def test_obsoletion_security_update(self, publish):
         """Assert that security update can obsolete previous security update."""
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -764,10 +671,9 @@ class TestNewUpdate(BaseTestCase):
                              '/updates/FEDORA-{}-53345602d5'.format(datetime.now().year)))
         self.assertEqual(up.comments[-1].text, expected_comment)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     @mock.patch('bodhi.server.services.updates.Update.new', side_effect=IOError('oops!'))
-    def test_unexpected_exception(self, publish, *args):
+    def test_unexpected_exception(self, new, publish):
         """Ensure that an unexpected Exception is handled by new_update()."""
         update = self.get_update('bodhi-2.3.2-1.fc17')
 
@@ -780,10 +686,9 @@ class TestNewUpdate(BaseTestCase):
         build = self.db.query(RpmBuild).filter(RpmBuild.nvr == u'bodhi-2.3.2-1.fc17').one()
         self.assertEqual(build.package.name, 'bodhi')
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.obsolete_older_updates',
                 side_effect=RuntimeError("bet you didn't see this coming!"))
-    def test_obsoletion_with_exception(self, *args):
+    def test_obsoletion_with_exception(self, obsolete_older_updates_mock):
         """
         Assert that an exception during obsoletion is properly handled.
         """
@@ -818,8 +723,7 @@ class TestNewUpdate(BaseTestCase):
         expected_comment = u'This update has been submitted for testing by guest. '
         self.assertEqual(up.comments[-1].text, expected_comment)
 
-    @mock.patch(**mock_valid_requirements)
-    def test_security_update_without_severity(self, *args):
+    def test_security_update_without_severity(self):
         """Ensure that severity is required for a security update."""
         update = self.get_update('bodhi-2.3.2-1.fc17')
         update['type'] = u'security'
@@ -836,8 +740,7 @@ class TestSetRequest(BaseTestCase):
     """
     This class contains tests for the set_request() function.
     """
-    @mock.patch(**mock_valid_requirements)
-    def test_set_request_locked_update(self, *args):
+    def test_set_request_locked_update(self):
         """Ensure that we get an error if trying to set request of a locked update"""
         nvr = u'bodhi-2.0-1.fc17'
 
@@ -852,8 +755,7 @@ class TestSetRequest(BaseTestCase):
         self.assertEqual(res.json_body[u'errors'][0][u'description'],
                          "Can't change request on a locked update")
 
-    @mock.patch(**mock_valid_requirements)
-    def test_set_request_archived_release(self, *args):
+    def test_set_request_archived_release(self):
         """Ensure that we get an error if trying to setrequest of a update in an archived release"""
         nvr = u'bodhi-2.0-1.fc17'
 
@@ -876,7 +778,6 @@ class TestSetRequest(BaseTestCase):
         nvr = u'bodhi-2.0-1.fc17'
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.locked = False
-        up.requirements = ''
         up.test_gating_status = TestGatingStatus.failed
         up.date_testing = datetime.utcnow() - timedelta(days=8)
         up.request = None
@@ -888,7 +789,7 @@ class TestSetRequest(BaseTestCase):
         self.assertEqual(up.request, None)
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body[u'errors'][0][u'description'],
-                         "Requirement not met Required tests did not pass on this update")
+                         "Required tests did not pass on this update")
 
     @mock.patch.dict(config, {'test_gating.required': True})
     def test_test_gating_status_passed(self):
@@ -896,7 +797,6 @@ class TestSetRequest(BaseTestCase):
         nvr = u'bodhi-2.0-1.fc17'
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.locked = False
-        up.requirements = ''
         up.test_gating_status = TestGatingStatus.passed
         up.date_testing = datetime.utcnow() - timedelta(days=8)
         post_data = dict(update=nvr, request='stable', csrf_token=self.get_csrf_token())
@@ -908,18 +808,16 @@ class TestSetRequest(BaseTestCase):
         self.assertEqual(up.request, UpdateRequest.stable)
         self.assertEqual(res.json['update']['request'], 'stable')
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.set_request',
                 side_effect=BodhiException('BodhiException. oops!'))
-    @mock.patch('bodhi.server.services.updates.Update.check_requirements',
-                return_value=(True, "a fake reason"))
     @mock.patch('bodhi.server.services.updates.log.error')
-    def test_BodhiException_exception(self, log_error, check_requirements, send_request, *args):
+    def test_BodhiException_exception(self, log_error, send_request):
         """Ensure that an BodhiException Exception is handled by set_request()."""
         nvr = u'bodhi-2.0-1.fc17'
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.locked = False
+        up.test_gating_status = TestGatingStatus.passed
         up.release.state = ReleaseState.current
 
         post_data = dict(update=up.alias, request='stable',
@@ -934,18 +832,16 @@ class TestSetRequest(BaseTestCase):
         log_error.assert_called_once()
         self.assertEqual("Failed to set the request: %s", log_error.call_args_list[0][0][0])
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.set_request',
                 side_effect=IOError('IOError. oops!'))
-    @mock.patch('bodhi.server.services.updates.Update.check_requirements',
-                return_value=(True, "a fake reason"))
     @mock.patch('bodhi.server.services.updates.log.exception')
-    def test_unexpected_exception(self, log_exception, check_requirements, send_request, *args):
+    def test_unexpected_exception(self, log_exception, send_request):
         """Ensure that an unexpected Exception is handled by set_request()."""
         nvr = u'bodhi-2.0-1.fc17'
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.locked = False
+        up.test_gating_status = TestGatingStatus.passed
         up.release.state = ReleaseState.current
 
         post_data = dict(update=nvr, request='stable',
@@ -1007,7 +903,6 @@ class TestEditUpdateForm(BaseTestCase):
         update_json = self.get_update()
         update_json['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
         update_json['edited'] = alias
-        update_json['requirements'] = u''
         update_json['type'] = u'security'
         update_json['severity'] = u'low'
         with fml_testing.mock_sends(api.Message):
@@ -1100,8 +995,6 @@ class TestUpdatesService(BaseTestCase):
         update_json['notes'] = u'testing!!!'
         update_json['edited'] = update.alias
         update_json['builds'] = update_json['builds'] + ',bodhi-3.2.0-1.fc27'
-        # This will cause an extra error in the output that we aren't testing here, so delete it.
-        del update_json['requirements']
 
         res = self.app.post_json('/updates/', update_json, status=400)
 
@@ -1121,8 +1014,6 @@ class TestUpdatesService(BaseTestCase):
         update_json['csrf_token'] = self.get_csrf_token()
         update_json['notes'] = u'testing!!!'
         update_json['edited'] = update.alias
-        # This will cause an extra error in the output that we aren't testing here, so delete it.
-        del update_json['requirements']
 
         with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
                         return_value=[{'name': 'f17-updates'}]) as listTags:
@@ -1145,8 +1036,6 @@ class TestUpdatesService(BaseTestCase):
         update_json['csrf_token'] = self.get_csrf_token()
         update_json['notes'] = u'testing!!!'
         update_json['edited'] = update.alias
-        # This will cause an extra error in the output that we aren't testing here, so delete it.
-        del update_json['requirements']
 
         with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
                         side_effect=koji.GenericError()) as listTags:
@@ -1167,8 +1056,6 @@ class TestUpdatesService(BaseTestCase):
         update_json['csrf_token'] = self.get_csrf_token()
         update_json['notes'] = u'testing!!!'
         update_json['edited'] = update.alias
-        # This will cause an extra error in the output that we aren't testing here, so delete it.
-        del update_json['requirements']
 
         with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
                         return_value=[]) as listTags:
@@ -1201,10 +1088,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('<span class="sr-only">Locked</span>', resp)
         self.assertIn('/composes/{}/{}'.format(compose.release.name, compose.request.value), resp)
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_edit_anything(self, publish, *args):
+    def test_provenpackager_edit_anything(self, publish):
         "Ensure provenpackagers can edit updates for any package"
         nvr = u'bodhi-2.1-1.fc17'
 
@@ -1239,10 +1124,8 @@ class TestUpdatesService(BaseTestCase):
         assert build.update is not None
         self.assertEqual(build.update.notes, u'testing!!!')
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_privs(self, publish, *args):
+    def test_provenpackager_request_privs(self, publish):
         "Ensure provenpackagers can change the request for any update"
         nvr = u'bodhi-2.1-1.fc17'
         user = User(name=u'bob')
@@ -1371,10 +1254,8 @@ class TestUpdatesService(BaseTestCase):
         res = app.get(f'/updates/{update.alias}', status=200)
         self.assertEqual(res.json_body['can_edit'], False)
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_queued_in_test_gating(self, publish, *args):
+    def test_provenpackager_request_update_queued_in_test_gating(self, publish):
         """Ensure provenpackagers cannot request changes for any update which
         test gating status is `queued`"""
         nvr = u'bodhi-2.1-1.fc17'
@@ -1405,12 +1286,10 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
-            'Requirement not met Required tests did not pass on this update')
+            'Required tests did not pass on this update')
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_running_in_test_gating(self, publish, *args):
+    def test_provenpackager_request_update_running_in_test_gating(self, publish):
         """Ensure provenpackagers cannot request changes for any update which
         test gating status is `running`"""
         nvr = u'bodhi-2.1-1.fc17'
@@ -1441,12 +1320,10 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
-            'Requirement not met Required tests did not pass on this update')
+            'Required tests did not pass on this update')
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_failed_test_gating(self, publish, *args):
+    def test_provenpackager_request_update_failed_test_gating(self, publish):
         """Ensure provenpackagers cannot request changes for any update which
         test gating status is `failed`"""
         nvr = u'bodhi-2.1-1.fc17'
@@ -1477,12 +1354,10 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
-            'Requirement not met Required tests did not pass on this update')
+            'Required tests did not pass on this update')
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_ignored_by_test_gating(self, publish, *args):
+    def test_provenpackager_request_update_ignored_by_test_gating(self, publish):
         """Ensure provenpackagers can request changes for any update which
         test gating status is `ignored`"""
         nvr = u'bodhi-2.1-1.fc17'
@@ -1516,10 +1391,8 @@ class TestUpdatesService(BaseTestCase):
             res.json_body['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_waiting_on_test_gating(self, publish, *args):
+    def test_provenpackager_request_update_waiting_on_test_gating(self, publish):
         """Ensure provenpackagers cannot request changes for any update which
         test gating status is `waiting`"""
         nvr = u'bodhi-2.1-1.fc17'
@@ -1550,12 +1423,10 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
-            'Requirement not met Required tests did not pass on this update')
+            'Required tests did not pass on this update')
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_provenpackager_request_update_with_none_test_gating(self, publish, *args):
+    def test_provenpackager_request_update_with_none_test_gating(self, publish):
         """Ensure provenpackagers cannot request changes for any update which
         test gating status is `None`"""
         nvr = u'bodhi-2.1-1.fc17'
@@ -1781,8 +1652,7 @@ class TestUpdatesService(BaseTestCase):
         up = body['updates'][0]
         self.assertEqual(up['title'], u'bodhi-2.0-1.fc17')
 
-    @mock.patch(**mock_valid_requirements)
-    def test_list_updates_pagination(self, *args):
+    def test_list_updates_pagination(self):
 
         # First, stuff a second update in there
         with fml_testing.mock_sends(api.Message):
@@ -2683,7 +2553,6 @@ class TestUpdatesService(BaseTestCase):
             type=UpdateType.enhancement,
             notes=u'Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -2711,7 +2580,6 @@ class TestUpdatesService(BaseTestCase):
                          "Invalid users specified: santa")
 
     @mock.patch(**mock_uuid4_version1)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_update(self, publish, *args):
         args = self.get_update('bodhi-2.0.0-2.fc17')
@@ -2719,7 +2587,6 @@ class TestUpdatesService(BaseTestCase):
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
         args['edited'] = r.json['alias']
         args['builds'] = 'bodhi-2.0.0-3.fc17'
-        args['requirements'] = 'upgradepath'
         r = self.app.post_json('/updates/', args)
         up = r.json_body
         self.assertEqual(up['title'], u'bodhi-2.0.0-3.fc17')
@@ -2739,7 +2606,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], u'FEDORA-%s-033713b73b' % YEAR)
         self.assertEqual(up['karma'], 0)
-        self.assertEqual(up['requirements'], 'upgradepath')
         comment = textwrap.dedent("""
         guest edited this update.
 
@@ -2761,9 +2627,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(len(publish.call_args_list), 2)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_testing_update_with_new_builds(self, publish, *args):
+    def test_edit_testing_update_with_new_builds(self, publish):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         r = self.app.post_json('/updates/', args)
@@ -2807,7 +2672,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_edit_testing_update_with_new_builds_with_stable_request(self, publish, *args):
         nvr = u'bodhi-2.0.0-2.fc17'
@@ -2853,9 +2717,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(len(publish.call_args_list), 3)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_update_with_different_release(self, publish, *args):
+    def test_edit_update_with_different_release(self, publish):
         """Test editing an update for one release with builds from another."""
         args = self.get_update(u'bodhi-2.0.0-2.fc17')
         r = self.app.post_json('/updates/', args)
@@ -2888,9 +2751,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['errors'][0]['description'],
                          'Cannot add a F18 build to an F17 update')
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_stable_update(self, publish, *args):
+    def test_edit_stable_update(self, publish):
         """Make sure we can't edit stable updates"""
         self.assertEqual(publish.call_args_list, [])
 
@@ -2914,9 +2776,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['errors'][0]['description'], "Cannot edit stable updates")
         self.assertEqual(len(publish.call_args_list), 1)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_locked_update(self, publish, *args):
+    def test_edit_locked_update(self, publish):
         """Make sure some changes are prevented"""
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -2972,8 +2833,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(len(publish.call_args_list), 2)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
-    @mock.patch(**mock_valid_requirements)
-    def test_pending_update_on_stable_karma_reached_autopush_enabled(self, *args):
+    def test_pending_update_on_stable_karma_reached_autopush_enabled(self):
         """Ensure that a pending update stays in testing if it hits stable karma while pending."""
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -2997,9 +2857,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.request, UpdateRequest.stable)
         self.assertEqual(up.status, UpdateStatus.pending)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_pending_urgent_update_on_stable_karma_reached_autopush_enabled(self, publish, *args):
+    def test_pending_urgent_update_on_stable_karma_reached_autopush_enabled(self, publish):
         """
         Ensure that a pending urgent update directly requests for stable if
         it hits stable karma before reaching testing state.
@@ -3026,8 +2885,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.request, UpdateRequest.stable)
         self.assertEqual(up.status, UpdateStatus.pending)
 
-    @mock.patch(**mock_valid_requirements)
-    def test_pending_update_on_stable_karma_not_reached(self, publish, *args):
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_pending_update_on_stable_karma_not_reached(self, publish):
         """ Ensure that pending update does not directly request for stable
         if it does not hit stable karma before reaching testing state """
         nvr = u'bodhi-2.0.0-2.fc17'
@@ -3048,9 +2907,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.request, UpdateRequest.testing)
         self.assertEqual(up.status, UpdateStatus.pending)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_pending_update_on_stable_karma_reached_autopush_disabled(self, publish, *args):
+    def test_pending_update_on_stable_karma_reached_autopush_disabled(self, publish):
         """ Ensure that pending update has option to request for stable directly
         if it hits stable karma before reaching testing state """
         nvr = u'bodhi-2.0.0-2.fc17'
@@ -3078,9 +2936,8 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, text, author=u'bodhi')
         self.assertIn('pushed to stable now if the maintainer wishes', up.comments[-1]['text'])
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_obsoletion_locked_with_open_request(self, publish, *args):
+    def test_obsoletion_locked_with_open_request(self, publish):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args)
@@ -3097,9 +2954,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.status, UpdateStatus.pending)
         self.assertEqual(up.request, UpdateRequest.testing)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_obsoletion_unlocked_with_open_request(self, publish, *args):
+    def test_obsoletion_unlocked_with_open_request(self, publish):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         self.app.post_json('/updates/', args)
@@ -3112,9 +2968,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.status, UpdateStatus.obsolete)
         self.assertEqual(up.request, None)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_obsoletion_unlocked_with_open_stable_request(self, publish, *args):
+    def test_obsoletion_unlocked_with_open_stable_request(self, publish):
         """ Ensure that we don't obsolete updates that have a stable request """
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -3131,9 +2986,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.status, UpdateStatus.pending)
         self.assertEqual(up.request, UpdateRequest.stable)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_stable_for_obsolete_update(self, publish, *args):
+    def test_push_to_stable_for_obsolete_update(self, publish):
         """
         Obsolete update should not be submitted to testing
         Test Push to Stable option for obsolete update
@@ -3173,8 +3027,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(up.builds[0].nvr, resp)
         self.assertNotIn('Push to Stable', resp)
 
-    @mock.patch(**mock_valid_requirements)
-    def test_enabled_button_for_autopush(self, *args):
+    def test_enabled_button_for_autopush(self):
         """Test Enabled button on Update page when autopush is True"""
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -3187,8 +3040,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(nvr, resp)
         self.assertIn('Enabled', resp)
 
-    @mock.patch(**mock_valid_requirements)
-    def test_disabled_button_for_autopush(self, *args):
+    def test_disabled_button_for_autopush(self):
         """Test Disabled button on Update page when autopush is False"""
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -3201,9 +3053,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(nvr, resp)
         self.assertIn('Disabled', resp)
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
-    def test_invalid_request(self, *args):
+    def test_invalid_request(self):
         """Test submitting an invalid request"""
         args = self.get_update()
         resp = self.app.post_json(
@@ -3225,10 +3075,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp['errors'][0]['name'], 'request')
         self.assertEqual(resp['errors'][0]['description'], 'Required')
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_testing_request(self, publish, *args):
+    def test_testing_request(self, publish):
         """Test submitting a valid testing request"""
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         update.locked = False
@@ -3242,10 +3090,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['update']['request'], 'testing')
         self.assertEqual(publish.call_args_list, [])
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_revoke_action_for_stable_request(self, publish, *args):
+    def test_revoke_action_for_stable_request(self, publish):
         """
         Test revoke action for stable request on testing update
         and check status after revoking the request
@@ -3265,10 +3111,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['update']['status'], 'testing')
         publish.assert_called_with(topic='update.request.revoke', msg=mock.ANY)
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_revoke_action_for_testing_request(self, publish, *args):
+    def test_revoke_action_for_testing_request(self, publish):
         """
         Test revoke action for testing request on pending update
         and check status after revoking the request
@@ -3288,9 +3132,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['update']['status'], 'unpushed')
         publish.assert_called_with(topic='update.request.revoke', msg=mock.ANY)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_obsolete_if_unstable_with_autopush_enabled_when_pending(self, publish, *args):
+    def test_obsolete_if_unstable_with_autopush_enabled_when_pending(self, publish):
         """
         Send update to obsolete state if it reaches unstable karma on
         pending state where request is testing when Autopush is enabled. Make sure that it
@@ -3314,9 +3157,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.status, UpdateStatus.obsolete)
         self.assertEqual(up.request, None)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_obsolete_if_unstable_with_autopush_disabled_when_pending(self, publish, *args):
+    def test_obsolete_if_unstable_with_autopush_disabled_when_pending(self, publish):
         """
         Don't automatically send update to obsolete state if it reaches unstable karma on
         pending state when Autopush is disabled.
@@ -3339,10 +3181,9 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.status, UpdateStatus.pending)
         self.assertEqual(up.request, UpdateRequest.testing)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsolete_if_unstable_karma_not_reached_with_autopush_enabled_when_pending(
-            self, publish, *args):
+            self, publish):
         """
         Don't send update to obsolete state if it does not reach unstable karma threshold
         on pending state when Autopush is enabled.
@@ -3365,9 +3206,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.status, UpdateStatus.pending)
         self.assertEqual(up.request, UpdateRequest.testing)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_obsolete_if_unstable_with_autopush_enabled_when_testing(self, publish, *args):
+    def test_obsolete_if_unstable_with_autopush_enabled_when_testing(self, publish):
         """
         Send update to obsolete state if it reaches unstable karma threshold on
         testing state where request is stable when Autopush is enabled. Make sure that the
@@ -3402,10 +3242,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.status, UpdateStatus.obsolete)
         self.assertEqual(up.request, None)
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_request_after_unpush(self, publish, *args):
+    def test_request_after_unpush(self, publish):
         """Test request of this update after unpushing"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
         resp = self.app.post_json('/updates/', args)
@@ -3421,9 +3259,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['update']['status'], 'unpushed')
         publish.assert_called_with(topic='update.request.unpush', msg=mock.ANY)
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
-    def test_invalid_stable_request(self, *args):
+    def test_invalid_stable_request(self):
         """
         Test submitting a stable request for an update that has yet to meet the stable requirements.
         """
@@ -3439,9 +3275,7 @@ class TestUpdatesService(BaseTestCase):
             resp.json['errors'][0]['description'],
             config.get('not_yet_tested_msg'))
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
-    def test_request_to_stable_based_on_stable_karma(self, *args):
+    def test_request_to_stable_based_on_stable_karma(self):
         """
         Test request to stable before an update reaches stable karma
         and after it reaches stable karma when autokarma is disabled
@@ -3490,10 +3324,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.request, UpdateRequest.stable)
         self.assertEqual(up.status, UpdateStatus.testing)
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_stable_request_after_testing(self, publish, *args):
+    def test_stable_request_after_testing(self, publish):
         """
         Test submitting a stable request to an update that has met the minimum amount of time in
         testing.
@@ -3519,10 +3351,8 @@ class TestUpdatesService(BaseTestCase):
         publish.assert_called_with(
             topic='update.request.stable', msg=mock.ANY)
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_request_to_archived_release(self, publish, *args):
+    def test_request_to_archived_release(self, publish):
         """Test submitting a stable request to an update for an archived/EOL release.
         https://github.com/fedora-infra/bodhi/issues/725
         """
@@ -3546,62 +3376,8 @@ class TestUpdatesService(BaseTestCase):
             resp.json['errors'][0]['description'],
             "Can't change request for an archived release")
 
-    @mock.patch(**mock_failed_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_stable_request_failed_taskotron_results(self, publish, *args):
-        """Test submitting a stable request, but with bad taskotron results"""
-        args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        up.status = UpdateStatus.testing
-        up.request = None
-        up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
-        up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
-        self.assertEqual(len(up.builds), 1)
-        up.test_gating_status = TestGatingStatus.passed
-        self.db.commit()
-        self.assertEqual(up.days_in_testing, 7)
-        self.assertEqual(up.meets_testing_requirements, True)
-
-        resp = self.app.post_json(
-            f'/updates/{up.alias}/request',
-            {'request': 'stable', 'csrf_token': self.get_csrf_token()},
-            status=400)
-
-        self.assertIn('errors', resp)
-        self.assertIn('Required task', resp)
-
-    @mock.patch(**mock_absent_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_stable_request_absent_taskotron_results(self, publish, *args):
-        """Test submitting a stable request, but with absent task results"""
-        args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
-        up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
-        up.status = UpdateStatus.testing
-        up.request = None
-        up.comment(self.db, u'This update has been pushed to testing', author=u'bodhi')
-        up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
-        self.assertEqual(len(up.builds), 1)
-        up.test_gating_status = TestGatingStatus.passed
-        self.db.commit()
-        self.assertEqual(up.days_in_testing, 7)
-        self.assertEqual(up.meets_testing_requirements, True)
-
-        resp = self.app.post_json(
-            f'/updates/{up.alias}/request',
-            {'request': 'stable', 'csrf_token': self.get_csrf_token()},
-            status=400)
-
-        self.assertIn('errors', resp)
-        self.assertIn('No result found for', resp)
-
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_stable_request_when_stable(self, publish, *args):
+    def test_stable_request_when_stable(self, publish):
         """Test submitting a stable request to an update that already been
         pushed to stable"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
@@ -3631,10 +3407,8 @@ class TestUpdatesService(BaseTestCase):
         except AssertionError:
             pass
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_testing_request_when_testing(self, publish, *args):
+    def test_testing_request_when_testing(self, publish):
         """Test submitting a testing request to an update that already been
         pushed to testing"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
@@ -3663,8 +3437,7 @@ class TestUpdatesService(BaseTestCase):
         except AssertionError:
             pass
 
-    @mock.patch(**mock_valid_requirements)
-    def test_update_with_older_build_in_testing_from_diff_user(self, r):
+    def test_update_with_older_build_in_testing_from_diff_user(self):
         """
         Test submitting an update for a package that has an older build within
         a multi-build update currently in testing submitted by a different
@@ -3700,8 +3473,7 @@ class TestUpdatesService(BaseTestCase):
         # Ensure the second update was created successfully
         self.db.query(Update).filter_by(alias=resp.json['alias']).one()
 
-    @mock.patch(**mock_valid_requirements)
-    def test_updateid_alias(self, *args):
+    def test_updateid_alias(self):
         with fml_testing.mock_sends(api.Message):
             res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0.0-3.fc17'))
         json = res.json_body
@@ -3747,9 +3519,8 @@ class TestUpdatesService(BaseTestCase):
         body = res.json_body
         self.assertEqual(len(body['updates']), 0)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_submitting_multi_release_updates(self, publish, *args):
+    def test_submitting_multi_release_updates(self, publish):
         """ https://github.com/fedora-infra/bodhi/issues/219 """
         # Add another release and package
         Release._tag_cache = None
@@ -3789,9 +3560,8 @@ class TestUpdatesService(BaseTestCase):
         # Make sure two fedmsg messages were published
         self.assertEqual(len(publish.call_args_list), 2)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_update_bugs(self, publish, *args):
+    def test_edit_update_bugs(self, publish):
         build = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(u'bodhi-2.0.0-2.fc17')
         args['bugs'] = '56789'
@@ -3833,9 +3603,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['status'], u'pending')
         self.assertEqual(up['request'], u'testing')
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_missing_update(self, publish, *args):
+    def test_edit_missing_update(self, publish):
         """ Attempt to edit an update that doesn't exist """
         build = u'bodhi-2.0.0-2.fc17'
         edited = 'bodhi-1.0-1.fc17'
@@ -3845,9 +3614,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(r['status'], 'error')
         self.assertEqual(r['errors'][0]['description'], 'Cannot find update to edit: %s' % edited)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_update_and_disable_features(self, publish, *args):
+    def test_edit_update_and_disable_features(self, publish):
         build = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(u'bodhi-2.0.0-2.fc17')
         r = self.app.post_json('/updates/', args)
@@ -3884,9 +3652,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['stable_karma'], 3)
         self.assertEqual(up['unstable_karma'], -3)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_update_change_type(self, publish, *args):
+    def test_edit_update_change_type(self, publish):
         build = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(u'bodhi-2.0.0-2.fc17')
         args['type'] = 'newpackage'
@@ -3921,9 +3688,8 @@ class TestUpdatesService(BaseTestCase):
         expected = False
         self.assertEqual(actual, expected)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_testing_update_reset_karma(self, publish, *args):
+    def test_edit_testing_update_reset_karma(self, publish):
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         r = self.app.post_json('/updates/', args)
@@ -3947,9 +3713,8 @@ class TestUpdatesService(BaseTestCase):
         # This is what we really want to test here.
         self.assertEqual(up['karma'], 0)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_testing_update_reset_karma_with_same_tester(self, publish, *args):
+    def test_edit_testing_update_reset_karma_with_same_tester(self, publish):
         """
         Ensure that someone who gave an update karma can do it again after a reset.
         https://github.com/fedora-infra/bodhi/issues/659
@@ -4008,9 +3773,8 @@ class TestUpdatesService(BaseTestCase):
         # Bob should be able to give karma again since the reset
         self.assertEqual(upd.karma, 1)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test__composite_karma_with_one_negative(self, publish, *args):
+    def test__composite_karma_with_one_negative(self, publish):
         """The test asserts that _composite_karma returns (0, -1) when an update receives one
            negative karma"""
         user = User(name=u'bob')
@@ -4032,9 +3796,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         self.assertEqual(up._composite_karma, (0, -1))
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test__composite_karma_with_changed_karma(self, publish, *args):
+    def test__composite_karma_with_changed_karma(self, publish):
         """
         This test asserts that _composite_karma returns (1, 0) when a user posts negative karma
         and then later posts positive karma.
@@ -4064,9 +3827,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up._composite_karma, (1, 0))
         self.assertEqual(up.karma, 1)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test__composite_karma_with_positive_karma_first(self, publish, *args):
+    def test__composite_karma_with_positive_karma_first(self, publish):
         """
         This test asserts that _composite_karma returns (1, -1) when one user posts positive karma
         and then another user posts negative karma.
@@ -4096,9 +3858,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up._composite_karma, (1, -1))
         self.assertEqual(up.karma, 0)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test__composite_karma_with_no_negative_karma(self, publish, *args):
+    def test__composite_karma_with_no_negative_karma(self, publish):
         """The test asserts that _composite_karma returns (*, 0) when there is no negative karma."""
         user = User(name=u'bob')
         self.db.add(user)
@@ -4124,9 +3885,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up._composite_karma, (2, 0))
         self.assertEqual(up.karma, 2)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test__composite_karma_with_anonymous_comment(self, publish, *args):
+    def test__composite_karma_with_anonymous_comment(self, publish):
         """
         The test asserts that _composite_karma returns (0, 0) when an anonymous user
         gives negative karma to an update.
@@ -4149,9 +3909,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         self.assertEqual(up._composite_karma, (0, 0))
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test__composite_karma_with_no_feedback(self, publish, *args):
+    def test__composite_karma_with_no_feedback(self, publish):
         """This test asserts that _composite_karma returns (0, 0) when an update has no feedback."""
         user = User(name=u'bob')
         self.db.add(user)
@@ -4170,9 +3929,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         self.assertEqual(up._composite_karma, (0, 0))
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_karma_threshold_with_disabled_autopush(self, publish, *args):
+    def test_karma_threshold_with_disabled_autopush(self, publish):
         """Ensure Karma threshold field is not None when Autopush is disabled."""
         build = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(build)
@@ -4209,9 +3967,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['stable_karma'], 4)
         self.assertEqual(up['unstable_karma'], -4)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_disable_autopush_for_critical_updates(self, publish, *args):
+    def test_disable_autopush_for_critical_updates(self, publish):
         """Make sure that autopush is disabled if a critical update receives any negative karma"""
         user = User(name=u'bob')
         self.db.add(user)
@@ -4245,9 +4002,8 @@ class TestUpdatesService(BaseTestCase):
         # Autopush gets disabled since there is a negative karma from ralph
         self.assertEqual(up.autokarma, False)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_autopush_critical_update_with_no_negative_karma(self, publish, *args):
+    def test_autopush_critical_update_with_no_negative_karma(self, publish):
         """Autopush critical update when it has no negative karma"""
         user = User(name=u'bob')
         self.db.add(user)
@@ -4281,9 +4037,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         self.assertEqual(up.request, UpdateRequest.stable)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_manually_push_critical_update_with_negative_karma(self, publish, *args):
+    def test_manually_push_critical_update_with_negative_karma(self, publish):
         """
         Manually push critical update when it has negative karma
         Autopush gets disabled after it receives negative karma
@@ -4337,9 +4092,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn('kernel-3.11.5-300.fc17', resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_manually_push_critical_update_with_autopush_turned_off(self, publish, *args):
+    def test_manually_push_critical_update_with_autopush_turned_off(self, publish):
         """
         Manually push critical update when it has Autopush turned off
         and make sure the update doesn't get Autopushed
@@ -4385,9 +4139,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn('kernel-3.11.5-300.fc17', resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_disable_autopush_non_critical_update_with_negative_karma(self, publish, *args):
+    def test_disable_autopush_non_critical_update_with_negative_karma(self, publish):
         """Disable autokarma on non-critical updates upon negative comment."""
         user = User(name=u'bob')
         self.db.add(user)
@@ -4430,9 +4183,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.request, UpdateRequest.testing)
         self.assertEqual(up.status, UpdateStatus.testing)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_autopush_non_critical_update_with_no_negative_karma(self, publish, *args):
+    def test_autopush_non_critical_update_with_no_negative_karma(self, publish):
         """
         Make sure autopush doesn't get disabled for Non Critical update if it
         does not receive any negative karma. Test update gets automatically
@@ -4468,9 +4220,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         self.assertEqual(up.request, UpdateRequest.stable)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_button_not_present_when_stable(self, publish, *args):
+    def test_edit_button_not_present_when_stable(self, publish):
         """
         Assert that the edit button is not present on stable updates.
         """
@@ -4497,7 +4248,6 @@ class TestUpdatesService(BaseTestCase):
         """The push to stable button should not appear if the test_gating_status is failed."""
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        args['requirements'] = ''
         resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
         update = Update.get(resp.json['alias'])
         update.status = UpdateStatus.testing
@@ -4521,7 +4271,6 @@ class TestUpdatesService(BaseTestCase):
         """The push to stable button should appear if the test_gating_status is passed."""
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        args['requirements'] = ''
         resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
         update = Update.get(resp.json['alias'])
         update.status = UpdateStatus.testing
@@ -4539,9 +4288,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_stable_button_present_when_karma_reached(self, publish, *args):
+    def test_push_to_stable_button_present_when_karma_reached(self, publish):
         """
         Assert that the "Push to Stable" button appears when the required karma is
         reached.
@@ -4566,9 +4314,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_stable_button_present_when_karma_reached_urgent(self, publish, *args):
+    def test_push_to_stable_button_present_when_karma_reached_urgent(self, publish):
         """
         Assert that the "Push to Stable" button appears when the required karma is
         reached for an urgent update.
@@ -4594,9 +4341,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_stable_button_present_when_time_reached(self, publish, *args):
+    def test_push_to_stable_button_present_when_time_reached(self, publish):
         """
         Assert that the "Push to Stable" button appears when the required time in testing is
         reached.
@@ -4620,9 +4366,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_stable_button_present_when_time_reached_and_urgent(self, publish, *args):
+    def test_push_to_stable_button_present_when_time_reached_and_urgent(self, publish):
         """
         Assert that the "Push to Stable" button appears when the required time in testing is
         reached.
@@ -4648,9 +4393,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_stable_button_present_when_time_reached_critpath(self, publish, *args):
+    def test_push_to_stable_button_present_when_time_reached_critpath(self, publish):
         """
         Assert that the "Push to Stable" button appears when it should for a critpath update.
         """
@@ -4696,55 +4440,48 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(nvr, resp)
         self.assertIn(text, resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_update_severity_label_present_correctly_when_severity_is_urgent(self, publish, *args):
+    def test_update_severity_label_present_correctly_when_severity_is_urgent(self, publish):
         """
         Assert that the "Update Severity" label appears correctly when the severity is urgent.
         """
         self.assertSeverityHTML(UpdateSeverity.urgent,
                                 '<span class=\'label label-danger\'>urgent</span>')
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_update_severity_label_present_correctly_when_severity_is_high(self, publish, *args):
+    def test_update_severity_label_present_correctly_when_severity_is_high(self, publish):
         """
         Assert that the "Update Severity" label appears correctly when the severity is high.
         """
         self.assertSeverityHTML(UpdateSeverity.high,
                                 '<span class=\'label label-warning\'>high</span>')
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_update_severity_label_present_correctly_when_severity_is_medium(self, publish, *args):
+    def test_update_severity_label_present_correctly_when_severity_is_medium(self, publish):
         """
         Assert that the "Update Severity" label appears correctly when the severity is medium.
         """
         self.assertSeverityHTML(UpdateSeverity.medium,
                                 '<span class=\'label label-primary\'>medium</span>')
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_update_severity_label_present_correctly_when_severity_is_low(self, publish, *args):
+    def test_update_severity_label_present_correctly_when_severity_is_low(self, publish):
         """
         Assert that the "Update Severity" label appears correctly when the severity is low.
         """
         self.assertSeverityHTML(UpdateSeverity.low,
                                 '<span class=\'label label-success\'>low</span>')
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_update_severity_label_present_correctly_when_severity_is_unspecified(self, publish,
-                                                                                  *args):
+    def test_update_severity_label_present_correctly_when_severity_is_unspecified(self, publish):
         """
         Assert that the "Update Severity" label appears correctly when the severity is unspecified.
         """
         self.assertSeverityHTML(UpdateSeverity.unspecified,
                                 '<span class=\'label label-default\'>unspecified</span>')
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_update_severity_label_absent_when_severity_is_None(self, publish, *args):
+    def test_update_severity_label_absent_when_severity_is_None(self, publish):
         """
         Assert that the "Update Severity" label doesn't appear when severity is None
         """
@@ -4766,9 +4503,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(nvr, resp)
         self.assertNotIn('<strong>Update Severity</strong>', resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_manually_push_to_stable_based_on_karma_request_none(self, publish, *args):
+    def test_manually_push_to_stable_based_on_karma_request_none(self, publish):
         """
         Test manually push to stable when autokarma is disabled
         and karma threshold is reached
@@ -4818,9 +4554,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(upd.builds[0].nvr, resp)
         self.assertIn('Push to Stable', resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_manually_push_to_stable_based_on_karma_request_testing(self, publish, *args):
+    def test_manually_push_to_stable_based_on_karma_request_testing(self, publish):
         """
         Test manually push to stable when autokarma is disabled
         and karma threshold is reached. Ensure that the option/button to push to
@@ -4867,9 +4602,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn(upd.builds[0].nvr, resp)
         self.assertIn('Push to Stable', resp)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_update_with_expired_override(self, publish, *args):
+    def test_edit_update_with_expired_override(self, publish):
         """
         """
         user = User(name=u'bob')
@@ -4904,10 +4638,8 @@ class TestUpdatesService(BaseTestCase):
         up = r.json_body
         self.assertEqual(up['title'], nvr)
 
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_submit_older_build_to_stable(self, publish, *args):
+    def test_submit_older_build_to_stable(self, publish):
         """
         Ensure we cannot submit an older build to stable when a newer one
         already exists there.
@@ -4944,9 +4676,8 @@ class TestUpdatesService(BaseTestCase):
             ("Cannot submit bodhi ('0', '1.0', '1.fc17') to stable since it is older than "
              "('0', '2.0', '1.fc17')"))
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_edit_testing_update_with_build_from_different_update(self, publish, *args):
+    def test_edit_testing_update_with_build_from_different_update(self, publish):
         """
         https://github.com/fedora-infra/bodhi/issues/803
         """
@@ -4994,9 +4725,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(len(up.builds), 1)
         self.assertEqual(up.builds[0].nvr, nvr1)
 
-    @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_meets_testing_requirements_since_karma_reset_critpath(self, publish, *args):
+    def test_meets_testing_requirements_since_karma_reset_critpath(self, publish):
         """
         Ensure a critpath update still meets testing requirements after receiving negative karma
         and after a karma reset event.
@@ -5137,7 +4867,7 @@ class TestWaiveTestResults(BaseTestCase):
     @mock.patch('bodhi.server.services.updates.Update.waive_test_results',
                 side_effect=IOError('IOError. oops!'))
     @mock.patch('bodhi.server.services.updates.log.exception')
-    def test_unexpected_exception(self, log_exception, waive_test_results, *args):
+    def test_unexpected_exception(self, log_exception, waive_test_results):
         """Ensure that an unexpected Exception is handled by waive_test_results()."""
         nvr = u'bodhi-2.0-1.fc17'
 
@@ -5674,7 +5404,7 @@ class TestGetTestResults(BaseTestCase):
     @mock.patch('bodhi.server.services.updates.Update.get_test_gating_info',
                 side_effect=IOError('IOError. oops!'))
     @mock.patch('bodhi.server.services.updates.log.exception')
-    def test_unexpected_exception(self, log_exception, get_test_gating_info, *args):
+    def test_unexpected_exception(self, log_exception, get_test_gating_info):
         """Ensure that an unexpected Exception is handled by get_test_results()."""
         nvr = u'bodhi-2.0-1.fc17'
 

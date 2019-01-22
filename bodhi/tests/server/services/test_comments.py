@@ -49,7 +49,6 @@ class TestCommentsService(base.BaseTestCase):
             notes=u'Useful details!',
             release=release,
             date_submitted=datetime(1984, 11, 2),
-            requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
         )
@@ -450,7 +449,6 @@ class TestCommentsService(base.BaseTestCase):
             type=UpdateType.enhancement,
             notes=u'Useful details!',
             date_submitted=datetime(1984, 11, 2),
-            requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -499,7 +497,6 @@ class TestCommentsService(base.BaseTestCase):
             type=UpdateType.enhancement,
             notes=u'Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -546,7 +543,6 @@ class TestCommentsService(base.BaseTestCase):
             type=UpdateType.enhancement,
             notes=u'Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -602,7 +598,6 @@ class TestCommentsService(base.BaseTestCase):
             type=UpdateType.enhancement,
             notes=u'Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()

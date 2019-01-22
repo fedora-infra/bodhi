@@ -95,7 +95,6 @@ class Composer(fedmsg.consumers.FedmsgConsumer):
       - track which packages are in the push
       - lock updates
     - Make sure things are safe to move? (ideally we should trust our own state)
-    - Check with taskotron to see if updates are pushable.
     - Update security bug titles
     - Move build tags
     - Expire buildroot overrides
@@ -460,9 +459,9 @@ class ComposerThread(threading.Thread):
         """Eject Updates that don't meet testing requirements from the compose."""
         self.log.debug('Performing gating.')
         for update in self.compose.updates:
-            result, reason = update.check_requirements(self.db, config)
-            if not result:
-                self.log.warning("%s failed gating: %s" % (update.alias, reason))
+            if config.get('test_gating.required') and not update.test_gating_passed:
+                reason = f"Required tests did not pass on update {update.alias}"
+                self.log.warning(reason)
                 self.eject_from_compose(update, reason)
         # We may have removed some updates from this compose above, and do we don't want future
         # reads on self.compose.updates to see those, so let's mark that attribute expired so

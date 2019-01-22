@@ -981,68 +981,6 @@ def cmd(cmd, cwd=None, raise_on_error=False):
     return out, err, p.returncode
 
 
-def tokenize(string):
-    """
-    Interpret the given string as a space or comma separated ordered iterable of strings.
-
-    For example, Given something like "a b, c d" return a generator equivalent of
-    ['a', 'b', 'c', 'd'].
-
-    Args:
-        string (basestring): The string to be interpreted as an iterable.
-    Yields:
-        basestring: The individual tokens found in the comma or space separated string.
-    """
-    for substring in string.split(','):
-        substring = substring.strip()
-        if substring:
-            for token in substring.split():
-                token = token.strip()
-                if token:
-                    yield token
-
-
-def taskotron_results(settings, entity='results/latest', max_queries=10, **kwargs):
-    """
-    Yield resultsdb results using query arguments.
-
-    Args:
-        entity (basestring): The API endpoint to use (see resultsdb documentation).
-        max_queries (int): The maximum number of queries to perform (pages to retrieve). ``1`` means
-            just a single page. ``None`` or ``0`` means no limit. Please note some tests might have
-            thousands of results in the database and it's very reasonable to limit queries (thus the
-            default value).
-        kwargs (dict): Args that will be passed to resultsdb to specify what results to retrieve.
-    Returns:
-        generator or None: Yields Python objects loaded from ResultsDB's "data" field in its JSON
-            response, or None if there was an Exception while performing the query.
-    """
-    max_queries = max_queries or 0
-    url = settings['resultsdb_api_url'] + "/api/v2.0/" + entity
-    if kwargs:
-        url = url + "?" + urlencode(kwargs)
-    data = True
-    queries = 0
-
-    try:
-        while data and url:
-            log.debug("Grabbing %r" % url)
-            response = requests.get(url, timeout=60)
-            if response.status_code != 200:
-                raise IOError("status code was %r" % response.status_code)
-            json = response.json()
-            for datum in json['data']:
-                yield datum
-
-            url = json.get('next')
-            queries += 1
-            if max_queries and queries >= max_queries and url:
-                log.debug('Too many result pages, aborting at: %r' % url)
-                break
-    except Exception as e:
-        log.exception("Problem talking to %r : %r" % (url, str(e)))
-
-
 class TransactionalSessionMaker(object):
     """Provide a transactional database scope around a series of operations."""
 

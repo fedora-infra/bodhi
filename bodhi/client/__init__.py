@@ -110,8 +110,6 @@ new_edit_options = [
     click.option('--autokarma', is_flag=True, help='Enable karma automatism'),
     click.option('--stable-karma', type=click.INT, help='Stable karma threshold'),
     click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold'),
-    click.option('--requirements',
-                 help='Space or comma-separated list of required Taskotron tasks'),
     click.option('--suggest', help='Post-update user suggestion',
                  type=click.Choice(['logout', 'reboot'])),
     staging_option]

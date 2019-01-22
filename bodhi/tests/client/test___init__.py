@@ -414,7 +414,7 @@ class TestNew(unittest.TestCase):
                     'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
                     'suggest': None, 'notes': u'No description.', 'request': None, 'bugs': u'',
-                    'requirements': None, 'unstable_karma': None, 'file': None,
+                    'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': 'urgent'
                 }
             ),
@@ -454,7 +454,7 @@ class TestNew(unittest.TestCase):
                     'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
                     'suggest': None, 'notes': u'No description.', 'request': None,
-                    'bugs': u'', 'requirements': None, 'unstable_karma': None, 'file': None,
+                    'bugs': u'', 'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': 'urgent'
                 }
             ),
@@ -493,7 +493,7 @@ class TestNew(unittest.TestCase):
                     'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
                     'suggest': None, 'notes': u'No description.', 'request': None, 'bugs': u'',
-                    'requirements': None, 'unstable_karma': None, 'file': None,
+                    'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': None
                 }
             ),
@@ -614,7 +614,7 @@ class TestNew(unittest.TestCase):
                     'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
                     'suggest': None, 'notes': u'No description.', 'request': None,
-                    'bugs': u'1234567', 'requirements': None, 'unstable_karma': None, 'file': None,
+                    'bugs': u'1234567', 'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': None
                 }
             ),
@@ -1467,7 +1467,7 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': 'unspecified', 'notes': 'New package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
-                    'bugs': '1234,5678', 'requirements': '', 'type': 'newpackage',
+                    'bugs': '1234,5678', 'type': 'newpackage',
                     'severity': 'low'}),
             mock.call(
                 bindings_client,
@@ -1504,7 +1504,7 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': u'unspecified', 'notes': u'Updated package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
-                    'bugs': '1420605', 'requirements': u'', 'type': 'newpackage',
+                    'bugs': '1420605', 'type': 'newpackage',
                     'severity': u'low'
                 }
             ),
@@ -1547,8 +1547,7 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': u'unspecified', 'notes': u'this is an edited note',
                     'notes_file': None, 'request': None, 'severity': u'low',
-                    'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
-                    'type': 'newpackage'
+                    'bugs': '1420605', 'unstable_karma': -3, 'type': 'newpackage',
                 }
             ),
             mock.call(
@@ -1595,8 +1594,7 @@ class TestEdit(unittest.TestCase):
                         'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
                         'suggest': 'unspecified', 'notes': 'This is a --notes-file note!',
                         'notes_file': 'notefile.txt', 'request': None, 'severity': 'low',
-                        'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
-                        'type': 'newpackage'
+                        'bugs': '1420605', 'unstable_karma': -3, 'type': 'newpackage',
                     }
                 ),
                 mock.call(
@@ -1651,52 +1649,6 @@ class TestEdit(unittest.TestCase):
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.query',
-                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
-    def test_required_tasks(self, send_request, query):
-        """
-        Assert that valid required Taskotron Tasks are properly handled in a successful updates
-        edit request.
-        """
-        runner = testing.CliRunner()
-
-        result = runner.invoke(
-            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
-                          '--password', 's3kr3t', '--notes', 'testing required tasks',
-                          '--requirements', 'dist.depcheck dist.rpmdeplint', '--url',
-                          'http://localhost:6543'])
-
-        self.assertEqual(result.exit_code, 0)
-        bindings_client = query.mock_calls[0][1][0]
-        query.assert_called_with(
-            bindings_client, updateid=u'FEDORA-2017-c95b33872d')
-        bindings_client = send_request.mock_calls[0][1][0]
-        calls = [
-            mock.call(
-                bindings_client, 'updates/', auth=True, verb='POST',
-                data={
-                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
-                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
-                    'suggest': u'unspecified', 'notes': u'testing required tasks',
-                    'notes_file': None, 'request': None, 'severity': u'low',
-                    'bugs': '1420605', 'unstable_karma': -3,
-                    'requirements': u'dist.depcheck dist.rpmdeplint', 'type': 'newpackage'
-                }
-            ),
-            mock.call(
-                bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
-                verb='GET'
-            )
-        ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
-
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
     def test_bodhi_client_exception(self, send_request):
         """
@@ -1742,7 +1694,7 @@ class TestEdit(unittest.TestCase):
                     'autokarma': False, 'edited': u'FEDORA-2017-c95b33872d',
                     'suggest': u'unspecified', 'notes': u'New package.',
                     'notes_file': None, 'request': None, 'severity': u'low',
-                    'bugs': '', 'requirements': u'', 'unstable_karma': -3, 'type': 'newpackage'
+                    'bugs': '', 'unstable_karma': -3, 'type': 'newpackage'
                 }
             ),
             mock.call(

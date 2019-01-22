@@ -18,7 +18,6 @@
 """This module contains tests for bodhi.server.validators."""
 from unittest import mock
 import datetime
-import unittest
 
 from cornice.errors import Errors
 from fedora_messaging import api, testing as fml_testing
@@ -58,31 +57,6 @@ class TestValidateCSRFToken(BaseTestCase):
         # This should not cause any error.
         with fml_testing.mock_sends(api.Message):
             self.app.post_json('/comments/', comment, status=200)
-
-
-class TestGetValidRequirements(unittest.TestCase):
-    """Test the _get_valid_requirements() function."""
-    @mock.patch('bodhi.server.util.requests.get')
-    def test__get_valid_requirements(self, get):
-        """Test normal operation."""
-        get.return_value.status_code = 200
-        get.return_value.json.side_effect = [
-            {'next': '/something?', 'data': [{'name': 'one'}, {'name': 'two'}]},
-            {'next': None, 'data': []}]
-
-        result = list(validators._get_valid_requirements(request=None,
-                                                         requirements=['one', 'two']))
-
-        self.assertEqual(result, ['one', 'two'])
-
-    @mock.patch('bodhi.server.util.taskotron_results')
-    def test_no_requirements(self, mock_taskotron_results):
-        """Empty requirements means empty output"""
-        result = list(validators._get_valid_requirements(request=None,
-                                                         requirements=[]))
-
-        mock_taskotron_results.assert_not_called()
-        self.assertEqual(result, [])
 
 
 @mock.patch.dict(
