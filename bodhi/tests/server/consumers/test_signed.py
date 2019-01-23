@@ -20,38 +20,18 @@
 from unittest import mock
 import unittest
 
+from fedora_messaging.api import Message
+
 from bodhi.server.consumers import signed
-
-
-class TestSignedHandler___init__(unittest.TestCase):
-    """This test class contains tests for the SignedHandler.__init__() method."""
-    def test___init__(self):
-        """Test __init__() with a manufactured hub config."""
-        hub = mock.MagicMock()
-        hub.config = {'environment': 'environment', 'topic_prefix': 'topic_prefix'}
-
-        handler = signed.SignedHandler(hub)
-
-        self.assertEqual(handler.topic, ['topic_prefix.environment.buildsys.tag'])
-
-    @mock.patch('bodhi.server.consumers.signed.fedmsg.consumers.FedmsgConsumer.__init__')
-    def test_calls_super(self, __init__):
-        """Assert that __init__() calls the superclass __init__()."""
-        hub = mock.MagicMock()
-        hub.config = {'environment': 'environment', 'topic_prefix': 'topic_prefix'}
-
-        handler = signed.SignedHandler(hub)
-
-        self.assertEqual(handler.topic, ['topic_prefix.environment.buildsys.tag'])
-        __init__.assert_called_once_with(hub)
 
 
 class TestSignedHandlerConsume(unittest.TestCase):
     """Test class for the :func:`SignedHandler.consume` method."""
 
     def setUp(self):
-        self.sample_message = {
-            'body': {
+        self.sample_message = Message(
+            topic='',
+            body={
                 'i': 628,
                 'timestamp': 1484692585,
                 'msg_id': '2017-821031da-be3a-4f4b-91df-0baa834ca8a4',
@@ -70,18 +50,16 @@ class TestSignedHandlerConsume(unittest.TestCase):
                     'release': '1.fc26'
                 },
             },
-        }
-        hub = mock.MagicMock()
-        hub.config = {'environment': 'environment', 'topic_prefix': 'topic_prefix'}
-        self.handler = signed.SignedHandler(hub)
+        )
+        self.handler = signed.SignedHandler()
 
     @mock.patch('bodhi.server.consumers.signed.Build')
     def test_consume(self, mock_build_model):
         """Assert that messages marking the build as signed updates the database"""
         build = mock_build_model.get.return_value
-        build.release.pending_testing_tag = self.sample_message['body']['msg']['tag']
+        build.release.pending_testing_tag = self.sample_message.body["msg"]["tag"]
 
-        self.handler.consume(self.sample_message)
+        self.handler(self.sample_message)
         self.assertTrue(build.signed is True)
 
     @mock.patch('bodhi.server.consumers.signed.Build')
@@ -92,7 +70,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         build = mock_build_model.get.return_value
         build.release.pending_testing_tag = "some tag that isn't pending testing"
 
-        self.handler.consume(self.sample_message)
+        self.handler(self.sample_message)
         self.assertFalse(build.signed is True)
 
     @mock.patch('bodhi.server.consumers.signed.Build')
@@ -103,7 +81,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         build = mock_build_model.get.return_value
         build.release = None
 
-        self.handler.consume(self.sample_message)
+        self.handler(self.sample_message)
         self.assertFalse(build.signed is True)
 
     @mock.patch('bodhi.server.consumers.signed.log')
@@ -112,5 +90,5 @@ class TestSignedHandlerConsume(unittest.TestCase):
         """Assert that messages referencing builds Bodhi doesn't know about don't update the DB"""
         mock_build_model.get.return_value = None
 
-        self.handler.consume(self.sample_message)
+        self.handler(self.sample_message)
         mock_log.info.assert_called_with('Build was not submitted, skipping')

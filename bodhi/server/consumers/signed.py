@@ -1,4 +1,4 @@
-# Copyright © 2016-2018 Red Hat, Inc.
+# Copyright © 2016-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -23,50 +23,30 @@ from the pending-signing to pending-updates-testing tag by RoboSignatory.
 """
 
 import logging
-import pprint
 
-import fedmsg.consumers
+import fedora_messaging
 
 from bodhi.server import initialize_db
 from bodhi.server.config import config
 from bodhi.server.models import Build
 from bodhi.server.util import transactional_session_maker
 
-
 log = logging.getLogger('bodhi')
 
 
-class SignedHandler(fedmsg.consumers.FedmsgConsumer):
+class SignedHandler(object):
     """
     The Bodhi Signed Handler.
 
-    A fedmsg listener waiting for messages from koji about builds being tagged.
+    A fedora-messaging listener waiting for messages from koji about builds being tagged.
     """
 
-    config_key = 'signed_handler'
-
-    def __init__(self, hub, *args, **kwargs):
-        """
-        Initialize the SignedHandler, configuring its topic and database.
-
-        Args:
-            hub (moksha.hub.hub.CentralMokshaHub): The hub this handler is consuming messages from.
-                It is used to look up the hub config.
-        """
+    def __init__(self):
+        """Initialize the SignedHandler."""
         initialize_db(config)
         self.db_factory = transactional_session_maker()
 
-        prefix = hub.config.get('topic_prefix')
-        env = hub.config.get('environment')
-        self.topic = [
-            prefix + '.' + env + '.buildsys.tag'
-        ]
-
-        super(SignedHandler, self).__init__(hub, *args, **kwargs)
-        log.info('Bodhi signed handler listening on:\n'
-                 '%s' % pprint.pformat(self.topic))
-
-    def consume(self, message):
+    def __call__(self, message: fedora_messaging.api.Message):
         """
         Handle fedmsgs arriving with the configured topic.
 
@@ -98,12 +78,11 @@ class SignedHandler(fedmsg.consumers.FedmsgConsumer):
         The message can contain additional keys.
 
         Args:
-            message (dict): The incoming fedmsg in the format described above.
+            message: The incoming message in the format described above.
         """
-        msg = message['body']['msg']
-
-        build_nvr = '%(name)s-%(version)s-%(release)s' % msg
-        tag = msg['tag']
+        message = message.body['msg']
+        build_nvr = '%(name)s-%(version)s-%(release)s' % message
+        tag = message['tag']
 
         log.info("%s tagged into %s" % (build_nvr, tag))
 
