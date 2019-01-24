@@ -16,7 +16,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from xml.etree import ElementTree
-import json
 import mock
 import os
 import shutil
@@ -220,55 +219,6 @@ class TestCallAPI(unittest.TestCase):
         self.assertEqual(get.mock_calls,
                          [mock.call('url', timeout=60), mock.call('url', timeout=60)])
         sleep.assert_called_once_with(1)
-
-
-class TestGreenwaveUnsatisfiedRequirementsHTML(base.BaseTestCase):
-    """Test the greenwave_unsatisfied_requirements_html() function."""
-
-    def test_no_unsatisfied_requirements(self):
-        u = Update.query.first()
-        u.greenwave_unsatisfied_requirements = None
-
-        self.assertEqual(util.greenwave_unsatisfied_requirements_html(None, u), '')
-
-    def test_unsatisfied_requirements(self):
-        u = Update.query.first()
-        u.greenwave_unsatisfied_requirements = json.dumps([
-            {'testcase': 'dist.rpmdeplint',
-             'item': {'item': 'python-rpdb-0.1.6-7.fc27', 'type': 'koji_build'},
-             'type': 'test-result-missing', 'scenario': None},
-            {'testcase': 'dist.rpmdeplint',
-             'item': {'original_spec_nvr': 'python-rpdb-0.1.6-7.fc27'},
-             'type': 'test-result-missing', 'scenario': None},
-            {'testcase': 'dist.rpmdeplint',
-             'item': {'item': 'FEDORA-2018-6b448bbc48', 'type': 'bodhi_update'},
-             'type': 'test-result-missing', 'scenario': None},
-            {'testcase': 'dist.rpmdeplint',
-             'item': {'item': 'bodhi-3.6.1-1.fc28', 'type': 'koji_build'},
-             'type': 'test-result-missing', 'scenario': None},
-            {'testcase': 'dist.someothertest',
-             'item': {'item': 'bodhi-3.6.1-1.fc28', 'type': 'koji_build'},
-             'type': 'test-result-sucks', 'scenario': None},
-            {'testcase': 'dist.anothertest',
-             'item': {'item': 'python-rpdb-0.1.6-7.fc27', 'type': 'koji_build'},
-             'type': 'test-result-missing', 'scenario': None}])
-
-        html = util.greenwave_unsatisfied_requirements_html(None, u)
-
-        # The bodhi_update type gets ignored in the HTML for now (we might change this later).
-        # We can't assert the order of the divs in the html because they are different between
-        # Python 2 and 3. We also don't really care what order they appear in anyway, so let's just
-        # make sure they appear in the resulting HTML.
-        self.assertTrue(html.startswith('<div>Unsatisfied requirements:'))
-        self.assertIn(
-            ('<div>test-result-missing:  '
-             'dist.rpmdeplint (python-rpdb-0.1.6-7.fc27, bodhi-3.6.1-1.fc28),  '
-             'dist.anothertest (python-rpdb-0.1.6-7.fc27)</div>'),
-            html)
-        self.assertIn(
-            '<div>test-result-sucks:  dist.someothertest (bodhi-3.6.1-1.fc28)</div>', html)
-        # Let's make sure we close things out correctly.
-        self.assertTrue(html.endswith('</div></div>'))
 
 
 class TestKarma2HTML(unittest.TestCase):
