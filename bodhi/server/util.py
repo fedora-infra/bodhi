@@ -543,47 +543,6 @@ def status2html(context, status):
         + "</span>"
 
 
-def greenwave_unsatisfied_requirements_html(context, update):
-    """
-    Return an html representation of the given update's greenwave_unsatisfied_requirements field.
-
-    This function collates the unsatisfied requirements into a heirarchy of requirement type, then
-    test name, and then a list of builds that fail to satisfy that requirement type for that test
-    name.
-
-    Args:
-        context (mako.runtime.Context): Unused.
-        update (bodhi.server.models.Update): The update to render unsatisfied requirements for.
-    Returns:
-        str: A human readable representation of the update's unsatisfied requirements.
-    """
-    if not update.greenwave_unsatisfied_requirements:
-        return ''
-
-    # The Greenwave data is in a list of dictionaries that describe unsatisfied requirements. Let's
-    # collate that data into type of requirement (such as missing test, failed test, etc.) --> test
-    # name --> list of nvrs that fail that test name. To do this, we'll build a dictionary of
-    # dictionaries of lists, like this:
-    #
-    # {'test-result-missing': {'dist.rpmdeplint': ['bodhi-3.6.1-fc28']}}
-    reqs = defaultdict(lambda: defaultdict(list))
-    for r in json.loads(update.greenwave_unsatisfied_requirements):
-        # The Greenwave response contains a lot of duplicate information. For now, let's ignore
-        # anything that isn't a koji build. https://pagure.io/greenwave/issue/169
-        if r['item'].get('type') == 'koji_build':
-            reqs[r['type']][r['testcase']].append(r['item']['item'])
-    # Now that we've built our data structure, let's render it into an HTML snippet that can be
-    # included in the update page.
-    html = '<div>Unsatisfied requirements:'
-    for t in reqs.keys():
-        html = html + '<div>{}: {}</div>'.format(
-            t,
-            ', '.join([' {} ({})'.format(testcase, ', '.join(reqs[t][testcase]))
-                      for testcase in reqs[t].keys()]))
-    html = html + '</div>'
-    return html
-
-
 def state2class(context, state):
     """
     Classify the given ReleaseState value.
