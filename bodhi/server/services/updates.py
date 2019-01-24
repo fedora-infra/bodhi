@@ -447,6 +447,10 @@ def new_update(request):
         releases = set()
         builds = []
 
+        if 'side_tag' in data:
+            data['builds'] = koji.getTag(data['side_tag'])['nvrs']
+            target_release = figure_out_target_release(data['side_tag'])
+
         # Create the Package and Build entities
         for nvr in data['builds']:
             name, version, release = request.buildinfo[nvr]['nvr']

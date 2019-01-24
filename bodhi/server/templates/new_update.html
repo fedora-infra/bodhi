@@ -60,6 +60,12 @@
         </div>
 
         <div class="card card-form">
+        % if not update:
+            <div>
+                <input name='type' type='radio'/>
+                <input name='side_tag' type="text" placeholder="The name of a Koji side tag you wish to merge"/>
+            </div>
+        % endif
           <div class="card-header clearfix">
             <span class="pull-left" data-placement="bottom" data-toggle="tooltip" title="Here you can add a list of candidate builds that you want to be included in this update.  This is required.  (What is an update without a list of builds anyways... it doesn't make any sense.)">
             Candidate Builds</span>

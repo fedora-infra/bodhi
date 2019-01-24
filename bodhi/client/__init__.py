@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2014-2018 Red Hat, Inc. and others.
+# Copyright © 2014-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -367,6 +367,7 @@ def require_severity_for_security_update(type, severity):
 @add_options(new_edit_options)
 @click.argument('builds')
 @click.option('--file', help='A text file containing all the update details')
+@click.option('--side-tag', help='Get the builds from the given side tag')
 @handle_errors
 @openid_option
 @url_option
