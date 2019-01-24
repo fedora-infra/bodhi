@@ -1,0 +1,23 @@
+#!/usr/bin/python3
+
+import os
+
+import createrepo_c
+
+from bodhi.tests.server.base import mkmetadatadir
+
+
+dir = '/home/vagrant/mash_dir/neat_i_can_compose'
+metadata = os.path.join(dir, 'compose', 'metadata')
+
+try:
+    os.makedirs(metadata)
+except FileExistsError:
+    pass
+
+with open(os.path.join(metadata, 'composeinfo.json'), 'w') as composeinfo:
+    composeinfo.write('{}')
+
+mkmetadatadir(os.path.join(metadata, '..', 'Everything', 'x86_64'))
+
+print('Compose dir: {}'.format(dir))
