@@ -808,6 +808,38 @@ class TestReleaseContainer(ModelTest):
         assert releases is model.Release.all_releases()
 
 
+class TestReleaseFlatpak(ModelTest):
+    """Unit test case for the ``Release`` model for flatpak releases."""
+    klass = model.Release
+    attrs = dict(
+        name=u"F29F",
+        long_name=u"Fedora 29 Flatpaks",
+        id_prefix=u"FEDORA-FLATPAK",
+        version=u'29',
+        branch=u'f29',
+        dist_tag=u"f29-flatpak",
+        stable_tag=u"f29-flatpak-updates",
+        testing_tag=u"f29-flatpak-updates-testing",
+        candidate_tag=u"f29-flatpak-updates-candidate",
+        pending_signing_tag=u"",
+        pending_testing_tag=u"f29-flatpak-updates-testing-pending",
+        pending_stable_tag=u"f29-flatpak-updates-pending",
+        override_tag=u"f29-flatpak-override",
+        state=model.ReleaseState.current,
+        composed_by_bodhi=True)
+
+    def test_version_int(self):
+        self.assertEqual(self.obj.version_int, 29)
+
+    def test_all_releases(self):
+        releases = model.Release.all_releases()
+
+        state = ReleaseState.from_string(list(releases.keys())[0])
+        assert 'long_name' in releases[state.value][0], releases
+        # Make sure it's the same cached object
+        assert releases is model.Release.all_releases()
+
+
 class MockWiki(object):
     """ Mocked simplemediawiki.MediaWiki class. """
     def __init__(self, response):
