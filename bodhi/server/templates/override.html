@@ -3,7 +3,7 @@
 <div class="container">
 %if request.user:
 <div class="row">
-  <div id='js-warning' class="col-md-6 col-md-offset-3 m-t-3">
+  <div id='js-warning' class="col-md-6 col-md-offset-3 mt-3">
     <div class="alert alert-warning">
       <h3>
         <span>New Buildroot Override Form Requires JavaScript</span>
@@ -23,13 +23,13 @@
   <script>$("#js-warning").addClass('hidden');</script>
 %endif
   %if override is UNDEFINED:
-  <h2 class="pull-left m-t-3">New Override</h2>
+  <h2 class="float-left mt-3">New Override</h2>
   %else:
-  <div class="col-md-12 m-t-3">
+  <div class="col-md-12 mt-3">
     <h2>Buildroot Override for <code>${override.build.nvr}</code></h2>
     <p>Submitted by
       <a href="${request.route_url('user', name=override.submitter.name)}">
-        <img class="img-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
+        <img class="rounded-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
         ${override.submitter.name}
       </a>
     </p>
@@ -47,13 +47,13 @@
       %if override is UNDEFINED:
 
       %elif override.expired_date is None:
-      <div class="alert alert-info col-sm-8 col-sm-offset-2">
+      <div class="alert alert-info col-8 col-offset-2">
         <p>Use the following to ensure the override is active:</p>
         <!--! FIXME: Add a Release.build_tag column to the model? -->
         <p><code>$ koji wait-repo ${override.build.release.dist_tag}-build --build=${override.build.nvr}</code></pre>
       </div>
       %else:
-      <div class="alert alert-warning col-sm-8 col-sm-offset-2">
+      <div class="alert alert-warning col-8 col-offset-2">
         <p>This override is expired, set its expiration date into the future to unexpire it</p>
       </div>
       %endif
@@ -62,11 +62,11 @@
     <div class="row">
 
       <div class="col-md-6">
-        <div class="panel formpanel panel-default">
-          <div class="panel-heading clearfix">
-            <span class="pull-left">Candidate Build</span>
+        <div class="card formpanel">
+          <div class="card-header clearfix">
+            <span class="float-left">Candidate Build</span>
           </div>
-          <div id="candidates-search" class="form-group noui">
+          <div id="candidates-search" class="form-control noui">
             %if override is UNDEFINED:
               %if nvr is UNDEFINED or nvr is None:
               <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
@@ -87,11 +87,11 @@
       </div>
 
       <div class="col-md-3">
-        <div class="panel formpanel panel-default">
-          <div class="panel-heading clearfix">
-            <span class="pull-left">Expiration date</span>
+        <div class="card formpanel">
+          <div class="card-header clearfix">
+            <span class="float-left">Expiration date</span>
           </div>
-          <div class="form-group noui input-group">
+          <div class="form-control noui input-group">
             <input class="form-control noui" id="expiration_date"
                 name="expiration_date" type="text"
                 %if override is not UNDEFINED:
@@ -103,19 +103,19 @@
       </div>
 
       <div class="col-md-3">
-        <div class="panel formpanel panel-default">
-          <div class="panel-heading clearfix">
-            <span class="pull-left">Submitter</span>
+        <div class="card formpanel">
+          <div class="card-header clearfix">
+            <span class="float-left">Submitter</span>
           </div>
-          <div class="form-group noui text-left">
+          <div class="form-control noui text-left">
             %if override is not UNDEFINED:
             <a href="${request.route_url('user', name=override.submitter.name)}">
-              <img class="img-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
+              <img class="rounded-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
               ${override.submitter.name}
             </a>
             %else:
             <a href="${request.route_url('user', name=request.user.name)}">
-              <img class="img-circle" src="${util.avatar(request.user.name, size=24)}"/>
+              <img class="rounded-circle" src="${util.avatar(request.user.name, size=24)}"/>
               ${request.user.name}
             </a>
             %endif
@@ -127,14 +127,14 @@
 
     <div class="row">
       <div class="col-md-6">
-        <div class="panel formpanel panel-default">
-          <div class="panel-heading clearfix">
-            <span class="pull-left">Buildroot override notes</span>
+        <div class="card formpanel">
+          <div class="card-header clearfix">
+            <span class="float-left">Buildroot override notes</span>
           </div>
-          <div class="panel-body">
+          <div class="card-block">
             <textarea class="form-control" id="notes" name="notes" rows="6"
               placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please." required="true">${override.notes if override is not UNDEFINED else ''}</textarea>
-            <p class="pull-right">Override notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</p>
+            <p class="float-right">Override notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</p>
           </div>
         </div>
       </div>
@@ -142,11 +142,11 @@
       ${self.fragments.markdown_help_modal()}
 
       <div class="col-md-6">
-        <div class="panel panel-default">
-          <div class="panel-heading clearfix">
-            <span class="pull-left">Preview</span>
+        <div class="card">
+          <div class="card-header clearfix">
+            <span class="float-left">Preview</span>
           </div>
-          <div class="panel-body">
+          <div class="card-block">
             <span id="preview"><h3><small>Preview</small></h3></span>
           </div>
         </div>
@@ -157,8 +157,8 @@
 
     <div class="row">
       <div class="col-md-12">
-        <div class="panel panel-default">
-            <span class="pull-right">
+        <div class="card">
+            <span class="float-right">
               <button id="submit" class="btn btn-success">
                 <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
                 Submit
@@ -178,8 +178,8 @@
   </div>
   %elif not request.user and override is not UNDEFINED:
   <div class="row">
-    <div class="col-md-12 m-t-3">
-      <h4 class="m-t-2">
+    <div class="col-md-12 mt-3">
+      <h4 class="mt-2">
         Notes
       </h4>
       ${self.util.markup(override.notes) | n}

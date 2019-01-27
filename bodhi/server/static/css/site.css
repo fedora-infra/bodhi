@@ -81,7 +81,7 @@ hr {
     .navbar-header {
         float: none;
     }
-    .navbar-toggle {
+    .navbar-toggler {
         display: block;
     }
     .navbar-collapse {
@@ -116,11 +116,18 @@ hr {
 
 /* Search-y stuff */
 form#search, form#search input, .twitter-typeahead {
+    background:rgba(0,0,0,0);
+    border: 0;
+    color: white;
     width: 100%;
 }
 
 .tt-hint {
   color: #999
+}
+
+.tt-dataset {
+    color: #373a3c;
 }
 
 .tt-menu {

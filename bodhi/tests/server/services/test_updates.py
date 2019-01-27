@@ -4809,7 +4809,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is urgent.
         """
         self.assertSeverityHTML(UpdateSeverity.urgent,
-                                '<span class=\'label label-danger\'>urgent</span>')
+                                '<span class=\'badge badge-danger\'>urgent</span>')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4818,7 +4818,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is high.
         """
         self.assertSeverityHTML(UpdateSeverity.high,
-                                '<span class=\'label label-warning\'>high</span>')
+                                '<span class=\'badge badge-warning\'>high</span>')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4827,7 +4827,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is medium.
         """
         self.assertSeverityHTML(UpdateSeverity.medium,
-                                '<span class=\'label label-primary\'>medium</span>')
+                                '<span class=\'badge badge-primary\'>medium</span>')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4836,7 +4836,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is low.
         """
         self.assertSeverityHTML(UpdateSeverity.low,
-                                '<span class=\'label label-success\'>low</span>')
+                                '<span class=\'badge badge-success\'>low</span>')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4846,7 +4846,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is unspecified.
         """
         self.assertSeverityHTML(UpdateSeverity.unspecified,
-                                '<span class=\'label label-default\'>unspecified</span>')
+                                '<span class=\'badge badge-default\'>unspecified</span>')
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')

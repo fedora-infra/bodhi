@@ -51,10 +51,10 @@
       <div class="searchbar" style="display:none;">
         <div class="container">
           <div class="row">
-            <div class="col-xs-12">
-              <form id="search" role="search" class="nav navbar-form navbar-left">
-                <div id="bloodhound" class="form-group m-b-0">
-                  <input class="typeahead form-control" name="term" type="text" placeholder="Search..." style="height:50px;background:rgba(0,0,0,0);border:0;color:white;line-height:50px;">
+            <div class="col-12">
+              <form id="search" role="search" class="bg-dark py-1">
+                <div id="bloodhound" class="form-group mb-0">
+                  <input class="typeahead form-control bg-dark" name="term" type="text" placeholder="Search...">
                 </div>
               </form>
             </div>
@@ -64,16 +64,16 @@
       <div class="masthead">
       <div class="container">
         <div class="row">
-          <div class="col-sm-6">
+          <div class="col-6">
             <a href="${request.route_url('home')}">
               <img src="${request.static_url('bodhi:server/static/img/bodhi-logo.png')}" alt="Fedora Update System" id="kojiLogo" height="40px">
             </a>
           </div>
-          <div class="col-sm-6">
-            <div class="row">
-              <nav class="navbar navbar-light p-t-0 p-b-0">
-                  <div class="container">
-                    <ul class="nav navbar-nav nav-pill pull-xs-right">
+          <div class="col-6">
+            <div class="row justify-content-end">
+              <nav class="navbar navbar-expand navbar-light bg-light flex-row py-0">
+                  <div class="navbar-collapse">
+                    <ul class="nav navbar-nav flex-row justify-content-end">
                         % if request.user:
                         % if request.matched_route and request.matched_route.name in ('new_update', 'new_override'):
                         <li class="nav-item dropdown active">
@@ -173,9 +173,10 @@
                         </li>
                         % endif
                         <li class="nav-item">
-                          <a class="nav-link" href="javascript:void(0);" id="search-toggle">
-                            <span class="fa fa-search"></span>
+                          <a class="nav-link" role="button" id="search-toggle">
+                            <i class="fa fa-search"></i>
                           </a>
+                          </input>
                         </li>
                     </ul>
                   </div>
@@ -185,23 +186,23 @@
         </div>
       </div>
     </div>
-    <div class="bodycontent p-b-3">
+    <div class="bodycontent pb-3">
         ${self.body()}
     </div> <!-- /bodycontent -->
 
-    <div class="footer p-y-3">
+    <div class="footer py-3">
       <div class="container">
-        <p class="text-muted text-xs-center">
+        <p class="text-muted text-center">
           Copyright &copy; 2007-2019 Red Hat, Inc. and
           <a href="https://github.com/fedora-infra/bodhi/graphs/contributors">
           others</a>.
         </p>
-        <p class="text-muted text-xs-center">
+        <p class="text-muted text-center">
           Running
           <strong>bodhi-${util.version()}</strong> on
           <strong>${util.hostname()}</strong>.
         </p>
-        <p class="text-muted text-xs-center">
+        <p class="text-muted text-center">
           <a href="https://github.com/fedora-infra/bodhi">
           bodhi</a> is Free Software.
           Please <a href="https://github.com/fedora-infra/bodhi/issues">
@@ -209,7 +210,7 @@
           if you have any problems. Read the <a href="https://bodhi.fedoraproject.org/docs">documentation</a>.
         </p>
         % if request.registry.settings.get('legal_link') or request.registry.settings.get('privacy_link'):
-        <p class="text-muted text-xs-center">
+        <p class="text-muted text-center">
             % if request.registry.settings.get('legal_link'):
             <a href="${request.registry.settings.get('legal_link')}">Legal</a>
             % endif

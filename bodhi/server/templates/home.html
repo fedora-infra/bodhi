@@ -1,7 +1,7 @@
 <%inherit file="master.html"/>
 
 <script src="${request.static_url('bodhi:server/static/js/newsfeed.js')}"></script>
-<div class="container p-t-2">
+<div class="container pt-2">
 
   <!--<div id="newsfeed" class="col-md-6">
     <img src="${request.static_url('bodhi:server/static/img/spinner.gif')}"
@@ -25,7 +25,7 @@
   ${r['long_name']}
         </a>
         %if r['state'] == 'pending':
-          <span class="label label-default">prerelease</span>
+          <span class="badge badge-default">prerelease</span>
         %endif
       </h3>
     </div>
@@ -100,7 +100,7 @@
 
   <div class="row">
     <div class="col-md-12">
-          <div class="card">
+          <div class="card mb-2">
             <div class="card-header">
               <span><strong>This week's top testers</strong></span>
             </div>
@@ -109,10 +109,10 @@
                 <div class="list-group-item">
                     <strong>#${str(loop.index + 1)}</strong>
                     <a href="${request.route_url('user', name=tester['name'])}">
-                      <img class="img-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
+                      <img class="rounded-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
                       ${tester['name']}
                     </a>
-                  <div class="label label-default pull-xs-right">${str(count)}</div>
+                  <div class="badge badge-default float-right">${str(count)}</div>
                 </div>
                 % endfor
             </div>
@@ -123,16 +123,16 @@
       % if critpath_updates:
       <div class="row">
         <div class="col-md-12">
-          <div class="card">
+          <div class="card mb-2">
             <div class="card-header clearfix">
               <span><strong><a href="${request.route_url('updates')}?status=testing&critpath=True" title="View All">Latest Critical Path Updates in Need of Testing</a></strong></span>
-              <span class="pull-xs-right">
-                <a class="btn btn-sm btn-secondary" href="${request.route_url('updates_rss')}?status=testing" title="RSS Feed">
+              <span class="float-right">
+                <a class="btn btn-sm btn-default" href="${request.route_url('updates_rss')}?status=testing" title="RSS Feed">
                   <span class="fa fa-rss"></span>
                 </a>
               </span>
             </div>
-            <div class="card-block p-a-0">
+            <div class="card-block p-0">
               ${self.tables.updates(critpath_updates)}
             </div>
           </div>
@@ -143,16 +143,16 @@
       % if security_updates:
       <div class="row">
         <div class="col-md-12">
-          <div class="card">
+          <div class="card mb-2">
             <div class="card-header clearfix">
               <span><strong><a href="${request.route_url('updates')}?type=security&status=testing">Latest Security Updates in Need of Testing</a></strong></span>
-              <span class="pull-xs-right">
-                <a class="btn btn-sm btn-secondary" href="${request.route_url('updates_rss')}?type=security&status=testing" title="RSS Feed">
+              <span class="float-right">
+                <a class="btn btn-sm btn-default" href="${request.route_url('updates_rss')}?type=security&status=testing" title="RSS Feed">
                   <span class="fa fa-rss"></span>
                 </a>
               </span>
             </div>
-            <div class="card-block p-a-0">
+            <div class="card-block p-0">
               ${self.tables.updates(security_updates)}
             </div>
           </div>

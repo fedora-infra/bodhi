@@ -6,7 +6,7 @@
         <div class="col-md-10 text-muted">
           ${util.markup(comment.text) | n}
         </div>
-        <div class="col-md-2 text-xs-right text-muted">
+        <div class="col-md-2 text-right text-muted">
           <a href="${comment.url()}" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
             ${util.age(comment.timestamp)}
           </a>
@@ -16,12 +16,12 @@
 <div class="row">
   <div class="col-md-12">
     <!--<div class="card card-${util.karma2class(comment.karma)}">-->
-    <div class="card m-y-1">
+    <div class="card my-1">
       <div class="card-header clearfix">
         <span>
           % if comment.user:
           <a href="${request.route_url('user', name=comment.user.name)}">
-            <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
+            <img class="rounded-circle" src="${util.avatar(comment.user.name, size=24)}"/>
             ${comment.user.name}
           </a>
           % endif
@@ -34,19 +34,19 @@
           % endif
         </span>
 
-        <span class="pull-xs-right">
+        <span class="float-right">
           <a href="${comment.url()}" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
             ${util.age(comment.timestamp)}
           </a>
         </span>
       </div>
 
-      <div class="card-block p-b-1">
+      <div class="card-block pb-1">
         <div class="row">
         <div class="col-md-12">
           ${util.markup(comment.text) | n}
         </div>
-        <div class="col-md-12 p-t-2">
+        <div class="col-md-12 pt-2">
           % if comment.karma:
           <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
           % endif
@@ -88,7 +88,7 @@
   %if display_user:
   <td class="nowrap">
     <a href="${request.route_url('user', name=update['user']['name'])}">
-      <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
+      <img class="rounded-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
       ${update['user']['name']}
     </a>
   </td>
@@ -133,7 +133,7 @@
   %if display_user:
   <td class="nowrap">
     <a href="${request.route_url('user', name=override['submitter']['name'])}">
-      <img class="img-circle" src="${util.avatar(override['submitter']['name'], size=24)}"/>
+      <img class="rounded-circle" src="${util.avatar(override['submitter']['name'], size=24)}"/>
       ${override['submitter']['name']}
     </a>
   </td>

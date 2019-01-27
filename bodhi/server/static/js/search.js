@@ -136,7 +136,7 @@ $(document).ready(function() {
                 '</div>'
             ].join('\n'),
             suggestion: function(datum) {
-                return '<p><a href="'+ resultUrl(datum)+'"><img class="img-circle" src="' + datum.avatar + '">' + datum.name + '</a></p>';
+                return '<p><a href="'+ resultUrl(datum)+'"><img class="rounded-circle" src="' + datum.avatar + '">' + datum.name + '</a></p>';
             },
         },
     },

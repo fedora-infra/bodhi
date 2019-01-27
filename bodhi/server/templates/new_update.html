@@ -1,6 +1,6 @@
 <%inherit file="master.html"/>
 <div class="container">
-  <div id='js-warning' class="col-md-10 col-md-offset-1 m-t-3">
+  <div id='js-warning' class="col-md-10 col-md-offset-1 mt-3">
     <div class="alert alert-warning">
         <h3>
           % if not update:
@@ -19,13 +19,13 @@
     </div>
   </div>
 
-  <div id="new-update-form" class="p-t-3" style="display:none;">
+  <div id="new-update-form" class="pt-3" style="display:none;">
     <div class="row">
       <div class="col-md-12">
         % if not update:
-          <h2 class="pull-left">New Update</span>
+          <h2 class="float-left">New Update</span>
         % else:
-          <h2 class="pull-left">Edit
+          <h2 class="float-left">Edit
             % if update.alias:
             ${update.alias}
             % else:
@@ -46,12 +46,12 @@
       <div class="col-md-5">
         <div class="card card-form">
           <div class="card-header clearfix">
-            <span class="pull-left" data-placement="bottom" data-toggle="tooltip" title="This is a helper field, here only to pre-populate the builds and the bugs lists with relevant options.  You can leave it empty if you like.">
+            <span class="float-left" data-placement="bottom" data-toggle="tooltip" title="This is a helper field, here only to pre-populate the builds and the bugs lists with relevant options.  You can leave it empty if you like.">
             Packages</span>
           </div>
-          <div class="card-block p-a-0">
+          <div class="card-block p-0">
             <form id="search" role="search">
-              <div id="packages-search" class="form-group noui m-b-0">
+              <div id="packages-search" class="form-control noui mb-0">
                 <input class="typeahead form-control noui" name="term" type="text"
                        placeholder="Add a package">
               </div>
@@ -61,10 +61,10 @@
 
         <div class="card card-form">
           <div class="card-header clearfix">
-            <span class="pull-left" data-placement="bottom" data-toggle="tooltip" title="Here you can add a list of candidate builds that you want to be included in this update.  This is required.  (What is an update without a list of builds anyways... it doesn't make any sense.)">
+            <span class="float-left" data-placement="bottom" data-toggle="tooltip" title="Here you can add a list of candidate builds that you want to be included in this update.  This is required.  (What is an update without a list of builds anyways... it doesn't make any sense.)">
             Candidate Builds</span>
           </div>
-          <div class="card-block p-a-0">
+          <div class="card-block p-0">
             <div id="builds-adder" class="input-group">
               <input class="form-control noui" type="text"
                   placeholder="Add a build, like package-0.2.1-5.fc26">
@@ -94,10 +94,10 @@
       <div class="col-md-7">
         <div class="card card-form">
           <div class="card-header clearfix">
-            <span class="pull-left" data-placement="bottom" data-toggle="tooltip" title="Here you can add a list of bugzilla bug IDs that you want to be associated with this update.  Associated bugs will prompt testers to test them.  You can furthermore mark bug feedback as required in the 'details' panel at the bottom of this form.">
+            <span class="float-left" data-placement="bottom" data-toggle="tooltip" title="Here you can add a list of bugzilla bug IDs that you want to be associated with this update.  Associated bugs will prompt testers to test them.  You can furthermore mark bug feedback as required in the 'details' panel at the bottom of this form.">
             Related Bugs</span>
           </div>
-          <div class="card-block p-a-0">
+          <div class="card-block p-0">
             <div id="bugs-adder" class="input-group">
               <input class="form-control noui" type="text"
                      placeholder="Add #RHBZ">
@@ -130,12 +130,12 @@
 
     <div class="row">
       <div class="col-md-6">
-        <div class="card card-form m-b-0">
+        <div class="card card-form mb-0">
           <div class="card-header clearfix">
-            <span class="pull-left" data-toggle="tooltip" title="Tell people what's new and give them a heads up about what to test.  Any gotchas?  Where's the changelog?">
+            <span class="float-left" data-toggle="tooltip" title="Tell people what's new and give them a heads up about what to test.  Any gotchas?  Where's the changelog?">
               Update notes</span>
           </div>
-          <div class="card-block p-a-0">
+          <div class="card-block p-0">
             <textarea class="form-control" id="notes" name="notes" rows="6"
               placeholder="Update notes go here.  Please be as descriptive as possible.  Help testers know what to test, and users know why this update is available and what major changes it brings (if any)." required="true">
 % if update:
@@ -144,7 +144,7 @@ ${update.notes}
 </textarea>
           </div>
         </div>
-        <p class="text-xs-right m-b-1"><small>Update notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</small></p>
+        <p class="text-right mb-1"><small>Update notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</small></p>
       </div>
 
       ${self.fragments.markdown_help_modal()}
@@ -152,10 +152,10 @@ ${update.notes}
       <div class="col-md-6">
         <div class="card card-form">
           <div class="card-header clearfix">
-            <span class="pull-left" data-toggle="tooltip" title="Perhaps unsurprisingly, this is a preview of how your update notes will be rendered.">
+            <span class="float-left" data-toggle="tooltip" title="Perhaps unsurprisingly, this is a preview of how your update notes will be rendered.">
             Preview</span>
           </div>
-          <div class="card-block p-a-0">
+          <div class="card-block p-0">
             <div id="preview"><h3><small>Preview</small></h3></div>
           </div>
         </div>
@@ -166,12 +166,12 @@ ${update.notes}
       <div class="col-md-12">
         <div class="card">
           <div class="card-header clearfix">
-            <span class="pull-left">Final details</span>
+            <span class="float-left">Final details</span>
           </div>
           <div class="card-block">
             <div class="row">
               <div class="col-md-7">
-                <fieldset class="form-group radio-group">
+                <fieldset class="form-control radio-group">
                   <div data-toggle="tooltip" title="What kind of update is this?"><strong>Type</strong></div>
                   % for value in types:
                   <label class="c-input c-radio">
@@ -184,7 +184,7 @@ ${update.notes}
                   </label>
                   % endfor
                 </fieldset>
-                <fieldset class="form-group radio-group">
+                <fieldset class="form-control radio-group">
                   <div data-toggle="tooltip" title="How important is this update, really?"><strong>Severity</strong></div>
                   % for value in severities:
                   <label class="c-input c-radio">
@@ -211,7 +211,7 @@ ${update.notes}
                   </div>
                 </fieldset>
 
-                <fieldset class="form-group radio-group">
+                <fieldset class="form-control radio-group">
                   <div data-toggle="tooltip" title="What action should testers take after installing the update?  Do they need to update or reboot to see if things are really working?">
                     <strong>Suggestion</strong>
                   </div>

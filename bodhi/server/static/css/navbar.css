@@ -33,3 +33,6 @@
     width: 24px;
     height: 24px;
 }
+.navbar-nav .nav-link {
+    padding: 0.5rem;
+}

@@ -506,7 +506,7 @@ def composestate2html(context, state):
         'success': 'success',
         'failed': 'danger',
     }[state.value]
-    return "<span class='label label-%s'>%s</span>" % (cls, state.description)
+    return "<span class='badge badge-%s'>%s</span>" % (cls, state.description)
 
 
 def status2html(context, status):
@@ -539,7 +539,7 @@ def status2html(context, status):
     }[status]
 
     return "<span class='text-muted' data-toggle='tooltip' title='%s'>" % (status_desc) \
-        + "<span class='label label-%s'>%s</span>" % (cls, status) \
+        + "<span class='badge badge-%s'>%s</span>" % (cls, status) \
         + "</span>"
 
 
@@ -596,7 +596,7 @@ def state2html(context, state):
         basestring: An HTML rendering of the given ReleaseState.
     """
     state_class = state2class(context, state)
-    return "<span class='label label-%s'>%s</span>" % (state_class, state)
+    return "<span class='badge badge-%s'>%s</span>" % (state_class, state)
 
 
 def karma2class(context, karma, default='default'):
@@ -652,7 +652,7 @@ def karma2html(context, karma):
     else:
         karma = "%i" % karma
 
-    return "<span class='label label-%s'>%s</span>" % (cls, karma)
+    return "<span class='badge badge-%s'>%s</span>" % (cls, karma)
 
 
 def type2html(context, kind):
@@ -674,7 +674,7 @@ def type2html(context, kind):
         'enhancement': 'success',
     }.get(kind)
 
-    return "<span class='label label-%s'>%s</span>" % (cls, kind)
+    return "<span class='badge badge-%s'>%s</span>" % (cls, kind)
 
 
 def type2icon(context, kind):
@@ -708,7 +708,7 @@ def type2icon(context, kind):
         'enhancement': 'fa-bolt',
     }.get(kind)
 
-    span = ("<span class='label label-%s' data-toggle='tooltip' "
+    span = ("<span class='badge badge-%s' data-toggle='tooltip' "
             "title='This is %s %s update'><i class='fa fa-fw %s'></i></span>")
     return span % (cls, kind_article, kind, fontawesome)
 
@@ -733,7 +733,7 @@ def severity2html(context, severity):
         'unspecified': 'default',
     }.get(severity)
 
-    return "<span class='label label-%s'>%s</span>" % (cls, severity)
+    return "<span class='badge badge-%s'>%s</span>" % (cls, severity)
 
 
 def request2html(context, request):
@@ -755,7 +755,7 @@ def request2html(context, request):
         'batched': 'success',
     }.get(request)
 
-    return "<span class='label label-%s'>%s</span>" % (cls, request)
+    return "<span class='badge badge-%s'>%s</span>" % (cls, request)
 
 
 def update2html(context, update):
@@ -854,7 +854,7 @@ def bug_link(context, bug, short=False):
     if not short:
         if bug.title:
             if bug.private:
-                link = link + " <span class='label label-danger'>Private bug</span>"
+                link = link + " <span class='badge badge-danger'>Private bug</span>"
             else:
                 # We're good, but we do need to clean the bug title in case it contains malicious
                 # tags. See CVE-2017-1002152: https://github.com/fedora-infra/bodhi/issues/1740

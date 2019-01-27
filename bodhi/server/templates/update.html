@@ -80,7 +80,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
               icon_class = icons['FAILED'];
             }
 
-            var html = '<span class="label label-' + label_class + '">' +
+            var html = '<span class="badge badge-' + label_class + '">' +
               '<span class="fa fa-' + icon_class + '">' +
               '</span></span> ';
             html += '<a class="gating-summary notblue" href="#automatedtests">' + data['summary'];
@@ -167,12 +167,12 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       }
 
       if (arch != undefined) {
-        testcase = testcase + "&nbsp;<span class='label label-default'>"
+        testcase = testcase + "&nbsp;<span class='badge badge-default'>"
           + arch + "</label>";
       }
 
       if (flavor) {
-        testcase = testcase + "&nbsp;<span class='label label-default'>"
+        testcase = testcase + "&nbsp;<span class='badge badge-default'>"
           + flavor + "</label>";
       }
 
@@ -195,7 +195,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         '<td>' + required + '</td>' +
         '<td>' + icon + '</td>' +
         '<td class="nowrap">' + testcase + '</td>' +
-        '<td class="stretch-table-column text-xs-right">' + note + '</td>' +
+        '<td class="stretch-table-column text-right">' + note + '</td>' +
         '<td class="nowrap">' + age + '</td>' +
         '</tr>';
       return html;
@@ -245,7 +245,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
           $.each(builds, function(i, buildname) {
               count = count +1;
               if (buildname in missing_tests) {
-                  $("#resultsdb").append("<h4 class='p-t-1'>"+buildname+
+                  $("#resultsdb").append("<h4 class='pt-1'>"+buildname+
                   "</h4><table class='table table-hover' id='buildresults"+count+
                   "'></table>");
                   $.each(missing_tests[buildname], function(i, result) {
@@ -258,14 +258,14 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
                       ));
                   });
               } else {
-                  $("#resultsdb").append("<h4 class='p-t-1'>"+buildname+
+                  $("#resultsdb").append("<h4 class='pt-1'>"+buildname+
                   "</h4><p>No results reported for this build.</p>");
               }
           });
       } else {
           $.each(latest, function(buildname, obj1) {
             count = count +1;
-            $("#resultsdb").append("<h4 class='p-t-1'>"+buildname+
+            $("#resultsdb").append("<h4 class='pt-1'>"+buildname+
             "</h4><table class='table table-hover' id='buildresults"+count+
             "'></table>")
             // We show missing tests first
@@ -323,19 +323,19 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
 
       if (successcount > 0){
-      $("#tab-automatedtests").append(" <span class='label label-success'><span class='fa fa-check-circle'></span> "+successcount+"</span>");
+      $("#tab-automatedtests").append(" <span class='badge badge-success'><span class='fa fa-check-circle'></span> "+successcount+"</span>");
       }
 
       if (infocount > 0){
-      $("#tab-automatedtests").append(" <span class='label label-info'><span class='fa fa-info-circle'></span> "+infocount+"</span>");
+      $("#tab-automatedtests").append(" <span class='badge badge-info'><span class='fa fa-info-circle'></span> "+infocount+"</span>");
       }
 
       if (warningcount > 0 ){
-        $("#tab-automatedtests").append(" <span class='label label-warning'><span class='fa fa-exclamation-circle'></span> "+warningcount+"</span>");
+        $("#tab-automatedtests").append(" <span class='badge badge-warning'><span class='fa fa-exclamation-circle'></span> "+warningcount+"</span>");
       }
 
       if (failedcount > 0 ){
-        $("#tab-automatedtests").append(" <span class='label label-danger'><span class='fa fa-minus-circle'></span> "+failedcount+"</span>");
+        $("#tab-automatedtests").append(" <span class='badge badge-danger'><span class='fa fa-minus-circle'></span> "+failedcount+"</span>");
       }
 
       // Make each cell clickable and awesome except the missing tests
@@ -553,7 +553,7 @@ $(document).ready(function(){
 });
 </script>
 
-<div class="subheader p-t-2">
+<div class="subheader pt-2">
 <div class="container">
 <div class="row">
   <div class="col-md-12">
@@ -579,11 +579,11 @@ $(document).ready(function(){
         ${self.util.type2icon(update.type) | n}
       % endif
       % if update.critpath:
-      <span data-toggle="tooltip" title="This update is in the critical path" class="label label-danger"> <i class="fa fa-fw fa-fire"></i></span>
+      <span data-toggle="tooltip" title="This update is in the critical path" class="badge badge-danger"> <i class="fa fa-fw fa-fire"></i></span>
       % endif
       % if can_edit:
         % if not update.locked:
-          <div id='updatebuttons' class="btn-group pull-right m-t-1" role="group" aria-label="...">
+          <div id='updatebuttons' class="btn-group float-right mt-1" role="group" aria-label="...">
           % if not update.pushed:
             <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
             % if update.request is None:
@@ -609,7 +609,7 @@ $(document).ready(function(){
           % endif
           </div>
         % else:
-          <div id='updatebuttons' class="btn-group pull-right" role="group" aria-label="...">
+          <div id='updatebuttons' class="btn-group float-right" role="group" aria-label="...">
             <button class="btn btn-sm btn-primary" disabled data-placement="bottom"
                     data-toggle="tooltip" data-placement="bottom"
                     title="Update is locked and cannot be edited. Locking of an update usually occurs when a push is in progress.">
@@ -640,24 +640,24 @@ $(document).ready(function(){
     </div>
   </div>
 </div>
-<ul class="nav nav-tabs p-t-2" role="tablist">
+<ul class="nav nav-tabs pt-2" role="tablist">
   <li class="nav-item">
     <a class="nav-link active" data-toggle="tab" href="#details" role="tab">Details</a>
   </li>
 
   <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#packages" role="tab">Builds <span class="label label-default">${len(update.builds)}</span></a>
+    <a class="nav-link" data-toggle="tab" href="#packages" role="tab">Builds <span class="badge badge-default">${len(update.builds)}</span></a>
   </li>
 
   % if update.bugs:
   <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#bugs" role="tab">Bugs <span class="label label-default">${len(update.bugs)}</span></a>
+    <a class="nav-link" data-toggle="tab" href="#bugs" role="tab">Bugs <span class="badge badge-default">${len(update.bugs)}</span></a>
   </li>
   % endif
 
   % if update.test_cases:
   <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#tests" role="tab">Test Cases <span class="label label-default">${len(update.test_cases)}</span></a>
+    <a class="nav-link" data-toggle="tab" href="#tests" role="tab">Test Cases <span class="badge badge-default">${len(update.test_cases)}</span></a>
   </li>
   % endif
 
@@ -668,7 +668,7 @@ $(document).ready(function(){
 </ul>
 </div>
 </div>
-<div class="container p-t-2">
+<div class="container pt-2">
   <!-- Tab panes -->
   <div class="tab-content">
     <div class="tab-pane active" id="details" role="tabpanel">
@@ -697,15 +697,15 @@ $(document).ready(function(){
 
           % if update.content_type:
           % if update.content_type.description == 'RPM' and ('testing' in update.status or 'stable' in update.status):
-          <div class="p-t-1">
+          <div class="pt-1">
           <h4>How to install</h4>
-            <pre style="position: relative;"><span class="label label-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${self.util.update_install_command(update)}</code></pre>
+            <pre style="position: relative;"><span class="badge badge-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${self.util.update_install_command(update)}</code></pre>
           </div>
           % endif
           % endif
 
-          <div class="p-t-3">
-            <h4>Comments <span class="label label-default">${len(update.comments)}</span>
+          <div class="pt-3">
+            <h4>Comments <span class="badge badge-default">${len(update.comments)}</span>
               <small><a href="${request.route_url('comments_rss')}?updates=${update.alias}">
                   <span class="fa fa-rss"></span>
               </a></small>
@@ -718,10 +718,10 @@ $(document).ready(function(){
               % endfor
             </div>
 
-            <form id="new_comment" class="form-horizontal" role="form"
+            <form id="new_comment" class="form-group row" role="form"
               action="javascript:form.submit();">
 
-              <div class="alert alert-danger col-sm-4 col-sm-offset-1" style="display:none">
+              <div class="alert alert-danger col-4 col-offset-1" style="display:none">
                 <strong></strong><span class="error"></span>
               </div>
 
@@ -735,18 +735,18 @@ $(document).ready(function(){
               <div class="row">
                 <div class="col-md-12">
 
-                  <h5 class="m-t-2">
+                  <h5 class="mt-2">
                     <strong>Add Comment &amp; Feedback</strong>
-                    <div id="preview_button" class="btn btn-sm btn-secondary pull-xs-right">Toggle Preview</div>
+                    <div id="preview_button" class="btn btn-sm btn-default float-right">Toggle Preview</div>
                   </h5>
 
-                    <div class="form-group" id="comment-textarea" class="m-t-2">
+                    <div class="form-control" id="comment-textarea" class="mt-2">
                         <textarea class="form-control" id="text" name="text" rows="6"
                           placeholder="Comment..."></textarea>
                         <div class="alert alert-danger" for="text" style="display:none">
                           <strong></strong> <span class="error"></span>
                         </div>
-                      <p class="pull-right"><small>Comment fields support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.
+                      <p class="float-right"><small>Comment fields support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.
                       % if request.registry.settings.get('privacy_link'):
                       Comments are governed under <a href="${request.registry.settings.get('privacy_link')}">this privacy policy</a>.
                       % endif
@@ -754,7 +754,7 @@ $(document).ready(function(){
                     </div>
 
                     % if not request.user:
-                    <div class="form-group" class="m-t-3">
+                    <div class="form-control" class="mt-3">
                         <input class="form-control" id="email" name="email" type="email"
                         placeholder="email@address.org" required="true"></input>
                         <div class="alert alert-danger" for="email" style="display:none">
@@ -765,20 +765,20 @@ $(document).ready(function(){
 
                     ${self.fragments.markdown_help_modal()}
 
-                    <div id="preview" class="comment-preview m-t-2" style="display:none;"></div>
+                    <div id="preview" class="comment-preview mt-2" style="display:none;"></div>
 
                 </div>
                 <div class="col-md-12">
-                    <table class="table m-t-2">
+                    <table class="table mt-2">
                       <colgroup class='strip' span="1"></colgroup>
                       <colgroup class='strip' span="1"></colgroup>
                       <colgroup class='strip' span="1"></colgroup>
                       <colgroup span="1"></colgroup>
                       <thead>
                         <tr>
-                          <th class='icon'><span data-toggle="tooltip" data-placement="top" class="label label-danger" title="FAIL - Does not fix the bug or pass the test case.">-1</span></th>
-                          <th class='icon'><span data-toggle="tooltip" data-placement="top" title="Untested." class="label label-default">0</span></th>
-                          <th class='icon'><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="label label-success">+1</span></th>
+                          <th class='icon'><span data-toggle="tooltip" data-placement="top" class="badge badge-danger" title="FAIL - Does not fix the bug or pass the test case.">-1</span></th>
+                          <th class='icon'><span data-toggle="tooltip" data-placement="top" title="Untested." class="badge badge-default">0</span></th>
+                          <th class='icon'><span data-toggle="tooltip" data-placement="top" title="PASS - Fixes the bug or passes the test case." class="badge badge-success">+1</span></th>
                           <th><a href="https://fedoraproject.org/wiki/QA:Update_feedback_guidelines" target="_blank">Feedback Guidelines</a></th>
                         </tr>
                       </thead>
@@ -843,22 +843,22 @@ $(document).ready(function(){
                 captcha_key, captcha_url = captcha.generate_captcha(request)
               %>
               <div class="row">
-                <div class="col-sm-12 text-xs-right">
+                <div class="col-12 text-right">
                   <input type="hidden" name="captcha_key" value="${captcha_key}"/>
-                  <img class="image m-t-1" src="${captcha_url}"/>
+                  <img class="image mt-1" src="${captcha_url}"/>
                 </div>
               </div>
 
               <div class="row">
-                <div class="col-sm-4 col-sm-offset-8 m-b-1">
+                <div class="col-4 col-offset-8 mb-1">
                   <input class="form-control" id="captcha_value" name="captcha_value"
                   placeholder="prove that you're a human" required="true"></input>
                 </div>
               </div>
               % endif
 
-              <div class="form-group m-t-1 clearfix">
-                <div class="col-sm-12 text-xs-right">
+              <div class="form-control mt-1 clearfix">
+                <div class="col-12 text-right">
                   <button type="submit" class="btn btn-primary">
                     <span class="indicator fa fa-comment" data-spinclass="indicator fa fa-spinner fa-spin"></span>
                     Add Comment &amp; Feedback
@@ -874,7 +874,7 @@ $(document).ready(function(){
             <div class="card-block">
 
               % if update.content_type:
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Content Type</strong>
                 </div>
@@ -884,7 +884,7 @@ $(document).ready(function(){
               </div>
               % endif
 
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Status</strong>
                 </div>
@@ -897,7 +897,7 @@ $(document).ready(function(){
               </div>
 
               % if request.registry.settings.get('test_gating.required'):
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   % if request.registry.settings.get('test_gating.url'):
                     <a href="${request.registry.settings.get('test_gating.url')}" title="More information about test gating">
@@ -914,7 +914,7 @@ $(document).ready(function(){
               % endif
 
               % if update.request:
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Request</strong>
                 </div>
@@ -925,20 +925,20 @@ $(document).ready(function(){
               % endif
 
 
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Submitted by</strong>
                 </div>
                 <div>
                   <a href="${request.route_url('user', name=update.user.name)}">
-                    <img class="img-circle" src="${self.util.avatar(update.user.name, size=24)}"/>
+                    <img class="rounded-circle" src="${self.util.avatar(update.user.name, size=24)}"/>
                     ${update.user.name}
                   </a>
                 </div>
               </div>
 
               % if update.type:
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Update Type</strong>
                 </div>
@@ -949,7 +949,7 @@ $(document).ready(function(){
               % endif
 
               % if update.severity:
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Update Severity</strong>
                 </div>
@@ -961,7 +961,7 @@ $(document).ready(function(){
               </div>
               % endif
 
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Karma</strong>
                 </div>
@@ -977,7 +977,7 @@ $(document).ready(function(){
                 </div>
               </div>
 
-              <div  class="p-b-1">
+              <div  class="pb-1">
                 <div>
                   <strong>Autopush</strong>
                 </div>
@@ -986,21 +986,21 @@ $(document).ready(function(){
                   <td>
                     <span class='text-muted' data-toggle='tooltip' title='The update will be automatically pushed
                     to stable once the karma threshold is reached.'>
-                      <span class='label label-success'>Enabled</span>
+                      <span class='badge badge-success'>Enabled</span>
                     </span>
                     </td>
                   % elif update.autokarma is False:
                   <td>
                     <span class='text-muted' data-toggle='tooltip' title='The update will never be automatically pushed
                     to stable.'>
-                      <span class='label label-danger'>Disabled</span>
+                      <span class='badge badge-danger'>Disabled</span>
                     </span>
                   </td>
                   % endif
                 </div>
               </div>
 
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Dates</strong>
                 </div>
@@ -1105,12 +1105,12 @@ $(document).ready(function(){
             <a href="${build_url}" target="_blank">
                 ${build.nvr}</a>
           </td>
-          <td class="pull-right">
+          <td class="float-right">
             % if build.signed:
               <span class="fa fa-key text-muted" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="Build signed"></span>
             % endif
           </td>
-          <td class="pull-right">
+          <td class="float-right">
             <a href='${request.route_url("updates_rss") + "?packages=" + build.package.name}'>
               <span class="fa fa-rss" data-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
             </a>
@@ -1184,20 +1184,20 @@ $(document).ready(function(){
       </div>
       <div class="modal-body">
           <div class="row">
-            <div class="col-sm-offset-2 col-sm-10">
+            <div class="col-offset-2 col-10">
               <p>Submitting this will waive the following test results blocking this update:</p>
               <ul id="failed_requirements" class="list-group list-group-flush"></ul>
             </div>
           </div>
-          <div class="form-group row">
-            <label for="waive_comment" class="col-sm-2 col-form-label">Comment</label>
-            <div class="col-sm-10">
+          <div class="form-control row">
+            <label for="waive_comment" class="col-2 col-form-label">Comment</label>
+            <div class="col-10">
               <textarea class="form-control" id="waive_comment" name="waive_comment" placeholder="A reason for the waiver..." required></textarea>
             </div>
           </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         <button type="submit" class="btn btn-primary">Waive</button>
       </div>
     </div>

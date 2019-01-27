@@ -5,7 +5,7 @@ ${ compose.release.name } ${ compose.request.description }
 &mdash; Fedora Updates System
 </%block>
 
-<div class="subheader p-t-2">
+<div class="subheader pt-2">
 <div class="container">
 <div class="row">
   <div class="col-md-12">
@@ -23,15 +23,15 @@ ${ compose.release.name } ${ compose.request.description }
 </div>
 </div>
 
-<div class="container p-t-2">
+<div class="container pt-2">
   <!-- Tab panes -->
   <div class="tab-content">
     <div class="tab-pane active" id="details" role="tabpanel">
       <div class="row">
         <div class="col-md-9">
 
-          <div class="p-t-3">
-            <h4>Updates <span class="label label-default">${len(compose.updates)}</span></h4>
+          <div class="pt-3">
+            <h4>Updates <span class="badge badge-default">${len(compose.updates)}</span></h4>
             <div id="updates">
               % for update in compose.updates:
               <div>
@@ -47,7 +47,7 @@ ${ compose.release.name } ${ compose.request.description }
             <div class="card-block">
 
               % if compose.content_type:
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Content type</strong>
                 </div>
@@ -57,7 +57,7 @@ ${ compose.release.name } ${ compose.request.description }
               </div>
               % endif
 
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>State</strong>
                 </div>
@@ -67,7 +67,7 @@ ${ compose.release.name } ${ compose.request.description }
               </div>
 
               % if compose.error_message:
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Error message</strong>
                 </div>
@@ -77,7 +77,7 @@ ${ compose.release.name } ${ compose.request.description }
               </div>
               % endif
 
-              <div class="p-b-1">
+              <div class="pb-1">
                 <div>
                   <strong>Dates</strong>
                 </div>

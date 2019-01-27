@@ -7,7 +7,7 @@ var prepend_newsfeed_card = function(msg) {
     }
 
     var card = '<div class="message-card">';
-    card = card + '<img class="img-circle" src="' +
+    card = card + '<img class="rounded-circle" src="' +
         msg.secondary_icon + '"></img>' + '<p>';
     if (msg.link != undefined && msg.link != '') {
         card = card + '<a href="' + msg.link + '">'
