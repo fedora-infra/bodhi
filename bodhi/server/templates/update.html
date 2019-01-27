@@ -189,7 +189,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       if (outcome == 'ABSENT') {
           html += ' absent-automatedtest"';
       } else {
-          html += '" style="cursor: pointer;" data-href="' + url + '"';
+          html += ' cursor-pointer" data-href="' + url + '"';
       }
       html += '>' +
         '<td>' + required + '</td>' +
@@ -699,7 +699,7 @@ $(document).ready(function(){
           % if update.content_type.description == 'RPM' and ('testing' in update.status or 'stable' in update.status):
           <div class="pt-1">
           <h4>How to install</h4>
-            <pre style="position: relative;"><span class="badge badge-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${self.util.update_install_command(update)}</code></pre>
+            <pre id="install-instructions"><span class="badge badge-default" id="copybutton" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${self.util.update_install_command(update)}</code></pre>
           </div>
           % endif
           % endif
@@ -721,7 +721,7 @@ $(document).ready(function(){
             <form id="new_comment" class="form-group row" role="form"
               action="javascript:form.submit();">
 
-              <div class="alert alert-danger col-4 col-offset-1" style="display:none">
+              <div class="alert alert-danger col-4 col-offset-1 d-none">
                 <strong></strong><span class="error"></span>
               </div>
 
@@ -743,7 +743,7 @@ $(document).ready(function(){
                     <div class="form-control" id="comment-textarea" class="mt-2">
                         <textarea class="form-control" id="text" name="text" rows="6"
                           placeholder="Comment..."></textarea>
-                        <div class="alert alert-danger" for="text" style="display:none">
+                        <div class="alert alert-danger d-none" for="text">
                           <strong></strong> <span class="error"></span>
                         </div>
                       <p class="float-right"><small>Comment fields support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.
@@ -757,7 +757,7 @@ $(document).ready(function(){
                     <div class="form-control" class="mt-3">
                         <input class="form-control" id="email" name="email" type="email"
                         placeholder="email@address.org" required="true"></input>
-                        <div class="alert alert-danger" for="email" style="display:none">
+                        <div class="alert alert-danger d-none" for="email">
                           <strong></strong> <span class="error"></span>
                         </div>
                     </div>
@@ -765,7 +765,7 @@ $(document).ready(function(){
 
                     ${self.fragments.markdown_help_modal()}
 
-                    <div id="preview" class="comment-preview mt-2" style="display:none;"></div>
+                    <div id="preview" class="comment-preview mt-2 d-none"></div>
 
                 </div>
                 <div class="col-md-12">
@@ -790,7 +790,7 @@ $(document).ready(function(){
                         % if not request.user:
                         <td>
                           <p class="text-muted">Is the update generally functional? (karma)</p>
-                          <p class="text-danger" style="font-size: 0.8rem;">You need to be logged in to add karma!</p>
+                          <p class="text-danger small" style="font-size: 0.8rem;">You need to be logged in to add karma!</p>
                           <script type="text/javascript">
                             $(document).ready(function(){
                               var karmaRadio = document.getElementsByName("karma");

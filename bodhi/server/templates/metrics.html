@@ -4,10 +4,10 @@
   <div class="col-md-8 col-md-offset-2">
     <h2 class="centered">Bodhi Metrics</h2>
     <h3>Fedora</h3>
-    <div id="placeholder" class="centered" style="height: 350px; width: 650px;"></div>
+    <div id="fedora-metrics" class="centered"></div>
 
     <h3>EPEL</h3>
-    <div id="placeholder_epel" class="centered" style="height: 350px; width: 650px;"></div>
+    <div id="epel-metrics" class="centered"></div>
   </div>
 </div>
 
@@ -39,7 +39,7 @@
           lines = false,
           steps = false;
 
-      $.plot("#placeholder", ${data | n}, {
+      $.plot("#fedora-metrics", ${data | n}, {
           xaxis: {
               ticks: ${ticks | n},
               mode: "categories",
@@ -66,14 +66,14 @@
           }
       });
 
-      $("#placeholder").bind("plothover", render_plothovers);
+      $("#fedora-metrics").bind("plothover", render_plothovers);
 
       var stack = 0,
           bars = true,
           lines = false,
           steps = false;
 
-      $.plot("#placeholder_epel", ${eldata | n}, {
+      $.plot("#epel-metrics", ${eldata | n}, {
           xaxis: {
               ticks: ${elticks | n},
               mode: "categories",
@@ -100,7 +100,7 @@
           }
       });
 
-      $("#placeholder_epel").bind("plothover", render_plothovers);
+      $("#epel-metrics").bind("plothover", render_plothovers);
 
   });
 </script>

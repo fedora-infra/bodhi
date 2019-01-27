@@ -304,3 +304,31 @@ padding-bottom: 2em;
 .notblue{
   color:inherit;
 }
+
+div#new-update-form {
+    display: none;
+}
+
+.text-grey {
+    color: #6c757d;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+#install-instructions {
+    position: relative;
+}
+
+#copybutton {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    cursor: pointer;
+}
+
+#fedora-metrics, #epel-metrics {
+    height: 350px;
+    width: 650px;
+}

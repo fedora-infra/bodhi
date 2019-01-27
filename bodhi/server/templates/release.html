@@ -2,9 +2,11 @@
 <div class="container pt-2">
   <div class="row">
     <div class="col-md-5">
-      <h2 class="float-left">${release['long_name']}</h2>
-      <div style="clear: both;">
-        <canvas id="releasechart" style="clear: both;" width="451"></canvas>
+      <div class="row">
+        <h2 class="float-left">${release['long_name']}</h2>
+      </div>
+      <div class="row">
+        <canvas id="releasechart" width="451"></canvas>
       </div>
       <script>
         var data = {
@@ -107,7 +109,7 @@
           <td></td>
         </tr>
         <tr>
-          <td class="text-right">Pending</td>
+          <td>Pending</td>
           <td>
             ${num_updates_pending}
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=pending">
@@ -116,7 +118,7 @@
           </td>
         </tr>
         <tr>
-          <td class="text-right">Testing</td>
+          <td>Testing</td>
           <td>
             ${num_updates_testing}
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=testing">
@@ -125,7 +127,7 @@
           </td>
         </tr>
         <tr>
-          <td class="text-right">Stable</td>
+          <td>Stable</td>
           <td>
             ${num_updates_stable}
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=stable">
@@ -134,7 +136,7 @@
           </td>
         </tr>
         <tr>
-          <td class="text-right">Unpushed</td>
+          <td>Unpushed</td>
           <td>
             ${num_updates_unpushed}
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=unpushed">
@@ -143,7 +145,7 @@
           </td>
         </tr>
         <tr>
-          <td class="text-right">Obsolete</td>
+          <td>Obsolete</td>
           <td>
             ${num_updates_obsolete}
             <a href="${request.route_url('updates')}?releases=${release['name']}&status=obsolete">
@@ -158,7 +160,7 @@
           <td></td>
         </tr>
         <tr>
-          <td class="text-right">New Package</td>
+          <td>New Package</td>
           <td>
             ${num_updates_newpackage}
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=newpackage">
@@ -167,7 +169,7 @@
           </td>
         </tr>
         <tr>
-          <td class="text-right">Bugfix</td>
+          <td>Bugfix</td>
           <td>
             ${num_updates_bugfix}
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=bugfix">
@@ -176,7 +178,7 @@
           </td>
         </tr>
         <tr>
-          <td class="text-right">Enhancement</td>
+          <td>Enhancement</td>
           <td>
             ${num_updates_enhancement}
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=enhancement">
@@ -185,7 +187,7 @@
           </td>
         </tr>
         <tr>
-          <td class="text-right">Security</td>
+          <td>Security</td>
           <td>
             ${num_updates_security}
             <a href="${request.route_url('updates')}?releases=${release['name']}&type=security">
@@ -194,7 +196,7 @@
           </td>
         </tr>
 
-        <tr class="active">
+        <tr>
           <td>Total buildroot overrides</td>
           <td>${num_active_overrides + num_expired_overrides}
             <a href="${request.route_url('overrides')}?releases=${release['name']}">
@@ -204,7 +206,7 @@
         </tr>
 
         <tr>
-          <td class="text-right">Active</td>
+          <td>Active</td>
           <td>
             ${num_active_overrides}
             <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=0">
@@ -213,7 +215,7 @@
           </td>
         </tr>
         <tr>
-          <td class="text-right">Expired</td>
+          <td>Expired</td>
           <td>
             ${num_expired_overrides}
             <a href="${request.route_url('overrides')}?releases=${release['name']}&expired=1">
