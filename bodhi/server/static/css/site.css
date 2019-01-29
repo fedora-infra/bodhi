@@ -337,6 +337,11 @@ div#new-update-form {
     width: 650px;
 }
 
+#updatebuttons a {
+    color: #fff;
+    cursor: pointer;
+}
+
 /* Form custom controls doesn't behave well with fedora bootstrap.
  * Following rules will mimic what upstream Bootstrap 4 does */
 

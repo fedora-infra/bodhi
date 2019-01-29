@@ -3,8 +3,8 @@
 <div class="container">
 %if request.user:
 <div class="row">
-  <div id='js-warning' class="col-md-6 col-md-offset-3 mt-3">
-    <div class="alert alert-warning">
+  <div id='js-warning' class="row justify-content-center pt-3">
+    <div class="col-md-8 alert alert-warning">
       <h3>
         <span>New Buildroot Override Form Requires JavaScript</span>
       </h3>
@@ -22,24 +22,26 @@
 
   <script>$("#js-warning").addClass('hidden');</script>
 %endif
-  %if override is UNDEFINED:
-  <h2 class="float-left mt-3">New Override</h2>
-  %else:
-  <div class="col-md-12 mt-3">
-    <h2>Buildroot Override for <code>${override.build.nvr}</code></h2>
-    <p>Submitted by
-      <a href="${request.route_url('user', name=override.submitter.name)}">
-        <img class="rounded-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
-        ${override.submitter.name}
-      </a>
-    </p>
-    %if override.expired_date is not None:
-    <p>Expired
-      <span class="text-muted" data-toggle="tooltip" title="${(override.expired_date).strftime('%Y-%m-%d %H:%M:%S')} (UTC)"> ${self.util.age(override.expired_date)} </span>
-    </p>
-    %endif
+  <div class="row mt-3">
+    <div class="col-md-12">
+      %if override is UNDEFINED:
+      <h2>New Override</h2>
+      %else:
+      <h2>Buildroot Override for <code>${override.build.nvr}</code></h2>
+      <p>Submitted by
+        <a href="${request.route_url('user', name=override.submitter.name)}">
+          <img class="rounded-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
+          ${override.submitter.name}
+        </a>
+      </p>
+      %if override.expired_date is not None:
+      <p>Expired
+        <span class="text-muted" data-toggle="tooltip" title="${(override.expired_date).strftime('%Y-%m-%d %H:%M:%S')} (UTC)"> ${self.util.age(override.expired_date)} </span>
+      </p>
+      %endif
+      %endif
+    </div>
   </div>
-  %endif
 %if request.user:
   <div id="new-override-form" class="col-md-12 hidden">
 
@@ -59,25 +61,24 @@
       %endif
     </div>
 
-    <div class="row">
-
+    <div class="row my-3">
       <div class="col-md-6">
-        <div class="card formpanel">
+        <div class="card">
           <div class="card-header clearfix">
             <span class="float-left">Candidate Build</span>
           </div>
-          <div id="candidates-search" class="form-control noui">
+          <div id="candidates-search" class="card-block p-0">
             %if override is UNDEFINED:
               %if nvr is UNDEFINED or nvr is None:
-              <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
+              <input class="typeahead form-control" id="nvr" name="nvr" type="text"
                   placeholder="Add a build, like package-0.2.1-5.fc26">
               %else:
-              <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
+              <input class="typeahead form-control" id="nvr" name="nvr" type="text"
                   placeholder="Add a build, like package-0.2.1-5.fc26"
                   value="${nvr}">
               %endif
             %else:
-            <input class="typeahead form-control noui" id="nvr" name="nvr" type="text"
+            <input class="typeahead form-control" id="nvr" name="nvr" type="text"
                 placeholder="Add a build, like package-0.2.1-5.fc26"
                 value="${override.build.nvr}" readonly>
             <input id="edited" name="edited" type="hidden" value="${override.build.nvr}">
@@ -87,12 +88,12 @@
       </div>
 
       <div class="col-md-3">
-        <div class="card formpanel">
+        <div class="card">
           <div class="card-header clearfix">
             <span class="float-left">Expiration date</span>
           </div>
-          <div class="form-control noui input-group">
-            <input class="form-control noui" id="expiration_date"
+          <div class="card-block p-0">
+            <input class="form-control" id="expiration_date"
                 name="expiration_date" type="text"
                 %if override is not UNDEFINED:
                 value="${override.expiration_date.strftime('%Y-%m-%d')}"
@@ -103,11 +104,11 @@
       </div>
 
       <div class="col-md-3">
-        <div class="card formpanel">
+        <div class="card">
           <div class="card-header clearfix">
             <span class="float-left">Submitter</span>
           </div>
-          <div class="form-control noui text-left">
+          <div class="card-block p-1">
             %if override is not UNDEFINED:
             <a href="${request.route_url('user', name=override.submitter.name)}">
               <img class="rounded-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
@@ -125,28 +126,28 @@
 
     </div> <!-- end row -->
 
-    <div class="row">
+    <div class="row mb-3">
       <div class="col-md-6">
-        <div class="card formpanel">
+        <div class="card card-form mb-0">
           <div class="card-header clearfix">
             <span class="float-left">Buildroot override notes</span>
           </div>
-          <div class="card-block">
+          <div class="card-block p-0">
             <textarea class="form-control" id="notes" name="notes" rows="6"
               placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please." required="true">${override.notes if override is not UNDEFINED else ''}</textarea>
-            <p class="float-right">Override notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</p>
           </div>
         </div>
+            <p class="float-right mb-1"><small>Override notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</small></p>
       </div>
 
       ${self.fragments.markdown_help_modal()}
 
       <div class="col-md-6">
-        <div class="card">
+        <div class="card card-form">
           <div class="card-header clearfix">
             <span class="float-left">Preview</span>
           </div>
-          <div class="card-block">
+          <div class="card-block p-0">
             <span id="preview"><h3><small>Preview</small></h3></span>
           </div>
         </div>
@@ -157,7 +158,6 @@
 
     <div class="row">
       <div class="col-md-12">
-        <div class="card">
             <span class="float-right">
               <button id="submit" class="btn btn-success">
                 <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
@@ -171,7 +171,6 @@
               %endif
             </span>
           </div>
-        </div>
       </div>
     </div> <!-- end row -->
 

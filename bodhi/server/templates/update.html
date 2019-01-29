@@ -602,7 +602,7 @@ $(document).ready(function(){
             % elif update.meets_testing_requirements:
               ${self.util.push_to_batched_or_stable_button(update) | n}
             % endif
-            <a id='unpush' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Unpush</a>
+            <a id='unpush' class="btn btn-sm btn-danger" href="#"><span class="fa fa-fw fa-arrow-circle-left"></span> Unpush</a>
           % endif
           % if self.util.can_waive_test_results(update):
             <a id='waive' class="btn btn-sm btn-primary hidden" data-toggle="modal" data-target="#waive_test_results">Waive Test Results</a>
@@ -740,7 +740,7 @@ $(document).ready(function(){
                     <div id="preview_button" class="btn btn-sm btn-default float-right">Toggle Preview</div>
                   </h5>
 
-                    <div class="form-control" id="comment-textarea" class="mt-2">
+                    <div class="form-control p-0 mt-2" id="comment-textarea">
                         <textarea class="form-control" id="text" name="text" rows="6"
                           placeholder="Comment..."></textarea>
                         <div class="alert alert-danger d-none" for="text">
@@ -765,7 +765,7 @@ $(document).ready(function(){
 
                     ${self.fragments.markdown_help_modal()}
 
-                    <div id="preview" class="comment-preview mt-2 d-none"></div>
+                    <div id="preview" class="comment-preview mt-2 collapse"></div>
 
                 </div>
                 <div class="col-md-12">
