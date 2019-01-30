@@ -220,7 +220,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         // seem to break anything
         var arch = result.data.arch;
         var item = result.data.item;
-        if (item === undefined && testcase == 'org.centos.prod.ci.pipeline.complete'){
+        if (item === undefined && testcase.startsWith('org.centos.prod.ci.pipeline')){
             item = result.data.original_spec_nvr[0] + '#' + result.data.rev;
         }
         var submit_time = new Date(result.submit_time);
