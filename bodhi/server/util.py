@@ -484,7 +484,7 @@ def markup(context, text):
 
 def composestate2html(context, state):
     """
-    Render the given UpdateStatus as a span containing text.
+    Render the given ComposeState as a span containing text.
 
     Args:
         context (mako.runtime.Context): Unused.
