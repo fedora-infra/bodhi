@@ -4942,7 +4942,8 @@ class TestUpdatesService(BaseTestCase):
         self.db.add(build)
         update = Update(title=oldbuild, builds=[build], type=UpdateType.bugfix,
                         request=UpdateRequest.testing, notes=u'second update',
-                        user=update.user, release=update.release)
+                        user=update.user, release=update.release,
+                        stable_karma=3, unstable_karma=-3)
         update.comment(self.db, u"foo1", 1, u'foo1')
         update.comment(self.db, u"foo2", 1, u'foo2')
         update.comment(self.db, u"foo3", 1, u'foo3')

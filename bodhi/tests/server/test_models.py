@@ -3169,38 +3169,6 @@ class TestUpdate(ModelTest):
         # meets_testing_requirement() should return True since the karma threshold has been reached
         self.assertEqual(self.obj.meets_testing_requirements, True)
 
-    def test_meets_testing_requirements_with_non_autokarma_update_with_stable_karma_0(self):
-        """
-        Assert that meets_testing_requirements() correctly returns False for non-autokarma updates
-        that haven't reached the days in testing but have stable_karma set to 0 (indicating that the
-        update must stay in testing for the full amount of time).
-        """
-        self.obj.autokarma = False
-        self.obj.status = UpdateStatus.testing
-        self.obj.stable_karma = 0
-        # Now let's add some karma to get it above stable_karma, which should not be counted as
-        # meeting the requirements.
-        self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
-
-        # meets_testing_requirement() should return False since the stable_karma threshold is 0.
-        self.assertEqual(self.obj.meets_testing_requirements, False)
-
-    def test_meets_testing_requirements_with_non_autokarma_update_with_stable_karma_None(self):
-        """
-        Assert that meets_testing_requirements() correctly returns False for non-autokarma updates
-        that haven't reached the days in testing but have stable_karma set to None (indicating that
-        the update must stay in testing for the full amount of time).
-        """
-        self.obj.autokarma = False
-        self.obj.status = UpdateStatus.testing
-        self.obj.stable_karma = None
-        # Now let's add some karma to get it above stable_karma, which should not be counted as
-        # meeting the requirements.
-        self.obj.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
-
-        # meets_testing_requirement() should return False since the stable_karma threshold is None.
-        self.assertEqual(self.obj.meets_testing_requirements, False)
-
     def test_meets_testing_requirements_critpath_negative_karma(self):
         """
         Assert that meets_testing_requirements() correctly returns False for critpath updates
@@ -3693,7 +3661,9 @@ class TestUpdate(ModelTest):
             request=UpdateRequest.stable,
             type=UpdateType.enhancement,
             notes=u'Useful details!',
-            test_gating_status=TestGatingStatus.passed)
+            test_gating_status=TestGatingStatus.passed,
+            stable_karma=3,
+            unstable_karma=-3)
         update.release = release
         self.db.add(update)
         self.db.flush()

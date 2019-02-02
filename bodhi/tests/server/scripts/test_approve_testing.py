@@ -1,4 +1,4 @@
-# Copyright © 2016-2018 Red Hat, Inc. and others.
+# Copyright © 2016-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -340,60 +340,6 @@ class TestMain(BaseTestCase):
             config.get('testing_approval_msg') % update.mandatory_days_in_testing)
         self.assertEqual(update.release.mandatory_days_in_testing, 7)
         self.assertEqual(update.mandatory_days_in_testing, 14)
-
-    def test_non_autokarma_update_with_stable_karma_0(self):
-        """
-        A non-autokarma update with a stable_karma set to 0 should not get comments from Bodhi.
-        """
-        update = self.db.query(models.Update).all()[0]
-        update.autokarma = False
-        update.request = None
-        update.stable_karma = 0
-        update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
-        with fml_testing.mock_sends(api.Message):
-            self.db.commit()
-
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends():
-                    approve_testing.main(['nosetests', 'some_config.ini'])
-
-        # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
-        # There are three comments, but none from the non-existing bodhi user.
-        self.assertEqual(self.db.query(models.Comment).count(), 3)
-        usernames = [
-            c.user.name
-            for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
-        self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
-
-    def test_non_autokarma_update_with_stable_karma_None(self):
-        """
-        A non-autokarma update with a stable_karma set to None should not get comments from Bodhi.
-        """
-        update = self.db.query(models.Update).all()[0]
-        update.autokarma = False
-        update.request = None
-        update.stable_karma = None
-        update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', anonymous=False, karma=1)
-        with fml_testing.mock_sends(api.Message):
-            self.db.commit()
-
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends():
-                    approve_testing.main(['nosetests', 'some_config.ini'])
-
-        # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
-        # There are three comments, but none from the non-existing bodhi user.
-        self.assertEqual(self.db.query(models.Comment).count(), 3)
-        usernames = [
-            c.user.name
-            for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
-        self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
 
     def test_non_autokarma_update_with_unmet_karma_requirement(self):
         """

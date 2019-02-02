@@ -11,6 +11,7 @@ This is a major release with many backwards incompatible changes.
 Backwards incompatible changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+* Values NULL and 0 are not allowed in update's stable_karma and unstable_karma (:issue:`1029`).
 * Integration with pkgdb is no longer supported (:issue:`1970`).
 * The ``/admin/`` API has been removed (:issue:`1985`).
 * Support for CVE tracking was dropped. It was technically not possible to use the feature, so it

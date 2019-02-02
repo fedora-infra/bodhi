@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2008-2018 Red Hat, Inc. and others.
+# Copyright 2008-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -1234,7 +1234,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
     def test_with_autokarma_set(self):
         """
-        Ensure correct operation when autokarma is True, and stable/unstable karmas are set.
+        Ensure correct operation when autokarma is True..
         """
         client = bindings.BodhiClient(username='some_user', password='s3kr3t')
         client.base_url = 'http://example.com/tests/'
@@ -1245,20 +1245,18 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
     def test_with_autokarma_unset(self):
         """
-        Ensure correct operation when autokarma is Fale, and stable/unstable karmas are None.
+        Ensure correct operation when autokarma is False.
         """
         client = bindings.BodhiClient(username='some_user', password='s3kr3t')
         client.base_url = 'http://example.com/tests/'
         update = copy.deepcopy(client_test_data.EXAMPLE_UPDATE_MUNCH)
-        # Set the update's autokarma and thresholds to False/None.
+        # Set the update's autokarma and to False.
         update.autokarma = False
-        update.unstable_karma = None
-        update.stable_karma = None
 
         text = client.update_str(update)
 
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-            'Autokarma: True  [-3, 3]', 'Autokarma: False  [None, None]')
+            'Autokarma: True  [-3, 3]', 'Autokarma: False  [-3, 3]')
         self.assertTrue(compare_output(text, expected_output))
 
     def test_update_as_string(self):

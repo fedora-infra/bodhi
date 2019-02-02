@@ -539,7 +539,8 @@ That was the actual one''' % compose_dir
             session.add(build)
             update = Update(
                 title=otherbuild, builds=[build], type=UpdateType.bugfix,
-                request=UpdateRequest.testing, notes=u'second update', user=firstupdate.user)
+                request=UpdateRequest.testing, notes=u'second update', user=firstupdate.user,
+                stable_karma=3, unstable_karma=-3)
             update.release = firstupdate.release
             session.add(update)
             session.flush()
@@ -928,7 +929,9 @@ That was the actual one'''
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
                 notes=u'Useful details!', release=release,
-                test_gating_status=TestGatingStatus.passed)
+                test_gating_status=TestGatingStatus.passed,
+                stable_karma=3,
+                unstable_karma=-3)
             update.type = UpdateType.security
             db.add(update)
 
@@ -1018,7 +1021,9 @@ That was the actual one'''
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
                 notes=u'Useful details!', release=release,
-                test_gating_status=TestGatingStatus.passed)
+                test_gating_status=TestGatingStatus.passed,
+                stable_karma=3,
+                unstable_karma=-3)
             update.type = UpdateType.enhancement
             db.add(update)
 
@@ -1100,7 +1105,9 @@ That was the actual one'''
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
                 notes=u'Useful details!', release=release,
-                test_gating_status=TestGatingStatus.passed)
+                test_gating_status=TestGatingStatus.passed,
+                stable_karma=3,
+                unstable_karma=-3)
             update.type = UpdateType.security
             db.add(update)
 
@@ -1524,7 +1531,9 @@ That was the actual one'''
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
                 notes=u'Useful details!', release=release,
-                test_gating_status=TestGatingStatus.passed)
+                test_gating_status=TestGatingStatus.passed,
+                stable_karma=3,
+                unstable_karma=-3)
             update.type = UpdateType.security
             db.add(update)
 
@@ -2202,7 +2211,8 @@ testmodule:master:20172:2
             session.add(build)
             update = Update(
                 title=otherbuild, builds=[build], type=UpdateType.bugfix,
-                request=UpdateRequest.testing, notes=u'second update', user=oldupdate.user)
+                request=UpdateRequest.testing, notes=u'second update', user=oldupdate.user,
+                stable_karma=3, unstable_karma=-3)
             update.release = oldupdate.release
             session.add(update)
             session.flush()
@@ -2318,7 +2328,9 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
             status=UpdateStatus.pending,
             request=UpdateRequest.testing,
             notes=u'Neat I can compose containers now', release=release,
-            test_gating_status=TestGatingStatus.passed)
+            test_gating_status=TestGatingStatus.passed,
+            stable_karma=3,
+            unstable_karma=-3)
         update.type = UpdateType.bugfix
         self.db.add(update)
         # Wipe out the tag cache so it picks up our new release
@@ -2484,7 +2496,9 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
             status=UpdateStatus.pending,
             request=UpdateRequest.testing,
             notes=u'Neat I can compose flatpaks now', release=release,
-            test_gating_status=TestGatingStatus.passed)
+            test_gating_status=TestGatingStatus.passed,
+            stable_karma=3,
+            unstable_karma=-3)
         update.type = UpdateType.bugfix
         self.db.add(update)
         # Wipe out the tag cache so it picks up our new release

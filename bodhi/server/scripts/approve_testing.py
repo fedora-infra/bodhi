@@ -1,4 +1,4 @@
-# Copyright © 2013-2017 Red Hat, Inc. and others.
+# Copyright © 2013-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -85,7 +85,7 @@ def main(argv=sys.argv):
                 continue
 
             # Approval message when testing based on karma threshold
-            if update.stable_karma not in (0, None) and update.karma >= update.stable_karma \
+            if update.karma >= update.stable_karma \
                     and not update.autokarma and update.meets_testing_requirements:
                 print('%s now reaches stable karma threshold' % update.title)
                 text = config.get('testing_approval_msg_based_on_karma')

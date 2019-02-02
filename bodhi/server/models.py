@@ -1637,8 +1637,8 @@ class Update(Base):
     title = Column(UnicodeText, unique=True, default=None, index=True)
 
     autokarma = Column(Boolean, default=True, nullable=False)
-    stable_karma = Column(Integer, nullable=True)
-    unstable_karma = Column(Integer, nullable=True)
+    stable_karma = Column(Integer, nullable=False)
+    unstable_karma = Column(Integer, nullable=False)
     requirements = Column(UnicodeText)
     require_bugs = Column(Boolean, default=False)
     require_testcases = Column(Boolean, default=False)
@@ -2535,8 +2535,7 @@ class Update(Base):
         flash_notes = ''
         if action == UpdateRequest.stable and not self.critpath:
             # Check if we've met the karma requirements
-            if (self.stable_karma not in (None, 0) and self.karma >= self.stable_karma) \
-                    or self.critpath_approved:
+            if self.karma >= self.stable_karma or self.critpath_approved:
                 log.debug('%s meets stable karma requirements' % self.title)
             else:
                 # If we haven't met the stable karma requirements, check if it
@@ -2876,7 +2875,7 @@ class Update(Base):
             db (sqlalchemy.orm.session.Session): A database session.
         """
         if self.autokarma and self.status is UpdateStatus.pending \
-                and self.request is UpdateRequest.testing and self.unstable_karma not in (0, None) \
+                and self.request is UpdateRequest.testing\
                 and self.karma <= self.unstable_karma:
             log.info("%s has reached unstable karma thresholds" % self.title)
             self.obsolete(db)
@@ -3366,8 +3365,7 @@ class Update(Base):
 
         # non-autokarma updates have met the testing requirements if they've reached the karma
         # threshold.
-        if not self.autokarma and self.stable_karma not in (0, None)\
-                and self.karma >= self.stable_karma:
+        if not self.autokarma and self.karma >= self.stable_karma:
             return True
 
         # Any update that reaches num_days has met the testing requirements.
