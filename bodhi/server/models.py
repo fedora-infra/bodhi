@@ -3805,7 +3805,7 @@ class BugKarma(Base):
     bug = relationship("Bug", backref='feedback')
 
 
-# Used for many-to-many relationships between karma and a bug
+# Used for many-to-many relationships between karma and a TestCase
 class TestCaseKarma(Base):
     """
     Karma for a TestCase associated with a comment.
