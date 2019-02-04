@@ -53,8 +53,13 @@ def _set_concurrency(ctx, param, value):
     Returns:
         str: The value of the -j flag.
     """
-    global concurrency_semaphore
-    concurrency_semaphore = asyncio.Semaphore(value=value)
+    Job.concurrency_semaphore = asyncio.Semaphore(value=value)
+    # We don't want too many integration test jobs to run at once because they consume
+    # many system resources and will fail due to timeouts. Therefore, let's set another semaphore
+    # to limit how many of these can run at once that cannot be greater than an arbitrary value.
+    # The arbitrary value was chosen because it seems to work in a Vagrant guest on a
+    # Lenovo T480s.
+    IntegrationJob.extra_concurrency_semaphore = asyncio.Semaphore(value=max(1, value / 4))
     return value
 
 
@@ -102,7 +107,8 @@ archive_path_option = click.option(
     help='Define where test results should be placed if -a is used.')
 concurrency_option = click.option(
     '--concurrency', '-j', default=multiprocessing.cpu_count(), callback=_set_concurrency, type=int,
-    help='Number of concurrent processes to run. Defaults to the number of cores detected')
+    help=('Number of concurrent processes to run. Integration test runs are separately limited due '
+          'to resource contention. Defaults to the number of cores detected'))
 container_runtime_option = click.option(
     '--container-runtime', '-c', default='docker', type=click.Choice(['docker', 'podman']),
     help='Select the container runtime to use. Defaults to docker.',
@@ -127,7 +133,6 @@ releases_option = click.option(
 tty_option = click.option('--tty/--no-tty', default=True, help='Allocate a pseudo-TTY.',
                           callback=_set_global)
 
-concurrency_semaphore = None
 container_runtime = 'docker'
 failfast = False
 init = True
@@ -350,6 +355,24 @@ class ProgressReporter(object):
         click.echo('\n')
 
 
+class EmptySemaphore(object):
+    """
+    Implements a no-op context manager.
+
+    This is used as the initial value on Job for the concurrency_semaphore and
+    extra_concurrency_semaphore attributes so that they can be assumed to work with the async with
+    statement if they are used without being turned into Semaphores.
+    """
+
+    async def __aenter__(self, *args, **kwargs):
+        """Calls pass."""
+        pass
+
+    async def __aexit__(self, *args, **kwargs):
+        """Calls pass."""
+        pass
+
+
 class Job(object):
     """
     Represent a CI job.
@@ -374,6 +397,12 @@ class Job(object):
     # A template to name the image that is built. CONTAINER_NAME and the release gets substituted
     # into the {}'s.
     _container_image_template = '{}/{}'
+    # Limit how many Jobs can run at once. This is set by _set_concurrency().
+    concurrency_semaphore = EmptySemaphore()
+    # Jobs can set this if they want to have some additional limitations on how many of them can
+    # run at once. The IntegrationJob uses this, for example, so that we don't run too many of
+    # them no matter what the -j flag is set to. This is set by _set_concurrency().
+    extra_concurrency_semaphore = EmptySemaphore()
 
     def __init__(self, release: str,
                  depends_on: typing.Union[typing.List['Job'], 'Job'] = None,
@@ -452,7 +481,7 @@ class Job(object):
                     # If the Job we depend on failed, we should cancel.
                     raise asyncio.CancelledError()
 
-            async with concurrency_semaphore:
+            async with self.extra_concurrency_semaphore, self.concurrency_semaphore:
                 # It's possible that we got cancelled while we were waiting on the Semaphore.
                 if not self.cancelled:
                     self._pre_start_hook()
