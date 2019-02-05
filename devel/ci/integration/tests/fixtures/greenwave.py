@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2018-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import docker.errors
 import pytest
 
 from ..utils import make_db_and_user
@@ -46,5 +47,10 @@ def greenwave_container(docker_backend, docker_network, db_container):
     # we need to wait for the webserver to start serving
     container.wait_for_port(8080, timeout=-1)
     yield container
-    container.kill()
+    try:
+        container.kill()
+    except docker.errors.APIError:
+        # Sometimes the container is not running, so this will raise an Exception. Since our goal
+        # is that the container is not running, this is OK.
+        pass
     container.delete()
