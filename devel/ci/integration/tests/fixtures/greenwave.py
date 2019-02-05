@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import conu.utils.probes
 import docker.errors
 import pytest
 
@@ -44,8 +45,15 @@ def greenwave_container(docker_backend, docker_network, db_container):
     docker_backend.d.connect_container_to_network(
         container.get_id(), docker_network["Id"], aliases=["greenwave"],
     )
-    # we need to wait for the webserver to start serving
-    container.wait_for_port(8080, timeout=-1)
+    try:
+        # we need to wait for the webserver to start serving
+        container.wait_for_port(8080, timeout=16)
+    except conu.utils.probes.ProbeTimeout:
+        for log in container.logs():
+            # Let's print out the logs from the container in the hopes that they will help us debug
+            # why it isn't starting.
+            print(log)
+        raise
     yield container
     try:
         container.kill()
