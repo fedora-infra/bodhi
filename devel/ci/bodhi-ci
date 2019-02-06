@@ -1129,6 +1129,7 @@ def _build_jobs_list(
         # Download the DB dumps
         integration_deps_build_jobs.extend([
             IntegrationDumpDownloadJob(app_name="waiverdb", release="prod", buffer_output=buffer_output),
+            IntegrationDumpDownloadJob(app_name="bodhi2", release="prod", buffer_output=buffer_output),
         ])
         jobs.extend(integration_deps_build_jobs)
     for release in releases:
@@ -1170,8 +1171,6 @@ def _build_jobs_list(
             integration_build_jobs.extend([
                 IntegrationBodhiBuildJob(
                     release=release, depends_on=build_job, buffer_output=buffer_output),
-                # Download the DB dump too
-                IntegrationDumpDownloadJob(app_name="bodhi2", release="prod", buffer_output=buffer_output),
             ])
             jobs.extend(integration_build_jobs)
         if command in ('all', 'integration') and 3 in pyvers:
