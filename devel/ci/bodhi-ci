@@ -1017,13 +1017,37 @@ class IntegrationDumpDownloadJob(BuildJob):
 
         self._app_name = app_name
         self._label = 'integration-dump-download-{}'.format(app_name)
-        filepath = os.path.join("devel", "ci", "integration", "dumps", "{}.dump".format(self._app_name))
+        self.filepath = os.path.join(
+            "devel", "ci", "integration", "dumps", "{}.dump".format(self._app_name))
         url = "https://infrastructure.fedoraproject.org/infra/db-dumps/{app}.dump.xz".format(app=self._app_name)
         self._popen_kwargs['shell'] = True
-        self._command = ["curl -o {filepath}.xz -R -z {filepath}.xz {url} && xz -d --keep --force {filepath}.xz".format(url=url, filepath=filepath)]
+        self._command = [
+            (f"curl -o {self.filepath}.xz {url} && xz -d --keep --force {self.filepath}.xz")]
 
     def __repr__(self):
         return "<{} app={!r}>".format(self.__class__.__name__, self._app_name)
+
+    async def run(self) -> 'IntegrationDumpDownloadJob':
+        """
+        Run the download, unless we already have the file and it's recent enough.
+
+        Returns:
+            Returns self.
+        """
+        if os.path.exists(self.filepath):
+            # st_mtime is going to use the filesystem's timestamp, not necessarily UTC. Thus, we
+            # will use tz=None on fromttimestamp() so that the time is expressed in the system's
+            # local time. Therefore, we also need to collect the current time in the system's local
+            # time for comparison.
+            modified_time = datetime.datetime.fromtimestamp(os.stat(self.filepath).st_mtime)
+            if datetime.datetime.now() - modified_time < datetime.timedelta(days=1):
+                # Our download is within a day and infrastructure only produces downloads once a
+                # day, so let's skip this task.
+                self.complete.set()
+                self.skipped = True
+        else:
+            await super(IntegrationDumpDownloadJob, self).run()
+        return self
 
 
 class IntegrationJob(Job):
