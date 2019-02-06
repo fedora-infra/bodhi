@@ -299,6 +299,15 @@ def integration_build(concurrency, container_runtime, failfast, pyver, release, 
     _run_jobs(_build_jobs_list('integration-build', concurrency, release, pyvers=pyver))
 
 
+@cli.command("integration-download")
+@concurrency_option
+@failfast_option
+@tty_option
+def integration_download(concurrency, failfast, tty):
+    """Download the database dumps for integration testing."""
+    _run_jobs(_build_jobs_list('integration-download', concurrency, releases=[], pyvers=[3]))
+
+
 @cli.command()
 @archive_option
 @concurrency_option
@@ -1145,11 +1154,13 @@ def _build_jobs_list(
         buffer_output = concurrency != 1 and len(releases) != 1
     jobs = []  # type: typing.List[Job]
     integration_deps_build_jobs = []  # type: typing.List[Job]
-    if command in ('all', 'integration-build', 'integration') and 3 in pyvers:
-        integration_deps_build_jobs.extend([
-            IntegrationBuildJob(app_name=app_name, release="prod", buffer_output=buffer_output)
-            for app_name in ("resultsdb", "waiverdb", "greenwave")
-        ])
+    if command in ('all', 'integration-build', 'integration', 'integration-download') \
+            and 3 in pyvers:
+        if command != 'integration-download':
+            integration_deps_build_jobs.extend([
+                IntegrationBuildJob(app_name=app_name, release="prod", buffer_output=buffer_output)
+                for app_name in ("resultsdb", "waiverdb", "greenwave")
+            ])
         # Download the DB dumps
         integration_deps_build_jobs.extend([
             IntegrationDumpDownloadJob(app_name="waiverdb", release="prod", buffer_output=buffer_output),

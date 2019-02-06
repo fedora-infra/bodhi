@@ -155,6 +155,9 @@ node('bodhi') {
             synctoduffynode('bodhi')
         }
 
+        // Download the database dumps for the integration tests.
+        onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci integration-download --no-tty'
+
         parallel(
             f28: {test_release('f28')},
             f29: {test_release('f29')},
