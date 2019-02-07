@@ -36,6 +36,7 @@ Backwards incompatible changes
 * Support for update's old_updateid was dropped (:issue:`2903`).
 * The batching feature was dropped, and thus updates can no longer be in the batched request state.
   As a result, the bodhi-dequeue-stable CLI has also been removed (:issue:`2977`).
+* Support for obsolete scripts in ``tools`` folder was dropped (:issue:`2980`).
 * Bug objects no longer include a ``private`` field (:issue:`3016`).
 
 
