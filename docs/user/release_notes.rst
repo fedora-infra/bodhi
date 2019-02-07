@@ -34,6 +34,7 @@ Backwards incompatible changes
 * Support for ``active_releases`` parameter in updates query API was droped (:issue:`2815`).
 * The ``/updates/ALIAS/TITLE`` API has been removed (:issue:`2869`).
 * Support for update's old_updateid was dropped (:issue:`2903`).
+* Support for update's greenwave_unsatisfied_requirements was dropped (:issue:`2958`).
 * The batching feature was dropped, and thus updates can no longer be in the batched request state.
   As a result, the bodhi-dequeue-stable CLI has also been removed (:issue:`2977`).
 * Support for obsolete scripts in ``tools`` folder was dropped (:issue:`2980`).

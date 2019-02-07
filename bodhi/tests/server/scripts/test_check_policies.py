@@ -19,7 +19,6 @@
 
 from mock import patch
 import datetime
-import json
 
 from click import testing
 
@@ -51,7 +50,6 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.passed)
             self.assertEqual(update.greenwave_summary_string, 'All tests passed')
-            self.assertIsNone(update.greenwave_unsatisfied_requirements)
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
@@ -86,7 +84,6 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.passed)
             self.assertEqual(update.greenwave_summary_string, 'All tests passed')
-            self.assertIsNone(update.greenwave_unsatisfied_requirements)
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_testing',
@@ -128,8 +125,6 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
             self.assertEqual(update.greenwave_summary_string, '1 of 2 tests are failed')
-            self.assertEqual(update.greenwave_unsatisfied_requirements,
-                             json.dumps(greenwave_response['unsatisfied_requirements']))
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',

@@ -18,7 +18,6 @@
 """This test suite contains tests for the bodhi.server.consumers.updates module."""
 
 import copy
-import json
 import mock
 import unittest
 
@@ -175,7 +174,6 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
         self.assertIsNone(update.test_gating_status)
         self.assertIsNone(update.greenwave_summary_string)
-        self.assertIsNone(update.greenwave_unsatisfied_requirements)
         sleep.assert_called_once_with(1)
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
@@ -216,8 +214,6 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
         self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
         self.assertEqual(update.greenwave_summary_string, u'what have you done‽')
-        self.assertEqual(update.greenwave_unsatisfied_requirements,
-                         json.dumps(greenwave_response['unsatisfied_requirements']))
         sleep.assert_called_once_with(1)
 
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
