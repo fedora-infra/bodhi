@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2018-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -19,6 +19,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import logging
+import uuid
 
 import pytest
 from conu import DockerBackend
@@ -46,6 +47,6 @@ def docker_network(docker_backend):
     Yields:
         dict: The Docker network.
     """
-    network = docker_backend.d.create_network("bodhi_test", driver="bridge")
+    network = docker_backend.d.create_network(f"bodhi_test-{uuid.uuid4()}", driver="bridge")
     yield network
     docker_backend.d.remove_network(network["Id"])
