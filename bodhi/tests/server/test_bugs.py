@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for bodhi.server.bugs."""
 
+from unittest import mock
 import unittest
-import mock
 import xmlrpc.client
 
 from bodhi.server import bugs, models

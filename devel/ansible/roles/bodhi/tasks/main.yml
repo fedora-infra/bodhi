@@ -25,12 +25,6 @@
       - pcp-system-tools
       - postgresql-devel
       - postgresql-server
-      - python2-click
-      - python2-fedora
-      - python2-ipdb
-      - python2-koji
-      - python2-mock
-      - python2-pytest-cov
       - python3-arrow
       - python3-bleach
       - python3-click
@@ -49,7 +43,6 @@
       - python3-koji
       - python3-librepo
       - python3-markdown
-      - python3-mock
       - python3-munch
       - python3-openid
       - python3-pillow
@@ -116,12 +109,6 @@
       src: /usr/bin/true
       dest: /usr/bin/pungi-koji
       state: link
-
-- name: Install bodhi in developer mode
-  command: python /home/vagrant/bodhi/setup.py develop
-  args:
-      chdir: /home/vagrant/bodhi
-      creates: /usr/lib/python2.7/site-packages/bodhi.egg-link
 
 - name: Get Python 3 version
   command: python3 -c "import sys; print('%s.%s' % sys.version_info[0:2])"

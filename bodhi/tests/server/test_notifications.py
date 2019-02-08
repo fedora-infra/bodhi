@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test module contains tests for bodhi.server.notifications."""
 
-import mock
+from unittest import mock
 import unittest
 
 from fedora_messaging import api, testing as fml_testing, exceptions as fml_exceptions

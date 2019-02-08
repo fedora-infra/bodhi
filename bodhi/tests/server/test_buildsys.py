@@ -18,7 +18,7 @@
 """This test suite contains tests for the bodhi.server.buildsys module."""
 
 from threading import Lock
-import mock
+from unittest import mock
 import unittest
 
 import koji

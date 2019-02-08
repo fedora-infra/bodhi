@@ -1,4 +1,4 @@
-# Copyright © 2016-2018 Red Hat, Inc. and Caleigh Runge-Hotman
+# Copyright © 2016-2019 Red Hat, Inc. and Caleigh Runge-Hotman
 #
 # This file is part of Bodhi.
 #
@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for the bodhi.server.consumers.updates module."""
 
+from unittest import mock
 import copy
-import mock
 import unittest
 
 import sqlalchemy

@@ -112,16 +112,13 @@ def test_release = { String release ->
                 bodhi_ci(release, 'mypy', 'mypy', '--no-build --no-init')
             }
         },
-        unitpy2: {
-            bodhi_ci(release, 'unit', 'python2-unit', '--no-build --no-init -p 2')
-        },
-        unitpy3: {
-            bodhi_ci(release, 'unit', 'python3-unit', '--no-build --no-init -p 3')
-            bodhi_ci(release, 'diff_cover', 'python3-diff-cover', '--no-build --no-init -p 3')
+        unit: {
+            bodhi_ci(release, 'unit', 'unit', '--no-build --no-init')
+            bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init')
         },
         integration: {
-            bodhi_ci(release, 'integration-build', 'python3-integration-build', '-p 3')
-            bodhi_ci(release, 'integration', 'python3-integration', '--no-build --no-init -p 3')
+            bodhi_ci(release, 'integration-build', 'integration-build', '')
+            bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
         }
     )
 }

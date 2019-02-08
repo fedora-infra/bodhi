@@ -29,8 +29,8 @@ Backwards incompatible changes
 * The ``bodhi-monitor-composes`` script has been removed (:issue:`2171`).
 * The stacks feature has been removed (:issue:`2241`).
 * The ``bodhi-manage-releases`` script has been removed (:issue:`2420`).
-* Bodhi server no longer supports Python 2. Python 3 is the only supported Python release
-  (:issue:`2759`).
+* Bodhi client and server no longer support Python 2. Python 3.6+ are the only supported Python
+  releases (:issue:`2759`).
 * Support for the ``ci_url`` on the ``Build`` object was dropped (:issue:`2782`).
 * Support for ``active_releases`` parameter in updates query API was droped (:issue:`2815`).
 * The ``/updates/ALIAS/TITLE`` API has been removed (:issue:`2869`).
@@ -46,7 +46,7 @@ Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
 * pkgdb is no longer required (:issue:`1970`).
-* six is no longer required for the server (:issue:`2759`).
+* six is no longer required for the client or server (:issue:`2759`).
 
 
 Server upgrade instructions

@@ -1,3 +1,7 @@
+# Copyright © 2016-2019 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -15,7 +19,7 @@
 This module contains tests for the bodhi.server.scripts.clean_old_composes module.
 """
 
-from mock import patch
+from unittest.mock import patch
 import os
 import shutil
 import tempfile

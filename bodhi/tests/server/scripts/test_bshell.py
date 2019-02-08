@@ -1,4 +1,4 @@
-# Copyright © 2018 Sebastian Wojciechowski
+# Copyright © 2018-2019 Sebastian Wojciechowski
 #
 # This file is part of Bodhi.
 #
@@ -19,7 +19,7 @@
 This module contains tests for the bodhi.server.scripts.bshell module.
 """
 
-from mock import patch
+from unittest.mock import patch
 import unittest
 
 from click import testing

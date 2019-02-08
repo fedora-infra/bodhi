@@ -1,4 +1,4 @@
-# Copyright 2017-2018 Red Hat, Inc.
+# Copyright 2017-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Tests for bodhi.server.mail."""
 
-import mock
+from unittest import mock
 import os
 import smtplib
 import unittest

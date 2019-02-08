@@ -28,7 +28,6 @@ import re
 import functools
 
 import click
-import six
 import munch
 
 from bodhi.client import bindings
@@ -308,7 +307,7 @@ def info_compose(release, request, url, **kwargs):
     try:
         resp = client.get_compose(release, request)
     except bindings.ComposeNotFound as exc:
-        raise click.BadParameter(six.text_type(exc), param_hint='RELEASE/REQUEST')
+        raise click.BadParameter(str(exc), param_hint='RELEASE/REQUEST')
 
     print_resp(resp, client)
 
@@ -621,7 +620,7 @@ def request(update, state, user, password, url, openid_api, **kwargs):
     try:
         resp = client.request(update, state)
     except bindings.UpdateNotFound as exc:
-        raise click.BadParameter(six.text_type(exc), param_hint='UPDATE')
+        raise click.BadParameter(str(exc), param_hint='UPDATE')
 
     print_resp(resp, client)
 

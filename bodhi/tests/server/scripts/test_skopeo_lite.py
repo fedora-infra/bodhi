@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2018-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -20,9 +20,9 @@
 from base64 import b64encode
 from contextlib import contextmanager
 from urllib.parse import urlparse
+from unittest import mock
 import hashlib
 import json
-import mock
 import os
 import re
 import shutil

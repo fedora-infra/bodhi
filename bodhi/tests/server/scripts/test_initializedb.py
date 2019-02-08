@@ -1,4 +1,4 @@
-# Copyright © 2017-2018 Red Hat, Inc.
+# Copyright © 2017-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -18,7 +18,7 @@
 """Contains tests for the bodhi.server.scripts.initializedb module."""
 
 from io import StringIO
-import mock
+from unittest import mock
 import unittest
 
 from bodhi.server.scripts import initializedb

@@ -25,6 +25,7 @@ This module provides Python bindings to the Bodhi REST API.
 .. moduleauthor:: Randy Barlow <bowlofeggs@fedoraproject.org>
 """
 
+import configparser
 import datetime
 import functools
 import getpass
@@ -35,8 +36,6 @@ import os
 import re
 import textwrap
 
-from six.moves import configparser
-from six.moves import input
 try:
     import dnf
 except ImportError:  # pragma: no cover
@@ -44,7 +43,6 @@ except ImportError:  # pragma: no cover
     dnf = None  # pragma: no cover
 import koji
 import requests.exceptions
-import six
 
 from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError, ServerError
 import fedora.client.openidproxyclient
@@ -69,7 +67,7 @@ class UpdateNotFound(BodhiClientException):
 
     def __init__(self, update):
         """Initialize the Exception."""
-        self.update = six.text_type(update)
+        self.update = str(update)
 
     def __unicode__(self):
         """
@@ -89,8 +87,8 @@ class ComposeNotFound(BodhiClientException):
 
     def __init__(self, release, request):
         """Initialize the Exception."""
-        self.release = six.text_type(release)
-        self.request = six.text_type(request)
+        self.release = str(release)
+        self.request = str(request)
 
     def __unicode__(self):
         """
@@ -739,7 +737,7 @@ class BodhiClient(OpenIdBaseClient):
         Returns:
             basestring: A human readable string describing the given override.
         """
-        if isinstance(override, six.string_types):
+        if isinstance(override, str):
             return override
 
         if minimal:
@@ -770,7 +768,7 @@ class BodhiClient(OpenIdBaseClient):
         Returns:
             basestring: A human readable string describing the given update.
         """
-        if isinstance(update, six.string_types):
+        if isinstance(update, str):
             return update
         if minimal:
             val = ""
@@ -852,7 +850,7 @@ class BodhiClient(OpenIdBaseClient):
                 waiver_line_formatter = line_formatter.replace(': ', '  ')
                 update_lines += [
                     waiver_line_formatter.format(indent, line)
-                    for indent, line in six.moves.zip(
+                    for indent, line in zip(
                         itertools.repeat(' ', len(waivers_lines) - 1),
                         waivers_lines[1:])
                 ]
@@ -868,7 +866,7 @@ class BodhiClient(OpenIdBaseClient):
             indent_lines = ['Bugs'] + [' '] * (len(bugs) - 1)
             update_lines += [
                 line_formatter.format(indent, line)
-                for indent, line in six.moves.zip(indent_lines, bugs)
+                for indent, line in zip(indent_lines, bugs)
             ]
 
         if update['notes']:
@@ -876,7 +874,7 @@ class BodhiClient(OpenIdBaseClient):
                 *[wrap_line(line) for line in update['notes'].splitlines()]
             ))
             indent_lines = ['Notes'] + [' '] * (len(notes_lines) - 1)
-            for indent, line in six.moves.zip(indent_lines, notes_lines):
+            for indent, line in zip(indent_lines, notes_lines):
                 update_lines.append(line_formatter.format(indent, line))
 
         update_lines += [
@@ -897,7 +895,7 @@ class BodhiClient(OpenIdBaseClient):
             comment_line_formatter = line_formatter.replace(': ', '  ')
             update_lines += [
                 comment_line_formatter.format(indent, line)
-                for indent, line in six.moves.zip(
+                for indent, line in zip(
                     itertools.repeat(' ', len(comments_lines) - 1),
                     comments_lines[1:])
             ]

@@ -1,4 +1,4 @@
-# Copyright © 2016-2018 Red Hat, Inc.
+# Copyright © 2016-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test suite contains tests for the bodhi.server.consumers.signed module."""
 
-import mock
+from unittest import mock
 import unittest
 
 from bodhi.server.consumers import signed

@@ -1,4 +1,4 @@
-# Copyright © 2016-2018 Red Hat, Inc.
+# Copyright © 2016-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Contains a useful base test class that helps with common testing needs for bodhi.server."""
 from contextlib import contextmanager
-import mock
+from unittest import mock
 import os
 import subprocess
 import unittest

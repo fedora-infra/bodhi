@@ -1,4 +1,4 @@
-# Copyright © 2017-2018 Red Hat, Inc.
+# Copyright © 2017-2019 Red Hat, Inc.
 #
 # This file is part of bodhi.
 #
@@ -16,8 +16,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.validators."""
+from unittest import mock
 import datetime
-import mock
 import unittest
 
 from cornice.errors import Errors

@@ -18,7 +18,7 @@
 """Test the bodhi.server package."""
 
 from datetime import datetime, timedelta
-import mock
+from unittest import mock
 
 import sqlalchemy
 

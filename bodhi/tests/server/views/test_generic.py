@@ -1,4 +1,4 @@
-# Copyright 2014-2018 Red Hat, Inc. and others.
+# Copyright 2014-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from datetime import datetime
+from unittest import mock
 import copy
-import mock
 import re
 
 import webtest

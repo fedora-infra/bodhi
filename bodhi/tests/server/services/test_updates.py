@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.updates."""
 from datetime import datetime, timedelta
-from mock import ANY
+from unittest import mock
+from unittest.mock import ANY
 from urllib import parse as urlparse
 import copy
-import mock
 import re
 import textwrap
 import time

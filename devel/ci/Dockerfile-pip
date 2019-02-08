@@ -12,7 +12,6 @@ RUN dnf install -y \
     findutils \
     git \
     liberation-mono-fonts \
-    python2-koji \
     python3-createrepo_c \
     python3-hawkey \
     python3-koji \
@@ -20,7 +19,7 @@ RUN dnf install -y \
     gcc \
     gcc-c++ \
     graphviz \
-    python2-devel \
+    make \
     python3-devel \
     python3-librepo \
     python3-simplemediawiki \
@@ -30,19 +29,11 @@ RUN dnf install -y \
 COPY requirements.txt /bodhi/requirements.txt
 
 RUN pip-3 install -r /bodhi/requirements.txt
-RUN pip-2 install \
-    click \
-    diff-cover \
-    mock \
-    pytest \
-    pytest-cov \
-    python-fedora
 RUN pip-3 install \
     alembic \
     cornice_sphinx \
     diff-cover \
     flake8 \
-    mock \
     responses \
     pydocstyle \
     pytest \

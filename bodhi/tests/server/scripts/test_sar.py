@@ -19,9 +19,9 @@
 This module contains tests for the bodhi.server.scripts.sar module.
 """
 
-import mock
 import os
 from datetime import datetime
+from unittest import mock
 
 from click import testing
 

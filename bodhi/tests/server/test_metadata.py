@@ -19,8 +19,8 @@
 from datetime import datetime, timedelta
 from hashlib import sha256
 from os.path import join, exists, basename
+from unittest import mock
 import glob
-import mock
 import os
 import shutil
 import tempfile

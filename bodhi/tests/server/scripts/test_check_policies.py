@@ -1,4 +1,4 @@
-# Copyright © 2017-2018 Red Hat, Inc.
+# Copyright © 2017-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for the bodhi.server.scripts.check_policies module."""
 
-from mock import patch
+from unittest.mock import patch
 import datetime
 
 from click import testing

@@ -12,15 +12,10 @@ RUN dnf install --disablerepo rawhide-modular -y \
     findutils \
     git \
     liberation-mono-fonts \
-    python2-click \
-    python2-fedora \
-    python2-koji \
     python3-createrepo_c \
     python3-hawkey \
     python3-koji \
     make \
-    python2-mock \
-    python2-pytest-cov \
     python3-alembic \
     python3-arrow \
     python3-bleach \
@@ -39,7 +34,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-libcomps \
     python3-librepo \
     python3-markdown \
-    python3-mock \
     python3-munch \
     python3-openid \
     python3-pillow \
@@ -52,10 +46,8 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-pytest-cov \
     python3-responses \
     python3-simplemediawiki \
-    python3-six \
     python3-sqlalchemy \
     python3-webtest \
-    python2-munch \
     python3-cornice \
     python3-cornice-sphinx \
     python3-pyramid-fas-openid

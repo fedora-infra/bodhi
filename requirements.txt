@@ -16,7 +16,7 @@ markdown
 # for captchas
 Pillow
 psycopg2
-py3dns; python_version >= '3.0'  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
+py3dns  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 pylibravatar
 pyramid>=1.7
 pyramid_fas_openid
@@ -24,6 +24,5 @@ pyramid_mako
 python-bugzilla
 python-fedora
 simplemediawiki
-six
 sqlalchemy
 waitress

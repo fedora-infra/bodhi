@@ -64,7 +64,7 @@ setup(
     version=VERSION,
     description='bodhi common package',
     long_description=README,
-    classifiers=CLASSIFIERS + ['Programming Language :: Python :: 2.7'],
+    classifiers=CLASSIFIERS,
     license=LICENSE,
     maintainer=MAINTAINER,
     maintainer_email=MAINTAINER_EMAIL,
@@ -80,8 +80,6 @@ setup(
         'pytest',
         'pytest-cov',
         'webtest',
-        'mock',
-        'six',
         'conu >= 0.5.0',
         'munch',
         'psycopg2',
@@ -98,7 +96,7 @@ setup(
     version=VERSION,
     description='bodhi client',
     long_description=README,
-    classifiers=CLASSIFIERS + ['Programming Language :: Python :: 2.7'],
+    classifiers=CLASSIFIERS,
     license=LICENSE,
     maintainer=MAINTAINER,
     maintainer_email=MAINTAINER_EMAIL,
@@ -108,7 +106,7 @@ setup(
     packages=['bodhi.client'],
     include_package_data=False,
     zip_safe=False,
-    install_requires=['click', 'python-fedora >= 0.9.0', 'six'],
+    install_requires=['click', 'python-fedora >= 0.9.0'],
     entry_points="""\
     [console_scripts]
     bodhi = bodhi.client:cli

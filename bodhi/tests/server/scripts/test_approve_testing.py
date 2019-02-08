@@ -20,7 +20,7 @@ This module contains tests for the bodhi.server.scripts.approve_testing module.
 """
 from datetime import datetime, timedelta
 from io import StringIO
-from mock import call, patch
+from unittest.mock import call, patch
 
 from fedora_messaging import api, testing as fml_testing
 

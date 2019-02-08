@@ -18,7 +18,7 @@
 """This test suite contains tests on the bodhi.server.push module."""
 
 from datetime import datetime
-import mock
+from unittest import mock
 
 from click.testing import CliRunner
 import click
