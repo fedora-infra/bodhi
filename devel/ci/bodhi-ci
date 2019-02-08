@@ -1054,9 +1054,9 @@ class IntegrationDumpDownloadJob(BuildJob):
                 # day, so let's skip this task.
                 self.complete.set()
                 self.skipped = True
-        else:
-            await super(IntegrationDumpDownloadJob, self).run()
-        return self
+                return self
+
+        return await super(IntegrationDumpDownloadJob, self).run()
 
 
 class IntegrationJob(Job):
