@@ -1517,6 +1517,8 @@ def update_install_command(context, update):
         update (bodhi.server.models.Update): The Update you want to install.
     Returns:
         basestring: The dnf command to install the Update.
+    Raises:
+        ValueError: When provided update is not in stable or testing state.
     """
     status = str(update.status)
     alias = update.alias

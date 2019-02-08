@@ -54,10 +54,10 @@ in the guest. You can edit this code on the host, and the vagrant-sshfs plugin w
 changes to automatically be reflected in the guest's ``/home/vagrant/bodhi`` folder.
 
 The development server is run inside the Vagrant environment by the ``bodhi.service`` systemd unit.
-You can use ``bshell`` to get a Python shell quickly set up with a nice environment for you to hack
-in. Here's an example where we use ``bshell`` to set an update's request to stable::
+You can use ``bodhi-shell`` to get a Python shell quickly set up with a nice environment for you to hack
+in. Here's an example where we use ``bodhi-shell`` to set an update's request to stable::
 
-	[vagrant@bodhi-dev bodhi]$ bshell
+	[vagrant@bodhi-dev bodhi]$ bodhi-shell
 	2017-11-02 21:08:56,359 INFO  [bodhi][MainThread] Using the FakeBugTracker
 	2017-11-02 21:08:56,359 DEBUG [bodhi][MainThread] Using DevBuildsys
 	Python 2.7.13 (default, May 10 2017, 20:04:28) 
