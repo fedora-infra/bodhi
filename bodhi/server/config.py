@@ -428,6 +428,9 @@ class BodhiConfig(dict):
         'fedmsg_enabled': {
             'value': False,
             'validator': _validate_bool},
+        'fedmsg_gateway': {
+            'value': 'wss://hub.fedoraproject.org:9939',
+            'validator': str},
         'file_url': {
             'value': 'https://download.fedoraproject.org/pub/fedora/linux/updates',
             'validator': str},
