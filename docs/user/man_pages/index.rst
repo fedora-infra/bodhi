@@ -9,7 +9,6 @@ Man pages
    bodhi-approve-testing
    bodhi-check-policies
    bodhi-clean-old-mashes
-   bodhi-dequeue-stable
    bodhi-expire-overrides
    bodhi-push
    bodhi-sar

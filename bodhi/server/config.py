@@ -591,9 +591,6 @@ class BodhiConfig(dict):
             'value': ('%s has been pushed to the %s repository. If problems still persist, please '
                       'make note of it in this bug report.'),
             'validator': str},
-        'stable_from_batched_msg': {
-            'value': ('This update has been dequeued from batched and is now entering stable.'),
-            'validator': str},
         'stats_blacklist': {
             'value': ['bodhi', 'anonymous', 'autoqa', 'taskotron'],
             'validator': _generate_list_validator()},

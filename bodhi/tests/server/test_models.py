@@ -2739,29 +2739,6 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.request, None)
         update.comment(self.db, u"foo", 1, u'biz')
         self.assertEqual(update.karma, 3)
-        self.assertEqual(update.request, UpdateRequest.batched)
-        publish.assert_called_with(topic='update.comment', msg=mock.ANY)
-
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_karma_on_stable_request_does_not_set_to_batched(self, publish):
-        """
-        Ensure that adding karma to an update that is going stable doesn't send it back to batched.
-
-        https://github.com/fedora-infra/bodhi/issues/1881
-        """
-        update = self.obj
-        update.request = None
-        update.status = UpdateStatus.testing
-        update.comment(self.db, u"foo", 1, u'foo')
-        update.comment(self.db, u"foo", 1, u'bar')
-        update.comment(self.db, u"foo", 1, u'biz')
-        self.assertEqual(update.request, UpdateRequest.batched)
-        # Simulate the stable cron job having run.
-        update.request = UpdateRequest.stable
-
-        update.comment(self.db, u"dont go back to batched!", 1, u'bowlofeggs')
-
-        # The update should stay at stable, rather than being set back to batched.
         self.assertEqual(update.request, UpdateRequest.stable)
         publish.assert_called_with(topic='update.comment', msg=mock.ANY)
 
@@ -2879,28 +2856,6 @@ class TestUpdate(ModelTest):
         self.assertEqual(
             link, (u"<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a>"
                    u" foo\xe9bar"))
-
-    def test_set_request_pending_batched(self):
-        """
-        Ensure that we can't submit an update to batched if it is pending, even if it has met the
-        minimum testing requirements.
-        """
-        req = DummyRequest(user=DummyUser())
-        req.errors = cornice.Errors()
-        req.koji = buildsys.get_session()
-        self.assertEqual(self.obj.status, UpdateStatus.pending)
-        self.obj.stable_karma = 1
-        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
-
-        with self.assertRaises(BodhiException) as exc:
-            self.obj.set_request(self.db, UpdateRequest.batched, req.user.name)
-
-        self.assertEqual(self.obj.request, UpdateRequest.testing)
-        self.assertEqual(self.obj.status, UpdateStatus.pending)
-        self.assertEqual(
-            str(exc.exception),
-            ('This update is not in the testing repository yet. It cannot be requested for '
-             'batching until it is in testing.'))
 
     def test_set_request_pending_stable(self):
         """Ensure that we can submit an update to stable if it is pending and has enough karma."""

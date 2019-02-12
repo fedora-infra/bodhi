@@ -251,8 +251,6 @@ man_pages = [
      ['Matt Jia'], 1),
     ('user/man_pages/bodhi-clean-old-mashes', 'bodhi-clean-old-mashes', u'clean old mashes',
      ['Randy Barlow'], 1),
-    ('user/man_pages/bodhi-dequeue-stable', 'bodhi-dequeue-stable',
-     u'move batched updates to stable', ['Randy Barlow'], 1),
     ('user/man_pages/bodhi-push', 'bodhi-push', u'push Fedora updates', ['Randy Barlow'], 1),
     ('user/man_pages/initialize_bodhi_db', 'initialize_bodhi_db', u'intialize bodhi\'s database',
      ['Randy Barlow'], 1),

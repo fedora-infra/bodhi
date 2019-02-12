@@ -1,4 +1,4 @@
-# Copyright © 2007-2018 Red Hat, Inc. and others.
+# Copyright © 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -752,7 +752,6 @@ def request2html(context, request):
         'obsolete': 'default',
         'testing': 'warning',
         'stable': 'success',
-        'batched': 'success',
     }.get(request)
 
     return "<span class='label label-%s'>%s</span>" % (cls, request)
@@ -864,29 +863,6 @@ def bug_link(context, bug, short=False):
             link = link + " <img class='spinner' src='static/img/spinner.gif'>"
 
     return link
-
-
-def push_to_batched_or_stable_button(context, update):
-    """
-    Form the push to batched or push to stable button, as appropriate.
-
-    Args:
-        context (mako.runtime.Context): The current template rendering context. Unused.
-        update (bodhi.server.models.Update): The Update we are rendering a button about.
-    Returns:
-        basestring: HTML for a button that will draw the push to stable or push to batched button,
-            as appropriate.
-    """
-    if getattr(update.request, 'description', None) == 'batched' or \
-            getattr(update.severity, 'description', None) == 'urgent':
-        button = ('stable', 'Stable')
-    elif getattr(update.request, 'description', None) in ('stable', None):
-        button = ('batched', 'Batched')
-    else:
-        return ''
-
-    return ('<a id="{}" class="btn btn-sm btn-success">'
-            '<span class="fa fa-fw fa-arrow-circle-right"></span> Push to {}</a>').format(*button)
 
 
 def testcase_link(context, test, short=False):

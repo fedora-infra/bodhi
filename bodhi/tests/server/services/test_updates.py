@@ -1267,7 +1267,7 @@ class TestUpdatesService(BaseTestCase):
         update.comment(self.db, u"foo", 1, u'biz')
         update = self.db.query(Update).filter_by(title=nvr).one()
         self.assertEqual(update.karma, 3)
-        self.assertEqual(update.request, UpdateRequest.batched)
+        self.assertEqual(update.request, UpdateRequest.stable)
 
         # Set it back to testing
         update.request = UpdateRequest.testing
@@ -3000,7 +3000,7 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
 
         self.assertEqual(up.karma, 2)
-        self.assertEqual(up.request, UpdateRequest.testing)
+        self.assertEqual(up.request, UpdateRequest.stable)
         self.assertEqual(up.status, UpdateStatus.pending)
 
     @mock.patch(**mock_valid_requirements)
@@ -4263,7 +4263,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.autokarma, True)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEqual(up.request, UpdateRequest.batched)
+        self.assertEqual(up.request, UpdateRequest.stable)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4422,7 +4422,7 @@ class TestUpdatesService(BaseTestCase):
         """
         Make sure autopush doesn't get disabled for Non Critical update if it
         does not receive any negative karma. Test update gets automatically
-        marked as batched.
+        marked as stable.
         """
         user = User(name=u'bob')
         self.db.add(user)
@@ -4452,7 +4452,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.autokarma, True)
 
         up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEqual(up.request, UpdateRequest.batched)
+        self.assertEqual(up.request, UpdateRequest.stable)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -4474,14 +4474,13 @@ class TestUpdatesService(BaseTestCase):
         # Checks Edit text not in the html page for this update
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertNotIn('Push to Batched', resp)
         self.assertNotIn('Push to Stable', resp)
         self.assertNotIn('Edit', resp)
 
     @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_batched_button_not_present_when_test_gating_status_failed(self, publish):
-        """The push to batched button should not appear if the test_gating_status is failed."""
+    def test_push_to_stable_button_not_present_when_test_gating_status_failed(self, publish):
+        """The push to stable button should not appear if the test_gating_status is failed."""
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['requirements'] = ''
@@ -4499,14 +4498,13 @@ class TestUpdatesService(BaseTestCase):
 
         resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
-        self.assertNotIn('Push to Batched', resp)
         self.assertNotIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
     @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_batched_button_present_when_test_gating_status_passed(self, publish):
-        """The push to batched button should appear if the test_gating_status is passed."""
+    def test_push_to_stable_button_present_when_test_gating_status_passed(self, publish):
+        """The push to stable button should appear if the test_gating_status is passed."""
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['requirements'] = ''
@@ -4524,15 +4522,14 @@ class TestUpdatesService(BaseTestCase):
 
         resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
-        self.assertIn('Push to Batched', resp)
-        self.assertNotIn('Push to Stable', resp)
+        self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_batched_button_present_when_karma_reached(self, publish, *args):
+    def test_push_to_stable_button_present_when_karma_reached(self, publish, *args):
         """
-        Assert that the "Push to Batched" button appears when the required karma is
+        Assert that the "Push to Stable" button appears when the required karma is
         reached.
         """
         nvr = u'bodhi-2.0.0-2.fc17'
@@ -4549,11 +4546,10 @@ class TestUpdatesService(BaseTestCase):
 
         resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
-        # Checks Push to Batched text in the html page for this update
+        # Checks Push to Stable text in the html page for this update
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn('Push to Batched', resp)
-        self.assertNotIn('Push to Stable', resp)
+        self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
     @mock.patch(**mock_valid_requirements)
@@ -4581,71 +4577,14 @@ class TestUpdatesService(BaseTestCase):
         # Checks Push to Stable text in the html page for this update
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertNotIn('Push to Batched', resp)
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_stable_button_present_when_karma_reached_and_batched(self, publish, *args):
+    def test_push_to_stable_button_present_when_time_reached(self, publish, *args):
         """
-        Assert that the "Push to Stable" button appears when the required karma is
-        reached and the update is already batched.
-        """
-        nvr = u'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr)
-        update.status = UpdateStatus.testing
-        update.request = UpdateRequest.batched
-        update.pushed = True
-        update.autokarma = False
-        update.stable_karma = 1
-        update.comment(self.db, 'works', 1, 'bowlofeggs')
-        self.db.commit()
-
-        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
-
-        # Checks Push to Stable text in the html page for this update
-        self.assertIn('text/html', resp.headers['Content-Type'])
-        self.assertIn(nvr, resp)
-        self.assertNotIn('Push to Batched', resp)
-        self.assertIn('Push to Stable', resp)
-        self.assertIn('Edit', resp)
-
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_stable_button_present_when_autokarma_and_batched(self, publish, *args):
-        """
-        Assert that the "Push to Stable" button appears when the required karma is
-        reached and the update is already batched and autokarma was enabled.
-        """
-        nvr = u'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr)
-        update.status = UpdateStatus.testing
-        update.request = UpdateRequest.batched
-        update.pushed = True
-        update.autokarma = True
-        update.stable_karma = 1
-        update.comment(self.db, 'works', 1, 'bowlofeggs')
-        self.db.commit()
-
-        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
-
-        # Checks Push to Stable text in the html page for this update
-        self.assertIn('text/html', resp.headers['Content-Type'])
-        self.assertIn(nvr, resp)
-        self.assertNotIn('Push to Batched', resp)
-        self.assertIn('Push to Stable', resp)
-        self.assertIn('Edit', resp)
-
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_batched_button_present_when_time_reached(self, publish, *args):
-        """
-        Assert that the "Push to Batched" button appears when the required time in testing is
+        Assert that the "Push to Stable" button appears when the required time in testing is
         reached.
         """
         nvr = u'bodhi-2.0.0-2.fc17'
@@ -4655,17 +4594,16 @@ class TestUpdatesService(BaseTestCase):
         update.status = UpdateStatus.testing
         update.request = None
         update.pushed = True
-        # This update has been in testing a while, so a "Push to Batched" button should appear.
+        # This update has been in testing a while, so a "Push to Stable" button should appear.
         update.date_testing = datetime.now() - timedelta(days=30)
         self.db.commit()
 
         resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
 
-        # Checks Push to Batched text in the html page for this update
+        # Checks Push to Stable text in the html page for this update
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn('Push to Batched', resp)
-        self.assertNotIn('Push to Stable', resp)
+        self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
     @mock.patch(**mock_valid_requirements)
@@ -4693,42 +4631,14 @@ class TestUpdatesService(BaseTestCase):
         # Checks Push to Stable text in the html page for this update
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertNotIn('Push to Batched', resp)
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_stable_button_present_when_time_reached_and_batched(self, publish, *args):
+    def test_push_to_stable_button_present_when_time_reached_critpath(self, publish, *args):
         """
-        Assert that the "Push to Stable" button appears when the required time in testing is
-        reached and the update is already batched.
-        """
-        nvr = u'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr)
-        update.status = UpdateStatus.testing
-        update.request = UpdateRequest.batched
-        update.pushed = True
-        # This update has been in testing a while, so a "Push to Stable" button should appear.
-        update.date_testing = datetime.now() - timedelta(days=30)
-        self.db.commit()
-
-        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
-
-        # Checks Push to Stable text in the html page for this update
-        self.assertIn('text/html', resp.headers['Content-Type'])
-        self.assertIn(nvr, resp)
-        self.assertNotIn('Push to Batched', resp)
-        self.assertIn('Push to Stable', resp)
-        self.assertIn('Edit', resp)
-
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_batched_button_present_when_time_reached_critpath(self, publish, *args):
-        """
-        Assert that the "Push to Batched" button appears when it should for a critpath update.
+        Assert that the "Push to Stable" button appears when it should for a critpath update.
         """
         nvr = u'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
@@ -4738,36 +4648,7 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.pushed = True
         update.critpath = True
-        # This update has been in testing a while, so a "Push to Batched" button should appear.
-        update.date_testing = datetime.now() - timedelta(days=30)
-        self.db.commit()
-
-        resp = self.app.get('/updates/%s' % nvr, headers={'Accept': 'text/html'})
-
-        # Checks Push to Batched text in the html page for this update
-        self.assertIn('text/html', resp.headers['Content-Type'])
-        self.assertIn(nvr, resp)
-        self.assertIn('Push to Batched', resp)
-        self.assertNotIn('Push to Stable', resp)
-        self.assertIn('Edit', resp)
-
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_push_to_stable_button_present_when_time_reached_and_batched_critpath(self, publish,
-                                                                                  *args):
-        """
-        Assert that the "Push to Stable" button appears when the required time in testing is
-        reached and the update is already batched.
-        """
-        nvr = u'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
-        update = Update.get(nvr)
-        update.critpath = True
-        update.status = UpdateStatus.testing
-        update.request = UpdateRequest.batched
-        update.pushed = True
-        # This update has been in testing a while, so a "Push to Batched" button should appear.
+        # This update has been in testing a while, so a "Push to Stable" button should appear.
         update.date_testing = datetime.now() - timedelta(days=30)
         self.db.commit()
 
@@ -4776,7 +4657,6 @@ class TestUpdatesService(BaseTestCase):
         # Checks Push to Stable text in the html page for this update
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertNotIn('Push to Batched', resp)
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
@@ -4874,10 +4754,12 @@ class TestUpdatesService(BaseTestCase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_manually_push_to_stable_based_on_karma(self, publish, *args):
+    def test_manually_push_to_stable_based_on_karma_request_none(self, publish, *args):
         """
         Test manually push to stable when autokarma is disabled
         and karma threshold is reached
+
+        This test starts the update with request None.
         """
         user = User(name=u'bob')
         self.db.add(user)
@@ -4892,10 +4774,10 @@ class TestUpdatesService(BaseTestCase):
         resp = self.app.post_json('/updates/', args)
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
 
-        # Marks it as batched
+        # Marks it as no request
         upd = Update.get(nvr)
         upd.status = UpdateStatus.testing
-        upd.request = UpdateRequest.batched
+        upd.request = None
         upd.pushed = True
         upd.date_testing = datetime.now() - timedelta(days=1)
         self.db.commit()
@@ -4908,7 +4790,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(upd.karma, 1)
         self.assertEqual(upd.stable_karma, 1)
         self.assertEqual(upd.status, UpdateStatus.testing)
-        self.assertEqual(upd.request, UpdateRequest.batched)
+        self.assertEqual(upd.request, None)
         self.assertEqual(upd.autokarma, False)
         self.assertEqual(upd.pushed, True)
 
@@ -4925,11 +4807,13 @@ class TestUpdatesService(BaseTestCase):
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
-    def test_manually_push_to_batched_based_on_karma(self, publish, *args):
+    def test_manually_push_to_stable_based_on_karma_request_testing(self, publish, *args):
         """
-        Test manually push to batched when autokarma is disabled
+        Test manually push to stable when autokarma is disabled
         and karma threshold is reached. Ensure that the option/button to push to
-        stable is not present prior to entering the batched request state.
+        stable is not present prior to entering the stable request state.
+
+        This test starts the update with request testing.
         """
 
         # Disabled
@@ -4963,14 +4847,13 @@ class TestUpdatesService(BaseTestCase):
         text = str(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author=u'bodhi')
 
-        # Checks Push to Batched text in the html page for this update
+        # Checks Push to Stable text in the html page for this update
         id = 'bodhi-2.0.0-2.fc17'
         resp = self.app.get('/updates/%s' % id,
                             headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(id, resp)
-        self.assertIn('Push to Batched', resp)
-        self.assertNotIn('Push to Stable', resp)
+        self.assertIn('Push to Stable', resp)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -5139,92 +5022,6 @@ class TestUpdatesService(BaseTestCase):
 
         self.assertEqual(update.days_to_stable, 0)
         self.assertEqual(update.meets_testing_requirements, True)
-
-    @mock.patch(**mock_taskotron_results)
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_batched_update(self, publish, *args):
-        """
-        Ensure that 'batched' is an acceptable type of update request.
-        """
-        args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
-        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        up.status = UpdateStatus.testing
-        up.request = None
-        up.pushed = True
-        up.test_gating_status = TestGatingStatus.passed
-        up.comment(self.db, u"foo1", 1, u'foo1')
-        up.comment(self.db, u"foo2", 1, u'foo2')
-        self.db.commit()
-
-        resp = self.app.post_json(
-            '/updates/%s/request' % args['builds'],
-            {'request': 'batched', 'csrf_token': self.get_csrf_token()})
-
-        self.assertEqual(resp.json['update']['request'], 'batched')
-        publish.assert_called_with(
-            topic='update.request.batched', msg=mock.ANY)
-
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_newpackage_update_bypass_batched(self, publish, *args):
-        """
-        Make sure a newpackage update skips the 'batched' request and immediately enters stable
-        upon getting the sufficient number of karma.
-        """
-        nvr = u'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 2
-
-        resp = self.app.post_json('/updates/', args)
-        self.assertEqual(resp.json['request'], 'testing')
-        publish.assert_called_with(topic='update.request.testing', msg=ANY)
-
-        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        up.status = UpdateStatus.testing
-        up.type = UpdateType.newpackage
-        self.db.commit()
-
-        up.comment(self.db, u'cool beans', author=u'mrgroovy', karma=1)
-        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-
-        up.comment(self.db, u'lgtm', author=u'caleigh', karma=1)
-        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-
-        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEqual(up.request, UpdateRequest.stable)
-
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_urgent_update_bypass_batched(self, publish, *args):
-        """
-        Make sure an urgent update skips the 'batched' request and immediately enters stable
-        upon getting the sufficient number of karma.
-        """
-        nvr = u'bodhi-2.0.0-2.fc17'
-        args = self.get_update(nvr)
-        args['autokarma'] = True
-        args['stable_karma'] = 2
-
-        resp = self.app.post_json('/updates/', args)
-        self.assertEqual(resp.json['request'], 'testing')
-        publish.assert_called_with(topic='update.request.testing', msg=ANY)
-
-        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        up.status = UpdateStatus.testing
-        up.severity = UpdateSeverity.urgent
-        self.db.commit()
-
-        up.comment(self.db, u'cool beans', author=u'mrgroovy', karma=1)
-        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-
-        up.comment(self.db, u'lgtm', author=u'caleigh', karma=1)
-        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-
-        up = self.db.query(Update).filter_by(title=resp.json['title']).one()
-        self.assertEqual(up.request, UpdateRequest.stable)
 
 
 class TestWaiveTestResults(BaseTestCase):
