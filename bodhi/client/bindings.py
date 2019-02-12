@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2007-2018 Red Hat, Inc. and others.
+# Copyright © 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of bodhi.
 #
@@ -278,7 +278,7 @@ class BodhiClient(OpenIdBaseClient):
 
         Args:
             update (basestring): The title of the update.
-            request (basestring): The request (``testing``, ``batched``, ``stable``, ``obsolete``,
+            request (basestring): The request (``testing``, ``stable``, ``obsolete``,
                 ``unpush``, ``revoke``).
         Returns:
             munch.Munch: The response from Bodhi to the request.

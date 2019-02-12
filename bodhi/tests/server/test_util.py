@@ -1,4 +1,4 @@
-# Copyright © 2007-2018 Red Hat, Inc. and others.
+# Copyright © 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -25,8 +25,7 @@ import unittest
 
 from bodhi.server import util, models
 from bodhi.server.config import config
-from bodhi.server.models import (ComposeState, TestGatingStatus, Update, UpdateRequest,
-                                 UpdateSeverity, UpdateStatus, UpdateType)
+from bodhi.server.models import (ComposeState, TestGatingStatus, Update, UpdateStatus, UpdateType)
 from bodhi.tests.server import base
 
 
@@ -311,58 +310,6 @@ class TestNoAutoflush(unittest.TestCase):
 
         # autoflush should again be True since that was the starting condition.
         self.assertTrue(session.autoflush)
-
-
-class TestPushToBatchedOrStableButton(base.BaseTestCase):
-    """Test the push_to_batched_or_stable_button() function."""
-    def test_request_is_batched(self):
-        """The function should render a Push to Stable button if the request is batched."""
-        u = Update.query.all()[0]
-        u.request = UpdateRequest.batched
-
-        a = util.push_to_batched_or_stable_button(None, u)
-
-        self.assertTrue('id="stable"' in a)
-        self.assertTrue('</span> Push to Stable</a>' in a)
-
-    def test_request_is_none(self):
-        """The function should render a Push to Stable button if the request is None."""
-        u = Update.query.all()[0]
-        u.request = None
-
-        a = util.push_to_batched_or_stable_button(None, u)
-
-        self.assertTrue('id="batched"' in a)
-        self.assertTrue('</span> Push to Batched</a>' in a)
-
-    def test_request_is_other(self):
-        """The function should return '' request is something else, like testing."""
-        u = Update.query.all()[0]
-        u.request = UpdateRequest.testing
-
-        a = util.push_to_batched_or_stable_button(None, u)
-
-        self.assertEqual(a, '')
-
-    def test_request_is_stable(self):
-        """The function should render a Push to Batched button if the request is stable."""
-        u = Update.query.all()[0]
-        u.request = UpdateRequest.stable
-
-        a = util.push_to_batched_or_stable_button(None, u)
-
-        self.assertTrue('id="batched"' in a)
-        self.assertTrue('</span> Push to Batched</a>' in a)
-
-    def test_severity_is_urgent(self):
-        """The function should render a Push to Stable button if the severity is urgent."""
-        u = Update.query.all()[0]
-        u.severity = UpdateSeverity.urgent
-
-        a = util.push_to_batched_or_stable_button(None, u)
-
-        self.assertTrue('id="stable"' in a)
-        self.assertTrue('</span> Push to Stable</a>' in a)
 
 
 class TestComposeState2HTML(unittest.TestCase):

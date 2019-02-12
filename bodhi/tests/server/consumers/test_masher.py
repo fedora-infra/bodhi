@@ -2122,7 +2122,7 @@ testmodule:master:20172:2
 
             # Ensure the masher set the autokarma once the push is done
             self.assertEqual(up.locked, False)
-            self.assertEqual(up.request, UpdateRequest.batched)
+            self.assertEqual(up.request, UpdateRequest.stable)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.masher.PungiComposerThread._wait_for_pungi')

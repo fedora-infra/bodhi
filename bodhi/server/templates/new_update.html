@@ -199,16 +199,6 @@ ${update.notes}
                     <span class="c-indicator"></span>
                   </label>
                   % endfor
-
-                  <div id='severity-warning'
-                  % if not update or update.severity.description != 'urgent':
-                  style="display:none"
-                  % endif
-                  >
-                    <div class="alert alert-warning">
-                      <p>Update with "urgent" severity will skip the batched state</p>
-                    </div>
-                  </div>
                 </fieldset>
 
                 <fieldset class="form-group radio-group">

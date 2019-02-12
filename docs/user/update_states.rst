@@ -8,9 +8,6 @@ Once submitted to Bodhi, updates move through the following states:
 
 :ref:`testing`: The package is in the updates-testing repository for people to test.
 
-:ref:`testing-batched`: The package is ready to go stable, and will wait until the next batched
-update push to be marked for stable.
-
 :ref:`testing-stable`: The package is ready to go stable, and will wait until the next update push.
 
 :ref:`stable`: The package has been released to the main updates repository.
@@ -52,7 +49,7 @@ Testing
 The testing status means that the update has been pushed to its release's testing repository. While
 in the testing repository users may provide feedback via karma and comments. Once enough feedback is
 generated, Bodhi's web interface can be used to release the update by clicking
-'Mark as Batched/Stable', or it can be removed by using 'Delete'. The command line interface can
+'Mark as Stable', or it can be removed by using 'Delete'. The command line interface can
 also be used to perform these actions.
 
 If the update is configured to use the 'autopush', it will automatically be pushed or unpushed based
@@ -64,32 +61,14 @@ Testing also has two possible substates, both expressed as the "request", that o
 package is ready to go to stable. These are documented in the next two sections.
 
 
-.. _testing-batched:
-
-Testing/Batched
-===============
-
-The "batched" state means that the package is ready to go to stable and is waiting until the next
-batched update when Bodhi will switch the request to "stable". All non-urgent and non-newpackage
-updates will automatically move to this state when they hit the karma threshold if they have
-autokarma enabled, and non-autokarma updates that meet the requirements will present a
-"Push to Batched" button to the maintainers. The update remains in the testing repository while it
-is in this state.
-
-
 .. _testing-stable:
 
 Testing/Stable
 ==============
 
-The second request state is "stable", and means that the package will be sent out to the stable
+The "stable" state means that the package will be sent out to the stable
 repositories the next time a Release Engineer runs the update push command. The update will remain
 in the testing repository during this state.
-
-Developers are encouraged to use the batched update state for updates that are not severe as it
-reduces the update churn for end users and also improves the speed of most of Bodhi's pushes (except
-for the larger batched pushes, of course). However, it remains the maintainer's option to choose
-when they use the "Push to Stable" button, which will remain available to them.
 
 
 .. _stable:

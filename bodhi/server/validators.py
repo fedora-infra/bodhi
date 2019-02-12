@@ -1266,7 +1266,7 @@ def validate_request(request, **kwargs):
     update = request.validated['update']
     db = request.db
 
-    if request.validated['request'] in (UpdateRequest.stable, UpdateRequest.batched):
+    if request.validated['request'] == UpdateRequest.stable:
         target = UpdateStatus.stable
     elif request.validated['request'] is UpdateRequest.testing:
         target = UpdateStatus.testing
