@@ -347,7 +347,7 @@ def avatar(context, username, size):
 
     # context is a mako context object
     request = context['request']
-    https = request.registry.settings.get('prefer_ssl')
+    https = request.registry.settings.get('libravatar_prefer_tls')
 
     @request.cache.cache_on_arguments()
     def get_libravatar_url(openid, https, size):

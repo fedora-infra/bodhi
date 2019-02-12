@@ -45,8 +45,9 @@ class TestAvatar(unittest.TestCase):
 
         self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'libravatar.org')
 
-    @mock.patch.dict(config,
-                     {'libravatar_enabled': True, 'libravatar_dns': True, 'prefer_ssl': False})
+    @mock.patch.dict(
+        config,
+        {'libravatar_enabled': True, 'libravatar_dns': True, 'libravatar_prefer_tls': False})
     @mock.patch('bodhi.server.util.libravatar.libravatar_url', return_value='cool url')
     def test_libravatar_dns_set_ssl_false(self, libravatar_url):
         """Test the correct return value when libravatar_dns is set in config."""
@@ -63,8 +64,9 @@ class TestAvatar(unittest.TestCase):
         libravatar_url.assert_called_once_with(openid='http://bowlofeggs.id.fedoraproject.org/',
                                                https=False, size=50, default='retro')
 
-    @mock.patch.dict(config,
-                     {'libravatar_enabled': True, 'libravatar_dns': True, 'prefer_ssl': True})
+    @mock.patch.dict(
+        config,
+        {'libravatar_enabled': True, 'libravatar_dns': True, 'libravatar_prefer_tls': True})
     @mock.patch('bodhi.server.util.libravatar.libravatar_url', return_value='cool url')
     def test_libravatar_dns_set_ssl_true(self, libravatar_url):
         """Test the correct return value when libravatar_dns is set in config."""

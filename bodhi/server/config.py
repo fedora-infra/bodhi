@@ -477,6 +477,9 @@ class BodhiConfig(dict):
         'libravatar_enabled': {
             'value': True,
             'validator': _validate_bool},
+        'libravatar_prefer_tls': {
+            'value': True,
+            'validator': bool},
         'mail.templates_basepath': {
             'value': 'bodhi:server/email/templates/',
             'validator': str},
@@ -534,9 +537,6 @@ class BodhiConfig(dict):
         'pdc_url': {
             'value': 'https://pdc.fedoraproject.org/',
             'validator': _validate_tls_url},
-        'prefer_ssl': {
-            'value': None,
-            'validator': _validate_none_or(bool)},
         'privacy_link': {
             'value': '',
             'validator': str},
