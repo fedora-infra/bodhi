@@ -118,7 +118,7 @@ def bodhi_container(
     # Update the database schema
     container.execute(["alembic-3", "-c", "/bodhi/alembic.ini", "upgrade", "head"])
     # we need to wait for the webserver to start serving
-    container.wait_for_port(8080, timeout=-1)
+    container.wait_for_port(8080, timeout=30)
     yield container
     container.kill()
     container.delete()

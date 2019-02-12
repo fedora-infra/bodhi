@@ -46,7 +46,7 @@ def waiverdb_container(docker_backend, docker_network, db_container):
     # Add sample data in the database
     container.execute(["waiverdb", "db", "upgrade"])
     # we need to wait for the webserver to start serving
-    container.wait_for_port(8080, timeout=-1)
+    container.wait_for_port(8080, timeout=30)
     yield container
     container.kill()
     container.delete()
