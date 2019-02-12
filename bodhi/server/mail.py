@@ -310,7 +310,7 @@ def get_template(update, use_template='fedora_errata_template'):
                 '\n'.join(wrap(update.notes, width=80))
             info['notes'] += line
 
-        # Add this updates referenced Bugzillas
+        # Add this update's referenced Bugzillas
         i = 1
         info['references'] = ""
         if len(update.bugs):
