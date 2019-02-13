@@ -16,7 +16,6 @@ var update_markdown_preview = function(text) {
             data: $.param({text: text}),
             dataType: 'json',
             success: function(data) {
-                console.log(data)
                 $("#preview").html(data.html);
             },
             error: function(e1, e2, e3) {
