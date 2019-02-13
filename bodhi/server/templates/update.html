@@ -628,11 +628,9 @@ $(document).ready(function(){
     <h4 id='shortdesc'>
       ${update.type} update
       in ${update.release.long_name} for
-      <a href="${request.route_url('updates') + '?packages=' + build.package.name}">
-        ${update.beautify_title(amp=True) | n}
-      </a>
-      
-      
+      % for build in update.builds:
+        <a href="https://apps.fedoraproject.org/packages/{$build.package.name}">${build.package.name}</a>${'' if loop.last else ','}
+      % endfor
     </h4>
     <div>
       Status: ${self.util.status2html(update.status) | n}
