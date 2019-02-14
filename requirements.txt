@@ -15,6 +15,7 @@ kitchen
 markdown
 # for captchas
 Pillow
+psycopg2
 py3dns; python_version >= '3.0'  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 pylibravatar
 pyramid~=1.7

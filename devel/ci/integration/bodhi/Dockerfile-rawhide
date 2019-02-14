@@ -14,7 +14,6 @@ RUN dnf install -y \
     httpd \
     intltool \
     python3-mod_wsgi \
-    "python3dist(psycopg2)" \
     skopeo \
     /usr/bin/koji
 
