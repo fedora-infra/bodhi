@@ -33,6 +33,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python2-markdown \
     python2-mock \
     python2-pillow \
+    python2-psycopg2 \
     python2-pyramid-mako \
     python2-pytest-cov \
     python2-responses \
@@ -54,6 +55,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-mock \
     python3-munch \
     python3-pillow \
+    python3-psycopg2 \
     python3-pydocstyle \
     python3-pylibravatar \
     python3-pyramid-mako \

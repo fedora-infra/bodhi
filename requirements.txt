@@ -16,6 +16,7 @@ markdown
 packagedb-cli; python_version <= '2.7'
 # for captchas
 Pillow
+psycopg2
 pyDNS; python_version <= '2.7'  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 py3dns; python_version >= '3.0'  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 pylibravatar
