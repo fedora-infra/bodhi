@@ -106,12 +106,14 @@
             </div>
             <div class="list-group list-group-flush">
                 % for tester, count in top_testers:
-                <div class="list-group-item">
+                <div class="list-group-item justify-content-between">
+                  <span>
                     <strong>#${str(loop.index + 1)}</strong>
                     <a href="${request.route_url('user', name=tester['name'])}">
                       <img class="rounded-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
                       ${tester['name']}
                     </a>
+                  </span>
                   <div class="badge badge-default float-right">${str(count)}</div>
                 </div>
                 % endfor
