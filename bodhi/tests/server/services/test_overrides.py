@@ -759,7 +759,7 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         resp = self.app.get('/overrides/new',
                             status=200, headers={'Accept': 'text/html'})
-        self.assertIn('<h2 class="float-left mt-3">New Override</h2>', resp)
+        self.assertIn('<h2>New Override</h2>', resp)
 
     def test_overrides_list(self):
         """

@@ -391,7 +391,8 @@ class TestGenericViews(base.BaseTestCase):
         # Make sure that unspecified comes first, as it should be the default.
         regex = r''
         for value in ('unspecified', 'reboot', 'logout'):
-            regex = regex + r'name="suggest" value="{}".*'.format(value)
+            regex = (regex
+                     + r'name="suggest" class="custom-control-input" value="{}".*'.format(value))
         self.assertTrue(re.search(regex, res.body.decode('utf8').replace('\n', ' ')))
 
         # Test that the unlogged in user cannot see the New Update form
