@@ -10,6 +10,7 @@
 .coverage
 .dnf-cache/
 .idea
+.mypy_cache
 .pytest_cache
 .vagrant
 .vagrant.d
