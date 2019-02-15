@@ -380,7 +380,7 @@ $(document).ready(function() {
     $("#updatebuttons #edit").attr('href',
         '${request.route_url("update_edit", id=update.alias)}');
 
-    $.each(['testing', 'stable', 'batched', 'unpush', 'revoke'], function(i, action) {
+    $.each(['testing', 'stable', 'unpush', 'revoke'], function(i, action) {
       $("#updatebuttons #" + action).click(function() {
           $("#updatebuttons a").addClass('disabled');
           cabbage.spin(); // for real!
@@ -595,12 +595,11 @@ $(document).ready(function(){
             % endif
           % elif update.pushed and (update.status.description != 'stable' or (update.status.description == 'stable' and 'releng' in [group.name for group in request.user.groups])):
             <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
-            % if update.critpath and update.critpath_approved:
-              ${self.util.push_to_batched_or_stable_button(update) | n}
-            % elif update.request and update.request.description in ['batched', 'stable']:
-              ${self.util.push_to_batched_or_stable_button(update) | n}
-            % elif update.meets_testing_requirements:
-              ${self.util.push_to_batched_or_stable_button(update) | n}
+            % if update.meets_testing_requirements:
+                <a id="stable" class="btn btn-sm btn-success">
+                    <span class="fa fa-fw fa-arrow-circle-right"></span>
+                    Push to Stable
+                </a>
             % endif
             <a id='unpush' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Unpush</a>
           % endif

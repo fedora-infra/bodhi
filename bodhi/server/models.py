@@ -633,8 +633,6 @@ class UpdateRequest(DeclEnum):
 
     Attributes:
         testing (EnumSymbol): The update is requested to change to testing.
-        batched (EnumSymbol): The update is requested to be pushed to stable during the next batch
-            push.
         obsolete (EnumSymbol): The update has been obsoleted by another update.
         unpush (EnumSymbol): The update no longer needs to be released.
         revoke (EnumSymbol): The unpushed update will no longer be mashed in any repository.
@@ -642,7 +640,6 @@ class UpdateRequest(DeclEnum):
     """
 
     testing = 'testing', 'testing'
-    batched = 'batched', 'batched'
     obsolete = 'obsolete', 'obsolete'
     unpush = 'unpush', 'unpush'
     revoke = 'revoke', 'revoke'
@@ -655,7 +652,7 @@ class UpdateSeverity(DeclEnum):
 
     Attributes:
         unspecified (EnumSymbol): The packager has not specified a severity.
-        urgent (EnumSymbol): The update is urgent, and will skip the batched state automatically.
+        urgent (EnumSymbol): The update is urgent.
         high (EnumSymbol): The update is high severity.
         medium (EnumSymbol): The update is medium severity.
         low (EnumSymbol): The update is low severity.
@@ -2478,7 +2475,7 @@ class Update(Base):
 
         # If status is testing going to stable request and action is revoke,
         # keep the status at testing
-        elif self.request in (UpdateRequest.stable, UpdateRequest.batched) and \
+        elif self.request == UpdateRequest.stable and \
                 self.status is UpdateStatus.testing and action is UpdateRequest.revoke:
             self.revoke()
             log.debug("%s has been revoked." % self.title)
@@ -2494,7 +2491,7 @@ class Update(Base):
             return
 
         # Disable pushing critical path updates for pending releases directly to stable
-        if action in (UpdateRequest.stable, UpdateRequest.batched) and self.critpath:
+        if action == UpdateRequest.stable and self.critpath:
             if config.get('critpath.num_admin_approvals') is not None:
                 if not self.critpath_approved:
                     stern_note = (
@@ -2523,7 +2520,7 @@ class Update(Base):
 
         # Ensure this update meets the minimum testing requirements
         flash_notes = ''
-        if action in (UpdateRequest.stable, UpdateRequest.batched) and not self.critpath:
+        if action == UpdateRequest.stable and not self.critpath:
             # Check if we've met the karma requirements
             if (self.stable_karma not in (None, 0) and self.karma >= self.stable_karma) \
                     or self.critpath_approved:
@@ -2545,12 +2542,6 @@ class Update(Base):
                             raise BodhiException(flash_notes)
                         else:
                             action = UpdateRequest.testing
-
-        if action is UpdateRequest.batched and self.status is not UpdateStatus.testing:
-            # We don't want to allow updates to go to batched if they haven't been mashed into the
-            # testing repository yet.
-            raise BodhiException('This update is not in the testing repository yet. It cannot be '
-                                 'requested for batching until it is in testing.')
 
         # Add the appropriate 'pending' koji tag to this update, so tools like
         # AutoQA can mash repositories of them for testing.
@@ -3244,16 +3235,8 @@ class Update(Base):
             self.comment(db, text, author=u'bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:
             if self.autokarma:
-                if self.severity is UpdateSeverity.urgent or self.type is UpdateType.newpackage:
-                    log.info("Automatically marking %s as stable" % self.title)
-                    self.set_request(db, UpdateRequest.stable, agent)
-                else:
-                    if self.request not in (UpdateRequest.batched, UpdateRequest.stable) and \
-                            self.status is not UpdateStatus.pending:
-                        log.info("Automatically adding %s to batch of updates that will be pushed "
-                                 "to stable at a later date" % self.title)
-                        self.set_request(db, UpdateRequest.batched, agent)
-
+                log.info("Automatically marking %s as stable" % self.title)
+                self.set_request(db, UpdateRequest.stable, agent)
                 self.date_pushed = None
                 notifications.publish(
                     topic='update.karma.threshold.reach',
@@ -3509,7 +3492,7 @@ class Update(Base):
             # release to the Release.dist-tag
             if self.release.state is ReleaseState.pending:
                 tag = self.release.dist_tag
-        elif self.request in (UpdateRequest.testing, UpdateRequest.batched):
+        elif self.request == UpdateRequest.testing:
             tag = self.release.testing_tag
         elif self.request is UpdateRequest.obsolete:
             tag = self.release.candidate_tag

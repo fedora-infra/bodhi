@@ -359,17 +359,6 @@ $(document).ready(function() {
         }
     }
 
-    var toggle_severity_warning = function() {
-        var severity = $("input[name=severity]:checked").val();
-
-        if (severity == 'urgent') {
-            $("#severity-warning").show()
-        } else {
-            $("#severity-warning").hide()
-        }
-    }
-
     $("input[name=type]").on('change', validate_severity);
     $("input[name=severity]").on('change', validate_severity);
-    $("input[name=severity]").on('change', toggle_severity_warning);
 });
