@@ -42,6 +42,8 @@ Backwards incompatible changes
   As a result, the bodhi-dequeue-stable CLI has also been removed (:issue:`2977`).
 * Support for obsolete scripts in ``tools`` folder was dropped (:issue:`2980`).
 * Bug objects no longer include a ``private`` field (:issue:`3016`).
+* The CLI now defaults to the ``--wait`` flag when creating or editing buildroot overrides. The old
+  behavior can be achieved with the ``--no-wait`` flag.
 
 
 Dependency changes

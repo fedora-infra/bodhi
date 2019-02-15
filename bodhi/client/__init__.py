@@ -126,7 +126,7 @@ save_edit_options = [
                  help='Notes on why this override is in place.'),
     click.option('--user'),
     click.option('--password', hide_input=True),
-    click.option('--wait', is_flag=True, default=False,
+    click.option('--wait/--no-wait', is_flag=True, default=True,
                  help='Wait and ensure that the override is active'),
     openid_option,
     staging_option,
