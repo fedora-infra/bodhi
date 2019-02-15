@@ -46,7 +46,7 @@ def resultsdb_container(docker_backend, docker_network, db_container):
     # Add sample data in the database
     container.execute(["resultsdb", "init_db"])
     # we need to wait for the webserver to start serving
-    container.wait_for_port(80, timeout=-1)
+    container.wait_for_port(80, timeout=30)
     yield container
     container.kill()
     container.delete()

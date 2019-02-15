@@ -19,9 +19,6 @@ RUN dnf install -y \
     python3-dnf \
     skopeo
 
-RUN pip-3 install \
-    psycopg2
-
 # Mimic RPM's handling of Python3-specific binaries
 RUN ln -s alembic /usr/local/bin/alembic-3
 

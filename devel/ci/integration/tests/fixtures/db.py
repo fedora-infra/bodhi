@@ -42,7 +42,10 @@ def db_container(docker_backend, docker_network):
     docker_backend.d.connect_container_to_network(
         container.get_id(), docker_network["Id"], aliases=["db"],
     )
-    container.wait_for_port(5432, timeout=-1)
+    container.wait_for_port(5432, timeout=30)
+    container.execute(
+        ["/usr/bin/pg_isready", "-q", "-t", "16"]
+    )
     yield container
     container.kill()
     container.delete()

@@ -47,7 +47,7 @@ def greenwave_container(docker_backend, docker_network, db_container):
     )
     try:
         # we need to wait for the webserver to start serving
-        container.wait_for_port(8080, timeout=16)
+        container.wait_for_port(8080, timeout=30)
     except conu.utils.probes.ProbeTimeout:
         for log in container.logs():
             # Let's print out the logs from the container in the hopes that they will help us debug
