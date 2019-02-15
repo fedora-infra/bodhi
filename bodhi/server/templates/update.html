@@ -587,13 +587,13 @@ $(document).ready(function(){
           % if not update.pushed:
             <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
             % if update.request is None:
-              % if update.status.description != 'testing':
+              % if update.status.value != 'testing':
               <a id='testing' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Testing</a>
               % endif
             % else:
               <a id='revoke' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Revoke</a>
             % endif
-          % elif update.pushed and (update.status.description != 'stable' or (update.status.description == 'stable' and 'releng' in [group.name for group in request.user.groups])):
+          % elif update.pushed and (update.status.value != 'stable' or (update.status.value == 'stable' and 'releng' in [group.name for group in request.user.groups])):
             <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
             % if update.meets_testing_requirements:
                 <a id="stable" class="btn btn-sm btn-success">
@@ -695,7 +695,7 @@ $(document).ready(function(){
           % endif
 
           % if update.content_type:
-          % if update.content_type.description == 'RPM' and ('testing' in update.status or 'stable' in update.status):
+          % if update.content_type.value == 'rpm' and ('testing' in update.status or 'stable' in update.status):
           <div class="p-t-1">
           <h4>How to install</h4>
             <pre style="position: relative;"><span class="label label-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${self.util.update_install_command(update)}</code></pre>
@@ -1030,7 +1030,7 @@ $(document).ready(function(){
                     </tr>
                     % endif
 
-                    % if update.days_to_stable and update.status.description == 'testing':
+                    % if update.days_to_stable and update.status.value == 'testing':
                     <tr>
                       <td>days to stable</td>
                       <td class="text-muted">
