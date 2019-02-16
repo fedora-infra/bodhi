@@ -1735,11 +1735,6 @@ class TestUpdateUpdateTestGatingStatus(BaseTestCase):
         update.update_test_gating_status()
 
         self.assertEqual(update.test_gating_status, model.TestGatingStatus.greenwave_failed)
-        self.assertEqual(
-            update.greenwave_summary_string,
-            ('Bodhi failed to send POST request to Greenwave at the following URL '
-             '"https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision". The '
-             'status code was "500".'))
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
         expected_post = mock.call(
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
@@ -1784,7 +1779,6 @@ class TestUpdateUpdateTestGatingStatus(BaseTestCase):
         update.update_test_gating_status()
 
         self.assertEqual(update.test_gating_status, model.TestGatingStatus.greenwave_failed)
-        self.assertEqual(update.greenwave_summary_string, 'The connection timed out.')
         # The call_url() handler doesn't catch a Timeout so there are no sleeps/retries.
         self.assertEqual(sleep.mock_calls, [])
         expected_post = mock.call(
