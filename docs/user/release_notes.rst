@@ -19,6 +19,8 @@ Backwards incompatible changes
   ``True`` instead of ``None`` (:issue:`1921`).
 * Integration with pkgdb is no longer supported (:issue:`1970`).
 * The ``/admin/`` API has been removed (:issue:`1985`).
+* The relationship between Packages and Users was dropped. As a result, the ``packages``
+  parameter in users query API has also been removed (:issue:`1997`).
 * Support for CVE tracking was dropped. It was technically not possible to use the feature, so it
   is unlikely to affect any deployments (:issue:`1998`).
 * The ``processing`` update status has been removed (:issue:`1999`).

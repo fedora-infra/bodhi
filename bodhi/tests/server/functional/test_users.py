@@ -216,16 +216,3 @@ class TestUsersService(base.BaseTestCase):
         self.assertEqual(body['errors'][0]['name'], 'updates')
         self.assertEqual(body['errors'][0]['description'],
                          'Invalid updates specified: carbunkle')
-
-    def test_list_users_by_package_name(self):
-        res = self.app.get('/users/', {"packages": 'bodhi'})
-        body = res.json_body
-        self.assertEqual(len(body['users']), 1)
-        self.assertEqual(body['users'][0]['name'], 'guest')
-
-    def test_list_users_by_nonexistant_package(self):
-        res = self.app.get('/users/', {"packages": 'carbunkle'}, status=400)
-        body = res.json_body
-        self.assertEqual(body['errors'][0]['name'], 'packages')
-        self.assertEqual(body['errors'][0]['description'],
-                         'Invalid packages specified: carbunkle')

@@ -722,11 +722,6 @@ update_bug_table = Table(
     Column('update_id', Integer, ForeignKey('updates.id')),
     Column('bug_id', Integer, ForeignKey('bugs.id')))
 
-user_package_table = Table(
-    'user_package_table', metadata,
-    Column('user_id', Integer, ForeignKey('users.id')),
-    Column('package_id', Integer, ForeignKey('packages.id')))
-
 
 class Release(Base):
     """
@@ -933,13 +928,11 @@ class Package(Base):
         builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects.
         test_cases (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`TestCase`
             objects.
-        committers (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`User` objects
-            who are committers.
     """
 
     __tablename__ = 'packages'
     __get_by__ = ('name',)
-    __exclude_columns__ = ('id', 'committers', 'test_cases', 'builds',)
+    __exclude_columns__ = ('id', 'test_cases', 'builds',)
 
     name = Column(UnicodeText, nullable=False)
     requirements = Column(UnicodeText)
@@ -947,8 +940,6 @@ class Package(Base):
 
     builds = relationship('Build', backref=backref('package', lazy='joined'))
     test_cases = relationship('TestCase', backref='package', order_by="TestCase.id")
-    committers = relationship('User', secondary=user_package_table,
-                              backref='packages')
 
     __mapper_args__ = {
         'polymorphic_on': type,
@@ -3074,12 +3065,7 @@ class Update(Base):
             list: A list of :class:`Users <User>` who have commit access to all of the
                 packages that are contained within this update.
         """
-        people = set([self.user])
-        for build in self.builds:
-            if build.package.committers:
-                for committer in build.package.committers:
-                    people.add(committer)
-        return list(people)
+        return [self.user]
 
     @property
     def product_version(self):
@@ -4070,7 +4056,7 @@ class User(Base):
     """
 
     __tablename__ = 'users'
-    __exclude_columns__ = ('comments', 'updates', 'packages', 'buildroot_overrides')
+    __exclude_columns__ = ('comments', 'updates', 'buildroot_overrides')
     __include_extras__ = ('avatar', 'openid')
     __get_by__ = ('name',)
 
