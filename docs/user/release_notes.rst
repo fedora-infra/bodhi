@@ -41,6 +41,7 @@ Backwards incompatible changes
 * The batching feature was dropped, and thus updates can no longer be in the batched request state.
   As a result, the bodhi-dequeue-stable CLI has also been removed (:issue:`2977`).
 * Support for obsolete scripts in ``tools`` folder was dropped (:issue:`2980`).
+* Support for update's greenwave_summary_string has been dropped (:issue:`2988`).
 * Bug objects no longer include a ``private`` field (:issue:`3016`).
 * The CLI now defaults to the ``--wait`` flag when creating or editing buildroot overrides. The old
   behavior can be achieved with the ``--no-wait`` flag.

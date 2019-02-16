@@ -49,7 +49,6 @@ class TestCheckPolicies(BaseTestCase):
             self.assertEqual(result.exit_code, 0)
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.passed)
-            self.assertEqual(update.greenwave_summary_string, 'All tests passed')
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
@@ -83,7 +82,6 @@ class TestCheckPolicies(BaseTestCase):
             self.assertEqual(result.exit_code, 0)
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.passed)
-            self.assertEqual(update.greenwave_summary_string, 'All tests passed')
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_testing',
@@ -124,7 +122,6 @@ class TestCheckPolicies(BaseTestCase):
             self.assertEqual(result.exit_code, 0)
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
-            self.assertEqual(update.greenwave_summary_string, '1 of 2 tests are failed')
             # Check for the comment
             expected_comment = u"This update test gating status has been changed to 'failed'."
             self.assertEqual(update.comments[-1].text, expected_comment)
@@ -195,7 +192,6 @@ class TestCheckPolicies(BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
         self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
-        self.assertEqual(update.greenwave_summary_string, 'it broke')
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [{'item': u'bodhi-2.0-1.fc17', 'type': 'koji_build'},
@@ -228,7 +224,6 @@ class TestCheckPolicies(BaseTestCase):
             self.assertEqual(result.exit_code, 0)
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.ignored)
-            self.assertEqual(update.greenwave_summary_string, 'no tests are required')
             # Check for the comment
             expected_comment = u"This update test gating status has been changed to 'ignored'."
             self.assertEqual(update.comments[-1].text, expected_comment)

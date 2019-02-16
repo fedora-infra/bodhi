@@ -1620,8 +1620,6 @@ class Update(Base):
         test_gating_status (EnumSymbol): The test gating status of the update. This must be one
             of the values defined in :class:`TestGatingStatus` or ``None``. None indicates that
             Greenwave integration was not enabled when the update was created.
-        greenwave_summary_string (unicode): A short summary of the outcome from Greenwave
-            (e.g. 2 of 32 required tests failed).
         compose (Compose): The :class:`Compose` that this update is currently being composed in. The
             update is locked if this is defined.
     """
@@ -1696,7 +1694,6 @@ class Update(Base):
 
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
-    greenwave_summary_string = Column(Unicode(255))
 
     @property
     def side_tag_locked(self):
@@ -1942,7 +1939,6 @@ class Update(Base):
                 self.test_gating_status = TestGatingStatus.passed
         else:
             self.test_gating_status = TestGatingStatus.failed
-        self.greenwave_summary_string = decision['summary']
 
     @classmethod
     def new(cls, request, data):
