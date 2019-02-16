@@ -358,8 +358,8 @@ $(document).ready(function() {
                         }
                         // Check Bug product
                         var product = data.result.bugs[0].product;
-                        if (product !== "Fedora" && product !== "Fedora EPEL" && product !== "Fedora Modules") {
-                            var r = confirm('Bug #' + item + ' doesn\'t seem to refer to Fedora or Fedora EPEL.\nAre you sure you want to reference it in this update?');
+                        if (settings.bz_products.indexOf(product) == -1) {
+                            var r = confirm('Bug #' + item + ' doesn\'t seem to refer to Fedora or Fedora EPEL.\nAre you sure you want to reference it in this update? Bodhi will not be able to operate on this bug!');
                             if (r === false) { return; }
                         }
                         // Alert user if bug is already closed
