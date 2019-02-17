@@ -3545,6 +3545,33 @@ class Update(Base):
 
         return result
 
+    @staticmethod
+    def comment_on_test_gating_status_change(target, value, old, initiator):
+        """
+        Place comment on the update when ``test_gating_status`` changes.
+
+        Args:
+            target (Update): The compose that has had a change to its state attribute.
+            value (EnumSymbol): The new value of the test_gating_status.
+            old (EnumSymbol): The old value of the test_gating_status
+            initiator (sqlalchemy.orm.attributes.Event): The event object that is initiating this
+                transition.
+        """
+        if value != old:
+            target.comment(
+                Session(),
+                f"This update test gating status has been changed to '{value}'.",
+                author=u"bodhi",
+            )
+
+
+event.listen(
+    Update.test_gating_status,
+    'set',
+    Update.comment_on_test_gating_status_change,
+    active_history=True,
+)
+
 
 class Compose(Base):
     """

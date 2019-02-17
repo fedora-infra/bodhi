@@ -125,6 +125,9 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
             self.assertEqual(update.greenwave_summary_string, '1 of 2 tests are failed')
+            # Check for the comment
+            expected_comment = u"This update test gating status has been changed to 'failed'."
+            self.assertEqual(update.comments[-1].text, expected_comment)
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
@@ -203,6 +206,9 @@ class TestCheckPolicies(BaseTestCase):
         }
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
+        # Check for the comment
+        expected_comment = u"This update test gating status has been changed to 'failed'."
+        self.assertEqual(update.comments[-1].text, expected_comment)
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_unrestricted_policy(self):
@@ -223,6 +229,9 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.ignored)
             self.assertEqual(update.greenwave_summary_string, 'no tests are required')
+            # Check for the comment
+            expected_comment = u"This update test gating status has been changed to 'ignored'."
+            self.assertEqual(update.comments[-1].text, expected_comment)
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',

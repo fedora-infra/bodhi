@@ -24,7 +24,7 @@ import sqlalchemy
 
 from bodhi.server.models import (
     Bug, BuildrootOverride, Comment, Group, RpmPackage, Release, ReleaseState, RpmBuild,
-    Update, TestGatingStatus, UpdateRequest, UpdateSeverity, UpdateType, User, TestCase)
+    Update, UpdateRequest, UpdateSeverity, UpdateType, User, TestCase)
 
 
 def create_update(session, build_nvrs, release_name=u'F17'):
@@ -75,11 +75,8 @@ def create_update(session, build_nvrs, release_name=u'F17'):
     update = Update(
         title=', '.join(build_nvrs), builds=builds, user=user, request=UpdateRequest.testing,
         notes=u'Useful details!', type=UpdateType.bugfix, date_submitted=datetime(1984, 11, 2),
-        requirements=u'rpmlint', stable_karma=3, unstable_karma=-3,
-        test_gating_status=TestGatingStatus.passed)
+        requirements=u'rpmlint', stable_karma=3, unstable_karma=-3, release=release)
     session.add(update)
-    update.release = release
-
     return update
 
 

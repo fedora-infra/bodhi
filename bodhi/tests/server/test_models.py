@@ -1925,8 +1925,7 @@ class TestUpdate(ModelTest):
         stable_karma=3,
         unstable_karma=-3,
         close_bugs=True,
-        notes=u'foobar',
-        test_gating_status=TestGatingStatus.passed)
+        notes=u'foobar')
 
     @staticmethod
     def do_get_dependencies():
@@ -3661,9 +3660,9 @@ class TestUpdate(ModelTest):
             request=UpdateRequest.stable,
             type=UpdateType.enhancement,
             notes=u'Useful details!',
-            test_gating_status=TestGatingStatus.passed,
             stable_karma=3,
             unstable_karma=-3)
+
         update.release = release
         self.db.add(update)
         self.db.flush()
@@ -3714,8 +3713,9 @@ class TestUpdate(ModelTest):
             builds=[build1], user=user,
             status=UpdateStatus.testing,
             request=UpdateRequest.stable,
-            notes=u'Useful details!', release=release,
-            test_gating_status=TestGatingStatus.passed)
+            notes=u'Useful details!',
+            release=release)
+
         self.db.add(update1)
 
         # This should not raise an Exception.
@@ -3724,8 +3724,9 @@ class TestUpdate(ModelTest):
             builds=[build2], user=user,
             status=UpdateStatus.testing,
             request=UpdateRequest.stable,
-            notes=u'Useful details!', release=release,
-            test_gating_status=TestGatingStatus.passed)
+            notes=u'Useful details!',
+            release=release)
+
         self.db.add(update2)
 
         self.assertEqual(update2.release, release)
@@ -3780,6 +3781,10 @@ class TestUpdate(ModelTest):
                              {'test_gating.required': True,
                               'waiverdb.access_token': 'abc'}):
             self.obj.waive_test_results('foo', 'this is not true!')
+
+        # Check for the comment
+        expected_comment = u"This update test gating status has been changed to 'waiting'."
+        self.assertEqual(self.obj.comments[-1].text, expected_comment)
 
         expected_calls = []
         for test in ('dist.depcheck', 'dist.rpmdeplint', 'dist.someothertest'):
@@ -3844,6 +3849,28 @@ class TestUpdate(ModelTest):
             }
             mock_waiverdb.assert_called_once_with(
                 '{}/waivers/'.format(config.get('waiverdb_api_url')), wdata)
+
+        # Check for the comment
+        expected_comment = u"This update test gating status has been changed to 'waiting'."
+        self.assertEqual(update.comments[-1].text, expected_comment)
+
+    def test_comment_on_test_gating_status_change(self):
+        """Assert that Bodhi will leave comment only when test_gating_status changes."""
+        # Let's make sure that update has no comments.
+        self.assertEqual(len(self.obj.comments), 0)
+
+        self.obj.test_gating_status = TestGatingStatus.waiting
+
+        # Check for the comment about test_gating_status change
+        expected_comment = u"This update test gating status has been changed to 'waiting'."
+        self.assertEqual(self.obj.comments[0].text, expected_comment)
+        self.assertEqual(len(self.obj.comments), 1)
+
+        # Let's set test_gating_status to 'waiting' once again.
+        self.obj.test_gating_status = TestGatingStatus.waiting
+
+        # We should have still only one comment about test_gating_status change.
+        self.assertEqual(len(self.obj.comments), 1)
 
 
 class TestUser(ModelTest):

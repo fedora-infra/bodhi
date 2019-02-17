@@ -928,12 +928,19 @@ That was the actual one'''
                 builds=[build], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
-                notes=u'Useful details!', release=release,
-                test_gating_status=TestGatingStatus.passed,
+                notes=u'Useful details!',
+                release=release,
                 stable_karma=3,
-                unstable_karma=-3)
-            update.type = UpdateType.security
+                unstable_karma=-3,
+                type=UpdateType.security)
+
+            update.test_gating_status = TestGatingStatus.passed
+
             db.add(update)
+
+            # Changing update's test_gating_status calls notifications.publish,
+            # so we have to reset mock calls
+            publish.reset_mock()
 
             # Wipe out the tag cache so it picks up our new release
             Release._tag_cache = None
@@ -1020,11 +1027,18 @@ That was the actual one'''
                 builds=[build], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
-                notes=u'Useful details!', release=release,
-                test_gating_status=TestGatingStatus.passed,
                 stable_karma=3,
-                unstable_karma=-3)
-            update.type = UpdateType.enhancement
+                unstable_karma=-3,
+                notes=u'Useful details!',
+                release=release,
+                type=UpdateType.enhancement)
+
+            update.test_gating_status = TestGatingStatus.passed
+
+            # Changing update's test_gating_status calls notifications.publish,
+            # so we have to reset mock calls
+            publish.reset_mock()
+
             db.add(update)
 
             # Wipe out the tag cache so it picks up our new release
@@ -1104,11 +1118,14 @@ That was the actual one'''
                 builds=[build], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
-                notes=u'Useful details!', release=release,
-                test_gating_status=TestGatingStatus.passed,
                 stable_karma=3,
-                unstable_karma=-3)
-            update.type = UpdateType.security
+                unstable_karma=-3,
+                notes=u'Useful details!',
+                release=release,
+                type=UpdateType.security)
+
+            update.test_gating_status = TestGatingStatus.passed
+
             db.add(update)
 
             # Wipe out the tag cache so it picks up our new release
@@ -1530,11 +1547,14 @@ That was the actual one'''
                 builds=[build2], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
-                notes=u'Useful details!', release=release,
-                test_gating_status=TestGatingStatus.passed,
                 stable_karma=3,
-                unstable_karma=-3)
-            update.type = UpdateType.security
+                unstable_karma=-3,
+                notes=u'Useful details!',
+                release=release,
+                type=UpdateType.security)
+
+            update.test_gating_status = TestGatingStatus.passed
+
             db.add(update)
 
             # Wipe out the tag cache so it picks up our new release
@@ -2327,11 +2347,14 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
             builds=[build1, build2], user=user,
             status=UpdateStatus.pending,
             request=UpdateRequest.testing,
-            notes=u'Neat I can compose containers now', release=release,
-            test_gating_status=TestGatingStatus.passed,
             stable_karma=3,
-            unstable_karma=-3)
-        update.type = UpdateType.bugfix
+            unstable_karma=-3,
+            notes=u'Neat I can compose containers now',
+            release=release,
+            type=UpdateType.bugfix)
+
+        update.test_gating_status = TestGatingStatus.passed
+
         self.db.add(update)
         # Wipe out the tag cache so it picks up our new release
         Release._tag_cache = None
@@ -2495,11 +2518,14 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
             builds=[build1, build2], user=user,
             status=UpdateStatus.pending,
             request=UpdateRequest.testing,
-            notes=u'Neat I can compose flatpaks now', release=release,
-            test_gating_status=TestGatingStatus.passed,
             stable_karma=3,
-            unstable_karma=-3)
-        update.type = UpdateType.bugfix
+            unstable_karma=-3,
+            notes=u'Neat I can compose flatpaks now',
+            release=release,
+            type=UpdateType.bugfix)
+
+        update.test_gating_status = TestGatingStatus.passed
+
         self.db.add(update)
         # Wipe out the tag cache so it picks up our new release
         Release._tag_cache = None
