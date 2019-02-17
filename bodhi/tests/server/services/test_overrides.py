@@ -329,6 +329,8 @@ class TestOverridesService(base.BaseTestCase):
         self.db.add(build)
         self.db.flush()
 
+        publish.reset_mock()
+
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
         data = {'nvr': build.nvr, 'notes': u'blah blah blah',

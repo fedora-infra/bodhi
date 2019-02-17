@@ -5234,6 +5234,10 @@ class TestWaiveTestResults(BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
         # The test gating status should have been reset to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
+        # Check for the comment multiple ways
+        expected_comment = u"This update test gating status has been changed to 'waiting'."
+        self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
+        self.assertEqual(up.comments[-1].text, expected_comment)
 
     @mock.patch.dict(config, [('test_gating.required', True)])
     @mock.patch('bodhi.server.util.waiverdb_api_post')
@@ -5324,6 +5328,10 @@ class TestWaiveTestResults(BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
         # The test gating status should have been reset to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
+        # Check for the comment multiple ways
+        expected_comment = u"This update test gating status has been changed to 'waiting'."
+        self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
+        self.assertEqual(up.comments[-1].text, expected_comment)
 
     @mock.patch.dict(config, [('test_gating.required', True)])
     @mock.patch('bodhi.server.util.waiverdb_api_post')
@@ -5402,6 +5410,10 @@ class TestWaiveTestResults(BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
         # The test gating status should have been reset to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
+        # Check for the comment multiple ways
+        expected_comment = u"This update test gating status has been changed to 'waiting'."
+        self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
+        self.assertEqual(up.comments[-1].text, expected_comment)
 
     @mock.patch.dict(config, [('test_gating.required', True)])
     @mock.patch('bodhi.server.util.waiverdb_api_post')
@@ -5496,6 +5508,10 @@ class TestWaiveTestResults(BaseTestCase):
         up = self.db.query(Update).filter_by(title=nvr).one()
         # The test gating status should have been updated to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
+        # Check for the comment multiple ways
+        expected_comment = u"This update test gating status has been changed to 'waiting'."
+        self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
+        self.assertEqual(up.comments[-1].text, expected_comment)
 
     @mock.patch.dict(config, [('test_gating.required', True)])
     @mock.patch('bodhi.server.util.waiverdb_api_post')
