@@ -3,7 +3,7 @@
 <div class="container">
 %if request.user:
 <div class="row">
-  <div id='js-warning' class="col-md-6 col-md-offset-3 m-t-3">
+  <div id='js-warning' class="col-md-6 col-md-offset-3 mt-3">
     <div class="alert alert-warning">
       <h3>
         <span>New Buildroot Override Form Requires JavaScript</span>
@@ -23,9 +23,9 @@
   <script>$("#js-warning").addClass('hidden');</script>
 %endif
   %if override is UNDEFINED:
-  <h2 class="pull-left m-t-3">New Override</h2>
+  <h2 class="float-left mt-3">New Override</h2>
   %else:
-  <div class="col-md-12 m-t-3">
+  <div class="col-md-12 mt-3">
     <h2>Buildroot Override for <code>${override.build.nvr}</code></h2>
     <p>Submitted by
       <a href="${request.route_url('user', name=override.submitter.name)}">
@@ -64,7 +64,7 @@
       <div class="col-md-6">
         <div class="panel formpanel panel-default">
           <div class="panel-heading clearfix">
-            <span class="pull-left">Candidate Build</span>
+            <span class="float-left">Candidate Build</span>
           </div>
           <div id="candidates-search" class="form-group noui">
             %if override is UNDEFINED:
@@ -89,7 +89,7 @@
       <div class="col-md-3">
         <div class="panel formpanel panel-default">
           <div class="panel-heading clearfix">
-            <span class="pull-left">Expiration date</span>
+            <span class="float-left">Expiration date</span>
           </div>
           <div class="form-group noui input-group">
             <input class="form-control noui" id="expiration_date"
@@ -105,7 +105,7 @@
       <div class="col-md-3">
         <div class="panel formpanel panel-default">
           <div class="panel-heading clearfix">
-            <span class="pull-left">Submitter</span>
+            <span class="float-left">Submitter</span>
           </div>
           <div class="form-group noui text-left">
             %if override is not UNDEFINED:
@@ -129,12 +129,12 @@
       <div class="col-md-6">
         <div class="panel formpanel panel-default">
           <div class="panel-heading clearfix">
-            <span class="pull-left">Buildroot override notes</span>
+            <span class="float-left">Buildroot override notes</span>
           </div>
           <div class="panel-body">
             <textarea class="form-control" id="notes" name="notes" rows="6"
               placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please." required="true">${override.notes if override is not UNDEFINED else ''}</textarea>
-            <p class="pull-right">Override notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</p>
+            <p class="float-right">Override notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</p>
           </div>
         </div>
       </div>
@@ -144,7 +144,7 @@
       <div class="col-md-6">
         <div class="panel panel-default">
           <div class="panel-heading clearfix">
-            <span class="pull-left">Preview</span>
+            <span class="float-left">Preview</span>
           </div>
           <div class="panel-body">
             <span id="preview"><h3><small>Preview</small></h3></span>
@@ -158,7 +158,7 @@
     <div class="row">
       <div class="col-md-12">
         <div class="panel panel-default">
-            <span class="pull-right">
+            <span class="float-right">
               <button id="submit" class="btn btn-success">
                 <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
                 Submit
@@ -178,8 +178,8 @@
   </div>
   %elif not request.user and override is not UNDEFINED:
   <div class="row">
-    <div class="col-md-12 m-t-3">
-      <h4 class="m-t-2">
+    <div class="col-md-12 mt-3">
+      <h4 class="mt-2">
         Notes
       </h4>
       ${self.util.markup(override.notes) | n}
