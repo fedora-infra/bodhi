@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2013-2017 Red Hat, Inc. and others.
+# Copyright © 2013-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -150,9 +150,6 @@ class Bugzilla(BugTracker):
             if len(comment) > 65535:
                 raise InvalidComment("Comment is too long: %s" % comment)
             bug = self.bz.getbug(bug_id)
-            if bug.private:
-                log.info('Unable to comment on private bug #%d' % bug_id)
-                return
             attempts = 0
             while attempts < 5:
                 try:
@@ -185,9 +182,6 @@ class Bugzilla(BugTracker):
         """
         try:
             bug = self.bz.getbug(bug_id)
-            if bug.private:
-                log.info('Unable to modify status of private bug #%d' % bug_id)
-                return
             if bug.product not in config.get('bz_products'):
                 log.info("Skipping set on_qa on {0!r} bug #{1}".format(bug.product, bug_id))
                 return
@@ -215,9 +209,6 @@ class Bugzilla(BugTracker):
         args = {'comment': comment}
         try:
             bug = self.bz.getbug(bug_id)
-            if bug.private:
-                log.info('Unable to modify status of private bug #%d' % bug_id)
-                return
             if bug.product not in config.get('bz_products'):
                 log.info("Skipping set closed on {0!r} bug #{1}".format(bug.product, bug_id))
                 return
@@ -260,15 +251,10 @@ class Bugzilla(BugTracker):
         if not bug:
             try:
                 bug = self.bz.getbug(bug_entity.bug_id)
-            except xmlrpc_client.Fault as err:
-                if err.faultCode == 102:
-                    bug_entity.title = 'Private bug'
-                    bug_entity.private = True
-                    log.info("Marked bug #" + str(bug_entity.bug_id) + " as private.")
-                else:
-                    bug_entity.title = 'Invalid bug number'
-                    log.error("Got fault from Bugzilla: fault code: %d, fault string: %s" % (
-                        err.faultCode, err.faultString))
+            except xmlrpc_client.Fault as e:
+                bug_entity.title = 'Invalid bug number'
+                log.error("Got fault from Bugzilla: fault code: %d, fault string: %s" % (
+                    e.faultCode, e.faultString))
                 return
             except Exception:
                 log.exception("Unknown exception from Bugzilla")
@@ -298,9 +284,6 @@ class Bugzilla(BugTracker):
         """
         try:
             bug = self.bz.getbug(bug_id)
-            if bug.private:
-                log.info('Unable to modify status of private bug #%d' % bug_id)
-                return
             if bug.product not in config.get('bz_products'):
                 log.info("Skipping set modified on {0!r} bug #{1}".format(bug.product, bug_id))
                 return

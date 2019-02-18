@@ -97,7 +97,6 @@ class TestBugLink(base.BaseTestCase):
         bug = mock.MagicMock()
         bug.bug_id = 1234567
         bug.title = "Lucky bug number"
-        bug.private = False
 
         link = util.bug_link(None, bug)
 
@@ -105,20 +104,6 @@ class TestBugLink(base.BaseTestCase):
             link,
             ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
              "#1234567</a> Lucky bug number"))
-
-    def test_short_false_with_title_but_private(self):
-        """Test a call to bug_link() with short=False on a Bug that is private."""
-        bug = mock.MagicMock()
-        bug.bug_id = 1234567
-        bug.title = "Lucky bug number"
-        bug.private = True
-
-        link = util.bug_link(None, bug)
-
-        self.assertEqual(
-            link,
-            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
-             "#1234567</a> <span class='label label-danger'>Private bug</span>"))
 
     def test_short_false_with_title_sanitizes_safe_tags(self):
         """
@@ -128,7 +113,6 @@ class TestBugLink(base.BaseTestCase):
         bug = mock.MagicMock()
         bug.bug_id = 1234567
         bug.title = 'Check <b>this</b> out'
-        bug.private = False
 
         link = util.bug_link(None, bug)
 
@@ -145,7 +129,6 @@ class TestBugLink(base.BaseTestCase):
         bug = mock.MagicMock()
         bug.bug_id = 1473091
         bug.title = '<disk> <driver name="..."> should be optional'
-        bug.private = False
 
         link = util.bug_link(None, bug)
 

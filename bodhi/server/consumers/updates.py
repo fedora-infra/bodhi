@@ -162,9 +162,6 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
         details from Bugzilla, comment on the bug to let watchers know about the update, and mark
         the bug as MODIFIED. If the bug is a security issue, mark the update as a security update.
 
-        If the bug is private, Bodhi can't retrieve any information, comment on it, or modify
-        it, so we just associate the bug id with the update and mark it to be private.
-
         If handle_bugs is not True, return and do nothing.
 
         Args:
@@ -184,10 +181,6 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
 
                 log.info("Updating our details for %r" % bug.bug_id)
                 bug.update_details(rhbz_bug)
-                if bug.private:
-                    # Bodhi can't retrieve any information so just continue with the next bug
-                    log.info("  Skipping bug %r because it is private" % (bug.bug_id))
-                    continue
                 log.info("  Got title %r for %r" % (bug.title, bug.bug_id))
 
                 # If you set the type of your update to 'enhancement' but you

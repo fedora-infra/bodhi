@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright © 2011-2018 Red Hat, Inc. and others.
+# Copyright © 2011-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -4159,9 +4159,6 @@ class Bug(Base):
     # List of Mitre CVE's associated with this bug
     cves = relationship(CVE, secondary=bug_cve_table, backref='bugs')
 
-    # Is it public or private
-    private = Column(Boolean, default=False)
-
     @property
     def url(self):
         """
@@ -4217,9 +4214,6 @@ class Bug(Base):
             comment (basestring or None): The comment to add to the bug. If None, a default message
                 is added to the bug. Defaults to None.
         """
-        if self.private:
-            log.debug('Not commenting on private bug %s', self.bug_id)
-            return
         if update.type is UpdateType.security and self.parent \
                 and update.status is not UpdateStatus.stable:
             log.debug('Not commenting on parent security bug %s', self.bug_id)
@@ -4239,9 +4233,6 @@ class Bug(Base):
         Args:
             update (Update): The update associated with the bug.
         """
-        if self.private:
-            log.debug('Not modifying private bug %s', self.bug_id)
-            return
         # Skip modifying Security Response bugs for testing updates
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying parent security bug %s', self.bug_id)
@@ -4256,9 +4247,6 @@ class Bug(Base):
         Args:
             update (Update): The update associated with the bug.
         """
-        if self.private:
-            log.debug('Not modifying private bug %s', self.bug_id)
-            return
         # Build a mapping of package names to build versions
         # so that .close() can figure out which build version fixes which bug.
         versions = dict([
@@ -4275,9 +4263,6 @@ class Bug(Base):
         Args:
             update (Update): The update that is associated with this bug.
         """
-        if self.private:
-            log.debug('Not modifying private bug %s', self.bug_id)
-            return
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying parent security bug %s', self.bug_id)
         else:
