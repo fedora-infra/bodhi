@@ -251,20 +251,6 @@ class TestBugAddComment(BaseTestCase):
         debug.assert_called_once_with('Not commenting on parent security bug %s', bug.bug_id)
         self.assertEqual(comment.call_count, 0)
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
-    @mock.patch('bodhi.server.models.log.debug')
-    def test_private_bug(self, debug, comment):
-        """The method should not comment if a bug is flagged as private."""
-        update = model.Update.query.first()
-        update.type = model.UpdateType.security
-        bug = model.Bug.query.first()
-        bug.private = True
-
-        bug.add_comment(update)
-
-        debug.assert_called_once_with('Not commenting on private bug %s', bug.bug_id)
-        self.assertEqual(comment.call_count, 0)
-
 
 class TestBugDefaultMessage(BaseTestCase):
     """Test Bug.default_mesage()."""
@@ -323,20 +309,6 @@ class TestBugModified(BaseTestCase):
         debug.assert_called_once_with('Not modifying parent security bug %s', bug.bug_id)
         self.assertEqual(modified.call_count, 0)
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.modified')
-    @mock.patch('bodhi.server.models.log.debug')
-    def test_private_bug(self, debug, modified):
-        """The method should not act on a bug flagged as private."""
-        update = model.Update.query.first()
-        update.type = model.UpdateType.security
-        bug = model.Bug.query.first()
-        bug.private = True
-
-        bug.modified(update, 'this should not be used')
-
-        debug.assert_called_once_with('Not modifying private bug %s', bug.bug_id)
-        self.assertEqual(modified.call_count, 0)
-
 
 class TestBugTesting(BaseTestCase):
     """Test Bug.testing()."""
@@ -354,38 +326,6 @@ class TestBugTesting(BaseTestCase):
 
         debug.assert_called_once_with('Not modifying parent security bug %s', bug.bug_id)
         self.assertEqual(on_qa.call_count, 0)
-
-    @mock.patch('bodhi.server.models.bugs.bugtracker.on_qa')
-    @mock.patch('bodhi.server.models.log.debug')
-    def test_private_bug(self, debug, on_qa):
-        """The method should not act on a bug flagged as private."""
-        update = model.Update.query.first()
-        update.type = model.UpdateType.security
-        bug = model.Bug.query.first()
-        bug.private = True
-
-        bug.testing(update)
-
-        debug.assert_called_once_with('Not modifying private bug %s', bug.bug_id)
-        self.assertEqual(on_qa.call_count, 0)
-
-
-class TestBugClose(BaseTestCase):
-    """Test Bug.close()."""
-
-    @mock.patch('bodhi.server.models.bugs.bugtracker.close')
-    @mock.patch('bodhi.server.models.log.debug')
-    def test_private_bug(self, debug, close):
-        """The method should not act on a bug flagged as private."""
-        update = model.Update.query.first()
-        update.type = model.UpdateType.security
-        bug = model.Bug.query.first()
-        bug.private = True
-
-        bug.close_bug(update)
-
-        debug.assert_called_once_with('Not modifying private bug %s', bug.bug_id)
-        self.assertEqual(close.call_count, 0)
 
 
 class TestQueryProperty(BaseTestCase):

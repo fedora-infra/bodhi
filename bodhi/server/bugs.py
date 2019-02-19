@@ -137,9 +137,6 @@ class Bugzilla(object):
             if len(comment) > 65535:
                 raise InvalidComment("Comment is too long: %s" % comment)
             bug = self.bz.getbug(bug_id)
-            if bug.private:
-                log.info('Unable to comment on private bug #%d' % bug_id)
-                return
             attempts = 0
             while attempts < 5:
                 try:
@@ -153,6 +150,13 @@ class Bugzilla(object):
         except InvalidComment:
             log.error(
                 "Comment too long for bug #%d:  %s" % (bug_id, comment))
+        except xmlrpc_client.Fault as err:
+            if err.faultCode == 102:
+                log.info('Cannot retrieve private bug #%d.', bug_id)
+            else:
+                log.exception(
+                    "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
+                    bug_id, err.faultCode, err.faultString)
         except Exception:
             log.exception("Unable to add comment to bug #%d" % bug_id)
 
@@ -172,9 +176,6 @@ class Bugzilla(object):
         """
         try:
             bug = self.bz.getbug(bug_id)
-            if bug.private:
-                log.info('Unable to modify status of private bug #%d' % bug_id)
-                return
             if bug.product not in config.get('bz_products'):
                 log.info("Skipping set on_qa on {0!r} bug #{1}".format(bug.product, bug_id))
                 return
@@ -183,6 +184,13 @@ class Bugzilla(object):
                 bug.setstatus('ON_QA', comment=comment)
             else:
                 bug.addcomment(comment)
+        except xmlrpc_client.Fault as err:
+            if err.faultCode == 102:
+                log.info('Cannot retrieve private bug #%d.', bug_id)
+            else:
+                log.exception(
+                    "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
+                    bug_id, err.faultCode, err.faultString)
         except Exception:
             log.exception("Unable to alter bug #%d" % bug_id)
 
@@ -201,9 +209,6 @@ class Bugzilla(object):
         args = {'comment': comment}
         try:
             bug = self.bz.getbug(bug_id)
-            if bug.private:
-                log.info('Unable to modify status of private bug #%d' % bug_id)
-                return
             if bug.product not in config.get('bz_products'):
                 log.info("Skipping set closed on {0!r} bug #{1}".format(bug.product, bug_id))
                 return
@@ -228,10 +233,13 @@ class Bugzilla(object):
                     args['fixedin'] = " ".join([fixedin_str, version]).strip()
 
             bug.close('ERRATA', **args)
-        except xmlrpc_client.Fault as e:
-            log.error(
-                "Unable to close bug #%d: a fault has occurred\nFault code: %d\nFault string: %s" %
-                (bug_id, e.faultCode, e.faultString))
+        except xmlrpc_client.Fault as err:
+            if err.faultCode == 102:
+                log.info('Cannot retrieve private bug #%d.', bug_id)
+            else:
+                log.exception(
+                    "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
+                    bug_id, err.faultCode, err.faultString)
 
     def update_details(self, bug: typing.Union[typing.Any, None],
                        bug_entity: 'models.Bug'):
@@ -248,13 +256,13 @@ class Bugzilla(object):
                 bug = self.bz.getbug(bug_entity.bug_id)
             except xmlrpc_client.Fault as err:
                 if err.faultCode == 102:
+                    log.info('Cannot retrieve private bug #%d.', bug_entity.bug_id)
                     bug_entity.title = 'Private bug'
-                    bug_entity.private = True
-                    log.info("Marked bug #" + str(bug_entity.bug_id) + " as private.")
                 else:
+                    log.exception(
+                        "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
+                        bug_entity.bug_id, err.faultCode, err.faultString)
                     bug_entity.title = 'Invalid bug number'
-                    log.error("Got fault from Bugzilla: fault code: %d, fault string: %s" % (
-                        err.faultCode, err.faultString))
                 return
             except Exception:
                 log.exception("Unknown exception from Bugzilla")
@@ -284,9 +292,6 @@ class Bugzilla(object):
         """
         try:
             bug = self.bz.getbug(bug_id)
-            if bug.private:
-                log.info('Unable to modify status of private bug #%s' % bug_id)
-                return
             if bug.product not in config.get('bz_products'):
                 log.info("Skipping set modified on {0!r} bug #{1}".format(bug.product, bug_id))
                 return
@@ -295,6 +300,13 @@ class Bugzilla(object):
                 bug.setstatus('MODIFIED', comment=comment)
             else:
                 bug.addcomment(comment)
+        except xmlrpc_client.Fault as err:
+            if err.faultCode == 102:
+                log.info('Cannot retrieve private bug #%d.', bug_id)
+            else:
+                log.exception(
+                    "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
+                    bug_id, err.faultCode, err.faultString)
         except Exception:
             log.exception("Unable to alter bug #%s" % bug_id)
 
