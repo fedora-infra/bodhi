@@ -36,7 +36,7 @@ from bodhi.server import Session, initialize_db, notifications
 
 
 logger = logging.getLogger('approve-testing')
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 
 
 def usage(argv):
