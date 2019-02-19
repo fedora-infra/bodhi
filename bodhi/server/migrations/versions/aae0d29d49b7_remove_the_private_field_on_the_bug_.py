@@ -39,5 +39,3 @@ def upgrade():
 def downgrade():
     """Add the private field back to the bugs table."""
     op.add_column('bugs', sa.Column('private', sa.BOOLEAN(), autoincrement=False, nullable=True))
-    op.execute("""UPDATE bugs SET private = FALSE""")
-    op.alter_column('bugs', 'private', nullable=False)
