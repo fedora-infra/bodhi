@@ -1,4 +1,4 @@
-# Copyright © 2007-2018 Red Hat, Inc. and others.
+# Copyright © 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -125,8 +125,9 @@ class TestBugzilla(unittest.TestCase):
         bz.close(12345, {'bodhi': 'bodhi-3.1.0-1.fc27'}, 'whabam!')
 
         error.assert_called_once_with(
-            ('Unable to close bug #12345: a fault has occurred\nFault code: 410\nFault string: You '
-             'must log in before using this part of Red Hat Bugzilla.'))
+            'Got fault from Bugzilla on #%d: fault code: %d, fault string: %s',
+            12345, 410, 'You must log in before using this part of Red Hat Bugzilla.',
+            exc_info=True)
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
@@ -191,6 +192,23 @@ class TestBugzilla(unittest.TestCase):
         self.assertEqual(info.call_count, 0)
 
     @mock.patch('bodhi.server.bugs.log.info')
+    def test_close_private_bug(self, info):
+        """close() should gracefully handle private bugs."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = xmlrpc.client.Fault(
+            102,
+            ('You are not authorized to access bug #1563797. To see this bug, you must first log in'
+             'to an account with the appropriate permissions.'))
+
+        bz.close(1563797, {'bodhi': 'bodhi-35.103.109-1.fc27'},
+                 'Fixed. Closing bug and adding version to fixed_in field.')
+
+        bz._bz.getbug.assert_called_once_with(1563797)
+        info.assert_called_once_with(
+            'Cannot retrieve private bug #%d.', 1563797)
+
+    @mock.patch('bodhi.server.bugs.log.info')
     def test_close_product_skipped(self, info):
         """Test the close() method when the bug's product is not in the bz_products config."""
         bz = bugs.Bugzilla()
@@ -203,6 +221,37 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(12345)
         info.assert_called_once_with("Skipping set closed on 'not fedora!' bug #12345")
         self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
+
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_comment_fault(self, exception):
+        """comment() should gracefully handle Bugzilla faults."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = xmlrpc.client.Fault(
+            42, 'The meaning')
+
+        bz.comment(1563797, 'Bodhi has fixed all of your bugs.')
+
+        bz._bz.getbug.assert_called_once_with(1563797)
+        exception.assert_called_once_with(
+            'Got fault from Bugzilla on #%d: fault code: %d, fault string: %s', 1563797, 42,
+            'The meaning')
+
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_comment_private_bug(self, info):
+        """comment() should gracefully handle private bugs."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = xmlrpc.client.Fault(
+            102,
+            ('You are not authorized to access bug #1563797. To see this bug, you must first log in'
+             'to an account with the appropriate permissions.'))
+
+        bz.comment(1563797, 'Bodhi has fixed all of your bugs.')
+
+        bz._bz.getbug.assert_called_once_with(1563797)
+        info.assert_called_once_with(
+            'Cannot retrieve private bug #%d.', 1563797)
 
     @mock.patch('bodhi.server.bugs.log.info')
     def test_comment_successful(self, info):
@@ -319,6 +368,37 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A mean message.')
 
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_modified_fault(self, exception):
+        """modified() should gracefully handle Bugzilla faults."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = xmlrpc.client.Fault(
+            42, 'The meaning')
+
+        bz.modified(1563797, 'Bodhi has fixed all of your bugs.')
+
+        bz._bz.getbug.assert_called_once_with(1563797)
+        exception.assert_called_once_with(
+            'Got fault from Bugzilla on #%d: fault code: %d, fault string: %s', 1563797, 42,
+            'The meaning')
+
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_modified_private_bug(self, info):
+        """modified() should gracefully handle private bugs."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = xmlrpc.client.Fault(
+            102,
+            ('You are not authorized to access bug #1563797. To see this bug, you must first log in'
+             'to an account with the appropriate permissions.'))
+
+        bz.modified(1563797, 'Bodhi has fixed all of your bugs.')
+
+        bz._bz.getbug.assert_called_once_with(1563797)
+        info.assert_called_once_with(
+            'Cannot retrieve private bug #%d.', 1563797)
+
     @mock.patch('bodhi.server.bugs.log.info')
     def test_modified_product_skipped(self, info):
         """Test the modified() method when the bug's product is not in the bz_products config."""
@@ -382,6 +462,25 @@ class TestBugzilla(unittest.TestCase):
         self.assertIs(bug_entity.parent, True)
         self.assertEqual(bug_entity.title, 'Fedora gets you, good job guys!')
 
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_update_details_private_bug(self, info):
+        """update_details() should gracefully handle private bugs."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = xmlrpc.client.Fault(
+            102,
+            ('You are not authorized to access bug #1563797. To see this bug, you must first log in'
+             'to an account with the appropriate permissions.'))
+        bug = mock.MagicMock()
+        bug.bug_id = 1563797
+
+        bz.update_details(None, bug)
+
+        self.assertEqual(bug.title, 'Private bug')
+        bz._bz.getbug.assert_called_once_with(1563797)
+        info.assert_called_once_with(
+            'Cannot retrieve private bug #%d.', 1563797)
+
     @mock.patch('bodhi.server.bugs.log.error')
     def test_update_details_xmlrpc_fault(self, error):
         """Test we log an error if update_details raises one"""
@@ -396,7 +495,8 @@ class TestBugzilla(unittest.TestCase):
         self.assertEqual(bug.title, 'Invalid bug number')
         bz._bz.getbug.assert_called_once_with(123)
         error.assert_called_once_with(
-            'Got fault from Bugzilla: fault code: 42, fault string: You found the meaning.')
+            'Got fault from Bugzilla on #%d: fault code: %d, fault string: %s', 123, 42,
+            'You found the meaning.', exc_info=True)
 
     @mock.patch('bodhi.server.bugs.log.exception')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
@@ -416,6 +516,37 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.return_value.setstatus.assert_called_once_with('ON_QA',
                                                                      comment='A mean message.')
         exception.assert_called_once_with('Unable to alter bug #1411188')
+
+    @mock.patch('bodhi.server.bugs.log.exception')
+    def test_on_qa_fault(self, exception):
+        """on_qa() should gracefully handle Bugzilla faults."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = xmlrpc.client.Fault(
+            42, 'The meaning')
+
+        bz.on_qa(1563797, 'Bodhi has fixed all of your bugs.')
+
+        bz._bz.getbug.assert_called_once_with(1563797)
+        exception.assert_called_once_with(
+            'Got fault from Bugzilla on #%d: fault code: %d, fault string: %s', 1563797, 42,
+            'The meaning')
+
+    @mock.patch('bodhi.server.bugs.log.info')
+    def test_on_qa_private_bug(self, info):
+        """on_qa() should gracefully handle private bugs."""
+        bz = bugs.Bugzilla()
+        bz._bz = mock.MagicMock()
+        bz._bz.getbug.side_effect = xmlrpc.client.Fault(
+            102,
+            ('You are not authorized to access bug #1563797. To see this bug, you must first log in'
+             'to an account with the appropriate permissions.'))
+
+        bz.on_qa(1563797, 'Bodhi has fixed all of your bugs.')
+
+        bz._bz.getbug.assert_called_once_with(1563797)
+        info.assert_called_once_with(
+            'Cannot retrieve private bug #%d.', 1563797)
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
