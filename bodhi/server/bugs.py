@@ -163,6 +163,13 @@ class Bugzilla(BugTracker):
         except InvalidComment:
             log.error(
                 "Comment too long for bug #%d:  %s" % (bug_id, comment))
+        except xmlrpc_client.Fault as err:
+            if err.faultCode == 102:
+                log.info('Cannot retrieve private bug #%d.', bug_id)
+            else:
+                log.exception(
+                    "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
+                    bug_id, err.faultCode, err.faultString)
         except Exception:
             log.exception("Unable to add comment to bug #%d" % bug_id)
 
@@ -190,6 +197,13 @@ class Bugzilla(BugTracker):
                 bug.setstatus('ON_QA', comment=comment)
             else:
                 bug.addcomment(comment)
+        except xmlrpc_client.Fault as err:
+            if err.faultCode == 102:
+                log.info('Cannot retrieve private bug #%d.', bug_id)
+            else:
+                log.exception(
+                    "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
+                    bug_id, err.faultCode, err.faultString)
         except Exception:
             log.exception("Unable to alter bug #%d" % bug_id)
 
@@ -233,10 +247,13 @@ class Bugzilla(BugTracker):
                     args['fixedin'] = " ".join([fixedin_str, version]).strip()
 
             bug.close('ERRATA', **args)
-        except xmlrpc_client.Fault as e:
-            log.error(
-                "Unable to close bug #%d: a fault has occurred\nFault code: %d\nFault string: %s" %
-                (bug_id, e.faultCode, e.faultString))
+        except xmlrpc_client.Fault as err:
+            if err.faultCode == 102:
+                log.info('Cannot retrieve private bug #%d.', bug_id)
+            else:
+                log.exception(
+                    "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
+                    bug_id, err.faultCode, err.faultString)
 
     def update_details(self, bug, bug_entity):
         """
@@ -251,10 +268,15 @@ class Bugzilla(BugTracker):
         if not bug:
             try:
                 bug = self.bz.getbug(bug_entity.bug_id)
-            except xmlrpc_client.Fault as e:
-                bug_entity.title = 'Invalid bug number'
-                log.error("Got fault from Bugzilla: fault code: %d, fault string: %s" % (
-                    e.faultCode, e.faultString))
+            except xmlrpc_client.Fault as err:
+                if err.faultCode == 102:
+                    log.info('Cannot retrieve private bug #%d.', bug_entity.bug_id)
+                    bug_entity.title = 'Private bug'
+                else:
+                    log.exception(
+                        "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
+                        bug_entity.bug_id, err.faultCode, err.faultString)
+                    bug_entity.title = 'Invalid bug number'
                 return
             except Exception:
                 log.exception("Unknown exception from Bugzilla")
@@ -292,6 +314,13 @@ class Bugzilla(BugTracker):
                 bug.setstatus('MODIFIED', comment=comment)
             else:
                 bug.addcomment(comment)
+        except xmlrpc_client.Fault as err:
+            if err.faultCode == 102:
+                log.info('Cannot retrieve private bug #%d.', bug_id)
+            else:
+                log.exception(
+                    "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
+                    bug_id, err.faultCode, err.faultString)
         except Exception:
             log.exception("Unable to alter bug #%d" % bug_id)
 
