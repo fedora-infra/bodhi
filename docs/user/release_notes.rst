@@ -2,6 +2,24 @@
 Release notes
 =============
 
+v3.13.1
+-------
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+No special instructions are needed for this release.
+
+
+Bug fix
+^^^^^^^
+
+This is a bugfix release, addressing an issue that was introduced in 3.13.0:
+
+* Gracefully handle private bugs via a different approach than was used in 3.13.0 (:issue:`3016` and
+  :issue:`344`).
+
+
 v3.13.0
 -------
 
