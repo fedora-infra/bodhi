@@ -4,6 +4,35 @@
 
 These are the release notes for the 3.x series of Bodhi releases.
 
+v3.13.2
+-------
+
+This is a bugfix release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Bug fixes
+^^^^^^^^^
+
+* Allow the bugs.private database column to be ``NULL`` (:issue:`3024`).
+* Remove misplaced variable in the update template (:issue:`3025`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 3.13.2:
+
+* Aurélien Bompard
+* Randy Barlow
+
 
 v3.13.1
 -------
