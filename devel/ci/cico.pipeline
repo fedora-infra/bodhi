@@ -158,6 +158,7 @@ node('bodhi') {
         parallel(
             f28: {test_release('f28')},
             f29: {test_release('f29')},
+            f30: {test_release('f30')},
             pip: {test_release('pip')},
             rawhide: {test_release('rawhide')},
         )
