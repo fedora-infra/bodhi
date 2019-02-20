@@ -1,4 +1,4 @@
-# Copyright © 2016-2018 Red Hat, Inc.
+# Copyright © 2016-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -26,20 +26,8 @@ import koji
 from bodhi.server import buildsys
 
 
-class TestBuildsystem(unittest.TestCase):
-    """This test class contains tests for the Buildsystem class."""
-    def test_raises_not_implemented(self):
-        """
-        TheBuildsystem class is meant to be a superclass, so each of its methods raise
-        NotImplementedError. Ensure that this is raised.
-        """
-        bs = buildsys.Buildsystem()
-
-        for method in (
-                bs.getBuild, bs.getLatestBuilds, bs.moveBuild, bs.ssl_login, bs.listBuildRPMs,
-                bs.listTags, bs.listTagged, bs.taskFinished, bs.tagBuild, bs.untagBuild,
-                bs.multiCall, bs.getTag, bs.addTag, bs.deleteTag):
-            self.assertRaises(NotImplementedError, method)
+class TestTeardown(unittest.TestCase):
+    """This test class contains tests for the teardown_buildsystem() function."""
 
     def test_raises_not_configured(self):
         """
@@ -48,6 +36,10 @@ class TestBuildsystem(unittest.TestCase):
         """
         buildsys.teardown_buildsystem()
         self.assertRaises(RuntimeError, buildsys.get_session)
+
+
+class TestSetup(unittest.TestCase):
+    """This test class contains tests for the setup_buildsystem() function."""
 
     def test_raises_unknown_buildsys(self):
         """
