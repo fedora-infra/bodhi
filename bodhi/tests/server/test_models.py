@@ -522,7 +522,6 @@ class TestCompose(BaseTestCase):
             branch=u'f27-{}'.format(uid))
         self.db.add(release)
         update = self.create_update([u'bodhi-{}-1.fc27'.format(uuid.uuid4())])
-        update.assign_alias()
         update.release = release
         update.request = request
         update.locked = True
@@ -1545,13 +1544,24 @@ class TestRpmBuild(ModelTest):
         self.assertEqual(self.obj.get_url(), u'/TurboGears-1.0.8-3.fc11')
 
 
+class TestUpdateInit(BaseTestCase):
+    """Tests for the update.__init__() method."""
+
+    def test_release_missing(self):
+        """If the release is not passed when creating an Update, a ValueError should be raised."""
+        with self.assertRaises(ValueError) as exc:
+            model.Update()
+
+        self.assertEqual(str(exc.exception), 'You must specify a Release when creating an Update.')
+
+
 class TestUpdateEdit(BaseTestCase):
     """Tests for the Update.edit() method."""
 
     def test_add_build_to_locked_update(self):
         """Adding a build to a locked update should raise LockedUpdateException."""
         data = {
-            'edited': model.Update.query.first().title, 'builds': ["can't", 'do', 'this']}
+            'edited': model.Update.query.first().alias, 'builds': ["can't", 'do', 'this']}
         request = mock.MagicMock()
         request.db = self.db
         update = model.Update.query.first()
@@ -1570,7 +1580,7 @@ class TestUpdateEdit(BaseTestCase):
         self.db.add(build)
         update = model.Update.query.first()
         data = {
-            'edited': update.title, 'builds': [update.builds[0].nvr, build.nvr], 'bugs': []}
+            'edited': update.alias, 'builds': [update.builds[0].nvr, build.nvr], 'bugs': []}
         request = mock.MagicMock()
         request.buildinfo = {
             build.nvr: {
@@ -1590,7 +1600,7 @@ class TestUpdateEdit(BaseTestCase):
     def test_remove_builds_from_locked_update(self):
         """Adding a build to a locked update should raise LockedUpdateException."""
         data = {
-            'edited': model.Update.query.first().title, 'builds': []}
+            'edited': model.Update.query.first().alias, 'builds': []}
         request = mock.MagicMock()
         request.db = self.db
         update = model.Update.query.first()
@@ -1813,7 +1823,6 @@ class TestUpdateValidateBuilds(BaseTestCase):
         super(TestUpdateValidateBuilds, self).setUp()
         self.package = model.RpmPackage(name='the-greatest-package')
         self.update = model.Update(
-            title='The best update of all time.',
             user=model.User.query.filter_by(name=u'guest').one(),
             request=model.UpdateRequest.testing,
             notes=u'Useless details!',
@@ -1910,7 +1919,6 @@ class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
     klass = model.Update
     attrs = dict(
-        title=u'TurboGears-1.0.8-3.fc11',
         type=UpdateType.security,
         status=UpdateStatus.pending,
         request=UpdateRequest.testing,
@@ -1935,7 +1943,6 @@ class TestUpdate(ModelTest):
     def get_update(self, name=u'TurboGears-1.0.8-3.fc11'):
         """Return an Update instance for testing."""
         attrs = self.attrs.copy()
-        attrs['title'] = name
         pkg = self.db.query(model.RpmPackage).filter_by(name=u'TurboGears').one()
         rel = self.db.query(model.Release).filter_by(name=u'F11').one()
         attrs.update(dict(
@@ -1955,7 +1962,8 @@ class TestUpdate(ModelTest):
         result = self.obj.add_tag(tag=None)
 
         self.assertEqual(result, [])
-        warning.assert_called_once_with('Not adding builds of TurboGears-1.0.8-3.fc11 to empty tag')
+        warning.assert_called_once_with('Not adding builds of %s to empty tag',
+                                        'TurboGears-1.0.8-3.fc11')
 
     def test_autokarma_not_nullable(self):
         """Assert that the autokarma column does not allow NULL values.
@@ -2038,8 +2046,6 @@ class TestUpdate(ModelTest):
 
     def test_greenwave_subject(self):
         """Ensure that the greenwave_subject property returns the correct value."""
-        self.obj.assign_alias()
-
         self.assertEqual(
             self.obj.greenwave_subject,
             [{'item': u'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
@@ -2048,8 +2054,6 @@ class TestUpdate(ModelTest):
 
     def test_greenwave_subject_json(self):
         """Ensure that the greenwave_subject_json property returns the correct value."""
-        self.obj.assign_alias()
-
         subject = self.obj.greenwave_subject_json
 
         self.assertTrue(isinstance(subject, str))
@@ -2198,7 +2202,7 @@ class TestUpdate(ModelTest):
             self.obj.requested_tag
 
         self.assertEqual(str(exc.exception),
-                         'Unable to determine requested tag for {}.'.format(self.obj.title))
+                         f'Unable to determine requested tag for {self.obj.alias}.')
 
     def test_requested_tag_request_obsolete(self):
         """requested_tag() should returnt he candidate_tag if the request is obsolete."""
@@ -2499,7 +2503,7 @@ class TestUpdate(ModelTest):
             self.obj.unpush(self.db)
 
         self.assertEqual(str(exc.exception), "Can't unpush a stable update")
-        debug.assert_called_once_with('Unpushing {}'.format(self.obj.title))
+        debug.assert_called_once_with('Unpushing %s', self.obj.alias)
         self.assertEqual(self.obj.untag.call_count, 0)
 
     @mock.patch('bodhi.server.models.log.debug')
@@ -2512,8 +2516,8 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(
             debug.mock_calls,
-            [mock.call('Unpushing {}'.format(self.obj.title)),
-             mock.call('{} already unpushed'.format(self.obj.title))])
+            [mock.call('Unpushing %s', self.obj.alias),
+             mock.call('%s already unpushed', self.obj.alias)])
         self.assertEqual(self.obj.untag.call_count, 0)
 
     def test_title(self):
@@ -2560,58 +2564,11 @@ class TestUpdate(ModelTest):
     def test_bugstring(self):
         self.assertEqual(self.obj.get_bugstring(), u'1 2')
 
-    def test_assign_alias(self):
-        update = self.obj
-        with mock.patch(target='uuid.uuid4', return_value='wat'):
-            update.assign_alias()
-        year = time.localtime()[0]
-        idx = 'a3bbe1a8f2'
-        self.assertEqual(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
-
-        update = self.get_update(name=u'TurboGears-0.4.4-8.fc11')
-        with mock.patch(target='uuid.uuid4', return_value='wat2'):
-            update.assign_alias()
-        idx = '016462d41f'
-        self.assertEqual(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
-
-        # Create another update for another release that has the same
-        # Release.id_prefix.  This used to trigger a bug that would cause
-        # duplicate IDs across Fedora 10/11 updates.
-        update = self.get_update(name=u'nethack-3.4.5-1.fc10')
-        otherrel = model.Release(name=u'fc10', long_name=u'Fedora 10',
-                                 id_prefix=u'FEDORA', dist_tag=u'dist-fc10',
-                                 stable_tag=u'dist-fc10-updates',
-                                 testing_tag=u'dist-fc10-updates-testing',
-                                 candidate_tag=u'dist-fc10-updates-candidate',
-                                 pending_signing_tag=u'dist-fc10-updates-testing-signing',
-                                 pending_testing_tag=u'dist-fc10-updates-testing-pending',
-                                 pending_stable_tag=u'dist-fc10-updates-pending',
-                                 override_tag=u'dist-fc10-override',
-                                 branch=u'fc10', version=u'10')
-        update.release = otherrel
-        with mock.patch(target='uuid.uuid4', return_value='wat3'):
-            update.assign_alias()
-        idx = '0efffa96f7'
-        self.assertEqual(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
-
-        newest = self.get_update(name=u'nethack-2.5.8-1.fc10')
-        with mock.patch(target='uuid.uuid4', return_value='wat4'):
-            newest.assign_alias()
-        idx = '0efffa96f7'
-        self.assertEqual(update.alias, u'%s-%s-%s' % (update.release.id_prefix, year, idx))
-
     def test_epel_id(self):
         """ Make sure we can handle id_prefixes that contain dashes.
         eg: FEDORA-EPEL
         """
-        # Create a normal Fedora update first
-        update = self.obj
-        with mock.patch(target='uuid.uuid4', return_value='wat'):
-            update.assign_alias()
-        idx = 'a3bbe1a8f2'
-        self.assertEqual(update.alias, u'FEDORA-%s-%s' % (time.localtime()[0], idx))
-
-        update = self.get_update(name=u'TurboGears-2.1-1.el5')
+        self.db.add(model.User(name='guest'))
         release = model.Release(
             name=u'EL-5', long_name=u'Fedora EPEL 5', id_prefix=u'FEDORA-EPEL',
             dist_tag=u'dist-5E-epel', stable_tag=u'dist-5E-epel',
@@ -2620,19 +2577,11 @@ class TestUpdate(ModelTest):
             pending_testing_tag=u'dist-5E-epel-testing-pending',
             pending_stable_tag=u'dist-5E-epel-pending', override_tag=u'dist-5E-epel-override',
             branch=u'el5', version=u'5')
-        update.release = release
-        idx = 'a3bbe1a8f2'
-        with mock.patch(target='uuid.uuid4', return_value='wat'):
-            update.assign_alias()
-        self.assertEqual(update.alias, u'FEDORA-EPEL-%s-%s' % (time.localtime()[0], idx))
-
-        update = self.get_update(name=u'TurboGears-2.2-1.el5')
-        update.release = release
-        idx = '016462d41f'
-        with mock.patch(target='uuid.uuid4', return_value='wat2'):
-            update.assign_alias()
-        self.assertEqual(update.alias, u'%s-%s-%s' % (
-            release.id_prefix, time.localtime()[0], idx))
+        self.db.add(release)
+        self.db.flush()
+        update = self.create_update(build_nvrs=['TurboGears-2.1-1.el5'],
+                                    release_name=release.name)
+        self.assertTrue(update.alias.startswith(f'FEDORA-EPEL-{time.localtime()[0]}'))
 
     def test_dupe(self):
         with self.assertRaises(IntegrityError):
@@ -2830,7 +2779,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.remove_tag(''), [])
 
         warning.assert_called_once_with(
-            'Not removing builds of {} from empty tag'.format(self.obj.title))
+            'Not removing builds of %s from empty tag', self.obj.title)
 
     def test_revoke_no_request(self):
         """revoke() should raise BodhiException on an Update with no request."""
@@ -3335,12 +3284,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(str(exc.exception), 'You must provide either some text or feedback')
 
     def test_get_url(self):
-        self.assertEqual(self.obj.get_url(), u'updates/TurboGears-1.0.8-3.fc11')
-        idx = 'a3bbe1a8f2'
-        with mock.patch(target='uuid.uuid4', return_value='wat'):
-            self.obj.assign_alias()
-        expected = u'updates/FEDORA-%s-%s' % (time.localtime()[0], idx)
-        self.assertEqual(self.obj.get_url(), expected)
+        self.assertEqual(self.obj.get_url(), f'updates/{self.obj.alias}')
 
     def test_bug(self):
         bug = self.obj.bugs[0]
@@ -3648,7 +3592,7 @@ class TestUpdate(ModelTest):
                                   package=package)
         self.db.add(build)
         update = model.Update(
-            title=u'testmodule-master-2',
+            release=release,
             builds=[build], user=user,
             status=UpdateStatus.testing,
             request=UpdateRequest.stable,
@@ -3656,8 +3600,6 @@ class TestUpdate(ModelTest):
             notes=u'Useful details!',
             stable_karma=3,
             unstable_karma=-3)
-
-        update.release = release
         self.db.add(update)
         self.db.flush()
 
@@ -3703,7 +3645,6 @@ class TestUpdate(ModelTest):
                                    package=package)
         self.db.add(build2)
         update1 = model.Update(
-            title=u'testmodule-master-2',
             builds=[build1], user=user,
             status=UpdateStatus.testing,
             request=UpdateRequest.stable,
@@ -3714,7 +3655,6 @@ class TestUpdate(ModelTest):
 
         # This should not raise an Exception.
         update2 = model.Update(
-            title=u'testmodule-master-2',
             builds=[build2], user=user,
             status=UpdateStatus.testing,
             request=UpdateRequest.stable,

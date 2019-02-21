@@ -191,10 +191,9 @@ class TestComposer(base.BaseTestCase):
         assert self.semmock.acquire.call_count == nr_expected
         assert self.semmock.release.call_count == self.semmock.acquire.call_count
 
-    def set_stable_request(self, title):
+    def set_stable_request(self, nvr: str):
         with self.db_factory() as session:
-            query = session.query(Update).filter_by(title=title)
-            update = query.one()
+            update = session.query(Build).filter_by(nvr=nvr).one().update
             update.request = UpdateRequest.stable
             session.flush()
 
@@ -325,24 +324,6 @@ That was the actual one''' % compose_dir
         self.assertEqual(m.db_factory, transactional_session_maker.return_value)
         initialize_db.assert_called_once_with(config)
         transactional_session_maker.assert_called_once_with()
-
-    def test__get_composes_api_1(self):
-        """Test _get_composes() with API version 1 (which isn't explicit about its version)."""
-        with self.db_factory() as db:
-            msg = {'resume': False, 'agent': u'bowlofeggs',
-                   'updates': [db.query(Update).one().title]}
-
-        composes = self.composer._get_composes(msg)
-
-        self.assertEqual(len(composes), 1)
-        with self.db_factory() as db:
-            compose = Compose.from_dict(db, composes[0])
-            self.assertEqual(
-                composes,
-                [{'content_type': compose.content_type.value, 'release_id': compose.release.id,
-                  'request': compose.request.value, 'security': compose.security}])
-            self.assertEqual(compose.state, ComposeState.pending)
-            self.assertEqual(compose.updates, [db.query(Update).one()])
 
     def test__get_composes_api_2(self):
         """Test _get_composes() with API version 2."""
@@ -538,10 +519,9 @@ That was the actual one''' % compose_dir
             build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package, signed=True)
             session.add(build)
             update = Update(
-                title=otherbuild, builds=[build], type=UpdateType.bugfix,
+                builds=[build], type=UpdateType.bugfix,
                 request=UpdateRequest.testing, notes=u'second update', user=firstupdate.user,
-                stable_karma=3, unstable_karma=-3)
-            update.release = firstupdate.release
+                stable_karma=3, unstable_karma=-3, release=firstupdate.release)
             session.add(update)
             session.flush()
 
@@ -924,7 +904,6 @@ That was the actual one'''
                              signed=True)
             db.add(build)
             update = Update(
-                title=u'bodhi-2.0-1.fc18',
                 builds=[build], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
@@ -1023,7 +1002,6 @@ That was the actual one'''
                              signed=True)
             db.add(build)
             update = Update(
-                title=u'bodhi-2.0-1.fc18',
                 builds=[build], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
@@ -1114,7 +1092,6 @@ That was the actual one'''
                              signed=True)
             db.add(build)
             update = Update(
-                title=u'bodhi-2.0-1.fc18',
                 builds=[build], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
@@ -1543,7 +1520,6 @@ That was the actual one'''
                                  package=package)
             db.add(build2)
             update = Update(
-                title=u'testmodule-master-20172.2',
                 builds=[build2], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
@@ -1716,7 +1692,7 @@ testmodule:master:20172:2
         self.expected_sems = 1
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
-        u = Update.query.filter_by(title='bodhi-2.0-1.fc17').one()
+        u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         u.test_gating_status = TestGatingStatus.failed
         u.requirements = ''
         msg = self._make_msg()
@@ -1738,10 +1714,10 @@ testmodule:master:20172:2
                                             repo='f17-updates',
                                             agent='ralph'))
         publish.assert_any_call(topic='update.eject', msg=mock.ANY, force=True)
-        u = Update.query.filter_by(title='bodhi-2.0-1.fc17').one()
+        u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertEqual(
             u.comments[-1].text,
-            ("bodhi-2.0-1.fc17 ejected from the push because 'Required tests did not pass on this "
+            (f"{u.alias} ejected from the push because 'Required tests did not pass on this "
              "update'"))
         # The request got sent back to None since it was ejected.
         self.assertEqual(u.request, None)
@@ -1760,7 +1736,7 @@ testmodule:master:20172:2
         self.expected_sems = 1
         # Set the request to stable right out the gate so we can test gating
         self.set_stable_request(u'bodhi-2.0-1.fc17')
-        u = Update.query.filter_by(title='bodhi-2.0-1.fc17').one()
+        u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         u.test_gating_status = TestGatingStatus.passed
         u.requirements = ''
         msg = self._make_msg()
@@ -1783,7 +1759,7 @@ testmodule:master:20172:2
                                             agent='ralph'))
         topics = {c[2]['topic'] for c in publish.mock_calls}
         self.assertNotIn('update.eject', topics)
-        u = Update.query.filter_by(title='bodhi-2.0-1.fc17').one()
+        u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertEqual(u.comments[-1].text, 'This update has been pushed to stable.')
         # The update should be stable.
         self.assertEqual(u.request, None)
@@ -2230,9 +2206,9 @@ testmodule:master:20172:2
             build = RpmBuild(nvr=otherbuild, package=oldupdate.builds[0].package, signed=True)
             session.add(build)
             update = Update(
-                title=otherbuild, builds=[build], type=UpdateType.bugfix,
+                builds=[build], type=UpdateType.bugfix,
                 request=UpdateRequest.testing, notes=u'second update', user=oldupdate.user,
-                stable_karma=3, unstable_karma=-3)
+                stable_karma=3, unstable_karma=-3, release=oldupdate.release)
             update.release = oldupdate.release
             session.add(update)
             session.flush()
@@ -2241,12 +2217,12 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             # Ensure that the older update got obsoleted
-            up = session.query(Update).filter_by(title=oldbuild).one()
+            up = session.query(Build).filter_by(nvr=oldbuild).one().update
             self.assertEqual(up.status, UpdateStatus.obsolete)
             self.assertEqual(up.request, None)
 
             # The latest update should be in testing
-            up = session.query(Update).filter_by(title=otherbuild).one()
+            up = session.query(Build).filter_by(nvr=otherbuild).one().update
             self.assertEqual(up.status, UpdateStatus.testing)
             self.assertEqual(up.request, None)
 
@@ -2343,7 +2319,6 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                                 package=package2)
         self.db.add(build2)
         update = Update(
-            title=u'testcontainer1-2.0.1-71.fc28container, testcontainer2-1.0.1-1.fc28container',
             builds=[build1, build2], user=user,
             status=UpdateStatus.pending,
             request=UpdateRequest.testing,
@@ -2514,7 +2489,6 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
                               package=package2)
         self.db.add(build2)
         update = Update(
-            title=u'testflatpak1-2.0.1-71.fc28flatpak, testflatpak2-1.0.1-1.fc28flatpak',
             builds=[build1, build2], user=user,
             status=UpdateStatus.pending,
             request=UpdateRequest.testing,

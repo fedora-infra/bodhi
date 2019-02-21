@@ -306,11 +306,9 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
 
         self.assertEqual(md.comp_type, createrepo_c.XZ)
 
-    def test_extended_metadata(self):
-        self._test_extended_metadata(True)
-
-    def test_extended_metadata_no_alias(self):
-        self._test_extended_metadata(False)
+    def test_extended_metadata_once(self):
+        """Assert that a single call to update the metadata works as expected."""
+        self._test_extended_metadata()
 
     def test_extended_metadata_cache(self):
         """Asserts that when the same update is retrieved twice, the info is unshelved.
@@ -319,22 +317,20 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         again retrieve the info from the buildsystem, and it'll have to be returned from the
         cache.
         """
-        self._test_extended_metadata(True)
+        self._test_extended_metadata()
         shutil.rmtree(self.temprepo)
         base.mkmetadatadir(self.temprepo, updateinfo=False)
         base.mkmetadatadir(join(self.tempcompdir, 'compose', 'Everything', 'source', 'tree'),
                            updateinfo=False)
         DevBuildsys.__rpms__ = []
-        self._test_extended_metadata(True)
+        self._test_extended_metadata()
 
-    def _test_extended_metadata(self, has_alias):
+    def _test_extended_metadata(self):
         update = self.db.query(Update).one()
 
         # Pretend it's pushed to testing
         update.status = UpdateStatus.testing
         update.request = None
-        if not has_alias:
-            update.alias = None
         update.date_pushed = datetime.utcnow()
         DevBuildsys.__tagged__[update.title] = ['f17-updates-testing']
 

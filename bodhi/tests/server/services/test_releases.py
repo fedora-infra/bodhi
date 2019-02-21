@@ -22,7 +22,7 @@ import webtest
 
 from bodhi import server
 from bodhi.server.config import config
-from bodhi.server.models import Release, ReleaseState, Update, UpdateStatus
+from bodhi.server.models import Build, Release, ReleaseState, Update, UpdateStatus
 from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base, create_update
 
@@ -141,12 +141,6 @@ class TestReleasesService(base.BaseTestCase):
     def test_list_releases_by_name_match_miss(self):
         res = self.app.get('/releases/', {"name": '%wat%'})
         self.assertEqual(len(res.json_body['releases']), 0)
-
-    def test_list_releases_by_update_title(self):
-        res = self.app.get('/releases/', {"updates": 'bodhi-2.0-1.fc17'})
-        body = res.json_body
-        self.assertEqual(len(body['releases']), 1)
-        self.assertEqual(body['releases'][0]['name'], 'F17')
 
     def test_list_releases_by_update_alias(self):
         update = self.db.query(Update).first()
@@ -396,28 +390,28 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEqual(r.state, ReleaseState.archived)
 
         # Expect update status not changed
-        python_nose = self.db.query(Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
+        python_nose = self.db.query(Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
         self.assertEqual(python_nose.status, UpdateStatus.stable)
         # Expect update status not changed
-        python_paste_deploy = self.db.query(Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        python_paste_deploy = self.db.query(Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         self.assertEqual(python_paste_deploy.status, UpdateStatus.obsolete)
         # Expect update status not changed
-        firefox = self.db.query(Update).filter_by(
-            title=u'firefox-61.0.2-3.fc17').one()
+        firefox = self.db.query(Build).filter_by(
+            nvr='firefox-61.0.2-3.fc17').one().update
         self.assertEqual(firefox.status, UpdateStatus.unpushed)
         # Expect update status changed to 'obsolete'
-        bodhi_update = self.db.query(Update).filter_by(
-            title=u'bodhi-2.0-1.fc17').one()
+        bodhi_update = self.db.query(Build).filter_by(
+            nvr='bodhi-2.0-1.fc17').one().update
         self.assertEqual(bodhi_update.status, UpdateStatus.obsolete)
         # Check for the comment
         expected_comment = (u'This update is marked obsolete because the F17 release '
                             'is archived.')
         self.assertEqual(bodhi_update.comments[-1].text, expected_comment)
         # Expect update status not changed
-        python_test_update = self.db.query(Update).filter_by(
-            title=u'python-test-update.fc22').one()
+        python_test_update = self.db.query(Build).filter_by(
+            nvr='python-test-update.fc22').one().update
         self.assertEqual(python_test_update.status, UpdateStatus.pending)
 
     def test_get_single_release_html(self):

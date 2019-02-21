@@ -224,7 +224,7 @@ class BodhiClient(OpenIdBaseClient):
         Save an update.
 
         This entails either creating a new update, or editing an existing one.
-        To edit an existing update, you must specify the update title in
+        To edit an existing update, you must specify the update alias in
         the ``edited`` keyword argument.
 
         Args:
@@ -248,7 +248,7 @@ class BodhiClient(OpenIdBaseClient):
             stable_karma (int): The upper threshold for marking an update as
                 ``stable``.
             unstable_karma (int): The lower threshold for unpushing an update.
-            edited (basestring): The update title of the existing update that we are
+            edited (basestring): The update alias of the existing update that we are
                 editing.
             severity (basestring): The severity of this update (``urgent``, ``high``,
                 ``medium``, ``low``).
@@ -275,7 +275,7 @@ class BodhiClient(OpenIdBaseClient):
         Request an update state change.
 
         Args:
-            update (basestring): The title of the update.
+            update (basestring): The alias of the update.
             request (basestring): The request (``testing``, ``stable``, ``obsolete``,
                 ``unpush``, ``revoke``).
         Returns:
@@ -301,7 +301,7 @@ class BodhiClient(OpenIdBaseClient):
         Waive unsatisfied requirements on an update.
 
         Args:
-            update (basestring): The title of the update.
+            update (basestring): The alias of the update.
             comment (basestring): A comment explaining the waiver.
             tests (tuple(basestring) or None): The list of unsatisfied requirements
                 to waive. If not specified, all unsatisfied requirements of this
@@ -328,7 +328,6 @@ class BodhiClient(OpenIdBaseClient):
         Query bodhi for a list of updates.
 
         Args:
-            title (basestring): The update title.
             alias (basestring): The update alias.
             updateid (basestring): The update ID (eg: FEDORA-2015-0001).
             content_type (basestring): A content type (rpm, module) to limit the query to.
@@ -374,9 +373,6 @@ class BodhiClient(OpenIdBaseClient):
         Returns:
             munch.Munch: The response from Bodhi describing the query results.
         """
-        if 'title' in kwargs:
-            kwargs['like'] = kwargs['title']
-            del kwargs['title']
         # bodhi1 compat
         if 'limit' in kwargs:
             kwargs['rows_per_page'] = kwargs['limit']
@@ -414,7 +410,7 @@ class BodhiClient(OpenIdBaseClient):
         Query bodhi for the test status of the specified update..
 
         Args:
-            update (basestring): The title or identifier of the update to
+            update (basestring): The alias of the update to
                 retrieve the test status of.
         Returns:
             munch.Munch: The response from Bodhi describing the query results.
@@ -427,7 +423,7 @@ class BodhiClient(OpenIdBaseClient):
         Add a comment to an update.
 
         Args:
-            update (basestring): The title of the update comment on.
+            update (basestring): The alias of the update comment on.
             comment (basestring): The text of the comment to add to the update.
             karma (int): The amount of karma to leave. May be -1, 0, or 1. Defaults to 0.
             email (basestring or None): Email address for an anonymous user. If an email address is
@@ -796,16 +792,15 @@ class BodhiClient(OpenIdBaseClient):
         update_lines = ['{:=^80}\n'.format('=')]
         update_lines += [
             line + '\n' for line in textwrap.wrap(
-                update['title'].replace(',', ', '),
+                update['title'],
                 width=80,
                 initial_indent=' ' * 5,
                 subsequent_indent=' ' * 5)
         ]
         update_lines.append('{:=^80}\n'.format('='))
 
-        if update['alias']:
-            update_lines.append(
-                line_formatter.format('Update ID', update['alias']))
+        update_lines.append(
+            line_formatter.format('Update ID', update['alias']))
 
         update_lines += [
             line_formatter.format('Content Type', update['content_type']),
@@ -900,12 +895,8 @@ class BodhiClient(OpenIdBaseClient):
                     comments_lines[1:])
             ]
 
-        if update['alias']:
-            update_lines.append(
-                '\n  {0}updates/{1}\n'.format(self.base_url, update['alias']))
-        else:
-            update_lines.append(
-                '\n  {0}updates/{1}\n'.format(self.base_url, update['title']))
+        update_lines.append(
+            '\n  {0}updates/{1}\n'.format(self.base_url, update['alias']))
 
         return ''.join(update_lines)
 

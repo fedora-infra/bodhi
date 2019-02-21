@@ -211,14 +211,6 @@ class Composer(fedmsg.consumers.FedmsgConsumer):
         with self.db_factory() as db:
             if 'api_version' in msg and msg['api_version'] == 2:
                 composes = [Compose.from_dict(db, c) for c in msg['composes']]
-            elif 'updates' in msg:
-                updates = [db.query(Update).filter(Update.title == t).one() for t in msg['updates']]
-                composes = Compose.from_updates(updates)
-                for c in composes:
-                    db.add(c)
-                    # This flush is necessary so the compose finds its updates, which gives it a
-                    # content_type when it is serialized later.
-                    db.flush()
             else:
                 raise ValueError('Unable to process fedmsg: {}'.format(msg))
 
@@ -384,7 +376,7 @@ class ComposerThread(threading.Thread):
         notifications.publish(
             topic="compose.composing",
             msg=dict(repo=self.id,
-                     updates=[u.title for u in self.compose.updates],
+                     updates=[' '.join([b.nvr for b in u.builds]) for u in self.compose.updates],
                      agent=self.agent,
                      ctype=self.ctype.value),
             force=True,
@@ -470,7 +462,7 @@ class ComposerThread(threading.Thread):
         for update in self.compose.updates:
             result, reason = update.check_requirements(self.db, config)
             if not result:
-                self.log.warning("%s failed gating: %s" % (update.title, reason))
+                self.log.warning("%s failed gating: %s" % (update.alias, reason))
                 self.eject_from_compose(update, reason)
         # We may have removed some updates from this compose above, and do we don't want future
         # reads on self.compose.updates to see those, so let's mark that attribute expired so
@@ -487,7 +479,7 @@ class ComposerThread(threading.Thread):
                 comment on the update, in a log message, and in a fedmsg.
         """
         update.locked = False
-        text = '%s ejected from the push because %r' % (update.title, reason)
+        text = '%s ejected from the push because %r' % (update.alias, reason)
         log.warning(text)
         update.comment(self.db, text, author=u'bodhi')
         # Remove the pending tag as well
@@ -722,7 +714,7 @@ class ComposerThread(threading.Thread):
         """Mark bugs on each Update as modified."""
         self.log.info('Updating bugs')
         for update in self.compose.updates:
-            self.log.debug('Modifying bugs for %s', update.title)
+            self.log.debug('Modifying bugs for %s', update.alias)
             update.modify_bugs()
 
     @checkpoint

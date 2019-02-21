@@ -116,7 +116,7 @@ class TestDownload(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
-                         'Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n')
+                         'Downloading packages from FEDORA-2017-c95b33872d\n')
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'updates/', verb='GET',
@@ -143,7 +143,7 @@ class TestDownload(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
-                         'Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n')
+                         'Downloading packages from FEDORA-2017-c95b33872d\n')
         call.assert_called_once_with((
             'koji', 'download-build', '--arch=noarch', '--arch=x86_64',
             'nodejs-grunt-wrap-0.3.0-2.fc25'))
@@ -165,7 +165,7 @@ class TestDownload(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
-                         'Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n')
+                         'Downloading packages from FEDORA-2017-c95b33872d\n')
         call.assert_called_once_with((
             'koji', 'download-build', 'nodejs-grunt-wrap-0.3.0-2.fc25'))
 
@@ -220,7 +220,7 @@ class TestDownload(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
                          ('WARNING: Some builds not found!\nDownloading packages '
-                          'from nodejs-grunt-wrap-0.3.0-2.fc25\n'))
+                          'from FEDORA-2017-c95b33872d\n'))
         call.assert_called_once_with((
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'))
@@ -243,7 +243,7 @@ class TestDownload(unittest.TestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
-                         ('Downloading packages from nodejs-grunt-wrap-0.3.0-2.fc25\n'
+                         ('Downloading packages from FEDORA-2017-c95b33872d\n'
                           'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n'))
         call.assert_called_once_with((
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
@@ -730,7 +730,7 @@ class TestQuery(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'updateid': None, 'alias': None, 'approved_since': None, 'like': None,
+                    'updateid': None, 'alias': None, 'approved_since': None,
                     'approved_before': None, 'status': None, 'locked': None,
                     'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
                     'content_type': None, 'severity': None,
@@ -771,7 +771,7 @@ class TestQuery(unittest.TestCase):
         send_request.assert_called_once_with(
             bindings_client, 'updates/', verb='GET',
             params={
-                'updateid': None, 'alias': None, 'approved_since': None, 'like': None,
+                'updateid': None, 'alias': None, 'approved_since': None,
                 'approved_before': None, 'status': None, 'locked': None,
                 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
                 'content_type': None, 'severity': None,
@@ -804,7 +804,7 @@ class TestQuery(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'updateid': None, 'alias': None, 'approved_since': None, 'like': None,
+                    'updateid': None, 'alias': None, 'approved_since': None,
                     'approved_before': None, 'status': None, 'locked': None,
                     'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
                     'content_type': None, 'severity': None,
@@ -845,7 +845,7 @@ class TestQuery(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'updateid': None, 'alias': None, 'approved_since': None, 'like': None,
+                    'updateid': None, 'alias': None, 'approved_since': None,
                     'approved_before': None, 'status': None, 'locked': None,
                     'builds': None, 'releases': None,
                     'content_type': None, 'severity': None, 'submitted_since': None,
@@ -887,7 +887,7 @@ class TestQuery(unittest.TestCase):
                 params={
                     'updateid': None, 'alias': None, 'approved_since': None,
                     'approved_before': None, 'status': None, 'locked': None,
-                    'builds': None, 'releases': None, 'like': None,
+                    'builds': None, 'releases': None,
                     'content_type': None, 'severity': None,
                     'submitted_since': None, 'submitted_before': None, 'suggest': None,
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
@@ -926,52 +926,13 @@ class TestQuery(unittest.TestCase):
                 params={
                     'updateid': None, 'alias': None, 'approved_since': None,
                     'approved_before': None, 'status': None, 'locked': None,
-                    'builds': None, 'releases': None, 'like': None,
+                    'builds': None, 'releases': None,
                     'content_type': None, 'severity': None,
                     'submitted_since': None, 'submitted_before': None, 'suggest': None,
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                     'modified_before': None, 'pushed': None, 'pushed_since': None,
                     'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
                     'type': None, 'rows_per_page': None, 'page': 5
-                },
-            ),
-            mock.call(
-                bindings_client,
-                u'updates/FEDORA-2017-c95b33872d/get-test-results',
-                verb='GET'
-            )
-        ]
-        self.assertEqual(send_request.mock_calls, calls)
-
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
-    def test_title_flag(self, send_request):
-        """
-        Assert correct behavior with the --title flag.
-        """
-        runner = testing.CliRunner()
-
-        result = runner.invoke(
-            client.query,
-            ['--title', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
-
-        self.assertEqual(result.exit_code, 0)
-        bindings_client = send_request.mock_calls[0][1][0]
-        calls = [
-            mock.call(
-                bindings_client, 'updates/', verb='GET',
-                params={
-                    'updateid': None, 'alias': None, 'approved_since': None,
-                    'approved_before': None, 'status': None, 'locked': None,
-                    'builds': None, 'releases': None, 'like': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'content_type': None, 'severity': None,
-                    'submitted_since': None, 'submitted_before': None, 'suggest': None,
-                    'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
-                    'modified_before': None, 'pushed': None, 'pushed_since': None,
-                    'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                    'type': None, 'rows_per_page': None, 'page': None
                 },
             ),
             mock.call(
@@ -1489,21 +1450,21 @@ class TestEdit(unittest.TestCase):
         runner = testing.CliRunner()
 
         result = runner.invoke(
-            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
                           '--password', 's3kr3t', '--bugs', '1234,5678'])
 
         self.assertEqual(result.exit_code, 0)
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
-            bindings_client, updateid='FEDORA-2017-cc8582d738')
+            bindings_client, updateid='FEDORA-2017-c95b33872d')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
                     'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'autokarma': False, 'edited': 'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
+                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': 'unspecified', 'notes': 'New package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
                     'bugs': '1234,5678', 'requirements': '', 'type': 'newpackage',
@@ -1525,22 +1486,22 @@ class TestEdit(unittest.TestCase):
         runner = testing.CliRunner()
 
         result = runner.invoke(
-            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
                           '--password', 's3kr3t', '--severity', 'low',
                           '--notes', 'Updated package.'])
 
         self.assertEqual(result.exit_code, 0)
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
-            bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+            bindings_client, updateid=u'FEDORA-2017-c95b33872d')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
                     'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
+                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': u'unspecified', 'notes': u'Updated package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
                     'bugs': '1420605', 'requirements': u'', 'type': 'newpackage',
@@ -1568,22 +1529,22 @@ class TestEdit(unittest.TestCase):
         runner = testing.CliRunner()
 
         result = runner.invoke(
-            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
                           '--password', 's3kr3t', '--notes', 'this is an edited note',
                           '--url', 'http://localhost:6543'])
 
         self.assertEqual(result.exit_code, 0)
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
-            bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+            bindings_client, updateid=u'FEDORA-2017-c95b33872d')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
                     'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
+                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': u'unspecified', 'notes': u'this is an edited note',
                     'notes_file': None, 'request': None, 'severity': u'low',
                     'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
@@ -1616,22 +1577,22 @@ class TestEdit(unittest.TestCase):
                 f.write('This is a --notes-file note!')
 
             result = runner.invoke(
-                client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+                client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
                               '--password', 's3kr3t', '--notes-file', 'notefile.txt',
                               '--url', 'http://localhost:6543'])
 
             self.assertEqual(result.exit_code, 0)
             bindings_client = query.mock_calls[0][1][0]
             query.assert_called_with(
-                bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+                bindings_client, updateid=u'FEDORA-2017-c95b33872d')
             bindings_client = send_request.mock_calls[0][1][0]
             calls = [
                 mock.call(
                     bindings_client, 'updates/', auth=True, verb='POST',
                     data={
                         'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
-                        'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                        'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                        'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
+                        'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
                         'suggest': 'unspecified', 'notes': 'This is a --notes-file note!',
                         'notes_file': 'notefile.txt', 'request': None, 'severity': 'low',
                         'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
@@ -1665,50 +1626,9 @@ class TestEdit(unittest.TestCase):
             self.assertEqual(result.exit_code, 1)
             self.assertEqual(result.output, u'ERROR: Cannot specify --notes and --notes-file\n')
 
-    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
-                mock.MagicMock(return_value='a_csrf_token'))
-    @mock.patch('bodhi.client.bindings.BodhiClient.query',
-                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
-    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
-                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
-    def test_update_title(self, send_request, query):
+    def test_wrong_update_id_argument(self):
         """
-        Assert that we can successfully edit an update using the update title.
-        """
-        runner = testing.CliRunner()
-
-        result = runner.invoke(
-            client.edit, ['drupal7-i18n-1.17-1.fc26', '--user', 'bowlofeggs',
-                          '--password', 's3kr3t', '--notes', 'this is an edited note',
-                          '--url', 'http://localhost:6543'])
-
-        self.assertEqual(result.exit_code, 0)
-        bindings_client = send_request.mock_calls[0][1][0]
-        calls = [
-            mock.call(
-                bindings_client, 'updates/', auth=True, verb='POST',
-                data={
-                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'drupal7-i18n-1.17-1.fc26',
-                    'autokarma': False, 'edited': u'drupal7-i18n-1.17-1.fc26',
-                    'suggest': u'unspecified', 'notes': u'this is an edited note',
-                    'notes_file': None, 'request': None, 'bugs': '1420605',
-                    'unstable_karma': -3, 'type': 'newpackage', 'severity': u'low',
-                    'requirements': u''
-                }
-            ),
-            mock.call(
-                bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
-                verb='GET'
-            )
-        ]
-        self.assertEqual(send_request.mock_calls, calls)
-
-    def test_wrong_update_title_argument(self):
-        """
-         Assert that an error is given if the edit update argument given is not an update id
-         nor an update title.
+        Assert that an error is given if the edit update argument given is not an update id.
         """
         runner = testing.CliRunner()
 
@@ -1724,31 +1644,7 @@ class TestEdit(unittest.TestCase):
             label = 'UPDATE'
         expected = u'Usage: edit [OPTIONS] UPDATE\n\n' \
                    u'Error: Invalid value for "{}": ' \
-                   u'Please provide an Update ID or an Update Title\n'
-        expected = expected.format(label)
-
-        self.assertEqual(result.output, expected)
-
-    def test_wrong_update_id_argument(self):
-        """
-         Assert that an error is given if the edit update argument given is not an update id
-         nor an update title.
-        """
-        runner = testing.CliRunner()
-
-        result = runner.invoke(
-            client.edit, ['FEDORA-20-cc8582d738', '--user', 'bowlofeggs',
-                          '--password', 's3kr3t', '--notes', 'this is an edited note',
-                          '--url', 'http://localhost:6543'])
-        self.assertEqual(result.exit_code, 2)
-        # Click 7.0 capitalizes UPDATE, and < 7 does not.
-        if [int(n) for n in click.__version__.split('.')] < [7, 0]:
-            label = 'update'
-        else:
-            label = 'UPDATE'
-        expected = u'Usage: edit [OPTIONS] UPDATE\n\n' \
-                   u'Error: Invalid value for "{}": ' \
-                   u'Please provide an Update ID or an Update Title\n'
+                   u'Please provide an Update ID\n'
         expected = expected.format(label)
 
         self.assertEqual(result.output, expected)
@@ -1767,7 +1663,7 @@ class TestEdit(unittest.TestCase):
         runner = testing.CliRunner()
 
         result = runner.invoke(
-            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
                           '--password', 's3kr3t', '--notes', 'testing required tasks',
                           '--requirements', 'dist.depcheck dist.rpmdeplint', '--url',
                           'http://localhost:6543'])
@@ -1775,15 +1671,15 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
-            bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+            bindings_client, updateid=u'FEDORA-2017-c95b33872d')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
                     'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
+                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
                     'suggest': u'unspecified', 'notes': u'testing required tasks',
                     'notes_file': None, 'request': None, 'severity': u'low',
                     'bugs': '1420605', 'unstable_karma': -3,
@@ -1829,21 +1725,21 @@ class TestEdit(unittest.TestCase):
         runner = testing.CliRunner()
 
         result = runner.invoke(
-            client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
                           '--password', 's3kr3t'])
 
         self.assertEqual(result.exit_code, 0)
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
-            bindings_client, updateid=u'FEDORA-2017-cc8582d738')
+            bindings_client, updateid=u'FEDORA-2017-c95b33872d')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
                     'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25',
-                    'autokarma': False, 'edited': u'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
+                    'autokarma': False, 'edited': u'FEDORA-2017-c95b33872d',
                     'suggest': u'unspecified', 'notes': u'New package.',
                     'notes_file': None, 'request': None, 'severity': u'low',
                     'bugs': '', 'requirements': u'', 'unstable_karma': -3, 'type': 'newpackage'

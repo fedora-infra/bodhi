@@ -26,16 +26,7 @@
           <h2 class="pull-left">New Update</span>
         % else:
           <h2 class="pull-left">Edit
-            % if update.alias:
             ${update.alias}
-            % else:
-            ${update.get_title(', ', 2, ", &hellip;") | n}
-            <div>
-              <span title="${(', ').join(map(lambda x: x.nvr, update.builds[2:]))}">
-                <small>${ "(+ " + str(len(update.builds) - 2) + " more)" if len(update.builds) > 2 else "" }</small>
-              </span>
-            </div>
-          % endif
         </h2>
         % endif
       </div>
@@ -297,7 +288,7 @@ ${update.notes}
             <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
 
             % if update:
-            <input type="hidden" name="edited" value="${update.title}">
+            <input type="hidden" name="edited" value="${update.alias}">
             % endif
 
             <button id="submit" class="btn btn-success">

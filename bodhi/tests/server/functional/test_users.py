@@ -200,12 +200,6 @@ class TestUsersService(base.BaseTestCase):
         self.assertEqual(len(body['users']), 0)
         assert 'errors' not in res.json_body
 
-    def test_list_users_by_update_title(self):
-        res = self.app.get('/users/', {"updates": 'bodhi-2.0-1.fc17'})
-        body = res.json_body
-        self.assertEqual(len(body['users']), 1)
-        self.assertEqual(body['users'][0]['name'], 'guest')
-
     def test_list_users_by_update_alias(self):
         update = self.db.query(Update).first()
         update.alias = u'some_alias'

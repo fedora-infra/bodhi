@@ -20,7 +20,6 @@
 from collections import defaultdict
 from datetime import datetime
 from textwrap import wrap
-from urllib.parse import quote
 import hashlib
 import json
 import os
@@ -1555,9 +1554,6 @@ class Update(Base):
     This model represents an update.
 
     Attributes:
-        title (unicode): The update's title which uniquely identifies the update.
-            This is generally an ordered list of the build NVRs contained in the
-            update.
         autokarma (bool): A boolean that indicates whether or not the update will
             be automatically pushed when the stable_karma threshold is reached.
         stable_karma (int): A positive integer that indicates the amount of "good"
@@ -1626,10 +1622,8 @@ class Update(Base):
 
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id')
-    __include_extras__ = ('meets_testing_requirements', 'url',)
-    __get_by__ = ('title', 'alias')
-
-    title = Column(UnicodeText, unique=True, default=None, index=True)
+    __include_extras__ = ('meets_testing_requirements', 'url', 'title')
+    __get_by__ = ('alias',)
 
     autokarma = Column(Boolean, default=True, nullable=False)
     stable_karma = Column(Integer, nullable=False)
@@ -1667,7 +1661,7 @@ class Update(Base):
     date_stable = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
-    alias = Column(Unicode(32), unique=True, nullable=True)
+    alias = Column(Unicode(32), unique=True, nullable=False)
 
     # One-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)
@@ -1694,6 +1688,25 @@ class Update(Base):
 
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the Update.
+
+        We use this as a way to inject an alias into the Update, since it is a required field and
+        we don't want callers to have to generate the alias themselves.
+        """
+        super(Update, self).__init__(*args, **kwargs)
+
+        # Let's give this Update an alias so the DB doesn't become displeased with us.
+        if not self.release:
+            raise ValueError('You must specify a Release when creating an Update.')
+        prefix = self.release.id_prefix
+        year = time.localtime()[0]
+        id = hashlib.sha1(str(uuid.uuid4()).encode('utf-8')).hexdigest()[:10]
+        alias = u'%s-%s-%s' % (prefix, year, id)
+        log.debug('Setting alias for %s to %s' % (self.get_title(), alias))
+        self.alias = alias
 
     @property
     def side_tag_locked(self):
@@ -1954,7 +1967,6 @@ class Update(Base):
         db = request.db
         user = User.get(request.user.name)
         data['user'] = user
-        data['title'] = ' '.join([b.nvr for b in data['builds']])
         caveats = []
         data['critpath'] = cls.contains_critpath_component(
             data['builds'], data['release'].name)
@@ -1988,18 +2000,8 @@ class Update(Base):
         # Create the update
         log.debug("Creating new Update(**data) object.")
         release = data.pop('release', None)
-        up = Update(**data)
-        # Autoflush will cause a problem for Update.validate_release().
-        # https://github.com/fedora-infra/bodhi/issues/2117
-        with util.no_autoflush(db):
-            up.release = release
+        up = Update(**data, release=release)
 
-        # Assign the alias before setting the request.
-        # Setting the request publishes a fedmsg message, and it is nice to
-        # already have the alias there for URL construction and backend update
-        # handling.
-        log.debug("Assigning alias for new update..")
-        up.assign_alias()
         log.debug("Setting request for new update.")
         up.set_request(db, req, request.user.name)
 
@@ -2032,7 +2034,7 @@ class Update(Base):
         db = request.db
         buildinfo = request.buildinfo
         koji = request.koji
-        up = db.query(Update).filter_by(title=data['edited']).first()
+        up = db.query(Update).filter_by(alias=data['edited']).first()
         del(data['edited'])
 
         caveats = []
@@ -2097,8 +2099,6 @@ class Update(Base):
             comment += '\n\nKarma has been reset.'
         up.comment(db, comment, karma=0, author=u'bodhi')
         caveats.append({'name': 'builds', 'description': comment})
-
-        data['title'] = ' '.join(sorted([b.nvr for b in up.builds]))
 
         # Updates with new or removed builds always go back to testing
         if new_builds or removed_builds:
@@ -2279,6 +2279,15 @@ class Update(Base):
         """
         return list(set(sum([b.get_tags() for b in self.builds], [])))
 
+    @property
+    def title(self) -> str:
+        """
+        Return the Update's title.
+
+        This is just an alias for get_title with default parameters.
+        """
+        return self.get_title()
+
     def get_title(self, delim=' ', limit=None, after_limit='…'):
         u"""
         Return a title for the update based on the :class:`Builds <Build>` it is associated with.
@@ -2403,19 +2412,6 @@ class Update(Base):
         else:
             return " and ".join([build_label(build) for build in self.builds])
 
-    def assign_alias(self):
-        """Return a randomly-suffixed update ID.
-
-        This function used to construct update IDs in a monotonic sequence, but
-        we ran into race conditions so we do it randomly now.
-        """
-        prefix = self.release.id_prefix
-        year = time.localtime()[0]
-        id = hashlib.sha1(str(uuid.uuid4()).encode('utf-8')).hexdigest()[:10]
-        alias = u'%s-%s-%s' % (prefix, year, id)
-        log.debug('Setting alias for %s to %s' % (self.title, alias))
-        self.alias = alias
-
     def set_request(self, db, action, username):
         """
         Set the update's request to the given action.
@@ -2438,10 +2434,10 @@ class Update(Base):
         if isinstance(action, str):
             action = UpdateRequest.from_string(action)
         if self.status and action.description == self.status.description:
-            log.info("%s already %s" % (self.title, action.description))
+            log.info("%s already %s" % (self.alias, action.description))
             return
         if action is self.request:
-            log.debug("%s has already been submitted to %s" % (self.title,
+            log.debug("%s has already been submitted to %s" % (self.alias,
                                                                self.request.description))
             return
 
@@ -2455,11 +2451,11 @@ class Update(Base):
             self.comment(db, u'This update has been unpushed.', author=username)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
-            log.debug("%s has been unpushed." % self.title)
+            log.debug("%s has been unpushed." % self.alias)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete(db)
-            log.debug("%s has been obsoleted." % self.title)
+            log.debug("%s has been obsoleted." % self.alias)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
@@ -2470,7 +2466,7 @@ class Update(Base):
                 and action is UpdateRequest.revoke:
             self.status = UpdateStatus.unpushed
             self.revoke()
-            log.debug("%s has been revoked." % self.title)
+            log.debug("%s has been revoked." % self.alias)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
@@ -2480,14 +2476,14 @@ class Update(Base):
         elif self.request == UpdateRequest.stable and \
                 self.status is UpdateStatus.testing and action is UpdateRequest.revoke:
             self.revoke()
-            log.debug("%s has been revoked." % self.title)
+            log.debug("%s has been revoked." % self.alias)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
 
         elif action is UpdateRequest.revoke:
             self.revoke()
-            log.debug("%s has been revoked." % self.title)
+            log.debug("%s has been revoked." % self.alias)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             return
@@ -2525,7 +2521,7 @@ class Update(Base):
         if action == UpdateRequest.stable and not self.critpath:
             # Check if we've met the karma requirements
             if self.karma >= self.stable_karma or self.critpath_approved:
-                log.debug('%s meets stable karma requirements' % self.title)
+                log.debug('%s meets stable karma requirements' % self.alias)
             else:
                 # If we haven't met the stable karma requirements, check if it
                 # has met the mandatory time-in-testing requirements
@@ -2564,7 +2560,7 @@ class Update(Base):
         flash_notes = flash_notes and '. %s' % flash_notes
         log.debug(
             "%s has been submitted for %s. %s%s" % (
-                self.title, action.description, notes, flash_notes))
+                self.alias, action.description, notes, flash_notes))
         self.comment(db, u'This update has been submitted for %s by %s. %s' % (
             action.description, username, notes), author=u'bodhi')
         topic = u'update.request.%s' % action
@@ -2627,9 +2623,9 @@ class Update(Base):
         Args:
             tag (basestring): The tag to be added to the builds.
         """
-        log.debug('Adding tag %s to %s' % (tag, self.title))
+        log.debug('Adding tag %s to %s', tag, self.get_title())
         if not tag:
-            log.warning("Not adding builds of %s to empty tag" % self.title)
+            log.warning("Not adding builds of %s to empty tag", self.title)
             return []  # An empty iterator in place of koji multicall
 
         koji = buildsys.get_session()
@@ -2651,9 +2647,9 @@ class Update(Base):
             list or None: If a koji client was provided, ``None`` is returned. Else, a list of tasks
                 from ``koji.multiCall()`` are returned.
         """
-        log.debug('Removing tag %s from %s' % (tag, self.title))
+        log.debug('Removing tag %s from %s', tag, self.get_title())
         if not tag:
-            log.warning("Not removing builds of %s from empty tag" % self.title)
+            log.warning("Not removing builds of %s from empty tag", self.get_title())
             return []  # An empty iterator in place of koji multicall
 
         return_multicall = not koji
@@ -2673,12 +2669,12 @@ class Update(Base):
         """
         if self.status is UpdateStatus.testing:
             for bug in self.bugs:
-                log.debug('Adding testing comment to bugs for %s', self.title)
+                log.debug('Adding testing comment to bugs for %s', self.alias)
                 bug.testing(self)
         elif self.status is UpdateStatus.stable:
             if not self.close_bugs:
                 for bug in self.bugs:
-                    log.debug('Adding stable comment to bugs for %s', self.title)
+                    log.debug('Adding stable comment to bugs for %s', self.alias)
                     bug.add_comment(self)
             else:
                 if self.type is UpdateType.security:
@@ -2710,7 +2706,7 @@ class Update(Base):
 
     def send_update_notice(self):
         """Send e-mail notices about this update."""
-        log.debug("Sending update notice for %s" % self.title)
+        log.debug("Sending update notice for %s", self.alias)
         mailinglist = None
         sender = config.get('bodhi_email')
         if not sender:
@@ -2743,10 +2739,7 @@ class Update(Base):
             basestring: A URL.
         """
         path = ['updates']
-        if self.alias:
-            path.append(self.alias)
-        else:
-            path.append(quote(self.title))
+        path.append(self.alias)
         return os.path.join(*path)
 
     def abs_url(self, request=None):
@@ -2769,10 +2762,8 @@ class Update(Base):
             basestring: A string representation of the update.
         """
         val = u"%s\n%s\n%s\n" % ('=' * 80, u'\n'.join(wrap(
-            self.title.replace(',', ', '), width=80, initial_indent=' ' * 5,
+            self.alias, width=80, initial_indent=' ' * 5,
             subsequent_indent=' ' * 5)), '=' * 80)
-        if self.alias:
-            val += u"  Update ID: %s\n" % self.alias
         val += u"""    Release: %s
      Status: %s
        Type: %s
@@ -2866,9 +2857,9 @@ class Update(Base):
         if self.autokarma and self.status is UpdateStatus.pending \
                 and self.request is UpdateRequest.testing\
                 and self.karma <= self.unstable_karma:
-            log.info("%s has reached unstable karma thresholds" % self.title)
+            log.info("%s has reached unstable karma thresholds", self.alias)
             self.obsolete(db)
-            log.debug("%s has been obsoleted." % self.title)
+            log.debug("%s has been obsoleted.", self.alias)
         return
 
     def comment(self, session, text, karma=0, author=None, anonymous=False,
@@ -2935,9 +2926,9 @@ class Update(Base):
                     'description': 'Your karma standing was reversed.',
                 })
             else:
-                log.debug('Ignoring duplicate %d karma from %s on %s' % (karma, author, self.title))
+                log.debug('Ignoring duplicate %d karma from %s on %s', karma, author, self.alias)
 
-            log.info("Updated %s karma to %d" % (self.title, self.karma))
+            log.info("Updated %s karma to %d", self.alias, self.karma)
 
             if check_karma and author not in config.get('system_users'):
                 try:
@@ -3003,11 +2994,11 @@ class Update(Base):
         Raises:
             BodhiException: If the update isn't in testing.
         """
-        log.debug("Unpushing %s" % self.title)
+        log.debug("Unpushing %s", self.alias)
         koji = buildsys.get_session()
 
         if self.status is UpdateStatus.unpushed:
-            log.debug("%s already unpushed" % self.title)
+            log.debug("%s already unpushed", self.alias)
             return
 
         if self.status is not UpdateStatus.testing:
@@ -3031,7 +3022,7 @@ class Update(Base):
             BodhiException: If the update doesn't have a request set, or if it is not in an expected
                 status.
         """
-        log.debug("Revoking %s" % self.title)
+        log.debug("Revoking %s", self.alias)
 
         if not self.request:
             raise BodhiException(
@@ -3060,7 +3051,7 @@ class Update(Base):
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
         """
-        log.info("Untagging %s" % self.title)
+        log.info("Untagging %s", self.alias)
         koji = buildsys.get_session()
         tag_types, tag_rels = Release.get_tags(db)
         for build in self.builds:
@@ -3084,7 +3075,7 @@ class Update(Base):
             newer (Update or None): If given, the update that has obsoleted this one. Defaults to
                 ``None``.
         """
-        log.debug("Obsoleting %s" % self.title)
+        log.debug("Obsoleting %s", self.alias)
         self.untag(db)
         self.status = UpdateStatus.obsolete
         self.request = None
@@ -3222,7 +3213,7 @@ class Update(Base):
         """
         # Raise Exception if the update is locked
         if self.locked:
-            log.debug('%s locked. Ignoring karma thresholds.' % self.title)
+            log.debug('%s locked. Ignoring karma thresholds.', self.alias)
             raise LockedUpdateException
         # Return if the status of the update is not in testing or pending
         if self.status not in (UpdateStatus.testing, UpdateStatus.pending):
@@ -3236,7 +3227,7 @@ class Update(Base):
             self.comment(db, text, author=u'bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:
             if self.autokarma:
-                log.info("Automatically marking %s as stable" % self.title)
+                log.info("Automatically marking %s as stable", self.alias)
                 self.set_request(db, UpdateRequest.stable, agent)
                 self.date_pushed = None
                 notifications.publish(
@@ -3246,12 +3237,12 @@ class Update(Base):
                 # Add the 'testing_approval_msg_based_on_karma' message now
                 log.info((
                     "%s update has reached the stable karma threshold and can be pushed to "
-                    "stable now if the maintainer wishes") % self.title)
+                    "stable now if the maintainer wishes"), self.alias)
         elif self.unstable_karma and self.karma <= self.unstable_karma:
             if self.status is UpdateStatus.pending and not self.autokarma:
                 pass
             else:
-                log.info("Automatically unpushing %s" % self.title)
+                log.info("Automatically unpushing %s", self.alias)
                 self.obsolete(db)
                 notifications.publish(
                     topic='update.karma.threshold.reach',
@@ -3498,7 +3489,7 @@ class Update(Base):
             tag = self.release.candidate_tag
         if not tag:
             raise RuntimeError(
-                'Unable to determine requested tag for %s.' % self.title)
+                f'Unable to determine requested tag for {self.alias}.')
         return tag
 
     def __json__(self, request=None, anonymize=False):
@@ -3671,7 +3662,7 @@ class Compose(Base):
         work = {}
         for update in updates:
             if not update.request:
-                log.info('%s request was revoked', update.title)
+                log.info('%s request was revoked', update.alias)
                 continue
             # ASSUMPTION: For now, updates can only be of a single type.
             ctype = None
@@ -3682,8 +3673,7 @@ class Compose(Base):
                     # This branch is not covered because the Update.validate_builds validator
                     # catches the same assumption breakage. This check here is extra for the
                     # time when someone adds multitype updates and forgets to update this.
-                    raise ValueError('Builds of multiple types found in %s'
-                                     % update.title)
+                    raise ValueError(f'Builds of multiple types found in {update.alias}')
             # This key is just to insert things in the same place in the "work"
             # dict.
             key = '%s-%s' % (update.release.name, update.request.value)
@@ -3926,8 +3916,8 @@ class Comment(Base):
         else:
             result['author'] = u'anonymous'
 
-        # Similarly, duplicate the update's title as update_title.
-        result['update_title'] = result['update']['title']
+        # Similarly, duplicate the update's alias as update_alias.
+        result['update_alias'] = result['update']['alias']
 
         # Updates used to have a karma column which would be included in result['update']. The
         # column was replaced with a property, so we need to include it here for backwards

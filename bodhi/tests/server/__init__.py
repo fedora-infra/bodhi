@@ -73,7 +73,7 @@ def create_update(session, build_nvrs, release_name=u'F17'):
         session.add(override)
 
     update = Update(
-        title=', '.join(build_nvrs), builds=builds, user=user, request=UpdateRequest.testing,
+        builds=builds, user=user, request=UpdateRequest.testing,
         notes=u'Useful details!', type=UpdateType.bugfix, date_submitted=datetime(1984, 11, 2),
         requirements=u'rpmlint', stable_karma=3, unstable_karma=-3, release=release)
     session.add(update)
@@ -109,7 +109,9 @@ def populate(db):
         branch=u'f17', state=ReleaseState.current)
     db.add(release)
     db.flush()
-    update = create_update(db, [u'bodhi-2.0-1.fc17'])
+    # This mock will help us generate a consistent update alias.
+    with mock.patch(target='uuid.uuid4', return_value='wat'):
+        update = create_update(db, [u'bodhi-2.0-1.fc17'])
     update.type = UpdateType.bugfix
     update.severity = UpdateSeverity.medium
     bug = Bug(bug_id=12345)
@@ -126,8 +128,6 @@ def populate(db):
     db.add(comment)
     update.comments.append(comment)
 
-    with mock.patch(target='uuid.uuid4', return_value='wat'):
-        update.assign_alias()
     db.add(update)
 
     db.commit()

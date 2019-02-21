@@ -146,8 +146,6 @@ class UpdateInfoMetadata(object):
 
         self.uinfo = cr.UpdateInfo()
         for update in self.updates:
-            if not update.alias:
-                update.assign_alias()
             self.add_update(update)
 
         if close_shelf:

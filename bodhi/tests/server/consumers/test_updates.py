@@ -43,9 +43,10 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                       'topic_prefix': 'topic_prefix'}
         h = updates.UpdatesHandler(hub)
         h.db_factory = base.TransactionalSessionMaker(self.Session)
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         message = {
             'topic': 'bodhi.update.edit',
-            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
+            'body': {'msg': {'update': {'alias': update.alias},
                              'new_bugs': ['12345', '123456']}}}
 
         h.consume(message)
@@ -62,7 +63,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
 
         # Inexisting bug with id '123456' should now exists in DB as a bug attached to update
         bug = models.Bug.query.filter_by(bug_id=123456).one()
-        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertIn(bug, update.bugs)
 
     @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
@@ -80,9 +81,10 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                       'topic_prefix': 'topic_prefix'}
         h = updates.UpdatesHandler(hub)
         h.db_factory = base.TransactionalSessionMaker(self.Session)
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         message = {
             'topic': 'bodhi.update.edit',
-            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
+            'body': {'msg': {'update': {'alias': update.alias},
                              'new_bugs': ['12345', '123456']}}}
 
         h.consume(message)
@@ -99,7 +101,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
 
         # Bug with id '123456' should be attached to update
         bug = models.Bug.query.filter_by(bug_id=123456).one()
-        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertIn(bug, update.bugs)
 
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
@@ -119,9 +121,10 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                       'topic_prefix': 'topic_prefix'}
         h = updates.UpdatesHandler(hub)
         h.db_factory = base.TransactionalSessionMaker(self.Session)
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         message = {
             'topic': 'bodhi.update.edit',
-            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
+            'body': {'msg': {'update': {'alias': update.alias},
                              'new_bugs': ['12345']}}}
 
         h.consume(message)
@@ -139,7 +142,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
     def test_gating_required_false(self, sleep):
         """Assert that test_gating_status is not updated if test_gating is not enabled."""
-        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         update.test_gating_status = None
         hub = mock.MagicMock()
         hub.config = {'environment': 'environment',
@@ -149,7 +152,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         # Throw a bogus bug id in there to ensure it doesn't raise AssertionError.
         message = {
             'topic': 'bodhi.update.request.testing',
-            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
+            'body': {'msg': {'update': {'alias': update.alias},
                              'new_bugs': []}}}
 
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -171,14 +174,14 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
 
             h.consume(message)
 
-        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertIsNone(update.test_gating_status)
         sleep.assert_called_once_with(1)
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_gating_required_true(self, sleep):
         """Assert that test_gating_status is updated when test_gating is enabled."""
-        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         update.test_gating_status = None
         hub = mock.MagicMock()
         hub.config = {'environment': 'environment',
@@ -188,7 +191,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         # Throw a bogus bug id in there to ensure it doesn't raise AssertionError.
         message = {
             'topic': 'bodhi.update.request.testing',
-            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
+            'body': {'msg': {'update': {'alias': update.alias},
                              'new_bugs': []}}}
 
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -210,7 +213,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
 
             h.consume(message)
 
-        update = models.Update.query.filter_by(title=u'bodhi-2.0-1.fc17').one()
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
         sleep.assert_called_once_with(1)
 
@@ -230,10 +233,11 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                       'topic_prefix': 'topic_prefix'}
         h = updates.UpdatesHandler(hub)
         h.db_factory = base.TransactionalSessionMaker(self.Session)
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         # Throw a bogus bug id in there to ensure it doesn't raise AssertionError.
         message = {
             'topic': 'bodhi.update.request.testing',
-            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
+            'body': {'msg': {'update': {'alias': update.alias},
                              'new_bugs': ['this isnt a real bug lol']}}}
 
         h.consume(message)
@@ -260,10 +264,11 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                       'topic_prefix': 'topic_prefix'}
         h = updates.UpdatesHandler(hub)
         h.db_factory = base.TransactionalSessionMaker(self.Session)
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         # Use a bogus topic to trigger the NotImplementedError.
         message = {
             'topic': 'bodhi.update.nawjustkiddin',
-            'body': {'msg': {'update': {'alias': u'bodhi-2.0-1.fc17'},
+            'body': {'msg': {'update': {'alias': update.alias},
                              'new_bugs': ['12345']}}}
 
         self.assertRaises(NotImplementedError, h.consume, message)
@@ -283,42 +288,17 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                       'topic_prefix': 'topic_prefix'}
         h = updates.UpdatesHandler(hub)
         h.db_factory = base.TransactionalSessionMaker(self.Session)
-        # Use a bogus topic to trigger the NotImplementedError.
+        # Use a bogus alias to trigger the NotImplementedError.
         message = {
             'topic': 'bodhi.update.request.testing',
-            'body': {'msg': {'update': {'alias': u'hurd-1.0-1.fc26'}}}}
+            'body': {'msg': {'update': {'alias': 'does not exist'}}}}
 
         with self.assertRaises(exceptions.BodhiException) as exc:
             h.consume(message)
 
-        self.assertEqual(str(exc.exception), "Couldn't find alias 'hurd-1.0-1.fc26' in DB")
+        self.assertEqual(str(exc.exception), "Couldn't find alias 'does not exist' in DB")
         self.assertEqual(work_on_bugs.call_count, 0)
         self.assertEqual(fetch_test_cases.call_count, 0)
-        sleep.assert_called_once_with(1)
-
-    @mock.patch('bodhi.server.consumers.updates.log.error')
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
-    def test_without_alias(self, work_on_bugs, fetch_test_cases, error, sleep):
-        """
-        An error should get logged and the function should return if the message has no alias.
-        """
-        hub = mock.MagicMock()
-        hub.config = {'environment': 'environment',
-                      'topic_prefix': 'topic_prefix'}
-        h = updates.UpdatesHandler(hub)
-        h.db_factory = base.TransactionalSessionMaker(self.Session)
-        message = {
-            'topic': 'bodhi.update.edit',
-            'body': {'msg': {'update': {},
-                             'new_bugs': ['12345']}}}
-
-        h.consume(message)
-
-        self.assertEqual(work_on_bugs.call_count, 0)
-        self.assertEqual(fetch_test_cases.call_count, 0)
-        error.assert_called_once_with(
-            "Update Handler got update with no alias {'new_bugs': ['12345'], 'update': {}}.")
         sleep.assert_called_once_with(1)
 
 

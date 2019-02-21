@@ -1,4 +1,4 @@
-# Copyright 2015-2018 Red Hat Inc., and others.
+# Copyright 2015-2019 Red Hat Inc., and others.
 #
 # This file is part of Bodhi.
 #
@@ -111,11 +111,6 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
         # https://github.com/fedora-infra/bodhi/issues/458
         time.sleep(1)
 
-        if not alias:
-            log.error("Update Handler got update with no "
-                      "alias %s." % pprint.pformat(msg))
-            return
-
         with self.db_factory() as session:
             update = Update.get(alias)
             if not update:
@@ -202,7 +197,7 @@ class UpdatesHandler(fedmsg.consumers.FedmsgConsumer):
 
                 log.info("Commenting on %r" % bug.bug_id)
                 comment = config['initial_bug_msg'] % (
-                    update.title, update.release.long_name, update.abs_url())
+                    update.alias, update.release.long_name, update.abs_url())
 
                 log.info("Modifying %r" % bug.bug_id)
                 bug.modified(update, comment)

@@ -67,7 +67,7 @@ EXAMPLE_COMMENT_MUNCH = Munch({
     u'caveats': []})
 
 # EXAMPLE_COMMENT_MUNCH is expected to generate this output in update_str
-EXPECTED_COMMENT_OUTPUT = """The following comment was added to nodejs-grunt-wrap-0.3.0-2.fc25
+EXPECTED_COMMENT_OUTPUT = """The following comment was added to FEDORA-2017-c95b33872d
 i found $10000
 """
 

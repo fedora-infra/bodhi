@@ -8,9 +8,7 @@
 %>
 
 <%block name="pagetitle">
-% if update.alias:
   ${update.alias}
-% endif
 &mdash;
 ${update.type} update for ${update.beautify_title(amp=True) | n}
 &mdash; Fedora Updates System
@@ -42,7 +40,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       ABSENT: 'question-circle',
     }
 
-    var update = '${update.title}';
+    var update = '${update.alias}';
     var builds = ${update.builds_json | n};
 
     // These are the required taskotron tests
@@ -379,7 +377,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 <script type="text/javascript">
 $(document).ready(function() {
     var messenger = Messenger({theme: 'flat'});
-    var update_id = '${update.title}';
+    var update_id = '${update.alias}';
     $("#updatebuttons #edit").attr('href',
         '${request.route_url("update_edit", id=update.alias)}');
 
@@ -568,16 +566,7 @@ $(document).ready(function(){
           </a>
           <span class="sr-only">Locked</span>
       % endif
-      % if update.alias:
       ${update.alias}
-      % else:
-      ${update.get_title(', ', 2, ", &hellip;") | n}
-      <div>
-        <span title="${(', ').join(map(lambda x: x.nvr, update.builds[2:]))}">
-          <small>${ "(+ " + str(len(update.builds) - 2) + " more)" if len(update.builds) > 2 else "" }</small>
-        </span>
-      </div>
-      % endif
       % if update.type:
         ${self.util.type2icon(update.type) | n}
       % endif
@@ -729,7 +718,7 @@ $(document).ready(function(){
               <div class="clearfix"></div>
 
               <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
-              <input type="hidden" name="update" value="${update.title}"/>
+              <input type="hidden" name="update" value="${update.alias}"/>
 
               <hr/>
 

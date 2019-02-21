@@ -420,7 +420,7 @@ def _validate_edit_update(ctx, param, value):
     """
     Validate the update argument given to the updates edit command.
 
-    The update argument can only be update id or update title
+    The update argument can only be an update id.
 
     Args:
         param (basestring): The name of the parameter being validated. Unused.
@@ -430,11 +430,10 @@ def _validate_edit_update(ctx, param, value):
     Raises:
         click.BadParameter: If the value is invalid.
     """
-    if re.search(bindings.UPDATE_ID_RE, value)\
-       or re.search(bindings.UPDATE_TITLE_RE, value):
+    if re.search(bindings.UPDATE_ID_RE, value):
         return value
     else:
-        raise click.BadParameter("Please provide an Update ID or an Update Title")
+        raise click.BadParameter("Please provide an Update ID")
 
 
 @updates.command()
@@ -451,11 +450,11 @@ def edit(user, password, url, debug, openid_api, **kwargs):
     """
     Edit an existing update.
 
-    UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
+    UPDATE: The alias of the update (e.g. FEDORA-2017-f8e0ef2850)
     """
     # Developer Docs
     """
-    The update argument can be an update id or the update title.
+    The update argument must be an update id.
 
     Args:
         user (unicode): The username to authenticate as.
@@ -472,25 +471,18 @@ def edit(user, password, url, debug, openid_api, **kwargs):
     kwargs['notes'] = _get_notes(**kwargs)
 
     try:
-        if re.search(bindings.UPDATE_ID_RE, kwargs['update']):
-            query_param = {'updateid': kwargs['update']}
-            resp = client.query(**query_param)
-            title = resp['updates'][0]['title']
-        else:
-            # _validate_edit_update() has already ensured that we either got an update ID or an NVR,
-            # so we can assume here that we have an NVR.
-            query_param = {'like': kwargs['update']}
-            resp = client.query(**query_param)
-            title = kwargs['update']
+        query_param = {'updateid': kwargs['update']}
+        resp = client.query(**query_param)
         del(kwargs['update'])
-        kwargs['builds'] = title
-        kwargs['edited'] = title
 
         # Convert list of 'Bug' instances in DB to comma separated bug_ids for parsing.
         former_update = resp['updates'][0].copy()
         if not kwargs['bugs']:
             kwargs['bugs'] = ",".join([str(bug['bug_id']) for bug in former_update['bugs']])
             former_update.pop('bugs', None)
+
+        kwargs['builds'] = [b['nvr'] for b in former_update['builds']]
+        kwargs['edited'] = former_update['alias']
 
         # Replace empty fields with former values from database.
         for field in kwargs:
@@ -507,7 +499,6 @@ def edit(user, password, url, debug, openid_api, **kwargs):
 
 @updates.command()
 @click.option('--updateid', help='Query by update ID (eg: FEDORA-2015-0001)')
-@click.option('--title', help='Query by title')
 @click.option('--alias', help='Query by alias')
 @click.option('--approved-since', help='Approved after a specific timestamp')
 @click.option('--approved-before', help='Approved before a specific timestamp')
@@ -593,7 +584,7 @@ def request(update, state, user, password, url, openid_api, **kwargs):
     """
     Change an update's request status.
 
-    UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
+    UPDATE: The alias of the update (e.g. FEDORA-2017-f8e0ef2850)
 
     STATE: The state you wish to change the update's request to. Valid options are
     testing, stable, obsolete, unpush, and revoke.
@@ -641,7 +632,7 @@ def comment(update, text, karma, user, password, url, openid_api, **kwargs):
     """
     Comment on an update.
 
-    UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
+    UPDATE: The alias of the update (e.g. FEDORA-2017-f8e0ef2850)
 
     TEXT: the comment to be added to the update
     """
@@ -719,7 +710,7 @@ def download(url, **kwargs):
             # *think* that should ever be possible for these opts.
 
             for update in resp.updates:
-                click.echo("Downloading packages from {0}".format(update['title']))
+                click.echo("Downloading packages from {0}".format(update['alias']))
                 for build in update['builds']:
                     # subprocess is icky, but koji module doesn't
                     # expose this in any usable way, and we don't want
@@ -783,13 +774,13 @@ def waive(update, show, test, comment, url, openid_api, **kwargs):
     """
     Show or waive unsatified requirements (ie: missing or failing tests) on an existing update.
 
-    UPDATE: The title of the update (e.g. FEDORA-2017-f8e0ef2850)
+    UPDATE: The alias of the update (e.g. FEDORA-2017-f8e0ef2850)
 
     COMMENT: A comment explaining why the requirements were waived (mandatory with --test)
     """
     # Developer Docs
     """
-    The update argument can be an update id or the update title.
+    The update argument must be an update id..
 
     Args:
         update (unicode): The update who unsatisfied requirements wish to waive.
@@ -1016,7 +1007,7 @@ def print_resp(resp, client, verbose=False, override_hint=True):
                 resp.total, len(resp.updates)))
     elif resp.get('update'):
         click.echo(client.update_str(resp['update']))
-    elif 'title' in resp:
+    elif resp.get('alias'):
         click.echo(client.update_str(resp))
     elif 'overrides' in resp:
         if len(resp.overrides) == 1:
@@ -1034,7 +1025,7 @@ def print_resp(resp, client, verbose=False, override_hint=True):
         if override_hint:
             _print_override_koji_hint(resp, client)
     elif 'comment' in resp:
-        click.echo('The following comment was added to %s' % resp.comment['update'].title)
+        click.echo('The following comment was added to %s' % resp.comment['update'].alias)
         click.echo(resp.comment.text)
     elif 'compose' in resp:
         click.echo(client.compose_str(resp['compose'], minimal=False))

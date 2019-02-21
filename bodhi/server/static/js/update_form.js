@@ -15,7 +15,7 @@ $(document).ready(function() {
             if (data.updates === undefined) {
                 // Single-release update
                 // Now redirect to the update display
-                document.location.href = base + "updates/" + data.title;
+                document.location.href = base + "updates/" + data.alias;
             } else {
                 // Multi-release update
                 // Redirect to updates created by *me*

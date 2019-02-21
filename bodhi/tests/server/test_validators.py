@@ -52,7 +52,7 @@ class TestValidateCSRFToken(BaseTestCase):
         """No exception should be raised with a valid token."""
         update = models.Update.query.one()
         """colander.Invalid should be raised if the CSRF token doesn't match."""
-        comment = {'update': update.title, 'text': 'invalid CSRF', 'karma': 0,
+        comment = {'update': update.alias, 'text': 'invalid CSRF', 'karma': 0,
                    'csrf_token': self.get_csrf_token()}
 
         # This should not cause any error.
@@ -97,8 +97,8 @@ class TestValidateAcls(BaseTestCase):
         A helper function that creates a mock request.
         :return: a Mock object representing a request
         """
-        update = self.db.query(models.Update).filter_by(
-            title=u'bodhi-2.0-1.fc17').one()
+        update = self.db.query(models.Build).filter_by(
+            nvr='bodhi-2.0-1.fc17').one().update
         user = self.db.query(models.User).filter_by(id=1).one()
         mock_request = mock.Mock()
         mock_request.user = user

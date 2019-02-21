@@ -1,4 +1,4 @@
-# Copyright © 2014-2017 Red Hat Inc. and others.
+# Copyright © 2014-2019 Red Hat Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -100,8 +100,11 @@ class TestBuildsService(base.BaseTestCase):
         up = res.json_body['builds'][0]
         self.assertEqual(up['nvr'], u'bodhi-2.0-1.fc17')
 
-    def test_list_builds_by_update_title(self):
-        res = self.app.get('/builds/', {"updates": ["bodhi-2.0-1.fc17"]})
+    def test_list_builds_by_update_alias(self):
+        update = RpmBuild.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+
+        res = self.app.get('/builds/', {"updates": [update.alias]})
+
         up = res.json_body['builds'][0]
         self.assertEqual(up['nvr'], u'bodhi-2.0-1.fc17')
 

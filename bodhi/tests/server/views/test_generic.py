@@ -1,4 +1,4 @@
-# Copyright 2014-2019 Red Hat, Inc. and others.
+# Copyright © 2014-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -451,7 +451,6 @@ class TestFrontpageView(base.BaseTestCase):
                 for j in i[1]:
                     for k in range(0, j[1]):
                         update = Update(
-                            title=u'bodhi-2.0-1%s.%s' % (str(count), packagesuffix),
                             user=user,
                             status=i[0],
                             type=j[0],

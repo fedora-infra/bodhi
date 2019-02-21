@@ -1,4 +1,4 @@
-# Copyright 2014-2018 Red Hat, Inc. and others
+# Copyright 2014-2019 Red Hat, Inc. and others
 #
 # This file is part of Bodhi.
 #
@@ -153,9 +153,7 @@ def query_users(request):
     updates = data.get('updates')
     if updates is not None:
         query = query.join(User.updates)
-        args = \
-            [Update.title == update.title for update in updates] +\
-            [Update.alias == update.alias for update in updates]
+        args = [Update.alias == update.alias for update in updates]
         query = query.filter(or_(*args))
 
     packages = data.get('packages')

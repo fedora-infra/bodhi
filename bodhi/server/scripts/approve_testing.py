@@ -87,7 +87,7 @@ def main(argv=sys.argv):
             # Approval message when testing based on karma threshold
             if update.karma >= update.stable_karma \
                     and not update.autokarma and update.meets_testing_requirements:
-                print('%s now reaches stable karma threshold' % update.title)
+                print(f'{update.alias} now reaches stable karma threshold')
                 text = config.get('testing_approval_msg_based_on_karma')
                 update.comment(db, text, author=u'bodhi')
                 db.commit()
@@ -99,7 +99,7 @@ def main(argv=sys.argv):
             # this function only needs to consider the time requirements because these updates have
             # not reached the karma threshold.
             if update.meets_testing_requirements:
-                print('%s now meets testing requirements' % update.title)
+                print(f'{update.alias} now meets testing requirements')
                 text = str(
                     config.get('testing_approval_msg') % update.mandatory_days_in_testing)
                 update.comment(db, text, author=u'bodhi')

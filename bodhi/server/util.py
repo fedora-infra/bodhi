@@ -30,6 +30,7 @@ import socket
 import subprocess
 import tempfile
 import time
+import typing
 
 from kitchen.iterutils import iterate
 from pyramid.i18n import TranslationStringFactory
@@ -47,6 +48,11 @@ import rpm
 from bodhi.server import ffmarkdown, log, buildsys, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
+
+
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from bodhi.server import models  # noqa: 401
+    import mako  # noqa: 401
 
 
 _ = TranslationStringFactory('bodhi')
@@ -755,32 +761,22 @@ def request2html(context, request):
     return "<span class='label label-%s'>%s</span>" % (cls, request)
 
 
-def update2html(context, update):
+def update2html(context: 'mako.runtime.Context', update: typing.Mapping[str, str]) -> str:
     """
     Return an HTML anchor tag for the given update.
 
     Args:
-        context (mako.runtime.Context): The current template rendering context.
-        update (bodhi.server.models.Update or dict): The Update or dictionary serialization of an
-            Update that you wish to receive an HTML anchor tag for.
+        context: The current template rendering context.
+        update: The Update that you wish to receive an HTML anchor tag for.
     Returns:
-        basestring: An HTML anchor tag linking the Update.
+        An HTML anchor tag linking the Update.
     """
     request = context.get('request')
 
-    if hasattr(update, 'title'):
-        title = update.title
-    else:
-        title = update['title']
-
-    if hasattr(update, 'alias'):
-        alias = update.alias
-    else:
-        alias = update['alias']
-
-    url = request.route_url('update', id=alias or title)
+    url = request.route_url('update', id=update['alias'])
     settings = request.registry.settings
     max_length = settings.get('max_update_length_for_ui')
+    title = update['title']
     if len(title) > max_length:
         title = title[:max_length] + "..."
     return link(url, title)
@@ -942,8 +938,8 @@ def sorted_updates(updates):
             build = list(builds[package])[0]
             if build.update not in async_ and build.update not in sync:
                 async_.append(build.update)
-    log.info('sync = %s' % ([up.title for up in sync],))
-    log.info('async_ = %s' % ([up.title for up in async_],))
+    log.info('sync = %s', [up.alias for up in sync])
+    log.info('async_ = %s', [up.alias for up in async_])
     if not (len(set(sync) & set(async_)) == 0 and len(set(sync) | set(async_)) == len(updates)):
         # There should be absolutely no way to hit this code path, but let's be paranoid, and check
         # every run, to make sure no update gets left behind.

@@ -232,7 +232,7 @@ def validate_builds(request, **kwargs):
         return
 
     if edited:
-        up = request.db.query(Update).filter_by(title=edited).first()
+        up = request.db.query(Update).filter_by(alias=edited).first()
         if not up:
             request.errors.add('body', 'builds',
                                'Cannot find update to edit: %s' % edited)
@@ -249,7 +249,7 @@ def validate_builds(request, **kwargs):
         for nvr in request.validated.get('builds', []):
             # Ensure it doesn't already exist in another update
             build = request.db.query(Build).filter_by(nvr=nvr).first()
-            if build and build.update is not None and up.title != build.update.title:
+            if build and build.update is not None and up.alias != build.update.alias:
                 request.errors.add('body', 'builds',
                                    "Update for {} already exists".format(nvr))
 
@@ -277,7 +277,7 @@ def validate_build_tags(request, **kwargs):
     release = None
     if edited:
         valid_tags = tag_types['candidate'] + tag_types['testing']
-        update = request.db.query(Update).filter_by(title=edited).first()
+        update = request.db.query(Update).filter_by(alias=edited).first()
         if not update:
             # No need to tack on any more errors here, since they should have
             # already been added by `validate_builds`
@@ -361,7 +361,7 @@ def validate_acls(request, **kwargs):
     # One of them is for submitting something new with a list of builds (a new
     # update, or editing an update by changing the list of builds).  The other
     # is for changing the request on an existing update -- where an update
-    # title has been passed to us, but not a list of builds.
+    # alias has been passed to us, but not a list of builds.
     # We need to validate that the user has commit rights on all the build
     # (either the explicitly listed ones or on the ones associated with the
     # pre-existing update).. and so we'll do some conditional branching below
@@ -611,10 +611,7 @@ def validate_updates(request, **kwargs):
     validated_updates = []
 
     for u in updates:
-        update = db.query(Update).filter(or_(
-            Update.title == u,
-            Update.alias == u,
-        )).first()
+        update = db.query(Update).filter(Update.alias == u).first()
 
         if not update:
             bad_updates.append(u)

@@ -51,8 +51,6 @@ $(document).ready(function() {
     function resultUrl(data){
       if (data.alias != undefined) {
           return '/updates/' + data.alias;
-      } else if (data.title != undefined ) {
-          return '/updates/' + data.title;
       } else if (data.hasOwnProperty('stack')) {
           return'/updates/?packages=' + encodeURIComponent(data.name);
       } else if (data.name != undefined) {

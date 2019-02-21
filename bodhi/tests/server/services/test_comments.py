@@ -24,8 +24,8 @@ from fedora_messaging import api, testing as fml_testing
 import webtest
 
 from bodhi.server import main
-from bodhi.server.models import (Comment, Release, Update, UpdateRequest, UpdateStatus, UpdateType,
-                                 User)
+from bodhi.server.models import (Build, Comment, Release, RpmBuild, RpmPackage, Update,
+                                 UpdateRequest, UpdateStatus, UpdateType, User)
 from bodhi.tests.server import base
 
 
@@ -43,7 +43,6 @@ class TestCommentsService(base.BaseTestCase):
         self.db.add(user2)
         release = self.db.query(Release).filter_by(name=u'F17').one()
         update = Update(
-            title=someone_elses_update,
             user=user2,
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
@@ -55,13 +54,17 @@ class TestCommentsService(base.BaseTestCase):
             unstable_karma=-3,
         )
         self.db.add(update)
+        build = RpmBuild(nvr=up2, update=update,
+                         package=RpmPackage.query.filter_by(name='bodhi').one())
+        self.db.add(build)
         self.db.flush()
 
     def make_comment(self,
-                     update='bodhi-2.0-1.fc17',
+                     nvr='bodhi-2.0-1.fc17',
                      text='Test',
                      karma=0,
                      **kwargs):
+        update = Build.query.filter_by(nvr=nvr).one().update.alias
         comment = {
             u'update': update,
             u'text': text,
@@ -247,9 +250,9 @@ class TestCommentsService(base.BaseTestCase):
         })
         with mock.patch('bodhi.server.Session.remove'):
             app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
-
+        alias = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update.alias
         comment = {
-            u'update': 'bodhi-2.0-1.fc17',
+            u'update': alias,
             u'text': 'Test',
             u'karma': 0,
             u'csrf_token': app.get('/csrf').json_body['csrf_token'],
@@ -431,7 +434,10 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(error['description'], '"lalala" %s' % proper)
 
     def test_list_comments_by_update(self):
-        res = self.app.get('/comments/', {"updates": "bodhi-2.0-1.fc17"})
+        alias = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update.alias
+
+        res = self.app.get('/comments/', {"updates": alias})
+
         body = res.json_body
         self.assertEqual(len(body['comments']), 2)
 
@@ -439,9 +445,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(comment['text'], u'srsly.  pretty good.')
 
     def test_list_comments_by_update_no_comments(self):
-        nvr = u'bodhi-2.0-201.fc17'
         update = Update(
-            title=nvr,
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
             notes=u'Useful details!',
@@ -449,12 +453,13 @@ class TestCommentsService(base.BaseTestCase):
             requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
+            release=Release.query.one()
         )
-        update.release = Release.query.one()
         self.db.add(update)
         self.db.flush()
 
-        res = self.app.get('/comments/', {"updates": nvr})
+        res = self.app.get('/comments/', {"updates": update.alias})
+
         body = res.json_body
         self.assertEqual(len(body['comments']), 0)
 
@@ -489,9 +494,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(comment['text'], u'wow. amaze.')
 
     def test_list_comments_by_multiple_usernames(self):
-        nvr = u'just-testing-1.0-2.fc17'
         update = Update(
-            title=nvr,
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
             notes=u'Just another update.',
@@ -499,8 +502,8 @@ class TestCommentsService(base.BaseTestCase):
             requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
+            release=Release.query.one()
         )
-        update.release = Release.query.one()
         self.db.add(update)
 
         another_user = User(name=u'aUser')
@@ -535,11 +538,9 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(comment['text'], u'srsly.  pretty good.')
 
     def test_list_comments_by_multiple_update_owners(self):
-        nvr = u'just-testing-1.0-2.fc17'
         another_user = User(name=u'aUser')
         self.db.add(another_user)
         update = Update(
-            title=nvr,
             user=another_user,
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
@@ -548,8 +549,8 @@ class TestCommentsService(base.BaseTestCase):
             requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
+            release=Release.query.one()
         )
-        update.release = Release.query.one()
         self.db.add(update)
 
         comment = Comment(karma=1, text=u'Cool! 😃')
@@ -593,11 +594,9 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(comment['text'], u'srsly.  pretty good.')
 
     def test_list_comments_with_multiple_ignore_user(self):
-        nvr = u'just-testing-1.0-2.fc17'
         another_user = User(name=u'aUser')
         self.db.add(another_user)
         update = Update(
-            title=nvr,
             user=another_user,
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
@@ -606,8 +605,8 @@ class TestCommentsService(base.BaseTestCase):
             requirements=u'rpmlint',
             stable_karma=3,
             unstable_karma=-3,
+            release=Release.query.one()
         )
-        update.release = Release.query.one()
         self.db.add(update)
 
         comment = Comment(karma=1, text=u'Cool! 😃')
@@ -637,7 +636,7 @@ class TestCommentsService(base.BaseTestCase):
     def test_post_json_comment(self):
         with fml_testing.mock_sends(api.Message):
             self.app.post_json('/comments/', self.make_comment(text='awesome'))
-        up = self.db.query(Update).filter_by(title=u'bodhi-2.0-1.fc17').one()
+        up = self.db.query(Build).filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertEqual(len(up.comments), 3)
         self.assertEqual(up.comments[-1]['text'], 'awesome')
 
@@ -650,7 +649,6 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(comment['user']['name'], u'guest')
         self.assertEqual(comment['author'], u'guest')
         self.assertEqual(comment['update']['title'], u'bodhi-2.0-1.fc17')
-        self.assertEqual(comment['update_title'], u'bodhi-2.0-1.fc17')
         self.assertEqual(comment['karma'], 0)
 
     def test_no_self_karma(self):
@@ -658,7 +656,7 @@ class TestCommentsService(base.BaseTestCase):
         comment = self.make_comment('bodhi-2.0-1.fc17', karma=1)
         # The author of this comment is "guest"
 
-        up = self.db.query(Update).filter_by(title=u'bodhi-2.0-1.fc17').one()
+        up = self.db.query(Build).filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertEqual(up.user.name, 'guest')
 
         with fml_testing.mock_sends(api.Message):
@@ -676,7 +674,7 @@ class TestCommentsService(base.BaseTestCase):
     def test_comment_on_locked_update(self):
         """ Make sure you can comment on locked updates. """
         # Lock it
-        up = self.db.query(Update).filter_by(title=up2).one()
+        up = self.db.query(Build).filter_by(nvr=up2).one().update
         up.locked = True
         up.status = UpdateStatus.testing
         up.request = None
@@ -688,14 +686,14 @@ class TestCommentsService(base.BaseTestCase):
         with fml_testing.mock_sends(api.Message):
             self.app.post_json('/comments/', comment)
 
-        up = self.db.query(Update).filter_by(title=up2).one()
+        up = self.db.query(Build).filter_by(nvr=up2).one().update
         self.assertEqual(len(up.comments), 1)  # After
         self.assertEqual(up.karma, 1)          # After
 
     def test_comment_on_locked_update_no_threshhold_action(self):
         " Make sure you can't trigger threshold action on locked updates "
         # Lock it
-        up = self.db.query(Update).filter_by(title=up2).one()
+        up = self.db.query(Build).filter_by(nvr=up2).one().update
         up.locked = True
         up.status = UpdateStatus.testing
         up.request = UpdateStatus.stable
@@ -709,7 +707,7 @@ class TestCommentsService(base.BaseTestCase):
         with fml_testing.mock_sends(api.Message):
             self.app.post_json('/comments/', comment)
 
-        up = self.db.query(Update).filter_by(title=up2).one()
+        up = self.db.query(Build).filter_by(nvr=up2).one().update
         self.assertEqual(len(up.comments), 1)  # After
         self.assertEqual(up.karma, -1)         # After
         # Ensure that the request did not change .. don't trigger something.

@@ -906,19 +906,6 @@ class TestBodhiClient_query(unittest.TestCase):
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'page': 5})
 
-    def test_with_title(self):
-        """
-        Test with the 'title' kwarg.
-        """
-        client = bindings.BodhiClient()
-        client.send_request = mock.MagicMock(return_value='return_value')
-
-        result = client.query(title='nest-2.16.0-1.fc28')
-
-        self.assertEqual(result, 'return_value')
-        client.send_request.assert_called_once_with(
-            'updates/', verb='GET', params={'like': 'nest-2.16.0-1.fc28'})
-
 
 class TestBodhiClient_save(unittest.TestCase):
     """
@@ -1309,23 +1296,6 @@ class TestBodhiClient_update_str(unittest.TestCase):
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
         self.assertIn(u'Notes: This note contains a unicode char ☺', text)
-
-    @mock.patch.dict(
-        client_test_data.EXAMPLE_UPDATE_MUNCH, {u'alias': None})
-    def test_update_with_no_alias(self):
-        """Ensure we render an update with no alias set properly"""
-        client = bindings.BodhiClient()
-        client.base_url = 'http://example.com/tests/'
-
-        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
-
-        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-            "http://example.com/tests/updates/FEDORA-EPEL-2016-3081a94111",
-            "http://example.com/tests/updates/bodhi-2.2.4-1.el7")
-        expected_output = expected_output.replace(
-            "   Update ID: FEDORA-EPEL-2016-3081a94111\n",
-            "")
-        self.assertTrue(compare_output(text, expected_output))
 
     @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
     def test_ci_status_errors(self, get_test_status):

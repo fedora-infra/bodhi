@@ -78,7 +78,6 @@ def main(argv=sys.argv):
             log.info(release.name)
             for update in db.query(Update).filter_by(
                     release=release, status=UpdateStatus.stable).all():
-                assert update.date_stable, update.title
                 if now - update.date_stable > one_day:
                     for build in update.builds:
                         tags = build.get_tags()

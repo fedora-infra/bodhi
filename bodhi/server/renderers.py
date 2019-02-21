@@ -1,4 +1,4 @@
-# Copyright © 2014-2017 Red Hat, Inc.
+# Copyright © 2014-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -87,7 +87,7 @@ def rss(info):
 
         getters = {
             'updates': {
-                'title': operator.itemgetter('title'),
+                'title': operator.itemgetter('alias'),
                 'link': linker('update', 'id', 'title'),
                 'description': operator.itemgetter('notes'),
                 'pubdate': lambda obj: utc.localize(obj['date_submitted']),

@@ -12,6 +12,9 @@ Backwards incompatible changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Values NULL and 0 are not allowed in update's stable_karma and unstable_karma (:issue:`1029`).
+* Updates no longer have a ``title`` attribute. This affects many elements of Bodhi's REST API,
+  including URLs (update titles can no longer be used to reference updates, only aliases), REST API
+  data structures, and Bodhi's messages (:issue:`1542`).
 * The ``prefer_ssl`` setting has been renamed to ``libravatar_prefer_tls`` and now defaults to
   ``True`` instead of ``None`` (:issue:`1921`).
 * Integration with pkgdb is no longer supported (:issue:`1970`).

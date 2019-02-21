@@ -128,8 +128,8 @@ def push(username, cert_prefix, yes, **kwargs):
                 update_sig_status(update)
 
                 if not update.signed:
-                    click.echo('Warning: %s has unsigned builds and has been skipped' %
-                               update.title)
+                    click.echo(
+                        'Warning: {update.get_title()} has unsigned builds and has been skipped')
                     continue
 
                 updates.append(update)
@@ -155,7 +155,7 @@ def push(username, cert_prefix, yes, **kwargs):
         for compose in composes:
             click.echo('\n\n===== {} =====\n'.format(compose))
             for update in compose.updates:
-                click.echo(update.title)
+                click.echo(update.get_title())
 
         if composes:
             if yes:

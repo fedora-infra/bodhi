@@ -108,7 +108,7 @@ update_get_test_results = Service(
             error_handler=bodhi.server.services.errors.html_handler)
 def get_update(request):
     """
-    Return a single update from an id, title, or alias.
+    Return a single update from an id or alias.
 
     Args:
         request (pyramid.request): The current request.
@@ -133,7 +133,7 @@ def get_update(request):
                  ))
 def get_update_for_editing(request):
     """
-    Return a single update from an id, title, or alias for the edit form.
+    Return a single update from an id or alias for the edit form.
 
     Args:
         request (pyramid.request): The current request.
@@ -274,14 +274,14 @@ def query_updates(request):
 
     like = data.get('like')
     if like is not None:
-        query = query.filter(or_(*[
-            Update.title.like('%%%s%%' % like)
-        ]))
+        query = query.join(Update.builds)
+        query = query.filter(Build.nvr.like('%%%s%%' % like))
 
     search = data.get('search')
     if search is not None:
-        query = query.filter(or_(Update.title.ilike('%%%s%%' % search),
-                                 Update.alias.ilike('%%%s%%' % search)))
+        query = query.join(Update.builds)
+        query = query.filter(or_(
+            Build.nvr.ilike('%%%s%%' % search), Update.alias.ilike('%%%s%%' % search)))
 
     locked = data.get('locked')
     if locked is not None:
@@ -422,7 +422,7 @@ def new_update(request):
     Save an update.
 
     This entails either creating a new update, or editing an existing one. To
-    edit an existing update, the update's original title must be specified in
+    edit an existing update, the update's alias must be specified in
     the ``edited`` parameter.
 
     Args:
@@ -505,7 +505,7 @@ def new_update(request):
 
                 log.info('Creating new update: %r' % _data['builds'])
                 result, _caveats = Update.new(request, _data)
-                log.debug('%s update created', result.title)
+                log.debug('%s update created', result.alias)
 
                 updates.append(result)
                 caveats.extend(_caveats)

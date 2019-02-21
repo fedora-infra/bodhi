@@ -59,7 +59,7 @@ class TestFilterReleases(base.BaseTestCase):
 
         # And an Update with the RpmBuild.
         self.archived_release_update = models.Update(
-            title=u'bodhi-2.3.2-1.fc22', builds=[build], user=self.user,
+            builds=[build], user=self.user,
             request=models.UpdateRequest.stable, notes=u'Useful details!', release=archived_release,
             date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
@@ -113,12 +113,12 @@ class TestFilterReleases(base.BaseTestCase):
         self.db.add(pending_build)
         # Now let's create updates for both packages.
         disabled_release_update = models.Update(
-            title=u'bodhi-2.3.2-1.fc21', builds=[disabled_build], user=self.user,
+            builds=[disabled_build], user=self.user,
             request=models.UpdateRequest.stable, notes=u'Useful details!', release=disabled_release,
             date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
         pending_release_update = models.Update(
-            title=u'bodhi-2.3.2-1.fc25', builds=[pending_build], user=self.user,
+            builds=[pending_build], user=self.user,
             request=models.UpdateRequest.stable, notes=u'Useful details!', release=pending_release,
             date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
@@ -156,7 +156,7 @@ class TestFilterReleases(base.BaseTestCase):
                                         package=pkg)
         self.db.add(current_build)
         current_release_update = models.Update(
-            title=u'bodhi-2.3.2-1.fc18', builds=[current_build], user=self.user,
+            builds=[current_build], user=self.user,
             request=models.UpdateRequest.stable, notes=u'Useful details!', release=current_release,
             date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
@@ -426,9 +426,9 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(doctored_output, TEST_ABORT_PUSH_EXPECTED_OUTPUT)
         self.assertEqual(publish.call_count, 0)
         # The updates should not be locked
-        for u in [u'bodhi-2.0-1.fc17', u'python-nose-1.3.7-11.fc17',
-                  u'python-paste-deploy-1.5.2-8.fc17']:
-            u = self.db.query(models.Update).filter_by(title=u).one()
+        for nvr in [u'bodhi-2.0-1.fc17', u'python-nose-1.3.7-11.fc17',
+                    u'python-paste-deploy-1.5.2-8.fc17']:
+            u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
@@ -462,12 +462,12 @@ class TestPush(base.BaseTestCase):
                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
 
-        for u in [u'ejabberd-16.09-4.fc17', u'python-nose-1.3.7-11.fc17']:
-            u = self.db.query(models.Update).filter_by(title=u).one()
+        for nvr in [u'ejabberd-16.09-4.fc17', u'python-nose-1.3.7-11.fc17']:
+            u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
             self.assertTrue(u.locked)
             self.assertTrue(u.date_locked <= datetime.utcnow())
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr=u'python-paste-deploy-1.5.2-8.fc17').one().update
         self.assertFalse(python_paste_deploy.locked)
         self.assertIsNone(python_paste_deploy.date_locked)
 
@@ -520,12 +520,12 @@ class TestPush(base.BaseTestCase):
                               'content_type': u'rpm'}],
                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
-        bodhi = self.db.query(models.Update).filter_by(
-            title=u'bodhi-2.0-1.fc17').one()
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        bodhi = self.db.query(models.Build).filter_by(
+            nvr='bodhi-2.0-1.fc17').one().update
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         for u in [bodhi, python_nose, python_paste_deploy]:
             self.assertTrue(u.locked)
             self.assertTrue(u.date_locked <= datetime.utcnow())
@@ -563,17 +563,17 @@ class TestPush(base.BaseTestCase):
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
-        ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
+        ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         self.assertTrue(ejabberd.locked)
         self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
         self.assertEqual(ejabberd.compose.release, ejabberd.release)
         self.assertEqual(ejabberd.compose.request, ejabberd.request)
         self.assertEqual(ejabberd.compose.state, models.ComposeState.requested)
         self.assertEqual(ejabberd.compose.error_message, '')
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         for u in [python_nose, python_paste_deploy]:
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
@@ -608,17 +608,17 @@ class TestPush(base.BaseTestCase):
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
                  'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
-        ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
+        ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         self.assertTrue(ejabberd.locked)
         self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
         self.assertEqual(ejabberd.compose.release, ejabberd.release)
         self.assertEqual(ejabberd.compose.request, ejabberd.request)
         self.assertEqual(ejabberd.compose.state, models.ComposeState.requested)
         self.assertEqual(ejabberd.compose.error_message, '')
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         for u in [python_nose, python_paste_deploy]:
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
@@ -629,12 +629,12 @@ class TestPush(base.BaseTestCase):
         If there are no updates to push, no push message should get sent.
         """
         cli = CliRunner()
-        bodhi = self.db.query(models.Update).filter_by(
-            title=u'bodhi-2.0-1.fc17').one()
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        bodhi = self.db.query(models.Build).filter_by(
+            nvr='bodhi-2.0-1.fc17').one().update
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         bodhi.builds[0].signed = False
         python_nose.builds[0].signed = False
         python_paste_deploy.builds[0].signed = False
@@ -651,12 +651,12 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(publish.call_count, 0)
 
         # The updates should not be locked
-        bodhi = self.db.query(models.Update).filter_by(
-            title=u'bodhi-2.0-1.fc17').one()
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        bodhi = self.db.query(models.Build).filter_by(
+            nvr='bodhi-2.0-1.fc17').one().update
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         for u in [python_nose, python_paste_deploy]:
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
@@ -713,10 +713,10 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
-        f25_python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc25').one()
-        f26_python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc26').one()
+        f25_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc25').one().update
+        f26_python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc26').one().update
         publish.assert_called_once_with(
             topic='composer.start',
             msg={
@@ -726,10 +726,10 @@ class TestPush(base.BaseTestCase):
             force=True)
 
         # The Fedora 17 updates should not have been locked.
-        f17_python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        f17_python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        f17_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        f17_python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         self.assertFalse(f17_python_nose.locked)
         self.assertIsNone(f17_python_nose.date_locked)
         self.assertIsNone(f17_python_nose.compose)
@@ -798,10 +798,10 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
-        f25_python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc25').one()
-        f26_python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc26').one()
+        f25_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc25').one().update
+        f26_python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc26').one().update
         publish.assert_called_once_with(
             topic='composer.start',
             msg={
@@ -811,10 +811,10 @@ class TestPush(base.BaseTestCase):
             force=True)
 
         # The Fedora 17 updates should not have been locked and composed.
-        f17_python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        f17_python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        f17_python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        f17_python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         self.assertFalse(f17_python_nose.locked)
         self.assertIsNone(f17_python_nose.date_locked)
         self.assertIsNone(f17_python_nose.compose)
@@ -840,8 +840,8 @@ class TestPush(base.BaseTestCase):
         """
         cli = CliRunner()
         # Let's mark nose as a stable request so it gets excluded when we request a testing update.
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
         python_nose.request = models.UpdateRequest.stable
         self.db.commit()
 
@@ -853,12 +853,12 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_REQUEST_FLAG_EXPECTED_OUTPUT)
-        bodhi = self.db.query(models.Update).filter_by(
-            title=u'bodhi-2.0-1.fc17').one()
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        bodhi = self.db.query(models.Build).filter_by(
+            nvr='bodhi-2.0-1.fc17').one().update
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         publish.assert_called_once_with(
             topic='composer.start',
             msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
@@ -897,11 +897,11 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RESUME_FLAG_EXPECTED_OUTPUT)
-        ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         publish.assert_called_once_with(
             topic='composer.start',
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
@@ -941,11 +941,11 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exit_code, 0)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RESUME_AND_YES_FLAGS_EXPECTED_OUTPUT)
-        ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         publish.assert_called_once_with(
             topic='composer.start',
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
@@ -990,11 +990,11 @@ class TestPush(base.BaseTestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_RESUME_EMPTY_COMPOSE)
-        ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         publish.assert_called_once_with(
             topic='composer.start',
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
@@ -1032,8 +1032,8 @@ class TestPush(base.BaseTestCase):
         ejabberd.locked = True
         compose = models.Compose(release=ejabberd.release, request=ejabberd.request)
         self.db.add(compose)
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
         python_nose.locked = True
         python_nose.request = models.UpdateRequest.stable
         compose = models.Compose(release=python_nose.release, request=python_nose.request)
@@ -1047,11 +1047,11 @@ class TestPush(base.BaseTestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT)
-        ejabberd = self.db.query(models.Update).filter_by(title=u'ejabberd-16.09-4.fc17').one()
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         publish.assert_called_once_with(
             topic='composer.start',
             msg={'composes': [ejabberd.compose.__json__(composer=True)],
@@ -1076,8 +1076,8 @@ class TestPush(base.BaseTestCase):
         """
         cli = CliRunner()
         # Let's mark nose unsigned so it gets skipped.
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
         python_nose.builds[0].signed = False
         self.db.commit()
 
@@ -1092,10 +1092,10 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exception, None)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.exit_code, 0)
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         publish.assert_called_once_with(
             topic='composer.start',
             msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
@@ -1116,8 +1116,8 @@ class TestPush(base.BaseTestCase):
         """
         cli = CliRunner()
         # Let's mark nose unsigned so it gets marked signed.
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
         python_nose.builds[0].signed = False
         self.db.commit()
 
@@ -1132,10 +1132,10 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(result.exception, None)
         mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.exit_code, 0)
-        python_nose = self.db.query(models.Update).filter_by(
-            title=u'python-nose-1.3.7-11.fc17').one()
-        python_paste_deploy = self.db.query(models.Update).filter_by(
-            title=u'python-paste-deploy-1.5.2-8.fc17').one()
+        python_nose = self.db.query(models.Build).filter_by(
+            nvr='python-nose-1.3.7-11.fc17').one().update
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         publish.assert_called_once_with(
             topic='composer.start',
             msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],

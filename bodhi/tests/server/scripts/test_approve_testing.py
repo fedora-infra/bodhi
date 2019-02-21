@@ -146,7 +146,7 @@ class TestMain(BaseTestCase):
              'maintainer wishes'),
             author=u'bodhi')
         self.assertEqual(stdout.getvalue(),
-                         'bodhi-2.0-1.fc17 now meets testing requirements\nThe DB died lol\n')
+                         f'{update.alias} now meets testing requirements\nThe DB died lol\n')
         remove.assert_called_once_with()
 
     @patch('bodhi.server.models.Update.comment', side_effect=[None, IOError('The DB died lol')])
@@ -187,8 +187,8 @@ class TestMain(BaseTestCase):
         )
         self.assertEqual(comment.call_args_list, [comment_expected_call, comment_expected_call])
         self.assertEqual(stdout.getvalue(),
-                         ('bodhi2-2.0-1.fc17 now meets testing requirements\n'
-                          'bodhi-2.0-1.fc17 now meets testing requirements\nThe DB died lol\n'))
+                         (f'{update2.alias} now meets testing requirements\n'
+                          f'{update.alias} now meets testing requirements\nThe DB died lol\n'))
         remove.assert_called_once_with()
 
     def test_non_autokarma_critpath_update_meeting_karma_requirements_gets_one_comment(self):
