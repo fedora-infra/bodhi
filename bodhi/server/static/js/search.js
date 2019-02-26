@@ -51,10 +51,10 @@ $(document).ready(function() {
     function resultUrl(data){
       if (data.alias != undefined) {
           return '/updates/' + data.alias;
-      } else if (data.hasOwnProperty('stack')) {
-          return'/updates/?packages=' + encodeURIComponent(data.name);
-      } else if (data.name != undefined) {
+      } else if (data.name != undefined && data.hasOwnProperty('email')) {
           return '/users/' + data.name;
+      } else if (data.name != undefined) {
+          return'/updates/?packages=' + encodeURIComponent(data.name);
       } else if (data.nvr != undefined) {
           return '/overrides/' + data.nvr;
       } else {
