@@ -36,13 +36,33 @@ class TestExceptionView(base.BaseTestCase):
     @mock.patch('bodhi.server.views.generic.log.exception')
     @mock.patch('bodhi.server.views.metrics.compute_ticks_and_data',
                 mock.MagicMock(side_effect=RuntimeError("BOOM")))
-    def test_status_500(self, exception):
+    def test_status_500_html(self, exception):
         """Assert that a status 500 code causes the exception to get logged."""
-        res = self.app.get('/metrics', status=500)
+        headers = {'Accept': 'text/html'}
+        res = self.app.get('/metrics', status=500, headers=headers)
 
+        self.assertEqual('text/html', res.content_type)
         self.assertIn('Server Error', res)
         self.assertIn('BOOM', res)
         exception.assert_called_once_with("Error caught.  Handling HTML response.")
+
+    @mock.patch('bodhi.server.views.generic.log.exception')
+    @mock.patch('bodhi.server.views.metrics.compute_ticks_and_data',
+                mock.MagicMock(side_effect=RuntimeError("BOOM")))
+    def test_status_500_json(self, exception):
+        """Assert that a status 500 code causes the exception to get logged."""
+        headers = {'Content-Type': 'application/json'}
+        res = self.app.get('/metrics', status=500, headers=headers)
+
+        self.assertEqual('application/json', res.content_type)
+        self.assertEqual(
+            res.json_body,
+            {
+                "status": "error",
+                "errors": [{"location": "body", "name": "RuntimeError", "description": "BOOM"}]
+            },
+        )
+        exception.assert_called_once_with("Error caught.  Handling JSON response.")
 
 
 class TestGenericViews(base.BaseTestCase):
@@ -348,15 +368,18 @@ class TestGenericViews(base.BaseTestCase):
 
     def test_popup_toggle(self):
         """Check that the toggling of pop-up notifications works"""
+
+        headers = {'Accept': 'text/html'}
+
         # first we check that popups are enabled by default
-        res = self.app.get('/')
+        res = self.app.get('/', headers=headers)
         self.assertIn('Disable popups', res)
 
         # toggle popups off
         self.app.post('/popup_toggle')
 
         # now check popups are off
-        res = self.app.get('/')
+        res = self.app.get('/', headers=headers)
         self.assertIn('Enable popups', res)
 
         # test that the unlogged in user cannot toggle popups
@@ -366,15 +389,17 @@ class TestGenericViews(base.BaseTestCase):
             'authtkt.secure': True,
         })
         app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
-        res = app.post('/popup_toggle', status=403)
+        res = app.post('/popup_toggle', status=403, headers=headers)
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
 
     def test_new_override_form(self):
         """Test the New Override form page"""
 
+        headers = {'Accept': 'text/html'}
+
         # Test that the New Override form shows when logged in
-        res = self.app.get('/overrides/new')
+        res = self.app.get('/overrides/new', headers=headers)
         self.assertIn('<span>New Buildroot Override Form Requires JavaScript</span>', res)
 
         # Test that the unlogged in user cannot see the New Override form
@@ -384,15 +409,17 @@ class TestGenericViews(base.BaseTestCase):
             'authtkt.secure': True,
         })
         app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
-        res = app.get('/overrides/new', status=403)
+        res = app.get('/overrides/new', status=403, headers=headers)
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
 
     def test_new_update_form(self):
         """Test the new update Form page"""
 
+        headers = {'Accept': 'text/html'}
+
         # Test that a logged in user sees the New Update form
-        res = self.app.get('/updates/new')
+        res = self.app.get('/updates/new', headers=headers)
         self.assertIn('Creating a new update requires JavaScript', res)
         # Make sure that unspecified comes first, as it should be the default.
         regex = r''
@@ -407,7 +434,7 @@ class TestGenericViews(base.BaseTestCase):
             'authtkt.secure': True,
         })
         app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
-        res = app.get('/updates/new', status=403)
+        res = app.get('/updates/new', status=403, headers=headers)
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
 

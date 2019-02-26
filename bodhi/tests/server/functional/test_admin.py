@@ -37,12 +37,13 @@ class TestAdminView(base.BaseTestCase):
 
     def test_admin_unauthed(self):
         """Test that an unauthed user cannot see the admin endpoint"""
+        headers = {'Accept': 'text/html'}
         anonymous_settings = copy.copy(self.app_settings)
         anonymous_settings.update({
             'authtkt.secret': 'whatever',
             'authtkt.secure': True,
         })
         app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
-        res = app.get('/admin/', status=403)
+        res = app.get('/admin/', status=403, headers=headers)
         self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
         self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
