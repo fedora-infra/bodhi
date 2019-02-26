@@ -224,6 +224,28 @@
       </div>
     </div>
 
+    <!-- Alert Modal -->
+    <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="alertModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+      <div class="modal-dialog" role="document">
+	<div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="alertModalLabel">Internal Server Error!</h5>
+          </div>
+          <div class="modal-body" id="alertModalDescription">
+	     The server encountered an internal error
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      $('#alertModal').on('hidden.bs.modal', function (e) {
+          document.location.href = document.baseURI;
+      })
+    </script>
+
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="${request.static_url('bodhi:server/static/jquery.flot.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/jquery.flot.stack.js')}"></script>
