@@ -40,6 +40,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.sql import text
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
+import requests.exceptions
 import six
 
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
@@ -654,6 +655,7 @@ class TestGatingStatus(DeclEnum):
     running = 'running', 'Running'
     passed = 'passed', 'Passed'
     failed = 'failed', 'Failed'
+    greenwave_failed = 'greenwave_failed', 'Greenwave failed to respond'
 
 
 class UpdateType(DeclEnum):
@@ -2034,11 +2036,23 @@ class Update(Base):
 
     def update_test_gating_status(self):
         """Query Greenwave about this update and set the test_gating_status as appropriate."""
-        decision = self.get_test_gating_info()
+        try:
+            decision = self.get_test_gating_info()
+            decision['greenwave_success'] = True
+        except (requests.exceptions.Timeout, RuntimeError) as e:
+            log.error(str(e))
+            # Greenwave frequently returns 500 response codes. When this happens, we do not want
+            # to block updates from proceeding, so we will consider this condition as having the
+            # policy satisfied. We will use the Exception as the summary so we can mark the status
+            # as ignored for the record.
+            decision = {'policies_satisfied': True, 'summary': str(e), 'greenwave_success': False}
         if decision['policies_satisfied']:
-            # If an unrestricted policy is applied and no tests are required
-            # on this update, let's set the test gating as ignored in Bodhi.
-            if decision['summary'] == 'no tests are required':
+            if not decision['greenwave_success']:
+                # Greenwave failed to respond, so let's mark this as ignored.
+                self.test_gating_status = TestGatingStatus.greenwave_failed
+            elif decision['summary'] == 'no tests are required':
+                # If an unrestricted policy is applied and no tests are required
+                # on this update, let's set the test gating as ignored in Bodhi.
                 self.test_gating_status = TestGatingStatus.ignored
             else:
                 self.test_gating_status = TestGatingStatus.passed
@@ -2288,11 +2302,12 @@ class Update(Base):
         Returns a boolean representing if this update has passed the test gating.
 
         Returns:
-            bool: Returns True if the Update's test_gating_status property is None, ignored,
-                or passed. Otherwise it returns False.
+            True if the Update's test_gating_status property is None,
+            greenwave_failed, ignored, or passed. Otherwise it returns False.
         """
         if self.test_gating_status in (
-                None, TestGatingStatus.ignored, TestGatingStatus.passed):
+                None, TestGatingStatus.greenwave_failed, TestGatingStatus.ignored,
+                TestGatingStatus.passed):
             return True
         return False
 
