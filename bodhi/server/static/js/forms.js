@@ -70,15 +70,31 @@ Form.prototype.success = function(data) {
 Form.prototype.error = function(data) {
     var self = this;
     self.finish();
-    // Here is where we handle those error messages on the response by cornice.
-    $.each(data.responseJSON.errors, function (i, error) {
-        msg = self.messenger.post({
-            message: error.name.capitalize() + ' : ' + error.description,
-            type: "error",
-            hideAfter: false,
-            showCloseButton: true,
+    if (data.status >= 500) {
+        // In case of Internal Server Error show error modal
+        var msg = '';
+
+        $.each(data.responseJSON.errors, function (i, error) {
+            if (msg != '') {
+                msg += '; ';
+            }
+            msg += error.name.capitalize() + ' : ' + error.description;
         });
-    });
+
+        $('#alertModalDescription').text(msg);
+        $('#alertModal').modal('show');
+    }
+    else {
+        // Here is where we handle those error messages on the response by cornice.
+        $.each(data.responseJSON.errors, function (i, error) {
+            msg = self.messenger.post({
+                message: error.name.capitalize() + ' : ' + error.description,
+                type: "error",
+                hideAfter: false,
+                showCloseButton: true,
+            });
+        });
+    }
 }
 
 Form.prototype.data = function() {
