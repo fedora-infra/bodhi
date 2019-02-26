@@ -2,6 +2,26 @@
 Release notes
 =============
 
+v3.13.3
+-------
+
+This is a bugfix release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Bug fixes
+^^^^^^^^^
+
+* Mark updates as "tests ignored" if Greenwave fails to respond (:issue:`3044`).
+
+
 v3.13.2
 -------
 
