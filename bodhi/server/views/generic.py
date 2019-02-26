@@ -1,4 +1,4 @@
-# Copyright © 2014-2017 Red Hat, Inc. and others
+# Copyright © 2014-2019 Red Hat, Inc. and others
 #
 # This file is part of Bodhi.
 #
@@ -411,14 +411,14 @@ def notfound_view(context, request):
         bodhi.server.services.errors.html_handler: A pyramid.httpexceptions.HTTPError to be rendered
             to the user for the 404.
     """
-    return exception_view(context, request)
+    return exception_html_view(context, request)
 
 
-@view_config(context=HTTPForbidden)
-@view_config(context=Exception)
-def exception_view(exc, request):
+@view_config(context=HTTPForbidden, accept='text/html')
+@view_config(context=Exception, accept='text/html')
+def exception_html_view(exc, request):
     """
-    Return an error response upon generic errors (404s, 403s, 500s, etc..).
+    Return a html error response upon generic errors (404s, 403s, 500s, etc..).
 
     This is here to catch everything that isn't caught by our cornice error
     handlers.  When we do catch something, we transform it into a cornice
@@ -448,3 +448,39 @@ def exception_view(exc, request):
         request.errors = errors
 
     return bodhi.server.services.errors.html_handler(request)
+
+
+@view_config(context=HTTPForbidden, accept='application/json')
+@view_config(context=Exception, accept='application/json')
+def exception_json_view(exc, request):
+    """
+    Return a json error response upon generic errors (404s, 403s, 500s, etc..).
+
+    This is here to catch everything that isn't caught by our cornice error
+    handlers.  When we do catch something, we transform it into a cornice
+    Errors object and pass it to our nice cornice error handler.  That way, all
+    the exception presentation and rendering we can keep in one place.
+
+    Args:
+        exc (Exception): The unhandled exception.
+        request (pyramid.util.Request): The current request.
+    Returns:
+        bodhi.server.services.errors.html_handler: A pyramid.httpexceptions.HTTPError to be rendered
+            to the user for the given exception.
+    """
+    errors = getattr(request, 'errors', [])
+    status = getattr(exc, 'status_code', 500)
+
+    if status not in (404, 403):
+        log.exception("Error caught.  Handling JSON response.")
+    else:
+        log.warning(str(exc))
+
+    if not len(errors):
+        description = getattr(exc, 'explanation', None) or str(exc)
+
+        errors = cornice.errors.Errors(status=status)
+        errors.add('body', description=description, name=exc.__class__.__name__)
+        request.errors = errors
+
+    return bodhi.server.services.errors.json_handler(request)
