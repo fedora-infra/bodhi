@@ -19,7 +19,7 @@
 Add the greenwave_failed enum to TestGatingStatus.
 
 Revision ID: 8c4d6aad9b78
-Revises: aae0d29d49b7
+Revises: 9991cf10ec50
 Create Date: 2019-02-26 22:38:15.420477
 """
 from alembic import op
@@ -28,7 +28,7 @@ from sqlalchemy import exc
 
 # revision identifiers, used by Alembic.
 revision = '8c4d6aad9b78'
-down_revision = 'aae0d29d49b7'
+down_revision = '9991cf10ec50'
 
 
 def upgrade():
