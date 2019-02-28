@@ -918,6 +918,64 @@ class BodhiClient(OpenIdBaseClient):
         """
         return self.send_request('releases/', verb='GET', params=kwargs)
 
+    @errorhandled
+    def get_critpath_packages(self, release: str) -> dict:
+        """
+        Get a list of critical path packages for a release.
+
+        Args:
+            release: The release name to query for.
+        Returns:
+            A dictionary returned by critpath_package_requests() method.
+        """
+        return self.critpath_package_request(release=release, verb='GET', auth=False, data=None)
+
+    @errorhandled
+    def set_critpath_packages(self, release, packages):
+        """
+        Add a list of critical path packages to a release.
+
+        Args:
+            release (unicode): The release name to add packages to.
+            packages (list): List of critpath package names to add.
+        Returns:
+            dict: A dictionary returned by critpath_package_requests() method.
+        """
+        return self.critpath_package_request(
+            release=release, verb='POST', auth=True, data={'packages': packages}
+        )
+
+    @errorhandled
+    def critpath_package_request(self, release, verb, auth, data):
+        """
+        Return a list of critical path packages for a release after request.
+
+        Request can be for set critpath packages,or get critpath packages
+        for the release.
+
+        This method returns a dictionary in the following format::
+
+            {"packages": [
+                {"type": "rpm", "requirements": null,
+                 "name": "python", "stack": null}]}
+
+        Args:
+            release (unicode): The release name to interact with.
+            verb (unicode): Type of request to make.
+                            'GET': list packages
+                            'POST': set packages
+            auth (bool): Whether to authenticate for send_request.
+            data (dict or unicode): data to be sent along the request.
+        Returns:
+            dict: A dictionary with a single key, packages, mapping to a list of Package
+                  objects that are in critical path for this Release.
+        """
+        if verb not in ('GET', 'POST'):
+            raise ValueError("Unsupported request type.")
+        return self.send_request(
+            f'releases/{release}/critpath', verb=verb, auth=auth, data=data
+        )
+
     def get_koji_session(self):
         """
         Return an authenticated koji session.

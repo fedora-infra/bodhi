@@ -1621,6 +1621,59 @@ class TestBodhiClient_get_releases(unittest.TestCase):
             'releases/', params={'some_param': 'some_value'}, verb='GET')
 
 
+class TestBodhiClient_critpath_packages(unittest.TestCase):
+    """
+    Test the BodhiClient critcal path bindings.
+    """
+    @mock.patch('bodhi.client.bindings.BodhiClient.critpath_package_request',
+                return_value={'packages': [{'name': 'python'}, {'name': 'firefox'}]})
+    def test_get_critpath_packages(self, request_method):
+        """Assert correct behavior from the get_critpath_packages() method."""
+        client = bindings.BodhiClient()
+
+        resp = client.get_critpath_packages(release='F27')
+
+        self.assertEqual(resp, {'packages': [{'name': 'python'}, {'name': 'firefox'}]})
+        request_method.assert_called_once_with(release='F27', verb='GET', auth=False, data=None)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.critpath_package_request',
+                return_value={'packages': [{'name': 'python'}, {'name': 'firefox'}]})
+    def test_add_critpath_packages(self, request_method):
+        """Assert correct behavior from the set_critpath_packages() method."""
+        client = bindings.BodhiClient()
+
+        resp = client.set_critpath_packages(release='F27', packages="python,firefox")
+
+        self.assertEqual(resp, {'packages': [{'name': 'python'}, {'name': 'firefox'}]})
+        request_method.assert_called_once_with(
+            release='F27', verb='POST', auth=True, data={'packages': 'python,firefox'}
+        )
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value={'packages': [{'name': 'python'}, {'name': 'firefox'}]})
+    def test_critpath_package_request(self, send_request):
+        """Assert correct behavior from the critpath_package_request() method."""
+        client = bindings.BodhiClient()
+
+        results = client.critpath_package_request(release='F27', verb='GET', auth=True,
+                                                  data='some data')
+
+        self.assertEqual(results, {'packages': [{'name': 'python'}, {'name': 'firefox'}]})
+        client.send_request.assert_called_once_with(
+            'releases/F27/critpath', verb='GET', auth=True, data='some data')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value={'packages': [{'name': 'python'}, {'name': 'firefox'}]})
+    def test_critpath_package_request_invalid_verb(self, send_request):
+        """Test passing an invalid verb to the critpath_package_request() method."""
+        client = bindings.BodhiClient()
+
+        with self.assertRaises(bindings.BodhiClientException) as exc:
+            client.critpath_package_request(release='F27', verb='PUT', auth=True, data='blah')
+
+        self.assertEqual(str(exc.exception), 'Unsupported request type.')
+
+
 class TestBodhiClient_parse_file(unittest.TestCase):
     """
     Test the BodhiClient.parse_file() method.

@@ -1219,6 +1219,90 @@ def print_release(release):
     click.echo("  Composed by Bodhi:   %s" % release['composed_by_bodhi'])
 
 
+def print_critpath_packages(packages):
+    """
+    Print critical path packages of a release.
+
+    Args:
+        packages (list): list of Package objects that are in critical path for this Release.
+    """
+
+    if packages:
+        package_names = sorted([pkg['name'] for pkg in packages])
+        click.echo("Critical path packages:")
+        for pkg_name in package_names:
+            click.echo("  - {}".format(pkg_name))
+    else:
+        click.echo("No critical path packages for this release.")
+
+
+@releases.group(name='critpath')
+def critpath_pkgs():
+    """Manage critical path packages."""
+    pass  # pragma: no cover
+
+
+@critpath_pkgs.command(name='list')
+@handle_errors
+@click.argument('release')
+@url_option
+@staging_option
+def list_critpath_packages(release, url, staging, **kwargs):
+    # User Docs that show in the --help
+    """
+    List critical path packages of a release.
+
+    RELEASE: Release name (e.g. F27)
+    """
+    # Developer Docs
+    """
+    Args:
+        release (unicode): The release name to query.
+        url (unicode): The URL of a Bodhi server to query on. Ignored if staging is
+                       True.
+        staging (bool): Whether to use the staging server or not.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, staging=staging)
+    res = client.get_critpath_packages(release=release)
+
+    print_critpath_packages(res.get("packages"))
+
+
+@critpath_pkgs.command(name='set')
+@handle_errors
+@click.option('--user')
+@click.option('--password', hide_input=True)
+@click.argument('release')
+@click.argument('packages')
+@url_option
+@staging_option
+def set_critpath_packages(user, password, release, packages, url, staging, **kwargs):
+    # User Docs that show in the --help
+    """
+    Set a list of critical path packages to a release.
+
+    RELEASE: Release name (e.g. F27)
+
+    [PACKAGES]: comma separated list of packages to add (e.g. firefox,vim,python)
+    """
+    # Developer Docs
+    """
+    Args:
+        release (unicode): The release name to add critpath packages to.
+        packages (str): A string of comma separated package names to add.
+        url (unicode): The URL of a Bodhi server to query on. Ignored if staging is
+                       True.
+        staging (bool): Whether to use the staging server or not.
+        kwargs (dict): Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging)
+
+    res = client.set_critpath_packages(release=release, packages=packages)
+
+    print_critpath_packages(res.get("packages"))
+
+
 def print_errors(data):
     """
     Print errors to the terminal and exit with code 1.

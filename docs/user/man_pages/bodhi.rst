@@ -526,6 +526,17 @@ The ``releases`` command allows users to manage update releases.
 
         The version of the release (e.g., 29).
 
+``bodhi releases critpath list [options] <release>``
+
+    The ``critpath list`` command allows users to get a list of critical path package associated with an existing release.
+    ``<release>`` is the name of the release (eg F27)
+
+``bodhi releases critpath set [options] <release> <packages>``
+
+    The ``critpath set`` command allows administrators to set a new list of critical path packages to an existing release.
+    The provided package list will override any existing critical path packages.
+    ``<release>`` is the name of the release (eg F27) and ``<packages>`` is a comma separated list of packages (eg firefox,python,vim)
+
 ``bodhi releases edit [options]``
 
     The ``edit`` command allows administrators to edit existing releases:

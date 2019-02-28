@@ -745,8 +745,8 @@ user_package_table = Table(
 
 critical_path_packages_table = Table(
     'critical_path_packages_table', Base.metadata,
-    Column('package_id', Integer, ForeignKey('packages.id'), nullable=False),
-    Column('release_id', Integer, ForeignKey('releases.id'), nullable=False)
+    Column('package_id', Integer, ForeignKey('packages.id'), nullable=False, index=True),
+    Column('release_id', Integer, ForeignKey('releases.id'), nullable=False, index=True)
 )
 
 

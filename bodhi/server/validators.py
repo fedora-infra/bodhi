@@ -595,11 +595,11 @@ def validate_packages(request, **kwargs):
             koji_session.listPackages(pkgID=p)
             package = Package(name=p)
             validated_packages.append(package)
-        except Exception:
+        except koji.GenericError:
             request.errors.add(
                 'querystring',
                 'packages',
-                "Invalid packages specified: {}".format(", ".join(bad_packages))
+                f'Invalid packages specified: {", ".join(bad_packages)}'
             )
             return
 
