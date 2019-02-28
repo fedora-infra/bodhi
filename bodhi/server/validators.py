@@ -55,6 +55,7 @@ from .util import (
     tokenize,
     taskotron_results,
 )
+from bodhi.server import buildsys
 from bodhi.server.config import config
 
 
@@ -585,12 +586,24 @@ def validate_packages(request, **kwargs):
         else:
             validated_packages.append(package)
 
-    if bad_packages:
-        request.errors.add('querystring', 'packages',
-                           "Invalid packages specified: {}".format(
-                               ", ".join(bad_packages)))
-    else:
-        request.validated["packages"] = validated_packages
+    # Check if bad_packages are in koji
+    # If yes, create new package in Bodhi
+    koji_session = buildsys.get_session()
+
+    for p in bad_packages:
+        try:
+            koji_session.listPackages(pkgID=p)
+            package = Package(name=p)
+            validated_packages.append(package)
+        except Exception:
+            request.errors.add(
+                'querystring',
+                'packages',
+                "Invalid packages specified: {}".format(", ".join(bad_packages))
+            )
+            return
+
+    request.validated["packages"] = validated_packages
 
 
 @postschema_validator
@@ -682,6 +695,22 @@ def validate_release(request, **kwargs):
     else:
         request.errors.add("querystring", "release",
                            "Invalid release specified: {}".format(releasename))
+
+
+def validate_release_name(request, **kwargs):
+    """
+    Make sure the referenced release exists.
+
+    Args:
+        request (pyramid.util.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    release = Release.get(request.matchdict.get('name'))
+    if release:
+        request.validated['release'] = release
+    else:
+        request.errors.add('url', 'name', 'Invalid release name')
+        request.errors.status = HTTPNotFound.code
 
 
 @postschema_validator

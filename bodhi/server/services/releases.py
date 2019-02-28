@@ -42,6 +42,7 @@ from bodhi.server.validators import (
     validate_updates,
     validate_packages,
     validate_release,
+    validate_release_name,
 )
 import bodhi.server.schemas
 import bodhi.server.services.errors
@@ -56,6 +57,10 @@ releases = Service(name='releases', path='/releases/',
                    # Note, this 'rw' is not a typo. The @releases service has
                    # a ``post`` section at the bottom.
                    cors_origins=bodhi.server.security.cors_origins_rw)
+critpath_packages = Service(name='critpath_packages', path='/releases/{name}/critpath',
+                            description='Retrieve or set the release critical path packages.',
+                            factory=security.AdminACLFactory,
+                            cors_origins=bodhi.server.security.cors_origins_rw)
 
 
 @release.get(accept="text/html", renderer="release.html",
@@ -350,3 +355,40 @@ def save_release(request):
     request.db.flush()
 
     return r
+
+
+@critpath_packages.get(renderer='json',
+                       error_handler=bodhi.server.services.errors.json_handler,
+                       validators=(colander_body_validator, validate_release_name))
+def get_critpath_packages(request):
+    """
+    Get a list of critical path packages for a specific release.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: The dictionary {'packages': critpath_packages}.
+    """
+    return dict(packages=request.validated['release'].critpath_pkgs)
+
+
+@critpath_packages.post(schema=bodhi.server.schemas.SetCriticalPackages,
+                        permission='edit', renderer='json',
+                        error_handler=bodhi.server.services.errors.json_handler,
+                        validators=(
+                            colander_body_validator,
+                            validate_release_name,
+                            validate_packages
+                        ))
+def set_critpath_packages(request):
+    """
+    Set a list of critical path packages to a specific release.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: The dictionary {'packages': updated_critpath_packages}.
+    """
+    request.validated['release'].set_critpath_pkgs(request.validated['packages'])
+
+    return dict(packages=request.validated['release'].critpath_pkgs)

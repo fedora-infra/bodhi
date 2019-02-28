@@ -684,6 +684,24 @@ class TestValidateRelease(BaseTestCase):
         self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
 
 
+class TestValidateReleaseName(BaseTestCase):
+    """Test the validate_release_name() function."""
+
+    def test_invalid(self):
+        """An invalid release name should add an error to the request."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.matchdict = {'name': 'invalid'}
+
+        validators.validate_release_name(request)
+
+        self.assertEqual(
+            request.errors,
+            [{'location': 'url', 'name': 'name',
+              'description': 'Invalid release name'}])
+        self.assertEqual(request.errors.status, exceptions.HTTPNotFound.code)
+
+
 class TestValidateTestcaseFeedback(BaseTestCase):
     """Test the validate_testcase_feedback() function."""
 
