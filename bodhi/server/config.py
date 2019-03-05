@@ -531,6 +531,9 @@ class BodhiConfig(dict):
         'openid_template': {
             'value': '{username}.id.fedoraproject.org',
             'validator': str},
+        'pagure_flatpak_namespace': {
+            'value': 'modules',
+            'validator': str},
         'pagure_url': {
             'value': 'https://src.fedoraproject.org/pagure/',
             'validator': _validate_tls_url},

@@ -1081,9 +1081,8 @@ class TestFlatpakPackage(ModelTest, unittest.TestCase):
     klass = model.FlatpakPackage
     attrs = dict(name=u"flatpak-runtime")
 
-    @mock.patch('bodhi.server.util.http_session')
-    def test_get_pkg_committers_from_pagure(self, http_session):
-        """Ensure correct return value from get_pkg_committers_from_pagure()."""
+    def patch_http_session(self, http_session, namespace):
+        """Patch in the correct pagure API result for the particular flatpaks namespace."""
         json_output = {
             "access_groups": {
                 "admin": [],
@@ -1102,7 +1101,7 @@ class TestFlatpakPackage(ModelTest, unittest.TestCase):
             "custom_keys": [],
             "date_created": "1494947106",
             "description": "Flatpak Runtime",
-            "fullname": "flatpaks/flatpak-runtime",
+            "fullname": namespace + "/flatpak-runtime",
             "group_details": {},
             "id": 2,
             "milestones": {},
@@ -1118,6 +1117,25 @@ class TestFlatpakPackage(ModelTest, unittest.TestCase):
         }
         http_session.get.return_value.json.return_value = json_output
         http_session.get.return_value.status_code = 200
+
+    @mock.patch('bodhi.server.util.http_session')
+    def test_get_pkg_committers_from_pagure_modules(self, http_session):
+        """Ensure correct return value from get_pkg_committers_from_pagure()."""
+        self.patch_http_session(http_session, namespace='modules')
+
+        rv = self.obj.get_pkg_committers_from_pagure()
+
+        self.assertEqual(rv, (['otaylor'], []))
+        http_session.get.assert_called_once_with(
+            ('https://src.fedoraproject.org/pagure/api/0/modules/flatpak-runtime'
+             '?expand_group=1'),
+            timeout=60)
+
+    @mock.patch.dict('bodhi.server.config.config', {'pagure_flatpak_namespace': 'flatpaks'})
+    @mock.patch('bodhi.server.util.http_session')
+    def test_get_pkg_committers_from_pagure_flatpaks(self, http_session):
+        """Check that the pagure_flatpak_namespace config key works."""
+        self.patch_http_session(http_session, namespace='flatpaks')
 
         rv = self.obj.get_pkg_committers_from_pagure()
 
