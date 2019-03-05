@@ -1100,9 +1100,12 @@ class Package(Base):
         """
         pagure_url = config.get('pagure_url')
         # Pagure uses plural names for its namespaces such as "rpms" except for
-        # container. Flatpaks build directly from the 'modules' namespace
+        # container. Flatpaks were moved from 'modules' to 'flatpaks' - hence
+        # a config setting.
         if self.type.name == 'container':
             namespace = self.type.name
+        elif self.type.name == 'flatpak':
+            namespace = config.get('pagure_flatpak_namespace')
         else:
             namespace = self.type.name + 's'
         package_pagure_url = '{0}/api/0/{1}/{2}?expand_group=1'.format(
