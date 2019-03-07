@@ -2,7 +2,6 @@
 Welcome to the Bodhi development environment! Here are some helpful commands:
 
 bci:         Run the Bodhi CI test suite.
-bdiff-cover: Run btest and then run diff-cover against the develop branch
 bdocs:       Build Bodhi's documentation.
 bfedmsg:     Display the log of Bodhi's fedmsgs.
 blog:        View Bodhi's log. (Support all the systemctl options, such as -lf)

@@ -1034,6 +1034,36 @@ class TestUpdatesService(BaseTestCase):
 
         self.assertTrue('RPM' not in res.text)
 
+    def test_decision_context_pending_stable(self):
+        """The HTML should include the correct decision context for Pending/Stable updates."""
+        u = Update.query.one()
+        u.request = UpdateRequest.stable
+        u.status = UpdateStatus.pending
+
+        res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
+
+        self.assertIn("'decision_context': 'bodhi_update_push_stable',", res)
+
+    def test_decision_context_pending_testing(self):
+        """The HTML should include the correct decision context for Pending/Testing updates."""
+        u = Update.query.one()
+        u.request = UpdateRequest.testing
+        u.status = UpdateStatus.pending
+
+        res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
+
+        self.assertIn("'decision_context': 'bodhi_update_push_testing',", res)
+
+    def test_decision_context_testing(self):
+        """The HTML should include the correct decision context for Testing updates."""
+        u = Update.query.one()
+        u.request = None
+        u.status = UpdateStatus.testing
+
+        res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
+
+        self.assertIn("'decision_context': 'bodhi_update_push_stable',", res)
+
     def test_home_html_legal(self):
         """Test the home page HTML when a legal link is configured."""
         with mock.patch.dict(

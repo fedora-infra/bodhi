@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2019 Sebastian Wojciechowski
+# Copyright (c) 2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -17,27 +16,26 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-Obsolete updates for archived release.
+Remove the private field on the Bug model.
 
-Revision ID: 8e9dc57e082d
-Revises: 8c4d6aad9b78
-Create Date: 2019-01-06 13:04:35.158562
+Revision ID: aae0d29d49b7
+Revises: 190ba571c7d2
+Create Date: 2019-02-19 01:53:37.699933
 """
 from alembic import op
+import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8e9dc57e082d'
-down_revision = '8c4d6aad9b78'
+revision = 'aae0d29d49b7'
+down_revision = '190ba571c7d2'
 
 
 def upgrade():
-    """Set archived releases updates status to 'obsolete'."""
-    op.execute("UPDATE updates SET status='obsolete' WHERE release_id in \
-                (SELECT id FROM releases WHERE state='archived') AND status NOT IN \
-                ('unpushed', 'obsolete', 'stable')")
+    """Remove the private field from the bugs table."""
+    op.drop_column('bugs', 'private')
 
 
 def downgrade():
-    """Raise an exception explaining that this migration cannot be reversed."""
-    raise NotImplementedError('This migration cannot be reversed.')
+    """Add the private field back to the bugs table."""
+    op.add_column('bugs', sa.Column('private', sa.BOOLEAN(), autoincrement=False, nullable=True))

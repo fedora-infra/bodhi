@@ -323,9 +323,9 @@ def get_template(update, use_template='fedora_errata_template'):
                     if parent and not bug.parent:
                         log.debug("Skipping tracker bug %s" % bug)
                         continue
-                title = (bug.title != 'Unable to fetch title'
-                         and bug.title != 'Invalid bug number'
-                         and not bug.private) and ' - %s' % bug.title or ''
+                title = (
+                    bug.title != 'Unable to fetch title' and bug.title != 'Invalid bug number') \
+                    and ' - %s' % bug.title or ''
                 info['references'] += u"  [ %d ] Bug #%d%s\n        %s\n" % \
                                       (i, bug.bug_id, title, bug.url)
                 i += 1

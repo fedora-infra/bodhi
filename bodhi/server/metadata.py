@@ -55,16 +55,20 @@ def insert_in_repo(comp_type, repodata, filetype, extension, source):
     shutil.copyfile(source, target_fname)
     repomd_xml = os.path.join(repodata, 'repomd.xml')
     repomd = cr.Repomd(repomd_xml)
-    # create a new record for our repomd.xml
-    rec = cr.RepomdRecord(filetype, target_fname)
-    # compress our metadata file with the comp_type
-    rec_comp = rec.compress_and_fill(cr.SHA256, comp_type)
-    # add hash to the compresed metadata file
-    rec_comp.rename_file()
-    # set type of metadata
-    rec_comp.type = filetype
-    # insert metadata about our metadata in repomd.xml
-    repomd.set_record(rec_comp)
+    add_list = [(filetype, comp_type)]
+    if hasattr(cr, 'ZCK_COMPRESSION') and comp_type != cr.ZCK_COMPRESSION:
+        add_list.append((filetype + "_zck", cr.ZCK_COMPRESSION))
+    for (ft, ct) in add_list:
+        # create a new record for our repomd.xml
+        rec = cr.RepomdRecord(ft, target_fname)
+        # compress our metadata file with the comp_type
+        rec_comp = rec.compress_and_fill(cr.SHA256, ct)
+        # add hash to the compresed metadata file
+        rec_comp.rename_file()
+        # set type of metadata
+        rec_comp.type = filetype
+        # insert metadata about our metadata in repomd.xml
+        repomd.set_record(rec_comp)
     with open(repomd_xml, 'w') as repomd_file:
         repomd_file.write(repomd.xml_dump())
     os.unlink(target_fname)

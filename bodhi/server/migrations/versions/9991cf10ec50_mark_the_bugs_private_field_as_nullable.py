@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-# Copyright (c) 2019 Sebastian Wojciechowski
+# Copyright (c) 2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -17,27 +16,26 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-Obsolete updates for archived release.
+Mark the bugs.private field as nullable.
 
-Revision ID: 8e9dc57e082d
-Revises: 8c4d6aad9b78
-Create Date: 2019-01-06 13:04:35.158562
+Revision ID: 9991cf10ec50
+Revises: d986618207bc
+Create Date: 2019-02-19 15:54:53.058707
 """
 from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision = '8e9dc57e082d'
-down_revision = '8c4d6aad9b78'
+revision = '9991cf10ec50'
+down_revision = 'd986618207bc'
 
 
 def upgrade():
-    """Set archived releases updates status to 'obsolete'."""
-    op.execute("UPDATE updates SET status='obsolete' WHERE release_id in \
-                (SELECT id FROM releases WHERE state='archived') AND status NOT IN \
-                ('unpushed', 'obsolete', 'stable')")
+    """Set the bugs.private column to be nullable."""
+    op.alter_column('bugs', 'private', nullable=True)
 
 
 def downgrade():
-    """Raise an exception explaining that this migration cannot be reversed."""
-    raise NotImplementedError('This migration cannot be reversed.')
+    """Set the bugs.private column to be non-nullable."""
+    op.execute("""UPDATE bugs SET private = FALSE WHERE private = NULL""")
+    op.alter_column('bugs', 'private', nullable=False)

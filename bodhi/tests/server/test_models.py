@@ -28,6 +28,7 @@ import uuid
 from pyramid.testing import DummyRequest
 from sqlalchemy.exc import IntegrityError
 import cornice
+import requests.exceptions
 
 from bodhi.server import models as model, buildsys, mail, util, Session
 from bodhi.server.config import config
@@ -251,20 +252,6 @@ class TestBugAddComment(BaseTestCase):
         debug.assert_called_once_with('Not commenting on parent security bug %s', bug.bug_id)
         self.assertEqual(comment.call_count, 0)
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
-    @mock.patch('bodhi.server.models.log.debug')
-    def test_private_bug(self, debug, comment):
-        """The method should not comment if a bug is flagged as private."""
-        update = model.Update.query.first()
-        update.type = model.UpdateType.security
-        bug = model.Bug.query.first()
-        bug.private = True
-
-        bug.add_comment(update)
-
-        debug.assert_called_once_with('Not commenting on private bug %s', bug.bug_id)
-        self.assertEqual(comment.call_count, 0)
-
 
 class TestBugDefaultMessage(BaseTestCase):
     """Test Bug.default_mesage()."""
@@ -323,20 +310,6 @@ class TestBugModified(BaseTestCase):
         debug.assert_called_once_with('Not modifying parent security bug %s', bug.bug_id)
         self.assertEqual(modified.call_count, 0)
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.modified')
-    @mock.patch('bodhi.server.models.log.debug')
-    def test_private_bug(self, debug, modified):
-        """The method should not act on a bug flagged as private."""
-        update = model.Update.query.first()
-        update.type = model.UpdateType.security
-        bug = model.Bug.query.first()
-        bug.private = True
-
-        bug.modified(update, 'this should not be used')
-
-        debug.assert_called_once_with('Not modifying private bug %s', bug.bug_id)
-        self.assertEqual(modified.call_count, 0)
-
 
 class TestBugTesting(BaseTestCase):
     """Test Bug.testing()."""
@@ -354,38 +327,6 @@ class TestBugTesting(BaseTestCase):
 
         debug.assert_called_once_with('Not modifying parent security bug %s', bug.bug_id)
         self.assertEqual(on_qa.call_count, 0)
-
-    @mock.patch('bodhi.server.models.bugs.bugtracker.on_qa')
-    @mock.patch('bodhi.server.models.log.debug')
-    def test_private_bug(self, debug, on_qa):
-        """The method should not act on a bug flagged as private."""
-        update = model.Update.query.first()
-        update.type = model.UpdateType.security
-        bug = model.Bug.query.first()
-        bug.private = True
-
-        bug.testing(update)
-
-        debug.assert_called_once_with('Not modifying private bug %s', bug.bug_id)
-        self.assertEqual(on_qa.call_count, 0)
-
-
-class TestBugClose(BaseTestCase):
-    """Test Bug.close()."""
-
-    @mock.patch('bodhi.server.models.bugs.bugtracker.close')
-    @mock.patch('bodhi.server.models.log.debug')
-    def test_private_bug(self, debug, close):
-        """The method should not act on a bug flagged as private."""
-        update = model.Update.query.first()
-        update.type = model.UpdateType.security
-        bug = model.Bug.query.first()
-        bug.private = True
-
-        bug.close_bug(update)
-
-        debug.assert_called_once_with('Not modifying private bug %s', bug.bug_id)
-        self.assertEqual(close.call_count, 0)
 
 
 class TestQueryProperty(BaseTestCase):
@@ -1731,6 +1672,112 @@ class TestUpdateSigned(BaseTestCase):
         update.release.pending_signing_tag = ''
 
         self.assertTrue(update.signed)
+
+
+class TestUpdateTestGatingPassed(BaseTestCase):
+    """Test the Update.test_gating_passed() method."""
+
+    def test_greenwave_failed(self):
+        """The greenwave_failed TestGatingStatus should count as passed."""
+        update = model.Update.query.first()
+        update.test_gating_status = TestGatingStatus.greenwave_failed
+
+        self.assertTrue(update.test_gating_passed)
+
+
+class TestUpdateUpdateTestGatingStatus(BaseTestCase):
+    """Test the Update.update_test_gating_status() method."""
+
+    @mock.patch('bodhi.server.models.log.error')
+    @mock.patch('bodhi.server.util.http_session.post')
+    @mock.patch('bodhi.server.util.time.sleep')
+    def test_500_response_from_greenwave(self, sleep, post, error):
+        """A 500 response from Greenwave should result in marking the test results as ignored."""
+        post.return_value = mock.MagicMock()
+        post.return_value.status_code = 500
+        update = model.Update.query.first()
+        # Let's set this to anything other than ignored, so we can assert that
+        # update_test_gating_status() toggles it back.
+        update.test_gating_status = model.TestGatingStatus.passed
+
+        update.update_test_gating_status()
+
+        self.assertEqual(update.test_gating_status, model.TestGatingStatus.greenwave_failed)
+        self.assertEqual(
+            update.greenwave_summary_string,
+            ('Bodhi failed to send POST request to Greenwave at the following URL '
+             '"https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision". The '
+             'status code was "500".'))
+        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        expected_post = mock.call(
+            'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
+            data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
+                  "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
+                              {"original_spec_nvr": f"{update.builds[0].nvr}"},
+                              {"item": f"{update.alias}", "type": "bodhi_update"}],
+                  "verbose": True},
+            headers={'Content-Type': 'application/json'}, timeout=60)
+        self.assertEqual(post.call_count, 4)
+        for i in range(4):
+            # Make sure the positional arguments are correct.
+            self.assertEqual(post.mock_calls[i][1], expected_post[1])
+            self.assertEqual(post.mock_calls[i][2].keys(), expected_post[2].keys())
+            # The request has serialized our data as JSON. We should probably not just serialize our
+            # expected JSON, because we don't have a guarantee that it will serialize to the same
+            # string. So instead, let's deserialize the JSON that the mock captured and compare it
+            # to our dictionary above.
+            self.assertEqual(json.loads(post.mock_calls[i][2]['data']), expected_post[2]['data'])
+            # Make sure the other stuff is all the same
+            for key in expected_post[2].keys():
+                if key != 'data':
+                    self.assertEqual(post.mock_calls[i][2][key], expected_post[2][key])
+        self.assertEqual(
+            error.mock_calls,
+            [mock.call((
+                'Bodhi failed to send POST request to Greenwave at the following URL '
+                '"https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision". The '
+                'status code was "500".')) for i in range(2)])
+
+    @mock.patch('bodhi.server.models.log.error')
+    @mock.patch('bodhi.server.util.http_session.post')
+    @mock.patch('bodhi.server.util.time.sleep')
+    def test_timeout_from_greenwave(self, sleep, post, error):
+        """Similar to the 500 test above, a timeout should also result in marking tests ignored."""
+        post.side_effect = requests.exceptions.ConnectTimeout('The connection timed out.')
+        update = model.Update.query.first()
+        # Let's set this to anything other than ignored, so we can assert that
+        # update_test_gating_status() toggles it back.
+        update.test_gating_status = model.TestGatingStatus.passed
+
+        update.update_test_gating_status()
+
+        self.assertEqual(update.test_gating_status, model.TestGatingStatus.greenwave_failed)
+        self.assertEqual(update.greenwave_summary_string, 'The connection timed out.')
+        # The call_url() handler doesn't catch a Timeout so there are no sleeps/retries.
+        self.assertEqual(sleep.mock_calls, [])
+        expected_post = mock.call(
+            'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
+            data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
+                  "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
+                              {"original_spec_nvr": f"{update.builds[0].nvr}"},
+                              {"item": f"{update.alias}", "type": "bodhi_update"}],
+                  "verbose": True},
+            headers={'Content-Type': 'application/json'}, timeout=60)
+        self.assertEqual(post.call_count, 1)
+        # Make sure the positional arguments are correct.
+        self.assertEqual(post.mock_calls[0][1], expected_post[1])
+        self.assertEqual(post.mock_calls[0][2].keys(), expected_post[2].keys())
+        # The request has serialized our data as JSON. We should probably not just serialize our
+        # expected JSON, because we don't have a guarantee that it will serialize to the same
+        # string. So instead, let's deserialize the JSON that the mock captured and compare it
+        # to our dictionary above.
+        self.assertEqual(json.loads(post.mock_calls[0][2]['data']), expected_post[2]['data'])
+        # Make sure the other stuff is all the same
+        for key in expected_post[2].keys():
+            if key != 'data':
+                self.assertEqual(post.mock_calls[0][2][key], expected_post[2][key])
+        self.assertEqual(
+            error.mock_calls, [mock.call('The connection timed out.')])
 
 
 class TestUpdateValidateBuilds(BaseTestCase):
