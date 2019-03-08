@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2018-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -42,9 +42,9 @@ def db_container(docker_backend, docker_network):
     docker_backend.d.connect_container_to_network(
         container.get_id(), docker_network["Id"], aliases=["db"],
     )
-    container.wait_for_port(5432, timeout=30)
+    container.wait_for_port(5432, timeout=64)
     container.execute(
-        ["/usr/bin/pg_isready", "-q", "-t", "16"]
+        ["/usr/bin/pg_isready", "-q", "-t", "64"]
     )
     yield container
     container.kill()
