@@ -34,7 +34,7 @@ def get_configfile():
     Return a path to a config file, if found.
 
     Return the path to a config file, with a heirarchy of preferential paths. It searches first
-    for development.ini if found. if not found, it will return /etc/bodhi/production.ini if it
+    for development.ini if found. If not found, it will return /etc/bodhi/production.ini if it
     exists. Otherwise, it returns None.
 
     Returns:
