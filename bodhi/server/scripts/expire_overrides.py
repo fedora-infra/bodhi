@@ -75,6 +75,8 @@ def main(argv=sys.argv):
         log.info("Expiring %d buildroot overrides...", count)
 
         for override in overrides:
+            log.debug("Expiring BRO for {} because it's due to expire.".format(
+                      override.build.nvr))
             override.expire()
             db.add(override)
             log.info("Expired %s" % override.build.nvr)

@@ -642,6 +642,8 @@ class ComposerThread(threading.Thread):
                 for build in update.builds:
                     if build.override:
                         try:
+                            log.debug("Expiring BRO for {} because it is being pushed.".format(
+                                      build.nvr))
                             build.override.expire()
                         except Exception:
                             log.exception('Problem expiring override')

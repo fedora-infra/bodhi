@@ -2195,6 +2195,7 @@ class Update(Base):
 
                 # Expire any associated buildroot override
                 if b.override:
+                    log.debug("Expiring BRO for {} because the build is unpushed.".format(b.nvr))
                     b.override.expire()
                 else:
                     # Only delete the Build entity if it isn't associated with
@@ -4459,6 +4460,8 @@ class BuildrootOverride(Base):
         if old_build is not None and old_build.override is not None:
             # There already is a buildroot override for an older build of this
             # package in this release. Expire it
+            log.debug("Expiring BRO for {} because it's superseded by {}.".format(
+                      old_build.nvr, build.nvr))
             old_build.override.expire()
             db.add(old_build.override)
 
@@ -4503,6 +4506,8 @@ class BuildrootOverride(Base):
             override.enable()
 
         elif data['expired']:
+            log.debug("Expiring BRO for {} because it was edited.".format(
+                      override.build.nvr))
             override.expire()
 
         db.add(override)
