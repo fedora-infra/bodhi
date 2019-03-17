@@ -2,21 +2,6 @@
 
 <script src="${request.static_url('bodhi:server/static/js/newsfeed.js')}"></script>
 <div class="container p-t-2">
-
-  <!--<div id="newsfeed" class="col-md-6">
-    <img src="${request.static_url('bodhi:server/static/img/spinner.gif')}"
-         alt="Loading..."
-         id="loader" />
-    <div id="datagrepper-widget"></div>
-    <script>
-        $(document).ready(function() {
-          generate_newsfeed(
-            "${request.registry.settings.get('datagrepper_url')}",
-            ${str(request.registry.settings.get('badge_ids')) | n});
-        });
-    </script>
-  </div>-->
-
   % for r in request.releases['pending'] + request.releases['current']:
   <div class="row front-release">
     <div class="col-md-12">
