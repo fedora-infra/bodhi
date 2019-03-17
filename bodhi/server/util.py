@@ -75,6 +75,8 @@ def get_rpm_header(nvr, tries=0):
             to 0.
     Returns:
         dict: A dictionary mapping RPM header names to their values, as returned by the Koji client.
+    Raises:
+        ValueError: If no rpm headers found in koji.
     """
     tries += 1
     headers = [
