@@ -465,7 +465,7 @@ def exception_json_view(exc, request):
         exc (Exception): The unhandled exception.
         request (pyramid.util.Request): The current request.
     Returns:
-        bodhi.server.services.errors.html_handler: A pyramid.httpexceptions.HTTPError to be rendered
+        bodhi.server.services.errors.json_handler: A pyramid.httpexceptions.HTTPError to be rendered
             to the user for the given exception.
     """
     errors = getattr(request, 'errors', [])
