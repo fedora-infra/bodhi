@@ -44,7 +44,6 @@ def print_human_readable_format(sar_data):
         ))
         click.echo("email: {}".format(sar_data[user]['email']))
         click.echo("groups: {}".format(sar_data[user]['groups']))
-        click.echo("popups: {}".format(sar_data[user]['show_popups']))
 
         click.echo("\n{} Comments: {}".format(chapter_start, chapter_stop))
         for idx, comment in enumerate(sar_data[user]['comments'], 1):
@@ -89,7 +88,6 @@ def get_user_data(username, human_readable):
     sar_data[user.name]['email'] = user.email
     sar_data[user.name]['groups'] = [g.name for g in user.groups]
     sar_data[user.name]['name'] = user.name
-    sar_data[user.name]['show_popups'] = user.show_popups
     sar_data[user.name]['updates'] = [
         {'autokarma': u.autokarma, 'stable_karma': u.stable_karma,
          'unstable_karma': u.unstable_karma, 'requirements': u.requirements,

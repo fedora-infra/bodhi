@@ -356,33 +356,6 @@ def new_override(request):
     return dict(nvr=nvr)
 
 
-@view_config(route_name='popup_toggle', request_method='POST')
-def popup_toggle(request):
-    """
-    Toggle whether the user is configured to receive fedmsg popups in the web UI.
-
-    Args:
-        request (pyramid.util.Request): The current request.
-    Returns:
-        pyramid.httpexceptions.HTTPFound: A redirect to the "next" field of the request, or the home
-            page if "next" is not defined.
-    Raises:
-        pyramid.exceptions.HTTPForbidden: If the user is not logged in.
-    """
-    # Get the user
-    userid = request.authenticated_userid
-    if userid is None:
-        raise HTTPForbidden("You must be logged in.")
-    user = request.db.query(models.User).filter_by(name=str(userid)).first()
-
-    # Toggle the value.
-    user.show_popups = not user.show_popups
-
-    # And send the user back
-    return_to = request.params.get('next', request.route_url('home'))
-    return HTTPFound(location=return_to)
-
-
 @view_config(route_name='api_version', renderer='json')
 def api_version(request):
     """

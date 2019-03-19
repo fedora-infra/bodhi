@@ -360,33 +360,6 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/api_version')
         self.assertIn('version', res.json_body)
 
-    def test_popup_toggle(self):
-        """Check that the toggling of pop-up notifications works"""
-
-        headers = {'Accept': 'text/html'}
-
-        # first we check that popups are enabled by default
-        res = self.app.get('/', headers=headers)
-        self.assertIn('Disable popups', res)
-
-        # toggle popups off
-        self.app.post('/popup_toggle')
-
-        # now check popups are off
-        res = self.app.get('/', headers=headers)
-        self.assertIn('Enable popups', res)
-
-        # test that the unlogged in user cannot toggle popups
-        anonymous_settings = copy.copy(self.app_settings)
-        anonymous_settings.update({
-            'authtkt.secret': 'whatever',
-            'authtkt.secure': True,
-        })
-        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
-        res = app.post('/popup_toggle', status=403, headers=headers)
-        self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
-        self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
-
     def test_new_override_form(self):
         """Test the New Override form page"""
 
