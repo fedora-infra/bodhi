@@ -4060,8 +4060,6 @@ class User(Base):
     Attributes:
         name (unicode): The username.
         email (unicode): An e-mail address for the user.
-        show_popups (bool): If True, the web interface will display fedmsg popups to the user.
-            Defaults to True.
         comments (sqlalchemy.orm.dynamic.AppenderQuery): An iterable of :class:`Comments <Comment>`
             the user has written.
         updates (sqlalchemy.orm.dynamic.AppenderQuery): An iterable of :class:`Updates <Update>` the
@@ -4077,9 +4075,6 @@ class User(Base):
 
     name = Column(Unicode(64), unique=True, nullable=False)
     email = Column(UnicodeText)
-
-    # A preference
-    show_popups = Column(Boolean, default=True, server_default=text('TRUE'))
 
     # One-to-many relationships
     comments = relationship(Comment, backref=backref('user'), lazy='dynamic')

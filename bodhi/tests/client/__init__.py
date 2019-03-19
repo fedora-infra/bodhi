@@ -36,7 +36,7 @@ EXAMPLE_COMMENT_MUNCH = Munch({
             u'date_submitted': u'2017-02-13 17:38:43', u'unstable_karma': -3,
             u'user': Munch({
                 u'openid': u'bowlofeggs.id.fedoraproject.org', u'name': u'bowlofeggs',
-                u'show_popups': True, u'id': 2897,
+                u'id': 2897,
                 u'avatar': u'AVATAR_URL',
                 u'groups': [Munch({u'name': u'packager'})],
                 u'email': u'email@example.com'}),
@@ -62,7 +62,7 @@ EXAMPLE_COMMENT_MUNCH = Munch({
         u'update_title': u'nodejs-grunt-wrap-0.3.0-2.fc25', u'id': 562626,
         u'user': Munch({
             u'openid': u'bowlofeggs.id.fedoraproject.org', u'name': u'bowlofeggs',
-            u'show_popups': True, u'id': 2897, u'avatar': u'AVATAR_URL',
+            u'id': 2897, u'avatar': u'AVATAR_URL',
             u'groups': [Munch({u'name': u'packager'})], u'email': u'email@exampl.ecom'})}),
     u'caveats': []})
 
@@ -150,7 +150,7 @@ EXAMPLE_OVERRIDE_MUNCH = Munch({
     u'build': Munch(
         {u'epoch': 0, u'nvr': u'js-tag-it-2.0-1.fc25', u'signed': True, 'release_id': 15}),
     u'expired_date': None, u'submitter': Munch({
-        u'openid': None, u'name': u'bowlofeggs', u'show_popups': True, u'id': 2897, u'avatar': None,
+        u'openid': None, u'name': u'bowlofeggs', u'id': 2897, u'avatar': None,
         u'groups': [Munch({u'name': u'packager'})], u'email': u'email@example.com'})})
 
 EXAMPLE_OVERRIDE_MUNCH_CAVEATS = Munch({
@@ -160,7 +160,7 @@ EXAMPLE_OVERRIDE_MUNCH_CAVEATS = Munch({
     u'notes': u'No explanation given...', u'submitter_id': 2897,
     u'build': Munch({u'epoch': 0, u'nvr': u'js-tag-it-2.0-1.fc25', u'signed': True}),
     u'expired_date': None, u'submitter': Munch({
-        u'openid': None, u'name': u'bowlofeggs', u'show_popups': True, u'id': 2897, u'avatar': None,
+        u'openid': None, u'name': u'bowlofeggs', u'id': 2897, u'avatar': None,
         u'groups': [Munch({u'name': u'packager'})], u'email': u'email@example.com'})})
 
 EXAMPLE_EXPIRED_OVERRIDE_MUNCH = Munch({
@@ -169,7 +169,7 @@ EXAMPLE_EXPIRED_OVERRIDE_MUNCH = Munch({
     u'notes': u'This is an expired override', u'submitter_id': 2897,
     u'build': Munch({u'epoch': 0, u'nvr': u'js-tag-it-2.0-1.fc25', u'signed': True}),
     u'expired_date': '2017-03-07 23:05:31', u'submitter': Munch({
-        u'openid': None, u'name': u'bowlofeggs', u'show_popups': True, u'id': 2897, u'avatar': None,
+        u'openid': None, u'name': u'bowlofeggs', u'id': 2897, u'avatar': None,
         u'groups': [Munch({u'name': u'packager'})], u'email': u'email@example.com'})})
 
 EXAMPLE_QUERY_MUNCH = Munch({
@@ -212,7 +212,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
                        u'id': 91,
                        u'name': u'bodhi',
                        u'openid': u'bodhi.id.fedoraproject.org',
-                       u'show_popups': True},
+                       },
              u'user_id': 91},
             {u'bug_feedback': [],
              u'id': 561619,
@@ -228,7 +228,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
                        u'id': 91,
                        u'name': u'bodhi',
                        u'openid': u'bodhi.id.fedoraproject.org',
-                       u'show_popups': True},
+                       },
              u'user_id': 91},
             {u'bug_feedback': [],
              u'id': 562620,
@@ -244,7 +244,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
                        u'id': 2897,
                        u'name': u'bowlofeggs',
                        u'openid': u'bowlofeggs.id.fedoraproject.org',
-                       u'show_popups': True},
+                       },
              u'user_id': 2897}],
         u'critpath': False,
         u'date_approved': None,
@@ -294,7 +294,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
                   u'id': 2897,
                   u'name': u'bowlofeggs',
                   u'openid': u'bowlofeggs.id.fedoraproject.org',
-                  u'show_popups': True}}]})
+                  }}]})
 
 EXPECTED_QUERY_OUTPUT = """\
 ================================================================================
@@ -398,7 +398,7 @@ EXAMPLE_QUERY_MUNCH_MULTI = Munch({
                   u'id': 2897,
                   u'name': u'bowlofeggs',
                   u'openid': u'bowlofeggs.id.fedoraproject.org',
-                  u'show_popups': True}},
+                  }},
         {
         u'alias': u'FEDORA-2017-c95b33872d',
         u'autokarma': True,
@@ -464,7 +464,7 @@ EXAMPLE_QUERY_MUNCH_MULTI = Munch({
                   u'id': 2897,
                   u'name': u'bowlofeggs',
                   u'openid': u'bowlofeggs.id.fedoraproject.org',
-                  u'show_popups': True}}]})
+                  }}]})
 
 EXAMPLE_QUERY_OUTPUT_MULTI = """\
  nodejs-grunt-wrap-0.3.0-2.fc25           rpm        testing   2017-02-13 (17)
@@ -492,7 +492,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897},
         {u'build': {u'epoch': 0,
                     u'nvr': u'python-pyramid-1.5.6-3.el7',
@@ -509,7 +509,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897},
         {u'build': {u'epoch': 0,
                     u'nvr': u'erlang-esip-1.0.8-1.fc25',
@@ -526,7 +526,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897},
         {u'build': {u'epoch': 0,
                     u'nvr': u'erlang-stun-1.0.7-1.fc25',
@@ -543,7 +543,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897},
         {u'build': {u'epoch': 0,
                     u'nvr': u'erlang-iconv-1.0.2-1.fc25',
@@ -560,7 +560,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897},
         {u'build': {u'epoch': 0,
                     u'nvr': u'erlang-stringprep-1.0.6-1.fc25',
@@ -577,7 +577,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897},
         {u'build': {u'epoch': 0,
                     u'nvr': u'erlang-fast_tls-1.0.7-1.fc25',
@@ -594,7 +594,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897},
         {u'build': {u'epoch': 0,
                     u'nvr': u'erlang-fast_yaml-1.0.6-1.fc25',
@@ -611,7 +611,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897},
         {u'build': {u'epoch': 0,
                     u'nvr': u'erlang-fast_xml-1.1.15-1.fc25',
@@ -628,7 +628,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897},
         {u'build': {u'epoch': 0,
                     u'nvr': u'python-fedmsg-atomic-composer-2016.3-1.el7',
@@ -645,7 +645,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897},
         {u'build': {u'epoch': 0,
                     u'nvr': u'python-fedmsg-atomic-composer-2016.3-1.fc24',
@@ -662,7 +662,7 @@ EXAMPLE_QUERY_OVERRIDES_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897}],
     u'page': 1,
     u'pages': 1,
@@ -691,7 +691,7 @@ EXAMPLE_QUERY_SINGLE_OVERRIDE_MUNCH = Munch({
                         u'id': 2897,
                         u'name': u'bowlofeggs',
                         u'openid': u'bowlofeggs.id.fedoraproject.org',
-                        u'show_popups': True},
+                        },
          u'submitter_id': 2897})],
     u'page': 1,
     u'pages': 1,
@@ -726,7 +726,7 @@ EXAMPLE_UPDATE_MUNCH = Munch({
             u'testcase_feedback': [], u'karma_critpath': 0, u'update_id': 69704, u'karma': 0,
             u'text': u'This update has been submitted for testing by bowlofeggs. ', u'id': 501425,
             u'user': Munch({
-                u'openid': u'bodhi.id.fedoraproject.org', u'name': u'bodhi', u'show_popups': True,
+                u'openid': u'bodhi.id.fedoraproject.org', u'name': u'bodhi',
                 u'id': 91, u'avatar': u'https://apps.fedoraproject.org/img/icons/bodhi-24.png',
                 u'groups': [], u'email': None})}),
         Munch({
@@ -737,14 +737,14 @@ EXAMPLE_UPDATE_MUNCH = Munch({
                       u'has inherited its bugs and notes.'),
             u'id': 501427,
             u'user': Munch({
-                u'openid': u'bodhi.id.fedoraproject.org', u'name': u'bodhi', u'show_popups': True,
+                u'openid': u'bodhi.id.fedoraproject.org', u'name': u'bodhi',
                 u'id': 91, u'avatar': u'https://apps.fedoraproject.org/img/icons/bodhi-24.png',
                 u'groups': [], u'email': None})})],
     u'updateid': u'FEDORA-EPEL-2016-3081a94111', u'type': u'bugfix', u'close_bugs': True,
     u'meets_testing_requirements': True, u'date_submitted': u'2016-10-05 18:10:22',
     u'unstable_karma': -3, u'submitter': u'bowlofeggs',
     u'user': Munch({
-        u'openid': u'bowlofeggs.id.fedoraproject.org', u'name': u'bowlofeggs', u'show_popups': True,
+        u'openid': u'bowlofeggs.id.fedoraproject.org', u'name': u'bowlofeggs',
         u'id': 2897,
         u'avatar': u'https://seccdn.libravatar.org/avatar/some_hash',
         u'groups': [Munch({u'name': u'packager'})], u'email': u'bowlofeggs@electronsweatshop.com'}),
@@ -782,7 +782,6 @@ SINGLE_UPDATE_MUNCH = Munch({
                 u'id': 501425,
                 u'user': Munch({
                     u'openid': u'bodhi.id.fedoraproject.org', u'name': u'bodhi',
-                    u'show_popups': True,
                     u'id': 91, u'avatar': u'https://apps.fedoraproject.org/img/icons/bodhi-24.png',
                     u'groups': [], u'email': None})}),
             Munch({
@@ -794,7 +793,6 @@ SINGLE_UPDATE_MUNCH = Munch({
                 u'id': 501427,
                 u'user': Munch({
                     u'openid': u'bodhi.id.fedoraproject.org', u'name': u'bodhi',
-                    u'show_popups': True,
                     u'id': 91, u'avatar': u'https://apps.fedoraproject.org/img/icons/bodhi-24.png',
                     u'groups': [], u'email': None})})],
         u'updateid': u'FEDORA-EPEL-2016-3081a94111', u'type': u'bugfix', u'close_bugs': True,
@@ -802,7 +800,6 @@ SINGLE_UPDATE_MUNCH = Munch({
         u'unstable_karma': -3, u'submitter': u'bowlofeggs',
         u'user': Munch({
             u'openid': u'bowlofeggs.id.fedoraproject.org', u'name': u'bowlofeggs',
-            u'show_popups': True,
             u'id': 2897,
             u'avatar': u'https://seccdn.libravatar.org/avatar/some_hash',
             u'groups': [Munch({u'name': u'packager'})],

@@ -40,11 +40,6 @@
     <link href="${request.static_url('bodhi:server/static/css/panel.css') }" rel="stylesheet" />
     <script src="${request.static_url('bodhi:server/static/js/jquery-1.10.2.min.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/Chart-0.2.0.min.js')}"></script>
-    <script type="text/javascript">
-        var settings = {
-            fedmsg_gateway: "${ config['fedmsg_gateway'] }"
-        };
-    </script>
   </head>
 
   <body>
@@ -138,18 +133,6 @@
                               </a>
                               <a class="dropdown-item" href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
                                 Manage Alerts
-                              </a>
-                              <form id="popup_toggle" action="${request.route_url('popup_toggle')}" method="POST">
-                                % if request.matched_route:
-                                <input type="hidden" name="next" value="${request.current_route_url()}">
-                                % endif
-                              </form>
-                              <a class="dropdown-item" href="javascript:$('#popup_toggle').submit();">
-                                % if request.user.show_popups:
-                                Disable popups
-                                % else:
-                                Enable popups
-                                % endif
                               </a>
                               % if request.user:
                               <a class="dropdown-item" href="${request.route_url('logout')}">
@@ -254,9 +237,6 @@
     <script src="${request.static_url('bodhi:server/static/js/cabbage.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/site.js')}"></script>
-    % if request.user and request.user.show_popups:
-    <script src="${request.static_url('bodhi:server/static/js/live.js')}"></script>
-    % endif
     <script src="${request.static_url('bodhi:server/static/messenger/js/messenger.min.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/messenger/js/messenger-theme-flat.js')}"></script>
     <link href="${request.static_url('bodhi:server/static/messenger/css/messenger.css') }" rel="stylesheet" />
