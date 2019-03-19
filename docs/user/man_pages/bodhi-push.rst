@@ -12,7 +12,7 @@ Description
 ===========
 
 ``bodhi-push`` is used to select which packages to push out to the mirror network. It has various
-flags that can be used to select the package set, and then it emits a fedmsg with the list of
+flags that can be used to select the package set, and then it emits a message with the list of
 packages to be mirrored.
 
 
@@ -26,10 +26,6 @@ Options
 ``--builds TEXT``
 
     A comma-separated list of builds to include in the push.
-
-``--cert-prefix TEXT``
-
-    The prefix of a fedmsg cert used to sign the message.
 
 ``--releases TEXT``
 

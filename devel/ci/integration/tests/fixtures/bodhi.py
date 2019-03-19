@@ -70,7 +70,6 @@ def bodhi_container(
         "greenwave_api_url": "http://greenwave:8080/api/v1.0",
         "waiverdb_api_url": "http://waiverdb:8080/api/v1.0",
         "default_email_domain": "fedoraproject.org",
-        "releng_fedmsg_certname": "bodhi",
         # Only on bodhi-backend
         # "compose_dir": "/mnt/koji/compose/updates/",
         # "compose_stage_dir": "/mnt/koji/compose/updates/",

@@ -157,12 +157,12 @@ class BodhiConfigLoadConfig(unittest.TestCase):
         c = config.BodhiConfig()
 
         with self.assertRaises(ValueError) as exc:
-            c.load_config({'fedmsg_enabled': 'not a bool', 'session.secret': 'secret',
+            c.load_config({'authtkt.secure': 'not a bool', 'session.secret': 'secret',
                            'authtkt.secret': 'secret'})
 
         self.assertEqual(
             str(exc.exception),
-            ('Invalid config values were set: \n\tfedmsg_enabled: "not a bool" cannot be '
+            ('Invalid config values were set: \n\tauthtkt.secure: "not a bool" cannot be '
              'interpreted as a boolean value.'))
 
     @mock.patch('bodhi.server.config.get_appsettings')

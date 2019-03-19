@@ -16,7 +16,7 @@ alias brestart="sudo systemctl restart bodhi && echo 'The Application is running
 alias bstart="sudo systemctl start bodhi && echo 'The Application is running on http://localhost:6543'"
 alias bstop="sudo systemctl stop bodhi"
 alias bteststyle="flake8-3 && pydocstyle bodhi"
-alias bfedmsg="sudo journalctl -u fedmsg-tail"
+alias bfedmsg="sudo journalctl -u print-messages"
 
 
 function bresetdb {

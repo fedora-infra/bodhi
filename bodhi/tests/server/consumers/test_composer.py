@@ -96,16 +96,15 @@ class TestCheckpoint(unittest.TestCase):
 
 
 @mock.patch('bodhi.server.push.initialize_db', mock.MagicMock())
-@mock.patch('bodhi.server.push.bodhi.server.notifications.init', mock.MagicMock())
 def _make_msg(transactional_session_maker, extra_push_args=None):
     """
-    Use bodhi-push to start a compose, and return the fedmsg that bodhi-push sends.
+    Use bodhi-push to start a compose, and return the message that bodhi-push sends.
 
     Args:
         transactional_session_maker (object): A context manager to use to get a db session.
         extra_push_args (list): A list of extra arguments to pass to bodhi-push.
     Returns:
-        dict: A dictionary of the fedmsg that bodhi-push sends.
+        dict: A dictionary of the message that bodhi-push sends.
     """
     if extra_push_args is None:
         extra_push_args = []
@@ -266,10 +265,10 @@ That was the actual one''' % compose_dir
 
     def _make_msg(self, extra_push_args=None):
         """
-        Use bodhi-push to start a compose, and return the fedmsg that bodhi-push sends.
+        Use bodhi-push to start a compose, and return the message that bodhi-push sends.
 
         Returns:
-            dict: A dictionary of the fedmsg that bodhi-push sends.
+            dict: A dictionary of the message that bodhi-push sends.
         """
         return api.Message(topic="", body=_make_msg(self.db_factory, extra_push_args)['body'])
 
@@ -336,7 +335,7 @@ That was the actual one''' % compose_dir
         with self.assertRaises(ValueError) as exc:
             self.handler._get_composes(msg)
 
-        self.assertEqual(str(exc.exception), 'Unable to process fedmsg: {}'.format(msg))
+        self.assertEqual(str(exc.exception), 'Unable to process message: {}'.format(msg))
         with self.db_factory() as db:
             compose = db.query(Compose).one()
             # The Compose's state should not have been altered.
@@ -370,7 +369,7 @@ That was the actual one''' % compose_dir
 
         self.handler(self._make_msg())
 
-        # Ensure that fedmsg was called 3 times
+        # Ensure that publish was called 3 times
         self.assertEqual(len(publish.call_args_list), 3)
 
         # Also, ensure we reported success
@@ -417,7 +416,7 @@ That was the actual one''' % compose_dir
         # Start the push
         self.handler(self._make_msg())
 
-        # Ensure that fedmsg was called 3 times
+        # Ensure that publish was called 3 times
         self.assertEqual(len(publish.call_args_list), 4)
         # Also, ensure we reported success
         publish.assert_called_with(
@@ -496,7 +495,7 @@ That was the actual one''' % compose_dir
         # Start the push
         self.handler(self._make_msg())
 
-        # Ensure that fedmsg was called 5 times
+        # Ensure that publish was called 5 times
         self.assertEqual(len(publish.call_args_list), 5)
         # Also, ensure we reported success
         publish.assert_called_with(
@@ -879,7 +878,7 @@ That was the actual one'''
 
         # Ensure that F18 runs before F17
         calls = publish.mock_calls
-        # Order of fedmsgs at the the moment:
+        # Order of messages at the the moment:
         # composer.start
         # composing f18
         # complete.stable (for each update)
@@ -2112,7 +2111,7 @@ testmodule:master:20172:2
             self.assertIsNone(up.date_stable)
             up.request = UpdateRequest.stable
 
-        # Ensure that fedmsg was called 3 times
+        # Ensure that publish was called 3 times
         self.assertEqual(len(publish.call_args_list), 4)
         # Also, ensure we reported success
         publish.assert_called_with(
@@ -2239,10 +2238,10 @@ class ComposerThreadBaseTestCase(base.BaseTestCase):
 
     def _make_msg(self, extra_push_args=None):
         """
-        Use bodhi-push to start a compose, and return the fedmsg that bodhi-push sends.
+        Use bodhi-push to start a compose, and return the message that bodhi-push sends.
 
         Returns:
-            dict: A dictionary of the fedmsg that bodhi-push sends.
+            dict: A dictionary of the message that bodhi-push sends.
         """
         return _make_msg(base.TransactionalSessionMaker(self.Session), extra_push_args)
 

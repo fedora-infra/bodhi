@@ -217,23 +217,7 @@ Push these 2 updates? [y/N]: y
 
 Locking updates...
 
-Sending composer.start fedmsg
-"""
-
-TEST_CERT_PREFIX_FLAG_EXPECTED_OUTPUT = """
-
-===== <Compose: F17 testing> =====
-
-python-nose-1.3.7-11.fc17
-python-paste-deploy-1.5.2-8.fc17
-bodhi-2.0-1.fc17
-
-
-Push these 3 updates? [y/N]: y
-
-Locking updates...
-
-Sending composer.start fedmsg
+Sending composer.start message
 """
 
 TEST_YES_FLAG_EXPECTED_OUTPUT = """
@@ -249,7 +233,7 @@ Pushing 3 updates.
 
 Locking updates...
 
-Sending composer.start fedmsg
+Sending composer.start message
 """
 
 TEST_LOCKED_UPDATES_EXPECTED_OUTPUT = """Existing composes detected: <Compose: F17 testing>. Do you wish to resume them all? [y/N]: y
@@ -264,7 +248,7 @@ Push these 1 updates? [y/N]: y
 
 Locking updates...
 
-Sending composer.start fedmsg
+Sending composer.start message
 """
 
 TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT = """Existing composes detected: <Compose: F17 testing>. Resuming all.
@@ -279,7 +263,7 @@ Pushing 1 updates.
 
 Locking updates...
 
-Sending composer.start fedmsg
+Sending composer.start message
 """
 
 TEST_RELEASES_FLAG_EXPECTED_OUTPUT = """
@@ -298,7 +282,7 @@ Push these 2 updates? [y/N]: y
 
 Locking updates...
 
-Sending composer.start fedmsg
+Sending composer.start message
 """
 
 TEST_REQUEST_FLAG_EXPECTED_OUTPUT = """
@@ -313,7 +297,7 @@ Push these 2 updates? [y/N]: y
 
 Locking updates...
 
-Sending composer.start fedmsg
+Sending composer.start message
 """
 
 TEST_RESUME_FLAG_EXPECTED_OUTPUT = """Resume <Compose: F17 testing>? [y/N]: y
@@ -328,7 +312,7 @@ Push these 1 updates? [y/N]: y
 
 Locking updates...
 
-Sending composer.start fedmsg
+Sending composer.start message
 """
 
 TEST_RESUME_AND_YES_FLAGS_EXPECTED_OUTPUT = """Resuming <Compose: F17 testing>.
@@ -343,7 +327,7 @@ Pushing 1 updates.
 
 Locking updates...
 
-Sending composer.start fedmsg
+Sending composer.start message
 """
 
 TEST_RESUME_EMPTY_COMPOSE = """Resume <Compose: F17 testing>? [y/N]: y
@@ -359,7 +343,7 @@ Push these 1 updates? [y/N]: y
 
 Locking updates...
 
-Sending composer.start fedmsg
+Sending composer.start message
 """
 
 TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT = """Resume <Compose: F17 testing>? [y/N]: y
@@ -375,7 +359,7 @@ Push these 1 updates? [y/N]: y
 
 Locking updates...
 
-Sending composer.start fedmsg
+Sending composer.start message
 """
 
 
@@ -432,9 +416,8 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_builds_flag(self, publish, mock_init):
+    def test_builds_flag(self, publish):
         """
         Assert correct operation when the --builds flag is given.
         """
@@ -471,34 +454,8 @@ class TestPush(base.BaseTestCase):
         self.assertFalse(python_paste_deploy.locked)
         self.assertIsNone(python_paste_deploy.date_locked)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_cert_prefix_flag(self, publish, init):
-        """
-        Test correct operation when the --cert-prefix flag is used.
-        """
-        cli = CliRunner()
-        self.db.commit()
-
-        with mock.patch('bodhi.server.push.transactional_session_maker',
-                        return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(
-                push.push, ['--username', 'bowlofeggs', '--cert-prefix', 'some_prefix'], input='y')
-
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_CERT_PREFIX_FLAG_EXPECTED_OUTPUT)
-        init.assert_called_once_with(active=True, cert_prefix='some_prefix')
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={
-                'composes': [{'security': False, 'release_id': 1, 'request': u'testing',
-                              'content_type': u'rpm'}],
-                'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
-
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_yes_flag(self, publish, init):
+    def test_yes_flag(self, publish):
         """
         Test correct operation when the --yes flag is used.
         """
@@ -512,7 +469,6 @@ class TestPush(base.BaseTestCase):
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_YES_FLAG_EXPECTED_OUTPUT)
-        init.assert_called_once_with(active=True, cert_prefix='shell')
         publish.assert_called_once_with(
             topic='composer.start',
             msg={
@@ -533,9 +489,8 @@ class TestPush(base.BaseTestCase):
             self.assertEqual(u.compose.request, models.UpdateRequest.testing)
             self.assertEqual(u.compose.content_type, models.ContentType.rpm)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_locked_updates(self, publish, mock_init):
+    def test_locked_updates(self, publish):
         """
         Test correct operation when there are some locked updates.
         """
@@ -556,7 +511,6 @@ class TestPush(base.BaseTestCase):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y\ny')
 
         self.assertEqual(result.exit_code, 0)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_LOCKED_UPDATES_EXPECTED_OUTPUT)
         publish.assert_called_once_with(
             topic='composer.start',
@@ -578,9 +532,8 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_locked_updates_yes_flag(self, publish, mock_init):
+    def test_locked_updates_yes_flag(self, publish):
         """
         Test correct operation when there are some locked updates and --yes flag is given.
         """
@@ -601,7 +554,6 @@ class TestPush(base.BaseTestCase):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--yes'])
 
         self.assertEqual(result.exit_code, 0)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT)
         publish.assert_called_once_with(
             topic='composer.start',
@@ -661,9 +613,8 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_releases_flag(self, publish, mock_init):
+    def test_releases_flag(self, publish):
         """
         Assert correct operation from the --releases flag.
         """
@@ -711,7 +662,6 @@ class TestPush(base.BaseTestCase):
                                 input='y')
 
         self.assertEqual(result.exit_code, 0)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
         f25_python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc25').one().update
@@ -747,9 +697,8 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(f26_python_paste_deploy.compose.release.id, f26.id)
         self.assertEqual(f26_python_paste_deploy.compose.request, models.UpdateRequest.testing)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_create_composes_for_releases_marked_as_composed_by_bodhi(self, publish, mock_init):
+    def test_create_composes_for_releases_marked_as_composed_by_bodhi(self, publish):
         """
         Assert that composes are created only for releases marked as 'composed_by_bodhi'.
         """
@@ -796,7 +745,6 @@ class TestPush(base.BaseTestCase):
                         return_value=base.TransactionalSessionMaker(self.Session)):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
         self.assertEqual(result.exit_code, 0)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
         f25_python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc25').one().update
@@ -832,9 +780,8 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(f26_python_paste_deploy.compose.release.id, f26.id)
         self.assertEqual(f26_python_paste_deploy.compose.request, models.UpdateRequest.testing)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_request_flag(self, publish, mock_init):
+    def test_request_flag(self, publish):
         """
         Assert that the --request flag works correctly.
         """
@@ -851,7 +798,6 @@ class TestPush(base.BaseTestCase):
                                 input='y')
 
         self.assertEqual(result.exit_code, 0)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_REQUEST_FLAG_EXPECTED_OUTPUT)
         bodhi = self.db.query(models.Build).filter_by(
             nvr='bodhi-2.0-1.fc17').one().update
@@ -874,9 +820,8 @@ class TestPush(base.BaseTestCase):
             self.assertEqual(u.compose.request, models.UpdateRequest.testing)
             self.assertEqual(u.compose.content_type, models.ContentType.rpm)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_resume_flag(self, publish, mock_init):
+    def test_resume_flag(self, publish):
         """
         Test correct operation when the --resume flag is given.
         """
@@ -895,7 +840,6 @@ class TestPush(base.BaseTestCase):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'], input='y\ny')
 
         self.assertEqual(result.exit_code, 0)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RESUME_FLAG_EXPECTED_OUTPUT)
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         python_nose = self.db.query(models.Build).filter_by(
@@ -918,9 +862,8 @@ class TestPush(base.BaseTestCase):
             self.assertIsNone(u.date_locked)
             self.assertIsNone(u.compose)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_resume_and_yes_flags(self, publish, mock_init):
+    def test_resume_and_yes_flags(self, publish):
         """
         Test correct operation when the --resume flag and --yes flag are given.
         """
@@ -939,7 +882,6 @@ class TestPush(base.BaseTestCase):
             result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume', '--yes'])
 
         self.assertEqual(result.exit_code, 0)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.output, TEST_RESUME_AND_YES_FLAGS_EXPECTED_OUTPUT)
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         python_nose = self.db.query(models.Build).filter_by(
@@ -962,7 +904,6 @@ class TestPush(base.BaseTestCase):
             self.assertIsNone(u.date_locked)
             self.assertIsNone(u.compose)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init', mock.Mock())
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     def test_resume_empty_compose(self, publish):
         """
@@ -1016,7 +957,6 @@ class TestPush(base.BaseTestCase):
                 release_id=ejabberd.release.id, request=models.UpdateRequest.stable).count(),
             0)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init', mock.Mock())
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
     def test_resume_human_says_no(self, publish):
         """
@@ -1068,9 +1008,8 @@ class TestPush(base.BaseTestCase):
         self.assertIsNone(python_paste_deploy.date_locked)
         self.assertIsNone(python_paste_deploy.compose)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_unsigned_updates_unsigned_skipped(self, publish, mock_init):
+    def test_unsigned_updates_unsigned_skipped(self, publish):
         """
         Unsigned updates should get skipped.
         """
@@ -1090,7 +1029,6 @@ class TestPush(base.BaseTestCase):
                                     input='y')
 
         self.assertEqual(result.exception, None)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.exit_code, 0)
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
@@ -1108,9 +1046,8 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(python_paste_deploy.compose.release, python_paste_deploy.release)
         self.assertEqual(python_paste_deploy.compose.request, python_paste_deploy.request)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.init')
     @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_unsigned_updates_signed_updated(self, publish, mock_init):
+    def test_unsigned_updates_signed_updated(self, publish):
         """
         Unsigned updates should get marked signed.
         """
@@ -1130,7 +1067,6 @@ class TestPush(base.BaseTestCase):
                                     input='y')
 
         self.assertEqual(result.exception, None)
-        mock_init.assert_called_once_with(active=True, cert_prefix=u'shell')
         self.assertEqual(result.exit_code, 0)
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update

@@ -22,7 +22,6 @@ import datetime
 from pyramid.settings import asbool
 from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import HTTPForbidden
-from pyramid.httpexceptions import HTTPFound
 import cornice.errors
 import sqlalchemy as sa
 

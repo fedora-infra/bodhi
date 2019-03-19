@@ -5,7 +5,6 @@ click
 colander
 cornice>=3.1.0
 dogpile.cache
-fedmsg[consumers]
 pyasn1-modules  # Due to an unfortunate dash in its name, installs break if pyasn1 is installed first
 fedora_messaging
 feedgen

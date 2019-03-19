@@ -24,7 +24,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-colander \
     python3-diff-cover \
     python3-dogpile-cache \
-    python3-fedmsg \
     python3-fedora \
     python3-feedgen \
     python3-flake8 \

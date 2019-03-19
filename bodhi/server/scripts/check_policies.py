@@ -19,8 +19,8 @@
 """
 Check the enforced policies by Greenwave for each open update.
 
-Ideally, this should be done in a fedmsg consumer but we currently do not have any
-messages in the message bus yet.
+Ideally, this should be done in a messaging consumer but we currently do not have
+any messages in the message bus yet.
 """
 import logging
 

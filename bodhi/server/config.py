@@ -339,9 +339,6 @@ class BodhiConfig(dict):
         'fedmenu.url': {
             'value': 'https://apps.fedoraproject.org/fedmenu',
             'validator': str},
-        'fedmsg_enabled': {
-            'value': False,
-            'validator': _validate_bool},
         'file_url': {
             'value': 'https://download.fedoraproject.org/pub/fedora/linux/updates',
             'validator': str},

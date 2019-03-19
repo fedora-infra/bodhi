@@ -3,7 +3,7 @@ Welcome to the Bodhi development environment! Here are some helpful commands:
 
 bci:         Run the Bodhi CI test suite.
 bdocs:       Build Bodhi's documentation.
-bfedmsg:     Display the log of Bodhi's fedmsgs.
+bfedmsg:     Display the log of Bodhi's messages on the bus.
 blog:        View Bodhi's log. (Support all the systemctl options, such as -lf)
 bresetdb:    Drop and reimport the database.
 brestart:    Restart the Bodhi service.

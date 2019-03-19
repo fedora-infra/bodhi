@@ -2967,7 +2967,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.builds, [build])
         self.assertEqual(up.request, None)
 
-        # At the end of the day, two fedmsg messages should have gone out.
+        # At the end of the day, two messages should have gone out.
         self.assertEqual(len(publish.call_args_list), 2)
         publish.assert_called_with(topic='update.edit', msg=ANY)
 
@@ -3777,7 +3777,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(len(data['updates']), 2)
 
         publish.assert_called_with(topic='update.request.testing', msg=ANY)
-        # Make sure two fedmsg messages were published
+        # Make sure two messages were published
         self.assertEqual(len(publish.call_args_list), 2)
 
     @mock.patch(**mock_valid_requirements)

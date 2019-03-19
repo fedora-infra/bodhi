@@ -227,9 +227,5 @@ setup(
     bodhi-skopeo-lite = bodhi.server.scripts.skopeo_lite:main
     bodhi-sar = bodhi.server.scripts.sar:get_user_data
     bodhi-shell = bodhi.server.scripts.bshell:get_bodhi_shell
-    [moksha.consumer]
-    composer = bodhi.server.consumers.composer:Composer
-    updates = bodhi.server.consumers.updates:UpdatesHandler
-    signed = bodhi.server.consumers.signed:SignedHandler
     """,
     paster_plugins=['pyramid'])

@@ -5,8 +5,6 @@
       - bash-completion
       - createrepo_c
       - docker
-      - fedmsg-hub
-      - fedmsg-relay
       - fedora-messaging
       - freetype-devel
       - gcc
@@ -34,7 +32,6 @@
       - python3-createrepo_c
       - python3-diff-cover
       - python3-dogpile-cache
-      - python3-fedmsg
       - python3-fedora
       - python3-flake8
       - python3-ipdb
@@ -150,7 +147,6 @@
       mode: 0644
   with_items:
       - bodhi.service
-      - fedmsg-tail.service
       - print-messages.service
 
 - name: Install the .bashrc
@@ -177,18 +173,6 @@
 
 - name: Set up the RabbitMQ broker
   import_tasks: rabbitmq.yml
-
-- name: Remove default fedmsg endpoints
-  file: path=/etc/fedmsg.d/endpoints.py state=absent
-
-- name: Remove default fedmsg ssl config
-  file: path=/etc/fedmsg.d/ssl.py state=absent
-
-- name: Link the bodhi fedmsg config
-  file:
-    src: /home/vagrant/bodhi/fedmsg.d/bodhi.py
-    dest: /etc/fedmsg.d/bodhi.py
-    state: link
 
 - name: Copy the fedora-messaging configuration file bodhi.toml
   copy:
@@ -219,24 +203,6 @@
 - name: Start and enable the fedora-messaging print service
   service:
       name: print-messages
-      state: started
-      enabled: yes
-
-- name: Start and enable the fedmsg-hub service
-  service:
-      name: fedmsg-hub
-      state: started
-      enabled: yes
-
-- name: Start and enable the fedmsg-relay service
-  service:
-      name: fedmsg-relay
-      state: started
-      enabled: yes
-
-- name: Start and enable the fedmsg-tail service
-  service:
-      name: fedmsg-tail
       state: started
       enabled: yes
 
