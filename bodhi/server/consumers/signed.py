@@ -48,7 +48,7 @@ class SignedHandler(object):
 
     def __call__(self, message: fedora_messaging.api.Message):
         """
-        Handle fedmsgs arriving with the configured topic.
+        Handle messages arriving with the configured topic.
 
         This marks a build as signed if it is assigned to the pending testing release tag.
 

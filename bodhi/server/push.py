@@ -51,8 +51,6 @@ def update_sig_status(update):
 
 @click.command()
 @click.option('--builds', help='Push updates for a comma-separated list of builds')
-@click.option('--cert-prefix', default="shell",
-              help="The prefix of a fedmsg cert used to sign the message")
 @click.option('--releases', help=('Push updates for a comma-separated list of releases (default: '
                                   'current and pending releases)'))
 @click.option('--request', default='testing,stable',
@@ -63,7 +61,7 @@ def update_sig_status(update):
 @click.option('--yes', '-y', is_flag=True, default=False,
               help='Answers yes to the various questions')
 @click.version_option(message='%(version)s')
-def push(username, cert_prefix, yes, **kwargs):
+def push(username, yes, **kwargs):
     """Push builds out to the repositories."""
     resume = kwargs.pop('resume')
     resume_all = False
@@ -171,10 +169,7 @@ def push(username, cert_prefix, yes, **kwargs):
         composes = [c.__json__(composer=True) for c in composes]
 
     if composes:
-        click.echo('\nSending composer.start fedmsg')
-        # Because we're a script, we want to send to the fedmsg-relay,
-        # that's why we say active=True
-        bodhi.server.notifications.init(active=True, cert_prefix=cert_prefix)
+        click.echo('\nSending composer.start message')
         bodhi.server.notifications.publish(
             topic='composer.start',
             msg=dict(

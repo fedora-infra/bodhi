@@ -35,7 +35,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
-from sqlalchemy.sql import text
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 import requests.exceptions
 
@@ -694,7 +693,7 @@ class ComposeState(DeclEnum):
         punging (EnumSymbol): A Pungi soldier has been deployed to deal with the situation.
         syncing_repo (EnumSymbol): The repo is being synced to the master mirror.
         notifying (EnumSymbol): Pungi has finished successfully, and we are now sending out various
-            forms of notifications, such as e-mail, fedmsgs, and bugzilla.
+            forms of notifications, such as e-mail, bus messages, and bugzilla.
         success (EnumSymbol): The Compose has completed successfully.
         failed (EnumSymbol): The compose has failed, abandon hope.
         signing_repo (EnumSymbol): Waiting for the repo to be signed.
@@ -1960,7 +1959,7 @@ class Update(Base):
             data['builds'], data['release'].name)
 
         # Create the Bug entities, but don't talk to rhbz yet.  We do that
-        # offline in the UpdatesHandler fedmsg consumer now.
+        # offline in the UpdatesHandler message consumer now.
         bugs = []
         if data['bugs']:
             for bug_num in data['bugs']:
@@ -2941,7 +2940,7 @@ class Update(Base):
 
         session.flush()
 
-        # Publish to fedmsg
+        # Publish to Fedora Messaging
         if author not in config.get('system_users'):
             notifications.publish(topic='update.comment', msg=dict(
                 comment=comment.__json__(),
@@ -3486,7 +3485,7 @@ class Update(Base):
         # Duplicate alias as updateid for backwards compat with bodhi1
         result['updateid'] = result['alias']
         # Also, put the update submitter's name in the same place we put
-        # it for bodhi1 to make fedmsg.meta compat much more simple.
+        # it for bodhi1 to make the messaging schema compat much more simple.
         result['submitter'] = result['user']['name']
         # Include the karma total in the results
         result['karma'] = self.karma
@@ -3879,7 +3878,7 @@ class Comment(Base):
         """
         result = super(Comment, self).__json__(*args, **kwargs)
         # Duplicate 'user' as 'author' just for backwards compat with bodhi1.
-        # Things like fedmsg and fedbadges rely on this.
+        # Things like the message schemas and fedbadges rely on this.
         if result['user']:
             result['author'] = result['user']['name']
 

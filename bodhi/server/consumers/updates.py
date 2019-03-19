@@ -29,9 +29,8 @@ Those things could sometimes take a *very* long time, especially if there were
 lots of builds and lots of bugs in the update.
 
 Now, update-submission breezes by those steps and simply tells the user "OK".
-A fedmsg message gets published when their update goes through, and *that*
-message gets received here and triggers us to do all that network-laden heavy
-lifting.
+A message gets published when their update goes through, and *that* message
+gets received here and triggers us to do all that network-laden heavy lifting.
 """
 
 import logging
@@ -60,13 +59,10 @@ class UpdatesHandler(object):
         db_factory (bodhi.server.util.TransactionalSessionMaker): A context manager that yields a
             database session.
         handle_bugs (bool): If True, interact with Bugzilla. Else do not.
-        topic (list): A list of strings that indicate which fedmsg topics this consumer listens to.
     """
 
-    config_key = 'updates_handler'
-
     def __init__(self, *args, **kwargs):
-        """Initialize the UpdatesHandler, subscribing it to the appropriate topics."""
+        """Initialize the UpdatesHandler."""
         initialize_db(config)
         self.db_factory = util.transactional_session_maker()
 

@@ -17,152 +17,38 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test module contains tests for bodhi.server.notifications."""
 
+import datetime
+import json
 from unittest import mock
-import unittest
 
 from fedora_messaging import api, testing as fml_testing, exceptions as fml_exceptions
-from sqlalchemy import exc
 
 from bodhi.server import notifications, Session, models
 from bodhi.tests.server import base
 
 
-class TestFedmsgIsInitialized(unittest.TestCase):
-    """Test the fedmsg_is_initialized() function."""
-    def test_is_initialized(self):
-        """Test for when fedmsg is initialized."""
-        class FakeLocal(object):
-            def __init__(self):
-                class FakeContext(object):
-                    def __init__(self):
-                        self.publisher = object()
-                setattr(self, '__context', FakeContext())
-
-        with mock.patch('bodhi.server.notifications.fedmsg.__local', FakeLocal()):
-            self.assertTrue(notifications.fedmsg_is_initialized())
-
-    def test_is_not_initalized_no_context(self):
-        """Test for when fedmsg is not initialized due to not having a __context."""
-        class FakeLocal(object):
-            pass
-
-        with mock.patch('bodhi.server.notifications.fedmsg.__local', FakeLocal()):
-            self.assertFalse(notifications.fedmsg_is_initialized())
-
-    def test_is_not_initalized_no_publisher(self):
-        """Test for when fedmsg is not initialized due to not having a publisher."""
-        class FakeLocal(object):
-            def __init__(self):
-                class FakeContext(object):
-                    pass
-                setattr(self, '__context', FakeContext())
-
-        with mock.patch('bodhi.server.notifications.fedmsg.__local', FakeLocal()):
-            self.assertFalse(notifications.fedmsg_is_initialized())
-
-
-class TestInit(unittest.TestCase):
-    """This test class contains tests for the init() function."""
-    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
-    @mock.patch('bodhi.server.log.info')
-    @mock.patch('fedmsg.config.load_config')
-    @mock.patch('fedmsg.init')
-    @mock.patch('socket.gethostname', mock.MagicMock(return_value='coolhostname.very.cool.tld'))
-    def test_config_passed(self, init, load_config, info):
-        """
-        Assert that the config from load_config() is passed to init().
-        """
-        load_config.return_value = {'a': 'config'}
-        notifications.init()
-
-        init.assert_called_once_with(a='config', name='bodhi.coolhostname')
-        info.assert_called_once_with('fedmsg initialized')
-
-    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': False})
-    @mock.patch('bodhi.server.log.warning')
-    @mock.patch('bodhi.server.notifications.fedmsg.init')
-    def test_fedmsg_disabled(self, init, warning):
-        """
-        The init() function should log a warning and exit when fedmsg is disabled.
-        """
-        notifications.init()
-
-        # fedmsg.init() should not have been called
-        self.assertEqual(init.call_count, 0)
-        warning.assert_called_once_with('fedmsg disabled.  not initializing.')
-
-    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
-    @mock.patch('bodhi.server.log.info')
-    @mock.patch('fedmsg.init')
-    def test_with_active(self, init, info):
-        """
-        Assert correct behavior with active is not None.
-        """
-        notifications.init(active=True)
-
-        self.assertEqual(init.call_count, 1)
-        init_config = init.mock_calls[0][2]
-        self.assertEqual(init_config['active'], True)
-        self.assertEqual(init_config['name'], 'relay_inbound')
-        self.assertTrue('cert_prefix' not in init_config)
-        info.assert_called_once_with('fedmsg initialized')
-
-    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
-    @mock.patch('bodhi.server.log.info')
-    @mock.patch('fedmsg.init')
-    def test_with_cert_prefix(self, init, info):
-        """
-        Assert correct behavior when cert_prefix is not None.
-        """
-        notifications.init(cert_prefix='This is a real cert trust me.')
-
-        self.assertEqual(init.call_count, 1)
-        init_config = init.mock_calls[0][2]
-        self.assertEqual(init_config['cert_prefix'], 'This is a real cert trust me.')
-        info.assert_called_once_with('fedmsg initialized')
-
-
-@mock.patch('bodhi.server.notifications.init')
 class TestPublish(base.BaseTestCase):
     """Tests for :func:`bodhi.server.notifications.publish`."""
 
-    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': False})
-    def test_fedmsg_publish_off(self, mock_init):
-        """Assert when fedmsg publish is off, fedora-messaging messages are queued."""
-        expected_msgs = [api.Message(topic='org.fedoraproject.dev.bodhi.demo.topic',
-                                     body={u'such': 'important'})]
-        session = Session()
-
-        notifications.publish('demo.topic', {'such': 'important'})
-
-        self.assertIn('messages', session.info)
-        for expected, actual in zip(expected_msgs, session.info['messages']):
-            # fedora-messages <= 1.1.0 include this in equality checks
-            del expected._headers['sent-at']
-            del actual._headers['sent-at']
-            self.assertEqual(expected, actual)
-        self.assertEqual(0, mock_init.call_count)
-
-    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': False})
-    def test_fedmsg_publish_off_force(self, mock_init):
+    def test_publish_force(self):
         """Assert that fedora-messaging messages respect the force flag."""
-        expected = api.Message(topic='org.fedoraproject.dev.bodhi.demo.topic',
+        expected = api.Message(topic='bodhi.demo.topic',
                                body={u'such': 'important'})
 
         with fml_testing.mock_sends(expected):
             notifications.publish('demo.topic', {'such': 'important'}, force=True)
 
-    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
-    def test_publish(self, mock_init):
+    def test_publish(self):
         """Assert publish places the message inside the session info dict."""
         notifications.publish('demo.topic', {'such': 'important'})
         session = Session()
-        self.assertIn('fedmsg', session.info)
-        self.assertEqual(session.info['fedmsg']['demo.topic'], [{'such': 'important'}])
+        self.assertIn('messages', session.info)
+        self.assertEqual(len(session.info['messages']), 1)
+        msg = session.info['messages'][0]
+        self.assertEqual(msg.topic, 'bodhi.demo.topic')
+        self.assertEqual(msg.body, {'such': 'important'})
 
-    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
-    @mock.patch('bodhi.server.notifications.fedmsg_is_initialized', mock.Mock(return_value=False))
-    def test_publish_sqlalchemy_object(self, mock_init):
+    def test_publish_sqlalchemy_object(self):
         """Assert publish places the message inside the session info dict."""
         Session.remove()
         expected_msg = {
@@ -173,21 +59,10 @@ class TestPublish(base.BaseTestCase):
         package = models.Package(name='so good')
         notifications.publish('demo.topic', {'some_package': package})
         session = Session()
-        self.assertIn('fedmsg', session.info)
-        self.assertEqual(session.info['fedmsg']['demo.topic'], [expected_msg])
-        mock_init.assert_called_once_with()
-
-    @mock.patch('bodhi.server.notifications.fedmsg_is_initialized', mock.Mock(return_value=False))
-    @mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
-    @mock.patch('bodhi.server.notifications.fedmsg.publish')
-    def test_publish_force(self, mock_fedmsg_publish, mock_init):
-        """Assert publish with the force flag sends the message immediately."""
-        notifications.publish('demo.topic', {'such': 'important'}, force=True)
-        session = Session()
-        self.assertEqual(dict(), session.info)
-        mock_fedmsg_publish.assert_called_once_with(
-            topic='demo.topic', msg={'such': 'important'})
-        mock_init.assert_called_once_with()
+        self.assertIn('messages', session.info)
+        self.assertEqual(len(session.info['messages']), 1)
+        msg = session.info['messages'][0]
+        self.assertEqual(msg.body, expected_msg)
 
 
 class TestSendMessagesAfterCommit(base.BaseTestCase):
@@ -222,78 +97,57 @@ class TestSendMessagesAfterCommit(base.BaseTestCase):
             "An error occurred publishing %r after a database commit", message)
 
 
-@mock.patch.dict('bodhi.server.config.config', {'fedmsg_enabled': True})
-@mock.patch('bodhi.server.notifications.init', mock.Mock())
-@mock.patch('bodhi.server.notifications.fedmsg.publish')
-class TestSendFedmsgsAfterCommit(base.BaseTestCase):
+class FedMsgEncoderTests(base.BaseTestCase):
+    """Tests for the custom JSON encode ``FedMsgEncoder``."""
 
-    def test_no_fedmsgs(self, mock_fedmsg_publish):
-        """Assert nothing happens if messages are not explicitly published."""
-        session = Session()
-        session.add(models.Package(name=u'ejabberd'))
-        session.commit()
+    def test_default(self):
+        """Assert normal types are encoded the same way as the default encoder."""
+        self.assertEqual(
+            json.dumps('a string'),
+            json.dumps('a string', cls=notifications.FedMsgEncoder)
+        )
 
-        self.assertEqual(0, mock_fedmsg_publish.call_count)
+    def test_default_sets_to_lists(self):
+        """Assert sets are converted to lists."""
+        self.assertEqual(
+            sorted(['a', 'set']),
+            sorted(notifications.FedMsgEncoder().default(set(['a', 'a', 'set'])))
+        )
 
-    def test_commit_aborted(self, mock_fedmsg_publish):
-        """Assert that when commits are aborted, messages aren't sent."""
-        session = Session()
-        session.add(models.Package(name=u'ejabberd'))
-        session.commit()
+    def test_default_obj_with_json(self):
+        """Assert classes with a ``__json__`` function encode as the return of ``__json__``."""
 
-        session.add(models.Package(name=u'ejabberd'))
-        notifications.publish('demo.topic', {'new': 'package'})
-        self.assertRaises(exc.IntegrityError, session.commit)
-        self.assertEqual(0, mock_fedmsg_publish.call_count)
+        class JsonClass(object):
+            def __json__(self):
+                return {'my': 'json'}
 
-    def test_single_topic_one_message(self, mock_fedmsg_publish):
-        """Assert a single message for a single topic is published."""
-        session = Session()
-        session.add(models.Package(name=u'ejabberd'))
-        notifications.publish('demo.topic', {'new': 'package'})
-        session.commit()
-        mock_fedmsg_publish.assert_called_once_with(
-            topic='demo.topic', msg={'new': 'package'})
+        self.assertEqual(
+            {'my': 'json'},
+            notifications.FedMsgEncoder().default(JsonClass())
+        )
 
-    def test_empty_commit(self, mock_fedmsg_publish):
-        """Assert calling commit on a session with no changes still triggers fedmsgs."""
-        # Ensure nothing at all is in our session
-        Session.remove()
-        session = Session()
-        notifications.publish('demo.topic', {'new': 'package'})
-        session.commit()
-        mock_fedmsg_publish.assert_called_once_with(
-            topic='demo.topic', msg={'new': 'package'})
+    def test_default_datetime(self):
+        """Datetime objects should be converted to timestamps."""
+        timestamp = 1553016625
+        dt = datetime.datetime.fromtimestamp(timestamp)
+        self.assertEqual(
+            timestamp,
+            notifications.FedMsgEncoder().default(dt)
+        )
 
-    def test_repeated_commit(self, mock_fedmsg_publish):
-        """Assert queued fedmsgs are cleared between commits."""
-        session = Session()
-        notifications.publish('demo.topic', {'new': 'package'})
-        session.commit()
-        session.commit()
-        mock_fedmsg_publish.assert_called_once_with(
-            topic='demo.topic', msg={'new': 'package'})
+    def test_default_time_struct(self):
+        """Time structures should be converted to timestamps."""
+        timestamp = 1553016625
+        dt = datetime.datetime.fromtimestamp(timestamp)
+        self.assertEqual(
+            timestamp,
+            notifications.FedMsgEncoder().default(dt.timetuple())
+        )
 
-    def test_single_topic_many_messages(self, mock_fedmsg_publish):
-        """Assert many messages for a single topic are sent."""
-        session = Session()
-        notifications.publish('demo.topic', {'new': 'package'})
-        notifications.publish('demo.topic', {'newer': 'packager'})
-        session.commit()
-        self.assertEqual(2, mock_fedmsg_publish.call_count)
-        mock_fedmsg_publish.assert_any_call(
-            topic='demo.topic', msg={'new': 'package'})
-        mock_fedmsg_publish.assert_any_call(
-            topic='demo.topic', msg={'newer': 'packager'})
-
-    def test_multiple_topics(self, mock_fedmsg_publish):
-        """Assert messages with different topics are sent."""
-        session = Session()
-        notifications.publish('demo.topic', {'new': 'package'})
-        notifications.publish('other.topic', {'newer': 'packager'})
-        session.commit()
-        self.assertEqual(2, mock_fedmsg_publish.call_count)
-        mock_fedmsg_publish.assert_any_call(
-            topic='demo.topic', msg={'new': 'package'})
-        mock_fedmsg_publish.assert_any_call(
-            topic='other.topic', msg={'newer': 'packager'})
+    def test_default_other(self):
+        """Fallback to the superclasses' default."""
+        self.assertRaises(
+            TypeError,
+            notifications.FedMsgEncoder().default,
+            object()
+        )

@@ -19,7 +19,7 @@
 The Bodhi "Composer".
 
 This module is responsible for the process of "pushing" updates out. It's
-comprised of a fedore messaging consumer that launches threads for each repository being
+comprised of a fedora messaging consumer that launches threads for each repository being
 composed.
 """
 
@@ -90,7 +90,7 @@ class ComposerHandler(object):
     """
     The Bodhi Composer.
 
-    A fedmsg consumer that listens for messages from releng members.
+    A consumer that listens for messages from releng members.
 
     An updates "compose" consists of:
 
@@ -106,7 +106,7 @@ class ComposerHandler(object):
     - Move build tags
     - Expire buildroot overrides
     - Remove pending tags
-    - Send fedmsgs
+    - Send messages
     - compose
 
     Things to do while we're waiting on compose:
@@ -234,7 +234,7 @@ class ComposerHandler(object):
             if 'api_version' in msg and msg['api_version'] == 2:
                 composes = [Compose.from_dict(db, c) for c in msg['composes']]
             else:
-                raise ValueError('Unable to process fedmsg: {}'.format(msg))
+                raise ValueError('Unable to process message: {}'.format(msg))
 
             for c in composes:
                 # Acknowledge that we've received the command to run these composes.
@@ -383,7 +383,6 @@ class ComposerThread(threading.Thread):
 
             self._mark_status_changes()
             self.save_state(ComposeState.notifying)
-            # Send fedmsg notifications
             self.send_notifications()
 
             # Update bugzillas
@@ -457,7 +456,7 @@ class ComposerThread(threading.Thread):
         Args:
             update (bodhi.server.models.Update): The Update being ejected.
             reason (basestring): A human readable explanation for the ejection, which is used in a
-                comment on the update, in a log message, and in a fedmsg.
+                comment on the update, in a log message, and in a bus message.
         """
         update.locked = False
         text = '%s ejected from the push because %r' % (update.alias, reason)
@@ -511,7 +510,7 @@ class ComposerThread(threading.Thread):
 
     def finish(self, success):
         """
-        Clean up pungi configs if the compose was successful, and send logs and fedmsgs.
+        Clean up pungi configs if the compose was successful, and send logs and bus messages.
 
         Args:
             success (bool): True if the compose had been successful, False otherwise.
@@ -675,7 +674,7 @@ class ComposerThread(threading.Thread):
         log.info('Testing digest generation for %s complete' % self.compose.release.name)
 
     def send_notifications(self):
-        """Send fedmsgs to announce completion of composing for each update."""
+        """Send messages to announce completion of composing for each update."""
         log.info('Sending notifications')
         try:
             agent = os.getlogin()
@@ -877,7 +876,7 @@ class PungiComposerThread(ComposerThread):
 
     def finish(self, success):
         """
-        Clean up pungi configs if the compose was successful, and send logs and fedmsgs.
+        Clean up pungi configs if the compose was successful, and send logs and messages.
 
         Args:
             success (bool): True if the compose had been successful, False otherwise.
@@ -886,7 +885,7 @@ class PungiComposerThread(ComposerThread):
             # Let's clean up the pungi configs we wrote
             shutil.rmtree(self._pungi_conf_dir)
 
-        # The superclass will handle the logs and fedmsg.
+        # The superclass will handle the logs and messages.
         super(PungiComposerThread, self).finish(success)
 
     def load_state(self):
