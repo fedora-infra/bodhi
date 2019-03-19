@@ -1,7 +1,7 @@
 # See production.ini for documentation on the settings that can be used in this file.
 [app:main]
 use = egg:bodhi-server
-fedmsg_enabled = True
+fedmsg_enabled = False
 badge_ids = binary-star|both-bull-and-self-transcended-tester-viii|catching-the-bull-tester-iv|corporate-drone|corporate-overlord|corporate-shill|discovery-of-the-footprints-tester-ii|in-search-of-the-bull-tester-i|is-this-thing-on-updates-testing-i|is-this-thing-on-updates-testing-ii|is-this-thing-on-updates-testing-iii|is-this-thing-on-updates-testing-iv|it-still-works!|like-a-rock-updates-stable-i|like-a-rock-updates-stable-ii|like-a-rock-updates-stable-iii|like-a-rock-updates-stable-iv|mic-check!-updates-testing-v|missed-the-train|override,-you-say|perceiving-the-bull-tester-iii|reaching-the-source-tester-ix|return-to-society-tester-x|riding-the-bull-home-tester-vi|stop-that-update!|take-this-and-call-me-in-the-morning|taming-the-bull-tester-v|tectonic!-updates-stable-v|the-bull-transcended-tester-vii|what-goes-around-comes-around-karma-i|what-goes-around-comes-around-karma-ii|what-goes-around-comes-around-karma-iii|what-goes-around-comes-around-karma-iv|white-hat|you-can-pry-it-from-my-cold,-dead-hands
 base_address = http://localhost:6543/
 fedora_announce_list = package-announce@lists.fedoraproject.org
