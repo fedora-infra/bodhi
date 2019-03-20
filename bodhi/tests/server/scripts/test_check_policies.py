@@ -56,7 +56,7 @@ class TestCheckPolicies(BaseTestCase):
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
-            'verbose': True
+            'verbose': False
         }
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
@@ -88,7 +88,7 @@ class TestCheckPolicies(BaseTestCase):
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
-            'verbose': True,
+            'verbose': False,
         }
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
@@ -127,7 +127,7 @@ class TestCheckPolicies(BaseTestCase):
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
-            'verbose': True
+            'verbose': False
         }
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
@@ -159,7 +159,7 @@ class TestCheckPolicies(BaseTestCase):
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
-            'verbose': True
+            'verbose': False
         }
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
@@ -190,7 +190,7 @@ class TestCheckPolicies(BaseTestCase):
             'subject': [{'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                         {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                          'type': 'bodhi_update'}],
-            'verbose': True
+            'verbose': False
         }
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
@@ -226,7 +226,7 @@ class TestCheckPolicies(BaseTestCase):
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
-            'verbose': True
+            'verbose': False
         }
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)

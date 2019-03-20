@@ -1136,7 +1136,8 @@ class TestUpdatesService(BaseTestCase):
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
-        self.assertIn("'decision_context': 'bodhi_update_push_stable',", res)
+        self.assertNotIn('"decision_context": "bodhi_update_push_testing",', res)
+        self.assertIn('"decision_context": "bodhi_update_push_stable",', res)
 
     def test_decision_context_pending_testing(self):
         """The HTML should include the correct decision context for Pending/Testing updates."""
@@ -1146,7 +1147,8 @@ class TestUpdatesService(BaseTestCase):
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
-        self.assertIn("'decision_context': 'bodhi_update_push_testing',", res)
+        self.assertNotIn('"decision_context": "bodhi_update_push_stable",', res)
+        self.assertIn('"decision_context": "bodhi_update_push_testing",', res)
 
     def test_decision_context_testing(self):
         """The HTML should include the correct decision context for Testing updates."""
@@ -1156,7 +1158,8 @@ class TestUpdatesService(BaseTestCase):
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
-        self.assertIn("'decision_context': 'bodhi_update_push_stable',", res)
+        self.assertNotIn('"decision_context": "bodhi_update_push_testing",', res)
+        self.assertIn('"decision_context": "bodhi_update_push_stable",', res)
 
     def test_home_html_legal(self):
         """Test the home page HTML when a legal link is configured."""
@@ -5438,7 +5441,7 @@ class TestWaiveTestResults(BaseTestCase):
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
-                'verbose': True,
+                'verbose': False,
             }
         )
 
@@ -5516,7 +5519,7 @@ class TestWaiveTestResults(BaseTestCase):
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
-                'verbose': True,
+                'verbose': False,
             }
         )
 
@@ -5614,7 +5617,7 @@ class TestWaiveTestResults(BaseTestCase):
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
-                'verbose': True,
+                'verbose': False,
             }
         )
 
@@ -5696,7 +5699,7 @@ class TestWaiveTestResults(BaseTestCase):
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
-                'verbose': True,
+                'verbose': False,
             }
         )
 
@@ -5794,7 +5797,7 @@ class TestWaiveTestResults(BaseTestCase):
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
-                'verbose': True,
+                'verbose': False,
             }
         )
 
