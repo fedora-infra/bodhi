@@ -110,26 +110,26 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         % endif
     };
 
-    var get_greenwave_information = function(data) {
-        data.verbose = true;
+    var get_greenwave_information = function(request, after_success) {
+        request.verbose = true;
         $.ajax({
             url: greenwave_api_url + '/decision',
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify(data),
+            data: JSON.stringify(request),
             success: function(data) {
                 $.each(data.waivers, function(i, waiver) {
                   if (!(waiver.testcase in waivers)) { waivers[waiver.testcase] = []; }
                   waivers[waiver.testcase].push(waiver);
                 });
                 handle_unsatisfied_requirements(data);
-                handle_results(data.results);
+                handle_results(data.results, request.subject);
+                after_success();
             },
             error: function (jqxhr, status, error) {
-               $('#resultsdb .spinner').remove();
+               finish();
                $('#resultsdb h3').after(
                   '<h4 class="text-danger">Failed to talk to Greenwave.</h4>');
-               $('#test_status_badge .spinner').remove();
                $('#test_status_badge').append(
                   '<span class="text-danger">Failed to talk to Greenwave.</span>');
             },
@@ -197,14 +197,17 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       return html;
     };
 
-    var latest = {};
-    var handle_results = function(results) {
+    var handle_results = function(results, subjects) {
+      var build_results = {}
+      $.each(subjects, function(i, subject) {
+        build_results[subject.item] = [];
+      });
 
       // First, prune duplicate results.  For instance, some depcheck runs
       // happen multiple times on an update.  We only (imho) want to display
       // the latest ones for each arch.  So, prune like this:
+      var latest = {};
       $.each(results, function(i, result) {
-
         var testcase = result.testcase.name;
         var scenario = 'no_scenario';
         if (result.data.scenario) {
@@ -216,120 +219,79 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         var item = result.data.item;
         var submit_time = new Date(result.submit_time);
 
-        if (latest[item] === undefined)
-          latest[item] = {};
-        if (latest[item][testcase] === undefined)
-          latest[item][testcase] = {};
-        if (latest[item][testcase][arch] === undefined)
-          latest[item][testcase][arch] = {};
-        if (latest[item][testcase][arch][scenario] === undefined) {
-          latest[item][testcase][arch][scenario] = result;
-        }
-        if (new Date(latest[item][testcase][arch][scenario].submit_time) < submit_time) {
-          latest[item][testcase][arch][scenario] = result;
+        var key = [item, testcase, arch, scenario].join('##');
+        var last_submit_time = latest[key];
+        if (last_submit_time === undefined || last_submit_time < submit_time) {
+          latest[key] = submit_time;
+
+          if (item in build_results) {
+            build_results[item].push(result);
+          } else {
+            build_results[item] = [result];
+          }
         }
       });
 
-      var data = [];
-      var count = 0;
-      // if there are no results in ResultsDB yet and we have already got the Greenwave decision
-      // to say that some tests are missing, let's just show them.
-      if (Object.keys(latest).length == 0) {
-          $.each(builds, function(i, buildname) {
-              count = count +1;
-              if (buildname in missing_tests) {
-                  $("#resultsdb").append("<h4 class='pt-1'>"+buildname+
-                  "</h4><table class='table table-hover' id='buildresults"+count+
-                  "'></table>");
-                  $.each(missing_tests[buildname], function(i, result) {
-                      $('#buildresults'+count).append(make_row(
-                          'ABSENT',
-                          result.testcase,
-                          '',
-                          '',
-                          ''
-                      ));
-                  });
-              } else {
-                  $("#resultsdb").append("<h4 class='pt-1'>"+buildname+
-                  "</h4><p>No results reported for this build.</p>");
-              }
+      $.each(build_results, function(buildname, results) {
+        $("#resultsdb").append("<h4 class='pt-1'>" + buildname + "</h4>")
+
+        // no results reported
+        if (!(buildname in missing_tests) && results.length === 0) {
+          $("#resultsdb").append("<p>No results reported for this build.</p>");
+          return;
+        }
+
+        var table = $("<table class='table table-hover'></table>").appendTo("#resultsdb");
+
+        // show missing tests first
+        if (buildname in missing_tests) {
+          $.each(missing_tests[buildname], function(i, result) {
+            table.append(make_row(
+              'ABSENT',
+              result.testcase,
+              '',
+              '',
+              ''
+            ));
           });
-      } else {
-          $.each(latest, function(buildname, obj1) {
-            count = count +1;
-            $("#resultsdb").append("<h4 class='pt-1'>"+buildname+
-            "</h4><table class='table table-hover' id='buildresults"+count+
-            "'></table>")
-            // We show missing tests first
-            if (buildname in missing_tests) {
-                $.each(missing_tests[buildname], function(i, result) {
-                    $('#buildresults'+count).append(make_row(
-                        'ABSENT',
-                        result.testcase,
-                        '',
-                        '',
-                        ''
-                    ));
-                });
-            }
-            $.each(obj1, function(testcase, obj2) {
-              $.each(obj2, function(arch, obj3) {
-                $.each(obj3, function(scenario, result) {
-                  var flavor;
-                  if (scenario.includes("updates-server")) {
-                    flavor = "server";
-                  }
-                  else if (scenario.includes("updates-workstation")) {
-                    flavor = "workstation";
-                  }
-                  $('#buildresults'+count).append(make_row(
-                      result.outcome,
-                      result.testcase.name,
-                      result.note,
-                      // note: this is a single-item array
-                      result.data.arch,
-                      result.submit_time,
-                      result.ref_url,
-                      flavor
-                  ));
-                });
-              });
-            });
-          });
-      }
-      finish();
+        }
+
+        $.each(results, function(i, result) {
+          var scenario = 'no_scenario';
+          if (result.data.scenario) {
+              scenario = result.data.scenario[0];
+          }
+
+          var flavor;
+          if (scenario.includes("updates-server")) {
+            flavor = "server";
+          }
+          else if (scenario.includes("updates-workstation")) {
+            flavor = "workstation";
+          }
+
+          table.append(make_row(
+              result.outcome,
+              result.testcase.name,
+              result.note,
+              // note: this is a single-item array
+              result.data.arch,
+              result.submit_time,
+              result.ref_url,
+              flavor
+          ));
+        });
+      });
     };
 
-    var finish = function() {
-      // Furthermore, remove the spinners.
-      $("#tab-automatedtests .fa-spinner").remove();
-      $('#resultsdb .spinner').remove();
-      $('#test_status_badge .spinner').remove();
-
+    var update = function() {
       // add the count of tests to the automated tests tab
-
-      var successcount = $('.row-automatedtests.table-success').length;
-      var infocount = $('.row-automatedtests.table-info').length;
-      var warningcount = $('.row-automatedtests.table-warning').length;
-      var failedcount = $('.row-automatedtests.table-danger').length;
-
-
-      if (successcount > 0){
-      $("#tab-automatedtests").append(" <span class='badge badge-success'><span class='fa fa-check-circle'></span> "+successcount+"</span>");
-      }
-
-      if (infocount > 0){
-      $("#tab-automatedtests").append(" <span class='badge badge-info'><span class='fa fa-info-circle'></span> "+infocount+"</span>");
-      }
-
-      if (warningcount > 0 ){
-        $("#tab-automatedtests").append(" <span class='badge badge-warning'><span class='fa fa-exclamation-circle'></span> "+warningcount+"</span>");
-      }
-
-      if (failedcount > 0 ){
-        $("#tab-automatedtests").append(" <span class='badge badge-danger'><span class='fa fa-minus-circle'></span> "+failedcount+"</span>");
-      }
+      $.each(['success', 'info', 'warning', 'danger'], function(i, counter) {
+        var count = $('.row-automatedtests.table-' + counter).length;
+        if (count > 0) {
+          $("#automatedtests-" + counter).text(count).parent().show();
+        }
+      });
 
       // Make each cell clickable and awesome except the missing tests
       $('#resultsdb tr').not('.absent-automatedtest').off().click(function(event, row) {
@@ -339,6 +301,13 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
       // And, re-do tooltips for newly created spans.
       $('#resultsdb span').tooltip();
     }
+
+    var finish = function() {
+      $("#tab-automatedtests .fa-spinner").remove();
+      $('#resultsdb .spinner').remove();
+      $('#test_status_badge .spinner').remove();
+    }
+
 
     var request_results = function(url) {
       $.ajax(url, {
@@ -353,17 +322,27 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
     $("#tab-automatedtests").append(" <span class='fa fa-spinner fa-spin'></span>");
 
-    get_greenwave_information({
-        'product_version': '${update.product_version}',
-% if update.request == models.UpdateRequest.testing and \
-    update.status == models.UpdateStatus.pending:
-        'decision_context': 'bodhi_update_push_testing',
-% else:
-        'decision_context': 'bodhi_update_push_stable',
-% endif
-        'subject': ${ update.greenwave_subject_json | n }
-    });
+    var request_batches = ${update.greenwave_request_batches_json | n};
+    var current_batch = 0;
+    var progress = $('#automatedtests-progress');
+    var fetch_next_batch = function() {
+      update()
 
+      if (current_batch >= request_batches.length) {
+        progress.remove()
+        finish();
+        return;
+      }
+
+      var percent = Math.floor(current_batch * 100 / request_batches.length)
+      progress.text(percent + '%')
+
+      var request = request_batches[current_batch]
+      ++current_batch;
+
+      get_greenwave_information(request, fetch_next_batch);
+    };
+    fetch_next_batch();
   });
 </script>
 
@@ -650,7 +629,29 @@ $(document).ready(function(){
   % endif
 
   <li class="nav-item">
-    <a class="nav-link" id="tab-automatedtests" data-toggle="tab" href="#automatedtests" role="tab">Automated Tests</a>
+    <a class="nav-link" id="tab-automatedtests" data-toggle="tab" href="#automatedtests" role="tab">Automated Tests
+
+    <span style="display:none" class='badge badge-success'>
+      <span class='fa fa-check-circle'></span>
+      <span id="automatedtests-success"></span>
+    </span>
+
+    <span style="display:none" class='badge badge-info'>
+      <span class='fa fa-info-circle'></span>
+      <span id="automatedtests-info"></span>
+    </span>
+
+    <span style="display:none" class='badge badge-warning'>
+      <span class='fa fa-exclamation-circle'></span>
+      <span id="automatedtests-warning"></span>
+    </span>
+
+    <span style="display:none" class='badge badge-danger'>
+      <span class='fa fa-minus-circle'></span>
+      <span id="automatedtests-danger"></span>
+    </span>
+
+    <span id="automatedtests-progress" class="badge badge-secondary"></span>
   </li>
 
 </ul>

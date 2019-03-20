@@ -362,6 +362,9 @@ class BodhiConfig(dict):
         'greenwave_api_url': {
             'value': 'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0',
             'validator': _validate_rstripped_str},
+        'greenwave_batch_size': {
+            'value': 8,
+            'validator': int},
         'waiverdb_api_url': {
             'value': 'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0',
             'validator': _validate_rstripped_str},

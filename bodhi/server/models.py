@@ -1954,16 +1954,60 @@ class Update(Base):
         subject.append({'item': self.alias, 'type': 'bodhi_update'})
         return subject
 
-    @property
-    def greenwave_subject_json(self):
+    def greenwave_request_batches(self, verbose):
         """
-        Form and return the proper Greenwave API subject field for this Update as JSON.
+        Form and return the proper Greenwave API requests data for this Update.
+
+        Returns:
+            list: A list of dictionaries that are appropriate to be passed to the Greenwave API
+                for a decision about this Update.
+        """
+        batch_size = self.greenwave_subject_batch_size
+        count = 0
+        subjects = self.greenwave_subject
+        data = []
+        while count < len(subjects):
+            data.append({
+                'product_version': self.product_version,
+                'decision_context': self._greenwave_decision_context,
+                'subject': subjects[count:count + batch_size],
+                'verbose': verbose,
+            })
+            count += batch_size
+        return data
+
+    @property
+    def greenwave_request_batches_json(self):
+        """
+        Form and return the proper Greenwave API requests data for this Update as JSON.
 
         Returns:
             str: A JSON list of objects that are appropriate to be passed to the Greenwave
-                API subject field for a decision about this Update.
+                API for a decision about this Update.
         """
-        return json.dumps(self.greenwave_subject)
+        return json.dumps(self.greenwave_request_batches(verbose=True))
+
+    @property
+    def greenwave_subject_batch_size(self):
+        """Maximum number of subjects in single Greenwave request."""
+        return config.get('greenwave_batch_size', 8)
+
+    @property
+    def _greenwave_api_url(self):
+        if not config.get('greenwave_api_url'):
+            raise BodhiException('No greenwave_api_url specified')
+
+        return '{}/decision'.format(config.get('greenwave_api_url'))
+
+    @property
+    def _greenwave_decision_context(self):
+        # We retrieve updates going to testing (status=pending) and updates
+        # (status=testing) going to stable.
+        # If the update is pending, we want to know if it can go to testing
+        if self.request == UpdateRequest.testing and self.status == UpdateStatus.pending:
+            return 'bodhi_update_push_testing'
+        # Update is already in testing, let's ask if it can go to stable
+        return 'bodhi_update_push_stable'
 
     def get_test_gating_info(self):
         """
@@ -1975,26 +2019,50 @@ class Update(Base):
             BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
             RuntimeError: If Greenwave did not give us a 200 code.
         """
-        if not config.get('greenwave_api_url'):
-            raise BodhiException('No greenwave_api_url specified')
-
-        # We retrieve updates going to testing (status=pending) and updates
-        # (status=testing) going to stable.
-        # If the update is pending, we want to know if it can go to testing
-        decision_context = 'bodhi_update_push_testing'
-        if self.status == UpdateStatus.testing:
-            # Update is already in testing, let's ask if it can go to stable
-            decision_context = 'bodhi_update_push_stable'
-
         data = {
             'product_version': self.product_version,
-            'decision_context': decision_context,
+            'decision_context': self._greenwave_decision_context,
             'subject': self.greenwave_subject,
             'verbose': True,
         }
-        api_url = '{}/decision'.format(config.get('greenwave_api_url'))
+        return util.greenwave_api_post(self._greenwave_api_url, data)
 
-        return util.greenwave_api_post(api_url, data)
+    def _get_test_gating_status(self):
+        """
+        Query Greenwave about this update and return the information retrieved.
+
+        Returns:
+            TestGatingStatus:
+                - TestGatingStatus.ignored if no tests are required
+                - TestGatingStatus.failed if policies are not satisfied
+                - TestGatingStatus.passed if policies are satisfied, and there
+                  are required tests
+
+        Raises:
+            BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
+            RuntimeError: If Greenwave did not give us a 200 code.
+        """
+        # If an unrestricted policy is applied and no tests are required
+        # on this update, let's set the test gating as ignored in Bodhi.
+        status = TestGatingStatus.ignored
+        for data in self.greenwave_request_batches(verbose=False):
+            response = util.greenwave_api_post(self._greenwave_api_url, data)
+            if not response['policies_satisfied']:
+                return TestGatingStatus.failed
+
+            if status != TestGatingStatus.ignored or response['summary'] != 'no tests are required':
+                status = TestGatingStatus.passed
+
+        return status
+
+    @property
+    def _unsatisfied_requirements(self):
+        unsatisfied_requirements = []
+        for data in self.greenwave_request_batches(verbose=False):
+            response = util.greenwave_api_post(self._greenwave_api_url, data)
+            unsatisfied_requirements.extend(response['unsatisfied_requirements'])
+
+        return unsatisfied_requirements
 
     @property
     def install_command(self) -> str:
@@ -2028,27 +2096,14 @@ class Update(Base):
     def update_test_gating_status(self):
         """Query Greenwave about this update and set the test_gating_status as appropriate."""
         try:
-            decision = self.get_test_gating_info()
-            decision['greenwave_success'] = True
+            self.test_gating_status = self._get_test_gating_status()
         except (requests.exceptions.Timeout, RuntimeError) as e:
             log.error(str(e))
             # Greenwave frequently returns 500 response codes. When this happens, we do not want
             # to block updates from proceeding, so we will consider this condition as having the
             # policy satisfied. We will use the Exception as the summary so we can mark the status
             # as ignored for the record.
-            decision = {'policies_satisfied': True, 'summary': str(e), 'greenwave_success': False}
-        if decision['policies_satisfied']:
-            if not decision['greenwave_success']:
-                # Greenwave failed to respond, so let's mark this as ignored.
-                self.test_gating_status = TestGatingStatus.greenwave_failed
-            elif decision['summary'] == 'no tests are required':
-                # If an unrestricted policy is applied and no tests are required
-                # on this update, let's set the test gating as ignored in Bodhi.
-                self.test_gating_status = TestGatingStatus.ignored
-            else:
-                self.test_gating_status = TestGatingStatus.passed
-        else:
-            self.test_gating_status = TestGatingStatus.failed
+            self.test_gating_status = TestGatingStatus.greenwave_failed
 
     @classmethod
     def new(cls, request, data):
@@ -2737,8 +2792,7 @@ class Update(Base):
         # Ensure we can always iterate over tests
         tests = tests or []
 
-        decision = self.get_test_gating_info()
-        for requirement in decision['unsatisfied_requirements']:
+        for requirement in self._unsatisfied_requirements:
 
             if tests and requirement['testcase'] not in tests:
                 continue

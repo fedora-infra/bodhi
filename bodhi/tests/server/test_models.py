@@ -1906,7 +1906,7 @@ class TestUpdateUpdateTestGatingStatus(BaseTestCase):
             data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
                   "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
                               {"item": f"{update.alias}", "type": "bodhi_update"}],
-                  "verbose": True},
+                  "verbose": False},
             headers={'Content-Type': 'application/json'}, timeout=60)
         self.assertEqual(post.call_count, 4)
         for i in range(4):
@@ -1950,7 +1950,7 @@ class TestUpdateUpdateTestGatingStatus(BaseTestCase):
             data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
                   "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
                               {"item": f"{update.alias}", "type": "bodhi_update"}],
-                  "verbose": True},
+                  "verbose": False},
             headers={'Content-Type': 'application/json'}, timeout=60)
         self.assertEqual(post.call_count, 1)
         # Make sure the positional arguments are correct.
@@ -2432,15 +2432,70 @@ class TestUpdate(ModelTest):
             [{'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
              {'item': self.obj.alias, 'type': 'bodhi_update'}])
 
-    def test_greenwave_subject_json(self):
-        """Ensure that the greenwave_subject_json property returns the correct value."""
-        subject = self.obj.greenwave_subject_json
+    def test_greenwave_request_batches_single(self):
+        """Ensure that the greenwave_request_batches property returns the correct value."""
+        with mock.patch.dict('bodhi.server.models.config', {'greenwave_batch_size': 2}):
+            self.assertEqual(self.obj.greenwave_subject_batch_size, 2)
+            self.assertEqual(
+                self.obj.greenwave_request_batches(verbose=False),
+                [
+                    {
+                        'product_version': 'fedora-11',
+                        'decision_context': 'bodhi_update_push_testing',
+                        'verbose': False,
+                        'subject': [
+                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
+                            {'item': self.obj.alias, 'type': 'bodhi_update'},
+                        ]
+                    }
+                ]
+            )
 
-        self.assertTrue(isinstance(subject, str))
+    def test_greenwave_request_batches_multiple(self):
+        """Ensure that the greenwave_request_batches property returns the correct value."""
+        with mock.patch.dict('bodhi.server.models.config', {'greenwave_batch_size': 1}):
+            self.assertEqual(self.obj.greenwave_subject_batch_size, 1)
+            self.assertEqual(
+                self.obj.greenwave_request_batches(verbose=True),
+                [
+                    {
+                        'product_version': 'fedora-11',
+                        'decision_context': 'bodhi_update_push_testing',
+                        'verbose': True,
+                        'subject': [
+                            {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
+                        ]
+                    },
+                    {
+                        'product_version': 'fedora-11',
+                        'decision_context': 'bodhi_update_push_testing',
+                        'verbose': True,
+                        'subject': [
+                            {'item': self.obj.alias, 'type': 'bodhi_update'},
+                        ]
+                    },
+                ]
+            )
+
+    def test_greenwave_request_batches_json(self):
+        """Ensure that the greenwave_request_batches_json property returns the correct value."""
+        requests = self.obj.greenwave_request_batches_json
+
+        self.assertTrue(isinstance(requests, str))
         self.assertEqual(
-            json.loads(subject),
-            [{'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-             {'item': self.obj.alias, 'type': 'bodhi_update'}])
+            json.loads(requests),
+            [
+                {
+                    'product_version': 'fedora-11',
+                    'decision_context': 'bodhi_update_push_testing',
+                    'verbose': True,
+                    'subject': [
+                        {'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
+                        {'item': self.obj.alias, 'type': 'bodhi_update'},
+                    ]
+                }
+            ]
+        )
 
     def test_mandatory_days_in_testing_critpath(self):
         """
