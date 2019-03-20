@@ -88,7 +88,7 @@ class TestGetTemplate(base.BaseTestCase):
 
         # Assemble the template for easier asserting.
         t = '\n'.join([l for l in t[0]])
-        self.assertTrue('\xe7' in t)
+        self.assertIn('\xe7', t)
 
     def test_module_build(self):
         """ModuleBuilds don't have get_latest(), so lets verify that this is OK."""
