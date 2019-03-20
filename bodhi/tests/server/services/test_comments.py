@@ -86,11 +86,11 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/',
                                  self.make_comment(karma=-2),
                                  status=400)
-        assert '-2 is less than minimum value -1' in res, res
+        self.assertIn('-2 is less than minimum value -1', res)
         res = self.app.post_json('/comments/',
                                  self.make_comment(karma=2),
                                  status=400)
-        assert '2 is greater than maximum value 1' in res, res
+        self.assertIn('2 is greater than maximum value 1', res)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_with_critpath_feedback(self, publish):

@@ -79,7 +79,7 @@ class ModelTest(BaseTestCase):
     def test_json(self):
         """ Ensure our models can return valid JSON """
         if type(self) != ModelTest:
-            assert json.dumps(self.obj.__json__())
+            self.assertIsInstance(json.dumps(self.obj.__json__()), str)
 
     def test_get(self):
         if type(self) != ModelTest:
@@ -738,9 +738,9 @@ class TestRelease(ModelTest):
         releases = model.Release.all_releases()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
-        assert 'long_name' in releases[state.value][0], releases
+        self.assertIn('long_name', releases[state.value][0], releases)
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases()
+        self.assertIs(releases, model.Release.all_releases())
 
 
 class TestReleaseModular(ModelTest):
@@ -770,9 +770,9 @@ class TestReleaseModular(ModelTest):
         releases = model.Release.all_releases()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
-        assert 'long_name' in releases[state.value][0], releases
+        self.assertIn('long_name', releases[state.value][0], releases)
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases()
+        self.assertIs(releases, model.Release.all_releases())
 
 
 class TestReleaseContainer(ModelTest):
@@ -802,9 +802,9 @@ class TestReleaseContainer(ModelTest):
         releases = model.Release.all_releases()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
-        assert 'long_name' in releases[state.value][0], releases
+        self.assertIn('long_name', releases[state.value][0], releases)
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases()
+        self.assertIs(releases, model.Release.all_releases())
 
 
 class TestReleaseFlatpak(ModelTest):
@@ -834,9 +834,9 @@ class TestReleaseFlatpak(ModelTest):
         releases = model.Release.all_releases()
 
         state = ReleaseState.from_string(list(releases.keys())[0])
-        assert 'long_name' in releases[state.value][0], releases
+        self.assertIn('long_name', releases[state.value][0], releases)
         # Make sure it's the same cached object
-        assert releases is model.Release.all_releases()
+        self.assertIs(releases, model.Release.all_releases())
 
 
 class MockWiki(object):
@@ -1177,7 +1177,8 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         with mock.patch('bodhi.server.models.MediaWiki', MockWiki(response)):
             pkg = model.RpmPackage(name=u'gnome-shell')
             pkg.fetch_test_cases(self.db)
-            assert pkg.test_cases
+            self.assertEqual(pkg.test_cases[0].name, 'Fake test case')
+            self.assertEqual(len(pkg.test_cases), 1)
 
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
     @mock.patch('bodhi.server.models.MediaWiki')
@@ -1250,7 +1251,7 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         self.db.flush()
 
     def test_committers(self):
-        assert self.obj.committers[0].name == u'lmacken'
+        self.assertEqual(self.obj.committers[0].name, u'lmacken')
 
     def test_no_builds(self):
         """Assert that one RpmBuild can be appended."""
@@ -1368,7 +1369,7 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
 
         rv = self.package.get_pkg_committers_from_pagure()
 
-        assert rv == (['mprahl'], ['factory2']), rv
+        self.assertEqual(rv, (['mprahl'], ['factory2']))
 
     @mock.patch('bodhi.server.util.http_session')
     def test_get_pkg_committers_from_pagure_without_group_expansion(self, session):
@@ -1412,7 +1413,7 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
 
         rv = self.package.get_pkg_committers_from_pagure()
 
-        assert rv == (['mprahl'], ['factory2']), rv
+        self.assertEqual(rv, (['mprahl'], ['factory2']))
 
 
 class TestBuild(ModelTest):
@@ -2845,13 +2846,13 @@ class TestUpdate(ModelTest):
         # Test new duplicate bugs
         bugs = ['1234', '1234']
         update.update_bugs(bugs, session)
-        assert len(update.bugs) == 1
+        self.assertEqual(len(update.bugs), 1)
 
         # Try adding a new bug, and removing the rest
         bugs = ['4321']
         update.update_bugs(bugs, session)
-        assert len(update.bugs) == 1
-        assert update.bugs[0].bug_id == 4321
+        self.assertEqual(len(update.bugs), 1)
+        self.assertEqual(update.bugs[0].bug_id, 4321)
         self.assertEqual(self.db.query(model.Bug).filter_by(bug_id=1234).first(), None)
 
         # Try removing a bug when it already has BugKarma
@@ -2860,8 +2861,8 @@ class TestUpdate(ModelTest):
         self.db.flush()
         bugs = ['5678']
         update.update_bugs(bugs, session)
-        assert len(update.bugs) == 1
-        assert update.bugs[0].bug_id == 5678
+        self.assertEqual(len(update.bugs), 1)
+        self.assertEqual(update.bugs[0].bug_id, 5678)
         self.assertEqual(self.db.query(model.Bug).filter_by(bug_id=4321).count(), 1)
 
     def test_update_bugs_security(self):
@@ -2943,13 +2944,11 @@ class TestUpdate(ModelTest):
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
         self.assertEqual(self.obj.status, UpdateStatus.pending)
-        try:
+        with self.assertRaises(BodhiException) as exc:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
-            assert False
-        except BodhiException as e:
-            self.assertEqual(self.obj.request, UpdateRequest.testing)
-            self.assertEqual(self.obj.status, UpdateStatus.pending)
-            self.assertEqual(str(e), config.get('not_yet_tested_msg'))
+        self.assertEqual(self.obj.request, UpdateRequest.testing)
+        self.assertEqual(self.obj.status, UpdateStatus.pending)
+        self.assertEqual(str(exc.exception), config.get('not_yet_tested_msg'))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_set_request_stable_after_week_in_testing(self, publish):
@@ -3025,23 +3024,23 @@ class TestUpdate(ModelTest):
         self.obj.request = None
         self.obj.critpath = True
         self.obj.test_gating_satus = TestGatingStatus.failed
-        try:
+
+        with self.assertRaises(BodhiException) as exc:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
-            assert False
-        except BodhiException as e:
-            expected_msg = (
-                'This critical path update has not yet been approved for pushing to the '
-                'stable repository.  It must first reach a karma of %s, consisting of %s '
-                'positive karma from proventesters, along with %d additional karma from '
-                'the community. Or, it must spend %s days in testing without any negative '
-                'feedback')
-            expected_msg = expected_msg % (
-                config.get('critpath.min_karma'),
-                config.get('critpath.num_admin_approvals'),
-                (config.get('critpath.min_karma') - config.get('critpath.num_admin_approvals')),
-                config.get('critpath.stable_after_days_without_negative_karma'))
-            expected_msg += ' Additionally, it must pass automated tests.'
-            self.assertEqual(str(e), expected_msg)
+
+        expected_msg = (
+            'This critical path update has not yet been approved for pushing to the '
+            'stable repository.  It must first reach a karma of %s, consisting of %s '
+            'positive karma from proventesters, along with %d additional karma from '
+            'the community. Or, it must spend %s days in testing without any negative '
+            'feedback')
+        expected_msg = expected_msg % (
+            config.get('critpath.min_karma'),
+            config.get('critpath.num_admin_approvals'),
+            (config.get('critpath.min_karma') - config.get('critpath.num_admin_approvals')),
+            config.get('critpath.stable_after_days_without_negative_karma'))
+        expected_msg += ' Additionally, it must pass automated tests.'
+        self.assertEqual(str(exc.exception), expected_msg)
 
     def test_set_request_string_action(self):
         """Ensure that the action can be passed as a str."""
@@ -3210,7 +3209,8 @@ class TestUpdate(ModelTest):
         self.assertEqual(len(self.obj.comments), 2)
         self.assertEqual(self.obj.comments[1].user.name, u'bodhi')
         self.assertEqual(self.obj.comments[1].text, u'This update has been pushed to stable.')
-        assert str(self.obj.comments[1]).endswith('This update has been pushed to stable.')
+        self.assertTrue(
+            str(self.obj.comments[1]).endswith('This update has been pushed to stable.'))
 
     def test_status_comment_obsolete(self):
         """Test status_comment() with an obsolete update."""
@@ -3224,7 +3224,7 @@ class TestUpdate(ModelTest):
     def test_anonymous_comment(self, publish):
         self.obj.comment(self.db, u'testing', author='me', anonymous=True, karma=1)
         c = self.obj.comments[-1]
-        assert str(c).endswith('testing')
+        self.assertTrue(str(c).endswith('testing'))
         self.assertEqual(c.anonymous, True)
         self.assertEqual(c.text, 'testing')
         publish.assert_called_once_with(

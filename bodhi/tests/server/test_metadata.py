@@ -248,7 +248,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         base.mkmetadatadir(join(self.tempcompdir, 'compose', 'Everything', 'source', 'tree'),
                            updateinfo=False)
         self.repodata = join(self.temprepo, 'repodata')
-        assert exists(join(self.repodata, 'repomd.xml'))
+        self.assertTrue(exists(join(self.repodata, 'repomd.xml')))
 
         DevBuildsys.__rpms__ = [{
             'arch': 'src',
@@ -274,14 +274,16 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
     def _verify_updateinfos(self, repodata):
         updateinfos = glob.glob(join(repodata, "*-updateinfo.xml*"))
         if hasattr(createrepo_c, 'ZCK_COMPRESSION'):
-            assert len(updateinfos) == 2, "We generated %d updateinfo metadata" % len(updateinfos)
+            self.assertEqual(
+                len(updateinfos), 2, "We generated %d updateinfo metadata" % len(updateinfos))
         else:
-            assert len(updateinfos) == 1, "We generated %d updateinfo metadata" % len(updateinfos)
+            self.assertEqual(
+                len(updateinfos), 1, "We generated %d updateinfo metadata" % len(updateinfos))
         for updateinfo in updateinfos:
             hash = basename(updateinfo).split("-", 1)[0]
             with open(updateinfo, 'rb') as fn:
                 hashed = sha256(fn.read()).hexdigest()
-            assert hash == hashed, "File: %s\nHash: %s" % (basename(updateinfo), hashed)
+            self.assertEqual(hash, hashed, "File: %s\nHash: %s" % (basename(updateinfo), hashed))
 
         return updateinfos
 

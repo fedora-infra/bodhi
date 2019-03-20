@@ -198,7 +198,7 @@ class TestUsersService(base.BaseTestCase):
         res = self.app.get('/users/', {"groups": 'provenpackager'})
         body = res.json_body
         self.assertEqual(len(body['users']), 0)
-        assert 'errors' not in res.json_body
+        self.assertNotIn('errors', res.json_body)
 
     def test_list_users_by_update_alias(self):
         update = self.db.query(Update).first()
