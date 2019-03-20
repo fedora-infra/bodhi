@@ -572,10 +572,6 @@ class TestUpdate2HTML(base.BaseTestCase):
 
 class TestUtils(base.BaseTestCase):
 
-    def test_config(self):
-        assert config.get('sqlalchemy.url'), config
-        assert config['sqlalchemy.url'], config
-
     @mock.patch.dict(util.config, {'critpath.type': None, 'critpath_pkgs': ['kernel', 'glibc']})
     def test_get_critpath_components_dummy(self):
         """ Ensure that critpath packages can be found using the hardcoded
@@ -596,15 +592,12 @@ class TestUtils(base.BaseTestCase):
         session.get.return_value.status_code = 500
         session.get.return_value.json.return_value = \
             {'error': 'some error'}
-        try:
+        with self.assertRaises(RuntimeError) as exc:
             util.get_critpath_components('f25')
-            assert False, 'Did not raise a RuntimeError'
-        except RuntimeError as error:
-            actual_error = str(error)
         # We are not testing the whole error message because there is no
         # guarantee of the ordering of the GET parameters.
-        assert 'Bodhi failed to get a resource from PDC' in actual_error
-        assert 'The status code was "500".' in actual_error
+        self.assertIn('Bodhi failed to get a resource from PDC', str(exc.exception))
+        self.assertIn('The status code was "500".', str(exc.exception))
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
 
     @mock.patch('bodhi.server.util.log')
@@ -614,7 +607,7 @@ class TestUtils(base.BaseTestCase):
         and the type of components to search for is not rpm.
         """
         pkgs = util.get_critpath_components('f25', 'module')
-        assert 'kernel' in pkgs, pkgs
+        self.assertIn('kernel', pkgs)
         warning = ('The critpath.type of "module" does not support searching '
                    'for non-RPM components')
         mock_log.warning.assert_called_once_with(warning)
@@ -732,16 +725,16 @@ class TestUtils(base.BaseTestCase):
             }
         ]
         pkgs = util.get_critpath_components('f26')
-        assert 'python' in pkgs and 'gcc' in pkgs, pkgs
+        self.assertIn('python', pkgs)
+        self.assertIn('gcc', pkgs)
         # At least make sure it called the next url to cycle through the pages.
         # We can't verify all the calls made because the URL GET parameters
         # in the URL may have different orders based on the system/Python
         # version.
         session.get.assert_called_with(pdc_next_url, timeout=60)
         # Verify there were two GET requests made and two .json() calls
-        assert session.get.call_count == 2, session.get.call_count
-        assert session.get.return_value.json.call_count == 2, \
-            session.get.return_value.json.call_count
+        self.assertEqual(session.get.call_count, 2)
+        self.assertEqual(session.get.return_value.json.call_count, 2)
 
     @mock.patch('bodhi.server.util.http_session')
     def test_pagure_api_get(self, session):
@@ -781,7 +774,7 @@ class TestUtils(base.BaseTestCase):
         }
         session.get.return_value.json.return_value = expected_json
         rv = util.pagure_api_get('http://domain.local/api/0/rpms/python')
-        assert rv == expected_json, rv
+        self.assertEqual(rv, expected_json)
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -794,17 +787,13 @@ class TestUtils(base.BaseTestCase):
             "error": "Project not found",
             "error_code": "ENOPROJECT"
         }
-        try:
+        with self.assertRaises(RuntimeError) as exc:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
-            assert False, 'Did not raise a RuntimeError'
-        except RuntimeError as error:
-            actual_error = str(error)
-
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
             '"http://domain.local/api/0/rpms/python". The status code was '
             '"404". The error was "Project not found".')
-        assert actual_error == expected_error, actual_error
+        self.assertEqual(str(exc.exception), expected_error)
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
 
     @mock.patch('bodhi.server.util.http_session')
@@ -814,17 +803,14 @@ class TestUtils(base.BaseTestCase):
         raises the expected error message.
         """
         session.get.return_value.status_code = 500
-        try:
+        with self.assertRaises(RuntimeError) as exc:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
-            assert False, 'Did not raise a RuntimeError'
-        except RuntimeError as error:
-            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
             '"http://domain.local/api/0/rpms/python". The status code was '
             '"500".')
-        assert actual_error == expected_error, actual_error
+        self.assertEqual(str(exc.exception), expected_error)
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
 
     @mock.patch('bodhi.server.util.http_session')
@@ -835,17 +821,14 @@ class TestUtils(base.BaseTestCase):
         """
         session.get.return_value.status_code = 404
         session.get.return_value.json.side_effect = ValueError('Not JSON')
-        try:
+        with self.assertRaises(RuntimeError) as exc:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
-            assert False, 'Did not raise a RuntimeError'
-        except RuntimeError as error:
-            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
             '"http://domain.local/api/0/rpms/python". The status code was '
             '"404". The error was "".')
-        assert actual_error == expected_error, actual_error
+        self.assertEqual(str(exc.exception), expected_error)
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
 
     @mock.patch('bodhi.server.util.http_session')
@@ -876,7 +859,7 @@ class TestUtils(base.BaseTestCase):
         session.get.return_value.json.return_value = expected_json
         rv = util.pdc_api_get(
             'http://domain.local/rest_api/v1/component-branch-slas/')
-        assert rv == expected_json, rv
+        self.assertEqual(rv, expected_json)
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -885,18 +868,14 @@ class TestUtils(base.BaseTestCase):
         raises the expected error message.
         """
         session.get.return_value.status_code = 500
-        try:
+        with self.assertRaises(RuntimeError) as exc:
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/')
-            assert False, 'Did not raise a RuntimeError'
-        except RuntimeError as error:
-            actual_error = str(error)
-
         expected_error = (
             'Bodhi failed to get a resource from PDC at the following URL '
             '"http://domain.local/rest_api/v1/component-branch-slas/". The '
             'status code was "500".')
-        assert actual_error == expected_error, actual_error
+        self.assertEqual(str(exc.exception), expected_error)
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
 
     @mock.patch('bodhi.server.util.http_session')
@@ -909,19 +888,16 @@ class TestUtils(base.BaseTestCase):
         session.get.return_value.json.return_value = {
             "detail": "Not found."
         }
-        try:
+        with self.assertRaises(RuntimeError) as exc:
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
-            assert False, 'Did not raise a RuntimeError'
-        except RuntimeError as error:
-            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to get a resource from PDC at the following URL '
             '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
             'status code was "404". The error was '
             '"{\'detail\': \'Not found.\'}".')
-        assert actual_error == expected_error, actual_error
+        self.assertEqual(str(exc.exception), expected_error)
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
 
     @mock.patch('bodhi.server.util.http_session')
@@ -932,18 +908,15 @@ class TestUtils(base.BaseTestCase):
         """
         session.get.return_value.status_code = 404
         session.get.return_value.json.side_effect = ValueError('Not JSON')
-        try:
+        with self.assertRaises(RuntimeError) as exc:
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
-            assert False, 'Did not raise a RuntimeError'
-        except RuntimeError as error:
-            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to get a resource from PDC at the following URL '
             '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
             'status code was "404". The error was "".')
-        assert actual_error == expected_error, actual_error
+        self.assertEqual(str(exc.exception), expected_error)
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
 
     @mock.patch('bodhi.server.util.http_session')
@@ -965,7 +938,7 @@ class TestUtils(base.BaseTestCase):
         }
         decision = util.greenwave_api_post('http://domain.local/api/v1.0/decision',
                                            data)
-        assert decision == expected_json, decision
+        self.assertEqual(decision, expected_json)
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -974,7 +947,7 @@ class TestUtils(base.BaseTestCase):
         raises the expected error message.
         """
         session.post.return_value.status_code = 500
-        try:
+        with self.assertRaises(RuntimeError) as exc:
             data = {
                 'product_version': 'fedora-26',
                 'decision_context': 'bodhi_push_update_stable',
@@ -982,14 +955,11 @@ class TestUtils(base.BaseTestCase):
             }
             util.greenwave_api_post('http://domain.local/api/v1.0/decision',
                                     data)
-            assert False, 'Did not raise a RuntimeError'
-        except RuntimeError as error:
-            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to send POST request to Greenwave at the following URL '
             '"http://domain.local/api/v1.0/decision". The status code was "500".')
-        assert actual_error == expected_error, actual_error
+        self.assertEqual(str(exc.exception), expected_error)
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
 
     @mock.patch('bodhi.server.util.http_session')
@@ -1002,7 +972,7 @@ class TestUtils(base.BaseTestCase):
         session.post.return_value.json.return_value = {
             "message": "Not found."
         }
-        try:
+        with self.assertRaises(RuntimeError) as exc:
             data = {
                 'product_version': 'fedora-26',
                 'decision_context': 'bodhi_push_update_stable',
@@ -1010,15 +980,12 @@ class TestUtils(base.BaseTestCase):
             }
             util.greenwave_api_post('http://domain.local/api/v1.0/decision',
                                     data)
-            assert False, 'Did not raise a RuntimeError'
-        except RuntimeError as error:
-            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to send POST request to Greenwave at the following URL '
             '"http://domain.local/api/v1.0/decision". The status code was "404". '
             'The error was "{\'message\': \'Not found.\'}".')
-        assert actual_error == expected_error, actual_error
+        self.assertEqual(str(exc.exception), expected_error)
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
 
     @mock.patch('bodhi.server.util.http_session')
@@ -1029,7 +996,7 @@ class TestUtils(base.BaseTestCase):
         """
         session.post.return_value.status_code = 404
         session.post.return_value.json.side_effect = ValueError('Not JSON')
-        try:
+        with self.assertRaises(RuntimeError) as exc:
             data = {
                 'product_version': 'fedora-26',
                 'decision_context': 'bodhi_push_update_stable',
@@ -1037,15 +1004,12 @@ class TestUtils(base.BaseTestCase):
             }
             util.greenwave_api_post('http://domain.local/api/v1.0/decision',
                                     data)
-            assert False, 'Did not raise a RuntimeError'
-        except RuntimeError as error:
-            actual_error = str(error)
 
         expected_error = (
             'Bodhi failed to send POST request to Greenwave at the following URL '
             '"http://domain.local/api/v1.0/decision". The status code was "404". '
             'The error was "".')
-        assert actual_error == expected_error, actual_error
+        self.assertEqual(str(exc.exception), expected_error)
         self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
 
     @mock.patch('bodhi.server.util.http_session')
@@ -1075,7 +1039,7 @@ class TestUtils(base.BaseTestCase):
         }
         waiver = util.waiverdb_api_post('http://domain.local/api/v1.0/waivers/',
                                         data)
-        assert waiver == expected_json, waiver
+        self.assertEqual(waiver, expected_json)
 
     def test_markup_escapes(self):
         """Ensure we correctly parse markdown & escape HTML"""
@@ -1085,11 +1049,14 @@ class TestUtils(base.BaseTestCase):
             '<script>alert("pants")</script>'
         )
         html = util.markup(None, text)
-        assert html == (
-            '<div class="markdown"><h1>this is a header</h1>\n'
-            '<p>this is some <strong>text</strong>\n'
-            '&lt;script&gt;alert("pants")&lt;/script&gt;</p></div>'
-        ), html
+        self.assertEqual(
+            html,
+            (
+                '<div class="markdown"><h1>this is a header</h1>\n'
+                '<p>this is some <strong>text</strong>\n'
+                '&lt;script&gt;alert("pants")&lt;/script&gt;</p></div>'
+            )
+        )
 
     @mock.patch('bodhi.server.util.bleach.clean', return_value='cleaned text')
     @mock.patch.object(util.bleach, '__version__', u'1.4.3')
@@ -1133,28 +1100,26 @@ class TestUtils(base.BaseTestCase):
 
     def test_rpm_header(self):
         h = util.get_rpm_header('libseccomp')
-        assert h['name'] == 'libseccomp', h
+        self.assertEqual(h['name'], 'libseccomp')
 
     def test_rpm_header_exception(self):
-        try:
+        with self.assertRaises(Exception):
             util.get_rpm_header('raise-exception')
-            assert False
-        except Exception:
-            pass
 
     def test_rpm_header_not_found(self):
-        try:
+        with self.assertRaises(ValueError) as exc:
             util.get_rpm_header("do-not-find-anything")
-            assert False
-        except ValueError:
-            pass
+        expected_error = "No rpm headers found in koji for 'do-not-find-anything'"
+        self.assertEqual(str(exc.exception), expected_error)
 
-    def test_cmd_failure(self):
-        try:
-            util.cmd('false')
-            assert False
-        except Exception:
-            pass
+    def test_cmd_failure_exceptions_off(self):
+        ret = util.cmd('false', raise_on_error=False)
+        self.assertEqual((b'', b'', 1), ret)
+
+    def test_cmd_failure_exceptions_on(self):
+        with self.assertRaises(RuntimeError) as exc:
+            util.cmd('false', raise_on_error=True)
+        self.assertEqual(str(exc.exception), "f a l s e returned a non-0 exit code: 1")
 
     def test_sorted_updates_async_removal(self):
         u1 = self.create_update(['bodhi-1.0-1.fc24', 'somepkg-2.0-3.fc24'])
@@ -1163,10 +1128,10 @@ class TestUtils(base.BaseTestCase):
         us = [u1, u2]
         sync, async_ = util.sorted_updates(us)
 
-        assert len(sync) == 2
-        assert len(async_) == 0
-        assert sync[0] == u2
-        assert sync[1] == u1
+        self.assertEqual(len(sync), 2)
+        self.assertEqual(len(async_), 0)
+        self.assertEqual(sync[0], u2)
+        self.assertEqual(sync[1], u1)
 
     def test_sorted_updates_general(self):
         u1 = self.create_update(['bodhi-1.0-1.fc24', 'somepkg-2.0-3.fc24'])

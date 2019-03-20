@@ -167,7 +167,7 @@ class TestValidateAcls(BaseTestCase):
         """
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
-        assert len(mock_request.errors) == 0, mock_request.errors
+        self.assertEqual(len(mock_request.errors), 0)
         mock_gpcfp.assert_called_once()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
@@ -185,7 +185,7 @@ class TestValidateAcls(BaseTestCase):
         self.db.flush()
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
-        assert len(mock_request.errors) == 0, mock_request.errors
+        self.assertEqual(len(mock_request.errors), 0)
         mock_gpcfp.assert_not_called()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
@@ -207,7 +207,7 @@ class TestValidateAcls(BaseTestCase):
             'description': ('guest is not a member of "packager", which is a '
                             'mandatory packager group')
         }]
-        assert mock_request.errors == error, mock_request.errors
+        self.assertEqual(mock_request.errors, error)
         mock_gpcfp.assert_not_called()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
@@ -224,7 +224,7 @@ class TestValidateAcls(BaseTestCase):
             'name': 'builds',
             'description': 'guest does not have commit access to bodhi'
         }]
-        assert mock_request.errors == error, mock_request.errors
+        self.assertEqual(mock_request.errors, error)
         mock_gpcfp.assert_called_once()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
@@ -237,13 +237,13 @@ class TestValidateAcls(BaseTestCase):
         mock_request = self.get_mock_request()
         mock_gpcfp.side_effect = RuntimeError('some error')
         validators.validate_acls(mock_request)
-        assert len(mock_request.errors) == 1, mock_request.errors
+        self.assertEqual(len(mock_request.errors), 1)
         expected_error = [{
             'location': 'body',
             'name': 'builds',
             'description': 'some error'
         }]
-        assert mock_request.errors == expected_error, mock_request.errors
+        self.assertEqual(mock_request.errors, expected_error)
         mock_gpcfp.assert_called_once()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
@@ -256,14 +256,14 @@ class TestValidateAcls(BaseTestCase):
         mock_request = self.get_mock_request()
         mock_gpcfp.side_effect = ValueError('some error')
         validators.validate_acls(mock_request)
-        assert len(mock_request.errors) == 1, mock_request.errors
+        self.assertEqual(len(mock_request.errors), 1)
         expected_error = [{
             'location': 'body',
             'name': 'builds',
             'description': ('Unable to access Pagure to check ACLs. Please '
                             'try again later.')
         }]
-        assert mock_request.errors == expected_error, mock_request.errors
+        self.assertEqual(mock_request.errors, expected_error)
         mock_gpcfp.assert_called_once()
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
@@ -272,7 +272,7 @@ class TestValidateAcls(BaseTestCase):
         """
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
-        assert len(mock_request.errors) == 0, mock_request.errors
+        self.assertEqual(len(mock_request.errors), 0)
 
     @mock.patch.dict('bodhi.server.validators.config',
                      {'acl_system': 'dummy', 'acl_dummy_committer': 'mattia'})
@@ -285,7 +285,7 @@ class TestValidateAcls(BaseTestCase):
         self.db.flush()
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
-        assert len(mock_request.errors) == 0, mock_request.errors
+        self.assertEqual(len(mock_request.errors), 0)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'nonexistent'})
     def test_validate_acls_invalid_acl_system(self):
@@ -299,7 +299,7 @@ class TestValidateAcls(BaseTestCase):
             'name': 'builds',
             'description': 'guest does not have commit access to bodhi'
         }]
-        assert mock_request.errors == error, mock_request.errors
+        self.assertEqual(mock_request.errors, error)
 
 
 class TestValidateBugFeedback(BaseTestCase):

@@ -178,8 +178,8 @@ class TestComposer(base.BaseTestCase):
         shutil.rmtree(self._new_compose_stage_dir)
 
     def assert_sems(self, nr_expected):
-        assert self.semmock.acquire.call_count == nr_expected
-        assert self.semmock.release.call_count == self.semmock.acquire.call_count
+        self.assertEqual(self.semmock.acquire.call_count, nr_expected)
+        self.assertEqual(self.semmock.release.call_count, self.semmock.acquire.call_count)
 
     def set_stable_request(self, nvr: str):
         with self.db_factory() as session:
@@ -388,11 +388,8 @@ That was the actual one''' % compose_dir
             self.assertTrue(up.locked)
 
             # Ensure we can't set a request
-            try:
+            with self.assertRaises(LockedUpdateException):
                 up.set_request(session, UpdateRequest.stable, u'bodhi')
-                assert False, 'Set the request on a locked update'
-            except LockedUpdateException:
-                pass
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread._wait_for_pungi')
@@ -561,9 +558,9 @@ References:
         mail.assert_called_with(config.get('bodhi_email'),
                                 config.get('fedora_test_announce_list'),
                                 mock.ANY)
-        assert len(mail.mock_calls) == 2, len(mail.mock_calls)
+        self.assertEqual(len(mail.mock_calls), 2)
         body = mail.mock_calls[1][1][2]
-        assert body.decode('utf-8').startswith(
+        self.assertTrue(body.decode('utf-8').startswith(
             ('From: updates@fedoraproject.org\r\nTo: %s\r\nX-Bodhi: fedoraproject.org\r\nSubject: '
              'Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to '
              'Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n====='
@@ -575,7 +572,7 @@ References:
              '---------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None'
              '\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n----------'
              '----------------------------------------------------------------------\n\n') % (
-                config.get('fedora_test_announce_list'), time.strftime('%Y'))), repr(body)
+                config.get('fedora_test_announce_list'), time.strftime('%Y'))))
 
     @mock.patch('bodhi.server.consumers.composer.ComposerThread.save_state')
     def test_compose_invalid_dir(self, save_state):
@@ -588,7 +585,7 @@ References:
             t.db = session
             t.compose = Compose.from_dict(session, msg.body['msg']['composes'][0])
             t.release = session.query(Release).filter_by(name=u'F17').one()
-            try:
+            with self.assertRaises(Exception) as exc:
                 fake_popen = mock.MagicMock()
                 fake_stdout = b'''Some output
 Some more output ...... This is not a Compose dir: ....
@@ -599,12 +596,10 @@ That was the actual one'''
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year
                 t._wait_for_pungi(fake_popen)
-                assert False, "Compose with invalid directory did not crash"
-            except Exception as ex:
-                expected_error = ('Directory at /tmp/nonsensical_directory does not look like a '
-                                  'compose')
-                expected_error = expected_error.format(datetime.datetime.utcnow().year)
-                assert str(ex) == expected_error
+            expected_error = ('Directory at /tmp/nonsensical_directory does not look like a '
+                              'compose')
+            expected_error = expected_error.format(datetime.datetime.utcnow().year)
+            self.assertEqual(str(exc.exception), expected_error)
             t.db = None
 
     @mock.patch('bodhi.server.consumers.composer.ComposerThread.save_state')
@@ -618,7 +613,7 @@ That was the actual one'''
             t.db = session
             t.compose = Compose.from_dict(session, msg.body['msg']['composes'][0])
             t.release = session.query(Release).filter_by(name=u'F17').one()
-            try:
+            with self.assertRaises(Exception) as exc:
                 fake_popen = mock.MagicMock()
                 fake_stdout = b'''Some output
     Some more output ...... This is not a Compose dir: ....
@@ -628,11 +623,9 @@ That was the actual one'''
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year
                 t._wait_for_pungi(fake_popen)
-                assert False, "Compose without generated dirs did not crash"
-            except Exception as ex:
-                expected_error = ('Unable to find the path to the compose')
-                expected_error = expected_error.format(datetime.datetime.utcnow().year)
-                assert str(ex) == expected_error
+            expected_error = ('Unable to find the path to the compose')
+            expected_error = expected_error.format(datetime.datetime.utcnow().year)
+            self.assertEqual(str(exc.exception), expected_error)
             t.db = None
 
     @mock.patch('bodhi.server.consumers.composer.ComposerThread.save_state')
@@ -652,14 +645,11 @@ That was the actual one'''
             t.db = None
 
         # test without any arches
-        assert 'completed_repo' in t._checkpoints
-        try:
+        self.assertIn('completed_repo', t._checkpoints)
+        with self.assertRaises(FileNotFoundError) as exc:
             t._sanity_check_repo()
-            assert False, "Sanity check didn't fail with empty dir"
-        except Exception as ex:
-            assert '[Errno 2] No such file or directory' in str(ex)
-
-        assert 'completed_repo' not in t._checkpoints
+        self.assertIn('[Errno 2] No such file or directory', str(exc.exception))
+        self.assertNotIn('completed_repo', t._checkpoints)
         save_state.assert_called()
 
     @mock.patch('bodhi.server.consumers.composer.ComposerThread.save_state')
@@ -679,14 +669,11 @@ That was the actual one'''
             t.db = None
 
         # test without any arches
-        assert 'completed_repo' in t._checkpoints
-        try:
+        self.assertIn('completed_repo', t._checkpoints)
+        with self.assertRaises(Exception) as exc:
             t._sanity_check_repo()
-            assert False, "Sanity check didn't fail with archless compose"
-        except Exception as ex:
-            assert str(ex) == "Empty compose found"
-
-        assert 'completed_repo' not in t._checkpoints
+        self.assertEqual(str(exc.exception), "Empty compose found")
+        self.assertNotIn('completed_repo', t._checkpoints)
         save_state.assert_called()
 
     @mock.patch('bodhi.server.consumers.composer.ComposerThread.save_state')
@@ -723,10 +710,10 @@ That was the actual one'''
                                'test.src.rpm'), 'w') as tf:
             tf.write('bar')
 
-        assert 'completed_repo' in t._checkpoints
+        self.assertIn('completed_repo', t._checkpoints)
         save_state.reset_mock()
         t._sanity_check_repo()
-        assert 'completed_repo' in t._checkpoints
+        self.assertIn('completed_repo', t._checkpoints)
         save_state.assert_not_called()
 
     @mock.patch('bodhi.server.consumers.composer.ComposerThread.save_state')
@@ -758,14 +745,11 @@ That was the actual one'''
                 f.write(repomd[:-10])
 
         save_state.assert_called_once_with(ComposeState.punging)
-        assert 'completed_repo' in t._checkpoints
+        self.assertIn('completed_repo', t._checkpoints)
         save_state.reset_mock()
-        try:
+        with self.assertRaises(exceptions.RepodataException):
             t._sanity_check_repo()
-            assert False, 'Busted metadata passed'
-        except exceptions.RepodataException:
-            pass
-        assert 'completed_repo' not in t._checkpoints
+        self.assertNotIn('completed_repo', t._checkpoints)
         save_state.assert_called()
 
     @mock.patch('bodhi.server.consumers.composer.ComposerThread.save_state')
@@ -797,14 +781,12 @@ That was the actual one'''
         os.symlink('/dev/null', os.path.join(t.path, 'compose', 'Everything', 'source', 'tree',
                                              'Packages', 'a', 'test.src.rpm'))
 
-        assert 'completed_repo' in t._checkpoints
+        self.assertIn('completed_repo', t._checkpoints)
         save_state.reset_mock()
-        try:
+        with self.assertRaises(Exception) as exc:
             t._sanity_check_repo()
-            assert False, "Symlinks passed"
-        except Exception as ex:
-            assert str(ex) == "Symlinks found"
-        assert 'completed_repo' not in t._checkpoints
+        self.assertEqual(str(exc.exception), "Symlinks found")
+        self.assertNotIn('completed_repo', t._checkpoints)
         save_state.assert_called()
 
     @mock.patch('bodhi.server.consumers.composer.ComposerThread.save_state')
@@ -831,14 +813,12 @@ That was the actual one'''
         base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'),
                            source=True)
 
-        assert 'completed_repo' in t._checkpoints
+        self.assertIn('completed_repo', t._checkpoints)
         save_state.reset_mock()
-        try:
+        with self.assertRaises(OSError) as exc:
             t._sanity_check_repo()
-            assert False, "Missing directories passed"
-        except OSError as oex:
-            assert oex.errno == errno.ENOENT
-        assert 'completed_repo' not in t._checkpoints
+        self.assertEqual(exc.exception.errno, errno.ENOENT)
+        self.assertNotIn('completed_repo', t._checkpoints)
         save_state.assert_called()
 
     @mock.patch(**mock_taskotron_results)
@@ -2254,8 +2234,8 @@ class ComposerThreadBaseTestCase(base.BaseTestCase):
             self.semmock.acquire.assert_called()
             self.semmock.release.assert_called()
 
-        assert self.semmock.acquire.call_count == nr_expected
-        assert self.semmock.acquire.call_count == self.semmock.release.call_count
+        self.assertEqual(self.semmock.acquire.call_count, nr_expected)
+        self.assertEqual(self.semmock.acquire.call_count, self.semmock.release.call_count)
 
     def _make_msg(self, extra_push_args=None):
         """
@@ -2987,13 +2967,10 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             os.makedirs(repodata)
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write('---\nyaml: rules')
-
-        try:
+        with self.assertRaises(Exception) as exc:
             t._wait_for_sync()
-            assert False, "Compose with just source passed"
-        except Exception as ex:
-            assert str(ex) == "Not found an arch to _wait_for_sync with"
-            save.assert_not_called()
+        self.assertEqual(str(exc.exception), "Not found an arch to _wait_for_sync with")
+        save.assert_not_called()
 
     @mock.patch.dict(
         'bodhi.server.consumers.composer.config',
