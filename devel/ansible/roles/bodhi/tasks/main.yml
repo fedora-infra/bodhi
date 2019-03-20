@@ -192,6 +192,14 @@
     dest: /etc/fedmsg.d/bodhi.py
     state: link
 
+- name: Copy the fedora-messaging configuration file bodhi.toml
+  copy:
+      src: bodhi.toml
+      dest: /etc/fedora-messaging/bodhi.toml
+      owner: root
+      group: root
+      mode: 644
+
 - name: Start and enable the bodhi service
   service:
       name: bodhi
@@ -201,6 +209,12 @@
 - name: Start and enable the docker service
   service:
       name: docker
+      state: started
+      enabled: yes
+
+- name: Start and enable the bodhi consumer service
+  service:
+      name: fm-consumer@bodhi
       state: started
       enabled: yes
 
