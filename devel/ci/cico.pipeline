@@ -6,50 +6,115 @@
  */
 
 
-/**
- * Run the given script on the Duffy node.
- *
- * @param script The script to run on the node.
- */
-def onmyduffynode(String script) {
-    timestamps {
-        sh 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root ${DUFFY_NODE}.ci.centos.org "' + script + '"'
+class NodeRunner {
+    String hostname = null
+    String ssid = null
+
+    def allocate_node() {
+        // Get a duffy node and set the DUFFY_NODE and SSID environment variables.
+        duffy_rtn = sh(
+            script: 'cico --debug node get -f value -c hostname -c comment --retry-count 16 --retry-interval 60',
+            returnStdout: true
+            ).trim().tokenize(' ')
+        this.hostname = duffy_rtn[0]
+        this.ssid = duffy_rtn[1]
     }
-}
+
+    /**
+     * Run the given script on the Duffy node.
+     *
+     * @param script The script to run on the node.
+     */
+    def run_on_node(String script) {
+        timestamps {
+            sh 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root ${this.hostname}.ci.centos.org "' + script + '"'
+        }
+    }
+
+    /**
+     * rsync the given path from the Duffy node back to the control host.
+     *
+     * @param rsyncpath The path to be rsync'd back to the control host.
+     */
+    def sync_from_node(rsyncpath) {
+        sh 'rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root " -Ha --include=' + " ${this.hostname}.ci.centos.org:~/payload/" + rsyncpath + " ./"
+    }
+
+    /**
+     * rsync the given path from the control host to the Duffy node.
+     *
+     * @param rsyncpath The path to be rsync'd to the Duffy node.
+     */
+    def sync_to_node(rsyncpath) {
+        sh 'rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root " -Ha --include=' +  rsyncpath + " ./ ${this.hostname}.ci.centos.org:~/payload/"
+    }
+
+    /**
+     * Install test dependencies on the Duffy node.
+     */
+    def configure_node = {
+        this.run_on_node 'yum -y install epel-release'
+        this.run_on_node 'yum install -y docker python36-click python36-requests rsync'
+        // Workaround https://bugzilla.redhat.com/show_bug.cgi?id=1655214
+        this.run_on_node 'yum downgrade -y docker-1.13.1-75.git8633870.el7.centos.x86_64 docker-client-1.13.1-75.git8633870.el7.centos.x86_64 docker-common-1.13.1-75.git8633870.el7.centos.x86_64'
+        this.run_on_node 'systemctl start docker'
+        // To run the integration testsuite
+        this.run_on_node 'python3.6 -m ensurepip'
+        this.run_on_node 'python3.6 -m pip install \'pytest<4.0\' pytest-cov conu munch psycopg2'
+    }
+
+    /**
+     * Run bodhi-ci on the Duffy node for the given arguments.
+     *
+     * @param release The release to pass to bodhi-ci's -r flag.
+     * @param command The subcommand of bodhi-ci to use.
+     * @param context This parameter is appended to the release and a dash to form the GitHub context.
+     * @param args Any extra arguments to be passed to the command.
+     */
+    def bodhi_ci = { String release, String command, String context, String args ->
+        githubNotify context: release + '-' + context, description: 'running', status: 'PENDING'
+
+        try {
+            stage(release + '-' + context) {
+                timeout(time: 32, unit: 'MINUTES') {
+                    this.run_on_node 'cd payload && python36 ./devel/ci/bodhi-ci ' + command + ' --no-tty -r ' + release + ' ' + args
+                }
+            }
+            githubNotify context: release + '-' + context, status: 'SUCCESS'
+        } catch(error) {
+            githubNotify context: release + '-' + context, status: 'FAILURE'
+            throw error
+        }
+    }
 
 
-/**
- * rsync the given path from the Duffy node back to the control host.
- *
- * @param rsyncpath The path to be rsync'd back to the control host.
- */
-def syncfromduffynode(rsyncpath) {
-    sh 'rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root " -Ha --include=' + " ${DUFFY_NODE}.ci.centos.org:~/payload/" + rsyncpath + " ./"
-}
+    /**
+     * Build and test the given release.
+     *
+     * @param release The release to test.
+     */
+    def test_release = { String release ->
+        this.bodhi_ci(release, 'build', 'build', '')
 
-
-/**
- * rsync the given path from the control host to the Duffy node.
- *
- * @param rsyncpath The path to be rsync'd to the Duffy node.
- */
-def synctoduffynode(rsyncpath) {
-    sh 'rsync -e "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root " -Ha --include=' +  rsyncpath + " ./ ${DUFFY_NODE}.ci.centos.org:~/payload/"
-}
-
-
-/**
- * Install test dependencies on the Duffy node.
- */
-def configure_node = {
-    onmyduffynode 'yum -y install epel-release'
-    onmyduffynode 'yum install -y docker python36-click python36-requests rsync'
-    // Workaround https://bugzilla.redhat.com/show_bug.cgi?id=1655214
-    onmyduffynode 'yum downgrade -y docker-1.13.1-75.git8633870.el7.centos.x86_64 docker-client-1.13.1-75.git8633870.el7.centos.x86_64 docker-common-1.13.1-75.git8633870.el7.centos.x86_64'
-    onmyduffynode 'systemctl start docker'
-    // To run the integration testsuite
-    onmyduffynode 'python3.6 -m ensurepip'
-    onmyduffynode 'python3.6 -m pip install \'pytest<4.0\' pytest-cov conu munch psycopg2'
+        parallel(
+            docs: {this.bodhi_ci(release, 'docs', 'docs', '--no-build --no-init')},
+            flake8: {this.bodhi_ci(release, 'flake8', 'flake8', '--no-build --no-init')},
+            pydocstyle: {this.bodhi_ci(release, 'pydocstyle', 'pydocstyle', '--no-build --no-init')},
+            mypy: {
+                if(release == 'pip') {
+                    this.bodhi_ci(release, 'mypy', 'mypy', '--no-build --no-init')
+                }
+            },
+            unit: {
+                this.bodhi_ci(release, 'unit', 'unit', '--no-build --no-init')
+                this.bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init')
+            },
+            integration: {
+                this.bodhi_ci(release, 'integration-build', 'integration-build', '')
+                this.bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
+            }
+        )
+    }
 }
 
 
@@ -70,108 +135,58 @@ def retry_with_sleep = { f ->
 }
 
 
-/**
- * Run bodhi-ci on the Duffy node for the given arguments.
- *
- * @param release The release to pass to bodhi-ci's -r flag.
- * @param command The subcommand of bodhi-ci to use.
- * @param context This parameter is appended to the release and a dash to form the GitHub context.
- * @param args Any extra arguments to be passed to the command.
- */
-def bodhi_ci = { String release, String command, String context, String args ->
-    githubNotify context: release + '-' + context, description: 'running', status: 'PENDING'
-
-    try {
-        stage(release + '-' + context) {
-            timeout(time: 32, unit: 'MINUTES') {
-                onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci ' + command + ' --no-tty -r ' + release + ' ' + args
-            }
-        }
-        githubNotify context: release + '-' + context, status: 'SUCCESS'
-    } catch(error) {
-        githubNotify context: release + '-' + context, status: 'FAILURE'
-        throw error
-    }
-}
-
-
-/**
- * Build and test the given release.
- *
- * @param release The release to test.
- */
-def test_release = { String release ->
-    bodhi_ci(release, 'build', 'build', '')
-
-    parallel(
-        docs: {bodhi_ci(release, 'docs', 'docs', '--no-build --no-init')},
-        flake8: {bodhi_ci(release, 'flake8', 'flake8', '--no-build --no-init')},
-        pydocstyle: {bodhi_ci(release, 'pydocstyle', 'pydocstyle', '--no-build --no-init')},
-        mypy: {
-            if(release == 'pip') {
-                bodhi_ci(release, 'mypy', 'mypy', '--no-build --no-init')
-            }
-        },
-        unit: {
-            bodhi_ci(release, 'unit', 'unit', '--no-build --no-init')
-            bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init')
-        },
-        integration: {
-            bodhi_ci(release, 'integration-build', 'integration-build', '')
-            bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
-        }
-    )
-}
-
-
 node('bodhi') {
     checkout scm
     // diff-cover needs to be able to reference origin/develop, so let's just fetch all branches.
     sh 'git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/*'
     sh 'git fetch -p --no-tags origin'
+    env.CICO_API_KEY = readFile("${env.HOME}/duffy.key").trim()
 
-    stage('Allocate Duffy node') {
-        env.CICO_API_KEY = readFile("${env.HOME}/duffy.key").trim()
-        // Get a duffy node and set the DUFFY_NODE and SSID environment variables.
-        duffy_rtn=sh(
-            script: 'cico --debug node get -f value -c hostname -c comment --retry-count 16 --retry-interval 60',
-            returnStdout: true
-            ).trim().tokenize(' ')
-        env.DUFFY_NODE=duffy_rtn[0]
-        env.SSID=duffy_rtn[1]
+    def runner_1 = new NodeRunner()
+    def runner_2 = new NodeRunner()
+
+    stage('Allocate Duffy nodes') {
+        runner_1.allocate_node()
+        runner_2.allocate_node()
     }
 
     try {
         stage('Configure node'){
-            retry_with_sleep(configure_node)
+            retry_with_sleep(runner_1.configure_node())
+            retry_with_sleep(runner_2.configure_node())
         }
 
-        stage('Sync pull request to node') {
+        stage('Sync pull request to nodes') {
             // We don't want test_results files from previous test jobs to stick around.
             sh 'rm -rf test_results'
-            synctoduffynode('bodhi')
+            runner_1.sync_to_node('bodhi')
+            runner_2.sync_to_node('bodhi')
         }
 
         // Download the database dumps for the integration tests.
-        onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci integration-download --no-tty'
+        runner_1.run_on_node 'cd payload && python36 ./devel/ci/bodhi-ci integration-download --no-tty'
+        runner_2.run_on_node 'cd payload && python36 ./devel/ci/bodhi-ci integration-download --no-tty'
 
         parallel(
-            f28: {test_release('f28')},
-            f29: {test_release('f29')},
-            f30: {test_release('f30')},
-            pip: {test_release('pip')},
-            rawhide: {test_release('rawhide')},
+            f28: {runner_1.test_release('f28')},
+            f29: {runner_1.test_release('f29')},
+            f30: {runner_1.test_release('f30')},
+            pip: {runner_2.test_release('pip')},
+            rawhide: {runner_2.test_release('rawhide')},
         )
     } catch (e) {
         currentBuild.result = "FAILURE"
         throw e
     } finally {
-        stage('Deallocate node'){
-            sh 'cico node done ${SSID}'
+        stage('Deallocate nodes'){
+            sh 'cico node done ' + runner_1.ssid
+            sh 'cico node done ' + runner_2.ssid
         }
 
         stage('Sync Artifacts'){
-            syncfromduffynode('test_results')
+            sh 'mkdir test_results'
+            runner_1.sync_from_node('test_results/1')
+            runner_2.sync_from_node('test_results/2')
         }
 
         stage('junit'){
