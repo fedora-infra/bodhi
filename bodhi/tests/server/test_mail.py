@@ -22,8 +22,6 @@ import os
 import smtplib
 import unittest
 
-from kitchen.text import converters
-
 from bodhi.server import config, mail, models
 from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base
@@ -90,7 +88,7 @@ class TestGetTemplate(base.BaseTestCase):
 
         # Assemble the template for easier asserting.
         t = '\n'.join([l for l in t[0]])
-        self.assertTrue(converters.to_unicode('\xe7') in t)
+        self.assertIn('\xe7', t)
 
     def test_module_build(self):
         """ModuleBuilds don't have get_latest(), so lets verify that this is OK."""
