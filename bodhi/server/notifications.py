@@ -16,10 +16,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of message publishing utilities."""
-import datetime
 import json
 import logging
-import time
 
 from sqlalchemy import event
 from fedora_messaging import api, exceptions as fml_exceptions
@@ -83,19 +81,11 @@ def publish(topic, msg, force=False):
 class FedMsgEncoder(json.encoder.JSONEncoder):
     """Encoder with convenience support.
 
-    This is almost identical to the custom encoder used in fedmsg, except for
-    the SQLAlchemy support.
+    If an object has a ``__json__()`` method, use it to serialize to JSON.
     """
 
     def default(self, obj):
         """Encode objects which don't have a more specific encoding method."""
         if hasattr(obj, "__json__"):
             return obj.__json__()
-        if isinstance(obj, (datetime.datetime, datetime.date)):
-            return time.mktime(obj.timetuple())
-        if isinstance(obj, time.struct_time):
-            return time.mktime(obj)
-        if isinstance(obj, set):
-            return list(obj)
-
         return super().default(obj)
