@@ -550,6 +550,10 @@ The ``releases`` command allows users to manage update releases.
 
         The Koji tag to use to search for update candidates (e.g., f29-updates-candidate).
 
+    ``--composed-by-bodhi, --not-composed-by-bodhi``
+
+        The flag that indicates whether the release is composed by Bodhi or not.
+
     ``--dist-tag TEXT``
 
         The Koji dist tag for this release (e.g., f29).
