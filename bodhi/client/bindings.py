@@ -418,7 +418,7 @@ class BodhiClient(OpenIdBaseClient):
         return self.send_request('updates/%s/get-test-results' % update, verb='GET')
 
     @errorhandled
-    def comment(self, update, comment, karma=0, email=None):
+    def comment(self, update, comment, karma=0):
         """
         Add a comment to an update.
 
@@ -426,15 +426,12 @@ class BodhiClient(OpenIdBaseClient):
             update (basestring): The alias of the update comment on.
             comment (basestring): The text of the comment to add to the update.
             karma (int): The amount of karma to leave. May be -1, 0, or 1. Defaults to 0.
-            email (basestring or None): Email address for an anonymous user. If an email address is
-                supplied here, the comment is added as anonymous (i.e. not a logged in user).
         Returns:
             munch.Munch: The response from the post to comments/.
         """
         return self.send_request(
             'comments/', verb='POST', auth=True,
-            data={'update': update, 'text': comment, 'karma': karma, 'email': email,
-                  'csrf_token': self.csrf()})
+            data={'update': update, 'text': comment, 'karma': karma, 'csrf_token': self.csrf()})
 
     @errorhandled
     def save_override(self, nvr, duration, notes, edit=False, expired=False):
@@ -880,10 +877,8 @@ class BodhiClient(OpenIdBaseClient):
         if len(update['comments']):
             comments_lines = []
             for comment in update['comments']:
-                anonymous = " (unauthenticated)" if comment['anonymous'] else ''
-                comments_lines.append('{0}{1} - {2} (karma {3})'.format(
-                    comment['user']['name'], anonymous,
-                    comment['timestamp'], comment['karma']))
+                comments_lines.append('{0} - {1} (karma {2})'.format(
+                    comment['user']['name'], comment['timestamp'], comment['karma']))
                 comments_lines += wrap_line(comment['text'])
 
             update_lines.append(line_formatter.format('Comments', comments_lines[0]))

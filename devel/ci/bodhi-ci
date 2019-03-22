@@ -416,7 +416,7 @@ class Job(object):
                 starting. It is also possible to provide a Job instance if there is a single
                 dependency.
             buffer_output: If True, this Job will buffer its stdout and stderr into its
-                output property. If False, child processes will send their output straign to stdout
+                output property. If False, child processes will send their output straight to stdout
                 and stderr.
         """
         self.release = release
@@ -817,7 +817,7 @@ class MyPyJob(Job):
         """
         super(MyPyJob, self).__init__(*args, **kwargs)
 
-        self._command = ['/usr/local/bin/mypy', '--follow-imports', 'silent',
+        self._command = ['/usr/local/bin/mypy', '--follow-imports', 'silent', 'bodhi/messages',
                          'bodhi/server/bugs.py', 'bodhi/server/buildsys.py', 'devel/ci/bodhi-ci']
         self._convert_command_for_container()
 

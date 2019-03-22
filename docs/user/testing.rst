@@ -23,9 +23,6 @@ bug is addressed by the update. Updates may also be linked to Wiki documents tha
 plan for the associated packages, and the tester may provide feedback for each of the wiki test
 pages as well.
 
-Unauthenticated users are only able to post comments and additional types of karma to the update, but
-they're not allowed to add votes to the main karma.
-
 
 Automated tests
 ===============

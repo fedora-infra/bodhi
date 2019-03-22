@@ -83,7 +83,7 @@ def get_user_data(username, human_readable):
     sar_data[user.name] = {}
     sar_data[user.name]['comments'] = [
         {'karma': c.karma, 'karma_critpath': c.karma_critpath, 'text': c.text,
-         'anonymous': c.anonymous, 'timestamp': c.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+         'timestamp': c.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
          'update_alias': c.update.alias, 'username': c.user.name}
         for c in user.comments]
     sar_data[user.name]['email'] = user.email

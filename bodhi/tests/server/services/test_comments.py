@@ -16,14 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import copy
 from datetime import datetime, timedelta
 from unittest import mock
 
 from fedora_messaging import api, testing as fml_testing
-import webtest
 
-from bodhi.server import main
 from bodhi.server.models import (Build, Comment, Release, RpmBuild, RpmPackage, Update,
                                  UpdateRequest, UpdateStatus, UpdateType, User)
 from bodhi.tests.server import base
@@ -86,11 +83,11 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/',
                                  self.make_comment(karma=-2),
                                  status=400)
-        assert '-2 is less than minimum value -1' in res, res
+        self.assertIn('-2 is less than minimum value -1', res)
         res = self.app.post_json('/comments/',
                                  self.make_comment(karma=2),
                                  status=400)
-        assert '2 is greater than maximum value 1' in res, res
+        self.assertIn('2 is greater than maximum value 1', res)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_commenting_with_critpath_feedback(self, publish):
@@ -99,7 +96,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', comment)
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         self.assertEqual(res.json_body['comment']['karma_critpath'], -1)
@@ -113,7 +109,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', comment)
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         self.assertIn('bug_feedback', res.json_body['comment'])
@@ -129,7 +124,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', comment)
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         self.assertIn('testcase_feedback', res.json_body['comment'])
@@ -142,7 +136,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', self.make_comment())
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
@@ -152,7 +145,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', self.make_comment())
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
@@ -160,7 +152,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', self.make_comment())
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         self.assertEqual(publish.call_count, 2)
@@ -170,7 +161,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         self.assertEqual(res.json_body['comment']['karma'], 1)
@@ -180,7 +170,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         self.assertEqual(publish.call_count, 2)
@@ -193,7 +182,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
@@ -202,7 +190,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         self.assertEqual(publish.call_count, 2)
@@ -217,52 +204,10 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], False)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEqual(res.json_body['comment']['update']['karma'], -1)
-
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_anonymous_commenting_with_email(self, publish):
-        res = self.app.post_json('/comments/',
-                                 self.make_comment(email='w@t.com'))
-        self.assertNotIn('errors', res.json_body)
-        self.assertIn('comment', res.json_body)
-        self.assertEqual(res.json_body['comment']['anonymous'], True)
-        self.assertEqual(res.json_body['comment']['text'], 'Test')
-        self.assertEqual(res.json_body['comment']['user_id'], 2)
-        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
-
-    def test_anonymous_commenting_with_invalid_email(self):
-        res = self.app.post_json('/comments/',
-                                 self.make_comment(email='foo'),
-                                 status=400)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'email')
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         "Invalid email address")
-
-    def test_anonymous_commenting_with_no_author(self):
-        anonymous_settings = copy.copy(self.app_settings)
-        anonymous_settings.update({
-            'authtkt.secret': 'whatever',
-            'authtkt.secure': True,
-        })
-        with mock.patch('bodhi.server.Session.remove'):
-            app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
-        alias = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update.alias
-        comment = {
-            u'update': alias,
-            u'text': 'Test',
-            u'karma': 0,
-            u'csrf_token': app.get('/csrf').json_body['csrf_token'],
-        }
-
-        res = app.post_json('/comments/', comment, status=400)
-
-        self.assertEqual(res.json_body['errors'][0]['name'], 'email')
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         "You must provide an author")
 
     def test_empty_comment(self):
         """Ensure that a comment without text or feedback is not permitted."""
@@ -282,7 +227,7 @@ class TestCommentsService(base.BaseTestCase):
     def test_unexpected_exception(self, exception):
         """Ensure that an unexpected Exception is handled by new_comment()."""
 
-        res = self.app.post_json('/comments/', self.make_comment(email='w@t.com'), status=400)
+        res = self.app.post_json('/comments/', self.make_comment(), status=400)
 
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body['errors'][0]['description'],
@@ -415,23 +360,6 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.get('/comments/', {"since": tomorrow})
         body = res.json_body
         self.assertEqual(len(body['comments']), 0)
-
-    def test_list_comments_by_anonymous(self):
-        res = self.app.get('/comments/', {"anonymous": "false"})
-        body = res.json_body
-        self.assertEqual(len(body['comments']), 1)
-
-        comment = body['comments'][0]
-        self.assertEqual(comment['text'], u'wow. amaze.')
-
-    def test_list_comments_by_invalid_anonymous(self):
-        res = self.app.get('/comments/', {"anonymous": "lalala"}, status=400)
-        body = res.json_body
-        self.assertEqual(len(body.get('comments', [])), 0)
-        error = res.json_body['errors'][0]
-        self.assertEqual(error['name'], 'anonymous')
-        proper = "is neither in ('false', '0') nor in ('true', '1')"
-        self.assertEqual(error['description'], '"lalala" %s' % proper)
 
     def test_list_comments_by_update(self):
         alias = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update.alias

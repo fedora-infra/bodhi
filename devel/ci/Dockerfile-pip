@@ -11,7 +11,6 @@ RUN dnf install -y \
     createrepo_c \
     findutils \
     git \
-    liberation-mono-fonts \
     python3-createrepo_c \
     python3-hawkey \
     python3-koji \

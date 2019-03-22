@@ -34,6 +34,9 @@ Backwards incompatible changes
 * The ``bodhi-monitor-composes`` script has been removed (:issue:`2171`).
 * The stacks feature has been removed (:issue:`2241`).
 * The ``bodhi-manage-releases`` script has been removed (:issue:`2420`).
+* Support for anonymous comments was dropped. As a result, the ``anonymous`` field on the Comment
+  object was removed and comments query API parameter ``anonymous`` was droped. All ``captcha.*``
+  settings were removed (:issue:`2700`).
 * Bodhi client and server no longer support Python 2. Python 3.6+ are the only supported Python
   releases (:issue:`2759`).
 * Support for the ``ci_url`` on the ``Build`` object was dropped (:issue:`2782`).
@@ -48,12 +51,23 @@ Backwards incompatible changes
 * Bug objects no longer include a ``private`` field (:issue:`3016`).
 * The CLI now defaults to the ``--wait`` flag when creating or editing buildroot overrides. The old
   behavior can be achieved with the ``--no-wait`` flag.
+* All of Bodhi's fedmsgs have been changed. A new bodhi.messages packages has been added with new
+  published message schemas. Note that only the fields listed in the documented schemas are
+  supported in Bodhi 4, even though Bodhi still sends messages similar to the messages it sent in
+  the past. Message consumers should not rely on any undocumented fields in these messages. If you
+  need information that is not included in the supported schema, please work with the Bodhi project
+  to get the schema adjusted accordingly.
 
 
 Dependency changes
 ^^^^^^^^^^^^^^^^^^
 
 * pkgdb is no longer required (:issue:`1970`).
+* cryptography is no longer required (:issue:`2700`).
+* Fonts are no longer required for the captcha (Bodhi previously defaulted to using
+  liberation-mono-fonts, but this wasn't a strict requirement since the font was configurable)
+  (:issue:`2700`).
+* pillow is no longer required (:issue:`2700`).
 * six is no longer required for the client or server (:issue:`2759`).
 
 

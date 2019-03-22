@@ -4,7 +4,7 @@ Virtualenv
 
 Dependencies
 ^^^^^^^^^^^^
-``sudo dnf install libffi-devel postgresql-devel openssl-devel koji pcaro-hermit-fonts freetype-devel libjpeg-turbo-devel python-pillow zeromq-devel liberation-mono-fonts git gcc redhat-rpm-config fedora-cert python2-dnf yum``
+``sudo dnf install libffi-devel postgresql-devel openssl-devel koji pcaro-hermit-fonts freetype-devel libjpeg-turbo-devel zeromq-devel git gcc redhat-rpm-config fedora-cert python2-dnf yum``
 
 Setup virtualenvwrapper
 ^^^^^^^^^^^^^^^^^^^^^^^

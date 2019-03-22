@@ -1,5 +1,4 @@
 <%inherit file="master.html"/>
-<%namespace name="captcha" module="bodhi.server.captcha"/>
 <%namespace name="json" module="json"/>
 <%
   from urllib.parse import urljoin
@@ -708,6 +707,7 @@ $(document).ready(function(){
               % endfor
             </div>
 
+            % if request.user:
             <form id="new_comment" class="form-horizontal" role="form"
               action="javascript:form.submit();">
 
@@ -743,16 +743,6 @@ $(document).ready(function(){
                       </small></p>
                     </div>
 
-                    % if not request.user:
-                    <div class="form-group" class="m-t-3">
-                        <input class="form-control" id="email" name="email" type="email"
-                        placeholder="email@address.org" required="true"></input>
-                        <div class="alert alert-danger" for="email" style="display:none">
-                          <strong></strong> <span class="error"></span>
-                        </div>
-                    </div>
-                    % endif
-
                     ${self.fragments.markdown_help_modal()}
 
                     <div id="preview" class="comment-preview m-t-2" style="display:none;"></div>
@@ -777,22 +767,7 @@ $(document).ready(function(){
                         <td data-class="danger">  <input type="radio" name="karma" value="-1"> </td>
                         <td>                      <input type="radio" name="karma" value="0" checked> </td>
                         <td data-class="success"> <input type="radio" name="karma" value="1"> </td>
-                        % if not request.user:
-                        <td>
-                          <p class="text-muted">Is the update generally functional? (karma)</p>
-                          <p class="text-danger" style="font-size: 0.8rem;">You need to be logged in to add karma!</p>
-                          <script type="text/javascript">
-                            $(document).ready(function(){
-                              var karmaRadio = document.getElementsByName("karma");
-                              for(var i=0, iLen=karmaRadio.length; i<iLen; i++) {
-                                karmaRadio[i].disabled = true;
-                              }
-                            });
-                          </script>
-                        </td>
-                        % else:
                         <td>Is the update generally functional? (karma)</td>
-                        % endif
                       </tr>
 
                       % if update.critpath:
@@ -828,25 +803,6 @@ $(document).ready(function(){
                 </div>
               </div>
 
-              % if not request.user and request.registry.settings.get('captcha.secret'):
-              <%
-                captcha_key, captcha_url = captcha.generate_captcha(request)
-              %>
-              <div class="row">
-                <div class="col-sm-12 text-xs-right">
-                  <input type="hidden" name="captcha_key" value="${captcha_key}"/>
-                  <img class="image m-t-1" src="${captcha_url}"/>
-                </div>
-              </div>
-
-              <div class="row">
-                <div class="col-sm-4 col-sm-offset-8 m-b-1">
-                  <input class="form-control" id="captcha_value" name="captcha_value"
-                  placeholder="prove that you're a human" required="true"></input>
-                </div>
-              </div>
-              % endif
-
               <div class="form-group m-t-1 clearfix">
                 <div class="col-sm-12 text-xs-right">
                   <button type="submit" class="btn btn-primary">
@@ -856,6 +812,7 @@ $(document).ready(function(){
                 </div>
               </div>
             </form>
+            % endif
 
           </div>
         </div>

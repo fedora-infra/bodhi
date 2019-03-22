@@ -337,14 +337,12 @@ class BodhiBase(object):
         """
         return '<{0} {1}>'.format(self.__class__.__name__, self.__json__())
 
-    def __json__(self, request=None, anonymize=False, exclude=None, include=None):
+    def __json__(self, request=None, exclude=None, include=None):
         """
         Return a JSON representation of this model.
 
         Args:
             request (pyramid.util.Request or None): The current web request, or None.
-            anonymize (bool): If True, scrub out some information from the JSON blob using
-                the model's ``__anonymity_map__``. Defaults to False.
             exclude (iterable or None): An iterable of strings naming the attributes to exclude from
                 the JSON representation of the model. If None (the default), the class's
                 __exclude_columns__ attribute will be used.
@@ -354,11 +352,10 @@ class BodhiBase(object):
         Returns:
             dict: A dict representation of the model suitable for serialization as JSON.
         """
-        return self._to_json(self, request=request, anonymize=anonymize, exclude=exclude,
-                             include=include)
+        return self._to_json(self, request=request, exclude=exclude, include=include)
 
     @classmethod
-    def _to_json(cls, obj, seen=None, request=None, anonymize=False, exclude=None, include=None):
+    def _to_json(cls, obj, seen=None, request=None, exclude=None, include=None):
         """
         Return a JSON representation of obj.
 
@@ -367,8 +364,6 @@ class BodhiBase(object):
             seen (list or None): A list of attributes we have already serialized. Used by this
                 method to keep track of its state, as it uses recursion.
             request (pyramid.util.Request or None): The current web request, or None.
-            anonymize (bool): If True, scrub out some information from the JSON blob using
-                the model's ``__anonymity_map__``. Defaults to False.
             exclude (iterable or None): An iterable of strings naming the attributes to exclude from
                 the JSON representation of the model. If None (the default), the class's
                 __exclude_columns__ attribute will be used.
@@ -413,16 +408,6 @@ class BodhiBase(object):
                 d[key] = value.strftime('%Y-%m-%d %H:%M:%S')
             if isinstance(value, EnumSymbol):
                 d[key] = str(value)
-
-        # If explicitly asked to, we will overwrite some fields if the
-        # corresponding condition of each evaluates to True.
-        # This is primarily for anonymous Comments.  We want to serialize
-        # authenticated FAS usernames in the 'author' field, but we want to
-        # scrub out anonymous users' email addresses.
-        if anonymize:
-            for key1, key2 in getattr(obj, '__anonymity_map__', {}).items():
-                if getattr(obj, key2):
-                    d[key1] = 'anonymous'
 
         return d
 
@@ -1810,7 +1795,7 @@ class Update(Base):
         negative_karma = 0
         users_counted = set()
         for comment in self.comments_since_karma_reset:
-            if comment.karma and not comment.anonymous and comment.user.name not in users_counted:
+            if comment.karma and comment.user.name not in users_counted:
                 # Make sure we only count the last comment this user made
                 users_counted.add(comment.user.name)
                 if comment.karma > 0:
@@ -2076,6 +2061,7 @@ class Update(Base):
 
                 # Expire any associated buildroot override
                 if b.override:
+                    log.debug(f"Expiring BRO for {b.nvr} because the build is unpushed.")
                     b.override.expire()
                 else:
                     # Only delete the Build entity if it isn't associated with
@@ -2794,12 +2780,8 @@ class Update(Base):
             val += u"   Comments: "
             comments = []
             for comment in self.comments_since_karma_reset:
-                if comment.anonymous:
-                    anonymous = " (unauthenticated)"
-                else:
-                    anonymous = ""
-                comments.append(u"%s%s%s - %s (karma %s)" % (' ' * 13,
-                                comment.user.name, anonymous, comment.timestamp,
+                comments.append(u"%s%s - %s (karma %s)" % (' ' * 13,
+                                comment.user.name, comment.timestamp,
                                 comment.karma))
                 if comment.text:
                     text = wrap(comment.text, initial_indent=' ' * 13,
@@ -2865,9 +2847,8 @@ class Update(Base):
             log.debug("%s has been obsoleted.", self.alias)
         return
 
-    def comment(self, session, text, karma=0, author=None, anonymous=False,
-                karma_critpath=0, bug_feedback=None, testcase_feedback=None,
-                check_karma=True):
+    def comment(self, session, text, karma=0, author=None, karma_critpath=0,
+                bug_feedback=None, testcase_feedback=None, check_karma=True):
         """Add a comment to this update.
 
         If the karma reaches the 'stable_karma' value, then request that this update be marked
@@ -2897,13 +2878,9 @@ class Update(Base):
                 notice = 'You may not give karma to your own updates.'
                 caveats.append({'name': 'karma', 'description': notice})
 
-        comment = Comment(
-            text=text, anonymous=anonymous,
-            karma=karma, karma_critpath=karma_critpath)
+        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath)
         session.add(comment)
 
-        if anonymous:
-            author = u'anonymous'
         try:
             user = session.query(User).filter_by(name=author).one()
         except NoResultFound:
@@ -2914,7 +2891,7 @@ class Update(Base):
         self.comments.append(comment)
         session.flush()
 
-        if not anonymous and karma != 0:
+        if karma != 0:
             # Determine whether this user has already left karma, and if so what the most recent
             # karma value they left was. We should examine all but the most recent comment, since
             # that is the comment we just added.
@@ -2967,7 +2944,7 @@ class Update(Base):
         # Publish to fedmsg
         if author not in config.get('system_users'):
             notifications.publish(topic='update.comment', msg=dict(
-                comment=comment.__json__(anonymize=True),
+                comment=comment.__json__(),
                 agent=author,
             ))
 
@@ -2979,7 +2956,7 @@ class Update(Base):
             else:
                 people.add(person.name)
         for comment in self.comments:
-            if comment.anonymous or comment.user.name == u'bodhi':
+            if comment.user.name in ['anonymous', 'bodhi']:
                 continue
             if comment.user.email:
                 people.add(comment.user.email)
@@ -3495,20 +3472,17 @@ class Update(Base):
                 f'Unable to determine requested tag for {self.alias}.')
         return tag
 
-    def __json__(self, request=None, anonymize=False):
+    def __json__(self, request=None):
         """
         Return a JSON representation of this update.
 
         Args:
             request (pyramid.util.Request or None): The current web request, or None. Passed on to
                 :meth:`BodhiBase.__json__`.
-            anonymize (bool): Whether to anonymize the results. Passed on to
-                :meth:`BodhiBase.__json__`.
         Returns:
             basestring: A JSON representation of this update.
         """
-        result = super(Update, self).__json__(
-            request=request, anonymize=anonymize)
+        result = super(Update, self).__json__(request=request)
         # Duplicate alias as updateid for backwards compat with bodhi1
         result['updateid'] = result['alias']
         # Also, put the update submitter's name in the same place we put
@@ -3528,8 +3502,7 @@ class Update(Base):
             test._to_json(
                 obj=test,
                 seen=seen,
-                request=request,
-                anonymize=anonymize)
+                request=request)
             for test in self.full_test_cases
         ]
 
@@ -3731,14 +3704,12 @@ class Compose(Base):
         """
         return [{'alias': u.alias, 'title': u.beautify_title(nvr=True)} for u in self.updates]
 
-    def __json__(self, request=None, anonymize=False, exclude=None, include=None, composer=False):
+    def __json__(self, request=None, exclude=None, include=None, composer=False):
         """
         Serialize this compose in JSON format.
 
         Args:
             request (pyramid.util.Request or None): The current web request, or None.
-            anonymize (bool): If True, scrub out some information from the JSON blob using
-                the model's ``__anonymity_map__``. Defaults to False.
             exclude (iterable or None): See superclass docblock.
             include (iterable or None): See superclass docblock.
             composer (bool): If True, increase the number of excluded attributes so that only the
@@ -3753,8 +3724,7 @@ class Compose(Base):
             # We need to include content_type and security so the composer can collate the Composes
             # and so it can pick the right composer class to use.
             include = ('content_type', 'security')
-        return super(Compose, self).__json__(request=request, anonymize=anonymize, exclude=exclude,
-                                             include=include)
+        return super(Compose, self).__json__(request=request, exclude=exclude, include=include)
 
     def __lt__(self, other):
         """
@@ -3838,7 +3808,6 @@ class Comment(Base):
         karma (int): The karma associated with this comment. Defaults to 0.
         karma_critpath (int): The critpath karma associated with this comment. Defaults to 0.
         text (unicode): The text of the comment.
-        anonymous (bool): If True, the comment was from an anonymous user. Defaults to False.
         timestamp (datetime.datetime): The time the comment was created. Defaults to
             the return value of datetime.utcnow().
         update (Update): The update that this comment pertains to.
@@ -3848,13 +3817,10 @@ class Comment(Base):
     __tablename__ = 'comments'
     __exclude_columns__ = tuple()
     __get_by__ = ('id',)
-    # If 'anonymous' is true, then scrub the 'author' field in __json__(...)
-    __anonymity_map__ = {'user': u'anonymous'}
 
     karma = Column(Integer, default=0)
     karma_critpath = Column(Integer, default=0)
     text = Column(UnicodeText, nullable=False)
-    anonymous = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     update_id = Column(Integer, ForeignKey('updates.id'))
@@ -3914,10 +3880,8 @@ class Comment(Base):
         result = super(Comment, self).__json__(*args, **kwargs)
         # Duplicate 'user' as 'author' just for backwards compat with bodhi1.
         # Things like fedmsg and fedbadges rely on this.
-        if not self.anonymous and result['user']:
+        if result['user']:
             result['author'] = result['user']['name']
-        else:
-            result['author'] = u'anonymous'
 
         # Similarly, duplicate the update's alias as update_alias.
         result['update_alias'] = result['update']['alias']
@@ -3939,12 +3903,7 @@ class Comment(Base):
         karma = '0'
         if self.karma != 0:
             karma = '%+d' % (self.karma,)
-        if self.anonymous:
-            anonymous = " (unauthenticated)"
-        else:
-            anonymous = ""
-        return "%s%s - %s (karma: %s)\n%s" % (self.user.name, anonymous,
-                                              self.timestamp, karma, self.text)
+        return "%s - %s (karma: %s)\n%s" % (self.user.name, self.timestamp, karma, self.text)
 
 
 class Bug(Base):
@@ -4254,6 +4213,7 @@ class BuildrootOverride(Base):
         if old_build is not None and old_build.override is not None:
             # There already is a buildroot override for an older build of this
             # package in this release. Expire it
+            log.debug(f"Expiring BRO for {old_build.nvr} because it's superseded by {build.nvr}.")
             old_build.override.expire()
             db.add(old_build.override)
 
@@ -4298,6 +4258,7 @@ class BuildrootOverride(Base):
             override.enable()
 
         elif data['expired']:
+            log.debug(f"Expiring BRO for {override.build.nvr} because it was edited.")
             override.expire()
 
         db.add(override)

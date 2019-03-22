@@ -4,7 +4,6 @@ bleach
 click
 colander
 cornice>=3.1.0
-cryptography
 dogpile.cache
 fedmsg[consumers]
 pyasn1-modules  # Due to an unfortunate dash in its name, installs break if pyasn1 is installed first
@@ -13,8 +12,6 @@ feedgen
 jinja2
 kitchen
 markdown
-# for captchas
-Pillow
 psycopg2
 py3dns  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 pylibravatar

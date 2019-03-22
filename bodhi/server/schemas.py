@@ -163,15 +163,6 @@ class SaveCommentSchema(CSRFProtectedSchema, colander.MappingSchema):
     bug_feedback = BugFeedbacks(missing=[])
     testcase_feedback = TestcaseFeedbacks(missing=[])
 
-    # Optional
-    captcha_key = colander.SchemaNode(colander.String(), missing=None)
-    captcha_value = colander.SchemaNode(colander.String(), missing=None)
-    email = colander.SchemaNode(
-        colander.String(),
-        validator=colander.Email(),
-        missing=None,
-    )
-
 
 class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
     """An API schema for bodhi.server.services.updates.new_update()."""
@@ -693,12 +684,6 @@ class ListCommentSchema(PaginatedSchema, SearchableSchema):
         location="querystring",
         missing=None,
         preparer=[util.splitter],
-    )
-
-    anonymous = colander.SchemaNode(
-        colander.Boolean(true_choices=('true', '1')),
-        location="querystring",
-        missing=None,
     )
 
     since = colander.SchemaNode(

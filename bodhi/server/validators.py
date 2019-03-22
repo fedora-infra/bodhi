@@ -28,7 +28,6 @@ import koji
 import pyramid.threadlocal
 import rpm
 
-from . import captcha
 from . import log
 from .models import (
     Build,
@@ -1147,60 +1146,6 @@ def validate_expiration_date(request, **kwargs):
         return
 
     request.validated['expiration_date'] = expiration_date
-
-
-@postschema_validator
-def validate_captcha(request, **kwargs):
-    """
-    Validate the captcha.
-
-    Args:
-        request (pyramid.util.Request): The current request.
-        kwargs (dict): The kwargs of the related service definition. Unused.
-    """
-    data = request.validated
-
-    email = data.get('email', None)
-    author = email or (request.user and request.user.name)
-    anonymous = bool(email) or not author
-
-    key = data.pop('captcha_key', None)
-    value = data.pop('captcha_value', None)
-
-    if anonymous and config.get('captcha.secret'):
-        if not key:
-            request.errors.add('body', 'captcha_key',
-                               'You must provide a captcha_key.')
-            request.errors.status = HTTPBadRequest.code
-            return
-
-        if not value:
-            request.errors.add('body', 'captcha_value',
-                               'You must provide a captcha_value.')
-            request.errors.status = HTTPBadRequest.code
-            return
-
-        if 'captcha' not in request.session:
-            request.errors.add('cookies', 'captcha',
-                               'Captcha cipher not in the session (replay).')
-            request.errors.status = HTTPBadRequest.code
-            return
-
-        if request.session['captcha'] != key:
-            request.errors.add(
-                'cookies', 'captcha', 'No captcha session cipher match (replay). %r %r' % (
-                    request.session['captcha'], key))
-            request.errors.status = HTTPBadRequest.code
-            return
-
-        if not captcha.validate(request, key, value):
-            request.errors.add('body', 'captcha_value',
-                               'Incorrect response to the captcha.')
-            request.errors.status = HTTPBadRequest.code
-            return
-
-        # Nuke this to stop replay attacks.  Once valid, never again.
-        del request.session['captcha']
 
 
 def _get_valid_requirements(request, requirements):

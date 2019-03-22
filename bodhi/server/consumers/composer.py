@@ -19,28 +19,31 @@
 The Bodhi "Composer".
 
 This module is responsible for the process of "pushing" updates out. It's
-comprised of a fedmsg consumer that launches threads for each repository being
+comprised of a fedore messaging consumer that launches threads for each repository being
 composed.
 """
 
 import functools
 import hashlib
 import json
+import logging
 import os
 import shutil
 import subprocess
 import tempfile
 import threading
 import time
+import typing
 from datetime import datetime
 from http.client import IncompleteRead
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
-import fedmsg.consumers
 import jinja2
+import fedora_messaging
 
-from bodhi.server import bugs, initialize_db, log, buildsys, notifications, mail
+
+from bodhi.server import bugs, initialize_db, buildsys, notifications, mail
 from bodhi.server.config import config, validate_path
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
@@ -49,6 +52,9 @@ from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, U
 from bodhi.server.scripts import clean_old_composes
 from bodhi.server.util import (copy_container, sorted_updates, sanity_check_repodata,
                                transactional_session_maker)
+
+
+log = logging.getLogger('bodhi')
 
 
 def checkpoint(method):
@@ -80,7 +86,7 @@ def checkpoint(method):
     return wrapper
 
 
-class Composer(fedmsg.consumers.FedmsgConsumer):
+class ComposerHandler(object):
     """
     The Bodhi Composer.
 
@@ -128,16 +134,13 @@ class Composer(fedmsg.consumers.FedmsgConsumer):
         - see if any updates now meet the stable criteria, and set the request
     """
 
-    config_key = 'composer'
-
-    def __init__(self, hub, db_factory=None, compose_dir=config.get('compose_dir'),
-                 *args, **kw):
+    def __init__(
+            self, db_factory: typing.Union[transactional_session_maker, None] = None,
+            compose_dir: str = config.get('compose_dir')):
         """
         Initialize the Composer.
 
         Args:
-            hub (moksha.hub.hub.CentralMokshaHub): The hub this handler is consuming messages from.
-                It is used to look up the hub config values.
             db_factory (bodhi.server.util.TransactionalSessionMaker or None): If given, used as the
                 db_factory for this Composer. If None (the default), a new TransactionalSessionMaker
                 is created and used.
@@ -154,13 +157,7 @@ class Composer(fedmsg.consumers.FedmsgConsumer):
         buildsys.setup_buildsystem(config)
         bugs.set_bugtracker()
         self.compose_dir = compose_dir
-        prefix = hub.config.get('topic_prefix')
-        env = hub.config.get('environment')
-        self.topic = prefix + '.' + env + '.' + hub.config.get('composer_topic')
-        self.valid_signer = hub.config.get('releng_fedmsg_certname')
-        if not self.valid_signer:
-            log.warning('No releng_fedmsg_certname defined'
-                        'Cert validation disabled')
+
         self.max_composes_sem = threading.BoundedSemaphore(config.get('max_concurrent_composes'))
 
         # This will ensure that the configured paths exist, and will raise ValueError if any does
@@ -171,28 +168,53 @@ class Composer(fedmsg.consumers.FedmsgConsumer):
             except ValueError as e:
                 raise ValueError('{} Check the {} setting.'.format(str(e), setting))
 
-        super(Composer, self).__init__(hub, *args, **kw)
-        log.info('Bodhi composer listening on topic: %s' % self.topic)
-
-    def consume(self, msg):
+    def __call__(self, message: fedora_messaging.api.Message):
         """
-        Receive a fedmsg and call work() with it.
+        Begin the push process.
+
+        Here we organize & prioritize the updates, and fire off separate
+        threads for each repo tag being composed.
+
+        If there are any security updates in the push, then those repositories
+        will be executed before all others.
 
         Args:
-            msg (munch.Munch): The fedmsg that was received.
+            message: The message we are processing. This is how we know what compose jobs to run.
         """
-        self.log.info(msg)
-        if self.valid_signer:
-            if not fedmsg.crypto.validate_signed_by(msg['body'], self.valid_signer,
-                                                    **self.hub.config):
-                self.log.error('Received message with invalid signature!'
-                               'Ignoring.')
-                # TODO: send email notifications
-                return
+        message = message.body["msg"]
+        resume = message.get('resume', False)
+        agent = message.get('agent')
+        notifications.publish(topic="composer.start", msg=dict(agent=agent), force=True)
 
-        self.work(msg)
+        results = []
+        threads = []
+        for compose in self._get_composes(message):
+            log.info('Now starting composes')
 
-    def _get_composes(self, msg):
+            composer = get_composer(ContentType.from_string(compose['content_type']))
+            if not composer:
+                log.error(
+                    'Unsupported content type %s submitted for composing. SKIPPING',
+                    compose['content_type']
+                )
+                continue
+
+            thread = composer(self.max_composes_sem, compose, agent, self.db_factory,
+                              self.compose_dir, resume)
+            threads.append(thread)
+            thread.start()
+
+        log.info('All of the batches are running. Now waiting for the final results')
+        for thread in threads:
+            thread.join()
+            for result in thread.results():
+                results.append(result)
+
+        log.info('Push complete!  Summary follows:')
+        for result in results:
+            log.info(result)
+
+    def _get_composes(self, msg: dict):
         """
         Return a list of dictionaries that represent the :class:`Composes <Compose>` we should run.
 
@@ -204,7 +226,7 @@ class Composer(fedmsg.consumers.FedmsgConsumer):
         message.
 
         Args:
-            msg (munch.Munch): The body of the received fedmsg.
+            msg: The body of the received message.
         Returns:
             list: A list of dictionaries, as returned from :meth:`Compose.__json__`.
         """
@@ -219,46 +241,6 @@ class Composer(fedmsg.consumers.FedmsgConsumer):
                 c.state = ComposeState.pending
 
             return [c.__json__(composer=True) for c in composes]
-
-    def work(self, msg):
-        """Begin the push process.
-
-        Here we organize & prioritize the updates, and fire off separate
-        threads for each repo tag being composed.
-
-        If there are any security updates in the push, then those repositories
-        will be executed before all others.
-        """
-        body = msg['body']['msg']
-        resume = body.get('resume', False)
-        agent = body.get('agent')
-        notifications.publish(topic="compose.start", msg=dict(agent=agent), force=True)
-
-        results = []
-        threads = []
-        for compose in self._get_composes(body):
-            self.log.info('Now starting composes')
-
-            composer = get_composer(ContentType.from_string(compose['content_type']))
-            if not composer:
-                self.log.error('Unsupported content type %s submitted for composing. SKIPPING',
-                               compose['content_type'])
-                continue
-
-            thread = composer(self.max_composes_sem, compose, agent, self.log, self.db_factory,
-                              self.compose_dir, resume)
-            threads.append(thread)
-            thread.start()
-
-        self.log.info('All of the batches are running. Now waiting for the final results')
-        for thread in threads:
-            thread.join()
-            for result in thread.results():
-                results.append(result)
-
-        self.log.info('Push complete!  Summary follows:')
-        for result in results:
-            self.log.info(result)
 
 
 def get_composer(content_type):
@@ -283,7 +265,7 @@ class ComposerThread(threading.Thread):
 
     ctype = None
 
-    def __init__(self, max_concur_sem, compose, agent, log, db_factory, compose_dir, resume=False):
+    def __init__(self, max_concur_sem, compose, agent, db_factory, compose_dir, resume=False):
         """
         Initialize the ComposerThread.
 
@@ -302,7 +284,6 @@ class ComposerThread(threading.Thread):
         """
         super(ComposerThread, self).__init__()
         self.db_factory = db_factory
-        self.log = log
         self.agent = agent
         self.max_concur_sem = max_concur_sem
         self._compose = compose
@@ -316,16 +297,16 @@ class ComposerThread(threading.Thread):
 
     def run(self):
         """Run the thread by managing a db transaction and calling work()."""
-        self.log.info('Grabbing semaphore')
+        log.info('Grabbing semaphore')
         self.max_concur_sem.acquire()
-        self.log.info('Acquired semaphore, starting')
+        log.info('Acquired semaphore, starting')
         try:
             with self.db_factory() as session:
                 self.db = session
                 self.compose = Compose.from_dict(session, self._compose)
                 self._checkpoints = json.loads(self.compose.checkpoints)
-                self.log.info('Starting composer type %s for %s with %d updates',
-                              self, str(self.compose), len(self.compose.updates))
+                log.info('Starting composer type %s for %s with %d updates',
+                         self, str(self.compose), len(self.compose.updates))
                 self.save_state(ComposeState.initializing)
                 self.work()
         except Exception as e:
@@ -335,12 +316,12 @@ class ComposerThread(threading.Thread):
                 self.compose.error_message = str(e)
                 self.save_state(ComposeState.failed)
 
-            self.log.exception('ComposerThread failed. Transaction rolled back.')
+            log.exception('ComposerThread failed. Transaction rolled back.')
         finally:
             self.compose = None
             self.db = None
             self.max_concur_sem.release()
-            self.log.info('Released semaphore')
+            log.info('Released semaphore')
 
     def results(self):
         """
@@ -371,7 +352,7 @@ class ComposerThread(threading.Thread):
                 and self.compose.request is UpdateRequest.stable:
             self.skip_compose = True
 
-        self.log.info('Running ComposerThread(%s)' % self.id)
+        log.info('Running ComposerThread(%s)' % self.id)
 
         notifications.publish(
             topic="compose.composing",
@@ -433,7 +414,7 @@ class ComposerThread(threading.Thread):
             self.remove_state()
 
         except Exception:
-            self.log.exception('Exception in ComposerThread(%s)' % self.id)
+            log.exception('Exception in ComposerThread(%s)' % self.id)
             self.save_state()
             raise
         finally:
@@ -442,27 +423,27 @@ class ComposerThread(threading.Thread):
     def check_all_karma_thresholds(self):
         """Run check_karma_thresholds() on testing Updates."""
         if self.compose.request is UpdateRequest.testing:
-            self.log.info('Determing if any testing updates reached the karma '
-                          'thresholds during the push')
+            log.info('Determing if any testing updates reached the karma '
+                     'thresholds during the push')
             for update in self.compose.updates:
                 try:
                     update.check_karma_thresholds(self.db, agent=u'bodhi')
                 except BodhiException:
-                    self.log.exception('Problem checking karma thresholds')
+                    log.exception('Problem checking karma thresholds')
 
     def obsolete_older_updates(self):
         """Obsolete any older updates that may still be lying around."""
-        self.log.info('Checking for obsolete updates')
+        log.info('Checking for obsolete updates')
         for update in self.compose.updates:
             update.obsolete_older_updates(self.db)
 
     def perform_gating(self):
         """Eject Updates that don't meet testing requirements from the compose."""
-        self.log.debug('Performing gating.')
+        log.debug('Performing gating.')
         for update in self.compose.updates:
             result, reason = update.check_requirements(self.db, config)
             if not result:
-                self.log.warning("%s failed gating: %s" % (update.alias, reason))
+                log.warning("%s failed gating: %s" % (update.alias, reason))
                 self.eject_from_compose(update, reason)
         # We may have removed some updates from this compose above, and do we don't want future
         # reads on self.compose.updates to see those, so let's mark that attribute expired so
@@ -515,17 +496,17 @@ class ComposerThread(threading.Thread):
         if state is not None:
             self.compose.state = state
         self.db.commit()
-        self.log.info('Compose object updated.')
+        log.info('Compose object updated.')
 
     def load_state(self):
         """Load the state of this push so it can be resumed later if necessary."""
         self._checkpoints = json.loads(self.compose.checkpoints)
-        self.log.info('Composer state loaded from %s', self.compose)
-        self.log.info(self.compose.state)
+        log.info('Composer state loaded from %s', self.compose)
+        log.info(self.compose.state)
 
     def remove_state(self):
         """Remove the Compose object from the database."""
-        self.log.info('Removing state: %s', self.compose)
+        log.info('Removing state: %s', self.compose)
         self.db.delete(self.compose)
 
     def finish(self, success):
@@ -535,7 +516,7 @@ class ComposerThread(threading.Thread):
         Args:
             success (bool): True if the compose had been successful, False otherwise.
         """
-        self.log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
+        log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
         notifications.publish(
             topic="compose.complete",
             msg=dict(success=success, repo=self.id, agent=self.agent, ctype=self.ctype.value),
@@ -544,7 +525,7 @@ class ComposerThread(threading.Thread):
 
     def update_security_bugs(self):
         """Update the bug titles for security updates."""
-        self.log.info('Updating bug titles for security updates')
+        log.info('Updating bug titles for security updates')
         for update in self.compose.updates:
             if update.type is UpdateType.security:
                 for bug in update.bugs:
@@ -606,12 +587,11 @@ class ComposerThread(threading.Thread):
                 koji.multicall = True
             for action in add:
                 tag, build = action
-                self.log.info("Adding tag %s to %s" % (tag, build))
+                log.info("Adding tag %s to %s" % (tag, build))
                 koji.tagBuild(tag, build, force=True)
             for action in move:
                 from_tag, to_tag, build = action
-                self.log.info('Moving %s from %s to %s' % (
-                              build, from_tag, to_tag))
+                log.info('Moving %s from %s to %s' % (build, from_tag, to_tag))
                 koji.moveBuild(from_tag, to_tag, build, force=True)
 
             if i != 0:
@@ -628,13 +608,14 @@ class ComposerThread(threading.Thread):
                 for build in update.builds:
                     if build.override:
                         try:
+                            log.debug(f"Expiring BRO for {build.nvr} because it is being pushed.")
                             build.override.expire()
                         except Exception:
                             log.exception('Problem expiring override')
 
     def remove_pending_tags(self):
         """Remove all pending tags from the updates."""
-        self.log.debug("Removing pending tags from builds")
+        log.debug("Removing pending tags from builds")
         koji = buildsys.get_session()
         koji.multicall = True
         for update in self.compose.updates:
@@ -647,12 +628,11 @@ class ComposerThread(threading.Thread):
                 update.remove_tag(update.release.pending_testing_tag,
                                   koji=koji)
         result = koji.multiCall()
-        self.log.debug('remove_pending_tags koji.multiCall result = %r',
-                       result)
+        log.debug('remove_pending_tags koji.multiCall result = %r', result)
 
     def _mark_status_changes(self):
         """Mark each update's status as fulfilling its request."""
-        self.log.info('Updating update statuses.')
+        log.info('Updating update statuses.')
         for update in self.compose.updates:
             now = datetime.utcnow()
             if update.request is UpdateRequest.testing:
@@ -666,7 +646,7 @@ class ComposerThread(threading.Thread):
 
     def _unlock_updates(self):
         """Unlock all the updates and clear their requests."""
-        self.log.info("Unlocking updates.")
+        log.info("Unlocking updates.")
         for update in self.compose.updates:
             update.request = None
             update.locked = False
@@ -688,15 +668,15 @@ class ComposerThread(threading.Thread):
 
     def generate_testing_digest(self):
         """Generate a testing digest message for this release."""
-        self.log.info('Generating testing digest for %s' % self.compose.release.name)
+        log.info('Generating testing digest for %s' % self.compose.release.name)
         for update in self.compose.updates:
             if update.request is UpdateRequest.testing:
                 self.add_to_digest(update)
-        self.log.info('Testing digest generation for %s complete' % self.compose.release.name)
+        log.info('Testing digest generation for %s complete' % self.compose.release.name)
 
     def send_notifications(self):
         """Send fedmsgs to announce completion of composing for each update."""
-        self.log.info('Sending notifications')
+        log.info('Sending notifications')
         try:
             agent = os.getlogin()
         except OSError:  # this can happen when building on koji
@@ -712,22 +692,22 @@ class ComposerThread(threading.Thread):
     @checkpoint
     def modify_bugs(self):
         """Mark bugs on each Update as modified."""
-        self.log.info('Updating bugs')
+        log.info('Updating bugs')
         for update in self.compose.updates:
-            self.log.debug('Modifying bugs for %s', update.alias)
+            log.debug('Modifying bugs for %s', update.alias)
             update.modify_bugs()
 
     @checkpoint
     def status_comments(self):
         """Add bodhi system comments to each update."""
-        self.log.info('Commenting on updates')
+        log.info('Commenting on updates')
         for update in self.compose.updates:
             update.status_comment(self.db)
 
     @checkpoint
     def send_stable_announcements(self):
         """Send the stable announcement e-mails out."""
-        self.log.info('Sending stable update announcements')
+        log.info('Sending stable update announcements')
         for update in self.compose.updates:
             if update.request is UpdateRequest.stable:
                 update.send_update_notice()
@@ -735,7 +715,7 @@ class ComposerThread(threading.Thread):
     @checkpoint
     def send_testing_digest(self):
         """Send digest mail to mailing lists."""
-        self.log.info('Sending updates-testing digest')
+        log.info('Sending updates-testing digest')
         sechead = u'The following %s Security updates need testing:\n Age  URL\n'
         crithead = u'The following %s Critical Path updates have yet to be approved:\n Age URL\n'
         testhead = u'The following builds have been pushed to %s updates-testing\n\n'
@@ -872,7 +852,7 @@ class PungiComposerThread(ComposerThread):
 
     pungi_template_config_key = None
 
-    def __init__(self, max_concur_sem, compose, agent, log, db_factory, compose_dir, resume=False):
+    def __init__(self, max_concur_sem, compose, agent, db_factory, compose_dir, resume=False):
         """
         Initialize the ComposerThread.
 
@@ -889,7 +869,7 @@ class PungiComposerThread(ComposerThread):
             resume (bool): Whether or not we are resuming a previous failed compose. Defaults to
                 False.
         """
-        super(PungiComposerThread, self).__init__(max_concur_sem, compose, agent, log, db_factory,
+        super(PungiComposerThread, self).__init__(max_concur_sem, compose, agent, db_factory,
                                                   compose_dir, resume)
         self.devnull = None
         self.compose_dir = compose_dir
@@ -914,14 +894,14 @@ class PungiComposerThread(ComposerThread):
         super(PungiComposerThread, self).load_state()
         if 'completed_repo' in self._checkpoints:
             self.path = self._checkpoints['completed_repo']
-            self.log.info('Resuming push with completed repo: %s' % self.path)
+            log.info('Resuming push with completed repo: %s' % self.path)
             return
-        self.log.info('Resuming push without any completed repos')
+        log.info('Resuming push without any completed repos')
 
     def _compose_updates(self):
         """Start pungi, generate updateinfo, wait for pungi, and wait for the mirrors."""
         if not os.path.exists(self.compose_dir):
-            self.log.info('Creating %s' % self.compose_dir)
+            log.info('Creating %s' % self.compose_dir)
             os.makedirs(self.compose_dir)
 
         composedone = self._checkpoints.get('compose_done')
@@ -999,11 +979,11 @@ class PungiComposerThread(ComposerThread):
             bodhi.server.metadata.UpdateInfoMetadata: The updateinfo model that was created for this
                 repository.
         """
-        self.log.info('Generating updateinfo for %s' % self.compose.release.name)
+        log.info('Generating updateinfo for %s' % self.compose.release.name)
         self.save_state(ComposeState.updateinfo)
         uinfo = UpdateInfoMetadata(self.compose.release, self.compose.request,
                                    self.db, self.compose_dir)
-        self.log.info('Updateinfo generation for %s complete' % self.compose.release.name)
+        log.info('Updateinfo generation for %s complete' % self.compose.release.name)
         return uinfo
 
     def _get_master_repomd_url(self, arch):
@@ -1056,7 +1036,7 @@ class PungiComposerThread(ComposerThread):
             Exception: If the child Pungi process exited with a non-0 exit code within 3 seconds.
         """
         if self.path:
-            self.log.info('Skipping completed repo: %s', self.path)
+            log.info('Skipping completed repo: %s', self.path)
             return
 
         # We have a thread-local devnull FD so that we can close them after the compose is done
@@ -1076,7 +1056,7 @@ class PungiComposerThread(ComposerThread):
                      '--label', self._label]
         pungi_cmd += config.get('pungi.extracmdline')
 
-        self.log.info('Running the pungi command: %s', pungi_cmd)
+        log.info('Running the pungi command: %s', pungi_cmd)
         compose_process = subprocess.Popen(pungi_cmd,
                                            # Nope. No shell for you
                                            shell=False,
@@ -1089,14 +1069,14 @@ class PungiComposerThread(ComposerThread):
                                            stderr=subprocess.PIPE,
                                            # We will never have additional input
                                            stdin=self.devnull)
-        self.log.info('Pungi running as PID: %s', compose_process.pid)
-        # Since the compose process takes a long time, we can safely just wait 3 seconds to abort
-        # the entire compose early if Pungi fails to start up correctly.
+        log.info('Pungi running as PID: %s', compose_process.pid)
+        # Since the compose process takes a long time, we can safely just wait 3 seconds
+        # to abort the entire compose early if Pungi fails to start up correctly.
         time.sleep(3)
         if compose_process.poll() not in [0, None]:
-            self.log.error('Pungi process terminated with error within 3 seconds! Abandoning!')
+            log.error('Pungi process terminated with error within 3 seconds! Abandoning!')
             _, err = compose_process.communicate()
-            self.log.error('Stderr: %s', err)
+            log.error('Stderr: %s', err)
             self.devnull.close()
             raise Exception('Pungi returned error, aborting!')
 
@@ -1121,17 +1101,17 @@ class PungiComposerThread(ComposerThread):
         This means that we when we go and sync generated repositories out, we do not need to take
         special case to copy the target files rather than symlinks.
         """
-        self.log.info("Running sanity checks on %s" % self.path)
+        log.info("Running sanity checks on %s" % self.path)
 
         try:
             arches = os.listdir(os.path.join(self.path, 'compose', 'Everything'))
         except Exception:
-            self.log.exception('Empty compose folder? Compose thrown out')
+            log.exception('Empty compose folder? Compose thrown out')
             self._toss_out_repo()
             raise
 
         if len(arches) == 0:
-            self.log.error('Empty compose, compose thrown out')
+            log.error('Empty compose, compose thrown out')
             self._toss_out_repo()
             raise Exception('Empty compose found')
 
@@ -1148,7 +1128,7 @@ class PungiComposerThread(ComposerThread):
                     repo_type = 'module' if self.ctype == ContentType.module else 'yum'
                     sanity_check_repodata(repodata, repo_type=repo_type)
             except Exception:
-                self.log.exception("Repodata sanity check failed, compose thrown out")
+                log.exception("Repodata sanity check failed, compose thrown out")
                 self._toss_out_repo()
                 raise
 
@@ -1175,15 +1155,13 @@ class PungiComposerThread(ComposerThread):
                             if not checkfile.endswith('.rpm'):
                                 continue
                             if os.path.islink(os.path.join(checkdir, subdir, checkfile)):
-                                self.log.error('Pungi out directory contains at least one '
-                                               'symlink at %s', checkfile)
+                                log.error('Pungi out directory contains at least one '
+                                          'symlink at %s', checkfile)
                                 raise Exception('Symlinks found')
                             # We have checked the first rpm in the subdir
                             break
             except Exception:
-                self.log.exception(
-                    'Unable to check pungi composed repositories, compose thrown out'
-                )
+                log.exception('Unable to check pungi composed repositories, compose thrown out')
                 self._toss_out_repo()
                 raise
 
@@ -1193,12 +1171,12 @@ class PungiComposerThread(ComposerThread):
         """Symlink our updates repository into the staging directory."""
         stage_dir = config.get('compose_stage_dir')
         if not os.path.isdir(stage_dir):
-            self.log.info('Creating compose_stage_dir %s', stage_dir)
+            log.info('Creating compose_stage_dir %s', stage_dir)
             os.mkdir(stage_dir)
         link = os.path.join(stage_dir, self.id)
         if os.path.islink(link):
             os.unlink(link)
-        self.log.info("Creating symlink: %s => %s" % (link, self.path))
+        log.info("Creating symlink: %s => %s" % (link, self.path))
         os.symlink(self.path, link)
 
     def _wait_for_pungi(self, pungi_process):
@@ -1213,19 +1191,19 @@ class PungiComposerThread(ComposerThread):
         """
         self.save_state(ComposeState.punging)
         if pungi_process is None:
-            self.log.info('Not waiting for pungi process, as there was no pungi')
+            log.info('Not waiting for pungi process, as there was no pungi')
             return
-        self.log.info('Waiting for pungi process to finish')
+        log.info('Waiting for pungi process to finish')
         out, err = pungi_process.communicate()
         out = out.decode()
         err = err.decode()
         self.devnull.close()
         if pungi_process.returncode != 0:
-            self.log.error('Pungi exited with exit code %d', pungi_process.returncode)
-            self.log.error('Stderr: %s', err)
+            log.error('Pungi exited with exit code %d', pungi_process.returncode)
+            log.error('Stderr: %s', err)
             raise Exception('Pungi exited with status %d' % pungi_process.returncode)
         else:
-            self.log.info('Pungi finished')
+            log.info('Pungi finished')
 
         # Find the path Pungi just created
         prefix = 'Compose dir: '
@@ -1233,12 +1211,12 @@ class PungiComposerThread(ComposerThread):
             if line.startswith(prefix):
                 self.path = line[len(prefix):]
         if not self.path:
-            self.log.error('Stdout: %s', out)
+            log.error('Stdout: %s', out)
             raise Exception('Unable to find the path to the compose')
         if not os.path.exists(os.path.join(self.path, 'compose', 'metadata', 'composeinfo.json')):
             raise Exception('Directory at %s does not look like a compose' % self.path)
 
-        self.log.debug('Path: %s', self.path)
+        log.debug('Path: %s', self.path)
         self._checkpoints['completed_repo'] = self.path
 
     def _wait_for_repo_signature(self):
@@ -1262,20 +1240,20 @@ class PungiComposerThread(ComposerThread):
                     sigpaths.append(os.path.join(repopath, arch, 'os', 'repodata',
                                                  'repomd.xml.asc'))
 
-            self.log.info('Waiting for signatures in %s', ', '.join(sigpaths))
+            log.info('Waiting for signatures in %s', ', '.join(sigpaths))
             while True:
                 missing = []
                 for path in sigpaths:
                     if not os.path.exists(path):
                         missing.append(path)
                 if len(missing) == 0:
-                    self.log.info('All signatures were created')
+                    log.info('All signatures were created')
                     break
                 else:
-                    self.log.info('Waiting on %s', ', '.join(missing))
+                    log.info('Waiting on %s', ', '.join(missing))
                     time.sleep(300)
         else:
-            self.log.info('Not waiting for a repo signature')
+            log.info('Not waiting for a repo signature')
 
     def _wait_for_sync(self):
         """
@@ -1284,7 +1262,7 @@ class PungiComposerThread(ComposerThread):
         Raises:
             Exception: If no folder other than "source" was found in the compose_path.
         """
-        self.log.info('Waiting for updates to hit the master mirror')
+        log.info('Waiting for updates to hit the master mirror')
         notifications.publish(
             topic="compose.sync.wait",
             msg=dict(repo=self.id, agent=self.agent),
@@ -1303,7 +1281,7 @@ class PungiComposerThread(ComposerThread):
 
         repomd = os.path.join(compose_path, arch, 'os', 'repodata', 'repomd.xml')
         if not os.path.exists(repomd):
-            self.log.error('Cannot find local repomd: %s', repomd)
+            log.error('Cannot find local repomd: %s', repomd)
             return
 
         self.save_state(ComposeState.syncing_repo)
@@ -1313,15 +1291,15 @@ class PungiComposerThread(ComposerThread):
             checksum = hashlib.sha1(repomdf.read().encode('utf-8')).hexdigest()
         while True:
             try:
-                self.log.info('Polling %s' % master_repomd_url)
+                log.info('Polling %s' % master_repomd_url)
                 masterrepomd = urlopen(master_repomd_url)
                 newsum = hashlib.sha1(masterrepomd.read()).hexdigest()
             except (ConnectionResetError, IncompleteRead, URLError, HTTPError):
-                self.log.exception('Error fetching repomd.xml')
+                log.exception('Error fetching repomd.xml')
                 time.sleep(200)
                 continue
             if newsum == checksum:
-                self.log.info("master repomd.xml matches!")
+                log.info("master repomd.xml matches!")
                 notifications.publish(
                     topic="compose.sync.done",
                     msg=dict(repo=self.id, agent=self.agent),
@@ -1329,8 +1307,8 @@ class PungiComposerThread(ComposerThread):
                 )
                 return
 
-            self.log.debug("master repomd.xml doesn't match! %s != %s for %r",
-                           checksum, newsum, self.id)
+            log.debug("master repomd.xml doesn't match! %s != %s for %r",
+                      checksum, newsum, self.id)
             time.sleep(200)
 
 
@@ -1405,12 +1383,12 @@ class ModuleComposerThread(PungiComposerThread):
         """
         if type(result) == list and not result:
             err = 'Empty list returned for getBuild("%s").' % build.nvr
-            self.log.error(err)
+            log.error(err)
             raise Exception(err)
         elif type(result) != list:
             err = 'Unexpected data returned for getBuild("%s"): %r.' \
                 % (build.nvr, result)
-            self.log.error(err)
+            log.error(err)
             raise Exception(err)
 
     def _add_build_to_newest_builds(self, newest_builds, koji_build, override=False):

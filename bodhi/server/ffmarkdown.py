@@ -1,4 +1,4 @@
-# Copyright © 2014-2018 Red Hat, Inc. and others.
+# Copyright © 2014-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -28,8 +28,9 @@ import markdown.postprocessors
 import markdown.util
 import pyramid.threadlocal
 
+from bodhi import MENTION_RE
 
-MENTION_RE = r'(?<!\S)(@\w+)'
+
 BUGZILLA_RE = r'([a-zA-Z]+)(#[0-9]{5,})'
 
 

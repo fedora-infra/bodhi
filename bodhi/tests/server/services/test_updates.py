@@ -127,36 +127,36 @@ class TestNewUpdate(BaseTestCase):
     def test_duplicate_build(self, *args):
         res = self.app.post_json(
             '/updates/', self.get_update([u'bodhi-2.0-2.fc17', u'bodhi-2.0-2.fc17']), status=400)
-        assert 'Duplicate builds' in res, res
+        self.assertIn('Duplicate builds', res)
 
     @mock.patch(**mock_valid_requirements)
     def test_multiple_builds_of_same_package(self, *args):
         res = self.app.post_json('/updates/', self.get_update([u'bodhi-2.0-2.fc17',
                                                                u'bodhi-2.0-3.fc17']),
                                  status=400)
-        assert 'Multiple bodhi builds specified' in res, res
+        self.assertIn('Multiple bodhi builds specified', res)
 
     @mock.patch(**mock_valid_requirements)
     def test_invalid_autokarma(self, *args):
         res = self.app.post_json('/updates/', self.get_update(stable_karma=-1),
                                  status=400)
-        assert '-1 is less than minimum value 1' in res, res
+        self.assertIn('-1 is less than minimum value 1', res)
         res = self.app.post_json('/updates/', self.get_update(unstable_karma=1),
                                  status=400)
-        assert '1 is greater than maximum value -1' in res, res
+        self.assertIn('1 is greater than maximum value -1', res)
 
     @mock.patch(**mock_valid_requirements)
     def test_duplicate_update(self, *args):
         res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-1.fc17'),
                                  status=400)
-        assert 'Update for bodhi-2.0-1.fc17 already exists' in res, res
+        self.assertIn('Update for bodhi-2.0-1.fc17 already exists', res)
 
     @mock.patch(**mock_valid_requirements)
     def test_invalid_requirements(self, *args):
         update = self.get_update()
         update['requirements'] = 'rpmlint silly-dilly'
         res = self.app.post_json('/updates/', update, status=400)
-        assert "Required check doesn't exist" in res, res
+        self.assertIn("Required check doesn't exist", res)
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')
@@ -177,8 +177,7 @@ class TestNewUpdate(BaseTestCase):
             "description": ("bodhi is not a member of \"packager\", which is a"
                             " mandatory packager group")
         }
-        assert expected_error in res.json_body['errors'], \
-            res.json_body['errors']
+        self.assertIn(expected_error, res.json_body['errors'])
         self.assertEqual(publish.call_args_list, [])
 
     @mock.patch(**mock_taskotron_results)
@@ -197,9 +196,9 @@ class TestNewUpdate(BaseTestCase):
         update = self.get_update(u'bodhi-2.1-1.fc17')
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', update)
-        assert 'bodhi does not have commit access to bodhi' not in res, res
+        self.assertNotIn('bodhi does not have commit access to bodhi', res)
         build = self.db.query(RpmBuild).filter_by(nvr=u'bodhi-2.1-1.fc17').one()
-        assert build.update is not None
+        self.assertIsNotNone(build.update)
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -209,7 +208,7 @@ class TestNewUpdate(BaseTestCase):
             res = self.app.post_json('/updates/', self.get_update(u'bodhi-2.0-2.fc17'),
                                      status=403)
 
-        assert "guest does not have commit access to bodhi" in res, res
+        self.assertIn("guest does not have commit access to bodhi", res)
 
     def test_put_json_update(self):
         self.app.put_json('/updates/', self.get_update(), status=405)
@@ -374,7 +373,7 @@ class TestNewUpdate(BaseTestCase):
         res = self.app.post_json('/updates/', self.get_update([u'nodejs-6-20170101',
                                                                u'nodejs-6-20170202']),
                                  status=400)
-        assert 'Multiple nodejs:6 builds specified' in res, res
+        self.assertIn('Multiple nodejs:6 builds specified', res)
 
     @mock.patch(**mock_valid_requirements)
     def test_multiple_builds_of_different_module_stream(self, *args):
@@ -384,13 +383,13 @@ class TestNewUpdate(BaseTestCase):
             res = self.app.post_json('/updates/', self.get_update([u'nodejs-6-20170101',
                                                                    u'nodejs-8-20170202']))
         res = res.json
-        assert res['request'] == 'testing'
-        assert len(res['builds']) == 2
-        assert res['builds'][0]['type'] == 'module'
-        assert res['builds'][1]['type'] == 'module'
-        assert res['builds'][0]['nvr'] == 'nodejs-6-20170101'
-        assert res['builds'][1]['nvr'] == 'nodejs-8-20170202'
-        assert res['title'] == 'nodejs-6-20170101 nodejs-8-20170202'
+        self.assertEqual(res['request'], 'testing')
+        self.assertEqual(len(res['builds']), 2)
+        self.assertEqual(res['builds'][0]['type'], 'module')
+        self.assertEqual(res['builds'][1]['type'], 'module')
+        self.assertEqual(res['builds'][0]['nvr'], 'nodejs-6-20170101')
+        self.assertEqual(res['builds'][1]['nvr'], 'nodejs-8-20170202')
+        self.assertEqual(res['title'], 'nodejs-6-20170101 nodejs-8-20170202')
 
         # At the end, ensure that the right kind of packages were created.
         self.assertEqual(self.db.query(ModulePackage).count(), 2)
@@ -412,17 +411,17 @@ class TestNewUpdate(BaseTestCase):
         # At the end, ensure that the right kind of package was created.
         self.assertEqual(self.db.query(ModulePackage).count(), 1)
         pkg = self.db.query(ModulePackage).one()
-        assert pkg.name == 'nodejs:6'
+        self.assertEqual(pkg.name, 'nodejs:6')
 
         # Assert that one update obsoleted the other
         updates = self.db.query(Update).all()
-        assert updates[1].title == 'nodejs-6-20170101'
-        assert updates[1].status.name == 'obsolete'
-        assert updates[1].request is None
+        self.assertEqual(updates[1].title, 'nodejs-6-20170101')
+        self.assertEqual(updates[1].status.name, 'obsolete')
+        self.assertIsNone(updates[1].request)
 
-        assert updates[2].title == 'nodejs-6-20170202'
-        assert updates[2].status.name == 'pending'
-        assert updates[2].request.name == 'testing'
+        self.assertEqual(updates[2].title, 'nodejs-6-20170202')
+        self.assertEqual(updates[2].status.name, 'pending')
+        self.assertEqual(updates[2].request.name, 'testing')
 
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
@@ -1223,7 +1222,7 @@ class TestUpdatesService(BaseTestCase):
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', up_data)
-        assert 'does not have commit access to bodhi' not in res, res
+        self.assertNotIn('does not have commit access to bodhi', res)
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -1234,9 +1233,9 @@ class TestUpdatesService(BaseTestCase):
         update['notes'] = u'testing!!!'
         update['edited'] = res.json['alias']
         res = app.post_json('/updates/', update)
-        assert 'bodhi does not have commit access to bodhi' not in res, res
+        self.assertNotIn('bodhi does not have commit access to bodhi', res)
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
-        assert build.update is not None
+        self.assertIsNotNone(build.update)
         self.assertEqual(build.update.notes, u'testing!!!')
 
     @mock.patch(**mock_taskotron_results)
@@ -1261,7 +1260,7 @@ class TestUpdatesService(BaseTestCase):
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         res = app.post_json('/updates/', up_data)
-        assert 'does not have commit access to bodhi' not in res, res
+        self.assertNotIn('does not have commit access to bodhi', res)
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -1495,7 +1494,7 @@ class TestUpdatesService(BaseTestCase):
         up_data = self.get_update(nvr)
         up_data['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
         res = self.app.post_json('/updates/', up_data)
-        assert 'does not have commit access to bodhi' not in res, res
+        self.assertNotIn('does not have commit access to bodhi', res)
         publish.assert_called_once_with(
             topic='update.request.testing', msg=mock.ANY)
 
@@ -3624,12 +3623,8 @@ class TestUpdatesService(BaseTestCase):
 
         self.assertEqual(resp.json['update']['status'], 'stable')
         self.assertEqual(resp.json['update']['request'], None)
-        try:
-            publish.assert_called_with(
-                topic='update.request.stable', msg=mock.ANY)
-            assert False, "request.stable fedmsg shouldn't have fired"
-        except AssertionError:
-            pass
+        # Publish should be called only when submitting update.
+        publish.assert_called_once_with(topic='update.request.testing', msg=mock.ANY)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -3656,12 +3651,8 @@ class TestUpdatesService(BaseTestCase):
 
         self.assertEqual(resp.json['update']['status'], 'testing')
         self.assertEqual(resp.json['update']['request'], None)
-        try:
-            publish.assert_called_with(
-                topic='update.request.testing', msg=mock.ANY)
-            assert False, "request.testing fedmsg shouldn't have fired"
-        except AssertionError:
-            pass
+        # Publish should be called only when submitting update.
+        publish.assert_called_once_with(topic='update.request.testing', msg=mock.ANY)
 
     @mock.patch(**mock_valid_requirements)
     def test_update_with_older_build_in_testing_from_diff_user(self, r):
@@ -4123,31 +4114,6 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         self.assertEqual(up._composite_karma, (2, 0))
         self.assertEqual(up.karma, 2)
-
-    @mock.patch(**mock_valid_requirements)
-    @mock.patch('bodhi.server.notifications.publish')
-    def test__composite_karma_with_anonymous_comment(self, publish, *args):
-        """
-        The test asserts that _composite_karma returns (0, 0) when an anonymous user
-        gives negative karma to an update.
-        """
-        user = User(name=u'bob')
-        self.db.add(user)
-        self.db.commit()
-
-        nvr = u'bodhi-2.1-1.fc17'
-        args = self.get_update(nvr)
-        self.app.post_json('/updates/', args).json_body
-        publish.assert_called_with(topic='update.request.testing', msg=ANY)
-
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        up.request = None
-        up.status = UpdateStatus.testing
-        self.db.commit()
-
-        up.comment(self.db, u'Not working', author='me', anonymous=True, karma=-1)
-        up = self.db.query(Build).filter_by(nvr=nvr).one().update
-        self.assertEqual(up._composite_karma, (0, 0))
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.notifications.publish')

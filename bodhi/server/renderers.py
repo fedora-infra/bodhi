@@ -15,8 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Define special view renderers, such as RSS and jpeg."""
-import io
+"""Define special view renderers, such as RSS."""
 import operator
 
 from pytz import utc
@@ -121,38 +120,4 @@ def rss(info):
 
         return feed.rss_str()
 
-    return render
-
-
-def jpeg(info):
-    """
-    Return a JPEG renderer.
-
-    Args:
-        info (pyramid.renderers.RendererHelper): Unused.
-    Returns:
-        function: A function that can be used to render a jpeg view.
-    """
-    def render(data, system):
-        """
-        Render the given image as a request response.
-
-        This function will also set the content type to image/jpeg if it is the default type.
-
-        Args:
-            data (PIL.Image.Image): The jpeg that should be sent back as a response.
-            system (pyramid.events.BeforeRender): Used to get the current request.
-        Returns:
-            str: The raw jpeg bytes of the given image.
-        """
-        request = system.get('request')
-        if request is not None:
-            response = request.response
-            ct = response.content_type
-            if ct == response.default_content_type:
-                response.content_type = 'image/jpeg'
-
-        b = io.BytesIO()
-        data.save(b, 'jpeg')
-        return b.getvalue()
     return render
