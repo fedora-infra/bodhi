@@ -261,3 +261,39 @@ class TestCheckPolicies(BaseTestCase):
             self.assertEqual(result.exit_code, 0)
 
         self.assertEqual(mock_greenwave.call_count, 0)
+
+    @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
+    def test_update_passed(self):
+        """Assert that updates for archived releases isn't being considered
+        by the script.
+        """
+        runner = testing.CliRunner()
+        update = self.db.query(models.Update).all()[0]
+        update.status = models.UpdateStatus.testing
+        update.test_gating_status = models.TestGatingStatus.passed
+        self.db.commit()
+        with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            mock_greenwave.side_effect = Exception(
+                'Greenwave should not be accessed for archived releases.')
+            result = runner.invoke(check_policies.check, [])
+            self.assertEqual(result.exit_code, 0)
+
+        self.assertEqual(mock_greenwave.call_count, 0)
+
+    @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
+    def test_update_ignored(self):
+        """Assert that updates for archived releases isn't being considered
+        by the script.
+        """
+        runner = testing.CliRunner()
+        update = self.db.query(models.Update).all()[0]
+        update.status = models.UpdateStatus.testing
+        update.test_gating_status = models.TestGatingStatus.ignored
+        self.db.commit()
+        with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            mock_greenwave.side_effect = Exception(
+                'Greenwave should not be accessed for archived releases.')
+            result = runner.invoke(check_policies.check, [])
+            self.assertEqual(result.exit_code, 0)
+
+        self.assertEqual(mock_greenwave.call_count, 0)

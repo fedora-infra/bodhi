@@ -48,6 +48,11 @@ def check():
     ).filter(
         models.Release.state.in_(
             [models.ReleaseState.current, models.ReleaseState.pending])
+    ).filter(
+        models.Update.test_gating_status.notin_(
+            models.TestGatingStatus.passed,
+            models.TestGatingStatus.ignored
+        )
     ).order_by(
         # Check the older updates first so there is more time for the newer to
         # get their test results
