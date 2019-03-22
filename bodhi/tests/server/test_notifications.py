@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test module contains tests for bodhi.server.notifications."""
 
-import datetime
 import json
 from unittest import mock
 
@@ -107,13 +106,6 @@ class FedMsgEncoderTests(base.BaseTestCase):
             json.dumps('a string', cls=notifications.FedMsgEncoder)
         )
 
-    def test_default_sets_to_lists(self):
-        """Assert sets are converted to lists."""
-        self.assertEqual(
-            sorted(['a', 'set']),
-            sorted(notifications.FedMsgEncoder().default(set(['a', 'a', 'set'])))
-        )
-
     def test_default_obj_with_json(self):
         """Assert classes with a ``__json__`` function encode as the return of ``__json__``."""
 
@@ -124,24 +116,6 @@ class FedMsgEncoderTests(base.BaseTestCase):
         self.assertEqual(
             {'my': 'json'},
             notifications.FedMsgEncoder().default(JsonClass())
-        )
-
-    def test_default_datetime(self):
-        """Datetime objects should be converted to timestamps."""
-        timestamp = 1553016625
-        dt = datetime.datetime.fromtimestamp(timestamp)
-        self.assertEqual(
-            timestamp,
-            notifications.FedMsgEncoder().default(dt)
-        )
-
-    def test_default_time_struct(self):
-        """Time structures should be converted to timestamps."""
-        timestamp = 1553016625
-        dt = datetime.datetime.fromtimestamp(timestamp)
-        self.assertEqual(
-            timestamp,
-            notifications.FedMsgEncoder().default(dt.timetuple())
         )
 
     def test_default_other(self):
