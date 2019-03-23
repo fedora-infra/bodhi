@@ -1684,17 +1684,19 @@ class Update(Base):
         We use this as a way to inject an alias into the Update, since it is a required field and
         we don't want callers to have to generate the alias themselves.
         """
-        super(Update, self).__init__(*args, **kwargs)
-
         # Let's give this Update an alias so the DB doesn't become displeased with us.
-        if not self.release:
+        if 'release' not in kwargs:
             raise ValueError('You must specify a Release when creating an Update.')
-        prefix = self.release.id_prefix
+        prefix = kwargs['release'].id_prefix
         year = time.localtime()[0]
         id = hashlib.sha1(str(uuid.uuid4()).encode('utf-8')).hexdigest()[:10]
         alias = u'%s-%s-%s' % (prefix, year, id)
-        log.debug('Setting alias for %s to %s' % (self.get_title(), alias))
         self.alias = alias
+        self.release_id = kwargs['release'].id
+
+        super(Update, self).__init__(*args, **kwargs)
+
+        log.debug('Set alias for %s to %s' % (self.get_title(), alias))
 
     @property
     def side_tag_locked(self):
