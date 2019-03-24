@@ -100,19 +100,6 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         % endif
     };
 
-    // Handle showing waivers retrieved from greenwave in the UI
-    var waiverdb_api_url = '${request.registry.settings["waiverdb_api_url"]}';
-    var handle_waivers = function(data){
-        $.each(data['waivers'], function(i, req) {
-            $('#test_status_badge').after(
-                '<a href="' + waiverdb_api_url + '/waivers/' + req.id + '">'
-                + '<span class="fa fa-cloud-upload text-muted" aria-hidden="true" '
-                + 'data-toggle="tooltip" data-placement="top" title="Waiver #' + req.id + ' - ' + req.comment + '"></span>'
-                + '</a>'
-            );
-        });
-    };
-
     var get_greenwave_information = function(data) {
         data.verbose = true;
         $.ajax({
