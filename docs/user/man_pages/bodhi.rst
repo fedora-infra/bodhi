@@ -236,6 +236,11 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Enable autokarma for this update.
 
+    ``--autotime``
+
+        Enable autotime for this update. Automatically push the update to stable based on the
+        time spent in testing.
+
     ``--stable-karma <integer>``
 
         Configure the stable karma threshold for the given value.
@@ -243,6 +248,11 @@ The ``updates`` command allows users to interact with bodhi updates.
     ``--unstable-karma <integer>``
 
         Configure the unstable karma threshold for the given value.
+
+    ``--stable-days <integer>``
+
+        Configure the number of days an update has to spend in testing before
+        being automatically pushed to stable.
 
     ``--suggest [logout | reboot]``
 

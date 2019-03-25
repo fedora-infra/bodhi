@@ -514,14 +514,8 @@ class BodhiConfig(dict):
         'test_case_base_url': {
             'value': 'https://fedoraproject.org/wiki/',
             'validator': str},
-        'testing_approval_msg_based_on_karma': {
-            'value': ('This update has reached the stable karma threshold and can be pushed to '
-                      'stable now if the maintainer wishes.'),
-            'validator': str
-        },
         'testing_approval_msg': {
-            'value': ('This update has reached %d days in testing and can be pushed to stable now '
-                      'if the maintainer wishes'),
+            'value': ('This update can be pushed to stable now if the maintainer wishes'),
             'validator': str},
         'testing_bug_epel_msg': {
             'value': (
