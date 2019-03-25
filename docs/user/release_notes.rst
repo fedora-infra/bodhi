@@ -2,6 +2,32 @@
 Release notes
 =============
 
+v3.14.0
+-------
+
+This is a bugfix release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* Use ``flatpaks/`` namespace for Flatpaks, and make it configurable.
+  (:pr:`2924`, :pr:`3052`).
+
+Bug fixes
+^^^^^^^^^
+
+* Fix HTTP 500 errors when viewing composes (:issue:`2826`).
+
+
 v3.13.3
 -------
 
