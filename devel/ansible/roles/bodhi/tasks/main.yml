@@ -36,7 +36,6 @@
       - python3-fedora
       - python3-flake8
       - python3-ipdb
-      - python3-kitchen
       - python3-koji
       - python3-librepo
       - python3-markdown

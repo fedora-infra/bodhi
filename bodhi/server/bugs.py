@@ -22,7 +22,6 @@ import logging
 import typing
 
 from collections import namedtuple
-from kitchen.text.converters import to_unicode
 import bugzilla
 
 from bodhi.server.config import config
@@ -269,7 +268,7 @@ class Bugzilla(object):
                 return
         if bug.product == 'Security Response':
             bug_entity.parent = True
-        bug_entity.title = to_unicode(bug.short_desc)
+        bug_entity.title = bug.short_desc
         if isinstance(bug.keywords, str):
             keywords = bug.keywords.split()
         else:  # python-bugzilla 0.8.0+

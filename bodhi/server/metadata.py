@@ -23,7 +23,6 @@ import shelve
 import shutil
 import tempfile
 
-from kitchen.text.converters import to_bytes
 import createrepo_c as cr
 
 from bodhi.server import util
@@ -206,13 +205,13 @@ class UpdateInfoMetadata(object):
         rec.fromstr = config.get('bodhi_email')
         rec.status = update.status.value
         rec.type = update.type.value
-        rec.id = to_bytes(update.alias)
-        rec.title = to_bytes(update.title)
+        rec.id = update.alias.encode('utf-8')
+        rec.title = update.title.encode('utf-8')
         rec.severity = util.severity_updateinfo_str(update.severity.value)
-        rec.summary = to_bytes('%s %s update' % (update.get_title(),
-                                                 update.type.value))
-        rec.description = to_bytes(update.notes)
-        rec.release = to_bytes(update.release.long_name)
+        rec.summary = ('%s %s update' % (update.get_title(),
+                                         update.type.value)).encode('utf-8')
+        rec.description = update.notes.encode('utf-8')
+        rec.release = update.release.long_name.encode('utf-8')
         rec.rights = config.get('updateinfo_rights')
 
         if update.date_pushed:
@@ -229,8 +228,8 @@ class UpdateInfoMetadata(object):
             rec.updated_date = datetime.utcnow()
 
         col = cr.UpdateCollection()
-        col.name = to_bytes(update.release.long_name)
-        col.shortname = to_bytes(update.release.name)
+        col.name = update.release.long_name.encode('utf-8')
+        col.shortname = update.release.name.encode('utf-8')
 
         koji = get_session()
         for build in update.builds:
@@ -273,9 +272,9 @@ class UpdateInfoMetadata(object):
         for bug in update.bugs:
             ref = cr.UpdateReference()
             ref.type = 'bugzilla'
-            ref.id = to_bytes(bug.bug_id)
-            ref.href = to_bytes(bug.url)
-            ref.title = to_bytes(bug.title)
+            ref.id = str(bug.bug_id).encode('utf-8')
+            ref.href = bug.url.encode('utf-8')
+            ref.title = bug.title.encode('utf-8') if bug.title else ''
             rec.append_reference(ref)
 
         self.uinfo.append(rec)

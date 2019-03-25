@@ -32,7 +32,6 @@ import tempfile
 import time
 import typing
 
-from kitchen.iterutils import iterate
 from pyramid.i18n import TranslationStringFactory
 import arrow
 import bleach
@@ -399,9 +398,11 @@ def splitter(value):
     """
     if value == colander.null:
         return
+    if isinstance(value, str):
+        value = [value]
 
     items = []
-    for v in iterate(value):
+    for v in value:
         if isinstance(v, str):
             for item in v.replace(',', ' ').split():
                 items.append(item)
