@@ -131,7 +131,7 @@ def test_release = { String release ->
 
 node('bodhi') {
     checkout scm
-    // diff-cover needs to be able to reference origin/3.13, so let's just fetch all branches.
+    // diff-cover needs to be able to reference origin/3.14, so let's just fetch all branches.
     sh 'git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/*'
     sh 'git fetch -p --no-tags origin'
 

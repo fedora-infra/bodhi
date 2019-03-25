@@ -2,6 +2,34 @@
 Release notes
 =============
 
+
+v3.14.0
+-------
+
+This is a feature release.
+
+
+Features
+^^^^^^^^
+
+* Use ``flatpaks/`` namespace for Flatpaks, and make it configurable.
+  (:pr:`2924`, :pr:`3052`).
+* Add json response handler for server internal errors (:issue:`3035`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* Fix HTTP 500 errors when viewing composes (:issue:`2826`).
+* Set log level to ERROR in bodhi-approve-testing (:issue:`3021`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Log why buildroot overrides are expired (:issue:`3060`).
+
+
 v3.13.3
 -------
 
