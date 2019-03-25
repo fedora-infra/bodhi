@@ -3159,7 +3159,7 @@ class TestUpdate(ModelTest):
         # The update should be eligible to receive the testing_approval_msg now.
         self.assertEqual(self.obj.meets_testing_requirements, True)
         # Add the testing_approval_message
-        text = str(config.get('testing_approval_msg') % self.obj.days_in_testing)
+        text = str(config.get('testing_approval_msg'))
         self.obj.comment(self.db, text, author='bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
@@ -3238,7 +3238,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, 'testing', author='hunter2', karma=1)
         self.obj.comment(self.db, 'testing', author='hunter3', karma=1)
         # Add the testing_approval_message
-        text = config.get('testing_approval_msg_based_on_karma')
+        text = config.get('testing_approval_msg')
         self.obj.comment(self.db, text, author='bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
