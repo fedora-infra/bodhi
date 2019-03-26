@@ -526,7 +526,14 @@ class BodhiConfig(dict):
             'validator': six.text_type},
         'openid_template': {
             'value': '{username}.id.fedoraproject.org',
+<<<<<<< HEAD
             'validator': six.text_type},
+=======
+            'validator': str},
+        'pagure_flatpak_namespace': {
+            'value': 'modules',
+            'validator': str},
+>>>>>>> 0e73eb54f... Make the pagure namespace for 'flatpaks' configurable
         'pagure_url': {
             'value': 'https://src.fedoraproject.org/pagure/',
             'validator': _validate_tls_url},
