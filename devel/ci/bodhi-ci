@@ -37,7 +37,7 @@ CONTAINER_NAME = 'bodhi-ci'
 # UUID is used so that one bodhi-ci process does not stop jobs started by a different one.
 CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 # This template is used to generate the summary lines that are printed out at the end.
-LABEL_TEMPLATE = '{:>8}-{:<27}'
+LABEL_TEMPLATE = '{:>8}-{:<34}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 RELEASES = ('f28', 'f29', 'f30', 'rawhide', 'pip')
 
