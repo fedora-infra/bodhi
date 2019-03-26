@@ -371,7 +371,7 @@ def _send_mail(from_addr, to_addr, body):
     try:
         log.debug('Connecting to %s', smtp_server)
         smtp = smtplib.SMTP(smtp_server)
-        smtp.sendmail(from_addr, [to_addr], body)
+        smtp.sendmail(from_addr, [to_addr], body.encode('utf-8'))
     except smtplib.SMTPRecipientsRefused as e:
         log.warning('"recipient refused" for %r, %r' % (to_addr, e))
     except Exception:
@@ -388,8 +388,8 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     Args:
         from_addr (str): The address to use in the From: header.
         to_addr (str): The address to send the e-mail to.
-        subject (basestring): The subject of the e-mail.
-        body_text (basestring): The body of the e-mail to be sent.
+        subject (str): The subject of the e-mail.
+        body_text (str): The body of the e-mail to be sent.
         headers (dict or None): A mapping of header fields to values to be included in the e-mail,
             if not None.
     """
@@ -401,16 +401,13 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     if to_addr in config.get('exclude_mail'):
         return
 
-    subject = subject.encode('utf-8')
-    body_text = body_text.encode('utf-8')
-
-    msg = [f'From: {from_addr}'.encode('utf-8'), f'To: {to_addr}'.encode('utf-8')]
+    msg = [f'From: {from_addr}', f'To: {to_addr}']
     if headers:
         for key, value in headers.items():
-            msg.append(f'{key}: {value}'.encode('utf-8'))
-    msg.append(f"X-Bodhi: {config.get('default_email_domain')}".encode('utf-8'))
-    msg += [b'Subject: %s' % subject, b'', body_text]
-    body = b'\r\n'.join(msg)
+            msg.append(f'{key}: {value}')
+    msg.append(f"X-Bodhi: {config.get('default_email_domain')}")
+    msg += [f'Subject: {subject}', '', body_text]
+    body = '\r\n'.join(msg)
 
     log.info('Sending mail to %s: %s', to_addr, subject)
     _send_mail(from_addr, to_addr, body)

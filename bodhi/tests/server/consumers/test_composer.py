@@ -559,7 +559,7 @@ References:
                                 mock.ANY)
         self.assertEqual(len(mail.mock_calls), 2)
         body = mail.mock_calls[1][1][2]
-        self.assertTrue(body.decode('utf-8').startswith(
+        self.assertTrue(body.startswith(
             ('From: updates@fedoraproject.org\r\nTo: %s\r\nX-Bodhi: fedoraproject.org\r\nSubject: '
              'Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to '
              'Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n====='

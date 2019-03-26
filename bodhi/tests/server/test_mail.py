@@ -351,7 +351,7 @@ class Test_SendMail(unittest.TestCase):
         mail._send_mail('archer@spies.com', 'lana@spies.com', 'hi')
 
         SMTP.assert_called_once_with('smtp.fp.o')
-        smtp.sendmail.assert_called_once_with('archer@spies.com', ['lana@spies.com'], 'hi')
+        smtp.sendmail.assert_called_once_with('archer@spies.com', ['lana@spies.com'], b'hi')
         warning.assert_called_once_with(
             '"recipient refused" for \'lana@spies.com\', {}'.format(
                 repr(smtp.sendmail.side_effect)))
