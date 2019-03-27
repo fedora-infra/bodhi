@@ -348,8 +348,15 @@ Release Bodhi downstream
 Next it is time to release Bodhi downstream. Don't forget to remove the patch you made earlier to
 set its version to a beta, and all the code that used commit hashes instead of versions.
 
-.. note:: Be sure to consider whether the version you are releasing would be backwards incompatible
-          for the various stable releases of Bodhi. Major releases should only go to Rawhide.
+#. Build the release for all targeted Fedora versions.
+
+   .. note:: Be sure to consider whether the version you are releasing would be backwards
+             incompatible for the various stable releases of Bodhi. Major releases should only go to
+             Rawhide.
+
+#. Build the release for bowlofegg's bodhi Copr repository::
+
+   $ copr build bowlofeggs/bodhi /home/bowlofeggs/rpmbuild/SRPMS/bodhi-3.13.0-1.fc29.src.rpm
 
 
 Deploy the beta to staging and production
