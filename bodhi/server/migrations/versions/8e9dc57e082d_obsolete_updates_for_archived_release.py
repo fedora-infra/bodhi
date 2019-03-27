@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2019 Sebastian Wojciechowski
 #
 # This file is part of Bodhi.
