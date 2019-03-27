@@ -773,10 +773,12 @@ class TestOverridesWebViews(base.BaseTestCase):
         self.assertIn('<h3>Overrides <small>page #1 of 1 pages', resp)
         self.assertIn('<a href="http://localhost/overrides/bodhi-2.0-1.fc17">', resp)
 
-    def test_override_expired_date(self):
+    @mock.patch('bodhi.server.util.arrow.get')
+    def test_override_expired_date(self, get):
         """
         Test that a User can see the expired date of the override
         """
+        get.return_value.humanize.return_value = '82 seconds ago bro'
         expiration_date = datetime.utcnow() + timedelta(days=1)
         data = {'nvr': 'bodhi-2.0-1.fc17', 'notes': u'blah blah blah',
                 'expiration_date': expiration_date,
@@ -788,5 +790,7 @@ class TestOverridesWebViews(base.BaseTestCase):
         resp = self.app.get('/overrides/bodhi-2.0-1.fc17',
                             status=200, headers={'Accept': 'text/html'})
 
-        self.assertRegex(str(resp), ('Expired\\n.*<span class="text-muted" '
-                                     'data-toggle="tooltip" title=".*"> just now </span>'))
+        self.assertRegex(
+            str(resp), ('Expired\\n.*<span class="text-muted" '
+                        'data-toggle="tooltip" title=".*"> 82 seconds ago bro </span>'))
+        self.assertTrue(abs((get.mock_calls[0][1][0] - expiration_date).seconds) < 64)
