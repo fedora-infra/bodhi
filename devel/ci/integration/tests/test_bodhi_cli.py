@@ -87,7 +87,7 @@ def test_composes_list(bodhi_container, db_container):
     FROM composes c
     JOIN releases r ON r.id = c.release_id
     JOIN updates u ON u.release_id = r.id AND u.request = c.request
-    WHERE r.state = 'current' AND u.locked = TRUE
+    WHERE r.state = 'current' OR r.state = 'pending' AND u.locked = TRUE
     GROUP BY r.name, c.request, c.state
     """
     db_ip = db_container.get_IPv4s()[0]
