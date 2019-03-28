@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+from configparser import ConfigParser
 from uuid import uuid4
 
 import pytest
-from six.moves.configparser import ConfigParser
 
 from ..utils import make_db_and_user, edit_file
 
