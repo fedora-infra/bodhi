@@ -19,6 +19,7 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
 * New functions, methods, and classes must have docblocks that explain what the code block is, and
   describing any parameters it accepts and what it returns (if anything). You can use the
   ``pydocstyle`` utility to automatically check your code for this.
+* Parameter and return value types should be declared using `type hints`_.
 * New code must follow `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`_. You can use the
   ``flake8`` utility to automatically check your code.
 * Add an entry to `docs/user/release_notes.rst`_ for any changes you make that should be in release
@@ -140,5 +141,6 @@ working system more quickly and with less effort. If you would like to use Vagra
 :doc:`Bodhi Virtualenv Guide <virtualenv>`.
 
 .. _docs/user/release_notes.rst: https://github.com/fedora-infra/bodhi/blob/develop/docs/user/release_notes.rst#release-notes
+.. _type hints: https://docs.python.org/3/library/typing.html
 .. _Vagrant: https://www.vagrantup.com
 .. _Virtualenv: https://virtualenv.pypa.io/en/stable/
