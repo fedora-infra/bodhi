@@ -58,7 +58,7 @@ class TestMain(BaseTestCase):
                 with fml_testing.mock_sends():
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
+        bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         self.assertEqual(comment_q.count(), 1)
         self.assertEqual(
@@ -89,7 +89,7 @@ class TestMain(BaseTestCase):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
+        self.assertEqual(self.db.query(models.User).filter_by(name='bodhi').count(), 0)
         self.assertEqual(self.db.query(models.Comment).count(), 0)
 
     def test_autokarma_update_not_meeting_testing_requirements(self):
@@ -115,7 +115,7 @@ class TestMain(BaseTestCase):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
+        self.assertEqual(self.db.query(models.User).filter_by(name='bodhi').count(), 0)
         self.assertEqual(self.db.query(models.Comment).count(), 0)
 
     @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
@@ -144,7 +144,7 @@ class TestMain(BaseTestCase):
             self.db,
             ('This update has reached 7 days in testing and can be pushed to stable now if the '
              'maintainer wishes'),
-            author=u'bodhi')
+            author='bodhi')
         self.assertEqual(stdout.getvalue(),
                          f'{update.alias} now meets testing requirements\nThe DB died lol\n')
         remove.assert_called_once_with()
@@ -163,7 +163,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.status = models.UpdateStatus.testing
 
-        update2 = self.create_update([u'bodhi2-2.0-1.fc17'])
+        update2 = self.create_update(['bodhi2-2.0-1.fc17'])
         update2.date_testing = datetime.utcnow() - timedelta(days=15)
         update2.request = None
         update2.status = models.UpdateStatus.testing
@@ -183,7 +183,7 @@ class TestMain(BaseTestCase):
             self.db,
             ('This update has reached 7 days in testing and can be pushed to stable now if the '
              'maintainer wishes'),
-            author=u'bodhi',
+            author='bodhi',
         )
         self.assertEqual(comment.call_args_list, [comment_expected_call, comment_expected_call])
         self.assertEqual(stdout.getvalue(),
@@ -212,7 +212,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
+        update.comment(self.db, 'testing', author='hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -224,7 +224,7 @@ class TestMain(BaseTestCase):
                 # further comments.
                 approve_testing.main(['nosetests', 'some_config.ini'])
 
-        bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
+        bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         self.assertEqual(comment_q.count(), 1)
         self.assertEqual(comment_q[0].text, config.get('testing_approval_msg_based_on_karma'))
@@ -246,7 +246,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
+        update.comment(self.db, 'testing', author='hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -259,13 +259,13 @@ class TestMain(BaseTestCase):
                 approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
+        self.assertEqual(self.db.query(models.User).filter_by(name='bodhi').count(), 0)
         # There are three comments, but none from the non-existing bodhi user.
         self.assertEqual(self.db.query(models.Comment).count(), 3)
         usernames = [
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
-        self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
+        self.assertEqual(usernames, ['guest', 'anonymous', 'hunter2'])
 
     def test_non_autokarma_update_meeting_karma_requirements_gets_one_comment(self):
         """
@@ -282,7 +282,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
+        update.comment(self.db, 'testing', author='hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -294,7 +294,7 @@ class TestMain(BaseTestCase):
                 # further comments.
                 approve_testing.main(['nosetests', 'some_config.ini'])
 
-        bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
+        bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         self.assertEqual(comment_q.count(), 1)
         self.assertEqual(comment_q[0].text, config.get('testing_approval_msg_based_on_karma'))
@@ -332,7 +332,7 @@ class TestMain(BaseTestCase):
         self.assertEqual(update.critpath, True)
         self.assertEqual(update.mandatory_days_in_testing, 14)
 
-        bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
+        bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         self.assertEqual(comment_q.count(), 1)
         self.assertEqual(
@@ -350,7 +350,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
+        update.comment(self.db, 'testing', author='hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -360,13 +360,13 @@ class TestMain(BaseTestCase):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
+        self.assertEqual(self.db.query(models.User).filter_by(name='bodhi').count(), 0)
         # There are three comments, but none from the non-existing bodhi user.
         self.assertEqual(self.db.query(models.Comment).count(), 3)
         usernames = [
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
-        self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
+        self.assertEqual(usernames, ['guest', 'anonymous', 'hunter2'])
 
     def test_non_autokarma_update_with_unmet_karma_requirement_after_time_met(self):
         """
@@ -381,7 +381,7 @@ class TestMain(BaseTestCase):
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
         update.date_testing = datetime.utcnow() - timedelta(days=7)
-        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
+        update.comment(self.db, 'testing', author='hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -390,7 +390,7 @@ class TestMain(BaseTestCase):
                 with fml_testing.mock_sends(api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
+        bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         self.assertEqual(comment_q.count(), 1)
         self.assertEqual(
@@ -409,7 +409,7 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
-        update.comment(self.db, u'testing', author=u'hunter2', karma=1)
+        update.comment(self.db, 'testing', author='hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
@@ -418,13 +418,13 @@ class TestMain(BaseTestCase):
                 approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
+        self.assertEqual(self.db.query(models.User).filter_by(name='bodhi').count(), 0)
         # There are three comments, but none from the non-existing bodhi user.
         self.assertEqual(self.db.query(models.Comment).count(), 3)
         usernames = [
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
-        self.assertEqual(usernames, [u'guest', u'anonymous', u'hunter2'])
+        self.assertEqual(usernames, ['guest', 'anonymous', 'hunter2'])
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 14)])
     def test_subsequent_comments_after_initial_push_comment(self):
@@ -445,11 +445,11 @@ class TestMain(BaseTestCase):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
                 with fml_testing.mock_sends(api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
-                update.comment(self.db, u"Removed build", 0, u'bodhi')
+                update.comment(self.db, "Removed build", 0, 'bodhi')
                 with fml_testing.mock_sends(api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        bodhi = self.db.query(models.User).filter_by(name=u'bodhi').one()
+        bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         # There are 3 comments: testing_approval_msg, build change, testing_approval_msg
         self.assertEqual(cmnts.count(), 3)

@@ -90,7 +90,7 @@ class TestComment(unittest.TestCase):
         send_request.assert_called_once_with(
             bindings_client, 'comments/', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'text': 'After installing this I found $100.',
-                  'update': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'karma': 1})
+                  'update': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'karma': 1})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
 
@@ -119,7 +119,7 @@ class TestDownload(unittest.TestCase):
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'updates/', verb='GET',
-            params={'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25'})
+            params={'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
         call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
@@ -199,7 +199,7 @@ class TestDownload(unittest.TestCase):
         result = runner.invoke(client.download)
 
         self.assertEqual(result.output,
-                         u'ERROR: must specify at least one of --updateid or --builds\n')
+                         'ERROR: must specify at least one of --updateid or --builds\n')
         send_request.assert_not_called()
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -316,9 +316,9 @@ class TestComposeInfo(unittest.TestCase):
         self.assertEqual(result.exit_code, 2)
         self.assertTrue(compare_output(
             result.output,
-            (u'Usage: info [OPTIONS] RELEASE REQUEST\n\n'
-             u'Error: Invalid value for RELEASE/REQUEST: Compose with '
-             u'request "stable" not found for release "EPEL-7"')))
+            ('Usage: info [OPTIONS] RELEASE REQUEST\n\n'
+             'Error: Invalid value for RELEASE/REQUEST: Compose with '
+             'request "stable" not found for release "EPEL-7"')))
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
         __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, staging=False)
 
@@ -432,15 +432,15 @@ class TestNew(unittest.TestCase):
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
                     'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                    'suggest': None, 'notes': u'No description.', 'request': None, 'bugs': u'',
+                    'staging': False, 'builds': 'bodhi-2.2.4-1.el7', 'autokarma': True,
+                    'suggest': None, 'notes': 'No description.', 'request': None, 'bugs': '',
                     'requirements': None, 'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': 'urgent'
                 }
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -472,15 +472,15 @@ class TestNew(unittest.TestCase):
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
                     'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                    'suggest': None, 'notes': u'No description.', 'request': None,
-                    'bugs': u'', 'requirements': None, 'unstable_karma': None, 'file': None,
+                    'staging': False, 'builds': 'bodhi-2.2.4-1.el7', 'autokarma': True,
+                    'suggest': None, 'notes': 'No description.', 'request': None,
+                    'bugs': '', 'requirements': None, 'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': 'urgent'
                 }
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -511,15 +511,15 @@ class TestNew(unittest.TestCase):
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
                     'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                    'suggest': None, 'notes': u'No description.', 'request': None, 'bugs': u'',
+                    'staging': False, 'builds': 'bodhi-2.2.4-1.el7', 'autokarma': True,
+                    'suggest': None, 'notes': 'No description.', 'request': None, 'bugs': '',
                     'requirements': None, 'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': None
                 }
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -552,16 +552,16 @@ class TestNew(unittest.TestCase):
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
                     'close_bugs': True, 'stable_karma': '3', 'csrf_token': 'a_csrf_token',
-                    'builds': u'fedora-workstation-backgrounds-1.1-1.fc26',
-                    'autokarma': 'True', 'suggest': 'unspecified', 'notes': u'Initial Release',
-                    'request': 'testing', 'bugs': u'123456,43212',
+                    'builds': 'fedora-workstation-backgrounds-1.1-1.fc26',
+                    'autokarma': 'True', 'suggest': 'unspecified', 'notes': 'Initial Release',
+                    'request': 'testing', 'bugs': '123456,43212',
                     'unstable_karma': '-3', 'type_': 'bugfix', 'type': 'bugfix',
                     'type': 'bugfix', 'severity': 'unspecified'
                 }
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -632,15 +632,15 @@ class TestNew(unittest.TestCase):
                 bindings_client, 'updates/', auth=True, verb='POST',
                 data={
                     'close_bugs': True, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
-                    'staging': False, 'builds': u'bodhi-2.2.4-1.el7', 'autokarma': True,
-                    'suggest': None, 'notes': u'No description.', 'request': None,
-                    'bugs': u'1234567', 'requirements': None, 'unstable_karma': None, 'file': None,
+                    'staging': False, 'builds': 'bodhi-2.2.4-1.el7', 'autokarma': True,
+                    'suggest': None, 'notes': 'No description.', 'request': None,
+                    'bugs': '1234567', 'requirements': None, 'unstable_karma': None, 'file': None,
                     'notes_file': None, 'type': 'bugfix', 'severity': None
                 }
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -660,7 +660,7 @@ class TestNew(unittest.TestCase):
              '--url', 'http://localhost:6543'])
 
         self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, u'ERROR: must specify at least one of --file, --notes, or '
+        self.assertEqual(result.output, 'ERROR: must specify at least one of --file, --notes, or '
                                         '--notes-file\n')
 
     def test_new_security_update_with_unspecified_severity(self):
@@ -752,7 +752,7 @@ class TestQuery(unittest.TestCase):
                 params={
                     'updateid': None, 'alias': None, 'approved_since': None,
                     'approved_before': None, 'status': None, 'locked': None,
-                    'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
+                    'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
                     'content_type': None, 'severity': None,
                     'submitted_since': None, 'submitted_before': None, 'suggest': None,
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
@@ -763,7 +763,7 @@ class TestQuery(unittest.TestCase):
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                'updates/FEDORA-2017-c95b33872d/get-test-results',
                 verb='GET'
             )
         ]
@@ -793,7 +793,7 @@ class TestQuery(unittest.TestCase):
             params={
                 'updateid': None, 'alias': None, 'approved_since': None,
                 'approved_before': None, 'status': None, 'locked': None,
-                'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
+                'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
                 'content_type': None, 'severity': None,
                 'submitted_since': None, 'submitted_before': None, 'suggest': None,
                 'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
@@ -826,7 +826,7 @@ class TestQuery(unittest.TestCase):
                 params={
                     'updateid': None, 'alias': None, 'approved_since': None,
                     'approved_before': None, 'status': None, 'locked': None,
-                    'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
+                    'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
                     'content_type': None, 'severity': None,
                     'submitted_since': None, 'submitted_before': None, 'suggest': None,
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
@@ -837,7 +837,7 @@ class TestQuery(unittest.TestCase):
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                'updates/FEDORA-2017-c95b33872d/get-test-results',
                 verb='GET'
             )
         ]
@@ -878,7 +878,7 @@ class TestQuery(unittest.TestCase):
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -918,7 +918,7 @@ class TestQuery(unittest.TestCase):
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                'updates/FEDORA-2017-c95b33872d/get-test-results',
                 verb='GET'
             )
         ]
@@ -957,7 +957,7 @@ class TestQuery(unittest.TestCase):
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                'updates/FEDORA-2017-c95b33872d/get-test-results',
                 verb='GET'
             )
         ]
@@ -987,7 +987,7 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'overrides/', verb='GET',
-            params={'user': u'bowlofeggs'})
+            params={'user': 'bowlofeggs'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -1013,7 +1013,7 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -1047,7 +1047,7 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
         self.assertEqual(
             send_request.mock_calls[0],
             mock.call(bindings_client, 'overrides/', verb='GET',
-                      params={'builds': u'bodhi-2.10.1-1.fc25'}))
+                      params={'builds': 'bodhi-2.10.1-1.fc25'}))
         self.assertEqual(
             send_request.mock_calls[1],
             mock.call(bindings_client, 'releases/', verb='GET',
@@ -1121,12 +1121,12 @@ class TestRequest(unittest.TestCase):
             mock.call(
                 'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
                 data={
-                    'csrf_token': 'a_csrf_token', 'request': u'revoke',
-                    'update': u'bodhi-2.2.4-1.el7'
+                    'csrf_token': 'a_csrf_token', 'request': 'revoke',
+                    'update': 'bodhi-2.2.4-1.el7'
                 }
             ),
             mock.call(
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -1155,12 +1155,12 @@ class TestRequest(unittest.TestCase):
         self.assertEqual(result.exit_code, 2)
         self.assertTrue(compare_output(
             result.output,
-            (u'Usage: request [OPTIONS] UPDATE STATE\n\nError: Invalid value for UPDATE: Update not'
-             u' found: bodhi-2.2.4-99.el7\n')))
+            ('Usage: request [OPTIONS] UPDATE STATE\n\nError: Invalid value for UPDATE: Update not'
+             ' found: bodhi-2.2.4-99.el7\n')))
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
-            data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
-                  'update': u'bodhi-2.2.4-99.el7'})
+            data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
+                  'update': 'bodhi-2.2.4-99.el7'})
         __init__.assert_called_once_with(
             base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user', password='s3kr3t',
             staging=False, openid_api='https://id.example.com/api/v1/')
@@ -1189,13 +1189,13 @@ class TestRequest(unittest.TestCase):
             mock.call(
                 bindings_client, 'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
                 data={
-                    'csrf_token': 'a_csrf_token', 'request': u'revoke',
-                    'update': u'bodhi-2.2.4-99.el7'
+                    'csrf_token': 'a_csrf_token', 'request': 'revoke',
+                    'update': 'bodhi-2.2.4-99.el7'
                 }
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -1245,7 +1245,7 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
                 bindings_client, 'overrides/', verb='POST', auth=True,
                 data={
                     'expiration_date': expire_time,
-                    'notes': u'No explanation given...', 'nvr': u'js-tag-it-2.0-1.fc25',
+                    'notes': 'No explanation given...', 'nvr': 'js-tag-it-2.0-1.fc25',
                     'csrf_token': 'a_csrf_token'}))
         self.assertEqual(
             send_request.mock_calls[1],
@@ -1401,7 +1401,7 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
                 bindings_client, 'overrides/', verb='POST', auth=True,
                 data={
                     'expiration_date': expire_time,
-                    'notes': u'No explanation given...', 'nvr': overrides_nvrs_str,
+                    'notes': 'No explanation given...', 'nvr': overrides_nvrs_str,
                     'csrf_token': 'a_csrf_token'}))
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
@@ -1513,7 +1513,7 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
-            bindings_client, updateid=u'FEDORA-2017-c95b33872d')
+            bindings_client, updateid='FEDORA-2017-c95b33872d')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -1522,15 +1522,15 @@ class TestEdit(unittest.TestCase):
                     'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
                     'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
-                    'suggest': u'unspecified', 'notes': u'Updated package.',
+                    'suggest': 'unspecified', 'notes': 'Updated package.',
                     'notes_file': None, 'request': None, 'unstable_karma': -3,
-                    'bugs': '1420605', 'requirements': u'', 'type': 'newpackage',
-                    'severity': u'low'
+                    'bugs': '1420605', 'requirements': '', 'type': 'newpackage',
+                    'severity': 'low'
                 }
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -1556,7 +1556,7 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
-            bindings_client, updateid=u'FEDORA-2017-c95b33872d')
+            bindings_client, updateid='FEDORA-2017-c95b33872d')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -1565,15 +1565,15 @@ class TestEdit(unittest.TestCase):
                     'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
                     'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
-                    'suggest': u'unspecified', 'notes': u'this is an edited note',
-                    'notes_file': None, 'request': None, 'severity': u'low',
-                    'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
+                    'suggest': 'unspecified', 'notes': 'this is an edited note',
+                    'notes_file': None, 'request': None, 'severity': 'low',
+                    'bugs': '1420605', 'requirements': '', 'unstable_karma': -3,
                     'type': 'newpackage'
                 }
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -1604,7 +1604,7 @@ class TestEdit(unittest.TestCase):
             self.assertEqual(result.exit_code, 0)
             bindings_client = query.mock_calls[0][1][0]
             query.assert_called_with(
-                bindings_client, updateid=u'FEDORA-2017-c95b33872d')
+                bindings_client, updateid='FEDORA-2017-c95b33872d')
             bindings_client = send_request.mock_calls[0][1][0]
             calls = [
                 mock.call(
@@ -1615,13 +1615,13 @@ class TestEdit(unittest.TestCase):
                         'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
                         'suggest': 'unspecified', 'notes': 'This is a --notes-file note!',
                         'notes_file': 'notefile.txt', 'request': None, 'severity': 'low',
-                        'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
+                        'bugs': '1420605', 'requirements': '', 'unstable_karma': -3,
                         'type': 'newpackage'
                     }
                 ),
                 mock.call(
                     bindings_client,
-                    u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                    'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                     verb='GET'
                 )
             ]
@@ -1692,7 +1692,7 @@ class TestEdit(unittest.TestCase):
                               '--notes-file', 'notefile.txt', '--url', 'http://localhost:6543'])
 
             self.assertEqual(result.exit_code, 1)
-            self.assertEqual(result.output, u'ERROR: Cannot specify --notes and --notes-file\n')
+            self.assertEqual(result.output, 'ERROR: Cannot specify --notes and --notes-file\n')
 
     def test_wrong_update_id_argument(self):
         """
@@ -1710,9 +1710,9 @@ class TestEdit(unittest.TestCase):
             label = 'update'
         else:
             label = 'UPDATE'
-        expected = u'Usage: edit [OPTIONS] UPDATE\n\n' \
-                   u'Error: Invalid value for "{}": ' \
-                   u'Please provide an Update ID\n'
+        expected = 'Usage: edit [OPTIONS] UPDATE\n\n' \
+                   'Error: Invalid value for "{}": ' \
+                   'Please provide an Update ID\n'
         expected = expected.format(label)
 
         self.assertEqual(result.output, expected)
@@ -1739,7 +1739,7 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
-            bindings_client, updateid=u'FEDORA-2017-c95b33872d')
+            bindings_client, updateid='FEDORA-2017-c95b33872d')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -1748,15 +1748,15 @@ class TestEdit(unittest.TestCase):
                     'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
                     'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
-                    'suggest': u'unspecified', 'notes': u'testing required tasks',
-                    'notes_file': None, 'request': None, 'severity': u'low',
+                    'suggest': 'unspecified', 'notes': 'testing required tasks',
+                    'notes_file': None, 'request': None, 'severity': 'low',
                     'bugs': '1420605', 'unstable_karma': -3,
-                    'requirements': u'dist.depcheck dist.rpmdeplint', 'type': 'newpackage'
+                    'requirements': 'dist.depcheck dist.rpmdeplint', 'type': 'newpackage'
                 }
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -1799,7 +1799,7 @@ class TestEdit(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
-            bindings_client, updateid=u'FEDORA-2017-c95b33872d')
+            bindings_client, updateid='FEDORA-2017-c95b33872d')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -1807,15 +1807,15 @@ class TestEdit(unittest.TestCase):
                 data={
                     'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
                     'staging': False, 'builds': ['nodejs-grunt-wrap-0.3.0-2.fc25'],
-                    'autokarma': False, 'edited': u'FEDORA-2017-c95b33872d',
-                    'suggest': u'unspecified', 'notes': u'New package.',
-                    'notes_file': None, 'request': None, 'severity': u'low',
-                    'bugs': '', 'requirements': u'', 'unstable_karma': -3, 'type': 'newpackage'
+                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                    'suggest': 'unspecified', 'notes': 'New package.',
+                    'notes_file': None, 'request': None, 'severity': 'low',
+                    'bugs': '', 'requirements': '', 'unstable_karma': -3, 'type': 'newpackage'
                 }
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET'
             )
         ]
@@ -1869,8 +1869,8 @@ class TestEditBuildrootOverrides(unittest.TestCase):
         send_request.assert_called_once_with(
             bindings_client, 'overrides/', verb='POST', auth=True,
             data={
-                'expiration_date': expire_time, 'notes': u'This is an expired override',
-                'nvr': u'js-tag-it-2.0-1.fc25', 'edited': u'js-tag-it-2.0-1.fc25',
+                'expiration_date': expire_time, 'notes': 'This is an expired override',
+                'nvr': 'js-tag-it-2.0-1.fc25', 'edited': 'js-tag-it-2.0-1.fc25',
                 'csrf_token': 'a_csrf_token', 'expired': True})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
@@ -1962,7 +1962,7 @@ class TestCreate(unittest.TestCase):
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'releases/', verb='POST', auth=True,
-            data={'dist_tag': None, 'csrf_token': 'a_csrf_token', 'staging': False, 'name': u'F27',
+            data={'dist_tag': None, 'csrf_token': 'a_csrf_token', 'staging': False, 'name': 'F27',
                   'testing_tag': None, 'pending_stable_tag': None, 'long_name': None, 'state': None,
                   'version': None, 'override_tag': None, 'branch': None, 'id_prefix': None,
                   'pending_testing_tag': None, 'pending_signing_tag': None, 'stable_tag': None,
@@ -2458,7 +2458,7 @@ class TestPrintResp(unittest.TestCase):
             client.query,
             [])
 
-        self.assertEqual(result.output, u"{'pants': 'pants'}\n")
+        self.assertEqual(result.output, "{'pants': 'pants'}\n")
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2522,7 +2522,7 @@ class TestWaive(unittest.TestCase):
 
         send_request.assert_called_once_with(
             bindings_client,
-            u'updates/nodejs-grunt-wrap-0.3.0-2.fc25/get-test-results',
+            'updates/nodejs-grunt-wrap-0.3.0-2.fc25/get-test-results',
             verb='GET'
         )
 
@@ -2679,13 +2679,13 @@ class TestWaive(unittest.TestCase):
                 bindings_client,
                 'updates/FEDORA-2017-c95b33872d/waive-test-results',
                 auth=True,
-                data={'comment': u'Expected errors', 'csrf_token': 'a_csrf_token',
-                      'tests': None, 'update': u'FEDORA-2017-c95b33872d'},
+                data={'comment': 'Expected errors', 'csrf_token': 'a_csrf_token',
+                      'tests': None, 'update': 'FEDORA-2017-c95b33872d'},
                 verb='POST',
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                'updates/FEDORA-2017-c95b33872d/get-test-results',
                 verb='GET'
             )
         ]
@@ -2729,14 +2729,14 @@ class TestWaive(unittest.TestCase):
                 bindings_client,
                 'updates/FEDORA-2017-c95b33872d/waive-test-results',
                 auth=True,
-                data={'comment': u'Expected errors', 'csrf_token': 'a_csrf_token',
-                      'tests': (u'dist.rpmdeplint', u'fedora-atomic-ci'),
-                      'update': u'FEDORA-2017-c95b33872d'},
+                data={'comment': 'Expected errors', 'csrf_token': 'a_csrf_token',
+                      'tests': ('dist.rpmdeplint', 'fedora-atomic-ci'),
+                      'update': 'FEDORA-2017-c95b33872d'},
                 verb='POST',
             ),
             mock.call(
                 bindings_client,
-                u'updates/FEDORA-2017-c95b33872d/get-test-results',
+                'updates/FEDORA-2017-c95b33872d/get-test-results',
                 verb='GET'
             )
         ]

@@ -220,10 +220,10 @@ class BodhiConfigValidate(unittest.TestCase):
         c = config.BodhiConfig()
         c.load_config()
         # Let's set all of these to unicodes, and we'll assert that they get turned into strs.
-        c['koji_hub'] = u'http://example.com/kojihub'
-        c['krb_ccache'] = u'/tmp/krb5cc_%{uid}'
-        c['krb_keytab'] = u'/etc/krb5.bodhi.keytab'
-        c['krb_principal'] = u'bodhi/bodhi@FEDORAPROJECT.ORG'
+        c['koji_hub'] = 'http://example.com/kojihub'
+        c['krb_ccache'] = '/tmp/krb5cc_%{uid}'
+        c['krb_keytab'] = '/etc/krb5.bodhi.keytab'
+        c['krb_principal'] = 'bodhi/bodhi@FEDORAPROJECT.ORG'
 
         # This should not raise an Exception, but it should convert the above to strs.
         c._validate()
@@ -263,7 +263,7 @@ class GenerateListValidatorTests(unittest.TestCase):
         """Test with a non-default splitter."""
         result = config._generate_list_validator('|')('thing 1| thing 2')
 
-        self.assertEqual(result, [u'thing 1', u'thing 2'])
+        self.assertEqual(result, ['thing 1', 'thing 2'])
         self.assertTrue(all([isinstance(v, str) for v in result]))
 
     def test_custom_validator(self):
@@ -277,7 +277,7 @@ class GenerateListValidatorTests(unittest.TestCase):
         """Test with the default parameters."""
         result = config._generate_list_validator()('play it again sam')
 
-        self.assertEqual(result, [u'play', u'it', u'again', u'sam'])
+        self.assertEqual(result, ['play', 'it', 'again', 'sam'])
         self.assertTrue(all([isinstance(v, str) for v in result]))
 
     def test_with_list(self):
@@ -341,7 +341,7 @@ class ValidateNoneOrTests(unittest.TestCase):
         """Assert that a string is validated and converted to unicode."""
         result = config._validate_none_or(str)('unicode?')
 
-        self.assertEqual(result, u'unicode?')
+        self.assertEqual(result, 'unicode?')
         self.assertTrue(isinstance(result, str))
 
 
@@ -390,7 +390,7 @@ class ValidateSecretTests(unittest.TestCase):
         """Ensure that a secret gets changed to a unicode."""
         result = config._validate_secret('secret')
 
-        self.assertEqual(result, u'secret')
+        self.assertEqual(result, 'secret')
         self.assertTrue(isinstance(result, str))
 
 
@@ -407,5 +407,5 @@ class ValidateTLSURL(unittest.TestCase):
         """Ensure that https:// urls get converted to unicode."""
         result = config._validate_tls_url('https://example.com')
 
-        self.assertEqual(result, u'https://example.com')
+        self.assertEqual(result, 'https://example.com')
         self.assertTrue(isinstance(result, str))

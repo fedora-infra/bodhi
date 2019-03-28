@@ -777,7 +777,7 @@ class Release(Base):
     pending_testing_tag = Column(UnicodeText, nullable=False)
     pending_stable_tag = Column(UnicodeText, nullable=False)
     override_tag = Column(UnicodeText, nullable=False)
-    mail_template = Column(UnicodeText, default=u'fedora_errata_template', nullable=False)
+    mail_template = Column(UnicodeText, default='fedora_errata_template', nullable=False)
 
     state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
     composed_by_bodhi = Column(Boolean, default=True)
@@ -1072,8 +1072,8 @@ class Package(Base):
         """
         if build.type != self.type:
             raise ValueError(
-                (u"A {} Build cannot be associated with a {} Package. A Package's builds must be "
-                 u"the same type as the package.").format(
+                ("A {} Build cannot be associated with a {} Package. A Package's builds must be "
+                 "the same type as the package.").format(
                      build.type.description, self.type.description))
         return build
 
@@ -1432,7 +1432,7 @@ class RpmBuild(Build):
 
     Attributes:
         nvr (unicode): A dash (-) separated string of an RPM's name, version, and release (e.g.
-            u'bodhi-2.5.0-1.fc26')
+            'bodhi-2.5.0-1.fc26')
         epoch (int): The RPM's epoch.
     """
 
@@ -1610,7 +1610,7 @@ class Update(Base):
     require_bugs = Column(Boolean, default=False)
     require_testcases = Column(Boolean, default=False)
 
-    display_name = Column(UnicodeText, nullable=False, default=u'')
+    display_name = Column(UnicodeText, nullable=False, default='')
     notes = Column(UnicodeText, nullable=False)  # Mandatory notes
 
     # Enumerated types
@@ -1680,7 +1680,7 @@ class Update(Base):
         prefix = kwargs['release'].id_prefix
         year = time.localtime()[0]
         id = hashlib.sha1(str(uuid.uuid4()).encode('utf-8')).hexdigest()[:10]
-        alias = u'%s-%s-%s' % (prefix, year, id)
+        alias = '%s-%s-%s' % (prefix, year, id)
         self.alias = alias
         self.release_id = kwargs['release'].id
 
@@ -1714,7 +1714,7 @@ class Update(Base):
                 existing builds.
         """
         if not all([isinstance(b, type(build)) for b in self.builds]):
-            raise ValueError(u'An update must contain builds of the same type.')
+            raise ValueError('An update must contain builds of the same type.')
         return build
 
     @validates('release')
@@ -1732,7 +1732,7 @@ class Update(Base):
         if release and self.content_type is not None:
             u = Update.query.filter(Update.release_id == release.id, Update.id != self.id).first()
             if u and u.content_type and u.content_type != self.content_type:
-                raise ValueError(u'A release must contain updates of the same type.')
+                raise ValueError('A release must contain updates of the same type.')
         return release
 
     @property
@@ -1813,7 +1813,7 @@ class Update(Base):
         comments_since_karma_reset = []
 
         for comment in reversed(self.comments):
-            if comment.user.name == u'bodhi' and \
+            if comment.user.name == 'bodhi' and \
                     ('New build' in comment.text or 'Removed build' in comment.text):
                 # We only want to consider comments since the most recent karma
                 # reset, which happens whenever a build is added or removed
@@ -1893,10 +1893,10 @@ class Update(Base):
         # We retrieve updates going to testing (status=pending) and updates
         # (status=testing) going to stable.
         # If the update is pending, we want to know if it can go to testing
-        decision_context = u'bodhi_update_push_testing'
+        decision_context = 'bodhi_update_push_testing'
         if self.status == UpdateStatus.testing:
             # Update is already in testing, let's ask if it can go to stable
-            decision_context = u'bodhi_update_push_stable'
+            decision_context = 'bodhi_update_push_stable'
 
         data = {
             'product_version': self.product_version,
@@ -2078,7 +2078,7 @@ class Update(Base):
                 comment += "\n- %s" % removed_build
         if new_builds or removed_builds:
             comment += '\n\nKarma has been reset.'
-        up.comment(db, comment, karma=0, author=u'bodhi')
+        up.comment(db, comment, karma=0, author='bodhi')
         caveats.append({'name': 'builds', 'description': comment})
 
         # Updates with new or removed builds always go back to testing
@@ -2243,7 +2243,7 @@ class Update(Base):
                                 'inherited its bugs and notes.')
                     link = "[%s](%s)" % (oldBuild.nvr,
                                          oldBuild.update.abs_url())
-                    self.comment(db, template % link, author=u'bodhi')
+                    self.comment(db, template % link, author='bodhi')
                     caveats.append({
                         'name': 'update',
                         'description': template % oldBuild.nvr,
@@ -2270,7 +2270,7 @@ class Update(Base):
         return self.get_title()
 
     def get_title(self, delim=' ', limit=None, after_limit='…'):
-        u"""
+        """
         Return a title for the update based on the :class:`Builds <Build>` it is associated with.
 
         Args:
@@ -2297,19 +2297,19 @@ class Update(Base):
         Returns:
             basestring: A space separated list of bugs associated with this update.
         """
-        val = u''
+        val = ''
         if show_titles:
             i = 0
             for bug in self.bugs:
-                bugstr = u'%s%s - %s\n' % (
+                bugstr = '%s%s - %s\n' % (
                     i and ' ' * 11 + ': ' or '', bug.bug_id, bug.title)
-                val += u'\n'.join(wrap(
+                val += '\n'.join(wrap(
                     bugstr, width=67,
                     subsequent_indent=' ' * 11 + ': ')) + '\n'
                 i += 1
             val = val[:-1]
         else:
-            val = u' '.join([str(bug.bug_id) for bug in self.bugs])
+            val = ' '.join([str(bug.bug_id) for bug in self.bugs])
         return val
 
     def get_bug_karma(self, bug):
@@ -2426,10 +2426,10 @@ class Update(Base):
             raise LockedUpdateException("Can't change the request on a "
                                         "locked update")
 
-        topic = u'update.request.%s' % action
+        topic = 'update.request.%s' % action
         if action is UpdateRequest.unpush:
             self.unpush(db)
-            self.comment(db, u'This update has been unpushed.', author=username)
+            self.comment(db, 'This update has been unpushed.', author=username)
             notifications.publish(topic=topic, msg=dict(
                 update=self, agent=username))
             log.debug("%s has been unpushed." % self.alias)
@@ -2542,9 +2542,9 @@ class Update(Base):
         log.debug(
             "%s has been submitted for %s. %s%s" % (
                 self.alias, action.description, notes, flash_notes))
-        self.comment(db, u'This update has been submitted for %s by %s. %s' % (
-            action.description, username, notes), author=u'bodhi')
-        topic = u'update.request.%s' % action
+        self.comment(db, 'This update has been submitted for %s by %s. %s' % (
+            action.description, username, notes), author='bodhi')
+        topic = 'update.request.%s' % action
         notifications.publish(topic=topic, msg=dict(update=self, agent=username))
 
     def waive_test_results(self, username, comment=None, tests=None):
@@ -2677,13 +2677,13 @@ class Update(Base):
             db (sqlalchemy.orm.session.Session): A database session.
         """
         if self.status is UpdateStatus.stable:
-            self.comment(db, u'This update has been pushed to stable.',
-                         author=u'bodhi')
+            self.comment(db, 'This update has been pushed to stable.',
+                         author='bodhi')
         elif self.status is UpdateStatus.testing:
-            self.comment(db, u'This update has been pushed to testing.',
-                         author=u'bodhi')
+            self.comment(db, 'This update has been pushed to testing.',
+                         author='bodhi')
         elif self.status is UpdateStatus.obsolete:
-            self.comment(db, u'This update has been obsoleted.', author=u'bodhi')
+            self.comment(db, 'This update has been obsoleted.', author='bodhi')
 
     def send_update_notice(self):
         """Send e-mail notices about this update."""
@@ -2742,45 +2742,45 @@ class Update(Base):
         Returns:
             basestring: A string representation of the update.
         """
-        val = u"%s\n%s\n%s\n" % ('=' * 80, u'\n'.join(wrap(
+        val = "%s\n%s\n%s\n" % ('=' * 80, '\n'.join(wrap(
             self.alias, width=80, initial_indent=' ' * 5,
             subsequent_indent=' ' * 5)), '=' * 80)
-        val += u"""    Release: %s
+        val += """    Release: %s
      Status: %s
        Type: %s
    Severity: %s
       Karma: %d""" % (self.release.long_name, self.status.description,
                       self.type.description, self.severity, self.karma)
         if self.critpath:
-            val += u"\n   Critpath: %s" % self.critpath
+            val += "\n   Critpath: %s" % self.critpath
         if self.request is not None:
-            val += u"\n    Request: %s" % self.request.description
+            val += "\n    Request: %s" % self.request.description
         if len(self.bugs):
             bugs = self.get_bugstring(show_titles=True)
-            val += u"\n       Bugs: %s" % bugs
+            val += "\n       Bugs: %s" % bugs
         if self.notes:
             notes = wrap(
                 self.notes, width=67, subsequent_indent=' ' * 11 + ': ')
-            val += u"\n      Notes: %s" % '\n'.join(notes)
+            val += "\n      Notes: %s" % '\n'.join(notes)
         username = None
         if self.user:
             username = self.user.name
-        val += u"""
+        val += """
   Submitter: %s
   Submitted: %s\n""" % (username, self.date_submitted)
         if self.comments_since_karma_reset:
-            val += u"   Comments: "
+            val += "   Comments: "
             comments = []
             for comment in self.comments_since_karma_reset:
-                comments.append(u"%s%s - %s (karma %s)" % (' ' * 13,
+                comments.append("%s%s - %s (karma %s)" % (' ' * 13,
                                 comment.user.name, comment.timestamp,
                                 comment.karma))
                 if comment.text:
                     text = wrap(comment.text, initial_indent=' ' * 13,
                                 subsequent_indent=' ' * 13, width=67)
-                    comments.append(u'\n'.join(text))
-            val += u'\n'.join(comments).lstrip() + u'\n'
-        val += u"\n  %s\n" % self.abs_url()
+                    comments.append('\n'.join(text))
+            val += '\n'.join(comments).lstrip() + '\n'
+        val += "\n  %s\n" % self.abs_url()
         return val
 
     def update_bugs(self, bug_ids, session):
@@ -2904,7 +2904,7 @@ class Update(Base):
 
             if check_karma and author not in config.get('system_users'):
                 try:
-                    self.check_karma_thresholds(session, u'bodhi')
+                    self.check_karma_thresholds(session, 'bodhi')
                 except LockedUpdateException:
                     pass
                 except BodhiException as e:
@@ -3052,10 +3052,10 @@ class Update(Base):
         self.status = UpdateStatus.obsolete
         self.request = None
         if newer:
-            self.comment(db, u"This update has been obsoleted by [%s](%s)." % (
-                newer.nvr, newer.update.abs_url()), author=u'bodhi')
+            self.comment(db, "This update has been obsoleted by [%s](%s)." % (
+                newer.nvr, newer.update.abs_url()), author='bodhi')
         else:
-            self.comment(db, u"This update has been obsoleted.", author=u'bodhi')
+            self.comment(db, "This update has been obsoleted.", author='bodhi')
 
     def get_maintainers(self):
         """
@@ -3191,7 +3191,7 @@ class Update(Base):
             log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
             text = config.get('disable_automatic_push_to_stable')
-            self.comment(db, text, author=u'bodhi')
+            self.comment(db, text, author='bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:
             if self.autokarma:
                 log.info("Automatically marking %s as stable", self.alias)
@@ -3342,7 +3342,7 @@ class Update(Base):
         else:
             return True
         for comment in self.comments_since_karma_reset:
-            if comment.user.name == u'bodhi' and \
+            if comment.user.name == 'bodhi' and \
                comment.text.startswith('This update has reached') and \
                'and can be pushed to stable now if the ' \
                'maintainer wishes' in comment.text:
@@ -3508,7 +3508,7 @@ class Update(Base):
             target.comment(
                 Session(),
                 f"This update test gating status has been changed to '{value}'.",
-                author=u"bodhi",
+                author="bodhi",
             )
 
 
@@ -3567,7 +3567,7 @@ class Compose(Base):
     id = None
     # We could use the JSON type here, but that would require PostgreSQL >= 9.2.0. We don't really
     # need the ability to query inside this so the JSONB type probably isn't useful.
-    checkpoints = Column(UnicodeText, nullable=False, default=u'{}')
+    checkpoints = Column(UnicodeText, nullable=False, default='{}')
     error_message = Column(UnicodeText)
     date_created = Column(DateTime, nullable=False, default=datetime.utcnow)
     state_date = Column(DateTime, nullable=False, default=datetime.utcnow)

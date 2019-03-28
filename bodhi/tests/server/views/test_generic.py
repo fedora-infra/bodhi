@@ -427,10 +427,10 @@ class TestFrontpageView(base.BaseTestCase):
                             user=user,
                             status=i[0],
                             type=j[0],
-                            notes=u'Useful details!',
+                            notes='Useful details!',
                             release=release,
                             date_submitted=datetime(1984, 11, 2),
-                            requirements=u'rpmlint',
+                            requirements='rpmlint',
                             stable_karma=3,
                             unstable_karma=-3,
                         )
@@ -438,24 +438,24 @@ class TestFrontpageView(base.BaseTestCase):
                         self.db.flush()
                         count = count + 1
 
-        user2 = User(name=u'dudemcpants')
+        user2 = User(name='dudemcpants')
         self.db.flush()
         self.db.add(user2)
 
         release = Release(
-            name=u'F18', long_name=u'Fedora 18',
-            id_prefix=u'FEDORA', version=u'18',
-            dist_tag=u'f18', stable_tag=u'f18-updates',
-            testing_tag=u'f18-updates-testing',
-            candidate_tag=u'f18-updates-candidate',
-            pending_signing_tag=u'f18-updates-testing-signing',
-            pending_testing_tag=u'f18-updates-testing-pending',
-            pending_stable_tag=u'f18-updates-pending',
-            override_tag=u'f18-override',
-            branch=u'f18', state=ReleaseState.pending)
+            name='F18', long_name='Fedora 18',
+            id_prefix='FEDORA', version='18',
+            dist_tag='f18', stable_tag='f18-updates',
+            testing_tag='f18-updates-testing',
+            candidate_tag='f18-updates-candidate',
+            pending_signing_tag='f18-updates-testing-signing',
+            pending_testing_tag='f18-updates-testing-pending',
+            pending_stable_tag='f18-updates-pending',
+            override_tag='f18-override',
+            branch='f18', state=ReleaseState.pending)
         self.db.add(release)
 
-        currentrelease = self.db.query(Release).filter_by(name=u'F17').one()
+        currentrelease = self.db.query(Release).filter_by(name='F17').one()
         addedupdates = [[UpdateStatus.pending,
                          [[UpdateType.security, 5],
                           [UpdateType.bugfix, 4],
@@ -473,7 +473,7 @@ class TestFrontpageView(base.BaseTestCase):
                           [UpdateType.newpackage, 22]]]]
         _add_updates(addedupdates, user2, currentrelease, "fc17")
 
-        pendingrelease = self.db.query(Release).filter_by(name=u'F18').one()
+        pendingrelease = self.db.query(Release).filter_by(name='F18').one()
         addedupdates2 = [[UpdateStatus.pending,
                          [[UpdateType.security, 2],
                           [UpdateType.bugfix, 2],

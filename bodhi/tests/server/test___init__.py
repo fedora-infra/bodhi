@@ -108,7 +108,7 @@ class TestGetUser(base.BaseTestCase):
     """Test get_user()."""
     def test_authenticated(self):
         """Assert that a munch gets returned for an authenticated user."""
-        db_user = models.User.query.filter_by(name=u'guest').one()
+        db_user = models.User.query.filter_by(name='guest').one()
 
         class Request(object):
             """

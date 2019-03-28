@@ -77,7 +77,7 @@ def rss(info):
         feed.title(feed_title)
         feed.link(href=request.url, rel='self')
         feed.description(feed_description)
-        feed.language(u'en')
+        feed.language('en')
 
         def linker(route, param, key):
             def link_dict(obj):

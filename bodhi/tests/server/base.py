@@ -130,7 +130,7 @@ class BaseTestCase(unittest.TestCase):
         'openid.url': 'https://id.stg.fedoraproject.org',
         'test_case_base_url': 'https://fedoraproject.org/wiki/',
         'openid_template': '{username}.id.fedoraproject.org',
-        'site_requirements': u'rpmlint',
+        'site_requirements': 'rpmlint',
         'resultsdb_api_url': 'whatever',
         'base_address': 'http://0.0.0.0:6543',
         'cors_connect_src': 'http://0.0.0.0:6543',
@@ -180,7 +180,7 @@ class BaseTestCase(unittest.TestCase):
             # trigger the restart_savepoint() callback defined above which will remove the data
             # added by populate().
             with mock.patch('bodhi.server.Session.remove'):
-                _app = TestApp(main({}, testing=u'guest', **self.app_settings))
+                _app = TestApp(main({}, testing='guest', **self.app_settings))
         self.app = _app
 
     def get_csrf_token(self, app=None):
@@ -214,13 +214,13 @@ class BaseTestCase(unittest.TestCase):
             builds = builds.encode('utf-8')
         return {
             'builds': builds,
-            'bugs': u'',
-            'notes': u'this is a test update',
-            'type': u'bugfix',
+            'bugs': '',
+            'notes': 'this is a test update',
+            'type': 'bugfix',
             'autokarma': True,
             'stable_karma': stable_karma,
             'unstable_karma': unstable_karma,
-            'requirements': u'rpmlint',
+            'requirements': 'rpmlint',
             'require_bugs': False,
             'require_testcases': True,
             'csrf_token': self.get_csrf_token(),
@@ -234,14 +234,14 @@ class BaseTestCase(unittest.TestCase):
         self.connection.close()
         Session.remove()
 
-    def create_update(self, build_nvrs, release_name=u'F17'):
+    def create_update(self, build_nvrs, release_name='F17'):
         """
         Create and return an Update with the given iterable of build_nvrs.
 
         Each build_nvr should be a tuple of strings describing the name, version, and release for
         the build. For example, build_nvrs might look like this:
 
-        ((u'bodhi', u'2.3.3', u'1.fc24'), (u'python-fedora-atomic-composer', u'2016.3', u'1.fc24'))
+        (('bodhi', '2.3.3', '1.fc24'), ('python-fedora-atomic-composer', '2016.3', '1.fc24'))
 
         You can optionally pass a release_name to select a different release than the default F17,
         but the release must already exist in the database.
@@ -268,16 +268,16 @@ class BaseTestCase(unittest.TestCase):
             bodhi.server.models.Release: A new release.
         """
         release = models.Release(
-            name=u'F{}'.format(version), long_name=u'Fedora {}'.format(version),
-            id_prefix=u'FEDORA', version=u'{}'.format(version.replace('M', '')),
-            dist_tag=u'f{}'.format(version), stable_tag=u'f{}-updates'.format(version),
-            testing_tag=u'f{}-updates-testing'.format(version),
-            candidate_tag=u'f{}-updates-candidate'.format(version),
-            pending_signing_tag=u'f{}-updates-testing-signing'.format(version),
-            pending_testing_tag=u'f{}-updates-testing-pending'.format(version),
-            pending_stable_tag=u'f{}-updates-pending'.format(version),
-            override_tag=u'f{}-override'.format(version),
-            branch=u'f{}'.format(version), state=models.ReleaseState.current)
+            name='F{}'.format(version), long_name='Fedora {}'.format(version),
+            id_prefix='FEDORA', version='{}'.format(version.replace('M', '')),
+            dist_tag='f{}'.format(version), stable_tag='f{}-updates'.format(version),
+            testing_tag='f{}-updates-testing'.format(version),
+            candidate_tag='f{}-updates-candidate'.format(version),
+            pending_signing_tag='f{}-updates-testing-signing'.format(version),
+            pending_testing_tag='f{}-updates-testing-pending'.format(version),
+            pending_stable_tag='f{}-updates-pending'.format(version),
+            override_tag='f{}-override'.format(version),
+            branch='f{}'.format(version), state=models.ReleaseState.current)
         self.db.add(release)
         models.Release._all_releases = None
         models.Release._tag_cache = None

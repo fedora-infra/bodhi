@@ -32,7 +32,7 @@ from bodhi.server.util import get_rpm_header, get_absolute_path
 MESSAGES = {
 
     'new': {
-        'body': u"""\
+        'body': """\
 %(email)s has submitted a new update for %(release)s\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
@@ -43,7 +43,7 @@ MESSAGES = {
     },
 
     'deleted': {
-        'body': u"""\
+        'body': """\
 %(email)s has deleted the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
@@ -55,7 +55,7 @@ MESSAGES = {
     },
 
     'edited': {
-        'body': u"""\
+        'body': """\
 %(email)s has edited the %(package)s update for %(release)s\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
@@ -67,7 +67,7 @@ MESSAGES = {
     },
 
     'pushed': {
-        'body': u"""\
+        'body': """\
 %(package)s has been successfully pushed for %(release)s.\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
@@ -78,7 +78,7 @@ MESSAGES = {
     },
 
     'testing': {
-        'body': u"""\
+        'body': """\
 %(submitter)s has requested the pushing of the following update to testing:\n
 %(updatestr)s
 """,
@@ -89,7 +89,7 @@ MESSAGES = {
     },
 
     'unpush': {
-        'body': u"""\
+        'body': """\
 %(submitter)s has requested the unpushing of the following update:\n
 %(updatestr)s
 """,
@@ -100,7 +100,7 @@ MESSAGES = {
     },
 
     'obsolete': {
-        'body': u"""\
+        'body': """\
 %(submitter)s has obsoleted the following update:\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
@@ -110,7 +110,7 @@ MESSAGES = {
     },
 
     'unpushed': {
-        'body': u"""\
+        'body': """\
 The following update has been unpushed\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
@@ -119,7 +119,7 @@ The following update has been unpushed\n\n%(updatestr)s
     },
 
     'revoke': {
-        'body': u"""\
+        'body': """\
 %(submitter)s has revoked the request of the following update:\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
@@ -129,7 +129,7 @@ The following update has been unpushed\n\n%(updatestr)s
     },
 
     'stable': {
-        'body': u"""\
+        'body': """\
 %(submitter)s has requested the pushing of the following update stable:\n
 %(updatestr)s
 """,
@@ -140,7 +140,7 @@ The following update has been unpushed\n\n%(updatestr)s
     },
 
     'moved': {
-        'body': u"""\
+        'body': """\
 The following update has been moved from Testing to Stable:\n\n%(updatestr)s
 """,
         'fields': lambda agent, x: {
@@ -149,7 +149,7 @@ The following update has been moved from Testing to Stable:\n\n%(updatestr)s
     },
 
     'stablekarma': {
-        'body': u"""\
+        'body': """\
 The following update has reached a karma of %(karma)d and is being
 automatically marked as stable.\n
 %(updatestr)s
@@ -161,7 +161,7 @@ automatically marked as stable.\n
     },
 
     'unstable': {
-        'body': u"""\
+        'body': """\
 The following update has reached a karma of %(karma)d and is being
 automatically marked as unstable. This update will be unpushed from the
 repository.\n
@@ -174,7 +174,7 @@ repository.\n
     },
 
     'comment': {
-        'body': u"""\
+        'body': """\
 The following comment has been added to the %(package)s update:
 
 %(comment)s
@@ -191,7 +191,7 @@ To reply to this comment, please visit the URL at the bottom of this mail
     },
 
     'old_testing': {
-        'body': u"""\
+        'body': """\
 The update for %(package)s has been in 'testing' status for over 2 weeks.
 This update can be marked as stable after it achieves a karma of
 %(stablekarma)d or by clicking 'Push to Stable'.
@@ -218,7 +218,7 @@ or by running the following command with the bodhi-client:
     },
 
     'security': {
-        'body': u"""\
+        'body': """\
 %(submitter)s has submitted the following update.
 
 %(updatestr)s
@@ -295,7 +295,7 @@ def get_template(update, use_template='fedora_errata_template'):
             info['testing'] = ''
             info['yum_repository'] = ''
 
-        info['subject'] = u"%s%s%s Update: %s" % (
+        info['subject'] = "%s%s%s Update: %s" % (
             update.type is UpdateType.security and '[SECURITY] ' or '',
             update.release.long_name, info['testing'], build.nvr)
         info['updateid'] = update.alias
@@ -303,7 +303,7 @@ def get_template(update, use_template='fedora_errata_template'):
         info['product'] = update.release.long_name
         info['notes'] = ""
         if update.notes and len(update.notes):
-            info['notes'] = u"Update Information:\n\n%s\n" % \
+            info['notes'] = "Update Information:\n\n%s\n" % \
                 '\n'.join(wrap(update.notes, width=80))
             info['notes'] += line
 
@@ -311,7 +311,7 @@ def get_template(update, use_template='fedora_errata_template'):
         i = 1
         info['references'] = ""
         if len(update.bugs):
-            info['references'] = u"References:\n\n"
+            info['references'] = "References:\n\n"
             parent = True in [bug.parent for bug in update.bugs]
             for bug in update.bugs:
                 # Don't show any tracker bugs for security updates
@@ -323,7 +323,7 @@ def get_template(update, use_template='fedora_errata_template'):
                 title = (
                     bug.title != 'Unable to fetch title' and bug.title != 'Invalid bug number') \
                     and ' - %s' % bug.title or ''
-                info['references'] += u"  [ %d ] Bug #%d%s\n        %s\n" % \
+                info['references'] += "  [ %d ] Bug #%d%s\n        %s\n" % \
                                       (i, bug.bug_id, title, bug.url)
                 i += 1
             info['references'] += line
@@ -336,7 +336,7 @@ def get_template(update, use_template='fedora_errata_template'):
             lastpkg = None
 
         # Grab the RPM header of the previous update, and generate a ChangeLog
-        info['changelog'] = u""
+        info['changelog'] = ""
         if lastpkg:
             oldh = get_rpm_header(lastpkg)
             oldtime = oldh['changelogtime']
@@ -346,7 +346,7 @@ def get_template(update, use_template='fedora_errata_template'):
                 oldtime = 0
             elif isinstance(oldtime, list):
                 oldtime = oldtime[0]
-            info['changelog'] = u"ChangeLog:\n\n%s%s" % \
+            info['changelog'] = "ChangeLog:\n\n%s%s" % \
                 (build.get_changelog(oldtime), line)
 
         templates.append((info['subject'], use_template % info))
@@ -451,7 +451,7 @@ def send(to, msg_type, update, sender=None, agent='bodhi'):
             headers["References"] = initial_message_id
             headers["In-Reply-To"] = initial_message_id
 
-    subject_template = u'[Fedora Update] %s[%s] %s'
+    subject_template = '[Fedora Update] %s[%s] %s'
     for person in to:
         subject = subject_template % (critpath, msg_type, update.beautify_title(nvr=True))
         fields = MESSAGES[msg_type]['fields'](agent, update)

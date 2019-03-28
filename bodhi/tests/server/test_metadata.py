@@ -214,7 +214,7 @@ class TestFetchUpdates(UpdateInfoMetadataTestCase):
         """A warning should be logged if the Bodhi Build object is not associated with an Update."""
         update = self.db.query(Update).one()
         update.date_pushed = None
-        u = create_update(self.db, [u'TurboGears-1.0.2.2-4.fc17'])
+        u = create_update(self.db, ['TurboGears-1.0.2.2-4.fc17'])
         u.builds[0].update = None
         self.db.flush()
 
