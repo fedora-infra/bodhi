@@ -51,8 +51,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'bodhi'
-copyright = u'2007-{}, Red Hat, Inc.'.format(datetime.datetime.utcnow().year)
+project = 'bodhi'
+copyright = '2007-{}, Red Hat, Inc.'.format(datetime.datetime.utcnow().year)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -212,8 +212,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'bodhi.tex', u'bodhi Documentation',
-     u'Randy Barlow, Luke Macken', 'manual'),
+    ('index', 'bodhi.tex', 'bodhi Documentation',
+     'Randy Barlow, Luke Macken', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -242,15 +242,15 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('user/man_pages/bodhi', 'bodhi', u'manage Fedora updates', ['Randy Barlow', 'Luke Macken'], 1),
-    ('user/man_pages/bodhi-approve-testing', 'bodhi-approve-testing', u'approve updates',
+    ('user/man_pages/bodhi', 'bodhi', 'manage Fedora updates', ['Randy Barlow', 'Luke Macken'], 1),
+    ('user/man_pages/bodhi-approve-testing', 'bodhi-approve-testing', 'approve updates',
      ['Randy Barlow'], 1),
-    ('user/man_pages/bodhi-check-policies', 'bodhi-check-policies', u'check policies',
+    ('user/man_pages/bodhi-check-policies', 'bodhi-check-policies', 'check policies',
      ['Matt Jia'], 1),
-    ('user/man_pages/bodhi-clean-old-composes', 'bodhi-clean-old-composes', u'clean old composes',
+    ('user/man_pages/bodhi-clean-old-composes', 'bodhi-clean-old-composes', 'clean old composes',
      ['Randy Barlow'], 1),
-    ('user/man_pages/bodhi-push', 'bodhi-push', u'push Fedora updates', ['Randy Barlow'], 1),
-    ('user/man_pages/initialize_bodhi_db', 'initialize_bodhi_db', u'initialize bodhi\'s database',
+    ('user/man_pages/bodhi-push', 'bodhi-push', 'push Fedora updates', ['Randy Barlow'], 1),
+    ('user/man_pages/initialize_bodhi_db', 'initialize_bodhi_db', 'initialize bodhi\'s database',
      ['Randy Barlow'], 1),
     ('user/man_pages/bodhi-expire-overrides', 'bodhi-expire-overrides',
      'Look for overrides that are past their expiration dates and mark them expired',
@@ -276,8 +276,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'bodhi', u'bodhi Documentation',
-     u'Randy Barlow, Luke Macken', 'bodhi', 'One line description of project.',
+    ('index', 'bodhi', 'bodhi Documentation',
+     'Randy Barlow, Luke Macken', 'bodhi', 'One line description of project.',
      'Miscellaneous'),
 ]
 

@@ -109,7 +109,7 @@ class TestMain(BaseTestCase):
                         expire_overrides.main(['expire_overrides', 'some_config.ini'])
 
         log_info.assert_has_calls([mock.call('Expiring %d buildroot overrides...', 1),
-                                   mock.call(u'Expired bodhi-2.0-1.fc17')], any_order=True)
+                                   mock.call('Expired bodhi-2.0-1.fc17')], any_order=True)
         self.assertNotEqual(buildrootoverride.expired_date, None)
 
     @mock.patch('sys.exit')

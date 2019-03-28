@@ -99,7 +99,7 @@ class TestSar(BaseTestCase):
         r = runner.invoke(sar.get_user_data, ["--username=" + "invalid_user", "--human-readable"])
 
         self.assertEqual(r.exit_code, 0)
-        self.assertEqual(r.output, u"User not found.\n")
+        self.assertEqual(r.output, "User not found.\n")
 
     def test_valid_user(self):
         """Ensure json with user data is printed when human readable is off."""
@@ -148,6 +148,3 @@ class TestSar(BaseTestCase):
         r = runner.invoke(sar.get_user_data, ["--username=" + "guest", "--human-readable"])
 
         self.assertEqual(r.exit_code, 0)
-        # Since py2 and py3 display list with strings in different way,
-        # we have to change adjust script output a little bit
-        self.assertEqual(r.output.replace("u'", "'"), expected_output)

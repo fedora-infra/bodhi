@@ -28,7 +28,7 @@ class TestUsersService(base.BaseTestCase):
     def setUp(self):
         super(TestUsersService, self).setUp()
 
-        user = User(name=u'bodhi')
+        user = User(name='bodhi')
         self.db.add(user)
         self.db.flush()
 
@@ -82,9 +82,9 @@ class TestUsersService(base.BaseTestCase):
         self.assertEqual(len(body['users']), 3)
 
         users = [user['name'] for user in body['users']]
-        self.assertIn(u'guest', users)
-        self.assertIn(u'anonymous', users)
-        self.assertIn(u'bodhi', users)
+        self.assertIn('guest', users)
+        self.assertIn('anonymous', users)
+        self.assertIn('bodhi', users)
 
     def test_list_users_jsonp(self):
         res = self.app.get('/users/',
@@ -108,7 +108,7 @@ class TestUsersService(base.BaseTestCase):
         self.assertEqual(len(body['users']), 1)
 
         user = body['users'][0]
-        self.assertEqual(user['name'], u'bodhi')
+        self.assertEqual(user['name'], 'bodhi')
 
         res = self.app.get('/users/', {'like': 'wat'})
         body = res.json_body
@@ -124,14 +124,14 @@ class TestUsersService(base.BaseTestCase):
         body = res.json_body
         self.assertEqual(len(body['users']), 1)
         user = body['users'][0]
-        self.assertEqual(user['name'], u'bodhi')
+        self.assertEqual(user['name'], 'bodhi')
 
         # test that the search is case insensitive
         res = self.app.get('/users/', {'search': 'Bodh'})
         body = res.json_body
         self.assertEqual(len(body['users']), 1)
         user = body['users'][0]
-        self.assertEqual(user['name'], u'bodhi')
+        self.assertEqual(user['name'], 'bodhi')
 
         # test a search that yields nothing
         res = self.app.get('/users/', {'search': 'wat'})
@@ -202,7 +202,7 @@ class TestUsersService(base.BaseTestCase):
 
     def test_list_users_by_update_alias(self):
         update = self.db.query(Update).first()
-        update.alias = u'some_alias'
+        update.alias = 'some_alias'
         self.db.flush()
 
         res = self.app.get('/users/', {"updates": 'some_alias'})

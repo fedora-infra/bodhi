@@ -54,23 +54,23 @@ class SignedHandler(object):
 
         Example message format::
             {
-                u'body': {
-                    u'i': 628,
-                    u'timestamp': 1484692585,
-                    u'msg_id': u'2017-821031da-be3a-4f4b-91df-0baa834ca8a4',
-                    u'crypto': u'x509',
-                    u'topic': u'org.fedoraproject.prod.buildsys.tag',
-                    u'signature': u'100% real please trust me',
-                    u'msg': {
-                        u'build_id': 442562,
-                        u'name': u'colord',
-                        u'tag_id': 214,
-                        u'instance': u's390',
-                        u'tag': 'f26-updates-testing-pending',
-                        u'user': u'sharkcz',
-                        u'version': u'1.3.4',
-                        u'owner': u'sharkcz',
-                        u'release': u'1.fc26'
+                'body': {
+                    'i': 628,
+                    'timestamp': 1484692585,
+                    'msg_id': '2017-821031da-be3a-4f4b-91df-0baa834ca8a4',
+                    'crypto': 'x509',
+                    'topic': 'org.fedoraproject.prod.buildsys.tag',
+                    'signature': '100% real please trust me',
+                    'msg': {
+                        'build_id': 442562,
+                        'name': 'colord',
+                        'tag_id': 214,
+                        'instance': 's390',
+                        'tag': 'f26-updates-testing-pending',
+                        'user': 'sharkcz',
+                        'version': '1.3.4',
+                        'owner': 'sharkcz',
+                        'release': '1.fc26'
                     },
                 },
             }

@@ -1058,8 +1058,8 @@ class TestBodhiClient_request(unittest.TestCase):
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
-            data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
-                  'update': u'bodhi-2.2.4-1.el7'})
+            data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
+                  'update': 'bodhi-2.2.4-1.el7'})
         __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
@@ -1080,8 +1080,8 @@ class TestBodhiClient_request(unittest.TestCase):
         self.assertEqual(response, client_test_data.EXAMPLE_UPDATE_MUNCH)
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
-            data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
-                  'update': u'bodhi-2.2.4-1.el7'})
+            data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
+                  'update': 'bodhi-2.2.4-1.el7'})
         __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
@@ -1107,8 +1107,8 @@ class TestBodhiClient_request(unittest.TestCase):
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
-            data={'csrf_token': 'a_csrf_token', 'request': u'revoke',
-                  'update': u'bodhi-2.2.4-1.el7'})
+            data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
+                  'update': 'bodhi-2.2.4-1.el7'})
         __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
 
@@ -1144,9 +1144,9 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {u'date_pushed': u'',
-         u'pushed': False,
-         u'status': u'pending'})
+        {'date_pushed': '',
+         'pushed': False,
+         'status': 'pending'})
     @mock.patch('bodhi.client.bindings.datetime.datetime')
     def test_minimal_not_pushed(self, mock_datetime):
         """Ensure correct output when minimal is True and not yet pushed."""
@@ -1162,7 +1162,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {u'type': u'security'})
+        {'type': 'security'})
     @mock.patch('bodhi.client.bindings.datetime.datetime')
     def test_minimal_type_security(self, mock_datetime):
         """Ensure correct output when minimal is True and type security"""
@@ -1178,8 +1178,8 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {u'builds': [{u'epoch': 0, u'nvr': u'bodhi-2.2.4-1.el7', u'signed': True},
-                     {u'epoch': 0, u'nvr': u'bodhi-pants-2.2.4-1.el7', u'signed': True}]})
+        {'builds': [{'epoch': 0, 'nvr': 'bodhi-2.2.4-1.el7', 'signed': True},
+                    {'epoch': 0, 'nvr': 'bodhi-pants-2.2.4-1.el7', 'signed': True}]})
     @mock.patch('bodhi.client.bindings.datetime.datetime')
     def test_minimal_with_multiple_builds(self, mock_datetime):
         """Ensure correct output when minimal is True, and multiple builds"""
@@ -1193,7 +1193,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
                            '2016-10-21 (2)\n  bodhi-pants-2.2.4-1.el7')
         self.assertEqual(text, expected_output)
 
-    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {u'request': u'stable'})
+    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'request': 'stable'})
     def test_request_stable(self):
         """Ensure correct output when the update is request stable."""
         client = bindings.BodhiClient()
@@ -1255,7 +1255,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0],
-        {u'text': u'This comment contains a unicode char ☺. '})
+        {'text': 'This comment contains a unicode char ☺. '})
     def test_update_with_unicode_comment(self):
         """Ensure unicode content in update comments is correctly handled"""
         client = bindings.BodhiClient()
@@ -1266,12 +1266,12 @@ class TestBodhiClient_update_str(unittest.TestCase):
         self.assertTrue(compare_output(
             text,
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-                u'Comments: This update has been submitted for testing by bowlofeggs. ',
-                u'Comments: This comment contains a unicode char ☺. ')))
+                'Comments: This update has been submitted for testing by bowlofeggs. ',
+                'Comments: This comment contains a unicode char ☺. ')))
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
-        {u'notes': u'This note contains a unicode char ☺'})
+        {'notes': 'This note contains a unicode char ☺'})
     def test_update_with_unicode_note(self):
         """Ensure unicode content in update notes is correctly handled"""
         client = bindings.BodhiClient()
@@ -1279,7 +1279,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertIn(u'Notes: This note contains a unicode char ☺', text)
+        self.assertIn('Notes: This note contains a unicode char ☺', text)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
     def test_ci_status_errors(self, get_test_status):
@@ -1501,7 +1501,7 @@ class TestUpdateNotFound(unittest.TestCase):
         """
         exc = bindings.UpdateNotFound('bodhi-2.2.4-1.el7')
 
-        self.assertEqual(exc.update, u'bodhi-2.2.4-1.el7')
+        self.assertEqual(exc.update, 'bodhi-2.2.4-1.el7')
         self.assertEqual(type(exc.update), str)
 
     def test___unicode__(self):
@@ -1510,7 +1510,7 @@ class TestUpdateNotFound(unittest.TestCase):
         """
         exc = bindings.UpdateNotFound('bodhi-2.2.4-1.el7')
 
-        self.assertEqual(str(exc.update), u'bodhi-2.2.4-1.el7')
+        self.assertEqual(str(exc.update), 'bodhi-2.2.4-1.el7')
         self.assertEqual(type(str(exc.update)), str)
         self.assertEqual(str(exc), 'Update not found: bodhi-2.2.4-1.el7')
 

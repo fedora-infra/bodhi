@@ -1059,7 +1059,7 @@ class TestUtils(base.BaseTestCase):
         )
 
     @mock.patch('bodhi.server.util.bleach.clean', return_value='cleaned text')
-    @mock.patch.object(util.bleach, '__version__', u'1.4.3')
+    @mock.patch.object(util.bleach, '__version__', '1.4.3')
     def test_markup_with_bleach_1(self, clean):
         """Use mocking to ensure we correctly use the bleach 1 API."""
         text = '# this is a header\nthis is some **text**'
@@ -1068,8 +1068,8 @@ class TestUtils(base.BaseTestCase):
 
         self.assertEqual(result, 'cleaned text')
         expected_text = (
-            u'<div class="markdown"><h1>this is a header</h1>\n<p>this is some <strong>text'
-            u'</strong></p></div>')
+            '<div class="markdown"><h1>this is a header</h1>\n<p>this is some <strong>text'
+            '</strong></p></div>')
         expected_tags = [
             "h1", "h2", "h3", "h4", "h5", "h6", "b", "i", "strong", "em", "tt", "p", "br", "span",
             "div", "blockquote", "code", "hr", "pre", "ul", "ol", "li", "dd", "dt", "img", "a"]
@@ -1078,7 +1078,7 @@ class TestUtils(base.BaseTestCase):
                                       attributes=["src", "href", "alt", "title", "class"])
 
     @mock.patch('bodhi.server.util.bleach.clean', return_value='cleaned text')
-    @mock.patch.object(util.bleach, '__version__', u'2.0')
+    @mock.patch.object(util.bleach, '__version__', '2.0')
     def test_markup_with_bleach_2(self, clean):
         """Use mocking to ensure we correctly use the bleach 2 API."""
         text = '# this is a header\nthis is some **text**'
@@ -1087,8 +1087,8 @@ class TestUtils(base.BaseTestCase):
 
         self.assertEqual(result, 'cleaned text')
         expected_text = (
-            u'<div class="markdown"><h1>this is a header</h1>\n<p>this is some <strong>text'
-            u'</strong></p></div>')
+            '<div class="markdown"><h1>this is a header</h1>\n<p>this is some <strong>text'
+            '</strong></p></div>')
         expected_tags = [
             "h1", "h2", "h3", "h4", "h5", "h6", "b", "i", "strong", "em", "tt", "p", "br", "span",
             "div", "blockquote", "code", "hr", "pre", "ul", "ol", "li", "dd", "dt", "img", "a"]

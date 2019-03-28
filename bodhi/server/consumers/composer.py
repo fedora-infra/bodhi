@@ -426,7 +426,7 @@ class ComposerThread(threading.Thread):
                      'thresholds during the push')
             for update in self.compose.updates:
                 try:
-                    update.check_karma_thresholds(self.db, agent=u'bodhi')
+                    update.check_karma_thresholds(self.db, agent='bodhi')
                 except BodhiException:
                     log.exception('Problem checking karma thresholds')
 
@@ -461,7 +461,7 @@ class ComposerThread(threading.Thread):
         update.locked = False
         text = '%s ejected from the push because %r' % (update.alias, reason)
         log.warning(text)
-        update.comment(self.db, text, author=u'bodhi')
+        update.comment(self.db, text, author='bodhi')
         # Remove the pending tag as well
         if update.request is UpdateRequest.stable:
             update.remove_tag(update.release.pending_stable_tag,
@@ -679,9 +679,9 @@ class ComposerThread(threading.Thread):
         try:
             agent = os.getlogin()
         except OSError:  # this can happen when building on koji
-            agent = u'composer'
+            agent = 'composer'
         for update in self.compose.updates:
-            topic = u'update.complete.%s' % update.request
+            topic = 'update.complete.%s' % update.request
             notifications.publish(
                 topic=topic,
                 msg=dict(update=update, agent=agent),
@@ -715,9 +715,9 @@ class ComposerThread(threading.Thread):
     def send_testing_digest(self):
         """Send digest mail to mailing lists."""
         log.info('Sending updates-testing digest')
-        sechead = u'The following %s Security updates need testing:\n Age  URL\n'
-        crithead = u'The following %s Critical Path updates have yet to be approved:\n Age URL\n'
-        testhead = u'The following builds have been pushed to %s updates-testing\n\n'
+        sechead = 'The following %s Security updates need testing:\n Age  URL\n'
+        crithead = 'The following %s Critical Path updates have yet to be approved:\n Age URL\n'
+        testhead = 'The following builds have been pushed to %s updates-testing\n\n'
 
         for prefix, content in self.testing_digest.items():
             release = self.db.query(Release).filter_by(long_name=prefix).one()
@@ -730,12 +730,12 @@ class ComposerThread(threading.Thread):
                 continue
 
             log.debug("Sending digest for updates-testing %s" % prefix)
-            maildata = u''
+            maildata = ''
             security_updates = self.get_security_updates(prefix)
             if security_updates:
                 maildata += sechead % prefix
                 for update in security_updates:
-                    maildata += u' %3i  %s   %s\n' % (
+                    maildata += ' %3i  %s   %s\n' % (
                         update.days_in_testing,
                         update.abs_url(),
                         update.title)
@@ -745,7 +745,7 @@ class ComposerThread(threading.Thread):
             if critpath_updates:
                 maildata += crithead % prefix
                 for update in self.get_unapproved_critpath_updates(prefix):
-                    maildata += u' %3i  %s   %s\n' % (
+                    maildata += ' %3i  %s   %s\n' % (
                         update.days_in_testing,
                         update.abs_url(),
                         update.title)
@@ -754,10 +754,10 @@ class ComposerThread(threading.Thread):
             maildata += testhead % prefix
             updlist = sorted(content.keys())
             for pkg in updlist:
-                maildata += u'    %s\n' % pkg
-            maildata += u'\nDetails about builds:\n\n'
+                maildata += '    %s\n' % pkg
+            maildata += '\nDetails about builds:\n\n'
             for nvr in updlist:
-                maildata += u"\n" + self.testing_digest[prefix][nvr]
+                maildata += "\n" + self.testing_digest[prefix][nvr]
 
             mail.send_mail(config.get('bodhi_email'), test_list,
                            '%s updates-testing report' % prefix, maildata)
