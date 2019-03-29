@@ -974,9 +974,9 @@ class Package(Base):
         # Pagure uses plural names for its namespaces such as "rpms" except for
         # container. Flatpaks were moved from 'modules' to 'flatpaks' - hence
         # a config setting.
-        if self.type.name == 'container':
+        if self.type == ContentType.container:
             namespace = self.type.name
-        elif self.type.name == 'flatpak':
+        elif self.type == ContentType.flatpak:
             namespace = config.get('pagure_flatpak_namespace')
         else:
             namespace = self.type.name + 's'
