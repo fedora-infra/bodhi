@@ -394,9 +394,13 @@ class Job(object):
         skipped (bool): If True, this Job was skipped.
     """
 
+    # Subclasses should override this to set the command to run.
+    _command = []  # type: typing.MutableSequence[str]
     # A template to name the image that is built. CONTAINER_NAME and the release gets substituted
     # into the {}'s.
     _container_image_template = '{}/{}'
+    # Subclasses should define this to set the label that the job gets reported under.
+    _label = ''
     # Limit how many Jobs can run at once. This is set by _set_concurrency().
     concurrency_semaphore = EmptySemaphore()
     # Jobs can set this if they want to have some additional limitations on how many of them can
@@ -574,7 +578,8 @@ class Job(object):
                 self.label, color_start, color_end, self._finish_time - self._start_time,
                 self.returncode)
 
-    def _convert_command_for_container(self, archive=False, archive_path=''):
+    def _convert_command_for_container(self, archive: bool = False, archive_path: str = '',
+                                       include_git: bool = False):
         """
         Use this to convert self._command to run in a container.
 
@@ -584,10 +589,12 @@ class Job(object):
         in a container.
 
         Args:
-            archive_path (str): A path on the host to share as a volume into the container for
-                its /results path.
-            archive (bool): Whether to mount a shared volume from the host into the container for
-                archival purposes.
+            archive: Whether to mount a shared volume from the host into the container for
+                archival purposes. Default: False.
+            archive_path: A path on the host to share as a volume into the container for
+                its /results path. Default: ''.
+            include_git: If True, also bind mount the .git folder into the /bodhi folder inside
+                the container. This is needed for the diff-cover test. Default: False.
         """
         args = [container_runtime, 'run', '--network', 'none', '--rm',
                 '--label', CONTAINER_LABEL]
@@ -603,6 +610,9 @@ class Job(object):
             self.archive_dir = '{}/{}'.format(archive_path,
                                               '{}-{}'.format(self.release, self._label))
             args.extend(['-v', '{}:/results:z'.format(self.archive_dir)])
+
+        if include_git:
+            args.extend(['-v', f"{os.path.join(PROJECT_PATH, '.git')}:/bodhi/.git:ro,Z"])
 
         args.append(self._container_image)
         args.extend(self._command)
@@ -723,7 +733,8 @@ class DiffCoverJob(Job):
             executable = '/usr/bin/diff-cover'
         self._command = [executable, '/results/coverage.xml',
                          '--compare-branch=origin/develop', '--fail-under=100']
-        self._convert_command_for_container(archive=archive, archive_path=archive_path)
+        self._convert_command_for_container(archive=archive, archive_path=archive_path,
+                                            include_git=True)
 
     def _pre_start_hook(self):
         """

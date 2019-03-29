@@ -47,11 +47,6 @@ VOLUME ["/results"]
 WORKDIR /bodhi
 CMD ["bash"]
 COPY . /bodhi
-RUN find /bodhi -name "*.pyc" -delete
-RUN find /bodhi -name "*__pycache__" -delete
-RUN rm -rf *.egg-info
-RUN rm -rf /bodhi/docs/_build
-RUN rm -rf /bodhi/docs/developer/docblocks
 RUN sed -i '/pyramid_debugtoolbar/d' setup.py
 RUN sed -i '/pyramid_debugtoolbar/d' devel/development.ini.example
 # The Makefile is set to use sphinx-build-3, but the pip installed sphinx is just called

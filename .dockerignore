@@ -1,1 +1,7 @@
+**/*.pyc
+**/__pycache__
+*.egg-info
+.git
 devel/ci/integration/dumps/*
+docs/_build
+docs/developer/docblocks
