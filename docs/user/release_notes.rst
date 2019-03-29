@@ -28,7 +28,7 @@ Backwards incompatible changes
 * Default sqlalchemy.url setting points to PostgreSQL instead of SQLite (:issue:`2040`).
 * The ``Masher`` was renamed to ``Composer``. As a result, the ``bodhi-clean-old-mashes`` script
   was renamed to ``bodhi-clean-old-composes``, notification topics ``mashtask.start``,
-  ``mashtask.composing``, ``mashtask.complete``, ``mashtask.sync.wait`` and ``mashtask.sync.done``
+  ``mashtask.mashing``, ``mashtask.complete``, ``mashtask.sync.wait`` and ``mashtask.sync.done``
   was renamed to ``compose.start``, ``compose.composing``, ``compose.complete``, ``compose.sync.wait``
   and ``compose.sync.done``, configuration settings ``mash_dir``, ``mash_stage_dir`` and
   ``max_concurrent_mashes`` was renamed to ``compose_dir``, ``compose_stage_dir`` and
