@@ -19,4 +19,4 @@ def write_graph(filename):
 
 
 if __name__ == '__main__':
-    write_graph('images/database.png')
+    write_graph('generated/database.png')

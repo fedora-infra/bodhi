@@ -56,7 +56,8 @@ Backwards incompatible changes
   supported in Bodhi 4, even though Bodhi still sends messages similar to the messages it sent in
   the past. Message consumers should not rely on any undocumented fields in these messages. If you
   need information that is not included in the supported schema, please work with the Bodhi project
-  to get the schema adjusted accordingly.
+  to get the schema adjusted accordingly. Bodhi's messages are now documented in
+  :doc:`../server_api/index`.
 
 
 Dependency changes

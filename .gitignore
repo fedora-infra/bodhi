@@ -26,7 +26,7 @@ dist
 docs/_build
 docs/docblocks
 docs/developer/docblocks
-docs/images/database.png
+docs/generated
 dogpile-cache.dbm*
 html-docs
 htmlcov/
