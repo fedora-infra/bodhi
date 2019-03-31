@@ -69,6 +69,100 @@ def _db_record_to_munch(cursor, record):
     ]))
 
 
+def test_composes_info(bodhi_container, db_container):
+    """Test ``bodhi composes info``"""
+    compose = {}
+    updates = []
+    # Fetch the latest compse from the DB
+    query_composes = """SELECT
+      r.name as release,
+      c.state as state,
+      c.request as request,
+      c.date_created as date_created,
+      c.state_date as state_date,
+      c.error_message as error_message
+    FROM composes c
+    JOIN releases r ON r.id = c.release_id
+    WHERE r.state = 'current' OR r.state = 'pending'
+    ORDER BY date_created DESC LIMIT 1
+    """
+    # Fetch updates for compse from the DB
+    query_updates = """SELECT
+    u.alias, u.id, u.type
+    FROM updates u
+    JOIN releases r ON r.id = u.release_id
+    WHERE r.name = %s AND u.locked = TRUE AND u.request = %s
+    ORDER BY u.date_submitted
+    """
+    # Fetch builds for each update from the DB
+    query_builds = """SELECT
+    nvr, type
+    FROM builds
+    WHERE update_id = %s
+    ORDER BY nvr
+    """
+
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_composes)
+            row = curs.fetchone()
+            if row is None:
+                pytest.skip("No compose in the database")
+            for column, value in zip(curs.description, row):
+                compose[column.name] = value
+            curs.execute(query_updates, (compose['release'], compose['request'], ))
+            for row in curs.fetchall():
+                updates.append({'alias': row[0], 'id': row[1], 'type': row[2], 'builds': []})
+            for update in updates:
+                curs.execute(query_builds, (update['id'], ))
+                for row in curs.fetchall():
+                    update['builds'].append({'nvr': row[0], 'content_type': row[1]})
+    conn.close()
+
+    result = _run_cli(bodhi_container, ["composes", "info", compose['release'], compose['request']])
+    assert result.exit_code == 0
+
+    security = ' '
+    for update in updates:
+        if update['type'] == 'security':
+            security = '*'
+            break
+    if len(updates) and len(updates[0]['builds']):
+        content_type = updates[0]['builds'][0]['content_type']
+    else:
+        content_type = None
+    title = f"{security}{compose['release']}-{compose['request']}"
+    details = f"{len(updates):3d} updates ({compose['state']}) "
+    separator = "================================================================================\n"
+    header = f"     {title:<16}: {details}\n"
+
+    expected_output = separator + header + separator
+    expected_output += f"""\
+Content Type: {content_type}
+     Started: {compose['date_created'].strftime("%Y-%m-%d %H:%M:%S")}
+     Updated: {compose['state_date'].strftime("%Y-%m-%d %H:%M:%S")}
+"""
+    # If the compose doesn't have a error_message, the CLI does not render the Error: line.
+    if compose['error_message'] is not None:
+        expected_output += f"       Error: {compose['error_message']}\n"
+
+    expected_output += "\nUpdates:\n\n"
+    for update in updates:
+        if len(update['builds']) > 2:
+            builds_left = len(update['builds']) - 2
+            suffix = f", and {builds_left} more"
+            update_builds = ", ".join([u['nvr'] for u in update['builds'][:2]])
+            update_builds += suffix
+        else:
+            update_builds = " and ".join([u['nvr'] for u in update['builds']])
+        expected_output += f"\t{update['alias']}: {update_builds}\n"
+    expected_output += "\n"
+
+    assert expected_output == result.output
+
+
 def test_composes_list(bodhi_container, db_container):
     """Test ``bodhi composes list``"""
     result = _run_cli(bodhi_container, ["composes", "list"])
@@ -138,6 +232,51 @@ def test_releases_info(bodhi_container, db_container):
   Composed by Bodhi:   {composed_by_bodhi}
 """.format(**release)
         assert result.output == expected
+
+
+def test_releases_list(bodhi_container, db_container):
+    """Test ``bodhi releases list``"""
+    # Fetch the available releases from the DB
+    db_ip = db_container.get_IPv4s()[0]
+    query_pending_releases = "SELECT name FROM releases WHERE state = 'pending'"
+    query_archived_releases = "SELECT name FROM releases WHERE state = 'archived'"
+    query_current_releases = "SELECT name FROM releases WHERE state = 'current'"
+    pending_releases = []
+    archived_releases = []
+    current_releases = []
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_pending_releases)
+            for record in curs:
+                pending_releases.append(record[0])
+            curs.execute(query_archived_releases)
+            for record in curs:
+                archived_releases.append(record[0])
+            curs.execute(query_current_releases)
+            for record in curs:
+                current_releases.append(record[0])
+    conn.close()
+
+    # Run the command
+    # To fetch all existing releases in one call, we have to add --rows option
+    result = _run_cli(bodhi_container, ["releases", "list", "--display-archived", "--rows", "100"])
+    assert result.exit_code == 0
+    if len(pending_releases):
+        expected_pending_output = "pending:"
+        for name in pending_releases:
+            expected_pending_output += f"\n  Name:                {name}"
+        assert expected_pending_output in result.output
+    if len(archived_releases):
+        expected_archived_output = "archived:"
+        for name in archived_releases:
+            expected_archived_output += f"\n  Name:                {name}"
+        assert expected_archived_output in result.output
+    if len(current_releases):
+        expected_current_output = "current:"
+        for name in current_releases:
+            expected_current_output += f"\n  Name:                {name}"
+        assert expected_current_output in result.output
 
 
 def test_overrides_query(bodhi_container, db_container):
