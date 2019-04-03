@@ -38,6 +38,8 @@ from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 import requests.exceptions
 
+from bodhi.messages.schemas import (buildroot_override as override_schemas,
+                                    errata as errata_schemas, update as update_schemas)
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
@@ -2120,8 +2122,8 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
-        notifications.publish(topic='update.edit', msg=dict(
-            update=up, agent=request.user.name, new_bugs=new_bugs))
+        notifications.publish(update_schemas.UpdateEditV1.from_dict(
+            message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
 
         return up, caveats
 
@@ -2426,19 +2428,18 @@ class Update(Base):
             raise LockedUpdateException("Can't change the request on a "
                                         "locked update")
 
-        topic = 'update.request.%s' % action
         if action is UpdateRequest.unpush:
             self.unpush(db)
-            self.comment(db, 'This update has been unpushed.', author=username)
-            notifications.publish(topic=topic, msg=dict(
-                update=self, agent=username))
+            self.comment(db, u'This update has been unpushed.', author=username)
+            notifications.publish(update_schemas.UpdateRequestUnpushV1.from_dict(dict(
+                update=self, agent=username)))
             log.debug("%s has been unpushed." % self.alias)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete(db)
             log.debug("%s has been obsoleted." % self.alias)
-            notifications.publish(topic=topic, msg=dict(
-                update=self, agent=username))
+            notifications.publish(update_schemas.UpdateRequestObsoleteV1.from_dict(dict(
+                update=self, agent=username)))
             return
 
         # If status is pending going to testing request and action is revoke,
@@ -2448,8 +2449,8 @@ class Update(Base):
             self.status = UpdateStatus.unpushed
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
-            notifications.publish(topic=topic, msg=dict(
-                update=self, agent=username))
+            notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
+                update=self, agent=username)))
             return
 
         # If status is testing going to stable request and action is revoke,
@@ -2458,15 +2459,15 @@ class Update(Base):
                 self.status is UpdateStatus.testing and action is UpdateRequest.revoke:
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
-            notifications.publish(topic=topic, msg=dict(
-                update=self, agent=username))
+            notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
+                update=self, agent=username)))
             return
 
         elif action is UpdateRequest.revoke:
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
-            notifications.publish(topic=topic, msg=dict(
-                update=self, agent=username))
+            notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
+                update=self, agent=username)))
             return
 
         # Disable pushing critical path updates for pending releases directly to stable
@@ -2544,8 +2545,14 @@ class Update(Base):
                 self.alias, action.description, notes, flash_notes))
         self.comment(db, 'This update has been submitted for %s by %s. %s' % (
             action.description, username, notes), author='bodhi')
-        topic = 'update.request.%s' % action
-        notifications.publish(topic=topic, msg=dict(update=self, agent=username))
+        action_message_map = {
+            UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
+            UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
+            UpdateRequest.testing: update_schemas.UpdateRequestTestingV1,
+            UpdateRequest.unpush: update_schemas.UpdateRequestUnpushV1,
+            UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1}
+        notifications.publish(action_message_map[action].from_dict(
+            dict(update=self, agent=username)))
 
     def waive_test_results(self, username, comment=None, tests=None):
         """
@@ -2705,9 +2712,8 @@ class Update(Base):
         if mailinglist:
             for subject, body in mail.get_template(self, self.release.mail_template):
                 mail.send_mail(sender, mailinglist, subject, body)
-                notifications.publish(
-                    topic='errata.publish',
-                    msg=dict(subject=subject, body=body, update=self))
+                notifications.publish(errata_schemas.ErrataPublishV1.from_dict(
+                    dict(subject=subject, body=body, update=self)))
         else:
             log.error("Cannot find mailing list address for update notice")
             log.error("release_name = %r", release_name)
@@ -2935,10 +2941,8 @@ class Update(Base):
 
         # Publish to Fedora Messaging
         if author not in config.get('system_users'):
-            notifications.publish(topic='update.comment', msg=dict(
-                comment=comment.__json__(),
-                agent=author,
-            ))
+            notifications.publish(update_schemas.UpdateCommentV1.from_dict(
+                {'comment': comment.__json__(), 'agent': author}))
 
         # Send a notification to everyone that has commented on this update
         people = set()
@@ -3197,9 +3201,8 @@ class Update(Base):
                 log.info("Automatically marking %s as stable", self.alias)
                 self.set_request(db, UpdateRequest.stable, agent)
                 self.date_pushed = None
-                notifications.publish(
-                    topic='update.karma.threshold.reach',
-                    msg=dict(update=self, status='stable'))
+                notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
+                    dict(update=self, status='stable')))
             else:
                 # Add the 'testing_approval_msg_based_on_karma' message now
                 log.info((
@@ -3211,9 +3214,8 @@ class Update(Base):
             else:
                 log.info("Automatically unpushing %s", self.alias)
                 self.obsolete(db)
-                notifications.publish(
-                    topic='update.karma.threshold.reach',
-                    msg=dict(update=self, status='unstable'))
+                notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
+                    dict(update=self, status='unstable')))
 
     @property
     def builds_json(self):
@@ -4250,10 +4252,8 @@ class BuildrootOverride(Base):
         koji_session = buildsys.get_session()
         koji_session.tagBuild(self.build.release.override_tag, self.build.nvr)
 
-        notifications.publish(
-            topic='buildroot_override.tag',
-            msg=dict(override=self),
-        )
+        notifications.publish(override_schemas.BuildrootOverrideTagV1.from_dict(
+            dict(override=self)))
 
         self.expired_date = None
 
@@ -4270,7 +4270,5 @@ class BuildrootOverride(Base):
             log.error('Unable to untag override %s: %s' % (self.build.nvr, e))
         self.expired_date = datetime.utcnow()
 
-        notifications.publish(
-            topic='buildroot_override.untag',
-            msg=dict(override=self),
-        )
+        notifications.publish(override_schemas.BuildrootOverrideUntagV1.from_dict(
+            {'override': self}))

@@ -23,6 +23,7 @@ from bodhi.messages.schemas.compose import (
     ComposeCompleteV1,
     ComposeSyncWaitV1,
     ComposeSyncDoneV1,
+    RepoDoneV1,
 )
 from bodhi.tests.messages.utils import check_message
 
@@ -104,6 +105,22 @@ class ComposeMessageTests(unittest.TestCase):
                 'success': True,
                 'repo': 'test_repo',
             }
+        )
+        check_message(msg, expected)
+
+    def test_repo_done_v1(self):
+        expected = {
+            "topic": "bodhi.repo.done",
+            "summary": "bodhi composer is finished building test_repo",
+            "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "url": None,
+            "usernames": ['mohanboddu'],
+            "packages": [],
+            'agent': 'mohanboddu',
+            'repo': 'test_repo'
+        }
+        msg = RepoDoneV1(
+            body={'agent': 'mohanboddu', 'repo': 'test_repo', 'path': '/some/path'}
         )
         check_message(msg, expected)
 

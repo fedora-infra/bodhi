@@ -75,6 +75,7 @@ Dependency changes
   (:issue:`2700`).
 * pillow is no longer required (:issue:`2700`).
 * six is no longer required for the client or server (:issue:`2759`).
+* ``bodhi-server`` now depends on ``bodhi-messages``.
 * kitchen is no longer required.
 
 

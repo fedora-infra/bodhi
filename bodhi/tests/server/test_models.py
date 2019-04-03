@@ -25,11 +25,13 @@ import time
 import unittest
 import uuid
 
+from fedora_messaging.testing import mock_sends
 from pyramid.testing import DummyRequest
 from sqlalchemy.exc import IntegrityError
 import cornice
 import requests.exceptions
 
+from bodhi.messages.schemas import errata as errata_schemas, update as update_schemas
 from bodhi.server import models as model, buildsys, mail, util, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
@@ -2717,8 +2719,7 @@ class TestUpdate(ModelTest):
 
         self.assertTrue('Update has no timestamps set:' in str(exc.exception))
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_stable_karma(self, publish):
+    def test_stable_karma(self):
         update = self.obj
         update.request = None
         update.status = UpdateStatus.testing
@@ -2730,10 +2731,30 @@ class TestUpdate(ModelTest):
         update.comment(self.db, "foo", 1, 'bar')
         self.assertEqual(update.karma, 2)
         self.assertEqual(update.request, None)
-        update.comment(self.db, "foo", 1, 'biz')
+        # Let's flush out any messages that have been sent.
+        self.db.commit()
+        expected_message_0 = update_schemas.UpdateCommentV1.from_dict(
+            {'comment': self.obj['comments'][0], 'agent': 'biz'})
+        expected_message_1 = update_schemas.UpdateKarmaThresholdV1.from_dict(
+            {'update': self.obj, 'status': 'stable'})
+        expected_message_2 = update_schemas.UpdateRequestStableV1.from_dict(
+            {'update': self.obj, 'agent': 'bodhi'})
+
+        with mock_sends(expected_message_2, expected_message_1, expected_message_0):
+            update.comment(self.db, "foo", 1, 'biz')
+            # comment alters the update a bit, so we need to adjust the expected messages to
+            # reflect those changes so the mock_sends() check will pass.
+            expected_message_0.body['comment'] = self.obj['comments'][-2].__json__()
+            # Since we cheated and copied comment 0, we need to change the headers to show biz
+            # as the user instead of foo.
+            expected_message_0._headers['fedora_messaging_user_biz'] = True
+            del expected_message_0._headers['fedora_messaging_user_foo']
+            expected_message_1.body['update'] = self.obj.__json__()
+            expected_message_2.body['update'] = self.obj.__json__()
+            self.db.commit()
+
         self.assertEqual(update.karma, 3)
         self.assertEqual(update.request, UpdateRequest.stable)
-        publish.assert_called_with(topic='update.comment', msg=mock.ANY)
 
     def test_obsolete_if_unstable_unstable(self):
         """Test obsolete_if_unstable() when all conditions are met for instability."""
@@ -2762,8 +2783,7 @@ class TestUpdate(ModelTest):
 
         self.assertEqual(str(exc.exception), 'Can only revoke an update with an existing request')
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_unstable_karma(self, publish):
+    def test_unstable_karma(self):
         update = self.obj
         update.status = UpdateStatus.testing
         self.assertEqual(update.karma, 0)
@@ -2774,10 +2794,27 @@ class TestUpdate(ModelTest):
         update.comment(self.db, "bar", -1, 'bar')
         self.assertEqual(update.status, UpdateStatus.testing)
         self.assertEqual(update.karma, -2)
-        update.comment(self.db, "biz", -1, 'biz')
+        # Let's flush out any messages that have been sent.
+        self.db.commit()
+        expected_message_0 = update_schemas.UpdateCommentV1.from_dict(
+            {'comment': self.obj['comments'][0], 'agent': 'biz'})
+        expected_message_1 = update_schemas.UpdateKarmaThresholdV1.from_dict(
+            {'update': self.obj, 'status': 'unstable'})
+
+        with mock_sends(expected_message_1, expected_message_0):
+            update.comment(self.db, "biz", -1, 'biz')
+            # comment alters the update a bit, so we need to adjust the expected messages to
+            # reflect those changes so the mock_sends() check will pass.
+            expected_message_0.body['comment'] = self.obj['comments'][-2].__json__()
+            # Since we cheated and copied comment 0, we need to change the headers to show biz
+            # as the user instead of foo.
+            expected_message_0._headers['fedora_messaging_user_biz'] = True
+            del expected_message_0._headers['fedora_messaging_user_foo']
+            expected_message_1.body['update'] = self.obj.__json__()
+            self.db.commit()
+
         self.assertEqual(update.karma, -3)
         self.assertEqual(update.status, UpdateStatus.obsolete)
-        publish.assert_called_with(topic='update.comment', msg=mock.ANY)
 
     def test_update_bugs(self):
         update = self.obj
@@ -2852,41 +2889,50 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.status, UpdateStatus.pending)
 
     @mock.patch('bodhi.server.models.buildsys.get_session')
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_set_request_resubmit_candidate_tag_missing(self, publish, get_session):
+    def test_set_request_resubmit_candidate_tag_missing(self, get_session):
         """Ensure that set_request() adds the candidate tag back to a resubmitted build."""
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         req.koji = get_session.return_value
         self.obj.status = UpdateStatus.unpushed
         self.obj.request = None
+        expected_message = update_schemas.UpdateRequestTestingV1.from_dict(
+            {'update': self.obj, 'agent': req.user.name})
 
-        self.obj.set_request(self.db, 'testing', req.user.name)
+        with mock_sends(expected_message):
+            self.obj.set_request(self.db, 'testing', req.user.name)
+            # set_request alters the update a bit, so we need to adjust the expected message to
+            # reflect those changes so the mock_sends() check will pass.
+            expected_message.body['update']['status'] = 'pending'
+            expected_message.body['update']['request'] = 'testing'
+            expected_message.body['update']['comments'] = self.obj.__json__()['comments']
+            self.db.commit()
 
         self.assertEqual(self.obj.status, UpdateStatus.pending)
         self.assertEqual(self.obj.request, UpdateRequest.testing)
-        publish.assert_called_once_with(
-            topic='update.request.testing', msg={'update': self.obj, 'agent': req.user.name})
         self.assertEqual(
             get_session.return_value.tagBuild.mock_calls,
             [mock.call(self.obj.release.pending_signing_tag, self.obj.builds[0].nvr, force=True),
              mock.call(self.obj.release.candidate_tag, self.obj.builds[0].nvr, force=True)])
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_set_request_revoke_pending_stable(self, publish):
+    def test_set_request_revoke_pending_stable(self):
         """Ensure that we can revoke a pending/stable update with set_request()."""
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
         self.obj.status = UpdateStatus.pending
         self.obj.request = UpdateRequest.stable
+        expected_message = update_schemas.UpdateRequestRevokeV1.from_dict(
+            {'update': self.obj, 'agent': req.user.name})
 
-        self.obj.set_request(self.db, UpdateRequest.revoke, req.user.name)
+        with mock_sends(expected_message):
+            self.obj.set_request(self.db, UpdateRequest.revoke, req.user.name)
+            # set_request alters obj, so let's modify the expected_message with the updated obj.
+            expected_message.body['update'] = self.obj.__json__()
+            self.db.commit()
 
         self.assertEqual(self.obj.request, None)
         self.assertEqual(self.obj.status, UpdateStatus.pending)
-        publish.assert_called_once_with(
-            topic='update.request.revoke', msg={'update': self.obj, 'agent': req.user.name})
 
     def test_set_request_untested_stable(self):
         """
@@ -2903,8 +2949,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.status, UpdateStatus.pending)
         self.assertEqual(str(exc.exception), config.get('not_yet_tested_msg'))
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_set_request_stable_after_week_in_testing(self, publish):
+    def test_set_request_stable_after_week_in_testing(self):
         req = DummyRequest()
         req.errors = cornice.Errors()
         req.koji = buildsys.get_session()
@@ -2919,15 +2964,22 @@ class TestUpdate(ModelTest):
         self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
         self.assertEqual(self.obj.days_in_testing, 7)
         self.assertEqual(self.obj.meets_testing_requirements, True)
+        expected_message = update_schemas.UpdateRequestStableV1.from_dict(
+            {'update': self.obj, 'agent': req.user.name})
 
-        self.obj.set_request(self.db, UpdateRequest.stable, req)
+        with mock_sends(expected_message):
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+            # set_request alters the update a bit, so we need to adjust the expected message to
+            # reflect those changes so the mock_sends() check will pass.
+            expected_message.body['update']['status'] = 'testing'
+            expected_message.body['update']['request'] = 'stable'
+            expected_message.body['update']['comments'] = self.obj.__json__()['comments']
+            self.db.commit()
+
         self.assertEqual(self.obj.request, UpdateRequest.stable)
         self.assertEqual(len(req.errors), 0)
-        publish.assert_called_once_with(
-            topic='update.request.stable', msg=mock.ANY)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_set_request_stable_epel_requirements_not_met(self, publish):
+    def test_set_request_stable_epel_requirements_not_met(self):
         """Test set_request() for EPEL update requesting stable that doesn't meet requirements."""
         req = DummyRequest()
         req.errors = cornice.Errors()
@@ -2938,14 +2990,13 @@ class TestUpdate(ModelTest):
         self.obj.request = None
 
         with self.assertRaises(BodhiException) as exc:
-            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+            with mock_sends():
+                self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
 
         self.assertEqual(str(exc.exception), config['not_yet_tested_epel_msg'])
         self.assertEqual(self.obj.request, None)
-        self.assertEqual(publish.call_count, 0)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_set_request_stable_epel_requirements_not_met_not_testing(self, publish):
+    def test_set_request_stable_epel_requirements_not_met_not_testing(self):
         """Test set_request() for EPEL update not meeting requirements that isn't testing."""
         req = DummyRequest()
         req.errors = cornice.Errors()
@@ -2954,13 +3005,18 @@ class TestUpdate(ModelTest):
         self.obj.release.id_prefix = 'FEDORA-EPEL'
         self.obj.status = UpdateStatus.pending
         self.obj.request = None
+        expected_message = update_schemas.UpdateRequestTestingV1.from_dict(
+            {'update': self.obj, 'agent': req.user.name})
 
-        self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+        with mock_sends(expected_message):
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+            # set_request alters the update a bit, so we need to adjust the expected message to
+            # reflect those changes so the mock_sends() check will pass.
+            expected_message.body['update'] = self.obj.__json__()
+            self.db.commit()
 
         # The request should have gotten switched to testing.
         self.assertEqual(self.obj.request, UpdateRequest.testing)
-        publish.assert_called_once_with(
-            topic='update.request.testing', msg={'update': self.obj, 'agent': req.user.name})
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_set_request_stable_for_critpath_update_when_test_gating_enabled(self):
@@ -3009,8 +3065,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.request, UpdateRequest.stable)
         self.assertEqual(self.obj.status, UpdateStatus.pending)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_met_testing_requirements_at_7_days_after_bodhi_comment(self, publish):
+    def test_met_testing_requirements_at_7_days_after_bodhi_comment(self):
         """
         Ensure a correct True return value from Update.met_testing_requirements() after an update
         has been in testing for 7 days and after bodhi has commented about it.
@@ -3031,8 +3086,7 @@ class TestUpdate(ModelTest):
         # say that it can now be pushed to stable.
         self.assertEqual(self.obj.met_testing_requirements, True)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_met_testing_requirements_at_7_days_before_bodhi_comment(self, publish):
+    def test_met_testing_requirements_at_7_days_before_bodhi_comment(self):
         """
         Ensure a correct False return value from Update.met_testing_requirements() after an update
         has been in testing for 7 days but before bodhi has commented about it.
@@ -3091,8 +3145,7 @@ class TestUpdate(ModelTest):
         update.comment(self.db, 'testing', author='enemy', karma=-1)
         self.assertEqual(update.meets_testing_requirements, False)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_met_testing_requirements_with_karma_after_bodhi_comment(self, publish):
+    def test_met_testing_requirements_with_karma_after_bodhi_comment(self):
         """
         Ensure a correct True return value from Update.met_testing_requirements() after a
         non-autokarma update has reached the karma requirement and after bodhi has commented about
@@ -3117,8 +3170,7 @@ class TestUpdate(ModelTest):
         # say that it can now be pushed to stable.
         self.assertEqual(self.obj.met_testing_requirements, True)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_met_testing_requirements_with_karma_before_bodhi_comment(self, publish):
+    def test_met_testing_requirements_with_karma_before_bodhi_comment(self):
         """
         Ensure a correct False return value from Update.met_testing_requirements() after a
         non-autokarma update has reached the karma requirement but before bodhi has commented about
@@ -3140,16 +3192,17 @@ class TestUpdate(ModelTest):
         # Update to say that it can now be pushed to stable.
         self.assertEqual(self.obj.met_testing_requirements, False)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_set_request_obsolete(self, publish):
+    def test_set_request_obsolete(self):
         req = DummyRequest(user=DummyUser())
         req.errors = cornice.Errors()
         self.assertEqual(self.obj.status, UpdateStatus.pending)
-        self.obj.set_request(self.db, UpdateRequest.obsolete, req.user.name)
+
+        with mock_sends(update_schemas.UpdateRequestObsoleteV1):
+            self.obj.set_request(self.db, UpdateRequest.obsolete, req.user.name)
+            self.db.commit()
+
         self.assertEqual(self.obj.status, UpdateStatus.obsolete)
         self.assertEqual(len(req.errors), 0)
-        publish.assert_called_once_with(
-            topic='update.request.obsolete', msg=mock.ANY)
 
     def test_status_comment(self):
         self.obj.status = UpdateStatus.testing
@@ -3317,18 +3370,19 @@ class TestUpdate(ModelTest):
         self.assertEqual(send_mail.call_count, 0)
 
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
-    @mock.patch('bodhi.server.models.notifications.publish')
     @mock.patch.dict('bodhi.server.models.config',
                      {'bodhi_email': 'bodhi@fp.o', 'smtp_server': 'smtp.fp.o'})
-    def test_send_update_notice_status_testing(self, publish, SMTP):
+    def test_send_update_notice_status_testing(self, SMTP):
         """Assert the test_announce_list setting is used for the mailing list of testing updates."""
         self.obj.status = UpdateStatus.testing
-
-        self.obj.send_update_notice()
-
         subject, body = mail.get_template(self.obj, self.obj.release.mail_template)[0]
-        publish.assert_called_once_with(topic='errata.publish',
-                                        msg={'subject': subject, 'body': body, 'update': self.obj})
+        expected_message = errata_schemas.ErrataPublishV1.from_dict({
+            'subject': subject, 'body': body, 'update': self.obj})
+
+        with mock_sends(expected_message):
+            self.obj.send_update_notice()
+            self.db.commit()
+
         release_name = self.obj.release.id_prefix.lower().replace('-', '_')
         msg = ('From: {}\r\nTo: {}\r\nX-Bodhi: {}'
                '\r\nSubject: [SECURITY] Fedora 11 Test Update: {}\r\n\r\n{}')

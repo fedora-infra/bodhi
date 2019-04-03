@@ -19,6 +19,7 @@
 from sqlalchemy.sql import or_
 import click
 
+from bodhi.messages.schemas import composer as composer_schemas
 from bodhi.server import (buildsys, initialize_db, get_koji)
 from bodhi.server.config import config
 from bodhi.server.models import (Compose, ComposeState, Release, ReleaseState, Build, Update,
@@ -170,16 +171,9 @@ def push(username, yes, **kwargs):
 
     if composes:
         click.echo('\nSending composer.start message')
-        bodhi.server.notifications.publish(
-            topic='composer.start',
-            msg=dict(
-                api_version=2,
-                composes=composes,
-                resume=resume,
-                agent=username,
-            ),
-            force=True,
-        )
+        bodhi.server.notifications.publish(composer_schemas.ComposerStartV1.from_dict(dict(
+            api_version=2, composes=composes, resume=resume, agent=username)),
+            force=True)
 
 
 def _filter_releases(session, query, releases=None):

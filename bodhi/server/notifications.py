@@ -16,13 +16,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of message publishing utilities."""
-import json
 import logging
+import typing
 
 from sqlalchemy import event
 from fedora_messaging import api, exceptions as fml_exceptions
 
 from bodhi.server import Session
+
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from bodhi.messages.schemas import base  # noqa: 401
 
 
 _log = logging.getLogger(__name__)
@@ -46,27 +49,18 @@ def send_messages_after_commit(session):
         session.info['messages'] = []
 
 
-def publish(topic, msg, force=False):
+def publish(message: 'base.BodhiMessage', force: bool = False):
     """
     Send a message via Fedora Messaging.
 
     This is used to send a message to the AMQP broker.
 
     Args:
-        topic (str): The topic suffix. The "bodhi" prefix is applied (along with
-            the "topic_prefix" settings from Fedora Messaging).
-        msg (dict): The message body to send.
-        force (bool): If False (the default), the message is only sent after the
+        message: The Message you wish to publish.
+        force: If False (the default), the message is only sent after the
             currently active database transaction successfully commits. If true,
             the messages is sent immediately.
     """
-    # Dirty, nasty hack that I feel shame for: use the fedmsg encoder that modifies
-    # messages quietly if they have objects with __json__ methods on them.
-    # For now, copy that behavior. In the future, callers should pass
-    # fedora_messaging.api.Message sub-classes or this whole API should go away.
-    body = json.loads(json.dumps(msg, cls=FedMsgEncoder))
-
-    message = api.Message(topic="bodhi.{}".format(topic), body=body)
     if force:
         api.publish(message)
         return
@@ -76,16 +70,3 @@ def publish(topic, msg, force=False):
         session.info['messages'] = []
     session.info['messages'].append(message)
     _log.debug('Queuing message %r for delivery on session commit', message.id)
-
-
-class FedMsgEncoder(json.encoder.JSONEncoder):
-    """Encoder with convenience support.
-
-    If an object has a ``__json__()`` method, use it to serialize to JSON.
-    """
-
-    def default(self, obj):
-        """Encode objects which don't have a more specific encoding method."""
-        if hasattr(obj, "__json__"):
-            return obj.__json__()
-        return super().default(obj)

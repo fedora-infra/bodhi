@@ -17,12 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This test module contains tests for bodhi.server.notifications."""
 
-import json
 from unittest import mock
 
 from fedora_messaging import api, testing as fml_testing, exceptions as fml_exceptions
 
-from bodhi.server import notifications, Session, models
+from bodhi.messages.schemas import compose as compose_schemas
+from bodhi.server import notifications, Session
 from bodhi.tests.server import base
 
 
@@ -31,37 +31,37 @@ class TestPublish(base.BaseTestCase):
 
     def test_publish_force(self):
         """Assert that fedora-messaging messages respect the force flag."""
-        expected = api.Message(topic='bodhi.demo.topic',
-                               body={'such': 'important'})
-
-        with fml_testing.mock_sends(expected):
-            notifications.publish('demo.topic', {'such': 'important'}, force=True)
+        message = compose_schemas.ComposeSyncWaitV1.from_dict({'agent': 'double O seven',
+                                                               'repo': 'f30'})
+        with fml_testing.mock_sends(message):
+            notifications.publish(message, force=True)
 
     def test_publish(self):
         """Assert publish places the message inside the session info dict."""
-        notifications.publish('demo.topic', {'such': 'important'})
+        message = compose_schemas.ComposeSyncWaitV1.from_dict({'agent': 'double O seven',
+                                                               'repo': 'f30'})
+
+        notifications.publish(message)
+
         session = Session()
         self.assertIn('messages', session.info)
         self.assertEqual(len(session.info['messages']), 1)
         msg = session.info['messages'][0]
-        self.assertEqual(msg.topic, 'bodhi.demo.topic')
-        self.assertEqual(msg.body, {'such': 'important'})
+        self.assertEqual(msg, message)
 
     def test_publish_sqlalchemy_object(self):
         """Assert publish places the message inside the session info dict."""
+        message = compose_schemas.ComposeSyncWaitV1.from_dict({'agent': 'double O seven',
+                                                               'repo': 'f30'})
         Session.remove()
-        expected_msg = {
-            'some_package': {
-                'name': 'so good',
-                'type': 'base',
-                'requirements': None}}
-        package = models.Package(name='so good')
-        notifications.publish('demo.topic', {'some_package': package})
+
+        notifications.publish(message)
+
         session = Session()
         self.assertIn('messages', session.info)
         self.assertEqual(len(session.info['messages']), 1)
         msg = session.info['messages'][0]
-        self.assertEqual(msg.body, expected_msg)
+        self.assertEqual(msg, message)
 
 
 class TestSendMessagesAfterCommit(base.BaseTestCase):
@@ -94,34 +94,3 @@ class TestSendMessagesAfterCommit(base.BaseTestCase):
 
         mock_log.exception.assert_called_once_with(
             "An error occurred publishing %r after a database commit", message)
-
-
-class FedMsgEncoderTests(base.BaseTestCase):
-    """Tests for the custom JSON encode ``FedMsgEncoder``."""
-
-    def test_default(self):
-        """Assert normal types are encoded the same way as the default encoder."""
-        self.assertEqual(
-            json.dumps('a string'),
-            json.dumps('a string', cls=notifications.FedMsgEncoder)
-        )
-
-    def test_default_obj_with_json(self):
-        """Assert classes with a ``__json__`` function encode as the return of ``__json__``."""
-
-        class JsonClass(object):
-            def __json__(self):
-                return {'my': 'json'}
-
-        self.assertEqual(
-            {'my': 'json'},
-            notifications.FedMsgEncoder().default(JsonClass())
-        )
-
-    def test_default_other(self):
-        """Fallback to the superclasses' default."""
-        self.assertRaises(
-            TypeError,
-            notifications.FedMsgEncoder().default,
-            object()
-        )

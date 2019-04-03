@@ -21,8 +21,10 @@ from datetime import datetime
 from unittest import mock
 
 from click.testing import CliRunner
+from fedora_messaging import testing as fml_testing
 import click
 
+from bodhi.messages.schemas import composer as composer_schemas
 from bodhi.server import push
 from bodhi.server import models
 from bodhi.tests.server import base
@@ -385,8 +387,7 @@ class TestPush(base.BaseTestCase):
         mock_config.start()
         self.addCleanup(mock_config.stop)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_abort_push(self, publish):
+    def test_abort_push(self):
         """
         Ensure that the push gets aborted if the user types 'n' when asked if they want to push.
         """
@@ -395,7 +396,8 @@ class TestPush(base.BaseTestCase):
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='n')
+            with fml_testing.mock_sends():
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='n')
 
         # The exit code is 1 when the push is aborted.
         self.assertEqual(result.exit_code, 1)
@@ -408,7 +410,6 @@ class TestPush(base.BaseTestCase):
         else:
             doctored_output = result.output
         self.assertEqual(doctored_output, TEST_ABORT_PUSH_EXPECTED_OUTPUT)
-        self.assertEqual(publish.call_count, 0)
         # The updates should not be locked
         for nvr in ['bodhi-2.0-1.fc17', 'python-nose-1.3.7-11.fc17',
                     'python-paste-deploy-1.5.2-8.fc17']:
@@ -416,8 +417,7 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_builds_flag(self, publish):
+    def test_builds_flag(self):
         """
         Assert correct operation when the --builds flag is given.
         """
@@ -426,25 +426,22 @@ class TestPush(base.BaseTestCase):
         # Make it so we have three builds we could push out so that we can ask for and verify two
         ejabberd.builds[0].signed = True
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [{'security': False, 'release_id': ejabberd.release.id,
+                          'request': u'testing', 'content_type': u'rpm'}],
+            'resume': False, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(
-                push.push,
-                ['--username', 'bowlofeggs', '--builds',
-                 'python-nose-1.3.7-11.fc17,ejabberd-16.09-4.fc17'],
-                input='y')
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(
+                    push.push,
+                    ['--username', 'bowlofeggs', '--builds',
+                     'python-nose-1.3.7-11.fc17,ejabberd-16.09-4.fc17'],
+                    input='y')
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_BUILDS_FLAG_EXPECTED_OUTPUT)
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={
-                'composes': [{'security': False, 'release_id': ejabberd.release.id,
-                              'request': 'testing', 'content_type': 'rpm'}],
-                'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
-
         for nvr in ['ejabberd-16.09-4.fc17', 'python-nose-1.3.7-11.fc17']:
             u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
             self.assertTrue(u.locked)
@@ -454,28 +451,25 @@ class TestPush(base.BaseTestCase):
         self.assertFalse(python_paste_deploy.locked)
         self.assertIsNone(python_paste_deploy.date_locked)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_yes_flag(self, publish):
+    def test_yes_flag(self):
         """
         Test correct operation when the --yes flag is used.
         """
         cli = CliRunner()
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [{'security': False, 'release_id': 1,
+                          'request': u'testing', 'content_type': u'rpm'}],
+            'resume': False, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(
-                push.push, ['--username', 'bowlofeggs', '--yes'])
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(
+                    push.push, ['--username', 'bowlofeggs', '--yes'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_YES_FLAG_EXPECTED_OUTPUT)
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={
-                'composes': [{'security': False, 'release_id': 1, 'request': 'testing',
-                              'content_type': 'rpm'}],
-                'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
         bodhi = self.db.query(models.Build).filter_by(
             nvr='bodhi-2.0-1.fc17').one().update
         python_nose = self.db.query(models.Build).filter_by(
@@ -489,8 +483,7 @@ class TestPush(base.BaseTestCase):
             self.assertEqual(u.compose.request, models.UpdateRequest.testing)
             self.assertEqual(u.compose.content_type, models.ContentType.rpm)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_locked_updates(self, publish):
+    def test_locked_updates(self):
         """
         Test correct operation when there are some locked updates.
         """
@@ -505,18 +498,18 @@ class TestPush(base.BaseTestCase):
             error_message='y r u so mean nfs')
         self.db.add(compose)
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [{'security': False, 'release_id': 1,
+                          'request': u'testing', 'content_type': u'rpm'}],
+            'resume': True, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y\ny')
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y\ny')
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_LOCKED_UPDATES_EXPECTED_OUTPUT)
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={'composes': [ejabberd.compose.__json__(composer=True)],
-                 'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         self.assertTrue(ejabberd.locked)
         self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
@@ -532,8 +525,7 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_locked_updates_yes_flag(self, publish):
+    def test_locked_updates_yes_flag(self):
         """
         Test correct operation when there are some locked updates and --yes flag is given.
         """
@@ -548,18 +540,17 @@ class TestPush(base.BaseTestCase):
             error_message='y r u so mean nfs')
         self.db.add(compose)
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [ejabberd.compose.__json__(composer=True)],
+            'resume': True, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--yes'])
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--yes'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT)
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={'composes': [ejabberd.compose.__json__(composer=True)],
-                 'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         self.assertTrue(ejabberd.locked)
         self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
@@ -575,8 +566,7 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_no_updates_to_push(self, publish):
+    def test_no_updates_to_push(self):
         """
         If there are no updates to push, no push message should get sent.
         """
@@ -597,11 +587,10 @@ class TestPush(base.BaseTestCase):
             # Note: this IS the signing-pending tag
             with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
                             return_value=[{'name': 'f17-updates-testing-signing'}]):
-                result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
+                with fml_testing.mock_sends():
+                    result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
 
         self.assertEqual(result.exit_code, 0)
-        self.assertEqual(publish.call_count, 0)
-
         # The updates should not be locked
         bodhi = self.db.query(models.Build).filter_by(
             nvr='bodhi-2.0-1.fc17').one().update
@@ -613,8 +602,7 @@ class TestPush(base.BaseTestCase):
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_releases_flag(self, publish):
+    def test_releases_flag(self):
         """
         Assert correct operation from the --releases flag.
         """
@@ -652,29 +640,30 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy.builds[0].signed = True
         self.db.commit()
         cli = CliRunner()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [], 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            # We will specify that we want F25 and F26, which should exclude the F17 updates we've
-            # been pushing in all the other tests. We'll leave the F off of 26 and lowercase the f
-            # on 25 to make sure it's flexible.
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--releases', 'f25,26'],
-                                input='y')
+            with fml_testing.mock_sends(expected_message):
+                # We will specify that we want F25 and F26, which should exclude the F17 updates
+                # we've been pushing in all the other tests. We'll leave the F off of 26 and
+                # lowercase the f on 25 to make sure it's flexible.
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--releases', 'f25,26'],
+                                    input='y')
+
+                # The call to push modifies the database, so we need to modify expected_message to
+                # suit.
+                f25_python_nose = self.db.query(models.Build).filter_by(
+                    nvr='python-nose-1.3.7-11.fc25').one().update
+                f26_python_paste_deploy = self.db.query(models.Build).filter_by(
+                    nvr='python-paste-deploy-1.5.2-8.fc26').one().update
+                expected_message.body['composes'] = [
+                    f25_python_nose.compose.__json__(composer=True),
+                    f26_python_paste_deploy.compose.__json__(composer=True)]
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
-        f25_python_nose = self.db.query(models.Build).filter_by(
-            nvr='python-nose-1.3.7-11.fc25').one().update
-        f26_python_paste_deploy = self.db.query(models.Build).filter_by(
-            nvr='python-paste-deploy-1.5.2-8.fc26').one().update
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={
-                'composes': [f25_python_nose.compose.__json__(composer=True),
-                             f26_python_paste_deploy.compose.__json__(composer=True)],
-                'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
-
         # The Fedora 17 updates should not have been locked.
         f17_python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
@@ -697,8 +686,7 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(f26_python_paste_deploy.compose.release.id, f26.id)
         self.assertEqual(f26_python_paste_deploy.compose.request, models.UpdateRequest.testing)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_create_composes_for_releases_marked_as_composed_by_bodhi(self, publish):
+    def test_create_composes_for_releases_marked_as_composed_by_bodhi(self):
         """
         Assert that composes are created only for releases marked as 'composed_by_bodhi'.
         """
@@ -740,24 +728,26 @@ class TestPush(base.BaseTestCase):
         f17_release.composed_by_bodhi = False
         self.db.commit()
         cli = CliRunner()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [], 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
+
+                # Calling push alters the database, so we need to update the expected_message to
+                # reflect the changes.
+                f25_python_nose = self.db.query(models.Build).filter_by(
+                    nvr='python-nose-1.3.7-11.fc25').one().update
+                f26_python_paste_deploy = self.db.query(models.Build).filter_by(
+                    nvr='python-paste-deploy-1.5.2-8.fc26').one().update
+                expected_message.body['composes'] = [
+                    f25_python_nose.compose.__json__(composer=True),
+                    f26_python_paste_deploy.compose.__json__(composer=True)]
+
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
-        f25_python_nose = self.db.query(models.Build).filter_by(
-            nvr='python-nose-1.3.7-11.fc25').one().update
-        f26_python_paste_deploy = self.db.query(models.Build).filter_by(
-            nvr='python-paste-deploy-1.5.2-8.fc26').one().update
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={
-                'composes': [f25_python_nose.compose.__json__(composer=True),
-                             f26_python_paste_deploy.compose.__json__(composer=True)],
-                'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
-
         # The Fedora 17 updates should not have been locked and composed.
         f17_python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
@@ -780,8 +770,7 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(f26_python_paste_deploy.compose.release.id, f26.id)
         self.assertEqual(f26_python_paste_deploy.compose.request, models.UpdateRequest.testing)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_request_flag(self, publish):
+    def test_request_flag(self):
         """
         Assert that the --request flag works correctly.
         """
@@ -791,37 +780,38 @@ class TestPush(base.BaseTestCase):
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_nose.request = models.UpdateRequest.stable
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [], 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--request', 'testing'],
-                                input='y')
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--request', 'testing'],
+                                    input='y')
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_REQUEST_FLAG_EXPECTED_OUTPUT)
-        bodhi = self.db.query(models.Build).filter_by(
-            nvr='bodhi-2.0-1.fc17').one().update
-        python_nose = self.db.query(models.Build).filter_by(
-            nvr='python-nose-1.3.7-11.fc17').one().update
-        python_paste_deploy = self.db.query(models.Build).filter_by(
-            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
-                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
-        self.assertFalse(python_nose.locked)
-        self.assertIsNone(python_nose.date_locked)
-        self.assertIsNone(python_nose.compose)
-        for u in [bodhi, python_paste_deploy]:
-            self.assertTrue(u.locked)
-            self.assertTrue(u.date_locked <= datetime.utcnow())
-            self.assertEqual(u.compose.release.id, python_paste_deploy.release.id)
-            self.assertEqual(u.compose.request, models.UpdateRequest.testing)
-            self.assertEqual(u.compose.content_type, models.ContentType.rpm)
+                # The call to push modifies the database, so we need to modify expected_message to
+                # suit.
+                bodhi = self.db.query(models.Build).filter_by(
+                    nvr='bodhi-2.0-1.fc17').one().update
+                expected_message.body['composes'] = [bodhi.compose.__json__(composer=True)]
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_resume_flag(self, publish):
+            self.assertEqual(result.exit_code, 0)
+            self.assertEqual(result.output, TEST_REQUEST_FLAG_EXPECTED_OUTPUT)
+            python_nose = self.db.query(models.Build).filter_by(
+                nvr='python-nose-1.3.7-11.fc17').one().update
+            python_paste_deploy = self.db.query(models.Build).filter_by(
+                nvr='python-paste-deploy-1.5.2-8.fc17').one().update
+            self.assertFalse(python_nose.locked)
+            self.assertIsNone(python_nose.date_locked)
+            self.assertIsNone(python_nose.compose)
+            for u in [bodhi, python_paste_deploy]:
+                self.assertTrue(u.locked)
+                self.assertTrue(u.date_locked <= datetime.utcnow())
+                self.assertEqual(u.compose.release.id, python_paste_deploy.release.id)
+                self.assertEqual(u.compose.request, models.UpdateRequest.testing)
+                self.assertEqual(u.compose.content_type, models.ContentType.rpm)
+
+    def test_resume_flag(self):
         """
         Test correct operation when the --resume flag is given.
         """
@@ -834,10 +824,15 @@ class TestPush(base.BaseTestCase):
         compose = models.Compose(release=ejabberd.release, request=ejabberd.request)
         self.db.add(compose)
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [ejabberd.compose.__json__(composer=True)],
+            'resume': True, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'], input='y\ny')
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'],
+                                    input='y\ny')
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_RESUME_FLAG_EXPECTED_OUTPUT)
@@ -846,11 +841,6 @@ class TestPush(base.BaseTestCase):
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={'composes': [ejabberd.compose.__json__(composer=True)],
-                 'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
         # ejabberd should be locked still
         self.assertTrue(ejabberd.locked)
         self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
@@ -862,8 +852,7 @@ class TestPush(base.BaseTestCase):
             self.assertIsNone(u.date_locked)
             self.assertIsNone(u.compose)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_resume_and_yes_flags(self, publish):
+    def test_resume_and_yes_flags(self):
         """
         Test correct operation when the --resume flag and --yes flag are given.
         """
@@ -876,10 +865,14 @@ class TestPush(base.BaseTestCase):
         compose = models.Compose(release=ejabberd.release, request=ejabberd.request)
         self.db.add(compose)
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [ejabberd.compose.__json__(composer=True)],
+            'resume': True, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume', '--yes'])
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume', '--yes'])
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_RESUME_AND_YES_FLAGS_EXPECTED_OUTPUT)
@@ -888,11 +881,6 @@ class TestPush(base.BaseTestCase):
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={'composes': [ejabberd.compose.__json__(composer=True)],
-                 'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
         # ejabberd should be locked still
         self.assertTrue(ejabberd.locked)
         self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
@@ -904,8 +892,7 @@ class TestPush(base.BaseTestCase):
             self.assertIsNone(u.date_locked)
             self.assertIsNone(u.compose)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_resume_empty_compose(self, publish):
+    def test_resume_empty_compose(self):
         """
         Test correct operation when the --resume flag is given but one of the Composes has no
         updates.
@@ -923,11 +910,15 @@ class TestPush(base.BaseTestCase):
         compose = models.Compose(release=ejabberd.release, request=models.UpdateRequest.stable)
         self.db.add(compose)
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [ejabberd.compose.__json__(composer=True)],
+            'resume': True, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'],
-                                input='y\ny')
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'],
+                                    input='y\ny')
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_RESUME_EMPTY_COMPOSE)
@@ -936,11 +927,6 @@ class TestPush(base.BaseTestCase):
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={'composes': [ejabberd.compose.__json__(composer=True)],
-                 'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
         # ejabberd should still be locked.
         self.assertTrue(ejabberd.locked)
         self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
@@ -957,8 +943,7 @@ class TestPush(base.BaseTestCase):
                 release_id=ejabberd.release.id, request=models.UpdateRequest.stable).count(),
             0)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_resume_human_says_no(self, publish):
+    def test_resume_human_says_no(self):
         """
         Test correct operation when the --resume flag is given but the human says they don't want to
         resume one of the lockfiles.
@@ -979,11 +964,15 @@ class TestPush(base.BaseTestCase):
         compose = models.Compose(release=python_nose.release, request=python_nose.request)
         self.db.add(compose)
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [ejabberd.compose.__json__(composer=True)],
+            'resume': True, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
-            result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'],
-                                input='y\nn\ny')
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(push.push, ['--username', 'bowlofeggs', '--resume'],
+                                    input='y\nn\ny')
 
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output, TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT)
@@ -992,11 +981,6 @@ class TestPush(base.BaseTestCase):
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={'composes': [ejabberd.compose.__json__(composer=True)],
-                 'resume': True, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
         # These should still be locked.
         for u in [ejabberd, python_nose]:
             self.assertTrue(u.locked)
@@ -1008,8 +992,7 @@ class TestPush(base.BaseTestCase):
         self.assertIsNone(python_paste_deploy.date_locked)
         self.assertIsNone(python_paste_deploy.compose)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_unsigned_updates_unsigned_skipped(self, publish):
+    def test_unsigned_updates_unsigned_skipped(self):
         """
         Unsigned updates should get skipped.
         """
@@ -1019,26 +1002,29 @@ class TestPush(base.BaseTestCase):
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_nose.builds[0].signed = False
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [], 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             # Note: this IS the signing-pending tag
             with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
                             return_value=[{'name': 'f17-updates-testing-signing'}]):
-                result = cli.invoke(push.push, ['--username', 'bowlofeggs'],
-                                    input='y')
+                with fml_testing.mock_sends(expected_message):
+                    result = cli.invoke(push.push, ['--username', 'bowlofeggs'],
+                                        input='y')
+
+                    # The call to push modifies the database, so we need to modify expected_message
+                    # to suit.
+                    python_paste_deploy = self.db.query(models.Build).filter_by(
+                        nvr='python-paste-deploy-1.5.2-8.fc17').one().update
+                    expected_message.body['composes'] = [
+                        python_paste_deploy.compose.__json__(composer=True)]
 
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
-        python_paste_deploy = self.db.query(models.Build).filter_by(
-            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
-                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
         self.assertFalse(python_nose.locked)
         self.assertIsNone(python_nose.date_locked)
         self.assertTrue(python_paste_deploy.locked)
@@ -1046,8 +1032,7 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(python_paste_deploy.compose.release, python_paste_deploy.release)
         self.assertEqual(python_paste_deploy.compose.request, python_paste_deploy.request)
 
-    @mock.patch('bodhi.server.push.bodhi.server.notifications.publish')
-    def test_unsigned_updates_signed_updated(self, publish):
+    def test_unsigned_updates_signed_updated(self):
         """
         Unsigned updates should get marked signed.
         """
@@ -1057,26 +1042,30 @@ class TestPush(base.BaseTestCase):
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_nose.builds[0].signed = False
         self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [],
+            'resume': False, 'agent': 'bowlofeggs', 'api_version': 2})
 
         with mock.patch('bodhi.server.push.transactional_session_maker',
                         return_value=base.TransactionalSessionMaker(self.Session)):
             # Note: this is NOT the signing-pending tag
             with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
                             return_value=[{'name': 'f17-updates-testing'}]):
-                result = cli.invoke(push.push, ['--username', 'bowlofeggs'],
-                                    input='y')
+                with fml_testing.mock_sends(expected_message):
+                    result = cli.invoke(push.push, ['--username', 'bowlofeggs'],
+                                        input='y')
+
+                    # The call to push modifies the database, so we need to modify expected_message
+                    # to suit.
+                    python_paste_deploy = self.db.query(models.Build).filter_by(
+                        nvr='python-paste-deploy-1.5.2-8.fc17').one().update
+                    expected_message.body['composes'] = [
+                        python_paste_deploy.compose.__json__(composer=True)]
 
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
-        python_paste_deploy = self.db.query(models.Build).filter_by(
-            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        publish.assert_called_once_with(
-            topic='composer.start',
-            msg={'composes': [python_paste_deploy.compose.__json__(composer=True)],
-                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
-            force=True)
         self.assertTrue(python_nose.locked)
         self.assertTrue(python_nose.date_locked <= datetime.utcnow())
         self.assertEqual(python_nose.compose.release, python_paste_deploy.release)

@@ -173,6 +173,41 @@ class UpdateCommentV1(UpdateMessage):
         return self.body['comment']['update']
 
 
+class UpdateCompleteStableV1(UpdateMessage):
+    """Sent when an update is available in the stable repository."""
+
+    body_schema = {
+        'id': f'{SCHEMA_URL}/v1/bodhi.update.complete.stable#',
+        '$schema': 'http://json-schema.org/draft-04/schema#',
+        'description': 'Schema for message sent when an update is pushed stable',
+        'type': 'object',
+        'properties': {
+            'update': UpdateV1.schema(),
+        },
+        'required': ['update'],
+        'definitions': {
+            'build': BuildV1.schema(),
+        }
+    }
+
+    topic = "bodhi.update.complete.stable"
+
+    @property
+    def summary(self) -> str:
+        """
+        Return a short, human-readable representation of this message.
+
+        This should provide a short summary of the message, much like the subject line
+        of an email.
+
+        Returns:
+            A summary for this message.
+        """
+        return (
+            f"{self.update.user.name}'s {truncate(' '.join([b.nvr for b in self.update.builds]))} "
+            f"bodhi update completed push to {self.update.status}")
+
+
 class UpdateCompleteTestingV1(UpdateMessage):
     """Sent when an update is available in the testing repository."""
 

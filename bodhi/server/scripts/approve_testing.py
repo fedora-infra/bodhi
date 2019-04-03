@@ -30,6 +30,7 @@ from pyramid.paster import get_appsettings
 
 from ..models import Update, UpdateStatus
 from ..config import config
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import Session, initialize_db, notifications
 
 
@@ -104,9 +105,8 @@ def main(argv=sys.argv):
                     config.get('testing_approval_msg') % update.mandatory_days_in_testing)
                 update.comment(db, text, author='bodhi')
 
-                notifications.publish(
-                    topic='update.requirements_met.stable',
-                    msg=dict(update=update))
+                notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
+                    dict(update=update)))
                 db.commit()
 
     except Exception as e:

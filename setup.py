@@ -159,7 +159,12 @@ setup(
             "bodhi.compose.start.v1=bodhi.messages.schemas.compose:ComposeStartV1",
             "bodhi.compose.sync.done.v1=bodhi.messages.schemas.compose:ComposeSyncDoneV1",
             "bodhi.compose.sync.wait.v1=bodhi.messages.schemas.compose:ComposeSyncWaitV1",
+            "bodhi.repo.done.v1=bodhi.messages.schemas.compose:RepoDoneV1",
             "bodhi.update.comment.v1=bodhi.messages.schemas.update:UpdateCommentV1",
+            (
+                "bodhi.update.complete.stable.v1="
+                "bodhi.messages.schemas.update:UpdateCompleteStableV1"
+            ),
             (
                 "bodhi.update.complete.testing.v1="
                 "bodhi.messages.schemas.update:UpdateCompleteTestingV1"
