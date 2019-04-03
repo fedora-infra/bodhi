@@ -1608,6 +1608,54 @@ class TestEdit(unittest.TestCase):
             self.assertEqual(send_request.mock_calls, calls)
             self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_addbuilds_removebuilds(self, send_request, query):
+        """
+        Assert that a addbuilds and removebuilds are properly handled in a successful updates
+        edit request.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--notes', 'add and remove builds',
+                          '--addbuilds', 'tar-1.29-4.fc25,nedit-5.7-1.fc25',
+                          '--removebuilds', 'nodejs-grunt-wrap-0.3.0-2.fc25',
+                          '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid=u'FEDORA-2017-c95b33872d')
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'staging': False,
+                    'builds': ['tar-1.29-4.fc25', 'nedit-5.7-1.fc25'],
+                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                    'suggest': u'unspecified', 'notes': u'add and remove builds',
+                    'notes_file': None, 'request': None, 'severity': u'low',
+                    'bugs': '1420605', 'requirements': u'', 'unstable_karma': -3,
+                    'type': 'newpackage'
+                }
+            ),
+            mock.call(
+                bindings_client,
+                u'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
     def test_notes_and_notes_file(self):
         """
         Assert providing both --notes-file and --notes parameters to an otherwise successful

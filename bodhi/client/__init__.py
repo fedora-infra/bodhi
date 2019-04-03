@@ -439,6 +439,8 @@ def _validate_edit_update(ctx, param, value):
 @updates.command()
 @click.option('--type', help='Update type',
               type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
+@click.option('--addbuilds', help='Add Comma-separated list of build nvr')
+@click.option('--removebuilds', help='Remove Comma-separated list of build nvr')
 @add_options(new_edit_options)
 @click.argument('update', callback=_validate_edit_update)
 @openid_option
@@ -483,6 +485,15 @@ def edit(user, password, url, debug, openid_api, **kwargs):
 
         kwargs['builds'] = [b['nvr'] for b in former_update['builds']]
         kwargs['edited'] = former_update['alias']
+        if kwargs['addbuilds']:
+            for build in kwargs['addbuilds'].split(','):
+                if build not in kwargs['builds']:
+                    kwargs['builds'].append(build)
+        if kwargs['removebuilds']:
+            for build in kwargs['removebuilds'].split(','):
+                kwargs['builds'].remove(build)
+        del kwargs['addbuilds']
+        del kwargs['removebuilds']
 
         # Replace empty fields with former values from database.
         for field in kwargs:
