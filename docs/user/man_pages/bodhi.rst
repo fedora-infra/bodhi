@@ -258,6 +258,14 @@ The ``updates`` command allows users to interact with bodhi updates.
     Edit an existing bodhi update, given an update id or an update title. The
     ``edit`` subcommand supports the following options:
 
+    ``--addbuilds <builds>``
+
+        Add a comma separated list of build nvr to this update.
+
+    ``--removebuilds <builds>``
+
+        Remove a comma separated list of build nvr from this update.
+
     ``--type [security | bugfix | enhancement | newpackage]``
 
         The type of the new update.
