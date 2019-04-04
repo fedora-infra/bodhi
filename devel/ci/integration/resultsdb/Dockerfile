@@ -1,22 +1,17 @@
-FROM centos:7
+FROM fedora:29
 LABEL \
   name="resultsdb" \
   vendor="Fedora Infrastructure" \
   maintainer="Aurelien Bompard <abompard@fedoraproject.org>" \
   license="MIT"
 
-RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-
-# The echo works around https://bugzilla.redhat.com/show_bug.cgi?id=1483553 and any other future yum
-# upgrade bugs.
-RUN yum upgrade -y || echo "We are not trying to test dnf upgrade, so ignoring dnf failure."
-
 # Install deps
-RUN yum install -y \
+RUN dnf install -y \
     httpd \
-    mod_wsgi \
+    python3-mod_wsgi \
     resultsdb \
-    python-psycopg2
+    python3-psycopg2 \
+    python3-fedora-messaging
 
 # Configuration
 COPY devel/ci/integration/resultsdb/settings.py /etc/resultsdb/settings.py
