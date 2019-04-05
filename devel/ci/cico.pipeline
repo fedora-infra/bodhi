@@ -49,7 +49,7 @@ def configure_node = {
     onmyduffynode 'systemctl start docker'
     // To run the integration testsuite
     onmyduffynode 'python3.6 -m ensurepip'
-    onmyduffynode 'python3.6 -m pip install \'pytest<4.0\' pytest-cov conu munch psycopg2'
+    onmyduffynode 'python3.6 -m pip install \'pytest<4.0\' pytest-cov conu munch psycopg2-binary'
 }
 
 
