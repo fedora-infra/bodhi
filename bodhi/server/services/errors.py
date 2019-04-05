@@ -74,7 +74,7 @@ class html_handler(pyramid.httpexceptions.HTTPError):
 
     def __init__(self, request):
         """
-        Initialize the HTML error handler to render an error messgae for human readers.
+        Initialize the HTML error handler to render an error message for human readers.
 
         This method sets the Response body to rendered HTML version of the given errors, and the
         status code to the code specified by errors.

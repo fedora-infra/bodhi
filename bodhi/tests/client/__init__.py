@@ -62,7 +62,7 @@ EXAMPLE_COMMENT_MUNCH = Munch({
         u'user': Munch({
             u'openid': u'bowlofeggs.id.fedoraproject.org', u'name': u'bowlofeggs',
             u'id': 2897, u'avatar': u'AVATAR_URL',
-            u'groups': [Munch({u'name': u'packager'})], u'email': u'email@exampl.ecom'})}),
+            u'groups': [Munch({u'name': u'packager'})], u'email': u'email@example.com'})}),
     u'caveats': []})
 
 # EXAMPLE_COMMENT_MUNCH is expected to generate this output in update_str

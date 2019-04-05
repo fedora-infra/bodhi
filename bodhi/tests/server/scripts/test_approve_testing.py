@@ -92,7 +92,7 @@ class TestMain(BaseTestCase):
         self.assertEqual(self.db.query(models.User).filter_by(name=u'bodhi').count(), 0)
         self.assertEqual(self.db.query(models.Comment).count(), 0)
 
-    def test_autokarma_update_not_meeting_testing_requirments(self):
+    def test_autokarma_update_not_meeting_testing_requirements(self):
         """
         If an autokarma update has not met the testing requirements, bodhi should not comment on the
         update.
