@@ -368,9 +368,6 @@ def query_updates(request):
     if user is not None:
         query = query.filter(or_(*[Update.user == u for u in user]))
 
-    updateid = data.get('updateid')
-    if updateid is not None:
-        query = query.filter(or_(*[Update.alias == uid for uid in updateid]))
     alias = data.get('alias')
     if alias is not None:
         query = query.filter(or_(*[Update.alias == a for a in alias]))
