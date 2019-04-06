@@ -59,7 +59,6 @@ def bodhi_container(
         "dogpile.cache.backend": "dogpile.cache.memory_pickle",
         "legal_link": "https://fedoraproject.org/wiki/Legal:Main",
         "privacy_link": "https://fedoraproject.org/wiki/Legal:PrivacyPolicy",
-        "datagrepper_url": "https://apps.fedoraproject.org/datagrepper",
         "authtkt.secret": uuid4().hex,
         "session.secret": uuid4().hex,
         "query_wiki_test_cases": "True",
