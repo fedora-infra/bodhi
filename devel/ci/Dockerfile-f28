@@ -10,6 +10,7 @@ RUN dnf upgrade -y || echo "We are not trying to test dnf upgrade, so ignoring d
 RUN dnf install --disablerepo rawhide-modular -y \
     createrepo_c \
     findutils \
+    gcc \
     git \
     python3-createrepo_c \
     python3-hawkey \
@@ -21,6 +22,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-bugzilla \
     python3-click \
     python3-colander \
+    python3-devel \
     python3-diff-cover \
     python3-dogpile-cache \
     python3-fedora \
@@ -46,7 +48,8 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-webtest \
     python3-cornice \
     python3-cornice-sphinx \
-    python3-pyramid-fas-openid
+    python3-pyramid-fas-openid \
+    redhat-rpm-config
 
 # sqlalchemy_schemadisplay is not packaged for Python 3 in Fedora < 30
 # fedora_messaging isn't packaged for Fedora 28
