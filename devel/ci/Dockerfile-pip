@@ -19,6 +19,7 @@ RUN dnf install -y \
     gcc-c++ \
     graphviz \
     make \
+    postgresql-devel \
     python3-devel \
     python3-librepo \
     python3-simplemediawiki \
