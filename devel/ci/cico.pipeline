@@ -115,10 +115,6 @@ def test_release = { String release ->
         unit: {
             bodhi_ci(release, 'unit', 'unit', '--no-build --no-init')
             bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init')
-        },
-        integration: {
-            bodhi_ci(release, 'integration-build', 'integration-build', '')
-            bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
         }
     )
 }
@@ -162,6 +158,12 @@ node('bodhi') {
             pip: {test_release('pip')},
             rawhide: {test_release('rawhide')},
         )
+
+        def releases = ['f28', 'f29', 'f30', 'pip', 'rawhide']
+        for (release in releases) {
+            bodhi_ci(release, 'integration-build', 'integration-build', '')
+            bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
+        }
     } catch (e) {
         currentBuild.result = "FAILURE"
         throw e
