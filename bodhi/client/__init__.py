@@ -675,6 +675,8 @@ def comment(update, text, karma, user, password, url, openid_api, **kwargs):
 @click.option('--arch',
               help=('Specify arch of packages to download, "all" will retrieve packages from all '
                     'architectures'))
+@click.option('--debuginfo', is_flag=True, default=False,
+              help=('Include debuginfo packages'))
 @click.option('--updateid', help='Download update(s) by ID(s) (comma-separated list)')
 @click.option('--builds', help='Download update(s) by build NVR(s) (comma-separated list)')
 @url_option
@@ -688,18 +690,21 @@ def download(url, **kwargs):
     Download the builds for an update.
 
     Args:
-        staging (bool): Whether to use the staging server or not.
-        arch (unicode): Requested architecture of packages to download.
-                        "all" will retrieve packages from all architectures.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        kwargs (dict): Other keyword arguments passed to us by click.
+        staging (bool):   Whether to use the staging server or not.
+        arch (unicode):   Requested architecture of packages to download.
+                          "all" will retrieve packages from all architectures.
+        debuginfo (bool): Whether to include debuginfo packages.
+        url (unicode):    The URL of a Bodhi server to create the update on. Ignored if staging is
+                          True.
+        kwargs (dict):    Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
     requested_arch = kwargs['arch']
+    debuginfo = kwargs['debuginfo']
 
     del(kwargs['staging'])
     del(kwargs['arch'])
+    del(kwargs['debuginfo'])
     # At this point we need to have reduced the kwargs dict to only our
     # query options (updateid or builds)
     if not any(kwargs.values()):
@@ -720,6 +725,9 @@ def download(url, **kwargs):
             # Not sure if we need a check for > expecteds, I don't
             # *think* that should ever be possible for these opts.
 
+            args = ['koji', 'download-build']
+            if debuginfo:
+                args.append('--debuginfo')
             for update in resp.updates:
                 click.echo("Downloading packages from {0}".format(update['alias']))
                 for build in update['builds']:
@@ -727,14 +735,14 @@ def download(url, **kwargs):
                     # expose this in any usable way, and we don't want
                     # to rewrite it here.
                     if requested_arch is None:
-                        args = ('koji', 'download-build', '--arch=noarch',
-                                '--arch={0}'.format(platform.machine()), build['nvr'])
+                        args.extend(['--arch=noarch',
+                                     '--arch={0}'.format(platform.machine()), build['nvr']])
                     else:
                         if u'all' in requested_arch:
-                            args = ('koji', 'download-build', build['nvr'])
+                            args.append(build['nvr'])
                         if u'all' not in requested_arch:
-                            args = ('koji', 'download-build', '--arch=noarch',
-                                    '--arch={0}'.format(requested_arch), build['nvr'])
+                            args.extend(['--arch=noarch',
+                                         '--arch={0}'.format(requested_arch), build['nvr']])
                     ret = subprocess.call(args)
                     if ret:
                         click.echo("WARNING: download of {0} failed!".format(build['nvr']))
