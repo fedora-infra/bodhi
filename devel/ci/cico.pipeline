@@ -72,50 +72,24 @@ def retry_with_sleep = { f ->
 /**
  * Run bodhi-ci on the Duffy node for the given arguments.
  *
- * @param release The release to pass to bodhi-ci's -r flag.
  * @param command The subcommand of bodhi-ci to use.
- * @param context This parameter is appended to the release and a dash to form the GitHub context.
+ * @param context This parameter is used as the GitHub context.
  * @param args Any extra arguments to be passed to the command.
  */
-def bodhi_ci = { String release, String command, String context, String args ->
-    githubNotify context: release + '-' + context, description: 'running', status: 'PENDING'
+def bodhi_ci = { String command, String context, String args ->
+    githubNotify context: context, description: 'running', status: 'PENDING'
 
     try {
-        stage(release + '-' + context) {
-            timeout(time: 32, unit: 'MINUTES') {
-                onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci ' + command + ' --no-tty -r ' + release + ' ' + args
+        stage(context) {
+            timeout(time: 64, unit: 'MINUTES') {
+                onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci ' + command + ' --no-tty ' + args
             }
         }
-        githubNotify context: release + '-' + context, status: 'SUCCESS'
+        githubNotify context: context, status: 'SUCCESS'
     } catch(error) {
-        githubNotify context: release + '-' + context, status: 'FAILURE'
+        githubNotify context: context, status: 'FAILURE'
         throw error
     }
-}
-
-
-/**
- * Build and test the given release.
- *
- * @param release The release to test.
- */
-def test_release = { String release ->
-    bodhi_ci(release, 'build', 'build', '')
-
-    parallel(
-        docs: {bodhi_ci(release, 'docs', 'docs', '--no-build --no-init')},
-        flake8: {bodhi_ci(release, 'flake8', 'flake8', '--no-build --no-init')},
-        pydocstyle: {bodhi_ci(release, 'pydocstyle', 'pydocstyle', '--no-build --no-init')},
-        mypy: {
-            if(release == 'pip') {
-                bodhi_ci(release, 'mypy', 'mypy', '--no-build --no-init')
-            }
-        },
-        unit: {
-            bodhi_ci(release, 'unit', 'unit', '--no-build --no-init')
-            bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init')
-        }
-    )
 }
 
 
@@ -147,22 +121,11 @@ node('bodhi') {
             synctoduffynode('bodhi')
         }
 
-        // Download the database dumps for the integration tests.
-        onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci integration-download --no-tty'
+        // Let's test the required releases.
+        bodhi_ci('all', 'stable-releases', '-j 4 -r f28 -r f29 -r f30 -r pip -x')
 
-        parallel(
-            f28: {test_release('f28')},
-            f29: {test_release('f29')},
-            f30: {test_release('f30')},
-            pip: {test_release('pip')},
-            rawhide: {test_release('rawhide')},
-        )
-
-        def releases = ['f28', 'f29', 'f30', 'pip', 'rawhide']
-        for (release in releases) {
-            bodhi_ci(release, 'integration-build', 'integration-build', '')
-            bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
-        }
+        // Now let's rawhide - these are not required to pass.
+        bodhi_ci('all', 'rawhide', '-r rawhide')
     } catch (e) {
         currentBuild.result = "FAILURE"
         throw e
