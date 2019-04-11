@@ -3472,9 +3472,6 @@ class Update(Base):
         result = super(Update, self).__json__(request=request)
         # Duplicate alias as updateid for backwards compat with bodhi1
         result['updateid'] = result['alias']
-        # Also, put the update submitter's name in the same place we put
-        # it for bodhi1 to make the messaging schema compat much more simple.
-        result['submitter'] = result['user']['name']
         # Include the karma total in the results
         result['karma'] = self.karma
         # Also, the Update content_type (derived from the builds content_types)

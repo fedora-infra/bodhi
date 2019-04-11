@@ -161,7 +161,6 @@ class UpdateV1(typing.NamedTuple):
     Attributes:
         alias: The alias of the update.
         builds: A list of builds associated with the update.
-        submitter: The id of the user who submitted the update.
     """
 
     alias: str

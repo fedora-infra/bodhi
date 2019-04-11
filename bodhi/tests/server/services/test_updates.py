@@ -1664,7 +1664,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['status'], u'pending')
         self.assertEqual(up['request'], u'testing')
         self.assertEqual(up['user']['name'], u'guest')
-        self.assertEqual(up['submitter'], u'guest')
         self.assertEqual(up['release']['name'], u'F17')
         self.assertEqual(up['type'], u'bugfix')
         self.assertEqual(up['content_type'], u'rpm')
