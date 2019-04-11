@@ -99,6 +99,7 @@ def bodhi_ci = { String release, String command, String context, String args ->
  */
 def test_release = { String release ->
     retry_with_sleep({ bodhi_ci(release, 'build', 'build', '') })
+    retry_with_sleep({ bodhi_ci(release, 'integration-build', 'integration-build', '') })
 
     parallel(
         docs: {bodhi_ci(release, 'docs', 'docs', '--no-build --no-init')},
@@ -168,7 +169,6 @@ node('bodhi') {
         def releases = ['f28', 'f29', 'f30', 'pip', 'rawhide']
         for (release in releases) {
             try {
-                retry_with_sleep({ bodhi_ci(release, 'integration-build', 'integration-build', '') })
                 bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
             } catch(error) {
                 failed = error
