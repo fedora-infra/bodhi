@@ -122,9 +122,9 @@ class TestDownload(unittest.TestCase):
             bindings_client, 'updates/', verb='GET',
             params={'builds': u'nodejs-grunt-wrap-0.3.0-2.fc25'})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
-        call.assert_called_once_with((
+        call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
-            'nodejs-grunt-wrap-0.3.0-2.fc25'))
+            'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -144,9 +144,9 @@ class TestDownload(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
                          'Downloading packages from FEDORA-2017-c95b33872d\n')
-        call.assert_called_once_with((
+        call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch=x86_64',
-            'nodejs-grunt-wrap-0.3.0-2.fc25'))
+            'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -166,8 +166,29 @@ class TestDownload(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.output,
                          'Downloading packages from FEDORA-2017-c95b33872d\n')
-        call.assert_called_once_with((
-            'koji', 'download-build', 'nodejs-grunt-wrap-0.3.0-2.fc25'))
+        call.assert_called_once_with([
+            'koji', 'download-build', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.subprocess.call', return_value=0)
+    def test_debuginfo_flag(self, call, send_request):
+        """
+        Assert correct behavior with --debuginfo flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.download,
+            ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'all', '--debuginfo'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         'Downloading packages from FEDORA-2017-c95b33872d\n')
+        call.assert_called_once_with([
+            'koji', 'download-build', '--debuginfo', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -221,9 +242,9 @@ class TestDownload(unittest.TestCase):
         self.assertEqual(result.output,
                          ('WARNING: Some builds not found!\nDownloading packages '
                           'from FEDORA-2017-c95b33872d\n'))
-        call.assert_called_once_with((
+        call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
-            'nodejs-grunt-wrap-0.3.0-2.fc25'))
+            'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -245,9 +266,9 @@ class TestDownload(unittest.TestCase):
         self.assertEqual(result.output,
                          ('Downloading packages from FEDORA-2017-c95b33872d\n'
                           'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n'))
-        call.assert_called_once_with((
+        call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
-            'nodejs-grunt-wrap-0.3.0-2.fc25'))
+            'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
 
 class TestComposeInfo(unittest.TestCase):
