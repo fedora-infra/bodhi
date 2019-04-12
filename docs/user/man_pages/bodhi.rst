@@ -185,6 +185,10 @@ The ``updates`` command allows users to interact with bodhi updates.
     Download update(s) given by ID(s) or NVR(s). One of ``--updateid`` or
     ``builds`` is required. The download subcommand supports the following options:
 
+    ``--debuginfo``
+
+        Include debuginfo packages when downloading.
+
     ``--updateid <ids>``
 
         A comman-separated list of update IDs you would like to download.
