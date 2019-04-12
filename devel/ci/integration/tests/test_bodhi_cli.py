@@ -324,4 +324,4 @@ def test_updates_download(bodhi_container, db_container):
     for update in updates:
         assert "Downloading packages from {}".format(update['alias']) in result.output
     for build_id in builds:
-        assert "TESTING CALL /usr/bin/koji download-build {}".format(build_id) in result.output
+        assert re.search(f"TESTING CALL /usr/bin/koji download-build.*{build_id}", result.output)
