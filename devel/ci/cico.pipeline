@@ -156,10 +156,18 @@ node('bodhi') {
             rawhide: {test_release('rawhide')},
         )
 
+        def failed = false
         def releases = ['f28', 'f29', 'f30', 'pip', 'rawhide']
         for (release in releases) {
-            bodhi_ci(release, 'integration-build', 'integration-build', '')
-            bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
+            try {
+                bodhi_ci(release, 'integration-build', 'integration-build', '')
+                bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
+            } catch(error) {
+                failed = error
+            }
+        }
+        if (failed) {
+            throw failed
         }
     } catch (e) {
         currentBuild.result = "FAILURE"
