@@ -22,6 +22,7 @@
       - pcp-system-tools
       - postgresql-devel
       - postgresql-server
+      - python3-alembic
       - python3-arrow
       - python3-bleach
       - python3-click
