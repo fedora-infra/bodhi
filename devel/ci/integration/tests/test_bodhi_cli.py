@@ -87,7 +87,7 @@ def test_composes_list(bodhi_container, db_container):
     FROM composes c
     JOIN releases r ON r.id = c.release_id
     JOIN updates u ON u.release_id = r.id AND u.request = c.request
-    WHERE r.state = 'current' AND u.locked = TRUE
+    WHERE (r.state = 'current' OR r.state = 'pending') AND u.locked = TRUE
     GROUP BY r.name, c.request, c.state
     """
     db_ip = db_container.get_IPv4s()[0]
@@ -324,4 +324,4 @@ def test_updates_download(bodhi_container, db_container):
     for update in updates:
         assert "Downloading packages from {}".format(update['alias']) in result.output
     for build_id in builds:
-        assert "TESTING CALL /usr/bin/koji download-build {}".format(build_id) in result.output
+        assert re.search(f"TESTING CALL /usr/bin/koji download-build.*{build_id}", result.output)

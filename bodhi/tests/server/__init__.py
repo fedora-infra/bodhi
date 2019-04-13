@@ -56,7 +56,6 @@ def create_update(session, build_nvrs, release_name=u'F17'):
         except sqlalchemy.orm.exc.NoResultFound:
             package = RpmPackage(name=name)
             session.add(package)
-            user.packages.append(package)
             testcase = TestCase(name=u'Wat')
             session.add(testcase)
             package.test_cases.append(testcase)

@@ -15,7 +15,7 @@ Database Schema
 
 The Bodhi database schema can be seen below.
 
-.. figure:: ../images/database.png
+.. figure:: ../generated/database.png
    :align:  center
 
    Database schema.

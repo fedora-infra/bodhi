@@ -92,20 +92,17 @@ class TestBodhiBase(BaseTestCase):
 
     def test__expand_with_m2m_relation(self):
         """Test the _expand() method with a many-to-many relation."""
-        p = model.Package.query.all()[0]
-        new_exclude_columns = list(model.Package.__exclude_columns__)
-        new_exclude_columns.remove('committers')
-        # p.committers is an InstrumentedList, which doesn't have an all() method. We have some
+        u = model.Update.query.all()[0]
+        # u.bugs is an InstrumentedList, which doesn't have an all() method. We have some
         # code to handle m2m relationships with all() methods, but it's not immediately obvious
         # which relationships have that for testing purposes. Thus, we can simulate this for
         # test coverage purposes by setting it to its __iter__() method.
-        p.committers.all = p.committers.__iter__
+        u.bugs.all = u.bugs.__iter__
 
-        with mock.patch.object(model.Package, '__exclude_columns__', new_exclude_columns):
-            committers = p._expand(p, p.committers, [], mock.MagicMock())
+        bugs = u._expand(u, u.bugs, [], mock.MagicMock())
 
-        self.assertEqual(len(committers), 1)
-        self.assertEqual(committers[0]['name'], 'guest')
+        self.assertEqual(len(bugs), 1)
+        self.assertEqual(bugs[0]['bug_id'], 12345)
 
     def test__expand_with_relation_in_seen(self):
         """_expand() should return the relation.id attribute if its type is in seen."""
@@ -858,11 +855,6 @@ class TestModulePackage(ModelTest, unittest.TestCase):
     klass = model.ModulePackage
     attrs = dict(name=u"TurboGears")
 
-    def do_get_dependencies(self):
-        return dict(
-            committers=[model.User(name=u'lmacken')]
-        )
-
     def setUp(self):
         super(TestModulePackage, self).setUp()
         self.package = model.ModulePackage(name=u'the-greatest-package:master')
@@ -1134,11 +1126,6 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         self.package = model.RpmPackage(name=u'the-greatest-package')
         self.db.add(self.package)
 
-    def do_get_dependencies(self):
-        return dict(
-            committers=[model.User(name=u'lmacken')]
-        )
-
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
     def test_wiki_test_cases(self):
         """Test querying the wiki for test cases"""
@@ -1227,9 +1214,6 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
 
         # This should not raise any Exception.
         self.db.flush()
-
-    def test_committers(self):
-        self.assertEqual(self.obj.committers[0].name, u'lmacken')
 
     def test_no_builds(self):
         """Assert that one RpmBuild can be appended."""
@@ -3208,22 +3192,6 @@ class TestUpdate(ModelTest):
                               'consisting of 2 positive karma from proventesters, along with 0 '
                               'additional karma from the community. Or, it must spend 14 days in '
                               'testing without any negative feedback')}])
-
-    @mock.patch('bodhi.server.mail.smtplib.SMTP')
-    @mock.patch.dict('bodhi.server.models.config',
-                     {'bodhi_email': 'bodhi@fp.o', 'smtp_server': 'smtp.fp.o'})
-    def test_comment_emails_maintainers(self, SMTP):
-        """comment() should send e-mails to the other maintainers."""
-        bowlofeggs = model.User(name=u'bowlofeggs', email=u'bowlofeggs@fp.o')
-        self.obj.builds[0].package.committers.append(bowlofeggs)
-
-        self.obj.comment(self.db, u'Here is a cool e-mail for you.', author=u'bowlofemail')
-
-        bodies = [c[1][2].decode('utf-8') for c in SMTP.return_value.sendmail.mock_calls]
-        self.assertTrue('lmacken' in bodies[0])
-        # In Python 2 this address is in the middle e-mail and in Python 3 it's in the last e-mail
-        self.assertTrue('bowlofeggs@fp.o' in '\n'.join(bodies))
-        self.assertTrue(all(['Here is a cool e-mail for you.' in b for b in bodies]))
 
     def test_comment_emails_other_commenters(self):
         """comment() should send e-mails to the other maintainers."""

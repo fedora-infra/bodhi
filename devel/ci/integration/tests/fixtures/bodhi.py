@@ -98,6 +98,9 @@ def bodhi_container(
         "pyramid.debug_routematch": "false",
         "authtkt.secure": "true",
         "authtkt.timeout": "1209600",
+        # Building a cache for every test takes a lot of time, so let's configure the Bodhi server
+        # not to warm the cache.
+        "warm_cache_on_start": "false",
     }
     with edit_file(container, "/etc/bodhi/production.ini") as config_path:
         config = ConfigParser()

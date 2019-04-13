@@ -14,7 +14,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
-Message schema for Bodhi.
+Define Bodhi's base classes for its message schemas.
 
 Each message is defined as a Python class. For details, see `fedora-messaging
 <https://fedora-messaging.readthedocs.io/en/stable/>`_ documentation on

@@ -24,9 +24,8 @@ from pyramid.exceptions import HTTPNotFound
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
-from bodhi.server.models import Group, Package, Update, User
-from bodhi.server.validators import (validate_updates,
-                                     validate_packages, validate_groups)
+from bodhi.server.models import Group, Update, User
+from bodhi.server.validators import (validate_updates, validate_groups)
 import bodhi.server.schemas
 import bodhi.server.security
 import bodhi.server.services.errors
@@ -94,7 +93,6 @@ validators = (
     colander_querystring_validator,
     validate_groups,
     validate_updates,
-    validate_packages,
 )
 
 
@@ -155,11 +153,6 @@ def query_users(request):
         query = query.join(User.updates)
         args = [Update.alias == update.alias for update in updates]
         query = query.filter(or_(*args))
-
-    packages = data.get('packages')
-    if packages is not None:
-        query = query.join(User.packages)
-        query = query.filter(or_(*[Package.id == p.id for p in packages]))
 
     # We can't use ``query.count()`` here because it is naive with respect to
     # all the joins that we're doing above.

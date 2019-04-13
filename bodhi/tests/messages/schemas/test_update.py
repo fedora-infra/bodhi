@@ -154,7 +154,6 @@ class UpdateMessageTests(unittest.TestCase):
                         "gnome-settings-daemon-3.6.1-1.fc18,"
                         "control-center-3.6.1-1.fc18"
                     ),
-                    "nagged": None,
                     "comments": [
                         {
                             "group": None,
@@ -170,7 +169,6 @@ class UpdateMessageTests(unittest.TestCase):
                             )
                         }
                     ],
-                    "updateid": None,
                     "type": "bugfix",
                     "close_bugs": True,
                     "date_submitted": 1349718534.0,
@@ -182,7 +180,6 @@ class UpdateMessageTests(unittest.TestCase):
                         "name": "F18",
                         "id_prefix": "FEDORA"
                     },
-                    "approved": None,
                     "builds": [
                         {
                             "nvr": "gnome-settings-daemon-3.6.1-1.fc18",
@@ -493,11 +490,9 @@ class UpdateMessageTests(unittest.TestCase):
             body={
                 "update": {
                     "close_bugs": True,
-                    "old_updateid": None,
                     "pushed": False,
                     "require_testcases": True,
                     "critpath": False,
-                    "cves": [],
                     "stable_karma": 3,
                     "date_pushed": None,
                     "requirements": "rpmlint",
@@ -520,7 +515,6 @@ class UpdateMessageTests(unittest.TestCase):
                             "id": 484236,
                             "user": {
                                 "buildroot_overrides": [],
-                                "stacks": [],
                                 "name": "bodhi",
                                 "avatar": None
                             }
@@ -533,18 +527,6 @@ class UpdateMessageTests(unittest.TestCase):
                     "unstable_karma": -3,
                     "user": {
                         "buildroot_overrides": [],
-                        "stacks": [
-                            {
-                                "requirements": "depcheck upgradepath",
-                                "description": "This stack is so hack!",
-                                "name": "Hackey",
-                                "groups": [],
-                                "packages": [],
-                                "users": [
-                                    1711
-                                ]
-                            },
-                        ],
                         "name": "ralph",
                         "avatar": None
                     },
@@ -600,11 +582,9 @@ class UpdateMessageTests(unittest.TestCase):
                 "status": "stable",
                 "update": {
                     "close_bugs": True,
-                    "old_updateid": None,
                     "pushed": False,
                     "require_testcases": True,
                     "critpath": False,
-                    "cves": [],
                     "stable_karma": 3,
                     "date_pushed": None,
                     "requirements": "rpmlint",
@@ -627,7 +607,6 @@ class UpdateMessageTests(unittest.TestCase):
                             "id": 484236,
                             "user": {
                                 "buildroot_overrides": [],
-                                "stacks": [],
                                 "name": "bodhi",
                                 "avatar": None
                             }
@@ -640,18 +619,6 @@ class UpdateMessageTests(unittest.TestCase):
                     "unstable_karma": -3,
                     "user": {
                         "buildroot_overrides": [],
-                        "stacks": [
-                            {
-                                "requirements": "depcheck upgradepath",
-                                "description": "This stack is so hack!",
-                                "name": "Hackey",
-                                "groups": [],
-                                "packages": [],
-                                "users": [
-                                    1711
-                                ]
-                            },
-                        ],
                         "name": "ralph",
                         "avatar": None
                     },
