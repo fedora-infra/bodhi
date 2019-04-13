@@ -894,7 +894,7 @@ class UnitJob(Job):
         """
         super(UnitJob, self).__init__(*args, **kwargs)
 
-        pytest_flags = '--junit-xml=nosetests.xml bodhi/tests'
+        pytest_flags = '--junit-xml=nosetests.xml bodhi/tests -v'
         if failfast:
             pytest_flags += ' -x'
 
@@ -1053,7 +1053,8 @@ class IntegrationJob(Job):
         """
         super(IntegrationJob, self).__init__(*args, **kwargs)
 
-        self._command = [sys.executable, '-m', 'pytest', '--no-cov', 'devel/ci/integration/tests/']
+        self._command = [sys.executable, '-m', 'pytest', '-v', '--no-cov',
+                         'devel/ci/integration/tests/']
         bodhi_container_image = '{}-integration-bodhi/{}'.format(CONTAINER_NAME, self.release)
         self._popen_kwargs["env"] = os.environ.copy()
         self._popen_kwargs["env"]["BODHI_INTEGRATION_IMAGE"] = bodhi_container_image
