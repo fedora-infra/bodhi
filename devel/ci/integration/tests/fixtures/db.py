@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import os
+
+import docker.errors
 import pytest
 
 
@@ -47,5 +49,10 @@ def db_container(docker_backend, docker_network):
         ["/usr/bin/pg_isready", "-q", "-t", "64"]
     )
     yield container
-    container.kill()
+    try:
+        container.kill()
+    except docker.errors.APIError:
+        # If the container isn't running, this will get raised. It's fine, we wanted the container
+        # stopped and it is, so pass.
+        pass
     container.delete()
