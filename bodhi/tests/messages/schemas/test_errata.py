@@ -49,7 +49,6 @@ class ErrataMessageTests(unittest.TestCase):
                 "update": {
                     "alias": "FEDORA-2019-4cc36fafbb",
                     "close_bugs": True,
-                    "old_updateid": None,
                     "pushed": False,
                     "require_testcases": True,
                     "critpath": False,
@@ -74,7 +73,6 @@ class ErrataMessageTests(unittest.TestCase):
                             "id": 484236,
                             "user": {
                                 "buildroot_overrides": [],
-                                "stacks": [],
                                 "name": "bodhi",
                                 "avatar": None
                             }
@@ -87,18 +85,6 @@ class ErrataMessageTests(unittest.TestCase):
                     "unstable_karma": -3,
                     "user": {
                         "buildroot_overrides": [],
-                        "stacks": [
-                            {
-                                "requirements": "depcheck upgradepath",
-                                "description": "This stack is so hack!",
-                                "name": "Hackey",
-                                "groups": [],
-                                "packages": [],
-                                "users": [
-                                    1711
-                                ]
-                            },
-                        ],
                         "name": "test_submitter",
                         "avatar": None
                     },
