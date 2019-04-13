@@ -60,6 +60,9 @@ Backwards incompatible changes
   need information that is not included in the supported schema, please work with the Bodhi project
   to get the schema adjusted accordingly. Bodhi's messages are now documented in
   :doc:`../server_api/index`.
+* All messages and API responses that serialize updates no longer have a ``submitter`` field. This
+  was redundant with the included ``user.name`` field, and was only in place for compatibility with
+  Bodhi 1 which was EOL many years ago.
 
 
 Dependency changes
