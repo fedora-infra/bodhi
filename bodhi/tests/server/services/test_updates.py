@@ -869,8 +869,9 @@ class TestSetRequest(BaseTestCase):
         self.assertEqual(res.json_body[u'errors'][0][u'description'],
                          "Can't change request for an archived release")
 
+    @mock.patch('bodhi.server.services.updates.log.info')
     @mock.patch.dict(config, {'test_gating.required': True})
-    def test_test_gating_status_failed(self):
+    def test_test_gating_status_failed(self, info):
         """If the update's test_gating_status is failed, a user should not be able to push."""
         nvr = u'bodhi-2.0-1.fc17'
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
@@ -888,6 +889,10 @@ class TestSetRequest(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body[u'errors'][0][u'description'],
                          "Requirement not met Required tests did not pass on this update")
+        info_logs = '\n'.join([c[1][0] for c in info.mock_calls])
+        self.assertTrue(
+            f'Unable to set request for {up.alias} to stable due to failed requirements: Required '
+            'tests did not pass on this update' in info_logs)
 
     @mock.patch.dict(config, {'test_gating.required': True})
     def test_test_gating_status_passed(self):
