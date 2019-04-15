@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # bodhi documentation build configuration file, created by
 # sphinx-quickstart on Sat Aug 10 09:29:50 2013.
 #

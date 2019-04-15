@@ -23,7 +23,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-dogpile-cache \
     python3-fedora \
     python3-feedgen \
-    python3-flake8 \
     python3-hawkey \
     python3-jinja2 \
     python3-koji \
@@ -34,7 +33,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-munch \
     python3-openid \
     python3-psycopg2 \
-    python3-pydocstyle \
     python3-pylibravatar \
     python3-pyramid \
     python3-pyramid-fas-openid \

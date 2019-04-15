@@ -1108,8 +1108,8 @@ def _build_jobs_list(
     """
     if command == 'all':
         buffer_output = concurrency != 1
-    elif command == 'mypy':
-        # mypy always only has one container and no releases.
+    elif command in ('flake8', 'mypy', 'pydocstyle'):
+        # Each of these only have one container and no releases.
         buffer_output = False
     elif command in ('diff_cover', 'unit'):
         buffer_output = concurrency != 1 and len(releases) != 1
@@ -1133,21 +1133,22 @@ def _build_jobs_list(
         integration_build_jobs = []  # type: typing.List[Job]
         if command in ('all', 'build', 'docs', 'flake8', 'mypy', 'pydocstyle', 'diff_cover',
                        'unit', 'integration-build', 'integration'):
-            # We don't want to build non-pip releases if the command is mypy; mypy only uses pip.
-            if command != 'mypy' or release == 'pip':
+            # We don't want to build non-pip releases if the command is one of these; they only use
+            # pip.
+            if command not in ('flake8', 'mypy', 'pydocstyle') or release == 'pip':
                 build_job = BuildJob(release, buffer_output=buffer_output)
                 jobs.append(build_job)
         if command in ('all', 'docs'):
             docs_job = DocsJob(release, depends_on=build_job, buffer_output=buffer_output)
             jobs.append(docs_job)
-        if command in ('all', 'flake8'):
+        if command in ('all', 'flake8') and release == 'pip':
             flake8_job = Flake8Job(release, depends_on=build_job, buffer_output=buffer_output)
             jobs.append(flake8_job)
         if command in ('all', 'mypy') and release == 'pip':
             mypy_build_job = MyPyBuildJob(release, depends_on=build_job, buffer_output=buffer_output)
             mypy_job = MyPyJob(release, depends_on=mypy_build_job, buffer_output=buffer_output)
             jobs.extend([mypy_build_job, mypy_job])
-        if command in ('all', 'pydocstyle'):
+        if command in ('all', 'pydocstyle') and release == 'pip':
             pydocstyle_job = PydocstyleJob(release, depends_on=build_job, buffer_output=buffer_output)
             jobs.append(pydocstyle_job)
         if command in ('all', 'diff_cover', 'unit'):
