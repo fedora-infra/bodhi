@@ -217,7 +217,7 @@ class TestSend(base.BaseTestCase):
         sendmail = SMTP.return_value.sendmail
         update = models.Update.query.all()[0]
 
-        mail.send('bowlofeggs@example.com', 'new', update, agent='bodhi')
+        mail.send(['bowlofeggs@example.com'], 'new', update, agent='bodhi')
 
         SMTP.assert_called_once_with('smtp.fp.o')
         self.assertEqual(sendmail.call_count, 1)
@@ -236,7 +236,7 @@ class TestSend(base.BaseTestCase):
         """Assert that the sent e-mail has the full NVR in the subject."""
         update = models.Update.query.all()[0]
 
-        mail.send('fake@news.com', 'comment', update, agent='bowlofeggs')
+        mail.send(['fake@news.com'], 'comment', update, agent='bowlofeggs')
 
         SMTP.assert_called_once_with('smtp.example.com')
         sendmail = SMTP.return_value.sendmail
@@ -254,7 +254,7 @@ class TestSend(base.BaseTestCase):
         """Assert that we log an exception if _send_mail catches one"""
         update = models.Update.query.all()[0]
 
-        mail.send('fake@news.com', 'comment', update, agent='bowlofeggs')
+        mail.send(['fake@news.com'], 'comment', update, agent='bowlofeggs')
 
         exception_log.assert_called_once_with('Unable to send mail')
         sendmail = SMTP.return_value.sendmail
@@ -351,7 +351,7 @@ class Test_SendMail(unittest.TestCase):
         mail._send_mail('archer@spies.com', 'lana@spies.com', 'hi')
 
         SMTP.assert_called_once_with('smtp.fp.o')
-        smtp.sendmail.assert_called_once_with('archer@spies.com', ['lana@spies.com'], 'hi')
+        smtp.sendmail.assert_called_once_with('archer@spies.com', ['lana@spies.com'], b'hi')
         warning.assert_called_once_with(
             '"recipient refused" for \'lana@spies.com\', {}'.format(
                 repr(smtp.sendmail.side_effect)))

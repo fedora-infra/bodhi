@@ -9,7 +9,6 @@ pyasn1-modules  # Due to an unfortunate dash in its name, installs break if pyas
 fedora_messaging
 feedgen
 jinja2
-kitchen
 markdown
 psycopg2
 py3dns  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218

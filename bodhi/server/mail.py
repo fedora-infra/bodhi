@@ -21,9 +21,6 @@ from textwrap import wrap
 import os
 import smtplib
 
-from kitchen.iterutils import iterate
-from kitchen.text.converters import to_unicode, to_bytes
-
 from bodhi.server import log
 from bodhi.server.config import config
 from bodhi.server.util import get_rpm_header, get_absolute_path
@@ -258,7 +255,7 @@ def read_template(name):
     if os.path.exists(template_path):
         try:
             with open(template_path) as template_file:
-                return to_unicode(template_file.read())
+                return template_file.read()
         except IOError as e:
             log.error("Unable to read template file: %s" % (template_path))
             log.error("IO Error[%s]: %s" % (e.errno, e.strerror))
@@ -350,17 +347,9 @@ def get_template(update, use_template='fedora_errata_template'):
             elif isinstance(oldtime, list):
                 oldtime = oldtime[0]
             info['changelog'] = u"ChangeLog:\n\n%s%s" % \
-                (to_unicode(build.get_changelog(oldtime)), line)
+                (build.get_changelog(oldtime), line)
 
-        try:
-            templates.append((info['subject'], use_template % info))
-        except UnicodeDecodeError:
-            # We can't trust the strings we get from RPM
-            log.debug("UnicodeDecodeError! Will try again after decoding")
-            for (key, value) in info.items():
-                if value:
-                    info[key] = to_unicode(value)
-            templates.append((info['subject'], use_template % info))
+        templates.append((info['subject'], use_template % info))
 
     return templates
 
@@ -382,7 +371,7 @@ def _send_mail(from_addr, to_addr, body):
     try:
         log.debug('Connecting to %s', smtp_server)
         smtp = smtplib.SMTP(smtp_server)
-        smtp.sendmail(from_addr, [to_addr], body)
+        smtp.sendmail(from_addr, [to_addr], body.encode('utf-8'))
     except smtplib.SMTPRecipientsRefused as e:
         log.warning('"recipient refused" for %r, %r' % (to_addr, e))
     except Exception:
@@ -399,8 +388,8 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     Args:
         from_addr (str): The address to use in the From: header.
         to_addr (str): The address to send the e-mail to.
-        subject (basestring): The subject of the e-mail.
-        body_text (basestring): The body of the e-mail to be sent.
+        subject (str): The subject of the e-mail.
+        body_text (str): The body of the e-mail to be sent.
         headers (dict or None): A mapping of header fields to values to be included in the e-mail,
             if not None.
     """
@@ -412,16 +401,13 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     if to_addr in config.get('exclude_mail'):
         return
 
-    subject = to_bytes(subject)
-    body_text = to_bytes(body_text)
-
-    msg = [b'From: %s' % to_bytes(from_addr), b'To: %s' % to_bytes(to_addr)]
+    msg = [f'From: {from_addr}', f'To: {to_addr}']
     if headers:
         for key, value in headers.items():
-            msg.append(b'%s: %s' % (to_bytes(key), to_bytes(value)))
-    msg.append(b'X-Bodhi: %s' % to_bytes(config.get('default_email_domain')))
-    msg += [b'Subject: %s' % subject, b'', body_text]
-    body = b'\r\n'.join(msg)
+            msg.append(f'{key}: {value}')
+    msg.append(f"X-Bodhi: {config.get('default_email_domain')}")
+    msg += [f'Subject: {subject}', '', body_text]
+    body = '\r\n'.join(msg)
 
     log.info('Sending mail to %s: %s', to_addr, subject)
     _send_mail(from_addr, to_addr, body)
@@ -466,7 +452,7 @@ def send(to, msg_type, update, sender=None, agent='bodhi'):
             headers["In-Reply-To"] = initial_message_id
 
     subject_template = u'[Fedora Update] %s[%s] %s'
-    for person in iterate(to):
+    for person in to:
         subject = subject_template % (critpath, msg_type, update.beautify_title(nvr=True))
         fields = MESSAGES[msg_type]['fields'](agent, update)
         body = MESSAGES[msg_type]['body'] % fields
