@@ -80,7 +80,7 @@ def bodhi_ci = { String release, String command, String context, String args ->
 
     try {
         stage(release + '-' + context) {
-            timeout(time: 32, unit: 'MINUTES') {
+            timeout(time: 64, unit: 'MINUTES') {
                 onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci ' + command + ' --no-tty -r ' + release + ' ' + args
             }
         }
