@@ -1,4 +1,4 @@
-# Copyright © 2016-2019 Red Hat, Inc. and Caleigh Runge-Hotman
+# Copyright © 2016-2019 Red Hat, Inc. and Caleigh Runge-Hottman
 #
 # This file is part of Bodhi.
 #
@@ -61,7 +61,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                                    sqlalchemy.orm.session.Session))
         sleep.assert_called_once_with(1)
 
-        # Inexisting bug with id '123456' should now exists in DB as a bug attached to update
+        # Nonexistent bug with id '123456' should now exist in DB as a bug attached to update
         bug = models.Bug.query.filter_by(bug_id=123456).one()
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertIn(bug, update.bugs)
@@ -287,9 +287,9 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
 
 class TestUpdatesHandlerInit(unittest.TestCase):
     """This test class contains tests for the UpdatesHandler.__init__() method."""
-    def test_handle_bugs_bodhi_email_falsy(self):
+    def test_handle_bugs_bodhi_email_falsey(self):
         """
-        Assert that bug handling is disabled when bodhi_email is configured "falsy".
+        Assert that bug handling is disabled when bodhi_email is configured "falsey".
         """
         with mock.patch.dict(updates.config, {'bodhi_email': ''}):
             h = updates.UpdatesHandler()

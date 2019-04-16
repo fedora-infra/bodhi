@@ -67,7 +67,7 @@ def get_release_html(request):
     Args:
         request (pyramid.Request): The current request.
     Returns:
-        basestring: An HTML representation of the reqeusted Release.
+        basestring: An HTML representation of the requested Release.
     """
     id = request.matchdict.get('name')
     release = Release.get(id)
@@ -231,7 +231,7 @@ def query_releases_json(request):
             releases: An iterable of the Releases that match the query.
             page: The current page.
             pages: The total number of pages.
-            rows_per_page: The number of rown on a page.
+            rows_per_page: The number of rows on a page.
             total: The number of matching results.
     """
     db = request.db

@@ -118,7 +118,7 @@ class Bugzilla(object):
         Retrieve a bug from Bugzilla.
 
         Args:
-            bug_id: The id of the bug you wish to retreive.
+            bug_id: The id of the bug you wish to retrieve.
         Returns:
             bugzilla.bug.Bug: A Bug instance representing the bug in Bugzilla.
         """

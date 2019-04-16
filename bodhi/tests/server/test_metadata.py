@@ -300,7 +300,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
 
         self.assertEqual(md.comp_type, createrepo_c.BZ2)
 
-    def test___init___uses_xz_for_fedore(self):
+    def test___init___uses_xz_for_fedora(self):
         """Assert that the __init__() method sets the comp_type attribute to cr.XZ for Fedora."""
         fedora = Release.query.one()
 

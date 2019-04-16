@@ -77,7 +77,7 @@ class TestFilterReleases(base.BaseTestCase):
         Ensure that _filter_releases() filters out archived and disabled releases by default.
         """
         # To make sure the filter is skipping and including the right stuff, let's add a disabled
-        # release and a pending release. Builds from the disabled one should be exlcuded and the
+        # release and a pending release. Builds from the disabled one should be excluded and the
         # pending one should be included.
         disabled_release = models.Release(
             name=u'F21', long_name=u'Fedora 21',

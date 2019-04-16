@@ -92,7 +92,7 @@ def postschema_validator(f):
 
 
 # This one is a colander validator which is different from the cornice
-# validators defined elsehwere.
+# validators defined elsewhere.
 def validate_csrf_token(node, value):
     """
     Ensure that the value is the expected CSRF token.

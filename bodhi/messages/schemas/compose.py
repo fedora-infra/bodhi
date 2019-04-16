@@ -79,7 +79,7 @@ class ComposeCompleteV1(BodhiMessage):
 
 
 class ComposeComposingV1(BodhiMessage):
-    """Sent when the compose task composees."""
+    """Sent when the compose task composes."""
 
     body_schema = {
         'id': f'{SCHEMA_URL}/v1/bodhi.compose.composing#',

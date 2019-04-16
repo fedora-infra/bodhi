@@ -163,7 +163,7 @@ class memoized(object):
         Args:
             args (list): The list of arguments passed to the wrapped function.
         Returns:
-            object: The reponse from the wrapped function, or the cached response, if available.
+            object: The response from the wrapped function, or the cached response, if available.
         """
         try:
             hash(args)
@@ -1054,7 +1054,7 @@ class TransactionalSessionMaker(object):
         """
         Manage a database Session object for the life of the context.
 
-        Yields a database Session object, then either commits the tranaction if there were no
+        Yields a database Session object, then either commits the transaction if there were no
         Exceptions or rolls back the transaction. In either case, it also will close and remove the
         Session.
         """
@@ -1063,7 +1063,7 @@ class TransactionalSessionMaker(object):
             yield session
             session.commit()
         except Exception as e:
-            # It is possible for session.rolback() to raise Exceptions, so we will wrap it in an
+            # It is possible for session.rollback() to raise Exceptions, so we will wrap it in an
             # Exception handler as well so we can log the rollback failure and still raise the
             # original Exception.
             try:

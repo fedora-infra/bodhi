@@ -12,7 +12,7 @@ Description
 ===========
 
 ``bodhi-check-policies`` iterates over Updates to check the policies enforced by
-Greewave for each update.
+Greenwave for each update.
 
 
 Options

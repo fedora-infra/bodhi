@@ -178,7 +178,7 @@ class BodhiConfigLoadConfig(unittest.TestCase):
     @mock.patch('bodhi.server.config.log.error')
     @mock.patch('os.path.exists', return_value=False)
     def test_get_config_unable_to_find_file(self, exists, log_error):
-        """Test we log an error if get_configfile() doenst find a config file"""
+        """Test we log an error if get_configfile() doesn't find a config file"""
         config.get_configfile()
 
         log_error.assert_called_once_with("Unable to find configuration to load!")
@@ -253,7 +253,7 @@ class BodhiConfigValidate(unittest.TestCase):
         c = config.BodhiConfig()
         c.load_config({'session.secret': 'secret', 'authtkt.secret': 'secret'})
 
-        # This should not raise an Excepton
+        # This should not raise an Exception
         c._validate()
 
 
@@ -292,7 +292,8 @@ class GenerateListValidatorTests(unittest.TestCase):
         with self.assertRaises(ValueError) as exc:
             config._generate_list_validator()({'lol': 'wut'})
 
-        self.assertEqual(str(exc.exception), '"{\'lol\': \'wut\'}" cannot be intepreted as a list.')
+        self.assertEqual(str(exc.exception),
+                         '"{\'lol\': \'wut\'}" cannot be interpreted as a list.')
 
 
 class ValidateBoolTests(unittest.TestCase):
