@@ -81,8 +81,8 @@ def main(argv=sys.argv):
                 print('%s doesn\'t have mandatory days in testing' % update.release.name)
                 continue
 
-            # If this has already met testing requirements, skip it
-            if update.met_testing_requirements:
+            # If this update was already commented, skip it
+            if update.has_stable_comment:
                 continue
 
             # Approval message when testing based on karma threshold
