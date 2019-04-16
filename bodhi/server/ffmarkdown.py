@@ -149,4 +149,4 @@ class BodhiExtension(Extension):
         """
         md.inlinePatterns.add('mention', MentionPattern(MENTION_RE, md), '_end')
         md.inlinePatterns.add('bugzilla', BugzillaPattern(BUGZILLA_RE, md), '_end')
-        md.postprocessors.add('surrond', SurroundProcessor(md), '_end')
+        md.postprocessors.add('surround', SurroundProcessor(md), '_end')
