@@ -136,7 +136,9 @@ setup(
     maintainer_email="infrastructure@lists.fedoraproject.org",
     platforms=["Fedora", "GNU/Linux"],
     keywords=["fedora", "fedora-messaging"],
-    packages=['bodhi.messages'],
+    packages=find_packages(
+        exclude=['bodhi.client', 'bodhi.client.*', 'bodhi.server', 'bodhi.server.*', 'bodhi.tests',
+                 'bodhi.tests.*']),
     include_package_data=True,
     zip_safe=False,
     install_requires=["fedora_messaging"],
