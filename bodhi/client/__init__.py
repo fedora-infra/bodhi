@@ -780,7 +780,7 @@ def _get_notes(**kwargs):
     help="List all the required unsatisfied requirements")
 @click.option(
     '--test', multiple=True,
-    help="Waive the specifiy test(s), to automatically waive all unsatisfied "
+    help="Waive the specific test(s), to automatically waive all unsatisfied "
     "requirements, specify --test=all")
 @openid_option
 @staging_option

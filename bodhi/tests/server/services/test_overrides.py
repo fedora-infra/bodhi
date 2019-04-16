@@ -236,7 +236,7 @@ class TestOverridesService(base.BaseTestCase):
         body = res.json_body
         self.assertEqual(len(body['overrides']), 0)
 
-    def test_list_overrides_by_unexisting_username(self):
+    def test_list_overrides_by_nonexistent_username(self):
         res = self.app.get('/overrides/', {"user": "santa"}, status=400)
 
         errors = res.json_body['errors']
@@ -508,7 +508,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         self.assertEqual(override['expired_date'], None)
         self.assertEqual(len(publish.call_args_list), 0)
 
-    def test_edit_nonexisting_build(self):
+    def test_edit_nonexistent_build(self):
         """
         Validate the handler for an override that exists with an edit on a build that doesn't.
 
@@ -534,7 +534,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         self.assertEqual(errors[0]['description'],
                          'No such build')
 
-    def test_edit_unexisting_override(self):
+    def test_edit_nonexistent_override(self):
         release = Release.get(u'F17')
 
         build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', release=release,

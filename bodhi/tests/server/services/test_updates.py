@@ -1943,7 +1943,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(res.json_body['errors'][0]['description'],
                          "Invalid bug ID specified: {}".format([u'cockroaches']))
 
-    def test_list_updates_by_unexisting_bug(self):
+    def test_list_updates_by_nonexistent_bug(self):
         res = self.app.get('/updates/', {"bugs": "19850110"})
         body = res.json_body
         self.assertEqual(len(body['updates']), 0)
@@ -2261,7 +2261,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    def test_list_updates_by_unexisting_package(self):
+    def test_list_updates_by_nonexistent_package(self):
         res = self.app.get('/updates/', {"packages": "flash-player"})
         body = res.json_body
         self.assertEqual(len(body['updates']), 0)
@@ -2474,7 +2474,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    def test_list_updates_by_unexisting_release(self):
+    def test_list_updates_by_nonexistent_release(self):
         res = self.app.get('/updates/', {"releases": "WinXP"}, status=400)
         body = res.json_body
         self.assertEqual(len(body.get('updates', [])), 0)
@@ -2506,7 +2506,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    def test_list_updates_by_unexisting_request(self):
+    def test_list_updates_by_nonexistent_request(self):
         res = self.app.get('/updates/', {"request": "impossible"},
                            status=400)
         body = res.json_body
@@ -2540,7 +2540,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    def test_list_updates_by_unexisting_severity(self):
+    def test_list_updates_by_nonexistent_severity(self):
         res = self.app.get('/updates/', {"severity": "schoolmaster"},
                            status=400)
         body = res.json_body
@@ -2574,7 +2574,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    def test_list_updates_by_unexisting_status(self):
+    def test_list_updates_by_nonexistent_status(self):
         res = self.app.get('/updates/', {"status": "single"},
                            status=400)
         body = res.json_body
@@ -2609,7 +2609,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    def test_list_updates_by_unexisting_suggest(self):
+    def test_list_updates_by_nonexistent_suggest(self):
         res = self.app.get('/updates/', {"suggest": "no idea"},
                            status=400)
         body = res.json_body
@@ -2643,7 +2643,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], u'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
-    def test_list_updates_by_unexisting_type(self):
+    def test_list_updates_by_nonexistent_type(self):
         res = self.app.get('/updates/', {"type": "not_my"},
                            status=400)
         body = res.json_body
@@ -2704,7 +2704,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(body['updates'][0]['user']['name'], u'guest')
         self.assertEqual(body['updates'][1]['user']['name'], u'aUser')
 
-    def test_list_updates_by_unexisting_username(self):
+    def test_list_updates_by_nonexistent_username(self):
         res = self.app.get('/updates/', {"user": "santa"},
                            status=400)
         body = res.json_body
@@ -3717,7 +3717,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(res.headers['Location'], target)
 
         # But be sure that we don't redirect if the package doesn't exist
-        res = self.app.get('/updates/non-existant', status=404)
+        res = self.app.get('/updates/nonexistent', status=404)
 
     def test_list_updates_by_alias_and_updateid(self):
         upd = self.db.query(Update).filter(Update.alias.isnot(None)).first()

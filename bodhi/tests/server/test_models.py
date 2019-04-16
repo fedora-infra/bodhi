@@ -229,7 +229,7 @@ class TestBugAddComment(BaseTestCase):
 
 
 class TestBugDefaultMessage(BaseTestCase):
-    """Test Bug.default_mesage()."""
+    """Test Bug.default_message()."""
 
     @mock.patch.dict(config, {'testing_bug_epel_msg': 'cool stuff %s'})
     def test_epel_with_testing_bug_epel_msg(self):
@@ -321,7 +321,7 @@ class TestComment(BaseTestCase):
         """
         self.assertEqual(model.Comment.__table__.columns['text'].nullable, False)
 
-    def test_get_unigue_testcase_feedback(self):
+    def test_get_unique_testcase_feedback(self):
         update = self.create_update(
             (u'bodhi-2.3.3-1.fc24', u'python-fedora-atomic-composer-2016.3-1.fc24'))
         package = update.builds[0].package
@@ -697,8 +697,8 @@ class TestRelease(ModelTest):
         self.assertEqual(self.obj.collection_name, 'Fedora')
 
     @mock.patch.dict(config, {'fedora.mandatory_days_in_testing': 42})
-    def test_mandatory_days_in_testing_status_falsy(self):
-        """Test mandatory_days_in_testing() with a value that is falsy."""
+    def test_mandatory_days_in_testing_status_falsey(self):
+        """Test mandatory_days_in_testing() with a value that is falsey."""
         self.assertEqual(self.obj.mandatory_days_in_testing, 42)
 
     @mock.patch.dict(config, {'f11.current.mandatory_days_in_testing': 42, 'f11.status': 'current'})
@@ -2092,10 +2092,10 @@ class TestUpdate(ModelTest):
         update.critpath = True
         update.date_testing = datetime.utcnow() + timedelta(days=-4)
 
-        criptath_days_to_stable = int(
+        critpath_days_to_stable = int(
             config.get('critpath.stable_after_days_without_negative_karma'))
 
-        self.assertEqual(update.days_to_stable, criptath_days_to_stable - 4)
+        self.assertEqual(update.days_to_stable, critpath_days_to_stable - 4)
 
     def test_days_to_stable_meets_testing_requirements(self):
         """
@@ -2186,7 +2186,7 @@ class TestUpdate(ModelTest):
                          f'Unable to determine requested tag for {self.obj.alias}.')
 
     def test_requested_tag_request_obsolete(self):
-        """requested_tag() should returnt he candidate_tag if the request is obsolete."""
+        """requested_tag() should return the candidate_tag if the request is obsolete."""
         self.obj.request = UpdateRequest.obsolete
 
         self.assertEqual(self.obj.requested_tag, self.obj.release.candidate_tag)
@@ -2819,7 +2819,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.db.query(model.Bug).filter_by(bug_id=4321).count(), 1)
 
     def test_update_bugs_security(self):
-        """Asssociating an Update with a security Bug should mark the Update as security."""
+        """Associating an Update with a security Bug should mark the Update as security."""
         bug = model.Bug(bug_id=1075839, security=True)
         self.db.add(bug)
         self.obj.type = UpdateType.enhancement
@@ -2976,7 +2976,7 @@ class TestUpdate(ModelTest):
         self.obj.status = UpdateStatus.testing
         self.obj.request = None
         self.obj.critpath = True
-        self.obj.test_gating_satus = TestGatingStatus.failed
+        self.obj.test_gating_status = TestGatingStatus.failed
 
         with self.assertRaises(BodhiException) as exc:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
@@ -3623,7 +3623,7 @@ class TestUpdate(ModelTest):
             update.waive_test_results('foo')
         self.assertEqual(
             str(exc.exception),
-            ("Can't waive test resuts on an update that passes test gating"))
+            ("Can't waive test results on an update that passes test gating"))
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_cannot_waive_test_results_of_an_update_which_is_locked(self):

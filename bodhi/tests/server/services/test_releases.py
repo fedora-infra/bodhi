@@ -152,7 +152,7 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEqual(len(body['releases']), 1)
         self.assertEqual(body['releases'][0]['name'], 'F17')
 
-    def test_list_releases_by_nonexistant_update(self):
+    def test_list_releases_by_nonexistent_update(self):
         res = self.app.get('/releases/', {"updates": 'carbunkle'}, status=400)
         self.assertEqual(res.json_body['errors'][0]['name'], 'updates')
         self.assertEqual(res.json_body['errors'][0]['description'],
@@ -164,7 +164,7 @@ class TestReleasesService(base.BaseTestCase):
         self.assertEqual(len(body['releases']), 1)
         self.assertEqual(body['releases'][0]['name'], 'F17')
 
-    def test_list_releases_by_nonexistant_package(self):
+    def test_list_releases_by_nonexistent_package(self):
         res = self.app.get('/releases/', {"packages": 'carbunkle'}, status=400)
         self.assertEqual(res.json_body['errors'][0]['name'], 'packages')
         self.assertEqual(res.json_body['errors'][0]['description'],

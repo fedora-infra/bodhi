@@ -191,7 +191,7 @@ The ``updates`` command allows users to interact with bodhi updates.
 
     ``--updateid <ids>``
 
-        A comman-separated list of update IDs you would like to download.
+        A comma-separated list of update IDs you would like to download.
 
     ``--builds <nvrs>``
 

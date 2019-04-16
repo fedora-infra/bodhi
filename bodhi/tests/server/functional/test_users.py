@@ -180,14 +180,14 @@ class TestUsersService(base.BaseTestCase):
         res = self.app.get('/users/', {"groups": 'packager'})
         self.assertEqual(len(res.json_body['users']), 1)
 
-    def test_list_users_by_nonexistant_group(self):
+    def test_list_users_by_nonexistent_group(self):
         res = self.app.get('/users/', {"groups": 'carbunkle'}, status=400)
         body = res.json_body
         self.assertEqual(body['errors'][0]['name'], 'groups')
         self.assertEqual(body['errors'][0]['description'],
                          'Invalid groups specified: carbunkle')
 
-    def test_list_users_by_mixed_nonexistant_group(self):
+    def test_list_users_by_mixed_nonexistent_group(self):
         res = self.app.get('/users/', {"groups": ['carbunkle', 'packager']}, status=400)
         body = res.json_body
         self.assertEqual(body['errors'][0]['name'], 'groups')
@@ -210,7 +210,7 @@ class TestUsersService(base.BaseTestCase):
         self.assertEqual(len(body['users']), 1)
         self.assertEqual(body['users'][0]['name'], 'guest')
 
-    def test_list_users_by_nonexistant_update(self):
+    def test_list_users_by_nonexistent_update(self):
         res = self.app.get('/users/', {"updates": 'carbunkle'}, status=400)
         body = res.json_body
         self.assertEqual(body['errors'][0]['name'], 'updates')

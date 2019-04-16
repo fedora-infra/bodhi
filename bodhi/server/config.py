@@ -31,7 +31,7 @@ def get_configfile():
     """
     Return a path to a config file, if found.
 
-    Return the path to a config file, with a heirarchy of preferential paths. It searches first
+    Return the path to a config file, with a hierarchy of preferential paths. It searches first
     for development.ini if found. If not found, it will return /etc/bodhi/production.ini if it
     exists. Otherwise, it returns None.
 
@@ -81,7 +81,7 @@ def _generate_list_validator(splitter=' ', validator=str):
             value = [idx.strip() for idx in value.split(splitter) if idx.strip()]
 
         if not isinstance(value, list):
-            raise ValueError('"{}" cannot be intepreted as a list.'.format(value))
+            raise ValueError('"{}" cannot be interpreted as a list.'.format(value))
 
         # Run the validator on each element of the list.
         value = [validator(v) for v in value]

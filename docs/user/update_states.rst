@@ -146,5 +146,5 @@ The update was withdrawn before it reached the testing repository.
 Unpushed
 ========
 
-The developer has decided to pull the update from the testing respository. This state can only be
+The developer has decided to pull the update from the testing repository. This state can only be
 reached if the update is in the testing state.

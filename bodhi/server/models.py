@@ -671,7 +671,7 @@ class ReleaseState(DeclEnum):
         disabled (EnumSymbol): Indicates that the release is disabled.
         pending (EnumSymbol): Indicates that the release is pending.
         current (EnumSymbol): Indicates that the release is current.
-        archived (EnumSymbol): Indicates taht the release is archived.
+        archived (EnumSymbol): Indicates that the release is archived.
     """
 
     disabled = 'disabled', 'disabled'
@@ -2274,7 +2274,7 @@ class Update(Base):
         Return a title for the update based on the :class:`Builds <Build>` it is associated with.
 
         Args:
-            delim (basestring): The delimeter used to separate the builds. Defaults to ' '.
+            delim (basestring): The delimiter used to separate the builds. Defaults to ' '.
             limit (int or None): If provided, limit the number of builds included to the given
                 number. If ``None`` (the default), no limit is used.
             after_limit (basestring): If a limit is set, use this string after the limit is reached.
@@ -2572,7 +2572,7 @@ class Update(Base):
             raise BodhiException('Test gating is not enabled')
 
         if self.test_gating_passed:
-            raise BodhiException("Can't waive test resuts on an update that passes test gating")
+            raise BodhiException("Can't waive test results on an update that passes test gating")
 
         # Ensure we can always iterate over tests
         tests = tests or []
@@ -3007,7 +3007,7 @@ class Update(Base):
                 "update, not one that is %s" % self.status.description)
 
         # Remove the 'pending' koji tags from this update so taskotron stops
-        # evalulating them.
+        # evaluating them.
         if self.request is UpdateRequest.testing:
             self.remove_tag(self.release.pending_signing_tag)
             self.remove_tag(self.release.pending_testing_tag)
@@ -3640,7 +3640,7 @@ class Compose(Base):
             if key not in work:
                 work[key] = cls(request=update.request, release_id=update.release.id,
                                 release=update.release)
-            # Lock the Update. This implicity adds it to the Compose because the Update.compose
+            # Lock the Update. This implicitly adds it to the Compose because the Update.compose
             # relationship joins on the Compose's compound pk for locked Updates.
             update.locked = True
 
@@ -3732,7 +3732,7 @@ class Compose(Base):
         Return a human-readable representation of this compose.
 
         Returns:
-            basestring: A string to be displayed to users decribing this compose.
+            basestring: A string to be displayed to users describing this compose.
         """
         return '<Compose: {} {}>'.format(self.release.name, self.request.description)
 
@@ -3847,7 +3847,7 @@ class Comment(Base):
         Return a formatted title for the comment using update alias and comment id.
 
         Returns:
-            basestring: A string represenatation of the comment for RSS feed.
+            basestring: A string representation of the comment for RSS feed.
         """
         return "{} comment #{}".format(self.update.alias, self.id)
 

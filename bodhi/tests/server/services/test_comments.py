@@ -391,7 +391,7 @@ class TestCommentsService(base.BaseTestCase):
         body = res.json_body
         self.assertEqual(len(body['comments']), 0)
 
-    def test_list_comments_by_unexisting_update(self):
+    def test_list_comments_by_nonexistent_update(self):
         res = self.app.get('/comments/', {"updates": "flash-player"},
                            status=400)
         self.assertEqual(res.json_body['errors'][0]['name'], 'updates')
@@ -406,7 +406,7 @@ class TestCommentsService(base.BaseTestCase):
         comment = body['comments'][0]
         self.assertEqual(comment['text'], u'srsly.  pretty good.')
 
-    def test_list_comments_by_unexisting_package(self):
+    def test_list_comments_by_nonexistent_package(self):
         res = self.app.get('/comments/', {"packages": "flash-player"},
                            status=400)
         self.assertEqual(res.json_body['errors'][0]['name'], 'packages')
@@ -449,7 +449,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(body['comments'][0]['text'], u'Cool! 😃')
         self.assertEqual(body['comments'][1]['text'], u'wow. amaze.')
 
-    def test_list_comments_by_unexisting_username(self):
+    def test_list_comments_by_nonexistent_username(self):
         res = self.app.get('/comments/', {"user": "santa"}, status=400)
         body = res.json_body
         self.assertEqual(len(body.get('comments', [])), 0)
@@ -505,7 +505,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 0)
         self.assertNotIn('errors', body)
 
-    def test_list_comments_by_unexisting_update_owner(self):
+    def test_list_comments_by_nonexistent_update_owner(self):
         res = self.app.get('/comments/', {"update_owner": "santa"}, status=400)
         body = res.json_body
         self.assertEqual(len(body.get('comments', [])), 0)
@@ -549,7 +549,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertNotIn('errors', body)
         self.assertEqual(body['comments'][0]['text'], u'Cool! 😃')
 
-    def test_list_comments_with_unexisting_ignore_user(self):
+    def test_list_comments_with_nonexistent_ignore_user(self):
         res = self.app.get('/comments/', {"ignore_user": "santa"}, status=400)
         body = res.json_body
         self.assertEqual(len(body.get('comments', [])), 0)
