@@ -227,9 +227,11 @@ class BodhiConfig(dict):
             'value': None,
             'validator': _validate_none_or(str)},
         'admin_groups': {
+            # Defined in and tied to the Fedora Account System (limited to 16 characters)
             'value': ['proventesters', 'security_respons', 'bodhiadmin', 'sysadmin-main'],
             'validator': _generate_list_validator()},
         'admin_packager_groups': {
+            # Defined in and tied to the Fedora Account System (limited to 16 characters)
             'value': ['provenpackager', 'releng', 'security_respons'],
             'validator': _generate_list_validator()},
         'authtkt.secret': {
@@ -346,6 +348,7 @@ class BodhiConfig(dict):
             'value': 'https://apps.fedoraproject.org/notifications/',
             'validator': str},
         'important_groups': {
+            # Defined in and tied to the Fedora Account System (limited to 16 characters)
             'value': ['proventesters', 'provenpackager,' 'releng', 'security_respons', 'packager',
                       'bodhiadmin'],
             'validator': _generate_list_validator()},
