@@ -422,7 +422,7 @@ class ComposerThread(threading.Thread):
     def check_all_karma_thresholds(self):
         """Run check_karma_thresholds() on testing Updates."""
         if self.compose.request is UpdateRequest.testing:
-            log.info('Determing if any testing updates reached the karma '
+            log.info('Determine if any testing updates reached the karma '
                      'thresholds during the push')
             for update in self.compose.updates:
                 try:

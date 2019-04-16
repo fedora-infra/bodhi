@@ -565,12 +565,12 @@ class BodhiClient(OpenIdBaseClient):
     @errorhandled
     def csrf(self):
         """
-        Return the CSRF token if alread aquired, otherwise login, get a CSRF, cache it, and return.
+        Return CSRF token if already acquired, otherwise login, get a CSRF, cache it, and return.
 
         If there is already a CSRF token, this method returns it.
 
         If there is not, this method ensures that we know the username, logs in if we aren't already
-        logged in aquires and caches a CSRF token, and returns it.
+        logged in acquires and caches a CSRF token, and returns it.
         """
         if not self.csrf_token:
             self.init_username()
@@ -916,7 +916,7 @@ class BodhiClient(OpenIdBaseClient):
         Return an authenticated koji session.
 
         Returns:
-            koji.ClientSession: An intialized authenticated koji client.
+            koji.ClientSession: An initialized authenticated koji client.
         """
         config = configparser.ConfigParser()
         if os.path.exists(os.path.join(os.path.expanduser('~'), '.koji', 'config')):

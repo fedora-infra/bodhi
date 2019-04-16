@@ -1214,7 +1214,7 @@ def _process_results(loop, done, pending):
     Args:
         loop (asyncio.AbstractEventLoop): The event loop. This is used to cancel any pending tasks.
         done (set): A set of asyncio.Tasks that represent finished tasks.
-        pending (set): A set of asyncio.Tasks that represent unfinshed tasks. These will be
+        pending (set): A set of asyncio.Tasks that represent unfinished tasks. These will be
             canceled.
     Returns:
         dict: A dictionary with three keys:

@@ -62,7 +62,7 @@ def insert_in_repo(comp_type, repodata, filetype, extension, source):
         rec = cr.RepomdRecord(ft, target_fname)
         # compress our metadata file with the comp_type
         rec_comp = rec.compress_and_fill(cr.SHA256, ct)
-        # add hash to the compresed metadata file
+        # add hash to the compressed metadata file
         rec_comp.rename_file()
         # set type of metadata
         rec_comp.type = filetype

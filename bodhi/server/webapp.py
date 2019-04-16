@@ -58,7 +58,7 @@ def _prepare_request(event):
           headers. For example, we have a view that returns html or JSON for /composes/, depending
           on the Accept header, but if a request has no Accept header or has */*, Pyramid will
           consider both views to be a match for the request and so it is undefined which view will
-          handle the request. Let's force ambibuous requests to receive a JSON response so we have a
+          handle the request. Let's force ambiguous requests to receive a JSON response so we have a
           defined behavior. See https://github.com/fedora-infra/bodhi/issues/2731.
         * It adds a callback to clean up the database session when the request is finished.
 

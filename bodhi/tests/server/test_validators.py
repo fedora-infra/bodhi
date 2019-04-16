@@ -38,7 +38,7 @@ class TestValidateCSRFToken(BaseTestCase):
 
         r = self.app.post_json('/comments/', comment, status=400)
 
-        expected_reponse = {
+        expected_response = {
             u'status': u'error',
             u'errors': [
                 {u'description':
@@ -46,7 +46,7 @@ class TestValidateCSRFToken(BaseTestCase):
                   u'time. Please reload the page and try to submit your data again. Make sure to '
                   u'save your input somewhere before reloading. '),
                  u'location': u'body', u'name': u'csrf_token'}]}
-        self.assertEqual(r.json, expected_reponse)
+        self.assertEqual(r.json, expected_response)
 
     def test_valid_token(self):
         """No exception should be raised with a valid token."""
@@ -443,7 +443,7 @@ class TestValidateOverrideBuild(BaseTestCase):
 
     @mock.patch('bodhi.server.models.buildsys.get_session')
     def test_wrong_tag(self, get_session):
-        """If a build does not have a canditate or testing tag, the validator should complain."""
+        """If a build does not have a candidate or testing tag, the validator should complain."""
         release = models.Release.query.first()
         request = mock.Mock()
         request.db = self.db

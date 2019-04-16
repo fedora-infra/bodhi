@@ -85,7 +85,7 @@ class TestGetKrbConf(unittest.TestCase):
         self.assertEqual(config, {'keytab': 'a_keytab'})
 
     def test_krb_principal(self):
-        """Assert behavior when only krb_prinicpal is present."""
+        """Assert behavior when only krb_principal is present."""
         config = {'some_meaningless_other_key': 'boring_value', 'krb_principal': 'a_principal'}
 
         config = buildsys.get_krb_conf(config)
@@ -179,7 +179,7 @@ class TestGetSession(unittest.TestCase):
     @mock.patch('bodhi.server.buildsys._buildsystem')
     @mock.patch('bodhi.server.buildsys._buildsystem_login_lock', wraps=Lock())
     def test_buildsys_lock(self, mock_lock, mock_buildsystem):
-        """Assert the buildsystem lock is aquired and released in get_session"""
+        """Assert the buildsystem lock is acquired and released in get_session"""
         buildsys.get_session()
         mock_lock.__enter__.assert_called_once()
         mock_lock.__exit__.assert_called_once()

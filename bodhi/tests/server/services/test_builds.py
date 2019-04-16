@@ -67,7 +67,7 @@ class TestBuildsService(base.BaseTestCase):
         up = body['builds'][0]
         self.assertEqual(up['nvr'], u'bodhi-2.0-1.fc17')
 
-    def test_list_builds_by_unexisting_package(self):
+    def test_list_builds_by_nonexistent_package(self):
         res = self.app.get('/builds/', {"packages": "flash"}, status=400)
         self.assertEqual(res.json_body['errors'][0]['name'], 'packages')
         self.assertEqual(res.json_body['errors'][0]['description'],
@@ -89,7 +89,7 @@ class TestBuildsService(base.BaseTestCase):
         up = body['builds'][0]
         self.assertEqual(up['nvr'], u'bodhi-2.0-1.fc17')
 
-    def test_list_builds_by_unexisting_release(self):
+    def test_list_builds_by_nonexistent_release(self):
         res = self.app.get('/builds/', {"releases": "WinXP"}, status=400)
         self.assertEqual(res.json_body['errors'][0]['name'], 'releases')
         self.assertEqual(res.json_body['errors'][0]['description'],

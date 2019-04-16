@@ -181,7 +181,7 @@ Features
   (`#870 <https://github.com/fedora-infra/bodhi/issues/870>`_).
 * Bodhi is now able to query Pagure for FAS groups for ACL info
   (`f9414601 <https://github.com/fedora-infra/bodhi/commit/f9414601>`_).
-* The Python bindings' ``candidates()`` method now automatically intiializes the username
+* The Python bindings' ``candidates()`` method now automatically initializes the username
   (`6e8679b6 <https://github.com/fedora-infra/bodhi/commit/6e8679b6>`_).
 * CLI errors are now printed in red text
   (`431b9078 <https://github.com/fedora-infra/bodhi/commit/431b9078>`_).
@@ -648,7 +648,7 @@ Features
 * The icons that we introduced in the new theme previously didn't have titles.
   Consequently, a user might not have know what these icons meant. Now if a user
   hovers over these icons, they get a description of what they mean, for
-  example: "This is a bugfix update" or "This update is in the critial path"
+  example: "This is a bugfix update" or "This update is in the critical path"
   (`#1362 <https://github.com/fedora-infra/bodhi/issues/1362>`_).
 * Update pages with lots of updates look cleaner
   (`#1351 <https://github.com/fedora-infra/bodhi/issues/1351>`_).
