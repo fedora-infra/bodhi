@@ -1073,7 +1073,7 @@ class TestUtils(base.BaseTestCase):
         expected_tags = [
             "h1", "h2", "h3", "h4", "h5", "h6", "b", "i", "strong", "em", "tt", "p", "br", "span",
             "div", "blockquote", "code", "hr", "pre", "ul", "ol", "li", "dd", "dt", "img", "a"]
-        # The bleach 1 API shoudl get these attrs passed.
+        # The bleach 1 API should get these attrs passed.
         clean.assert_called_once_with(expected_text, tags=expected_tags,
                                       attributes=["src", "href", "alt", "title", "class"])
 
@@ -1094,7 +1094,7 @@ class TestUtils(base.BaseTestCase):
             "div", "blockquote", "code", "hr", "pre", "ul", "ol", "li", "dd", "dt", "img", "a"]
         expected_attributes = {
             "img": ["src", "alt", "title"], "a": ["href", "alt", "title"], "div": ["class"]}
-        # The bleach 2 API shoudl get these attrs passed.
+        # The bleach 2 API should get these attrs passed.
         clean.assert_called_once_with(expected_text, tags=expected_tags,
                                       attributes=expected_attributes)
 

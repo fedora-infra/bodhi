@@ -1287,7 +1287,7 @@ Bugs
   (`#887 <https://github.com/fedora-infra/bodhi/issues/887>`_).
 * Bodhi's CLI no longer uses USERNAME, which conflicted with GDM for users who use a different local
   system username than their FAS username. For such users, there was no workaround other than to
-  constantly use the ``--user`` flag, and the environment varaible wasn't particularly useful
+  constantly use the ``--user`` flag, and the environment variable wasn't particularly useful
   anymore now that the Bodhi CLI remembers usernames after one successful authentication
   (`#1789 <https://github.com/fedora-infra/bodhi/issues/1789>`_).
 

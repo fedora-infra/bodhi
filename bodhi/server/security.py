@@ -129,7 +129,7 @@ def remember_me(context, request, info, *args, **kw):
             authenticated user. This includes things like the user's username, e-mail address and
             groups.
         args (list): A list of additional positional parameters. Unused.
-        kw (dict): A dictionary of additional keyword parameterd. Unused.
+        kw (dict): A dictionary of additional keyword parameters. Unused.
     Returns:
         pyramid.httpexceptions.HTTPFound: A 302 redirect to the URL the user was visiting before
             they clicked login, or home if they have not used a valid OpenID provider.
@@ -161,7 +161,7 @@ def remember_me(context, request, info, *args, **kw):
             user.email = email
             db.flush()
 
-    # Keep track of what groups the user is a memeber of
+    # Keep track of what groups the user is a member of
     for group_name in info['groups']:
         # Drop empty group names https://github.com/fedora-infra/bodhi/issues/306
         if not group_name.strip():
@@ -216,7 +216,7 @@ class CorsOrigins(object):
 
     def __init__(self, name):
         """
-        Intialize the CorsOrigins object.
+        Initialize the CorsOrigins object.
 
         Args:
             name (basestring): The name of the setting for the CORS config.

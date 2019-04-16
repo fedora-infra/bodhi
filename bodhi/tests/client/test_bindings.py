@@ -1681,7 +1681,7 @@ class TestBodhiClient_parse_file(unittest.TestCase):
         self.assertEqual(updates[0]['type_'], 'bugfix')
         self.assertEqual(updates[0]['type'], 'bugfix')
 
-    def test_parsing_nonexistant_file(self):
+    def test_parsing_nonexistent_file(self):
         """
         Test trying to parse a file that doesnt exist
         """
