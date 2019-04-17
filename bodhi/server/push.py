@@ -103,7 +103,7 @@ def push(username, yes, **kwargs):
 
                 # Reset the Compose's state and error message.
                 compose.state = ComposeState.requested
-                compose.error_message = u''
+                compose.error_message = ''
 
                 composes.append(compose)
         else:

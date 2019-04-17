@@ -40,28 +40,28 @@ class TestFilterReleases(base.BaseTestCase):
         self.user = self.db.query(models.User).all()[0]
 
         archived_release = models.Release(
-            name=u'F22', long_name=u'Fedora 22',
-            id_prefix=u'FEDORA', version=u'22',
-            dist_tag=u'f22', stable_tag=u'f22-updates',
-            testing_tag=u'f22-updates-testing',
-            candidate_tag=u'f22-updates-candidate',
-            pending_signing_tag=u'f22-updates-testing-signing',
-            pending_testing_tag=u'f22-updates-testing-pending',
-            pending_stable_tag=u'f22-updates-pending',
-            override_tag=u'f22-override',
-            branch=u'f22', state=models.ReleaseState.archived)
+            name='F22', long_name='Fedora 22',
+            id_prefix='FEDORA', version='22',
+            dist_tag='f22', stable_tag='f22-updates',
+            testing_tag='f22-updates-testing',
+            candidate_tag='f22-updates-candidate',
+            pending_signing_tag='f22-updates-testing-signing',
+            pending_testing_tag='f22-updates-testing-pending',
+            pending_stable_tag='f22-updates-pending',
+            override_tag='f22-override',
+            branch='f22', state=models.ReleaseState.archived)
         self.db.add(archived_release)
 
         # Let's add an obscure package called bodhi to the release.
-        pkg = self.db.query(models.RpmPackage).filter_by(name=u'bodhi').one()
-        build = models.RpmBuild(nvr=u'bodhi-2.3.2-1.fc22', release=archived_release, package=pkg)
+        pkg = self.db.query(models.RpmPackage).filter_by(name='bodhi').one()
+        build = models.RpmBuild(nvr='bodhi-2.3.2-1.fc22', release=archived_release, package=pkg)
         self.db.add(build)
 
         # And an Update with the RpmBuild.
         self.archived_release_update = models.Update(
             builds=[build], user=self.user,
-            request=models.UpdateRequest.stable, notes=u'Useful details!', release=archived_release,
-            date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
+            request=models.UpdateRequest.stable, notes='Useful details!', release=archived_release,
+            date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(self.archived_release_update)
         self.db.commit()
@@ -80,47 +80,47 @@ class TestFilterReleases(base.BaseTestCase):
         # release and a pending release. Builds from the disabled one should be excluded and the
         # pending one should be included.
         disabled_release = models.Release(
-            name=u'F21', long_name=u'Fedora 21',
-            id_prefix=u'FEDORA', version=u'21',
-            dist_tag=u'f21', stable_tag=u'f21-updates',
-            testing_tag=u'f21-updates-testing',
-            candidate_tag=u'f21-updates-candidate',
-            pending_signing_tag=u'f21-updates-testing-signing',
-            pending_testing_tag=u'f21-updates-testing-pending',
-            pending_stable_tag=u'f21-updates-pending',
-            override_tag=u'f21-override',
-            branch=u'f21', state=models.ReleaseState.disabled)
+            name='F21', long_name='Fedora 21',
+            id_prefix='FEDORA', version='21',
+            dist_tag='f21', stable_tag='f21-updates',
+            testing_tag='f21-updates-testing',
+            candidate_tag='f21-updates-candidate',
+            pending_signing_tag='f21-updates-testing-signing',
+            pending_testing_tag='f21-updates-testing-pending',
+            pending_stable_tag='f21-updates-pending',
+            override_tag='f21-override',
+            branch='f21', state=models.ReleaseState.disabled)
         pending_release = models.Release(
-            name=u'F25', long_name=u'Fedora 25',
-            id_prefix=u'FEDORA', version=u'25',
-            dist_tag=u'f25', stable_tag=u'f25-updates',
-            testing_tag=u'f25-updates-testing',
-            candidate_tag=u'f25-updates-candidate',
-            pending_signing_tag=u'f25-updates-testing-signing',
-            pending_testing_tag=u'f25-updates-testing-pending',
-            pending_stable_tag=u'f25-updates-pending',
-            override_tag=u'f25-override',
-            branch=u'f25', state=models.ReleaseState.pending)
+            name='F25', long_name='Fedora 25',
+            id_prefix='FEDORA', version='25',
+            dist_tag='f25', stable_tag='f25-updates',
+            testing_tag='f25-updates-testing',
+            candidate_tag='f25-updates-candidate',
+            pending_signing_tag='f25-updates-testing-signing',
+            pending_testing_tag='f25-updates-testing-pending',
+            pending_stable_tag='f25-updates-pending',
+            override_tag='f25-override',
+            branch='f25', state=models.ReleaseState.pending)
         self.db.add(disabled_release)
         self.db.add(pending_release)
         # Let's add the bodhi package to both releases.
-        pkg = self.db.query(models.RpmPackage).filter_by(name=u'bodhi').one()
-        disabled_build = models.RpmBuild(nvr=u'bodhi-2.3.2-1.fc21', release=disabled_release,
+        pkg = self.db.query(models.RpmPackage).filter_by(name='bodhi').one()
+        disabled_build = models.RpmBuild(nvr='bodhi-2.3.2-1.fc21', release=disabled_release,
                                          package=pkg)
-        pending_build = models.RpmBuild(nvr=u'bodhi-2.3.2-1.fc25', release=pending_release,
+        pending_build = models.RpmBuild(nvr='bodhi-2.3.2-1.fc25', release=pending_release,
                                         package=pkg)
         self.db.add(disabled_build)
         self.db.add(pending_build)
         # Now let's create updates for both packages.
         disabled_release_update = models.Update(
             builds=[disabled_build], user=self.user,
-            request=models.UpdateRequest.stable, notes=u'Useful details!', release=disabled_release,
-            date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
+            request=models.UpdateRequest.stable, notes='Useful details!', release=disabled_release,
+            date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
         pending_release_update = models.Update(
             builds=[pending_build], user=self.user,
-            request=models.UpdateRequest.stable, notes=u'Useful details!', release=pending_release,
-            date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
+            request=models.UpdateRequest.stable, notes='Useful details!', release=pending_release,
+            date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(disabled_release_update)
         self.db.add(pending_release_update)
@@ -140,34 +140,34 @@ class TestFilterReleases(base.BaseTestCase):
         """
         query = self.db.query(models.Update)
 
-        query = push._filter_releases(self.db, query, u'F17')
+        query = push._filter_releases(self.db, query, 'F17')
 
         # Make sure only F17 made it in.
-        self.assertEqual([u.release.name for u in query], [u'F17'])
+        self.assertEqual([u.release.name for u in query], ['F17'])
 
     def test_two_releases(self):
         """
         Test with two releases.
         """
         # Create yet another release with 'current' state and update for it
-        current_release = self.create_release(u'18')
-        pkg = self.db.query(models.RpmPackage).filter_by(name=u'bodhi').one()
-        current_build = models.RpmBuild(nvr=u'bodhi-2.3.2-1.fc18', release=current_release,
+        current_release = self.create_release('18')
+        pkg = self.db.query(models.RpmPackage).filter_by(name='bodhi').one()
+        current_build = models.RpmBuild(nvr='bodhi-2.3.2-1.fc18', release=current_release,
                                         package=pkg)
         self.db.add(current_build)
         current_release_update = models.Update(
             builds=[current_build], user=self.user,
-            request=models.UpdateRequest.stable, notes=u'Useful details!', release=current_release,
-            date_submitted=datetime(2016, 10, 28), requirements=u'', stable_karma=3,
+            request=models.UpdateRequest.stable, notes='Useful details!', release=current_release,
+            date_submitted=datetime(2016, 10, 28), requirements='', stable_karma=3,
             unstable_karma=-3, type=models.UpdateType.bugfix)
         self.db.add(current_release_update)
         self.db.commit()
 
         query = self.db.query(models.Update)
-        query = push._filter_releases(self.db, query, u'F18,F17')
+        query = push._filter_releases(self.db, query, 'F18,F17')
 
         # Make sure F17 and F18 made it in.
-        self.assertEqual(set([u.release.name for u in query]), {u'F17', u'F18'})
+        self.assertEqual(set([u.release.name for u in query]), {'F17', 'F18'})
 
     def test_unknown_release(self):
         """
@@ -176,7 +176,7 @@ class TestFilterReleases(base.BaseTestCase):
         query = self.db.query(models.Update)
 
         with self.assertRaises(click.BadParameter) as ex:
-            push._filter_releases(self.db, query, u'RELEASE WITH NO NAME')
+            push._filter_releases(self.db, query, 'RELEASE WITH NO NAME')
             self.assertEqual(str(ex.exception), 'Unknown release: RELEASE WITH NO NAME')
 
     def test_archived_release(self):
@@ -186,7 +186,7 @@ class TestFilterReleases(base.BaseTestCase):
         query = self.db.query(models.Update)
 
         with self.assertRaises(click.BadParameter) as ex:
-            push._filter_releases(self.db, query, u'F22')
+            push._filter_releases(self.db, query, 'F22')
         self.assertEqual(
             str(ex.exception), 'Unknown release, or release not allowed to be composed: F22'
         )
@@ -372,8 +372,8 @@ class TestPush(base.BaseTestCase):
         Make some updates that can be pushed.
         """
         super(TestPush, self).setUp()
-        python_nose = self.create_update([u'python-nose-1.3.7-11.fc17'])
-        python_paste_deploy = self.create_update([u'python-paste-deploy-1.5.2-8.fc17'])
+        python_nose = self.create_update(['python-nose-1.3.7-11.fc17'])
+        python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc17'])
         # Make it so we have two builds to push out
         python_nose.builds[0].signed = True
         python_paste_deploy.builds[0].signed = True
@@ -410,8 +410,8 @@ class TestPush(base.BaseTestCase):
         self.assertEqual(doctored_output, TEST_ABORT_PUSH_EXPECTED_OUTPUT)
         self.assertEqual(publish.call_count, 0)
         # The updates should not be locked
-        for nvr in [u'bodhi-2.0-1.fc17', u'python-nose-1.3.7-11.fc17',
-                    u'python-paste-deploy-1.5.2-8.fc17']:
+        for nvr in ['bodhi-2.0-1.fc17', 'python-nose-1.3.7-11.fc17',
+                    'python-paste-deploy-1.5.2-8.fc17']:
             u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
             self.assertFalse(u.locked)
             self.assertIsNone(u.date_locked)
@@ -422,7 +422,7 @@ class TestPush(base.BaseTestCase):
         Assert correct operation when the --builds flag is given.
         """
         cli = CliRunner()
-        ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
+        ejabberd = self.create_update(['ejabberd-16.09-4.fc17'])
         # Make it so we have three builds we could push out so that we can ask for and verify two
         ejabberd.builds[0].signed = True
         self.db.commit()
@@ -441,16 +441,16 @@ class TestPush(base.BaseTestCase):
             topic='composer.start',
             msg={
                 'composes': [{'security': False, 'release_id': ejabberd.release.id,
-                              'request': u'testing', 'content_type': u'rpm'}],
+                              'request': 'testing', 'content_type': 'rpm'}],
                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
 
-        for nvr in [u'ejabberd-16.09-4.fc17', u'python-nose-1.3.7-11.fc17']:
+        for nvr in ['ejabberd-16.09-4.fc17', 'python-nose-1.3.7-11.fc17']:
             u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
             self.assertTrue(u.locked)
             self.assertTrue(u.date_locked <= datetime.utcnow())
         python_paste_deploy = self.db.query(models.Build).filter_by(
-            nvr=u'python-paste-deploy-1.5.2-8.fc17').one().update
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         self.assertFalse(python_paste_deploy.locked)
         self.assertIsNone(python_paste_deploy.date_locked)
 
@@ -472,8 +472,8 @@ class TestPush(base.BaseTestCase):
         publish.assert_called_once_with(
             topic='composer.start',
             msg={
-                'composes': [{'security': False, 'release_id': 1, 'request': u'testing',
-                              'content_type': u'rpm'}],
+                'composes': [{'security': False, 'release_id': 1, 'request': 'testing',
+                              'content_type': 'rpm'}],
                 'resume': False, 'agent': 'bowlofeggs', 'api_version': 2},
             force=True)
         bodhi = self.db.query(models.Build).filter_by(
@@ -497,12 +497,12 @@ class TestPush(base.BaseTestCase):
         cli = CliRunner()
         # Let's mark ejabberd as locked and already in a push. bodhi-push should prompt the user to
         # resume this compose rather than starting a new one.
-        ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
+        ejabberd = self.create_update(['ejabberd-16.09-4.fc17'])
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
         compose = models.Compose(
             release=ejabberd.release, request=ejabberd.request, state=models.ComposeState.failed,
-            error_message=u'y r u so mean nfs')
+            error_message='y r u so mean nfs')
         self.db.add(compose)
         self.db.commit()
 
@@ -540,12 +540,12 @@ class TestPush(base.BaseTestCase):
         cli = CliRunner()
         # Let's mark ejabberd as locked and already in a push. bodhi-push should resume this
         # compose.
-        ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
+        ejabberd = self.create_update(['ejabberd-16.09-4.fc17'])
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
         compose = models.Compose(
             release=ejabberd.release, request=ejabberd.request, state=models.ComposeState.failed,
-            error_message=u'y r u so mean nfs')
+            error_message='y r u so mean nfs')
         self.db.add(compose)
         self.db.commit()
 
@@ -619,35 +619,35 @@ class TestPush(base.BaseTestCase):
         Assert correct operation from the --releases flag.
         """
         f25 = models.Release(
-            name=u'F25', long_name=u'Fedora 25',
-            id_prefix=u'FEDORA', version=u'25',
-            dist_tag=u'f25', stable_tag=u'f25-updates',
-            testing_tag=u'f25-updates-testing',
-            candidate_tag=u'f25-updates-candidate',
-            pending_signing_tag=u'f25-updates-testing-signing',
-            pending_testing_tag=u'f25-updates-testing-pending',
-            pending_stable_tag=u'f25-updates-pending',
-            override_tag=u'f25-override',
-            branch=u'f25', state=models.ReleaseState.current)
+            name='F25', long_name='Fedora 25',
+            id_prefix='FEDORA', version='25',
+            dist_tag='f25', stable_tag='f25-updates',
+            testing_tag='f25-updates-testing',
+            candidate_tag='f25-updates-candidate',
+            pending_signing_tag='f25-updates-testing-signing',
+            pending_testing_tag='f25-updates-testing-pending',
+            pending_stable_tag='f25-updates-pending',
+            override_tag='f25-override',
+            branch='f25', state=models.ReleaseState.current)
         f26 = models.Release(
-            name=u'F26', long_name=u'Fedora 26',
-            id_prefix=u'FEDORA', version=u'26',
-            dist_tag=u'f26', stable_tag=u'f26-updates',
-            testing_tag=u'f26-updates-testing',
-            candidate_tag=u'f26-updates-candidate',
-            pending_signing_tag=u'f26-updates-testing-signing',
-            pending_testing_tag=u'f26-updates-testing-pending',
-            pending_stable_tag=u'f26-updates-pending',
-            override_tag=u'f26-override',
-            branch=u'f26', state=models.ReleaseState.current)
+            name='F26', long_name='Fedora 26',
+            id_prefix='FEDORA', version='26',
+            dist_tag='f26', stable_tag='f26-updates',
+            testing_tag='f26-updates-testing',
+            candidate_tag='f26-updates-candidate',
+            pending_signing_tag='f26-updates-testing-signing',
+            pending_testing_tag='f26-updates-testing-pending',
+            pending_stable_tag='f26-updates-pending',
+            override_tag='f26-override',
+            branch='f26', state=models.ReleaseState.current)
         self.db.add(f25)
         self.db.add(f26)
         self.db.commit()
         # Let's make an update for each release
-        python_nose = self.create_update([u'python-nose-1.3.7-11.fc25'], u'F25')
+        python_nose = self.create_update(['python-nose-1.3.7-11.fc25'], 'F25')
         # Let's make nose a security update to test that its compose gets sorted first.
         python_nose.type = models.UpdateType.security
-        python_paste_deploy = self.create_update([u'python-paste-deploy-1.5.2-8.fc26'], u'F26')
+        python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc26'], 'F26')
         python_nose.builds[0].signed = True
         python_paste_deploy.builds[0].signed = True
         self.db.commit()
@@ -703,40 +703,40 @@ class TestPush(base.BaseTestCase):
         Assert that composes are created only for releases marked as 'composed_by_bodhi'.
         """
         f25 = models.Release(
-            name=u'F25', long_name=u'Fedora 25',
-            id_prefix=u'FEDORA', version=u'25',
-            dist_tag=u'f25', stable_tag=u'f25-updates',
-            testing_tag=u'f25-updates-testing',
-            candidate_tag=u'f25-updates-candidate',
-            pending_signing_tag=u'f25-updates-testing-signing',
-            pending_testing_tag=u'f25-updates-testing-pending',
-            pending_stable_tag=u'f25-updates-pending',
-            override_tag=u'f25-override',
-            branch=u'f25', state=models.ReleaseState.current)
+            name='F25', long_name='Fedora 25',
+            id_prefix='FEDORA', version='25',
+            dist_tag='f25', stable_tag='f25-updates',
+            testing_tag='f25-updates-testing',
+            candidate_tag='f25-updates-candidate',
+            pending_signing_tag='f25-updates-testing-signing',
+            pending_testing_tag='f25-updates-testing-pending',
+            pending_stable_tag='f25-updates-pending',
+            override_tag='f25-override',
+            branch='f25', state=models.ReleaseState.current)
         f26 = models.Release(
-            name=u'F26', long_name=u'Fedora 26',
-            id_prefix=u'FEDORA', version=u'26',
-            dist_tag=u'f26', stable_tag=u'f26-updates',
-            testing_tag=u'f26-updates-testing',
-            candidate_tag=u'f26-updates-candidate',
-            pending_signing_tag=u'f26-updates-testing-signing',
-            pending_testing_tag=u'f26-updates-testing-pending',
-            pending_stable_tag=u'f26-updates-pending',
-            override_tag=u'f26-override',
-            branch=u'f26', state=models.ReleaseState.current)
+            name='F26', long_name='Fedora 26',
+            id_prefix='FEDORA', version='26',
+            dist_tag='f26', stable_tag='f26-updates',
+            testing_tag='f26-updates-testing',
+            candidate_tag='f26-updates-candidate',
+            pending_signing_tag='f26-updates-testing-signing',
+            pending_testing_tag='f26-updates-testing-pending',
+            pending_stable_tag='f26-updates-pending',
+            override_tag='f26-override',
+            branch='f26', state=models.ReleaseState.current)
         self.db.add(f25)
         self.db.add(f26)
         self.db.commit()
         # Let's make an update for each release
-        python_nose = self.create_update([u'python-nose-1.3.7-11.fc25'], u'F25')
+        python_nose = self.create_update(['python-nose-1.3.7-11.fc25'], 'F25')
         # Let's make nose a security update to test that its compose gets sorted first.
         python_nose.type = models.UpdateType.security
-        python_paste_deploy = self.create_update([u'python-paste-deploy-1.5.2-8.fc26'], u'F26')
+        python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc26'], 'F26')
         python_nose.builds[0].signed = True
         python_paste_deploy.builds[0].signed = True
         # Let's mark Fedora 17 release as not composed by Bodhi
         f17_release = self.db.query(models.Release).filter_by(
-            name=u'F17').one()
+            name='F17').one()
         f17_release.composed_by_bodhi = False
         self.db.commit()
         cli = CliRunner()
@@ -828,7 +828,7 @@ class TestPush(base.BaseTestCase):
         cli = CliRunner()
         # Let's mark ejabberd as locked and already in a push. Since we are resuming, it should be
         # the only package that gets included.
-        ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
+        ejabberd = self.create_update(['ejabberd-16.09-4.fc17'])
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
         compose = models.Compose(release=ejabberd.release, request=ejabberd.request)
@@ -870,7 +870,7 @@ class TestPush(base.BaseTestCase):
         cli = CliRunner()
         # Let's mark ejabberd as locked and already in a push. Since we are resuming, it should be
         # the only package that gets included.
-        ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
+        ejabberd = self.create_update(['ejabberd-16.09-4.fc17'])
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
         compose = models.Compose(release=ejabberd.release, request=ejabberd.request)
@@ -914,7 +914,7 @@ class TestPush(base.BaseTestCase):
         # Let's mark ejabberd as locked and already in a push. Since we are resuming and since we
         # will decline pushing the first time we are asked, it should be the only package that gets
         # included.
-        ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
+        ejabberd = self.create_update(['ejabberd-16.09-4.fc17'])
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
         compose = models.Compose(release=ejabberd.release, request=ejabberd.request)
@@ -967,7 +967,7 @@ class TestPush(base.BaseTestCase):
         # Let's mark ejabberd as locked and already in a push. Since we are resuming and since we
         # will decline pushing the first time we are asked, it should be the only package that gets
         # included.
-        ejabberd = self.create_update([u'ejabberd-16.09-4.fc17'])
+        ejabberd = self.create_update(['ejabberd-16.09-4.fc17'])
         ejabberd.builds[0].signed = True
         ejabberd.locked = True
         compose = models.Compose(release=ejabberd.release, request=ejabberd.request)

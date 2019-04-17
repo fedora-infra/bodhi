@@ -89,7 +89,7 @@ def main(argv=sys.argv):
                     and not update.autokarma and update.meets_testing_requirements:
                 print(f'{update.alias} now reaches stable karma threshold')
                 text = config.get('testing_approval_msg_based_on_karma')
-                update.comment(db, text, author=u'bodhi')
+                update.comment(db, text, author='bodhi')
                 db.commit()
                 continue
 
@@ -102,7 +102,7 @@ def main(argv=sys.argv):
                 print(f'{update.alias} now meets testing requirements')
                 text = str(
                     config.get('testing_approval_msg') % update.mandatory_days_in_testing)
-                update.comment(db, text, author=u'bodhi')
+                update.comment(db, text, author='bodhi')
 
                 notifications.publish(
                     topic='update.requirements_met.stable',

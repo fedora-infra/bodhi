@@ -24,7 +24,7 @@ from bodhi.tests.server import base
 class TestRpmPackagesService(base.BaseTestCase):
     def test_basic_json(self):
         """ Test querying with no arguments... """
-        self.db.add(RpmPackage(name=u'a_second_package'))
+        self.db.add(RpmPackage(name='a_second_package'))
         self.db.commit()
         resp = self.app.get('/packages/')
         body = resp.json_body
@@ -33,7 +33,7 @@ class TestRpmPackagesService(base.BaseTestCase):
     def test_filter_by_name(self):
         """ Test that filtering by name returns one package and not the other.
         """
-        self.db.add(RpmPackage(name=u'a_second_package'))
+        self.db.add(RpmPackage(name='a_second_package'))
         self.db.commit()
         resp = self.app.get('/packages/', dict(name='bodhi'))
         body = resp.json_body
@@ -42,7 +42,7 @@ class TestRpmPackagesService(base.BaseTestCase):
     def test_filter_by_like(self):
         """ Test that filtering by like returns one package and not the other.
         """
-        self.db.add(RpmPackage(name=u'a_second_package'))
+        self.db.add(RpmPackage(name='a_second_package'))
         self.db.commit()
         resp = self.app.get('/packages/', dict(like='odh'))
         body = resp.json_body
@@ -51,7 +51,7 @@ class TestRpmPackagesService(base.BaseTestCase):
     def test_filter_by_search(self):
         """ Test filtering by search
         """
-        self.db.add(RpmPackage(name=u'a_second_package'))
+        self.db.add(RpmPackage(name='a_second_package'))
         self.db.commit()
 
         # test search

@@ -153,7 +153,7 @@ class DevBuildsys:
     def getTaskRequest(self, task_id: int) -> typing.List[typing.Union[str, typing.Mapping]]:
         """Emulate Koji's getTaskRequest."""
         return [
-            u'git://pkgs.fedoraproject.org/rpms/bodhi?#2e994ca8b3296e62e8b0aadee1c5c0649559625a',
+            'git://pkgs.fedoraproject.org/rpms/bodhi?#2e994ca8b3296e62e8b0aadee1c5c0649559625a',
             'f17-candidate', {}]
 
     def listPackages(self) -> typing.List[typing.Mapping[str, typing.Union[int, str]]]:

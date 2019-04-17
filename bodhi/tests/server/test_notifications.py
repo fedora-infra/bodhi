@@ -32,7 +32,7 @@ class TestPublish(base.BaseTestCase):
     def test_publish_force(self):
         """Assert that fedora-messaging messages respect the force flag."""
         expected = api.Message(topic='bodhi.demo.topic',
-                               body={u'such': 'important'})
+                               body={'such': 'important'})
 
         with fml_testing.mock_sends(expected):
             notifications.publish('demo.topic', {'such': 'important'}, force=True)
@@ -51,10 +51,10 @@ class TestPublish(base.BaseTestCase):
         """Assert publish places the message inside the session info dict."""
         Session.remove()
         expected_msg = {
-            u'some_package': {
-                u'name': u'so good',
-                u'type': 'base',
-                u'requirements': None}}
+            'some_package': {
+                'name': 'so good',
+                'type': 'base',
+                'requirements': None}}
         package = models.Package(name='so good')
         notifications.publish('demo.topic', {'some_package': package})
         session = Session()

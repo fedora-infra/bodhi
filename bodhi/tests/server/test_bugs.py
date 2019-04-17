@@ -156,7 +156,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz = mock.MagicMock()
         bz._bz.getbug.return_value.component = 'bodhi'
         bz._bz.getbug.return_value.product = 'aproduct'
-        fill_text = ' '.join([u'exactly-10', ] * 23)
+        fill_text = ' '.join(['exactly-10', ] * 23)
         bz._bz.getbug.return_value.fixed_in = fill_text
 
         bz.close(12345, {'bodhi': 'bodhi-3.1.0-1.fc27'},
@@ -176,7 +176,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz = mock.MagicMock()
         bz._bz.getbug.return_value.component = 'bodhi'
         bz._bz.getbug.return_value.product = 'aproduct'
-        fill_text = ' '.join([u'exactly-10', ] * 21)
+        fill_text = ' '.join(['exactly-10', ] * 21)
         bz._bz.getbug.return_value.fixed_in = fill_text
 
         bz.close(12345, {'bodhi': 'bodhi-35.103.109-1.fc27'},
@@ -271,7 +271,7 @@ class TestBugzilla(unittest.TestCase):
         """Assert that the comment() method gets angry if the comment is too long."""
         bz = bugs.Bugzilla()
         bz._bz = mock.MagicMock()
-        oh_my = u'All work aind no play makes bowlofeggs a dull… something something… '
+        oh_my = 'All work aind no play makes bowlofeggs a dull… something something… '
         long_comment = oh_my * (65535 // len(oh_my) + 1)
 
         bz.comment(1411188, long_comment)
@@ -279,7 +279,7 @@ class TestBugzilla(unittest.TestCase):
         self.assertEqual(bz._bz.getbug.call_count, 0)
         # An exception should have been logged
         error.assert_called_once_with(
-            u'Comment too long for bug #1411188:  {}'.format(long_comment))
+            'Comment too long for bug #1411188:  {}'.format(long_comment))
 
     @mock.patch('bodhi.server.bugs.log.error')
     def test_comment_too_many_attempts(self, error):

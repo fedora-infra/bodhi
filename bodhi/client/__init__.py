@@ -737,9 +737,9 @@ def download(url, **kwargs):
                         args.extend(['--arch=noarch',
                                      '--arch={0}'.format(platform.machine()), build['nvr']])
                     else:
-                        if u'all' in requested_arch:
+                        if 'all' in requested_arch:
                             args.append(build['nvr'])
-                        if u'all' not in requested_arch:
+                        if 'all' not in requested_arch:
                             args.extend(['--arch=noarch',
                                          '--arch={0}'.format(requested_arch), build['nvr']])
                     ret = subprocess.call(args)

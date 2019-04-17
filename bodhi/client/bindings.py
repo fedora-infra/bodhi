@@ -74,7 +74,7 @@ class UpdateNotFound(BodhiClientException):
         Returns:
             unicode: An error message.
         """
-        return u'Update not found: {}'.format(self.update)
+        return 'Update not found: {}'.format(self.update)
 
     # Use __unicode__ method under __str__ name for Python 3
     __str__ = __unicode__
@@ -95,7 +95,7 @@ class ComposeNotFound(BodhiClientException):
         Returns:
             unicode: An error message.
         """
-        return u'Compose with request "{1}" not found for release "{0}"'.format(
+        return 'Compose with request "{1}" not found for release "{0}"'.format(
             self.release, self.request
         )
 
@@ -763,7 +763,7 @@ class BodhiClient(OpenIdBaseClient):
             return update
         if minimal:
             val = ""
-            security = '*' if update['type'] == u'security' else ' '
+            security = '*' if update['type'] == 'security' else ' '
             date = update['date_pushed'] and update['date_pushed'].split()[0] \
                 or update['date_submitted'].split()[0]
             days_in_status = _days_since(update['date_pushed']) if update['date_pushed'] \
@@ -782,7 +782,7 @@ class BodhiClient(OpenIdBaseClient):
         #  |-->          80 chars in total         <--|
         wrap_width = 66
         wrap_line = functools.partial(textwrap.wrap, width=wrap_width)
-        line_formatter = u'{0:>12}: {1}\n'
+        line_formatter = '{0:>12}: {1}\n'
 
         update_lines = ['{:=^80}\n'.format('=')]
         update_lines += [

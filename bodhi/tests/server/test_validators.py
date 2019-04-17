@@ -39,13 +39,13 @@ class TestValidateCSRFToken(BaseTestCase):
         r = self.app.post_json('/comments/', comment, status=400)
 
         expected_response = {
-            u'status': u'error',
-            u'errors': [
-                {u'description':
-                 (u'CSRF tokens do not match.  This happens if you have the page open for a long '
-                  u'time. Please reload the page and try to submit your data again. Make sure to '
-                  u'save your input somewhere before reloading. '),
-                 u'location': u'body', u'name': u'csrf_token'}]}
+            'status': 'error',
+            'errors': [
+                {'description':
+                 ('CSRF tokens do not match.  This happens if you have the page open for a long '
+                  'time. Please reload the page and try to submit your data again. Make sure to '
+                  'save your input somewhere before reloading. '),
+                 'location': 'body', 'name': 'csrf_token'}]}
         self.assertEqual(r.json, expected_response)
 
     def test_valid_token(self):
@@ -87,8 +87,8 @@ class TestGetValidRequirements(unittest.TestCase):
 
 @mock.patch.dict(
     'bodhi.server.validators.config',
-    {'pagure_url': u'http://domain.local', 'admin_packager_groups': [u'provenpackager'],
-     'mandatory_packager_groups': [u'packager']})
+    {'pagure_url': 'http://domain.local', 'admin_packager_groups': ['provenpackager'],
+     'mandatory_packager_groups': ['packager']})
 class TestValidateAcls(BaseTestCase):
     """ Test the validate_acls() function.
     """
@@ -179,7 +179,7 @@ class TestValidateAcls(BaseTestCase):
         """
         user = self.db.query(models.User).filter_by(id=1).one()
         group = self.db.query(models.Group).filter_by(
-            name=u'provenpackager').one()
+            name='provenpackager').one()
         user.groups.pop(0)
         user.groups.append(group)
         self.db.flush()

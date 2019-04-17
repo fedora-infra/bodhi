@@ -388,7 +388,7 @@ That was the actual one''' % compose_dir
 
             # Ensure we can't set a request
             with self.assertRaises(LockedUpdateException):
-                up.set_request(session, UpdateRequest.stable, u'bodhi')
+                up.set_request(session, UpdateRequest.stable, 'bodhi')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread._wait_for_pungi')
@@ -431,7 +431,7 @@ That was the actual one''' % compose_dir
         self.assertEqual(len(self.koji.__moved__), 1)
         self.assertEqual(len(self.koji.__added__), 0)
         self.assertEqual(self.koji.__moved__[0],
-                         (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
+                         ('f17-updates-candidate', 'f17-updates-testing', 'bodhi-2.0-1.fc17'))
 
         # The override tag won't get removed until it goes to stable
         self.assertEqual(self.koji.__untag__[0], (pending_signing_tag, nvr))
@@ -452,8 +452,8 @@ That was the actual one''' % compose_dir
         # tags added, not removed
         self.assertEqual(len(self.koji.__moved__), 0)
         self.assertEqual(len(self.koji.__added__), 1)
-        self.assertEqual(self.koji.__added__[0], (u'f17', u'bodhi-2.0-1.fc17'))
-        self.assertEqual(self.koji.__untag__[0], (override_tag, u'bodhi-2.0-1.fc17'))
+        self.assertEqual(self.koji.__added__[0], ('f17', 'bodhi-2.0-1.fc17'))
+        self.assertEqual(self.koji.__untag__[0], (override_tag, 'bodhi-2.0-1.fc17'))
 
         # Check that the override got expired
         with self.db_factory() as session:
@@ -479,7 +479,7 @@ That was the actual one''' % compose_dir
         Ensure that the latest version is tagged last.
         """
         self.expected_sems = 1
-        otherbuild = u'bodhi-2.0-2.fc17'
+        otherbuild = 'bodhi-2.0-2.fc17'
 
         with self.db_factory() as session:
             firstupdate = session.query(Update).one()
@@ -487,7 +487,7 @@ That was the actual one''' % compose_dir
             session.add(build)
             update = Update(
                 builds=[build], type=UpdateType.bugfix,
-                request=UpdateRequest.testing, notes=u'second update', user=firstupdate.user,
+                request=UpdateRequest.testing, notes='second update', user=firstupdate.user,
                 stable_karma=3, unstable_karma=-3, release=firstupdate.release)
             session.add(update)
             session.flush()
@@ -512,9 +512,9 @@ That was the actual one''' % compose_dir
 
         # Ensure the most recent version is tagged last in order to be the 'koji latest-pkg'
         self.assertEqual(self.koji.__moved__[0],
-                         (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-1.fc17'))
+                         ('f17-updates-candidate', 'f17-updates-testing', 'bodhi-2.0-1.fc17'))
         self.assertEqual(self.koji.__moved__[1],
-                         (u'f17-updates-candidate', u'f17-updates-testing', u'bodhi-2.0-2.fc17'))
+                         ('f17-updates-candidate', 'f17-updates-testing', 'bodhi-2.0-2.fc17'))
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread._wait_for_pungi')
@@ -534,7 +534,7 @@ That was the actual one''' % compose_dir
 
         t.run()
 
-        self.assertEqual(t.testing_digest[u'Fedora 17'][u'bodhi-2.0-1.fc17'], """\
+        self.assertEqual(t.testing_digest['Fedora 17']['bodhi-2.0-1.fc17'], """\
 ================================================================================
  libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)
  Enhanced seccomp library
@@ -583,7 +583,7 @@ References:
         with self.db_factory() as session:
             t.db = session
             t.compose = Compose.from_dict(session, msg.body['msg']['composes'][0])
-            t.release = session.query(Release).filter_by(name=u'F17').one()
+            t.release = session.query(Release).filter_by(name='F17').one()
             with self.assertRaises(Exception) as exc:
                 fake_popen = mock.MagicMock()
                 fake_stdout = b'''Some output
@@ -611,7 +611,7 @@ That was the actual one'''
         with self.db_factory() as session:
             t.db = session
             t.compose = Compose.from_dict(session, msg.body['msg']['composes'][0])
-            t.release = session.query(Release).filter_by(name=u'F17').one()
+            t.release = session.query(Release).filter_by(name='F17').one()
             with self.assertRaises(Exception) as exc:
                 fake_popen = mock.MagicMock()
                 fake_stdout = b'''Some output
@@ -838,26 +838,26 @@ That was the actual one'''
 
             # Create a security update for a different release
             release = Release(
-                name=u'F18', long_name=u'Fedora 18',
-                id_prefix=u'FEDORA', version=u'18',
-                dist_tag=u'f18', stable_tag=u'f18-updates',
-                testing_tag=u'f18-updates-testing',
-                candidate_tag=u'f18-updates-candidate',
-                pending_signing_tag=u'f18-updates-testing-signing',
-                pending_testing_tag=u'f18-updates-testing-pending',
-                pending_stable_tag=u'f18-updates-pending',
-                override_tag=u'f18-override',
+                name='F18', long_name='Fedora 18',
+                id_prefix='FEDORA', version='18',
+                dist_tag='f18', stable_tag='f18-updates',
+                testing_tag='f18-updates-testing',
+                candidate_tag='f18-updates-candidate',
+                pending_signing_tag='f18-updates-testing-signing',
+                pending_testing_tag='f18-updates-testing-pending',
+                pending_stable_tag='f18-updates-pending',
+                override_tag='f18-override',
                 state=ReleaseState.current,
-                branch=u'f18')
+                branch='f18')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
+            build = RpmBuild(nvr='bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
                              signed=True)
             db.add(build)
             update = Update(
                 builds=[build], user=user,
                 status=UpdateStatus.testing,
                 request=UpdateRequest.stable,
-                notes=u'Useful details!',
+                notes='Useful details!',
                 release=release,
                 stable_karma=3,
                 unstable_karma=-3,
@@ -889,9 +889,9 @@ That was the actual one'''
         # compose.complete
         self.assertEqual(calls[1], mock.call(
             force=True,
-            msg={'repo': u'f18-updates',
+            msg={'repo': 'f18-updates',
                  'ctype': 'rpm',
-                 'updates': [u'bodhi-2.0-1.fc18'],
+                 'updates': ['bodhi-2.0-1.fc18'],
                  'agent': 'bowlofeggs'},
             topic='compose.composing'))
         self.assertEqual(calls[4], mock.call(
@@ -903,9 +903,9 @@ That was the actual one'''
             topic='compose.complete'))
         self.assertEqual(calls[5], mock.call(
             force=True,
-            msg={'repo': u'f17-updates-testing',
+            msg={'repo': 'f17-updates-testing',
                  'ctype': 'rpm',
-                 'updates': [u'bodhi-2.0-1.fc17'],
+                 'updates': ['bodhi-2.0-1.fc17'],
                  'agent': 'bowlofeggs'},
             topic='compose.composing'))
         self.assertEqual(calls[-1], mock.call(
@@ -936,19 +936,19 @@ That was the actual one'''
 
             # Create a security update for a different release
             release = Release(
-                name=u'F18', long_name=u'Fedora 18',
-                id_prefix=u'FEDORA', version=u'18',
-                dist_tag=u'f18', stable_tag=u'f18-updates',
-                testing_tag=u'f18-updates-testing',
-                candidate_tag=u'f18-updates-candidate',
-                pending_signing_tag=u'f18-updates-testing-signing',
-                pending_testing_tag=u'f18-updates-testing-pending',
-                pending_stable_tag=u'f18-updates-pending',
-                override_tag=u'f18-override',
+                name='F18', long_name='Fedora 18',
+                id_prefix='FEDORA', version='18',
+                dist_tag='f18', stable_tag='f18-updates',
+                testing_tag='f18-updates-testing',
+                candidate_tag='f18-updates-candidate',
+                pending_signing_tag='f18-updates-testing-signing',
+                pending_testing_tag='f18-updates-testing-pending',
+                pending_stable_tag='f18-updates-pending',
+                override_tag='f18-override',
                 state=ReleaseState.current,
-                branch=u'f18')
+                branch='f18')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
+            build = RpmBuild(nvr='bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
                              signed=True)
             db.add(build)
             update = Update(
@@ -957,7 +957,7 @@ That was the actual one'''
                 request=UpdateRequest.stable,
                 stable_karma=3,
                 unstable_karma=-3,
-                notes=u'Useful details!',
+                notes='Useful details!',
                 release=release,
                 type=UpdateType.enhancement)
 
@@ -977,9 +977,9 @@ That was the actual one'''
         # Ensure that F17 updates-testing runs before F18
         calls = publish.mock_calls
         self.assertEqual(calls[1], mock.call(
-            msg={'repo': u'f17-updates-testing',
+            msg={'repo': 'f17-updates-testing',
                  'ctype': 'rpm',
-                 'updates': [u'bodhi-2.0-1.fc17'],
+                 'updates': ['bodhi-2.0-1.fc17'],
                  'agent': 'bowlofeggs'},
             force=True,
             topic='compose.composing'))
@@ -991,9 +991,9 @@ That was the actual one'''
             force=True,
             topic='compose.complete'))
         self.assertEqual(calls[4], mock.call(
-            msg={'repo': u'f18-updates',
+            msg={'repo': 'f18-updates',
                  'ctype': 'rpm',
-                 'updates': [u'bodhi-2.0-1.fc18'],
+                 'updates': ['bodhi-2.0-1.fc18'],
                  'agent': 'bowlofeggs'},
             force=True,
             topic='compose.composing'))
@@ -1026,19 +1026,19 @@ That was the actual one'''
 
             # Create a security update for a different release
             release = Release(
-                name=u'F18', long_name=u'Fedora 18',
-                id_prefix=u'FEDORA', version=u'18',
-                dist_tag=u'f18', stable_tag=u'f18-updates',
-                testing_tag=u'f18-updates-testing',
-                candidate_tag=u'f18-updates-candidate',
-                pending_signing_tag=u'f18-updates-testing-signing',
-                pending_testing_tag=u'f18-updates-testing-pending',
-                pending_stable_tag=u'f18-updates-pending',
-                override_tag=u'f18-override',
+                name='F18', long_name='Fedora 18',
+                id_prefix='FEDORA', version='18',
+                dist_tag='f18', stable_tag='f18-updates',
+                testing_tag='f18-updates-testing',
+                candidate_tag='f18-updates-candidate',
+                pending_signing_tag='f18-updates-testing-signing',
+                pending_testing_tag='f18-updates-testing-pending',
+                pending_stable_tag='f18-updates-pending',
+                override_tag='f18-override',
                 state=ReleaseState.current,
-                branch=u'f18')
+                branch='f18')
             db.add(release)
-            build = RpmBuild(nvr=u'bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
+            build = RpmBuild(nvr='bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
                              signed=True)
             db.add(build)
             update = Update(
@@ -1047,7 +1047,7 @@ That was the actual one'''
                 request=UpdateRequest.stable,
                 stable_karma=3,
                 unstable_karma=-3,
-                notes=u'Useful details!',
+                notes='Useful details!',
                 release=release,
                 type=UpdateType.security)
 
@@ -1069,29 +1069,29 @@ That was the actual one'''
         # except `buildroot_override.untag` and so, F17 call is expected on calls[5].
         calls = publish.mock_calls
         if calls[1] == mock.call(
-                msg={'repo': u'f18-updates',
+                msg={'repo': 'f18-updates',
                      'ctype': 'rpm',
-                     'updates': [u'bodhi-2.0-1.fc18'],
+                     'updates': ['bodhi-2.0-1.fc18'],
                      'agent': 'bowlofeggs'},
                 force=True, topic='compose.composing'):
             self.assertEqual(
                 calls[5],
-                mock.call(msg={'repo': u'f17-updates',
+                mock.call(msg={'repo': 'f17-updates',
                                'ctype': 'rpm',
-                               'updates': [u'bodhi-2.0-1.fc17'],
+                               'updates': ['bodhi-2.0-1.fc17'],
                                'agent': 'bowlofeggs'},
                           force=True, topic='compose.composing'))
         elif calls[1] == mock.call(
-                msg={'repo': u'f17-updates',
+                msg={'repo': 'f17-updates',
                      'ctype': 'rpm',
-                     'updates': [u'bodhi-2.0-1.fc17'],
+                     'updates': ['bodhi-2.0-1.fc17'],
                      'agent': 'bowlofeggs'},
                 force=True, topic='compose.composing'):
             self.assertEqual(
                 calls[6],
-                mock.call(msg={'repo': u'f18-updates',
+                mock.call(msg={'repo': 'f18-updates',
                                'ctype': 'rpm',
-                               'updates': [u'bodhi-2.0-1.fc18'],
+                               'updates': ['bodhi-2.0-1.fc18'],
                                'agent': 'bowlofeggs'},
                           force=True, topic='compose.composing'))
 
@@ -1130,7 +1130,7 @@ That was the actual one'''
         self.expected_sems = 1
 
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        self.set_stable_request('bodhi-2.0-1.fc17')
         msg = self._make_msg()
         t = RPMComposerThread(self.semmock, msg.body['msg']['composes'][0],
                               'ralph', self.db_factory, self.tempdir)
@@ -1161,7 +1161,7 @@ That was the actual one'''
         self.expected_sems = 1
 
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        self.set_stable_request('bodhi-2.0-1.fc17')
         msg = self._make_msg()
         t = RPMComposerThread(self.semmock, msg.body['msg']['composes'][0],
                               'ralph', self.db_factory, self.tempdir)
@@ -1195,7 +1195,7 @@ That was the actual one'''
         self.expected_sems = 1
 
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        self.set_stable_request('bodhi-2.0-1.fc17')
         msg = self._make_msg()
         compose_dir = os.path.join(self.tempdir, 'cool_dir')
 
@@ -1228,7 +1228,7 @@ That was the actual one'''
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.composer.subprocess.Popen') as Popen:
                 with mock.patch.dict(config, {'compose_dir': compose_dir}):
-                    release = session.query(Release).filter_by(name=u'F17').one()
+                    release = session.query(Release).filter_by(name='F17').one()
                     Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
                     t.run()
 
@@ -1291,7 +1291,7 @@ That was the actual one'''
         self.expected_sems = 1
 
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        self.set_stable_request('bodhi-2.0-1.fc17')
         msg = self._make_msg()
         compose_dir = os.path.join(self.tempdir, 'cool_dir')
 
@@ -1324,7 +1324,7 @@ That was the actual one'''
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.composer.subprocess.Popen') as Popen:
                 with mock.patch.dict(config, {'compose_dir': compose_dir}):
-                    release = session.query(Release).filter_by(name=u'F17').one()
+                    release = session.query(Release).filter_by(name='F17').one()
                     Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
                     t.run()
 
@@ -1397,7 +1397,7 @@ That was the actual one'''
         self.expected_sems = 1
 
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        self.set_stable_request('bodhi-2.0-1.fc17')
         msg = self._make_msg()
         compose_dir = os.path.join(self.tempdir, 'cool_dir')
 
@@ -1407,7 +1407,7 @@ That was the actual one'''
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.composer.subprocess.Popen') as Popen:
                 with mock.patch.dict(config, {'compose_dir': compose_dir}):
-                    release = session.query(Release).filter_by(name=u'F17').one()
+                    release = session.query(Release).filter_by(name='F17').one()
                     Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
                     t.run()
 
@@ -1459,14 +1459,14 @@ That was the actual one'''
             user = db.query(User).first()
 
             release = self.create_release('27M')
-            package = Package(name=u'testmodule',
+            package = Package(name='testmodule',
                               type=ContentType.module)
             db.add(package)
-            build1 = ModuleBuild(nvr=u'testmodule-master-20171.1',
+            build1 = ModuleBuild(nvr='testmodule-master-20171.1',
                                  release=release, signed=True,
                                  package=package)
             db.add(build1)
-            build2 = ModuleBuild(nvr=u'testmodule-master-20172.2',
+            build2 = ModuleBuild(nvr='testmodule-master-20172.2',
                                  release=release, signed=True,
                                  package=package)
             db.add(build2)
@@ -1476,7 +1476,7 @@ That was the actual one'''
                 request=UpdateRequest.stable,
                 stable_karma=3,
                 unstable_karma=-3,
-                notes=u'Useful details!',
+                notes='Useful details!',
                 release=release,
                 type=UpdateType.security)
 
@@ -1493,7 +1493,7 @@ That was the actual one'''
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.composer.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name=u'F27M').one()
+                release = session.query(Release).filter_by(name='F27M').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
                 t.run()
 
@@ -1546,9 +1546,9 @@ testmodule:master:20172:2
 
     def test_compose_module_koji_multicall_result_empty_list(self):
         release = self.create_release('27M')
-        package = Package(name=u'testmodule',
+        package = Package(name='testmodule',
                           type=ContentType.module)
-        build = ModuleBuild(nvr=u'testmodule-master-20171',
+        build = ModuleBuild(nvr='testmodule-master-20171',
                             release=release, signed=True,
                             package=package)
         t = ModuleComposerThread(self.semmock, {}, 'puiterwijk', log, self.db_factory,
@@ -1562,9 +1562,9 @@ testmodule:master:20172:2
 
     def test_compose_module_koji_multicall_result_dict(self):
         release = self.create_release('27M')
-        package = Package(name=u'testmodule',
+        package = Package(name='testmodule',
                           type=ContentType.module)
-        build = ModuleBuild(nvr=u'testmodule-master-20171',
+        build = ModuleBuild(nvr='testmodule-master-20171',
                             release=release, signed=True,
                             package=package)
         t = ModuleComposerThread(self.semmock, {}, 'puiterwijk', log, self.db_factory,
@@ -1588,7 +1588,7 @@ testmodule:master:20172:2
         self.expected_sems = 1
 
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        self.set_stable_request('bodhi-2.0-1.fc17')
         msg = self._make_msg()
         t = RPMComposerThread(
             self.semmock, msg.body['msg']['composes'][0], 'ralph', self.db_factory,
@@ -1596,7 +1596,7 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.composer.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name=u'F17').one()
+                release = session.query(Release).filter_by(name='F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
                 t.run()
 
@@ -1642,7 +1642,7 @@ testmodule:master:20172:2
         """If the update's test_gating_status is failed it should be ejected."""
         self.expected_sems = 1
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        self.set_stable_request('bodhi-2.0-1.fc17')
         u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         u.test_gating_status = TestGatingStatus.failed
         u.requirements = ''
@@ -1653,7 +1653,7 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.composer.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name=u'F17').one()
+                release = session.query(Release).filter_by(name='F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
                 t.run()
 
@@ -1686,7 +1686,7 @@ testmodule:master:20172:2
         """If the update's test_gating_status is passed it should not be ejected."""
         self.expected_sems = 1
         # Set the request to stable right out the gate so we can test gating
-        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        self.set_stable_request('bodhi-2.0-1.fc17')
         u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         u.test_gating_status = TestGatingStatus.passed
         u.requirements = ''
@@ -1697,7 +1697,7 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.composer.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name=u'F17').one()
+                release = session.query(Release).filter_by(name='F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
                 t.run()
 
@@ -1728,7 +1728,7 @@ testmodule:master:20172:2
         # Set the request to stable right out the gate so we can test gating
         self.expected_sems = 1
 
-        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        self.set_stable_request('bodhi-2.0-1.fc17')
         msg = self._make_msg()
 
         t = RPMComposerThread(self.semmock, msg.body['msg']['composes'][0], 'ralph',
@@ -1736,7 +1736,7 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             with mock.patch('bodhi.server.consumers.composer.subprocess.Popen') as Popen:
-                release = session.query(Release).filter_by(name=u'F17').one()
+                release = session.query(Release).filter_by(name='F17').one()
                 Popen.side_effect = self._generate_fake_pungi(t, 'stable_tag', release)
                 t.run()
 
@@ -1787,10 +1787,10 @@ testmodule:master:20172:2
         self.handler(self._make_msg())
 
         expected_message = (
-            u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems '
-            u'still persist, please make note of it in this bug report.\nSee '
-            u'https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how to '
-            u'install test updates.\nYou can provide feedback for this update here: {}')
+            'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems '
+            'still persist, please make note of it in this bug report.\nSee '
+            'https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how to '
+            'install test updates.\nYou can provide feedback for this update here: {}')
         expected_message = expected_message.format(
             urlparse.urljoin(
                 config['base_address'],
@@ -1811,7 +1811,7 @@ testmodule:master:20172:2
     def test_modify_stable_bugs(self, close, comment, *args):
         self.expected_sems = 1
 
-        self.set_stable_request(u'bodhi-2.0-1.fc17')
+        self.set_stable_request('bodhi-2.0-1.fc17')
         msg = self._make_msg()
 
         t = RPMComposerThread(self.semmock, msg.body['msg']['composes'][0],
@@ -1821,9 +1821,9 @@ testmodule:master:20172:2
 
         close.assert_called_with(
             12345,
-            versions=dict(bodhi=u'bodhi-2.0-1.fc17'),
-            comment=(u'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 stable repository. If '
-                     u'problems still persist, please make note of it in this bug report.'))
+            versions=dict(bodhi='bodhi-2.0-1.fc17'),
+            comment=('bodhi-2.0-1.fc17 has been pushed to the Fedora 17 stable repository. If '
+                     'problems still persist, please make note of it in this bug report.'))
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread._wait_for_pungi')
@@ -1847,7 +1847,7 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             up = session.query(Update).one()
             self.assertEqual(len(up.comments), 3)
-            self.assertEqual(up.comments[-1]['text'], u'This update has been pushed to testing.')
+            self.assertEqual(up.comments[-1]['text'], 'This update has been pushed to testing.')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread._wait_for_pungi')
@@ -1872,7 +1872,7 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             up = session.query(Update).one()
             self.assertEqual(len(up.comments), 3)
-            self.assertEqual(up.comments[-1]['text'], u'This update has been pushed to stable.')
+            self.assertEqual(up.comments[-1]['text'], 'This update has been pushed to stable.')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread._wait_for_pungi')
@@ -2059,13 +2059,13 @@ testmodule:master:20172:2
 
             # Have the update reach the stable karma threshold
             self.assertEqual(up.karma, 1)
-            up.comment(session, u"foo", 1, u'foo')
+            up.comment(session, "foo", 1, 'foo')
             self.assertEqual(up.karma, 2)
             self.assertEqual(up.request, UpdateRequest.testing)
-            up.comment(session, u"foo", 1, u'bar')
+            up.comment(session, "foo", 1, 'bar')
             self.assertEqual(up.karma, 3)
             self.assertEqual(up.request, UpdateRequest.testing)
-            up.comment(session, u"foo", 1, u'biz')
+            up.comment(session, "foo", 1, 'biz')
             self.assertEqual(up.request, UpdateRequest.testing)
             self.assertEqual(up.karma, 4)
 
@@ -2076,7 +2076,7 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            up.comment(session, u"foo", 1, u'baz')
+            up.comment(session, "foo", 1, 'baz')
             self.assertEqual(up.karma, 5)
 
             # Ensure the composer set the autokarma once the push is done
@@ -2143,7 +2143,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.notifications.publish')
     def test_obsolete_older_updates(self, publish, *args):
         self.expected_sems = 1
-        otherbuild = u'bodhi-2.0-2.fc17'
+        otherbuild = 'bodhi-2.0-2.fc17'
 
         with self.db_factory() as session:
             # Put the older update into testing
@@ -2158,7 +2158,7 @@ testmodule:master:20172:2
             session.add(build)
             update = Update(
                 builds=[build], type=UpdateType.bugfix,
-                request=UpdateRequest.testing, notes=u'second update', user=oldupdate.user,
+                request=UpdateRequest.testing, notes='second update', user=oldupdate.user,
                 stable_karma=3, unstable_karma=-3, release=oldupdate.release)
             update.release = oldupdate.release
             session.add(update)
@@ -2255,17 +2255,17 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         user = self.db.query(User).first()
         release = self.create_release('28C')
         release.branch = 'f28'
-        package1 = Package(name=u'testcontainer1',
+        package1 = Package(name='testcontainer1',
                            type=ContentType.container)
         self.db.add(package1)
-        package2 = Package(name=u'testcontainer2',
+        package2 = Package(name='testcontainer2',
                            type=ContentType.container)
         self.db.add(package2)
-        build1 = ContainerBuild(nvr=u'testcontainer1-2.0.1-71.fc28container',
+        build1 = ContainerBuild(nvr='testcontainer1-2.0.1-71.fc28container',
                                 release=release, signed=True,
                                 package=package1)
         self.db.add(build1)
-        build2 = ContainerBuild(nvr=u'testcontainer2-1.0.1-1.fc28container',
+        build2 = ContainerBuild(nvr='testcontainer2-1.0.1-1.fc28container',
                                 release=release, signed=True,
                                 package=package2)
         self.db.add(build2)
@@ -2275,7 +2275,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
             request=UpdateRequest.testing,
             stable_karma=3,
             unstable_karma=-3,
-            notes=u'Neat I can compose containers now',
+            notes='Neat I can compose containers now',
             release=release,
             type=UpdateType.bugfix)
 
@@ -2425,17 +2425,17 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
         user = self.db.query(User).first()
         release = self.create_release('28F')
         release.branch = 'f28'
-        package1 = Package(name=u'testflatpak1',
+        package1 = Package(name='testflatpak1',
                            type=ContentType.flatpak)
         self.db.add(package1)
-        package2 = Package(name=u'testflatpak2',
+        package2 = Package(name='testflatpak2',
                            type=ContentType.flatpak)
         self.db.add(package2)
-        build1 = FlatpakBuild(nvr=u'testflatpak1-2.0.1-71.fc28flatpak',
+        build1 = FlatpakBuild(nvr='testflatpak1-2.0.1-71.fc28flatpak',
                               release=release, signed=True,
                               package=package1)
         self.db.add(build1)
-        build2 = FlatpakBuild(nvr=u'testflatpak2-1.0.1-1.fc28flatpak',
+        build2 = FlatpakBuild(nvr='testflatpak2-1.0.1-1.fc28flatpak',
                               release=release, signed=True,
                               package=package2)
         self.db.add(build2)
@@ -2445,7 +2445,7 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
             request=UpdateRequest.testing,
             stable_karma=3,
             unstable_karma=-3,
-            notes=u'Neat I can compose flatpaks now',
+            notes='Neat I can compose flatpaks now',
             release=release,
             type=UpdateType.bugfix)
 
@@ -2659,7 +2659,7 @@ class TestComposerThread__perform_tag_actions(ComposerThreadBaseTestCase):
                            'bowlofeggs', self.Session, self.tempdir)
         t.compose = Compose.from_dict(self.db, msg['body']['msg']['composes'][0])
         t.move_tags_async.append(
-            (u'f26-updates-candidate', u'f26-updates-testing', u'bodhi-2.3.2-1.fc26'))
+            ('f26-updates-candidate', 'f26-updates-testing', 'bodhi-2.3.2-1.fc26'))
 
         with self.assertRaises(Exception) as exc:
             t._perform_tag_actions()
@@ -2776,7 +2776,7 @@ class TestComposerThread_eject_from_compose(ComposerThreadBaseTestCase):
         t.eject_from_compose(up, 'This update is unacceptable!')
 
         self.assertEqual(buildsys.DevBuildsys.__untag__,
-                         [(u'f17-updates-testing-pending', u'bodhi-2.0-1.fc17')])
+                         [('f17-updates-testing-pending', 'bodhi-2.0-1.fc17')])
         up = self.db.query(Update).one()
         publish.assert_called_once_with(
             topic='update.eject',
