@@ -20,23 +20,18 @@ import conu.utils.probes
 import docker.errors
 import pytest
 
-from ..utils import make_db_and_user
-
 
 @pytest.fixture(scope="session")
-def greenwave_container(docker_backend, docker_network, db_container):
+def greenwave_container(docker_backend, docker_network):
     """Fixture preparing and yielding a Greenwave container.
 
     Args:
         docker_backend (conu.DockerBackend): The Docker backend (fixture).
         docker_network (str): The Docker network ID (fixture).
-        db_container(conu.DockerContainer): The PostgreSQL container (fixture).
 
     Yields:
         conu.DockerContainer: The Greenwave container.
     """
-    # Prepare the database
-    make_db_and_user(db_container, "greenwave")
     # Define the container and start it
     image_name = "bodhi-ci-integration-greenwave"
     image = docker_backend.ImageClass(image_name)
