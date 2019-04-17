@@ -79,10 +79,10 @@ def metrics(request):
         'newpackage': 'New packages'
     }
 
-    releases = db.query(m.Release).filter(m.Release.name.like(u'F%')).all()
+    releases = db.query(m.Release).filter(m.Release.name.like('F%')).all()
     data, ticks = compute_ticks_and_data(db, releases, update_types)
 
-    releases = db.query(m.Release).filter(m.Release.name.like(u'E%')).all()
+    releases = db.query(m.Release).filter(m.Release.name.like('E%')).all()
     eldata, elticks = compute_ticks_and_data(db, releases, update_types)
 
     return {

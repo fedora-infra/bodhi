@@ -54,7 +54,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(work_on_bugs.call_count, 1)
         self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][0],
                                    sqlalchemy.orm.session.Session))
-        self.assertEqual(work_on_bugs.mock_calls[0][1][1].title, u'bodhi-2.0-1.fc17')
+        self.assertEqual(work_on_bugs.mock_calls[0][1][1].title, 'bodhi-2.0-1.fc17')
         self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][2]], [12345, 123456])
         self.assertEqual(fetch_test_cases.call_count, 1)
         self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][0],
@@ -91,7 +91,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(work_on_bugs.call_count, 1)
         self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][0],
                                    sqlalchemy.orm.session.Session))
-        self.assertEqual(work_on_bugs.mock_calls[0][1][1].title, u'bodhi-2.0-1.fc17')
+        self.assertEqual(work_on_bugs.mock_calls[0][1][1].title, 'bodhi-2.0-1.fc17')
         self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][2]], [12345, 123456])
         self.assertEqual(fetch_test_cases.call_count, 1)
         self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][0],
@@ -128,7 +128,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(work_on_bugs.call_count, 1)
         self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][1],
                                    sqlalchemy.orm.session.Session))
-        self.assertEqual(work_on_bugs.mock_calls[0][1][2].title, u'bodhi-2.0-1.fc17')
+        self.assertEqual(work_on_bugs.mock_calls[0][1][2].title, 'bodhi-2.0-1.fc17')
         self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][3]], [12345])
         self.assertEqual(fetch_test_cases.call_count, 1)
         self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][1],
@@ -152,18 +152,18 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': False,
-                'summary': u'what have you done‽',
+                'summary': 'what have you done‽',
                 'applicable_policies': ['taskotron_release_critical_tasks'],
                 'unsatisfied_requirements': [
-                    {u'testcase': u'dist.rpmdeplint',
-                     u'item': {u'item': u'bodhi-2.0-1.fc17', u'type': u'koji_build'},
-                     u'type': u'test-result-missing', u'scenario': None},
-                    {u'testcase': u'dist.rpmdeplint',
-                     u'item': {u'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                     u'type': u'test-result-missing', u'scenario': None},
-                    {u'testcase': u'dist.rpmdeplint',
-                     u'item': {u'item': update.alias, u'type': u'bodhi_update'},
-                     u'type': u'test-result-missing', u'scenario': None}]}
+                    {'testcase': 'dist.rpmdeplint',
+                     'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                     'type': 'test-result-missing', 'scenario': None},
+                    {'testcase': 'dist.rpmdeplint',
+                     'item': {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
+                     'type': 'test-result-missing', 'scenario': None},
+                    {'testcase': 'dist.rpmdeplint',
+                     'item': {'item': update.alias, 'type': 'bodhi_update'},
+                     'type': 'test-result-missing', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
 
             h(message)
@@ -189,18 +189,18 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': False,
-                'summary': u'what have you done‽',
+                'summary': 'what have you done‽',
                 'applicable_policies': ['taskotron_release_critical_tasks'],
                 'unsatisfied_requirements': [
-                    {u'testcase': u'dist.rpmdeplint',
-                     u'item': {u'item': u'bodhi-2.0-1.fc17', u'type': u'koji_build'},
-                     u'type': u'test-result-missing', u'scenario': None},
-                    {u'testcase': u'dist.rpmdeplint',
-                     u'item': {u'original_spec_nvr': u'bodhi-2.0-1.fc17'},
-                     u'type': u'test-result-missing', u'scenario': None},
-                    {u'testcase': u'dist.rpmdeplint',
-                     u'item': {u'item': update.alias, u'type': u'bodhi_update'},
-                     u'type': u'test-result-missing', u'scenario': None}]}
+                    {'testcase': 'dist.rpmdeplint',
+                     'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                     'type': 'test-result-missing', 'scenario': None},
+                    {'testcase': 'dist.rpmdeplint',
+                     'item': {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
+                     'type': 'test-result-missing', 'scenario': None},
+                    {'testcase': 'dist.rpmdeplint',
+                     'item': {'item': update.alias, 'type': 'bodhi_update'},
+                     'type': 'test-result-missing', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
 
             h(message)
@@ -234,7 +234,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(work_on_bugs.call_count, 1)
         self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][1],
                                    sqlalchemy.orm.session.Session))
-        self.assertEqual(work_on_bugs.mock_calls[0][1][2].title, u'bodhi-2.0-1.fc17')
+        self.assertEqual(work_on_bugs.mock_calls[0][1][2].title, 'bodhi-2.0-1.fc17')
         # Despite our weird bogus bug id, the update's bug list should have been used.
         self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][3]], [12345])
         self.assertEqual(fetch_test_cases.call_count, 1)
@@ -345,7 +345,7 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = self.db.query(models.Update).filter(
-            models.Build.nvr == u'bodhi-2.0-1.fc17').one()
+            models.Build.nvr == 'bodhi-2.0-1.fc17').one()
         # The update should start out in a non-security state so we know that work_on_bugs() changed
         # it.
         self.assertEqual(update.type, models.UpdateType.bugfix)
@@ -368,7 +368,7 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
         h.db_factory = base.TransactionalSessionMaker(self.Session)
 
         update = self.db.query(models.Update).filter(
-            models.Build.nvr == u'bodhi-2.0-1.fc17').one()
+            models.Build.nvr == 'bodhi-2.0-1.fc17').one()
         bugs = self.db.query(models.Bug).all()
 
         with mock.patch('bodhi.server.consumers.updates.bug_module.bugtracker.getbug',

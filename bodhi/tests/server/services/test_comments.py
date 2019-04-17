@@ -26,7 +26,7 @@ from bodhi.server.models import (Build, Comment, Release, RpmBuild, RpmPackage, 
 from bodhi.tests.server import base
 
 
-someone_elses_update = up2 = u'bodhi-2.0-200.fc17'
+someone_elses_update = up2 = 'bodhi-2.0-200.fc17'
 
 
 class TestCommentsService(base.BaseTestCase):
@@ -35,18 +35,18 @@ class TestCommentsService(base.BaseTestCase):
 
         # Add a second update owned by somebody else so we can test karma
         # policy stuff
-        user2 = User(name=u'lmacken')
+        user2 = User(name='lmacken')
         self.db.flush()
         self.db.add(user2)
-        release = self.db.query(Release).filter_by(name=u'F17').one()
+        release = self.db.query(Release).filter_by(name='F17').one()
         update = Update(
             user=user2,
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
-            notes=u'Useful details!',
+            notes='Useful details!',
             release=release,
             date_submitted=datetime(1984, 11, 2),
-            requirements=u'rpmlint',
+            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
         )
@@ -63,10 +63,10 @@ class TestCommentsService(base.BaseTestCase):
                      **kwargs):
         update = Build.query.filter_by(nvr=nvr).one().update.alias
         comment = {
-            u'update': update,
-            u'text': text,
-            u'karma': karma,
-            u'csrf_token': self.get_csrf_token(),
+            'update': update,
+            'text': text,
+            'karma': karma,
+            'csrf_token': self.get_csrf_token(),
         }
         comment.update(kwargs)
         return comment
@@ -220,7 +220,7 @@ class TestCommentsService(base.BaseTestCase):
 
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         u'You must provide either some text or feedback')
+                         'You must provide either some text or feedback')
 
     @mock.patch('bodhi.server.services.comments.Update.comment',
                 side_effect=IOError('IOError. oops!'))
@@ -231,7 +231,7 @@ class TestCommentsService(base.BaseTestCase):
 
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         u'Unable to create comment')
+                         'Unable to create comment')
 
     def test_get_single_comment(self):
         res = self.app.get('/comments/1')
@@ -261,7 +261,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 2)
 
         comment = body['comments'][0]
-        self.assertEqual(comment['text'], u'srsly.  pretty good.')
+        self.assertEqual(comment['text'], 'srsly.  pretty good.')
         self.assertEqual(comment['karma'], 0)
 
     def test_list_comments_jsonp(self):
@@ -280,7 +280,7 @@ class TestCommentsService(base.BaseTestCase):
 
     def test_list_comments_rss_failing_condition(self):
         comment = self.db.query(Comment).first()
-        comment.text = u''
+        comment.text = ''
         self.db.flush()
 
         res = self.app.get('/rss/comments/',
@@ -299,7 +299,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 1)
 
         comment = body['comments'][0]
-        self.assertEqual(comment['text'], u'srsly.  pretty good.')
+        self.assertEqual(comment['text'], 'srsly.  pretty good.')
 
         res = self.app.get('/comments/', {'like': 'wat'})
         body = res.json_body
@@ -340,9 +340,9 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 1)
 
         comment = body['comments'][0]
-        self.assertEqual(comment['text'], u'wow. amaze.')
+        self.assertEqual(comment['text'], 'wow. amaze.')
         self.assertEqual(comment['karma'], 1)
-        self.assertEqual(comment['user']['name'], u'guest')
+        self.assertEqual(comment['user']['name'], 'guest')
 
     def test_list_comments_by_invalid_since(self):
         res = self.app.get('/comments/', {"since": "forever"}, status=400)
@@ -370,15 +370,15 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 2)
 
         comment = body['comments'][0]
-        self.assertEqual(comment['text'], u'srsly.  pretty good.')
+        self.assertEqual(comment['text'], 'srsly.  pretty good.')
 
     def test_list_comments_by_update_no_comments(self):
         update = Update(
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
-            notes=u'Useful details!',
+            notes='Useful details!',
             date_submitted=datetime(1984, 11, 2),
-            requirements=u'rpmlint',
+            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
@@ -404,7 +404,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 2)
 
         comment = body['comments'][0]
-        self.assertEqual(comment['text'], u'srsly.  pretty good.')
+        self.assertEqual(comment['text'], 'srsly.  pretty good.')
 
     def test_list_comments_by_nonexistent_package(self):
         res = self.app.get('/comments/', {"packages": "flash-player"},
@@ -419,25 +419,25 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 1)
 
         comment = body['comments'][0]
-        self.assertEqual(comment['text'], u'wow. amaze.')
+        self.assertEqual(comment['text'], 'wow. amaze.')
 
     def test_list_comments_by_multiple_usernames(self):
         update = Update(
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
-            notes=u'Just another update.',
+            notes='Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            requirements=u'rpmlint',
+            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
         )
         self.db.add(update)
 
-        another_user = User(name=u'aUser')
+        another_user = User(name='aUser')
         self.db.add(another_user)
 
-        comment = Comment(karma=1, text=u'Cool! 😃')
+        comment = Comment(karma=1, text='Cool! 😃')
         comment.user = another_user
         self.db.add(comment)
         update.comments.append(comment)
@@ -446,8 +446,8 @@ class TestCommentsService(base.BaseTestCase):
         res = self.app.get('/comments/', {"user": "guest,aUser"})
         body = res.json_body
         self.assertEqual(len(body['comments']), 2)
-        self.assertEqual(body['comments'][0]['text'], u'Cool! 😃')
-        self.assertEqual(body['comments'][1]['text'], u'wow. amaze.')
+        self.assertEqual(body['comments'][0]['text'], 'Cool! 😃')
+        self.assertEqual(body['comments'][1]['text'], 'wow. amaze.')
 
     def test_list_comments_by_nonexistent_username(self):
         res = self.app.get('/comments/', {"user": "santa"}, status=400)
@@ -463,25 +463,25 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 2)
 
         comment = body['comments'][0]
-        self.assertEqual(comment['text'], u'srsly.  pretty good.')
+        self.assertEqual(comment['text'], 'srsly.  pretty good.')
 
     def test_list_comments_by_multiple_update_owners(self):
-        another_user = User(name=u'aUser')
+        another_user = User(name='aUser')
         self.db.add(another_user)
         update = Update(
             user=another_user,
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
-            notes=u'Just another update.',
+            notes='Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            requirements=u'rpmlint',
+            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
         )
         self.db.add(update)
 
-        comment = Comment(karma=1, text=u'Cool! 😃')
+        comment = Comment(karma=1, text='Cool! 😃')
         comment.user = another_user
         self.db.add(comment)
         update.comments.append(comment)
@@ -492,12 +492,12 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 3)
 
         comment = body['comments'][0]
-        self.assertEqual(comment['text'], u'Cool! 😃')
+        self.assertEqual(comment['text'], 'Cool! 😃')
         comment = body['comments'][1]
-        self.assertEqual(comment['text'], u'srsly.  pretty good.')
+        self.assertEqual(comment['text'], 'srsly.  pretty good.')
 
     def test_list_comments_by_update_owner_with_none(self):
-        user = User(name=u'ralph')
+        user = User(name='ralph')
         self.db.add(user)
         self.db.flush()
         res = self.app.get('/comments/', {"update_owner": "ralph"})
@@ -519,25 +519,25 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(len(body['comments']), 1)
         self.assertNotIn('errors', body)
         comment = body['comments'][0]
-        self.assertEqual(comment['text'], u'srsly.  pretty good.')
+        self.assertEqual(comment['text'], 'srsly.  pretty good.')
 
     def test_list_comments_with_multiple_ignore_user(self):
-        another_user = User(name=u'aUser')
+        another_user = User(name='aUser')
         self.db.add(another_user)
         update = Update(
             user=another_user,
             request=UpdateRequest.testing,
             type=UpdateType.enhancement,
-            notes=u'Just another update.',
+            notes='Just another update.',
             date_submitted=datetime(1981, 10, 11),
-            requirements=u'rpmlint',
+            requirements='rpmlint',
             stable_karma=3,
             unstable_karma=-3,
             release=Release.query.one()
         )
         self.db.add(update)
 
-        comment = Comment(karma=1, text=u'Cool! 😃')
+        comment = Comment(karma=1, text='Cool! 😃')
         comment.user = another_user
         self.db.add(comment)
         update.comments.append(comment)
@@ -547,7 +547,7 @@ class TestCommentsService(base.BaseTestCase):
         body = res.json_body
         self.assertEqual(len(body['comments']), 1)
         self.assertNotIn('errors', body)
-        self.assertEqual(body['comments'][0]['text'], u'Cool! 😃')
+        self.assertEqual(body['comments'][0]['text'], 'Cool! 😃')
 
     def test_list_comments_with_nonexistent_ignore_user(self):
         res = self.app.get('/comments/', {"ignore_user": "santa"}, status=400)
@@ -573,10 +573,10 @@ class TestCommentsService(base.BaseTestCase):
         with fml_testing.mock_sends(api.Message):
             r = self.app.post_json('/comments/', comment)
         comment = r.json_body['comment']
-        self.assertEqual(comment['text'], u'superb')
-        self.assertEqual(comment['user']['name'], u'guest')
-        self.assertEqual(comment['author'], u'guest')
-        self.assertEqual(comment['update']['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(comment['text'], 'superb')
+        self.assertEqual(comment['user']['name'], 'guest')
+        self.assertEqual(comment['author'], 'guest')
+        self.assertEqual(comment['update']['title'], 'bodhi-2.0-1.fc17')
         self.assertEqual(comment['karma'], 0)
 
     def test_no_self_karma(self):
@@ -590,8 +590,8 @@ class TestCommentsService(base.BaseTestCase):
         with fml_testing.mock_sends(api.Message):
             r = self.app.post_json('/comments/', comment)
         comment = r.json_body['comment']
-        self.assertEqual(comment['user']['name'], u'guest')
-        self.assertEqual(comment['update']['title'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(comment['user']['name'], 'guest')
+        self.assertEqual(comment['update']['title'], 'bodhi-2.0-1.fc17')
         caveats = r.json_body['caveats']
         self.assertEqual(len(caveats), 1)
         self.assertEqual(caveats[0]['name'], 'karma')

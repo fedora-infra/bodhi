@@ -223,13 +223,13 @@ class TestRememberMe(base.BaseTestCase):
         req.session['came_from'] = '/'
         info = {
             'identity_url': 'http://lmacken.id.fedoraproject.org',
-            'groups': [u'releng'],
-            'sreg': {'email': u'lmacken@fp.o'},
+            'groups': ['releng'],
+            'sreg': {'email': 'lmacken@fp.o'},
         }
         req.registry.settings = self.app_settings
         # Ensure the user doesn't exist yet
-        self.assertIsNone(models.User.get(u'lmacken'))
-        self.assertIsNone(models.Group.get(u'releng'))
+        self.assertIsNone(models.User.get('lmacken'))
+        self.assertIsNone(models.Group.get('releng'))
 
         return req, info
 
@@ -241,7 +241,7 @@ class TestRememberMe(base.BaseTestCase):
             security.remember_me(None, req, info)
 
         # The user should not exist
-        self.assertIsNone(models.User.get(u'lmacken'))
+        self.assertIsNone(models.User.get('lmacken'))
 
     def test_empty_groups_ignored(self):
         """Test a user that has an empty string group, which should be ignored."""
@@ -253,7 +253,7 @@ class TestRememberMe(base.BaseTestCase):
 
         security.remember_me(None, req, info)
 
-        user = models.User.get(u'lmacken')
+        user = models.User.get('lmacken')
         self.assertEqual([g.name for g in user.groups], ['releng', 'new_group'])
 
     def test_new_email(self):
@@ -266,8 +266,8 @@ class TestRememberMe(base.BaseTestCase):
 
         security.remember_me(None, req, info)
 
-        user = models.User.get(u'lmacken')
-        self.assertEqual(user.email, u'1337hax0r@example.com')
+        user = models.User.get('lmacken')
+        self.assertEqual(user.email, '1337hax0r@example.com')
 
     def test_new_user(self):
         """Test the post-login hook"""
@@ -276,11 +276,11 @@ class TestRememberMe(base.BaseTestCase):
         security.remember_me(None, req, info)
 
         # The user should now exist, and be a member of the releng group
-        user = models.User.get(u'lmacken')
-        self.assertEqual(user.name, u'lmacken')
-        self.assertEqual(user.email, u'lmacken@fp.o')
+        user = models.User.get('lmacken')
+        self.assertEqual(user.name, 'lmacken')
+        self.assertEqual(user.email, 'lmacken@fp.o')
         self.assertEqual(len(user.groups), 1)
-        self.assertEqual(user.groups[0].name, u'releng')
+        self.assertEqual(user.groups[0].name, 'releng')
 
     def test_user_groups_removed(self):
         """Test that a user that has been removed from a group gets marked as removed upon login."""
@@ -292,6 +292,6 @@ class TestRememberMe(base.BaseTestCase):
 
         security.remember_me(None, req, info)
 
-        user = models.User.get(u'lmacken')
+        user = models.User.get('lmacken')
         self.assertEqual(len(user.groups), 0)
-        self.assertEqual(len(models.Group.get(u'releng').users), 0)
+        self.assertEqual(len(models.Group.get('releng').users), 0)

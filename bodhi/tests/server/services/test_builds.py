@@ -35,14 +35,14 @@ class TestBuildsService(base.BaseTestCase):
         self.assertEqual(len(body['builds']), 1)
 
         up = body['builds'][0]
-        self.assertEqual(up['nvr'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
 
     def test_list_builds_pagination(self):
 
         # First, stuff a second build in there
         session = self.db
-        build = RpmBuild(nvr=u'bodhi-3.0-1.fc21',
-                         package=RpmPackage.query.filter_by(name=u'bodhi').one())
+        build = RpmBuild(nvr='bodhi-3.0-1.fc21',
+                         package=RpmPackage.query.filter_by(name='bodhi').one())
         session.add(build)
         session.flush()
 
@@ -65,7 +65,7 @@ class TestBuildsService(base.BaseTestCase):
         self.assertEqual(len(body['builds']), 1)
 
         up = body['builds'][0]
-        self.assertEqual(up['nvr'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
 
     def test_list_builds_by_nonexistent_package(self):
         res = self.app.get('/builds/', {"packages": "flash"}, status=400)
@@ -79,7 +79,7 @@ class TestBuildsService(base.BaseTestCase):
         self.assertEqual(len(body['builds']), 1)
 
         up = body['builds'][0]
-        self.assertEqual(up['nvr'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
 
     def test_list_builds_by_release_version(self):
         res = self.app.get('/builds/', {"releases": "17"})
@@ -87,7 +87,7 @@ class TestBuildsService(base.BaseTestCase):
         self.assertEqual(len(body['builds']), 1)
 
         up = body['builds'][0]
-        self.assertEqual(up['nvr'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
 
     def test_list_builds_by_nonexistent_release(self):
         res = self.app.get('/builds/', {"releases": "WinXP"}, status=400)
@@ -98,7 +98,7 @@ class TestBuildsService(base.BaseTestCase):
     def test_list_builds_by_nvr(self):
         res = self.app.get('/builds/', {"nvr": "bodhi-2.0-1.fc17"})
         up = res.json_body['builds'][0]
-        self.assertEqual(up['nvr'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
 
     def test_list_builds_by_update_alias(self):
         update = RpmBuild.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
@@ -106,7 +106,7 @@ class TestBuildsService(base.BaseTestCase):
         res = self.app.get('/builds/', {"updates": [update.alias]})
 
         up = res.json_body['builds'][0]
-        self.assertEqual(up['nvr'], u'bodhi-2.0-1.fc17')
+        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
 
     def test_list_builds_no_rows_per_page(self):
         res = self.app.get('/builds/', {"rows_per_page": None}, status=400)

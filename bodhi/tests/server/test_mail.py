@@ -164,7 +164,7 @@ class TestGetTemplate(base.BaseTestCase):
         resp = mail.read_template(tpl_name)
 
         # Assert return value is correct for the given template name.
-        expected = u"""\
+        expected = """\
 ================================================================================
  %(name)s-%(version)s-%(release)s (%(updateid)s)
  %(summary)s

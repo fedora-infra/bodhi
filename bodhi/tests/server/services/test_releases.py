@@ -33,16 +33,16 @@ class TestReleasesService(base.BaseTestCase):
         super(TestReleasesService, self).setUp()
 
         release = Release(
-            name=u'F22', long_name=u'Fedora 22',
-            id_prefix=u'FEDORA', version=u'22',
-            dist_tag=u'f22', stable_tag=u'f22-updates',
-            testing_tag=u'f22-updates-testing',
-            candidate_tag=u'f22-updates-candidate',
-            pending_signing_tag=u'f22-updates-testing-signing',
-            pending_testing_tag=u'f22-updates-testing-pending',
-            pending_stable_tag=u'f22-updates-pending',
-            override_tag=u'f22-override',
-            branch=u'f22')
+            name='F22', long_name='Fedora 22',
+            id_prefix='FEDORA', version='22',
+            dist_tag='f22', stable_tag='f22-updates',
+            testing_tag='f22-updates-testing',
+            candidate_tag='f22-updates-candidate',
+            pending_signing_tag='f22-updates-testing-signing',
+            pending_testing_tag='f22-updates-testing-pending',
+            pending_stable_tag='f22-updates-pending',
+            override_tag='f22-override',
+            branch='f22')
 
         self.db.add(release)
         self.db.commit()
@@ -52,7 +52,7 @@ class TestReleasesService(base.BaseTestCase):
 
     def test_anonymous_cant_edit_release(self):
         """Ensure that an unauthenticated user cannot edit a release, since only an admin should."""
-        name = u"F22"
+        name = "F22"
         # Create a new app so we are the anonymous user.
         with mock.patch('bodhi.server.Session.remove'):
             app = webtest.TestApp(server.main({}, session=self.db, **self.app_settings))
@@ -86,8 +86,8 @@ class TestReleasesService(base.BaseTestCase):
         body = res.json_body
         self.assertEqual(len(body['releases']), 2)
 
-        self.assertEqual(body['releases'][0]['name'], u'F17')
-        self.assertEqual(body['releases'][1]['name'], u'F22')
+        self.assertEqual(body['releases'][0]['name'], 'F17')
+        self.assertEqual(body['releases'][1]['name'], 'F22')
 
     def test_list_releases_with_pagination(self):
         res = self.app.get('/releases/')
@@ -144,7 +144,7 @@ class TestReleasesService(base.BaseTestCase):
 
     def test_list_releases_by_update_alias(self):
         update = self.db.query(Update).first()
-        update.alias = u'some_alias'
+        update.alias = 'some_alias'
         self.db.flush()
 
         res = self.app.get('/releases/', {"updates": 'some_alias'})
@@ -171,7 +171,7 @@ class TestReleasesService(base.BaseTestCase):
                          'Invalid packages specified: carbunkle')
 
     def test_new_release(self):
-        attrs = {"name": u"F42", "long_name": "Fedora 42", "version": "42",
+        attrs = {"name": "F42", "long_name": "Fedora 42", "version": "42",
                  "id_prefix": "FEDORA", "branch": "f42", "dist_tag": "f42",
                  "stable_tag": "f42-updates",
                  "testing_tag": "f42-updates-testing",
@@ -255,7 +255,7 @@ class TestReleasesService(base.BaseTestCase):
     @mock.patch('bodhi.server.services.releases.log.info', side_effect=IOError('BOOM!'))
     def test_save_release_exception_handler(self, info):
         """Test the exception handler in save_release()."""
-        attrs = {"name": u"F42", "long_name": "Fedora 42", "version": "42",
+        attrs = {"name": "F42", "long_name": "Fedora 42", "version": "42",
                  "id_prefix": "FEDORA", "branch": "f42", "dist_tag": "f42",
                  "stable_tag": "f42-updates",
                  "testing_tag": "f42-updates-testing",
@@ -294,7 +294,7 @@ class TestReleasesService(base.BaseTestCase):
             self.assertEqual(error["description"], "Invalid tag: %s" % attrs[error["name"]])
 
     def test_edit_release(self):
-        name = u"F22"
+        name = "F22"
 
         res = self.app.get('/releases/%s' % name, status=200)
         r = res.json_body
@@ -310,7 +310,7 @@ class TestReleasesService(base.BaseTestCase):
 
     def test_edit_mail_template(self):
         """Test `mail_template` is saved correctly in db after release edit."""
-        name = u"F22"
+        name = "F22"
 
         res = self.app.get('/releases/%s' % name, status=200)
         r = res.json_body
@@ -326,7 +326,7 @@ class TestReleasesService(base.BaseTestCase):
 
     def test_edit_mail_template_with_null_value(self):
         """Test that null value for `mail_template` gets replaced by default value."""
-        name = u"F22"
+        name = "F22"
 
         res = self.app.get('/releases/%s' % name, status=200)
         r = res.json_body
@@ -342,7 +342,7 @@ class TestReleasesService(base.BaseTestCase):
 
     def test_edit_mail_template_with_invalid_value(self):
         """Test appropriate error is returned when provided `mail_template` doesn't exist."""
-        name = u"F22"
+        name = "F22"
         location = config.get('mail.templates_basepath')
         directory = get_absolute_path(location)
         template_list = [os.path.splitext(file)[0] for file in os.listdir(directory)]
@@ -359,23 +359,23 @@ class TestReleasesService(base.BaseTestCase):
 
         self.assertEqual(res.json_body['errors'][0]['name'], 'mail_template')
         self.assertEqual(res.json_body['errors'][0]['description'],
-                         u'"invalid_template_name" is not one of {}'.format(template_vals))
+                         '"invalid_template_name" is not one of {}'.format(template_vals))
 
     def test_change_release_state_to_archived(self):
         """
         Test that when we make release archived, all release updates state will change to
         'obsolete' or or stay 'stable'/'unpushed'
         """
-        python_nose = self.create_update([u'python-nose-1.3.7-11.fc17'])
-        python_paste_deploy = self.create_update([u'python-paste-deploy-1.5.2-8.fc17'])
-        firefox = self.create_update([u'firefox-61.0.2-3.fc17'])
-        python_test_update = self.create_update([u'python-test-update.fc22'], 'F22')
+        python_nose = self.create_update(['python-nose-1.3.7-11.fc17'])
+        python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc17'])
+        firefox = self.create_update(['firefox-61.0.2-3.fc17'])
+        python_test_update = self.create_update(['python-test-update.fc22'], 'F22')
         # Change status of F17 updates
         python_nose.status = UpdateStatus.stable
         python_paste_deploy.status = UpdateStatus.obsolete
         firefox.status = UpdateStatus.unpushed
         self.db.commit()
-        name = u"F17"
+        name = "F17"
 
         res = self.app.get('/releases/%s' % name, status=200)
         r = res.json_body
@@ -406,7 +406,7 @@ class TestReleasesService(base.BaseTestCase):
             nvr='bodhi-2.0-1.fc17').one().update
         self.assertEqual(bodhi_update.status, UpdateStatus.obsolete)
         # Check for the comment
-        expected_comment = (u'This update is marked obsolete because the F17 release '
+        expected_comment = ('This update is marked obsolete because the F17 release '
                             'is archived.')
         self.assertEqual(bodhi_update.comments[-1].text, expected_comment)
         # Expect update status not changed
@@ -445,7 +445,7 @@ class TestReleasesService(base.BaseTestCase):
     def test_query_releases_html_two_releases_same_state(self):
         """Test query_releases_html() with two releases in the same state."""
         attrs = {
-            "name": u"F42", "long_name": "Fedora 42", "version": "42",
+            "name": "F42", "long_name": "Fedora 42", "version": "42",
             "id_prefix": "FEDORA", "branch": "f42", "dist_tag": "f42",
             "stable_tag": "f42-updates",
             "testing_tag": "f42-updates-testing",

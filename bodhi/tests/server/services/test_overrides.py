@@ -115,7 +115,7 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEqual(override['notes'], 'blah blah blah')
 
     def test_list_overrides_by_packages_without_override(self):
-        self.db.add(RpmPackage(name=u'python'))
+        self.db.add(RpmPackage(name='python'))
         self.db.flush()
 
         res = self.app.get('/overrides/', {'packages': 'python'})
@@ -157,16 +157,16 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEqual(override['notes'], 'blah blah blah')
 
     def test_list_overrides_by_releases_without_override(self):
-        self.db.add(Release(name=u'F42', long_name=u'Fedora 42',
-                            id_prefix=u'FEDORA', version=u'42',
-                            dist_tag=u'f42', stable_tag=u'f42-updates',
-                            testing_tag=u'f42-updates-testing',
-                            candidate_tag=u'f42-updates-candidate',
-                            pending_signing_tag=u'f42-updates-testing-signing',
-                            pending_testing_tag=u'f42-updates-testing-pending',
-                            pending_stable_tag=u'f42-updates-pending',
-                            override_tag=u'f42-override',
-                            branch=u'f42'))
+        self.db.add(Release(name='F42', long_name='Fedora 42',
+                            id_prefix='FEDORA', version='42',
+                            dist_tag='f42', stable_tag='f42-updates',
+                            testing_tag='f42-updates-testing',
+                            candidate_tag='f42-updates-candidate',
+                            pending_signing_tag='f42-updates-testing-signing',
+                            pending_testing_tag='f42-updates-testing-pending',
+                            pending_stable_tag='f42-updates-pending',
+                            override_tag='f42-override',
+                            branch='f42'))
         self.db.flush()
 
         res = self.app.get('/overrides/', {'releases': 'F42'})
@@ -196,19 +196,19 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEqual(override['notes'], 'blah blah blah')
 
     def test_list_overrides_by_multiple_usernames(self):
-        release = Release.get(u'F17')
+        release = Release.get('F17')
 
-        package = RpmPackage(name=u'just-testing')
+        package = RpmPackage(name='just-testing')
         self.db.add(package)
-        build = RpmBuild(nvr=u'just-testing-1.0-2.fc17', package=package, release=release)
+        build = RpmBuild(nvr='just-testing-1.0-2.fc17', package=package, release=release)
         self.db.add(build)
-        another_user = User(name=u'aUser')
+        another_user = User(name='aUser')
         self.db.add(another_user)
 
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
         override = BuildrootOverride(build=build, submitter=another_user,
-                                     notes=u'Crazy! 😱',
+                                     notes='Crazy! 😱',
                                      expiration_date=expiration_date)
         self.db.add(override)
         self.db.flush()
@@ -220,7 +220,7 @@ class TestOverridesService(base.BaseTestCase):
         override_fake = body['overrides'][0]
         self.assertEqual(override_fake['build']['nvr'], 'just-testing-1.0-2.fc17')
         self.assertEqual(override_fake['submitter']['name'], 'aUser')
-        self.assertEqual(override_fake['notes'], u'Crazy! 😱')
+        self.assertEqual(override_fake['notes'], 'Crazy! 😱')
 
         override_orig = body['overrides'][1]
         self.assertEqual(override_orig['build']['nvr'], 'bodhi-2.0-1.fc17')
@@ -228,7 +228,7 @@ class TestOverridesService(base.BaseTestCase):
         self.assertEqual(override_orig['notes'], 'blah blah blah')
 
     def test_list_overrides_by_username_without_override(self):
-        self.db.add(User(name=u'bochecha'))
+        self.db.add(User(name='bochecha'))
         self.db.flush()
 
         res = self.app.get('/overrides/', {'user': 'bochecha'})
@@ -288,17 +288,17 @@ class TestOverridesService(base.BaseTestCase):
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override(self, publish):
-        release = Release.get(u'F17')
+        release = Release.get('F17')
 
-        package = RpmPackage(name=u'not-bodhi')
+        package = RpmPackage(name='not-bodhi')
         self.db.add(package)
-        build = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
+        build = RpmBuild(nvr='not-bodhi-2.0-2.fc17', package=package, release=release)
         self.db.add(build)
         self.db.flush()
 
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
-        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+        data = {'nvr': build.nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
         res = self.app.post('/overrides/', data)
@@ -319,10 +319,10 @@ class TestOverridesService(base.BaseTestCase):
         """
         Test that Override is not created when the test gating status is failed.
         """
-        release = Release.get(u'F17')
-        package = RpmPackage(name=u'not-bodhi')
+        release = Release.get('F17')
+        package = RpmPackage(name='not-bodhi')
         self.db.add(package)
-        build = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
+        build = RpmBuild(nvr='not-bodhi-2.0-2.fc17', package=package, release=release)
         update = Update.query.first()
         update.builds.append(build)
         update.test_gating_status = TestGatingStatus.failed
@@ -333,7 +333,7 @@ class TestOverridesService(base.BaseTestCase):
 
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
-        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+        data = {'nvr': build.nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
         res = self.app.post('/overrides/', data, status=400)
@@ -349,16 +349,16 @@ class TestOverridesService(base.BaseTestCase):
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_duplicate_override(self, publish):
-        release = Release.get(u'F17')
-        package = RpmPackage(name=u'not-bodhi')
+        release = Release.get('F17')
+        package = RpmPackage(name='not-bodhi')
         self.db.add(package)
-        build = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
+        build = RpmBuild(nvr='not-bodhi-2.0-2.fc17', package=package, release=release)
         self.db.add(build)
         self.db.flush()
 
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
-        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+        data = {'nvr': build.nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
         res = self.app.post('/overrides/', data)
@@ -388,16 +388,16 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_multiple_nvr(self, publish):
-        release = Release.get(u'F17')
-        package = RpmPackage(name=u'not-bodhi')
+        release = Release.get('F17')
+        package = RpmPackage(name='not-bodhi')
         self.db.add(package)
-        build1 = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
+        build1 = RpmBuild(nvr='not-bodhi-2.0-2.fc17', package=package, release=release)
         self.db.add(build1)
         self.db.flush()
 
-        package = RpmPackage(name=u'another-not-bodhi')
+        package = RpmPackage(name='another-not-bodhi')
         self.db.add(package)
-        build2 = RpmBuild(nvr=u'another-not-bodhi-2.0-2.fc17', package=package, release=release)
+        build2 = RpmBuild(nvr='another-not-bodhi-2.0-2.fc17', package=package, release=release)
         self.db.add(build2)
         self.db.flush()
 
@@ -405,7 +405,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
 
         data = {
             'nvr': ','.join([build1.nvr, build2.nvr]),
-            'notes': u'blah blah blah',
+            'notes': 'blah blah blah',
             'expiration_date': expiration_date,
             'csrf_token': self.get_csrf_token(),
         }
@@ -431,33 +431,33 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_too_long(self, publish):
-        release = Release.get(u'F17')
+        release = Release.get('F17')
 
-        package = RpmPackage(name=u'not-bodhi')
+        package = RpmPackage(name='not-bodhi')
         self.db.add(package)
-        build = RpmBuild(nvr=u'not-bodhi-2.0-2.fc17', package=package, release=release)
+        build = RpmBuild(nvr='not-bodhi-2.0-2.fc17', package=package, release=release)
         self.db.add(build)
         self.db.flush()
 
         expiration_date = datetime.utcnow() + timedelta(days=60)
 
-        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+        data = {'nvr': build.nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
         self.app.post('/overrides/', data, status=400)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_for_newer_build(self, publish):
-        old_build = RpmBuild.get(u'bodhi-2.0-1.fc17')
+        old_build = RpmBuild.get('bodhi-2.0-1.fc17')
 
-        build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', package=old_build.package,
+        build = RpmBuild(nvr='bodhi-2.0-2.fc17', package=old_build.package,
                          release=old_build.release)
         self.db.add(build)
         self.db.flush()
 
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
-        data = {'nvr': build.nvr, 'notes': u'blah blah blah',
+        data = {'nvr': build.nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
         res = self.app.post('/overrides/', data)
@@ -473,15 +473,15 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
                          expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEqual(o['expired_date'], None)
 
-        old_build = RpmBuild.get(u'bodhi-2.0-1.fc17')
+        old_build = RpmBuild.get('bodhi-2.0-1.fc17')
 
         self.assertNotEqual(old_build.override['expired_date'], None)
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_cannot_edit_override_build(self, publish):
-        release = Release.get(u'F17')
+        release = Release.get('F17')
 
-        old_nvr = u'bodhi-2.0-1.fc17'
+        old_nvr = 'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr,
                            headers={'Accept': 'application/json'})
@@ -489,7 +489,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         expiration_date = o['expiration_date']
         old_build_id = o['build_id']
 
-        build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', release=release,
+        build = RpmBuild(nvr='bodhi-2.0-2.fc17', release=release,
                          package=RpmPackage.query.filter_by(name='bodhi').one())
         self.db.add(build)
         self.db.flush()
@@ -535,9 +535,9 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
                          'No such build')
 
     def test_edit_nonexistent_override(self):
-        release = Release.get(u'F17')
+        release = Release.get('F17')
 
-        build = RpmBuild(nvr=u'bodhi-2.0-2.fc17', release=release,
+        build = RpmBuild(nvr='bodhi-2.0-2.fc17', release=release,
                          package=RpmPackage.query.filter_by(name='bodhi').one())
         self.db.add(build)
         self.db.flush()
@@ -582,7 +582,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
                          'Unable to save buildroot override: no db for you!')
 
     def test_edit_notes(self):
-        old_nvr = u'bodhi-2.0-1.fc17'
+        old_nvr = 'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr,
                            headers={'Accept': 'application/json'})
@@ -601,7 +601,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         self.assertEqual(override['expired_date'], None)
 
     def test_edit_expiration_date(self):
-        old_nvr = u'bodhi-2.0-1.fc17'
+        old_nvr = 'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr,
                            headers={'Accept': 'application/json'})
@@ -621,7 +621,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         self.assertEqual(override['expired_date'], None)
 
     def test_edit_fail_on_multiple(self):
-        old_nvr = u'bodhi-2.0-1.fc17'
+        old_nvr = 'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr,
                            headers={'Accept': 'application/json'})
@@ -637,7 +637,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_expire_override(self, publish):
-        old_nvr = u'bodhi-2.0-1.fc17'
+        old_nvr = 'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr,
                            headers={'Accept': 'application/json'})
@@ -658,7 +658,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
     @mock.patch('bodhi.server.notifications.publish')
     def test_unexpire_override(self, publish):
         # First expire a buildroot override
-        old_nvr = u'bodhi-2.0-1.fc17'
+        old_nvr = 'bodhi-2.0-1.fc17'
         override = RpmBuild.get(old_nvr).override
         override.expire()
         self.db.add(override)
@@ -691,10 +691,10 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
 
     @mock.patch('bodhi.server.notifications.publish')
     def test_create_override_with_missing_pkg(self, publish):
-        nvr = u'not-bodhi-2.0-2.fc17'
+        nvr = 'not-bodhi-2.0-2.fc17'
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
-        data = {'nvr': nvr, 'notes': u'blah blah blah',
+        data = {'nvr': nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
         res = self.app.post('/overrides/', data,
@@ -780,7 +780,7 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         get.return_value.humanize.return_value = '82 seconds ago bro'
         expiration_date = datetime.utcnow() + timedelta(days=1)
-        data = {'nvr': 'bodhi-2.0-1.fc17', 'notes': u'blah blah blah',
+        data = {'nvr': 'bodhi-2.0-1.fc17', 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'edited': 'bodhi-2.0-1.fc17', 'expired': True,
                 'csrf_token': self.get_csrf_token()}

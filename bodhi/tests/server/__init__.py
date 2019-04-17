@@ -27,14 +27,14 @@ from bodhi.server.models import (
     Update, UpdateRequest, UpdateSeverity, UpdateType, User, TestCase)
 
 
-def create_update(session, build_nvrs, release_name=u'F17'):
+def create_update(session, build_nvrs, release_name='F17'):
     """
     Use the given session to create and return an Update with the given iterable of build_nvrs.
 
     Each build_nvr should be a string describing the name, version, and release for the build
     separated by dashes. For example, build_nvrs might look like this:
 
-    (u'bodhi-2.3.3-1.fc24', u'python-fedora-atomic-composer-2016.3-1.fc24')
+    ('bodhi-2.3.3-1.fc24', 'python-fedora-atomic-composer-2016.3-1.fc24')
 
     You can optionally pass a release_name to select a different release than the default F17, but
     the release must already exist in the database.
@@ -46,7 +46,7 @@ def create_update(session, build_nvrs, release_name=u'F17'):
         bodhi.server.models.Update: The generated update.
     """
     release = session.query(Release).filter_by(name=release_name).one()
-    user = session.query(User).filter_by(name=u'guest').one()
+    user = session.query(User).filter_by(name='guest').one()
 
     builds = []
     for nvr in build_nvrs:
@@ -56,7 +56,7 @@ def create_update(session, build_nvrs, release_name=u'F17'):
         except sqlalchemy.orm.exc.NoResultFound:
             package = RpmPackage(name=name)
             session.add(package)
-            testcase = TestCase(name=u'Wat')
+            testcase = TestCase(name='Wat')
             session.add(testcase)
             package.test_cases.append(testcase)
 
@@ -67,14 +67,14 @@ def create_update(session, build_nvrs, release_name=u'F17'):
         expiration_date = datetime.utcnow()
         expiration_date = expiration_date + timedelta(days=1)
         override = BuildrootOverride(build=builds[-1], submitter=user,
-                                     notes=u'blah blah blah',
+                                     notes='blah blah blah',
                                      expiration_date=expiration_date)
         session.add(override)
 
     update = Update(
         builds=builds, user=user, request=UpdateRequest.testing,
-        notes=u'Useful details!', type=UpdateType.bugfix, date_submitted=datetime(1984, 11, 2),
-        requirements=u'rpmlint', stable_karma=3, unstable_karma=-3, release=release)
+        notes='Useful details!', type=UpdateType.bugfix, date_submitted=datetime(1984, 11, 2),
+        requirements='rpmlint', stable_karma=3, unstable_karma=-3, release=release)
     session.add(update)
     return update
 
@@ -86,43 +86,43 @@ def populate(db):
     Args:
         db (sqlalchemy.orm.session.Session): The database session.
     """
-    user = User(name=u'guest')
+    user = User(name='guest')
     db.add(user)
-    anonymous = User(name=u'anonymous')
+    anonymous = User(name='anonymous')
     db.add(anonymous)
-    provenpackager = Group(name=u'provenpackager')
+    provenpackager = Group(name='provenpackager')
     db.add(provenpackager)
-    packager = Group(name=u'packager')
+    packager = Group(name='packager')
     db.add(packager)
     user.groups.append(packager)
     release = Release(
-        name=u'F17', long_name=u'Fedora 17',
-        id_prefix=u'FEDORA', version=u'17',
-        dist_tag=u'f17', stable_tag=u'f17-updates',
-        testing_tag=u'f17-updates-testing',
-        candidate_tag=u'f17-updates-candidate',
-        pending_signing_tag=u'f17-updates-testing-signing',
-        pending_testing_tag=u'f17-updates-testing-pending',
-        pending_stable_tag=u'f17-updates-pending',
-        override_tag=u'f17-override',
-        branch=u'f17', state=ReleaseState.current)
+        name='F17', long_name='Fedora 17',
+        id_prefix='FEDORA', version='17',
+        dist_tag='f17', stable_tag='f17-updates',
+        testing_tag='f17-updates-testing',
+        candidate_tag='f17-updates-candidate',
+        pending_signing_tag='f17-updates-testing-signing',
+        pending_testing_tag='f17-updates-testing-pending',
+        pending_stable_tag='f17-updates-pending',
+        override_tag='f17-override',
+        branch='f17', state=ReleaseState.current)
     db.add(release)
     db.flush()
     # This mock will help us generate a consistent update alias.
     with mock.patch(target='uuid.uuid4', return_value='wat'):
-        update = create_update(db, [u'bodhi-2.0-1.fc17'])
+        update = create_update(db, ['bodhi-2.0-1.fc17'])
     update.type = UpdateType.bugfix
     update.severity = UpdateSeverity.medium
     bug = Bug(bug_id=12345)
     db.add(bug)
     update.bugs.append(bug)
 
-    comment = Comment(karma=1, text=u"wow. amaze.")
+    comment = Comment(karma=1, text="wow. amaze.")
     db.add(comment)
     comment.user = user
     update.comments.append(comment)
 
-    comment = Comment(karma=0, text=u"srsly.  pretty good.")
+    comment = Comment(karma=0, text="srsly.  pretty good.")
     comment.user = anonymous
     db.add(comment)
     update.comments.append(comment)

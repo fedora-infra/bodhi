@@ -138,7 +138,7 @@ class UpdateInfoMetadata(object):
 
         self.comp_type = cr.XZ
 
-        if release.id_prefix == u'FEDORA-EPEL':
+        if release.id_prefix == 'FEDORA-EPEL':
             # FIXME: I'm not sure which versions of RHEL support xz metadata
             # compression, so use the lowest common denominator for now.
             self.comp_type = cr.BZ2

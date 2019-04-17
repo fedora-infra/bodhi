@@ -61,7 +61,7 @@ http_session = requests.Session()
 
 def header(x):
     """Display a given message as a heading."""
-    return u"%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
+    return "%s\n     %s\n%s\n" % ('=' * 80, x, '=' * 80)
 
 
 def get_rpm_header(nvr, tries=0):
