@@ -1,0 +1,54 @@
+version: '3'
+services:
+  wdb:
+    image: postgres:latest
+    container_name: waiverdb_database
+    restart: always
+    expose:
+      - "5432"
+    volumes:
+      - ./settings/restore_waiverdb.sh:/docker-entrypoint-initdb.d/restore_db.sh
+      - /tmp/waiverdb.dump:/docker-entrypoint-initdb.d/wdb_pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U waiverdb -d waiverdb"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  waiverdb:
+    image: "quay.io/factory2/waiverdb:latest"
+    container_name: waiverdb_service
+    entrypoint: /bin/sh -i -c "waiverdb wait-for-db && waiverdb db upgrade && /usr/bin/gunicorn-3 --bind 0.0.0.0:6544 --access-logfile=- --enable-stdio-inheritance waiverdb.wsgi:app"
+    volumes:
+      - ./settings/waiverdb-settings.py:/etc/waiverdb/settings.py
+    ports:
+     - "6544:6544"
+    user: '0'
+    depends_on:
+      - wdb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6544/healthcheck"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+  greenwave:
+    image: "quay.io/factory2/greenwave:latest"
+    container_name: greenwave_service
+    entrypoint: ["/bin/sh", "-c", "gunicorn-3 --workers 8 --bind 0.0.0.0:6545 --access-logfile=- --error-logfile=- --enable-stdio-inheritance greenwave.wsgi:app"]
+    volumes:
+      - ./settings/greenwave-settings.py:/etc/greenwave/settings.py
+      - ./settings/policies:/etc/greenwave/policies/
+    ports:
+      - "6545:6545"
+    depends_on:
+      - waiverdb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6545/api/v1.0/about"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+networks:
+  default:
+    driver: bridge

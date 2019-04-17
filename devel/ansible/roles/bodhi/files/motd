@@ -12,6 +12,9 @@ bstart:      Start the Bodhi service.
 bstop:       Stop the Bodhi service.
 btest:       Run Bodhi's test suite.
 blint:       Run a series of linter checks.
+bstartdeps:  Create and Run WaiverDB and Greenwave docker services
+bstopdeps:   Stop WaiverDB and Greenwave docker services
+bremovedeps: Destroy WaiverDB and Greenwave docker services
 
 
 The BODHI_URL environment variable is set to http://localhost:6543 so the

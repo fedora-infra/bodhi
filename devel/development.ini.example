@@ -59,6 +59,10 @@ openid_template = {username}.id.stg.fedoraproject.org
 # The cache warming is annoying during development because it takes so long. Let's disable it by default.
 warm_cache_on_start = false
 
+test_gating.required = True
+# WaiverDB and Greenwave in vagrant are provided via docker local services
+waiverdb_api_url = http://bodhi_user:pass@localhost:6544/api/v1.0
+greenwave_api_url = http://localhost:6545/api/v1.0
 
 [server:main]
 use = egg:waitress#main
