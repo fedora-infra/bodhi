@@ -295,6 +295,21 @@ critical function of Bodhi. To do this, you will need to run ``bodhi-push`` on
 .. note:: We limit to just the build we built for testing here, because a full compose will fail due
           to the issues described earlier between staging and production Koji.
 
+.. note:: If there are existing composes in the database due to the production to staging database
+          sync, you will not be able to create a new compose as described above. ``bodhi-push`` will
+          force you to resume the existing composes. Unfortunately, they will also fail due to
+          referencing builds from production Koji that are not in the staging Koji. You will need to
+          use ``bodhi-shell`` to clear our these composes::
+
+             $ sudo -u apache bodhi-shell
+             >>> for u in m.Update.query.filter_by(locked=True):
+             ...     u.locked = False
+             ...
+             >>> m.Session().commit()
+
+          Now you should be able to resume the composes, and bodhi-push will see that there's
+          nothing to do in any of them and will remove them.
+
 Of course, if you find issues during testing you should fix those issues upstream and produce a new
 beta and test again.
 
