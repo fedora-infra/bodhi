@@ -165,6 +165,10 @@ class DevBuildsys:
     @multicall_enabled
     def getBuild(self, build='TurboGears-1.0.2.2-2.fc17', other=False, testing=False):
         """Emulate Koji's getBuild."""
+        # needed to test against non-existent builds
+        if 'youdontknowme' in build:
+            return None
+
         theid = 16058
         if other and not testing:
             theid = 16059
@@ -264,6 +268,9 @@ class DevBuildsys:
                      'release': release,
                      'tag_name': tag,
                      'version': version})
+
+        if 'testmissingnvr' in build:
+            del data['nvr']
 
         return data
 
