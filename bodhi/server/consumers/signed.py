@@ -77,6 +77,8 @@ class SignedHandler(object):
 
         The message can contain additional keys.
 
+        Duplicate messages: this method is idempotent.
+
         Args:
             message: The incoming message in the format described above.
         """
@@ -98,6 +100,10 @@ class SignedHandler(object):
 
             if build.release.pending_testing_tag != tag:
                 log.info("Tag is not pending_testing tag, skipping")
+                return
+
+            if build.signed:
+                log.info("Build was already marked as signed (maybe a duplicate message)")
                 return
 
             # This build was moved into the pending_testing tag for the applicable release, which
