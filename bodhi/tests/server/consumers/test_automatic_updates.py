@@ -26,7 +26,7 @@ import pytest
 
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.exceptions import BodhiException
-from bodhi.server.models import Build, Release, Update
+from bodhi.server.models import Build, Release, Update, UpdateType
 from bodhi.tests.server import base
 
 
@@ -73,6 +73,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
         assert update is not None
+        assert update.type == UpdateType.unspecified
 
     # The following tests cover lesser-travelled code paths.
 
