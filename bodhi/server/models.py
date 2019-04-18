@@ -610,6 +610,7 @@ class UpdateType(DeclEnum):
     security = 'security', 'security'
     newpackage = 'newpackage', 'newpackage'
     enhancement = 'enhancement', 'enhancement'
+    unspecified = 'unspecified', 'unspecified'
 
 
 class UpdateRequest(DeclEnum):
