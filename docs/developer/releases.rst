@@ -286,10 +286,15 @@ integration tests are for.
 
 One test I recommend, however, is to run a compose with the newly minted update. At the time of this
 writing, our integration test suite does not test integration with Koji or Pungi, and this is a
-critical function of Bodhi. To do this, you will need to run ``bodhi-push`` on
+critical function of Bodhi. To do this, you will need to mark the build as being signed using
+``bodhi-shell`` because we don't sign builds in staging. Then run ``bodhi-push`` on
 ``bodhi-backend01.stg.fedoraproject.org``. As an example, if I had built a test update for
-``python-rpdb-2.3-3.fc29`` and I wanted to compose it, I would run this::
+``python-rpdb-2.3-3.fc29`` and I wanted to sign and then compose it, I would run this::
 
+   $ sudo -u apache bodhi-shell
+   >>> b = m.Build.query.filter_by(nvr='python-rpdb-2.3-3.fc29').one()
+   >>> b.signed = True
+   >>> m.Session().commit()
    $ sudo -u apache bodhi-push --builds python-rpdb-2.3-3.fc29
 
 .. note:: We limit to just the build we built for testing here, because a full compose will fail due
