@@ -259,7 +259,7 @@ class BaseTestCaseMixin:
         """
         return create_update(self.db, build_nvrs, release_name)
 
-    def create_release(self, version):
+    def create_release(self, version, create_automatic_updates=False):
         """
         Create and return a :class:`Release` with the given version.
 
@@ -278,7 +278,9 @@ class BaseTestCaseMixin:
             pending_testing_tag='f{}-updates-testing-pending'.format(version),
             pending_stable_tag='f{}-updates-pending'.format(version),
             override_tag='f{}-override'.format(version),
-            branch='f{}'.format(version), state=models.ReleaseState.current)
+            branch='f{}'.format(version), state=models.ReleaseState.current,
+            create_automatic_updates=create_automatic_updates,
+        )
         self.db.add(release)
         models.Release._all_releases = None
         models.Release._tag_cache = None

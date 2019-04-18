@@ -105,7 +105,9 @@ def populate(db):
         pending_testing_tag='f17-updates-testing-pending',
         pending_stable_tag='f17-updates-pending',
         override_tag='f17-override',
-        branch='f17', state=ReleaseState.current)
+        branch='f17', state=ReleaseState.current,
+        create_automatic_updates=True,
+    )
     db.add(release)
     db.flush()
     # This mock will help us generate a consistent update alias.
