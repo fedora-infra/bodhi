@@ -360,6 +360,14 @@ That was the actual one''' % compose_dir
 
         self.assertEqual(str(exc.exception), 'No row was found for one()')
 
+    def test__get_composes_duplicate(self):
+        """Test _get_composes() when a duplicate message is received."""
+        msg = self._make_msg().body
+        composes = self.handler._get_composes(msg)
+        self.assertEqual(len(composes), 1)
+        composes = self.handler._get_composes(msg)
+        self.assertEqual(len(composes), 0)
+
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread._sanity_check_repo')

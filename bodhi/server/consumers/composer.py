@@ -180,6 +180,9 @@ class ComposerHandler(object):
         If there are any security updates in the push, then those repositories
         will be executed before all others.
 
+        Duplicate messages: if a requested compose is already pending or has
+        already started, it will be skipped.
+
         Args:
             message: The message we are processing. This is how we know what compose jobs to run.
         """
@@ -243,6 +246,10 @@ class ComposerHandler(object):
                 composes = [Compose.from_dict(db, c) for c in msg['composes']]
             else:
                 raise ValueError('Unable to process message: {}'.format(msg))
+
+            # Filter out composes that are pending or have started, for example in
+            # case of duplicate messages.
+            composes = [c for c in composes if c.state == ComposeState.requested]
 
             for c in composes:
                 # Acknowledge that we've received the command to run these composes.

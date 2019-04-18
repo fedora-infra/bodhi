@@ -76,6 +76,10 @@ class UpdatesHandler(object):
         """
         Process the given message, updating relevant bugs and test cases.
 
+        Duplicate messages: if the server delivers the message multiple times,
+        the bugs and test cases are simply re-fetched and updated, so nothing
+        bad happens.
+
         Args:
             message: A message about a new or edited update.
         """
