@@ -1,5 +1,12 @@
 <%inherit file="master.html"/>
 <div class="container pt-2">
+  % if release.state.value == 'frozen':
+    <div class="row">
+      <div class="alert alert-warning">
+        <p>Release is frozen</p>
+      </div>
+    </div>
+  % endif
   <div class="row">
     <div class="col-md-5">
       <h2 class="float-left">${release['long_name']}</h2>

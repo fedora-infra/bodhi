@@ -675,12 +675,14 @@ class ReleaseState(DeclEnum):
     Attributes:
         disabled (EnumSymbol): Indicates that the release is disabled.
         pending (EnumSymbol): Indicates that the release is pending.
+        frozen (EnumSymbol): Indicates that the release is frozen.
         current (EnumSymbol): Indicates that the release is current.
         archived (EnumSymbol): Indicates that the release is archived.
     """
 
     disabled = 'disabled', 'disabled'
     pending = 'pending', 'pending'
+    frozen = 'frozen', 'frozen'
     current = 'current', 'current'
     archived = 'archived', 'archived'
 
@@ -2668,8 +2670,17 @@ class Update(Base):
         log.debug(
             "%s has been submitted for %s. %s%s" % (
                 self.alias, action.description, notes, flash_notes))
-        self.comment(db, 'This update has been submitted for %s by %s. %s' % (
-            action.description, username, notes), author='bodhi')
+
+        comment_text = 'This update has been submitted for %s by %s. %s' % (
+            action.description, username, notes)
+        # Add information about push to stable delay to comment when release is frozen.
+        if self.release.state == ReleaseState.frozen and action == UpdateRequest.stable:
+            comment_text += (
+                "\n\nThere is an ongoing freeze; this will be "
+                "pushed to stable after the freeze is over. "
+            )
+        self.comment(db, comment_text, author=u'bodhi')
+
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
