@@ -614,6 +614,7 @@ def state2class(context, state):
     cls = {
         'disabled': 'default active',
         'pending': 'warning',
+        'frozen': 'info',
         'current': 'success',
         'archived': 'danger'
     }

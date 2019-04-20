@@ -3243,6 +3243,45 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.request, UpdateRequest.stable)
         self.assertEqual(len(req.errors), 0)
 
+    def test_set_request_stable_when_release_is_frozen(self):
+        """Ensure that Bodhi will infom user about push to stable delay when release is frozen."""
+        req = DummyRequest()
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        req.user = model.User(name='bob')
+
+        self.obj.status = UpdateStatus.testing
+        self.obj.request = None
+
+        # Pretend it's been in testing for a week
+        self.obj.comment(
+            self.db, u'This update has been pushed to testing.', author=u'bodhi')
+        self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
+        self.assertEqual(self.obj.days_in_testing, 7)
+        self.assertEqual(self.obj.meets_testing_requirements, True)
+
+        # Make release frozen
+        self.obj.release.state = ReleaseState.frozen
+
+        expected_message = update_schemas.UpdateRequestStableV1.from_dict(
+            {'update': self.obj, 'agent': req.user.name})
+
+        with mock_sends(expected_message):
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+            # set_request alters the update a bit, so we need to adjust the expected message to
+            # reflect those changes so the mock_sends() check will pass.
+            expected_message.body['update']['status'] = 'testing'
+            expected_message.body['update']['request'] = 'stable'
+            expected_message.body['update']['comments'] = self.obj.__json__()['comments']
+            self.db.commit()
+        self.assertEqual(self.obj.request, UpdateRequest.stable)
+        self.assertEqual(len(req.errors), 0)
+
+        # Check for information about frozen release in comment
+        expected_info = ("There is an ongoing freeze; "
+                         "this will be pushed to stable after the freeze is over.")
+        self.assertIn(expected_info, self.obj.comments[-1].text)
+
     def test_set_request_stable_epel_requirements_not_met(self):
         """Test set_request() for EPEL update requesting stable that doesn't meet requirements."""
         req = DummyRequest()
