@@ -45,6 +45,7 @@ sections of the API by following the links below:
    rest/overrides
    rest/packages
    rest/releases
+   rest/schemas
    rest/updates
    rest/users
 
