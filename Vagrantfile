@@ -73,6 +73,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         # your development guest becoming corrupted (in which case you should only need to do a
         # vagrant destroy and vagrant up to get a new one).
         domain.volume_cache = "unsafe"
+
+        # Bodhi should not use user sessions since it requires network customization
+        # See https://bugzilla.redhat.com/show_bug.cgi?id=1701755
+        domain.qemu_use_session = false
     end
  end
 end
