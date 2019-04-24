@@ -18,11 +18,12 @@ import logging
 import os
 import sys
 
-from pyramid.paster import get_appsettings, setup_logging
+from pyramid.paster import get_appsettings
 
 from ..buildsys import setup_buildsystem
 from ..models import BuildrootOverride
 from bodhi.server import Session, initialize_db
+from bodhi.server.logging import setup as setup_logging
 
 
 def usage(argv):
@@ -50,7 +51,7 @@ def main(argv=sys.argv):
 
     config_uri = argv[1]
 
-    setup_logging(config_uri)
+    setup_logging()
     log = logging.getLogger(__name__)
 
     settings = get_appsettings(config_uri)

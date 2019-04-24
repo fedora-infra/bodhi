@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Initialize the Bodhi server."""
 from collections import defaultdict
-import logging
+import logging as python_logging
 
 from cornice.validators import DEFAULT_FILTERS
 from dogpile.cache import make_region
@@ -33,7 +33,7 @@ from bodhi.server import bugs, buildsys
 from bodhi.server.config import config as bodhi_config
 
 
-log = logging.getLogger(__name__)
+log = python_logging.getLogger(__name__)
 
 
 #

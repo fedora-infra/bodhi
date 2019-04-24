@@ -34,7 +34,7 @@ class TestMain(unittest.TestCase):
         """Assert correct behavior when the right arguments are supplied."""
         initializedb.main(argv=['initializedb', '/etc/bodhi/production.ini'])
 
-        setup_logging.assert_called_once_with('/etc/bodhi/production.ini')
+        setup_logging.assert_called_once_with()
         get_appsettings.assert_called_once_with('/etc/bodhi/production.ini')
         initialize_db.assert_called_once_with(get_appsettings.return_value)
         self.assertEqual(initializedb.Base.metadata.bind, initialize_db.return_value)
