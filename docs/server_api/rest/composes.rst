@@ -7,3 +7,4 @@ documentation for that service here instead.
 
 
 .. autoclass:: bodhi.server.services.composes.Composes
+   :members:
