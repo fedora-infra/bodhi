@@ -53,7 +53,8 @@ def bug_url(tracker, idx):
 
     Args:
         tracker (basestring): Which bug tracker is being referenced. May be any of 'fedora',
-            'gnome', 'kde', 'mozilla', 'pear', 'perl', 'php', 'python', 'rh', or 'rhbz'.
+            'gcc', 'gnome', 'kde', 'mozilla', 'pear', 'perl', 'php', 'python', 'rh', 'rhbz'
+            or 'sourceware'.
         idx (basestring or int): The bug number.
     Returns:
         basestring: The URL of the given bug.
@@ -61,8 +62,9 @@ def bug_url(tracker, idx):
         KeyError: If the given tracker is not supported by this function.
     """
     try:
-        return {
+        trackers = {
             'fedora': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
+            'gcc': "https://gcc.gnu.org/bugzilla/show_bug.cgi?id=%s",
             'gnome': "https://bugzilla.gnome.org/show_bug.cgi?id=%s",
             'kde': "https://bugs.kde.org/show_bug.cgi?id=%s",
             'mozilla': "https://bugzilla.mozilla.org/show_bug.cgi?id=%s",
@@ -71,7 +73,10 @@ def bug_url(tracker, idx):
             'php': "https://bugs.php.net/bug.php?id=%s",
             'python': "https://bugs.python.org/issue%s",
             'rh': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
-            'rhbz': "https://bugzilla.redhat.com/show_bug.cgi?id=%s"}[tracker.lower()] % idx
+            'rhbz': "https://bugzilla.redhat.com/show_bug.cgi?id=%s",
+            'sourceware': "https://sourceware.org/bugzilla/show_bug.cgi?id=%s"}
+
+        return trackers[tracker.lower()] % idx
 
     except KeyError:
         return None
