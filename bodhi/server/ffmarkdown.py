@@ -68,7 +68,7 @@ def bug_url(tracker, idx):
             'gnome': "https://bugzilla.gnome.org/show_bug.cgi?id=%s",
             'kde': "https://bugs.kde.org/show_bug.cgi?id=%s",
             'mozilla': "https://bugzilla.mozilla.org/show_bug.cgi?id=%s",
-            'pear': "http://pear.php.net/bugs/bug.php?id=%s",
+            'pear': "https://pear.php.net/bugs/bug.php?id=%s",
             'perl': "https://rt.cpan.org/Public/Bug/Display.html?id=%s",
             'php': "https://bugs.php.net/bug.php?id=%s",
             'python': "https://bugs.python.org/issue%s",
