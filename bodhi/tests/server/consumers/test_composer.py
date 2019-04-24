@@ -290,6 +290,15 @@ That was the actual one''' % compose_dir
 
         set_bugtracker.assert_called_once_with()
 
+    @mock.patch('bodhi.server.consumers.composer.setup_logging')
+    def test___init___sets_logging(self, setup_logging):
+        """
+        Assert that Handler.__init__() calls bodhi.server.log.setup().
+        """
+        ComposerHandler(db_factory=self.db_factory, compose_dir=self.tempdir)
+
+        setup_logging.assert_called_once_with()
+
     @mock.patch.dict('bodhi.server.config.config', {
         'pungi.cmd': '/does/not/exist',
         'compose_dir': '/does/not/exist',

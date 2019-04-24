@@ -19,6 +19,7 @@ pyramid_fas_openid
 pyramid_mako
 python-bugzilla
 python-fedora
+PyYAML
 simplemediawiki
 sqlalchemy
 waitress
