@@ -108,10 +108,20 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         with pytest.raises(BodhiException):
             self.handler(msg)
 
-    def test_incomplete_koji_buildinfo(self):
-        """Test koji returning incomplete buildinfo."""
+    def test_incomplete_koji_buildinfo_nvr(self):
+        """Test koji returning incomplete buildinfo: no nvr."""
         msg = deepcopy(self.sample_message)
         msg.body['release'] += '.testmissingnvr'
+        with pytest.raises(BodhiException):
+            self.handler(msg)
+
+    def test_incomplete_koji_buildinfo_owner(self, caplog):
+        """Test koji returning incomplete buildinfo: no owner."""
+        caplog.set_level(logging.DEBUG)
+
+        msg = deepcopy(self.sample_message)
+        msg.body['release'] += '.noowner'
+
         with pytest.raises(BodhiException):
             self.handler(msg)
 
