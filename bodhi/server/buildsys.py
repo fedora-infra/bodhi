@@ -191,6 +191,8 @@ class DevBuildsys:
 
         data = self._build_data.copy()
         data['id'] = theid
+        if 'noowner' in build:
+            del data['owner_name']
 
         name, version, release = build.rsplit("-", 2)
         release_tokens = release.split(".")
