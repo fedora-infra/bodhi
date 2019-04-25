@@ -68,12 +68,17 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         # process the message
         self.handler(self.sample_message)
 
-        # check if the update exists
+        # check if the update exists...
         update = self.db.query(Update).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
+
+        # ...and some of its properties
         assert update is not None
         assert update.type == UpdateType.unspecified
+
+        expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
+        assert update.user and update.user.name == expected_username
 
     # The following tests cover lesser-travelled code paths.
 
