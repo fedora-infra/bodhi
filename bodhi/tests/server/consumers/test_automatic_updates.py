@@ -26,7 +26,7 @@ import pytest
 
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.exceptions import BodhiException
-from bodhi.server.models import Build, Release, Update, UpdateType
+from bodhi.server.models import Build, Release, Update, UpdateType, User
 from bodhi.tests.server import base
 
 
@@ -124,6 +124,39 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         with pytest.raises(BodhiException):
             self.handler(msg)
+
+    def test_missing_user(self, caplog):
+        """Test Koji build user missing from DB."""
+        caplog.set_level(logging.DEBUG)
+
+        expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
+
+        # ensure user with expected name doesn't exist
+        self.db.query(User).filter_by(name=expected_username).delete()
+        self.db.flush()
+
+        self.handler(self.sample_message)
+
+        assert(f"Creating bodhi user for '{expected_username}'."
+               in caplog.messages)
+
+    def test_existing_user(self, caplog):
+        """Test Koji build user existing in DB."""
+        caplog.set_level(logging.DEBUG)
+
+        expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
+
+        # ensure user with expected name exists
+        user = self.db.query(User).filter_by(name=expected_username).first()
+        if not user:
+            user = User(name=expected_username)
+            self.db.add(user)
+        self.db.flush()
+
+        self.handler(self.sample_message)
+
+        assert(f"Creating bodhi user for '{expected_username}'."
+               not in caplog.messages)
 
     # Test messages that should be ignored.
 
