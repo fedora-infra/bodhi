@@ -22,12 +22,14 @@ import pytest
 
 
 @pytest.fixture(scope="session")
-def greenwave_container(docker_backend, docker_network):
+def greenwave_container(docker_backend, docker_network, rabbitmq_container):
     """Fixture preparing and yielding a Greenwave container.
 
     Args:
         docker_backend (conu.DockerBackend): The Docker backend (fixture).
         docker_network (str): The Docker network ID (fixture).
+        rabbitmq_container (conu.DockerContainer): The RabbitMQ container
+            (fixture).
 
     Yields:
         conu.DockerContainer: The Greenwave container.

@@ -34,6 +34,7 @@ RUN mkdir -p /etc/bodhi
 COPY production.ini /etc/bodhi/production.ini
 
 COPY devel/ci/integration/bodhi/start.sh /etc/bodhi/start.sh
+COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml
 COPY devel/ci/integration/bodhi/httpd.conf /etc/bodhi/httpd.conf
 COPY apache/bodhi.wsgi /etc/bodhi/bodhi.wsgi
 RUN sed -i -e 's,/var/www,/httpdir,g' /etc/bodhi/bodhi.wsgi
