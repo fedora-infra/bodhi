@@ -20,6 +20,7 @@
 
 from .fixtures.backend import docker_backend, docker_network
 from .fixtures.db import db_container
+from .fixtures.rabbitmq import rabbitmq_container
 from .fixtures.resultsdb import resultsdb_container
 from .fixtures.waiverdb import waiverdb_container
 from .fixtures.greenwave import greenwave_container
