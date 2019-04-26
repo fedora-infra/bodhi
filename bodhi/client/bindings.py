@@ -67,17 +67,14 @@ class UpdateNotFound(BodhiClientException):
         """Initialize the Exception."""
         self.update = update
 
-    def __unicode__(self):
+    def __str__(self) -> str:
         """
         Return a human readable error message.
 
         Returns:
-            unicode: An error message.
+            An error message.
         """
         return f'Update not found: {self.update}'
-
-    # Use __unicode__ method under __str__ name for Python 3
-    __str__ = __unicode__
 
 
 class ComposeNotFound(BodhiClientException):
@@ -88,17 +85,14 @@ class ComposeNotFound(BodhiClientException):
         self.release = release
         self.request = request
 
-    def __unicode__(self):
+    def __str__(self) -> str:
         """
         Return a human readable error message.
 
         Returns:
-            unicode: An error message.
+            An error message.
         """
         return f'Compose with request "{self.request}" not found for release "{self.release}"'
-
-    # Use __unicode__ method under __str__ name for Python 3
-    __str__ = __unicode__
 
 
 def errorhandled(method):
