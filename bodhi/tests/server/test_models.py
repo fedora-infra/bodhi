@@ -464,8 +464,8 @@ class TestEnumSymbol(unittest.TestCase):
 
         self.assertEqual(repr(s), '<name>')
 
-    def test___unicode__(self):
-        """Ensure correct operation of the __unicode__() method."""
+    def test___str__(self):
+        """Ensure correct operation of the __str__() method."""
         s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
 
         self.assertEqual(str(s), 'value')

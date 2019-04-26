@@ -107,16 +107,14 @@ class EnumSymbol(object):
         """
         return "<%s>" % self.name
 
-    def __unicode__(self):
+    def __str__(self) -> str:
         """
         Return a string representation of this EnumSymbol.
 
         Returns:
-            unicode: A string representation of this EnumSymbol's value.
+            A string representation of this EnumSymbol's value.
         """
         return str(self.value)
-
-    __str__ = __unicode__
 
     def __json__(self, request=None):
         """

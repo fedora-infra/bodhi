@@ -1504,9 +1504,9 @@ class TestUpdateNotFound(unittest.TestCase):
         self.assertEqual(exc.update, 'bodhi-2.2.4-1.el7')
         self.assertEqual(type(exc.update), str)
 
-    def test___unicode__(self):
+    def test___str__(self):
         """
-        Assert that __unicode__() works properly.
+        Assert that __str__() works properly.
         """
         exc = bindings.UpdateNotFound('bodhi-2.2.4-1.el7')
 
