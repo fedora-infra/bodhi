@@ -10,6 +10,7 @@ USER 0
 
 RUN mkdir -p /etc/waiverdb
 COPY devel/ci/integration/waiverdb/settings.py /etc/waiverdb/settings.py
+COPY devel/ci/integration/waiverdb/fedora-messaging.toml /etc/fedora-messaging/config.toml
 
 # Become non-root again
 USER 1001

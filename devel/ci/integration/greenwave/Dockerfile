@@ -15,11 +15,13 @@ USER 0
 RUN chmod 777 /var/run/fedmsg/
 
 RUN mkdir -p /etc/greenwave
+COPY devel/ci/integration/greenwave/start.sh /etc/greenwave/start.sh
 COPY devel/ci/integration/greenwave/fedmsg.py /etc/fedmsg.d/zz_greenwave.py
 COPY devel/ci/integration/greenwave/settings.py /etc/greenwave/settings.py
 COPY devel/ci/integration/greenwave/policy.yaml /etc/greenwave/fedora.yaml
+COPY devel/ci/integration/greenwave/fedora-messaging.toml /etc/fedora-messaging/config.toml
 
 # Become non-root again
 USER 1001
 
-ENTRYPOINT ["/bin/sh", "-c", "gunicorn-3 --workers 8 --bind 0.0.0.0:8080 --access-logfile=- --error-logfile=- --enable-stdio-inheritance greenwave.wsgi:app"]
+CMD ["bash", "/etc/greenwave/start.sh"]
