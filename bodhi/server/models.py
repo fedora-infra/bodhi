@@ -1205,9 +1205,6 @@ class Build(Base):
     This model uses single-table inheritance to allow for different build types.
 
     Attributes:
-        inherited (bool): The purpose of this column is unknown, and it appears to be unused. At the
-            time of this writing, there are 112,234 records with inherited set to False and 0 with
-            it set to True in the Fedora Bodhi deployment.
         nvr (unicode): The nvr field is really a mapping to the Koji build_target.name field, and is
             used to reference builds in Koji. It is named nvr in reference to the dash-separated
             name-version-release Koji name for RPMs, but it is used by other types as well. At the
