@@ -849,7 +849,12 @@ class ContainerComposerThread(ComposerThread):
     ctype = ContentType.container
 
     def _compose_updates(self):
-        """Use skopeo to copy images to the correct repos and tags."""
+        """
+        Use skopeo to copy images to the correct repos and tags.
+
+        Raises:
+            RuntimeError: If skopeo returns a non-0 exit code during copy_container.
+        """
         for update in self.compose.updates:
 
             if update.request is UpdateRequest.stable:
