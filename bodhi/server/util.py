@@ -242,7 +242,7 @@ def sanity_check_repodata(myurl, repo_type):
         repo_type (str): This should be set to 'yum' for Yum repositories, 'module' for module
             repositories, or 'source' for source repositories.
     Raises:
-        Exception: If the repodata is not valid or does not exist.
+        RepodataException: If the repodata is not valid or does not exist.
         ValueError: If repo_type is not an acceptable value.
     """
     if repo_type not in ('module', 'source', 'yum'):
