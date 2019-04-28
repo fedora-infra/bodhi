@@ -396,7 +396,7 @@ def test_get_packages_json(bodhi_container, db_container):
             package_type = row[1]
     conn.close()
 
-    # GET on user with latest update
+    # GET on package with particular name
     with bodhi_container.http_client(port="8080") as c:
         http_response = c.get(f"/packages/?name={package_name}")
 
