@@ -16,6 +16,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import math
+
 import psycopg2
 
 from tests.utils import read_file
@@ -501,6 +503,113 @@ def test_get_overrides_view(bodhi_container, db_container):
         for override in expected_overrides:
             assert override["nvr"] in http_response.text
             assert override["username"] in http_response.text
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def test_get_build_json(bodhi_container, db_container):
+    """Test ``/builds/{nvr}`` path"""
+    # Fetch builds (of latest update) from DB
+    query_updates = (
+        "SELECT "
+        "  id "
+        "FROM updates "
+        "ORDER BY date_submitted DESC LIMIT 1"
+    )
+    query_builds = (
+        "SELECT "
+        "  nvr, "
+        "  release_id, "
+        "  signed, "
+        "  type, "
+        "  epoch "
+        "FROM builds "
+        "WHERE update_id = %s LIMIT 1"
+    )
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_updates)
+            update_id = curs.fetchone()[0]
+            curs.execute(query_builds, (update_id, ))
+            nvr, release_id, signed, build_type, epoch = curs.fetchone()
+    conn.close()
+
+    # GET on build
+    with bodhi_container.http_client(port="8080") as c:
+        http_response = c.get(f"/builds/{nvr}")
+
+    build = {
+        "nvr": nvr, "release_id": release_id, "signed": signed, "type": build_type, "epoch": epoch,
+    }
+    try:
+        assert http_response.ok
+        assert build == http_response.json()
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def test_get_builds_json(bodhi_container, db_container):
+    """Test ``/builds`` path"""
+    # Fetch builds (of latest update) from DB
+    query_updates = (
+        "SELECT "
+        "  id, "
+        "  alias "
+        "FROM updates "
+        "ORDER BY date_submitted DESC LIMIT 1"
+    )
+    query_builds = (
+        "SELECT "
+        "  nvr, "
+        "  release_id, "
+        "  signed, "
+        "  type, "
+        "  epoch "
+        "FROM builds "
+        "WHERE update_id = %s"
+    )
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_updates)
+            row = curs.fetchone()
+            update_id = row[0]
+            update_alias = row[1]
+            curs.execute(query_builds, (update_id, ))
+            builds = []
+            for row in curs.fetchall():
+                build = {}
+                for value, description in zip(row, curs.description):
+                    build[description.name] = value
+                builds.append(build)
+    conn.close()
+
+    # GET on builds of lates update
+    with bodhi_container.http_client(port="8080") as c:
+        http_response = c.get(f"/builds/?updates={update_alias}")
+
+    default_rows_per_page = 20
+    expected_json = {
+        "builds": builds,
+        "page": 1,
+        "pages": int(math.ceil(len(builds) / float(default_rows_per_page))),
+        "rows_per_page": default_rows_per_page,
+        "total": len(builds),
+    }
+    try:
+        assert http_response.ok
+        assert expected_json == http_response.json()
     except AssertionError:
         print(http_response)
         print(http_response.text)
