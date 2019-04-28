@@ -490,7 +490,7 @@ def test_get_overrides_view(bodhi_container, db_container):
                 expected_overrides.append({"nvr": row[0], "username": row[1]})
     conn.close()
 
-    # GET on user with latest update
+    # GET on latest overrides
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
         http_response = c.get(f"/overrides", headers=headers)
