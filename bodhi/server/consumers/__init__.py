@@ -36,6 +36,7 @@ except ImportError:  # pragma: no cover
     ComposerHandler = None  # pragma: no cover
 from bodhi.server.consumers.signed import SignedHandler
 from bodhi.server.consumers.updates import UpdatesHandler
+from bodhi.server.consumers.greenwave import GreenwaveHandler
 
 
 log = logging.getLogger('bodhi')
@@ -59,6 +60,7 @@ class Consumer:
             self.composer_handler = None
         self.signed_handler = SignedHandler()
         self.updates_handler = UpdatesHandler()
+        self.greenwave_handler = GreenwaveHandler()
 
     def __call__(self, msg: fedora_messaging.api.Message):  # noqa: D401
         """
@@ -92,6 +94,10 @@ class Consumer:
                or msg.topic.endswith('.bodhi.update.edit'):
                 log.debug('Passing message to the Updates handler')
                 self.updates_handler(msg)
+
+            if msg.topic.endswith('.greenwave.decision.update'):
+                log.debug('Passing message to the Greenwave handler')
+                self.greenwave_handler(msg)
         except Exception as e:
             error_msg = f'{str(e)}: Unable to handle message: {msg}'
             log.exception(error_msg)
