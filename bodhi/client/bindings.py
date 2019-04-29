@@ -74,7 +74,7 @@ class UpdateNotFound(BodhiClientException):
         Returns:
             unicode: An error message.
         """
-        return 'Update not found: {}'.format(self.update)
+        return f'Update not found: {self.update}'
 
     # Use __unicode__ method under __str__ name for Python 3
     __str__ = __unicode__
@@ -95,9 +95,7 @@ class ComposeNotFound(BodhiClientException):
         Returns:
             unicode: An error message.
         """
-        return 'Compose with request "{1}" not found for release "{0}"'.format(
-            self.release, self.request
-        )
+        return f'Compose with request "{self.request}" not found for release "{self.release}"'
 
     # Use __unicode__ method under __str__ name for Python 3
     __str__ = __unicode__
@@ -282,7 +280,7 @@ class BodhiClient(OpenIdBaseClient):
             UpdateNotFound: If the server returns a 404 error code.
         """
         try:
-            return self.send_request('updates/{0}/request'.format(update),
+            return self.send_request(f'updates/{update}/request',
                                      verb='POST', auth=True,
                                      data={'update': update, 'request': request,
                                            'csrf_token': self.csrf()})
@@ -311,7 +309,7 @@ class BodhiClient(OpenIdBaseClient):
         """
         data = {'update': update, 'tests': tests, 'comment': comment, 'csrf_token': self.csrf()}
         try:
-            return self.send_request('updates/{0}/waive-test-results'.format(update),
+            return self.send_request(f'updates/{update}/waive-test-results',
                                      verb='POST', auth=True, data=data)
         except fedora.client.ServerError as exc:
             if exc.code == 404:
@@ -413,7 +411,7 @@ class BodhiClient(OpenIdBaseClient):
         Returns:
             munch.Munch: The response from Bodhi describing the query results.
         """
-        return self.send_request('updates/%s/get-test-results' % update, verb='GET')
+        return self.send_request(f'updates/{update}/get-test-results', verb='GET')
 
     @errorhandled
     def comment(self, update, comment, karma=0):
@@ -477,7 +475,7 @@ class BodhiClient(OpenIdBaseClient):
             ComposeNotFound: If the server returns a 404 error code.
         """
         try:
-            return self.send_request('composes/{}/{}'.format(release, request), verb='GET')
+            return self.send_request(f'composes/{release}/{request}', verb='GET')
         except fedora.client.ServerError as exc:
             if exc.code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an ComposeNotFound.
@@ -554,7 +552,7 @@ class BodhiClient(OpenIdBaseClient):
                         sc = {}
                 for key in sc.keys():
                     if key.startswith(self.base_url) and sc[key]:
-                        self.username = key.split('{}:'.format(self.base_url))[1]
+                        self.username = key.split(f'{self.base_url}:')[1]
                         break
 
             if not self.username:
@@ -593,14 +591,14 @@ class BodhiClient(OpenIdBaseClient):
             ValueError: If the ``input_file`` does not exist, or if it cannot be parsed.
         """
         if not os.path.exists(input_file):
-            raise ValueError("No such file or directory: %s" % input_file)
+            raise ValueError(f"No such file or directory: {input_file}")
 
         defaults = dict(severity='unspecified', suggest='unspecified')
         config = configparser.ConfigParser(defaults=defaults)
         read = config.read(input_file)
 
         if len(read) != 1 or read[0] != input_file:
-            raise ValueError("Invalid input file: %s" % input_file)
+            raise ValueError(f"Invalid input file: {input_file}")
 
         updates = []
 
@@ -661,7 +659,7 @@ class BodhiClient(OpenIdBaseClient):
         installed = query.installed()
         with open('/etc/fedora-release', 'r') as f:
             fedora = f.readlines()[0].split()[2]
-        tag = 'f%s-updates-testing' % fedora
+        tag = f'f{fedora}-updates-testing'
         builds = self.get_koji_session().listTagged(tag, latest=True)
         for build in builds:
             pkgs = installed.filter(name=build['name'], version=build['version'],
@@ -685,11 +683,8 @@ class BodhiClient(OpenIdBaseClient):
         """
         line_formatter = '{0:<16}: {1}'
         security = '*' if compose['security'] else ' '
-        title = "{security}{release}-{request}".format(
-            security=security,
-            release=compose['release']['name'], request=compose['request'])
-        details = "{count:3d} updates ({state}) ".format(state=compose['state'],
-                                                         count=len(compose['update_summary']))
+        title = f"{security}{compose['release']['name']}-{compose['request']}"
+        details = f"{len(compose['update_summary']):3d} updates ({compose['state']}) "
         minimal_repr = line_formatter.format(title, details)
 
         if minimal:
@@ -697,8 +692,7 @@ class BodhiClient(OpenIdBaseClient):
 
         line_formatter = '{0:>12}: {1}\n'
 
-        compose_lines = ['{:=^80}\n'.format('='), '     {}\n'.format(minimal_repr)]
-        compose_lines.append('{:=^80}\n'.format('='))
+        compose_lines = [f'{"=":=^80}\n', f'     {minimal_repr}\n', f'{"=":=^80}\n']
 
         compose_lines += [
             line_formatter.format('Content Type', compose['content_type']),
@@ -710,7 +704,7 @@ class BodhiClient(OpenIdBaseClient):
             compose_lines.append(line_formatter.format('Error', compose['error_message']))
 
         compose_lines += ['\nUpdates:\n\n']
-        line_formatter = '\t{}'.format(line_formatter)
+        line_formatter = f'\t{line_formatter}'
         for s in compose['update_summary']:
             compose_lines.append(line_formatter.format(s['alias'], s['title']))
 
@@ -732,19 +726,17 @@ class BodhiClient(OpenIdBaseClient):
             return override
 
         if minimal:
-            return "{submitter}'s {build} override (expires {expiry})".format(
-                submitter=override['submitter']['name'],
-                build=override['build']['nvr'],
-                expiry=override['expiration_date'],
-            )
+            return (f"{override['submitter']['name']}'s {override['build']['nvr']} override "
+                    f"(expires {override['expiration_date']})")
 
-        val = "%s\n%s\n%s\n" % ('=' * 60, '\n'.join(
-            textwrap.wrap(override['build']['nvr'].replace(',', ', '), width=60,
-                          initial_indent=' ' * 5, subsequent_indent=' ' * 5)), '=' * 60)
-        val += "  Submitter: {}\n".format(override['submitter']['name'])
-        val += "  Expiration Date: {}\n".format(override['expiration_date'])
-        val += "  Notes: {}\n".format(override['notes'])
-        val += "  Expired: {}".format(override['expired_date'] is not None)
+        divider = '=' * 60
+        nvr = '\n'.join(textwrap.wrap(override['build']['nvr'].replace(',', ', '), width=60,
+                        initial_indent=' ' * 5, subsequent_indent=' ' * 5))
+        val = f"{divider}\n{nvr}\n{divider}\n"
+        val += f"  Submitter: {override['submitter']['name']}\n"
+        val += f"  Expiration Date: {override['expiration_date']}\n"
+        val += f"  Notes: {override['notes']}\n"
+        val += f"  Expired: {override['expired_date'] is not None}"
 
         return val
 
@@ -768,11 +760,10 @@ class BodhiClient(OpenIdBaseClient):
                 or update['date_submitted'].split()[0]
             days_in_status = _days_since(update['date_pushed']) if update['date_pushed'] \
                 else _days_since(update['date_submitted'])
-            val += '%s%-40s %-9s  %-8s  %10s (%d)' % (
-                security, update['builds'][0]['nvr'], update['content_type'],
-                update['status'], date, days_in_status)
+            val += (f"{security}{update['builds'][0]['nvr']:40} {update['content_type']:9}  "
+                    f"{update['status']:8}  {date:>10} ({days_in_status})")
             for build in update['builds'][1:]:
-                val += '\n  %s' % build['nvr']
+                val += f"\n  {build['nvr']}"
             return val
 
         # Content will be formatted as wrapped lines, each line is in format
@@ -784,7 +775,7 @@ class BodhiClient(OpenIdBaseClient):
         wrap_line = functools.partial(textwrap.wrap, width=wrap_width)
         line_formatter = '{0:>12}: {1}\n'
 
-        update_lines = ['{:=^80}\n'.format('=')]
+        update_lines = [f'{"=":=^80}\n']
         update_lines += [
             line + '\n' for line in textwrap.wrap(
                 update['title'],
@@ -792,7 +783,7 @@ class BodhiClient(OpenIdBaseClient):
                 initial_indent=' ' * 5,
                 subsequent_indent=' ' * 5)
         ]
-        update_lines.append('{:=^80}\n'.format('='))
+        update_lines.append(f'{"=":=^80}\n')
 
         update_lines.append(
             line_formatter.format('Update ID', update['alias']))
@@ -804,8 +795,9 @@ class BodhiClient(OpenIdBaseClient):
             line_formatter.format('Type', update['type']),
             line_formatter.format('Severity', update['severity']),
             line_formatter.format('Karma', update['karma']),
-            line_formatter.format('Autokarma', '{0}  [{1}, {2}]'.format(
-                update['autokarma'], update['unstable_karma'], update['stable_karma']))
+            line_formatter.format(
+                'Autokarma',
+                f"{update['autokarma']}  [{update['unstable_karma']}, {update['stable_karma']}]")
         ]
 
         try:
@@ -830,11 +822,11 @@ class BodhiClient(OpenIdBaseClient):
                 waivers_lines = []
                 for waiver in waivers:
                     dt = datetime.datetime.strptime(waiver['timestamp'], '%Y-%m-%dT%H:%M:%S.%f')
-                    waivers_lines.append('{0} - {1}'.format(
-                        waiver['username'], dt.strftime('%Y-%m-%d %H:%M:%S')))
+                    waivers_lines.append(
+                        f"{waiver['username']} - {dt.strftime('%Y-%m-%d %H:%M:%S')}")
                     waivers_lines += wrap_line(waiver['comment'])
-                    waivers_lines.append('build: {}'.format(waiver['subject_identifier']))
-                    waivers_lines.append('testcase: {}'.format(waiver['testcase']))
+                    waivers_lines.append(f"build: {waiver['subject_identifier']}")
+                    waivers_lines.append(f"testcase: {waiver['testcase']}")
 
                 update_lines.append(line_formatter.format('Waivers', waivers_lines[0]))
                 waiver_line_formatter = line_formatter.replace(': ', '  ')
@@ -850,7 +842,7 @@ class BodhiClient(OpenIdBaseClient):
 
         if len(update['bugs']):
             bugs = list(itertools.chain(*[
-                wrap_line('{0} - {1}'.format(bug['bug_id'], bug['title']))
+                wrap_line(f"{bug['bug_id']} - {bug['title']}")
                 for bug in update['bugs']
             ]))
             indent_lines = ['Bugs'] + [' '] * (len(bugs) - 1)
@@ -875,8 +867,9 @@ class BodhiClient(OpenIdBaseClient):
         if len(update['comments']):
             comments_lines = []
             for comment in update['comments']:
-                comments_lines.append('{0} - {1} (karma {2})'.format(
-                    comment['user']['name'], comment['timestamp'], comment['karma']))
+                comments_lines.append(
+                    f"{comment['user']['name']} - {comment['timestamp']} "
+                    f"(karma {comment['karma']})")
                 comments_lines += wrap_line(comment['text'])
 
             update_lines.append(line_formatter.format('Comments', comments_lines[0]))
@@ -889,7 +882,7 @@ class BodhiClient(OpenIdBaseClient):
             ]
 
         update_lines.append(
-            '\n  {0}updates/{1}\n'.format(self.base_url, update['alias']))
+            f"\n  {self.base_url}updates/{update['alias']}\n")
 
         return ''.join(update_lines)
 
