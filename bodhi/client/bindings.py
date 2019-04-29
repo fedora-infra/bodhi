@@ -946,5 +946,5 @@ class BodhiClient(OpenIdBaseClient):
                     if build['owner_name'] == self.username:
                         builds.append(build)
             except Exception:
-                log.exception('Unable to query candidate builds for %s' % release)
+                log.exception('Unable to query candidate builds for %s', release)
         return builds
