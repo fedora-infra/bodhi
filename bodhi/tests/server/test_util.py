@@ -447,7 +447,8 @@ class TestSanityCheckRepodata(unittest.TestCase):
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='yum')
 
-    def test_correct_module_repo(self):
+    @mock.patch('subprocess.check_output', return_value='Some output')
+    def test_correct_module_repo(self, *args):
         """No Exception should be raised if the repo is a normal module repo."""
         base.mkmetadatadir(self.tempdir)
         # We need to add a modules tag to repomd.
@@ -464,6 +465,29 @@ class TestSanityCheckRepodata(unittest.TestCase):
 
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='module')
+
+    @mock.patch('subprocess.check_output', return_value='')
+    def test_module_repo_no_dnf_output(self, *args):
+        """No Exception should be raised if the repo is a normal module repo."""
+        base.mkmetadatadir(self.tempdir)
+        # We need to add a modules tag to repomd.
+        repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
+        repomd_tree = ElementTree.parse(repomd_path)
+        ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
+        root = repomd_tree.getroot()
+        ElementTree.SubElement(root, 'data', type='modules')
+        for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
+            # module repos don't have drpms or comps.
+            if data.attrib['type'] in ('group', 'prestodelta'):
+                root.remove(data)
+        repomd_tree.write(repomd_path, encoding='UTF-8', xml_declaration=True)
+
+        with self.assertRaises(util.RepodataException) as exc:
+            util.sanity_check_repodata(self.tempdir, repo_type='module')
+
+        self.assertEqual(str(exc.exception),
+                         "DNF did not return expected output when running test!"
+                         + " Test: ['module', 'list'], expected: .*, output: ")
 
     def test_updateinfo_empty_tags(self):
         """RepodataException should be raised if <id/> is found in updateinfo."""
@@ -517,7 +541,7 @@ class TestSanityCheckRepodata(unittest.TestCase):
         with self.assertRaises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='yum')
 
-        self.assertEqual(str(exc.exception), 'Required part not in repomd.xml: updateinfo')
+        self.assertEqual(str(exc.exception), 'Required parts not in repomd.xml: updateinfo')
 
     def test_source_true(self):
         """It should not fail source repos for missing prestodelta or comps."""
