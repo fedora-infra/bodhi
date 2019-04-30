@@ -3809,7 +3809,7 @@ class Comment(Base):
     text = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-    update_id = Column(Integer, ForeignKey('updates.id'))
+    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
 
     def url(self):
