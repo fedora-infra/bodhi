@@ -58,8 +58,6 @@ def bug_url(tracker, idx):
         idx (basestring or int): The bug number.
     Returns:
         basestring: The URL of the given bug.
-    Raises:
-        KeyError: If the given tracker is not supported by this function.
     """
     try:
         trackers = {
