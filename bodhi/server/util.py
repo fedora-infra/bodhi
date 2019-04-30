@@ -36,7 +36,6 @@ from pyramid.i18n import TranslationStringFactory
 import arrow
 import bleach
 import colander
-import hawkey
 import libcomps
 import libravatar
 import librepo
@@ -249,62 +248,110 @@ def sanity_check_repodata(myurl, repo_type):
     if repo_type not in ('module', 'source', 'yum'):
         raise ValueError('repo_type must be one of module, source, or yum.')
 
-    h = librepo.Handle()
-    h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
-    h.setopt(librepo.LRO_DESTDIR, tempfile.mkdtemp())
+    with tempfile.TemporaryDirectory(prefix='bodhi_repotest_') as tmpdir:
+        os.mkdir(os.path.join(tmpdir, 'lrodir'))
 
-    if myurl[-1] != '/':
-        myurl += '/'
-    if myurl.endswith('repodata/'):
-        myurl = myurl.replace('repodata/', '')
+        h = librepo.Handle()
+        h.setopt(librepo.LRO_REPOTYPE, librepo.LR_YUMREPO)
+        h.setopt(librepo.LRO_DESTDIR, os.path.join(tmpdir, 'lrodir'))
 
-    h.setopt(librepo.LRO_URLS, [myurl])
-    h.setopt(librepo.LRO_LOCAL, True)
-    h.setopt(librepo.LRO_CHECKSUM, True)
-    h.setopt(librepo.LRO_IGNOREMISSING, False)
-    r = librepo.Result()
-    try:
-        h.perform(r)
-    except librepo.LibrepoException as e:
-        rc, msg, general_msg = e.args
-        raise RepodataException(msg)
+        if myurl[-1] != '/':
+            myurl += '/'
+        if myurl.endswith('repodata/'):
+            myurl = myurl.replace('repodata/', '')
 
-    repo_info = r.getinfo(librepo.LRR_YUM_REPO)
-    primary_sack = hawkey.Sack()
-    hk_repo = hawkey.Repo(myurl)
-    try:
-        hk_repo.filelists_fn = repo_info['filelists']
+        h.setopt(librepo.LRO_URLS, [myurl])
+        h.setopt(librepo.LRO_LOCAL, True)
+        h.setopt(librepo.LRO_CHECKSUM, True)
+        h.setopt(librepo.LRO_IGNOREMISSING, False)
+        r = librepo.Result()
+        try:
+            h.perform(r)
+        except librepo.LibrepoException as e:
+            rc, msg, general_msg = e.args
+            raise RepodataException(msg)
+
+        repo_info = r.getinfo(librepo.LRR_YUM_REPO)
+        reqparts = ['filelists', 'primary', 'repomd', 'updateinfo']
         # Source and module repos don't have DRPMs.
         if repo_type == 'yum':
-            hk_repo.presto_fn = repo_info['prestodelta']
+            reqparts.append('prestodelta')
+            reqparts.append('group')
         elif repo_type == 'module':
-            hk_repo.presto_fn = repo_info['modules']
-        hk_repo.primary_fn = repo_info['primary']
-        hk_repo.repomd_fn = repo_info['repomd']
-        hk_repo.updateinfo_fn = repo_info['updateinfo']
-    except KeyError as e:
-        raise RepodataException('Required part not in repomd.xml: {}'.format(e.args[0]))
-    primary_sack.load_repo(hk_repo,
-                           build_cache=False,
-                           load_filelists=True,
-                           load_presto=True,
-                           load_updateinfo=True)
+            reqparts.append('modules')
+        missing = []
+        for part in reqparts:
+            if part not in repo_info:
+                missing.append(part)
+        if missing:
+            raise RepodataException(f'Required parts not in repomd.xml: {", ".join(missing)}')
 
-    # Only yum repos have comps
-    if repo_type == 'yum':
-        # Test comps
-        comps = libcomps.Comps()
-        try:
-            ret = comps.fromxml_f(repo_info['group'])
-        except Exception:
-            raise RepodataException('Comps file unable to be parsed')
-        if len(comps.groups) < 1:
-            raise RepodataException('Comps file empty')
+        # Only yum repos have comps
+        if repo_type == 'yum':
+            # Test comps
+            comps = libcomps.Comps()
+            try:
+                ret = comps.fromxml_f(repo_info['group'])
+            except Exception:
+                raise RepodataException('Comps file unable to be parsed')
+            if len(comps.groups) < 1:
+                raise RepodataException('Comps file empty')
 
-    # Test updateinfo
-    ret = subprocess.call(['zgrep', '<id/>', repo_info['updateinfo']])
-    if not ret:
-        raise RepodataException('updateinfo.xml.gz contains empty ID tags')
+        # Test updateinfo
+        ret = subprocess.call(['zgrep', '<id/>', repo_info['updateinfo']])
+        if not ret:
+            raise RepodataException('updateinfo.xml.gz contains empty ID tags')
+
+        # Now call out to DNF to check if the repo is usable
+        # "tests" is a list of tuples with (dnf args, expected output) to run.
+        # For every test, DNF is run with the arguments, and if the expected output is not found,
+        #  an error is raised.
+        tests = []
+
+        if repo_type in ('yum', 'source'):
+            tests.append((['list', 'available'], 'testrepo'))
+        elif repo_type == 'module':
+            tests.append((['module', 'list'], '.*'))
+
+        for test in tests:
+            dnfargs, expout = test
+
+            # Make sure every DNF test runs in a new temp dir
+            testdir = tempfile.mkdtemp(dir=tmpdir)
+            output = sanity_check_repodata_dnf(testdir, myurl, *dnfargs)
+            if (expout == ".*" and len(output.strip()) != 0) or (expout in output):
+                continue
+            else:
+                raise RepodataException(
+                    f"DNF did not return expected output when running test!"
+                    + f" Test: {dnfargs}, expected: {expout}, output: {output}")
+
+
+def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
+    """
+    Call DNF to try to parse and sanity check the repository.
+
+    Because DNF does not provide any usable API they won't break in a year time, we just shell out
+    to run some repository actions on it.
+
+    Args:
+        tempdir (basestring): Temporary directory that will be removed at the end.
+        myurl (basestring): A path to a repodata directory.
+        dnf_args (list): A list of arguments after DNF is set up to use the repo under test.
+            Example would be ["search", "kernel"] or ["module", "list"].
+    Raises:
+        Exception: If the repodata is not valid or does not exist.
+    """
+    cmd = ['dnf',
+           '--disablerepo=*',
+           f'--repofrompath=testrepo,{myurl}',
+           '--enablerepo=testrepo',
+           '--setopt=skip_if_unavailable=0',
+           '--setopt=testrepo.skip_if_unavailable=0',
+           '--refresh',
+           '--nogpgcheck'] + list(dnf_args)
+
+    return subprocess.check_output(cmd, encoding='utf-8')
 
 
 def age(context, date, nuke_ago=False):

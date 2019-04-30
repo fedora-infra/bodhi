@@ -9,7 +9,6 @@ RUN dnf install -y \
     findutils \
     git \
     python3-createrepo_c \
-    python3-hawkey \
     python3-koji \
     createrepo_c \
     gcc \

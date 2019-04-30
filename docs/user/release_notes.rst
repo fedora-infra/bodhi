@@ -77,6 +77,7 @@ Dependency changes
 * six is no longer required for the client or server (:issue:`2759`).
 * ``bodhi-server`` now depends on ``bodhi-messages``.
 * kitchen is no longer required.
+* hawkey is no longer required.
 
 
 Server upgrade instructions
