@@ -4023,6 +4023,7 @@ class Bug(Base):
 
         Args:
             update (Update): The update that is associated with this bug.
+            comment (str): A comment to leave on the bug when modifying it.
         """
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying parent security bug %s', self.bug_id)
