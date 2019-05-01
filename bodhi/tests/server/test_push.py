@@ -364,6 +364,9 @@ Locking updates...
 Sending composer.start message
 """
 
+TEST_BUILDS_AND_UPDATES_FLAG_EXPECTED_OUTPUT = """ERROR: Must specify only one of --updates or --builds
+"""
+
 
 class TestPush(base.BaseTestCase):
     """
@@ -450,6 +453,71 @@ class TestPush(base.BaseTestCase):
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         self.assertFalse(python_paste_deploy.locked)
         self.assertIsNone(python_paste_deploy.date_locked)
+
+    def test_updates_flag(self):
+        """
+        Assert correct operation when the --updates flag is given.
+        """
+        cli = CliRunner()
+        ejabberd = self.create_update(['ejabberd-16.09-4.fc17'])
+        alias1 = ejabberd.alias
+        u = self.db.query(models.Build).filter_by(nvr='python-nose-1.3.7-11.fc17').one().update
+        alias2 = u.alias
+        # Make it so we have three builds we could push out so that we can ask for and verify two
+        ejabberd.builds[0].signed = True
+        self.db.commit()
+        expected_message = composer_schemas.ComposerStartV1.from_dict({
+            'composes': [{'security': False, 'release_id': ejabberd.release.id,
+                          'request': u'testing', 'content_type': u'rpm'}],
+            'resume': False, 'agent': 'bowlofeggs', 'api_version': 2})
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            with fml_testing.mock_sends(expected_message):
+                result = cli.invoke(
+                    push.push,
+                    ['--username', 'bowlofeggs', '--updates', alias1 + ',' + alias2],
+                    input='y')
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, TEST_BUILDS_FLAG_EXPECTED_OUTPUT)
+        for nvr in ['ejabberd-16.09-4.fc17', 'python-nose-1.3.7-11.fc17']:
+            u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
+            self.assertTrue(u.locked)
+            self.assertTrue(u.date_locked <= datetime.utcnow())
+        python_paste_deploy = self.db.query(models.Build).filter_by(
+            nvr='python-paste-deploy-1.5.2-8.fc17').one().update
+        self.assertFalse(python_paste_deploy.locked)
+        self.assertIsNone(python_paste_deploy.date_locked)
+
+    def test_updates_and_builds_flag(self):
+        """
+        Assert correct operation when --builds and --updates flags are given.
+        """
+        cli = CliRunner()
+        ejabberd = self.create_update(['ejabberd-16.09-4.fc17'])
+        alias = ejabberd.alias
+        self.db.commit()
+
+        with mock.patch('bodhi.server.push.transactional_session_maker',
+                        return_value=base.TransactionalSessionMaker(self.Session)):
+            with fml_testing.mock_sends():
+                result = cli.invoke(
+                    push.push,
+                    ['--username', 'bowlofeggs', '--builds', 'python-nose-1.3.7-11.fc17',
+                     '--updates', alias],
+                    input='y')
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(result.output, TEST_BUILDS_AND_UPDATES_FLAG_EXPECTED_OUTPUT)
+        for nvr in [
+            'ejabberd-16.09-4.fc17',
+            'python-nose-1.3.7-11.fc17',
+            'python-paste-deploy-1.5.2-8.fc17',
+        ]:
+            u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
+            self.assertFalse(u.locked)
+            self.assertIsNone(u.date_locked)
 
     def test_yes_flag(self):
         """

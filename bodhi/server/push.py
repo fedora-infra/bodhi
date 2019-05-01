@@ -16,6 +16,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """The CLI tool for triggering update pushes."""
+import sys
+
 from sqlalchemy.sql import or_
 import click
 
@@ -50,8 +52,30 @@ def update_sig_status(update):
                 click.echo('Build %s still unsigned' % build.nvr)
 
 
+def check_if_updates_and_builds_set(
+        ctx: click.core.Context, param: click.core.Option, value: str) -> str:
+    """
+    Print an error to stderr if the user has set both the --updates and --builds flags.
+
+    Args:
+        ctx: The Click context, used to find out if the other flags are set.
+        param: The option being handled.
+        value: The value of the param flag.
+    Returns:
+        The value of the param flag.
+    """
+    if value is not None and ((param.name == 'builds' and ctx.params.get('updates', False))
+                              or (param.name == 'updates' and ctx.params.get('builds', False))):
+        click.echo('ERROR: Must specify only one of --updates or --builds')
+        sys.exit(1)
+    return value
+
+
 @click.command()
-@click.option('--builds', help='Push updates for a comma-separated list of builds')
+@click.option('--builds', help='Push updates for a comma-separated list of builds',
+              callback=check_if_updates_and_builds_set)
+@click.option('--updates', help='Push updates for a comma-separated list of update aliases',
+              callback=check_if_updates_and_builds_set)
 @click.option('--releases', help=('Push updates for a comma-separated list of releases (default: '
                                   'current and pending releases)'))
 @click.option('--request', default='testing,stable',
@@ -119,6 +143,10 @@ def push(username, yes, **kwargs):
                 query = query.join(Update.builds)
                 query = query.filter(
                     or_(*[Build.nvr == build for build in kwargs['builds'].split(',')]))
+
+            if kwargs.get('updates'):
+                query = query.filter(
+                    or_(*[Update.alias == alias for alias in kwargs['updates'].split(',')]))
 
             query = _filter_releases(session, query, kwargs.get('releases'))
 
