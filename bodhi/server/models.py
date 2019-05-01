@@ -2182,6 +2182,11 @@ class Update(Base):
 
         If a build is associated with multiple updates, make sure that
         all updates are safe to obsolete, or else just skip it.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        Returns:
+            list: A list of dictionaries that describe caveats.
         """
         caveats = []
         for build in self.builds:
