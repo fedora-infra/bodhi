@@ -78,6 +78,7 @@ Dependency changes
 * ``bodhi-server`` now depends on ``bodhi-messages``.
 * kitchen is no longer required.
 * hawkey is no longer required.
+* Twisted is now required (:issue:`3145`).
 
 
 Server upgrade instructions
