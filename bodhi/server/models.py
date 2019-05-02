@@ -2508,7 +2508,7 @@ class Update(Base):
                 # If we haven't met the stable karma requirements, check if it
                 # has met the mandatory time-in-testing requirements
                 if self.mandatory_days_in_testing:
-                    if not self.met_testing_requirements and \
+                    if not self.has_stable_comment and \
                        not self.meets_testing_requirements:
                         if self.release.id_prefix == "FEDORA-EPEL":
                             flash_notes = config.get('not_yet_tested_epel_msg')
@@ -3321,28 +3321,17 @@ class Update(Base):
         return self.days_in_testing >= num_days
 
     @property
-    def met_testing_requirements(self):
+    def has_stable_comment(self):
         """
-        Return True if the update has already been found to meet requirements in the past.
+        Return whether Bodhi has commented on the update that the requirements have been met.
 
-        Return whether or not this update has already met the testing
-        requirements and bodhi has commented on the update that the
-        requirements have been met. This is used to determine whether bodhi
-        should add the comment about the Update's eligibility to be pushed,
-        as we only want Bodhi to add the comment once.
-
-        If this release does not have a mandatory testing requirement, then
-        simply return True.
+        This is used to determine whether bodhi should add the comment
+        about the Update's eligibility to be pushed, as we only want Bodhi
+        to add the comment once.
 
         Returns:
             bool: See description above for what the bool might mean.
         """
-        min_num_days = self.mandatory_days_in_testing
-        if min_num_days:
-            if not self.meets_testing_requirements:
-                return False
-        else:
-            return True
         for comment in self.comments_since_karma_reset:
             if comment.user.name == 'bodhi' and \
                comment.text.startswith('This update has reached') and \
