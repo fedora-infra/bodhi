@@ -1647,6 +1647,9 @@ class TestBodhiClient_parse_file(unittest.TestCase):
             "# Here is where you give an explanation of your update.\n",
             "notes=Initial Release\n",
             "\n",
+            "# Update name\n",
+            "display_name=fake update name\n",
+            "\n",
             "# Enable request automation based on the stable/unstable karma thresholds\n",
             "autokarma=True\n",
             "stable_karma=3\n",
@@ -1667,8 +1670,9 @@ class TestBodhiClient_parse_file(unittest.TestCase):
         updates = client.parse_file("sad")
 
         self.assertEqual(len(updates), 1)
-        self.assertEqual(len(updates[0]), 12)
+        self.assertEqual(len(updates[0]), 13)
         self.assertEqual(updates[0]['close_bugs'], True)
+        self.assertEqual(updates[0]['display_name'], 'fake update name')
         self.assertEqual(updates[0]['unstable_karma'], '-3')
         self.assertEqual(updates[0]['severity'], 'unspecified')
         self.assertEqual(updates[0]['stable_karma'], '3')
