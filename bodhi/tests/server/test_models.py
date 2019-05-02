@@ -3065,9 +3065,9 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.request, UpdateRequest.stable)
         self.assertEqual(self.obj.status, UpdateStatus.pending)
 
-    def test_met_testing_requirements_at_7_days_after_bodhi_comment(self):
+    def test_has_stable_comment_at_7_days_after_bodhi_comment(self):
         """
-        Ensure a correct True return value from Update.met_testing_requirements() after an update
+        Ensure a correct True return value from Update.has_stable_comment() after an update
         has been in testing for 7 days and after bodhi has commented about it.
         """
         self.obj.status = UpdateStatus.testing
@@ -3084,11 +3084,11 @@ class TestUpdate(ModelTest):
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
         # say that it can now be pushed to stable.
-        self.assertEqual(self.obj.met_testing_requirements, True)
+        self.assertEqual(self.obj.has_stable_comment, True)
 
-    def test_met_testing_requirements_at_7_days_before_bodhi_comment(self):
+    def test_has_stable_comment_at_7_days_before_bodhi_comment(self):
         """
-        Ensure a correct False return value from Update.met_testing_requirements() after an update
+        Ensure a correct False return value from Update.has_stable_comment() after an update
         has been in testing for 7 days but before bodhi has commented about it.
         """
         self.obj.status = UpdateStatus.testing
@@ -3101,12 +3101,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.meets_testing_requirements, True)
 
         # Since bodhi hasn't added the testing_approval_message yet, this should be False.
-        self.assertEqual(self.obj.met_testing_requirements, False)
-
-    def test_met_testing_requirements_no_mandatory_days_in_testing(self):
-        """met_testing_requirements() should return True if no mandatory days in testing."""
-        with mock.patch.dict(config, {'fedora.mandatory_days_in_testing': 0}):
-            self.assertTrue(self.obj.met_testing_requirements)
+        self.assertEqual(self.obj.has_stable_comment, False)
 
     def test_meets_testing_requirements_with_non_autokarma_update_below_stable_karma(self):
         """
@@ -3145,9 +3140,9 @@ class TestUpdate(ModelTest):
         update.comment(self.db, 'testing', author='enemy', karma=-1)
         self.assertEqual(update.meets_testing_requirements, False)
 
-    def test_met_testing_requirements_with_karma_after_bodhi_comment(self):
+    def test_has_stable_comment_with_karma_after_bodhi_comment(self):
         """
-        Ensure a correct True return value from Update.met_testing_requirements() after a
+        Ensure a correct True return value from Update.has_stable_comment() after a
         non-autokarma update has reached the karma requirement and after bodhi has commented about
         it.
         """
@@ -3168,11 +3163,11 @@ class TestUpdate(ModelTest):
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
         # say that it can now be pushed to stable.
-        self.assertEqual(self.obj.met_testing_requirements, True)
+        self.assertEqual(self.obj.has_stable_comment, True)
 
-    def test_met_testing_requirements_with_karma_before_bodhi_comment(self):
+    def test_has_stable_comment_with_karma_before_bodhi_comment(self):
         """
-        Ensure a correct False return value from Update.met_testing_requirements() after a
+        Ensure a correct False return value from Update.has_stable_comment() after a
         non-autokarma update has reached the karma requirement but before bodhi has commented about
         it.
         """
@@ -3190,7 +3185,7 @@ class TestUpdate(ModelTest):
 
         # met_testing_requirement() should return False since Bodhi has not yet commented on the
         # Update to say that it can now be pushed to stable.
-        self.assertEqual(self.obj.met_testing_requirements, False)
+        self.assertEqual(self.obj.has_stable_comment, False)
 
     def test_set_request_obsolete(self):
         req = DummyRequest(user=DummyUser())
