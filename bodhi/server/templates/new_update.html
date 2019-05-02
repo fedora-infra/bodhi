@@ -85,6 +85,23 @@
       <div class="col-md-7">
         <div class="card card-form">
           <div class="card-header clearfix">
+            <span class="pull-left" data-placement="bottom" data-toggle="tooltip" title="Update name to display.  You can leave it empty if you like.">
+            Update name</span>
+          </div>
+          <div class="card-block p-a-0">
+            <form id="search" role="search">
+              <input class="typeahead form-control noui" name="display_name" type="text"
+                       placeholder="Update name"
+% if update:
+value=${update.display_name}
+% endif
+              >
+            </form>
+          </div>
+        </div>
+
+        <div class="card card-form">
+          <div class="card-header clearfix">
             <span class="pull-left" data-placement="bottom" data-toggle="tooltip" title="Here you can add a list of bugzilla bug IDs that you want to be associated with this update.  Associated bugs will prompt testers to test them.  You can furthermore mark bug feedback as required in the 'details' panel at the bottom of this form.">
             Related Bugs</span>
           </div>

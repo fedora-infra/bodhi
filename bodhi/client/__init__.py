@@ -113,6 +113,8 @@ new_edit_options = [
                  help='Space or comma-separated list of required Taskotron tasks'),
     click.option('--suggest', help='Post-update user suggestion',
                  type=click.Choice(['logout', 'reboot'])),
+    click.option('--display-name',
+                 help='The name of the update'),
     staging_option]
 
 
