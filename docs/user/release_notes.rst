@@ -78,6 +78,7 @@ Dependency changes
 * ``bodhi-server`` now depends on ``bodhi-messages``.
 * kitchen is no longer required.
 * hawkey is no longer required.
+* PyYAML is now a required dependency (:issue:`3174`).
 * Twisted is now required (:issue:`3145`).
 
 

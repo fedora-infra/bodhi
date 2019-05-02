@@ -53,6 +53,13 @@ class TestSignedHandlerConsume(unittest.TestCase):
         )
         self.handler = signed.SignedHandler()
 
+    @mock.patch('bodhi.server.consumers.signed.setup_logging')
+    def test___init___sets_up_logging(self, setup_logging):
+        """Assert that __init__() sets up logging."""
+        signed.SignedHandler()
+
+        setup_logging.assert_called_once_with()
+
     @mock.patch('bodhi.server.consumers.signed.Build')
     def test_consume(self, mock_build_model):
         """Assert that messages marking the build as signed updates the database"""
