@@ -1225,8 +1225,8 @@ class Build(Base):
         update_id (int): A foreign key to the Update that this Build is part of.
         release (sqlalchemy.orm.relationship): A relationship to the Release that this build is part
             of.
-        type (int): The polymorphic identify of the row. This is used by sqlalchemy to identify
-            which subclass of Build to use.
+        type (ContentType): The polymorphic identify of the row. This is used by sqlalchemy to
+            identify which subclass of Build to use.
     """
 
     __tablename__ = 'builds'
