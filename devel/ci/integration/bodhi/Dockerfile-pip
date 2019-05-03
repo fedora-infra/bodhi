@@ -9,10 +9,8 @@ LABEL \
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
 RUN dnf upgrade -y
 
-# Install Bodhi deps (that were not needed by the unittests container). We use --nogpgcheck due to
-# https://bugzilla.redhat.com/show_bug.cgi?id=1699396. This is OK since this is CI and not
-# production.
-RUN dnf install --nogpgcheck -y \
+# Install Bodhi deps (that were not needed by the unittests container)
+RUN dnf install -y \
     httpd \
     intltool \
     python3-koji \
