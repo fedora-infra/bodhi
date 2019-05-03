@@ -41,11 +41,14 @@ from urllib.request import urlopen
 
 import jinja2
 import fedora_messaging
+from twisted.internet import reactor
+from twisted.internet.threads import blockingCallFromThread
 
 from bodhi.messages.schemas import compose as compose_schemas, update as update_schemas
 from bodhi.server import bugs, initialize_db, buildsys, notifications, mail
 from bodhi.server.config import config, validate_path
 from bodhi.server.exceptions import BodhiException
+from bodhi.server.logging import setup as setup_logging
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
@@ -148,6 +151,8 @@ class ComposerHandler(object):
         Raises:
             ValueError: If pungi.cmd is set to a path that does not exist.
         """
+        setup_logging()
+
         if not db_factory:
             initialize_db(config)
             self.db_factory = transactional_session_maker()
@@ -178,14 +183,22 @@ class ComposerHandler(object):
         If there are any security updates in the push, then those repositories
         will be executed before all others.
 
+        Duplicate messages: if a requested compose is already pending or has
+        already started, it will be skipped.
+
         Args:
             message: The message we are processing. This is how we know what compose jobs to run.
         """
         message = message.body
         resume = message.get('resume', False)
         agent = message.get('agent')
-        notifications.publish(compose_schemas.ComposeStartV1.from_dict(dict(agent=agent)),
-                              force=True)
+        # This callback is run in a thread by Twisted, and must therefore call
+        # the messaging API with the proper Twisted wrapper to ensure thread
+        # safety.
+        blockingCallFromThread(
+            reactor, notifications.publish,
+            compose_schemas.ComposeStartV1.from_dict(dict(agent=agent)),
+            force=True)
 
         results = []
         threads = []
@@ -236,6 +249,10 @@ class ComposerHandler(object):
                 composes = [Compose.from_dict(db, c) for c in msg['composes']]
             else:
                 raise ValueError('Unable to process message: {}'.format(msg))
+
+            # Filter out composes that are pending or have started, for example in
+            # case of duplicate messages.
+            composes = [c for c in composes if c.state == ComposeState.requested]
 
             for c in composes:
                 # Acknowledge that we've received the command to run these composes.
@@ -355,11 +372,14 @@ class ComposerThread(threading.Thread):
 
         log.info('Running ComposerThread(%s)' % self.id)
 
-        notifications.publish(compose_schemas.ComposeComposingV1.from_dict(
-            dict(repo=self.id,
-                 updates=[' '.join([b.nvr for b in u.builds]) for u in self.compose.updates],
-                 agent=self.agent,
-                 ctype=self.ctype.value)),
+        blockingCallFromThread(
+            reactor,
+            notifications.publish,
+            compose_schemas.ComposeComposingV1.from_dict(
+                dict(repo=self.id,
+                     updates=[' '.join([b.nvr for b in u.builds]) for u in self.compose.updates],
+                     agent=self.agent,
+                     ctype=self.ctype.value)),
             force=True,
         )
 
@@ -470,7 +490,9 @@ class ComposerThread(threading.Thread):
             update.remove_tag(update.release.pending_testing_tag,
                               koji=buildsys.get_session())
         update.request = None
-        notifications.publish(
+        blockingCallFromThread(
+            reactor,
+            notifications.publish,
             update_schemas.UpdateEjectV1.from_dict(
                 dict(
                     repo=self.id,
@@ -516,8 +538,11 @@ class ComposerThread(threading.Thread):
             success (bool): True if the compose had been successful, False otherwise.
         """
         log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
-        notifications.publish(compose_schemas.ComposeCompleteV1.from_dict(dict(
-            dict(success=success, repo=self.id, agent=self.agent, ctype=self.ctype.value))),
+        blockingCallFromThread(
+            reactor,
+            notifications.publish,
+            compose_schemas.ComposeCompleteV1.from_dict(dict(
+                dict(success=success, repo=self.id, agent=self.agent, ctype=self.ctype.value))),
             force=True,
         )
 
@@ -685,7 +710,7 @@ class ComposerThread(threading.Thread):
                 UpdateRequest.testing: update_schemas.UpdateCompleteTestingV1
             }
             message = messages[update.request].from_dict(dict(update=update, agent=agent))
-            notifications.publish(message, force=True)
+            blockingCallFromThread(reactor, notifications.publish, message, force=True)
 
     @checkpoint
     def modify_bugs(self):
@@ -824,7 +849,12 @@ class ContainerComposerThread(ComposerThread):
     ctype = ContentType.container
 
     def _compose_updates(self):
-        """Use skopeo to copy images to the correct repos and tags."""
+        """
+        Use skopeo to copy images to the correct repos and tags.
+
+        Raises:
+            RuntimeError: If skopeo returns a non-0 exit code during copy_container.
+        """
         for update in self.compose.updates:
 
             if update.request is UpdateRequest.stable:
@@ -1221,8 +1251,11 @@ class PungiComposerThread(ComposerThread):
         """Wait for a repo signature to appear."""
         # This message indicates to consumers that the repos are fully created and ready to be
         # signed or otherwise processed.
-        notifications.publish(compose_schemas.RepoDoneV1.from_dict(
-            dict(repo=self.id, agent=self.agent, path=self.path)),
+        blockingCallFromThread(
+            reactor,
+            notifications.publish,
+            compose_schemas.RepoDoneV1.from_dict(
+                dict(repo=self.id, agent=self.agent, path=self.path)),
             force=True)
         if config.get('wait_for_repo_sig'):
             self.save_state(ComposeState.signing_repo)
@@ -1259,8 +1292,11 @@ class PungiComposerThread(ComposerThread):
             Exception: If no folder other than "source" was found in the compose_path.
         """
         log.info('Waiting for updates to hit the master mirror')
-        notifications.publish(compose_schemas.ComposeSyncWaitV1.from_dict(
-            dict(repo=self.id, agent=self.agent)),
+        blockingCallFromThread(
+            reactor,
+            notifications.publish,
+            compose_schemas.ComposeSyncWaitV1.from_dict(
+                dict(repo=self.id, agent=self.agent)),
             force=True)
         compose_path = os.path.join(self.path, 'compose', 'Everything')
         checkarch = None
@@ -1294,8 +1330,11 @@ class PungiComposerThread(ComposerThread):
                 continue
             if newsum == checksum:
                 log.info("master repomd.xml matches!")
-                notifications.publish(compose_schemas.ComposeSyncDoneV1.from_dict(
-                    dict(repo=self.id, agent=self.agent)),
+                blockingCallFromThread(
+                    reactor,
+                    notifications.publish,
+                    compose_schemas.ComposeSyncDoneV1.from_dict(
+                        dict(repo=self.id, agent=self.agent)),
                     force=True)
                 return
 

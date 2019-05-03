@@ -28,6 +28,7 @@ import fedora_messaging
 
 from bodhi.server import initialize_db
 from bodhi.server.config import config
+from bodhi.server.logging import setup as setup_logging
 from bodhi.server.models import Build
 from bodhi.server.util import transactional_session_maker
 
@@ -43,6 +44,7 @@ class SignedHandler(object):
 
     def __init__(self):
         """Initialize the SignedHandler."""
+        setup_logging()
         initialize_db(config)
         self.db_factory = transactional_session_maker()
 
@@ -77,6 +79,8 @@ class SignedHandler(object):
 
         The message can contain additional keys.
 
+        Duplicate messages: this method is idempotent.
+
         Args:
             message: The incoming message in the format described above.
         """
@@ -98,6 +102,10 @@ class SignedHandler(object):
 
             if build.release.pending_testing_tag != tag:
                 log.info("Tag is not pending_testing tag, skipping")
+                return
+
+            if build.signed:
+                log.info("Build was already marked as signed (maybe a duplicate message)")
                 return
 
             # This build was moved into the pending_testing tag for the applicable release, which

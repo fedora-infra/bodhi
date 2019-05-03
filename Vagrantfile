@@ -7,6 +7,9 @@
 # cp devel/Vagrantfile.example Vagrantfile
 # vagrant up
 
+require 'etc'
+
+
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -60,7 +63,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     bodhi.vm.provider :libvirt do |domain|
         # Season to taste
-        domain.cpus = 8
+        domain.cpus = Etc.nprocessors
         domain.cpu_mode = "host-passthrough"
         domain.graphics_type = "spice"
         # The unit tests use a lot of RAM.

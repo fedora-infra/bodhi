@@ -53,10 +53,18 @@ class TestSignedHandlerConsume(unittest.TestCase):
         )
         self.handler = signed.SignedHandler()
 
+    @mock.patch('bodhi.server.consumers.signed.setup_logging')
+    def test___init___sets_up_logging(self, setup_logging):
+        """Assert that __init__() sets up logging."""
+        signed.SignedHandler()
+
+        setup_logging.assert_called_once_with()
+
     @mock.patch('bodhi.server.consumers.signed.Build')
     def test_consume(self, mock_build_model):
         """Assert that messages marking the build as signed updates the database"""
         build = mock_build_model.get.return_value
+        build.signed = False
         build.release.pending_testing_tag = self.sample_message.body["msg"]["tag"]
 
         self.handler(self.sample_message)
@@ -68,6 +76,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         Assert that messages whose tag don't match the pending testing tag don't update the DB
         """
         build = mock_build_model.get.return_value
+        build.signed = False
         build.release.pending_testing_tag = "some tag that isn't pending testing"
 
         self.handler(self.sample_message)
@@ -79,6 +88,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         Assert that messages about builds that haven't been assigned a release don't update the DB
         """
         build = mock_build_model.get.return_value
+        build.signed = False
         build.release = None
 
         self.handler(self.sample_message)
@@ -92,3 +102,16 @@ class TestSignedHandlerConsume(unittest.TestCase):
 
         self.handler(self.sample_message)
         mock_log.info.assert_called_with('Build was not submitted, skipping')
+
+    @mock.patch('bodhi.server.consumers.signed.log')
+    @mock.patch('bodhi.server.consumers.signed.Build')
+    def test_consume_duplicate(self, mock_build_model, mock_log):
+        """Assert that the handler is idempotent."""
+        build = mock_build_model.get.return_value
+        build.release.pending_testing_tag = self.sample_message.body["msg"]["tag"]
+        build.signed = True
+
+        self.handler(self.sample_message)
+        mock_log.info.assert_called_with(
+            "Build was already marked as signed (maybe a duplicate message)")
+        self.assertEqual(mock_log.info.call_count, 2)

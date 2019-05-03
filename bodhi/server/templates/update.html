@@ -83,13 +83,21 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
               '<span class="fa fa-' + icon_class + '">' +
               '</span></span> ';
             html += '<a class="gating-summary notblue" href="#automatedtests">' + data['summary'];
+            html += '</a>';
             if (data.waivers.length != 0) {
+                 // Create url to waiverdb with waivers for this update
+                 var url = '${request.registry.settings["waiverdb_api_url"]}';
+                 url += '/waivers'
+                 url += '/?product_version=' + data.waivers[0].product_version;
+                 url += '&subject_type=' + data.waivers[0].subject_type;
+                 url += '&subject_identifier=' + data.waivers[0].subject_identifier;
+                 html += '<a class="notblue" target="_blank" href=' + url + '>';
                  html += '<span data-toggle="tooltip" data-placement="top" ' +
                  'title="Some tests failures were waived." ' +
                  'class="fa fa-asterisk">' +
                  '</span>';
+                 html += '</a>';
             }
-            html += '</a>';
             $('#test_status_badge').append(html);
             $('#resultsdb h3').after(html);
 
@@ -134,14 +142,14 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
       var required = '';
       if (testcase in waivers) {
-        var reason;
-        if (waivers[testcase].length == 1) {
-          reason = "Waived by @" + waivers[testcase][0].username +
-            ": " + waivers[testcase][0].comment.replace("'", "&#39;");
-        } else {
-          reason = "Waived " + waivers[testcase].length + " different times.";
+        var reason = 'Waived by ';
+        var comments = [];
+        for (let w of waivers[testcase]) {
+          waiver_details = "@" + w.username + ": '" + w.comment.replace("'", "&#39;") + "'"
+          comments.push(waiver_details);
         }
-        required = '<span data-toggle="tooltip" data-placement="top" ' +
+	reason += comments.join(", ")
+        required = '<span style="white-space:pre-line;" data-toggle="tooltip" data-placement="top" ' +
           'title="' + reason + '" ' +
           'class="fa fa-thumbs-up">' +
           '</span>';
