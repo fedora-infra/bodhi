@@ -212,6 +212,8 @@ def get_critpath_components(collection='master', component_type='rpm', component
             default), all components for the given collection and type are returned.
     Returns:
         list: The critpath components for the given collection and type.
+    Raises:
+        RuntimeError: If the PDC did not give us a 200 code.
     """
     critpath_components = []
     critpath_type = config.get('critpath.type')
@@ -1188,6 +1190,8 @@ def get_critpath_components_from_pdc(branch, component_type='rpm', components=No
             default), all components for the given branch and type are returned.
     Returns:
         list: Critical path package names.
+    Raises:
+        RuntimeError: If the PDC did not give us a 200 code.
     """
     pdc_api_url = '{}/rest_api/v1/component-branches/'.format(
         config.get('pdc_url').rstrip('/'))
