@@ -173,7 +173,7 @@ class BodhiClient(OpenIdBaseClient):
             username (basestring): The username to use to authenticate with the server.
             password (basestring): The password to use to authenticate with the server.
             staging (bool): If True, use the staging server. If False, use base_url.
-            opennid_api (str or None): If not None, the URL to an OpenID API to use to authenticate
+            openid_api (str or None): If not None, the URL to an OpenID API to use to authenticate
                 to Bodhi. Ignored if staging is True.
             kwargs (dict): Other keyword arguments to pass on to
                            :class:`fedora.client.OpenIdBaseClient`
