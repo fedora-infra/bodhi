@@ -30,7 +30,7 @@ if typing.TYPE_CHECKING:  # pragma: no cover
     from bodhi.server import models  # noqa: 401
 
 
-bugtracker = None
+bugtracker: typing.Union['Bugzilla', 'FakeBugTracker', None] = None
 log = logging.getLogger('bodhi')
 FakeBug = namedtuple('FakeBug', ['bug_id'])
 
@@ -49,7 +49,7 @@ class FakeBugTracker(object):
         """
         return FakeBug(bug_id=int(bug_id))
 
-    def __noop__(self, *args, **kw):
+    def __noop__(self, *args, **kw) -> None:
         """
         Log the method call at debug.
 
@@ -69,11 +69,11 @@ class InvalidComment(Exception):
 class Bugzilla(object):
     """Provide methods for Bodhi's frequent Bugzilla operations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize self._bz as None."""
         self._bz = None
 
-    def _connect(self):
+    def _connect(self) -> None:
         """Create a Bugzilla client instance and store it on self._bz."""
         user = config.get('bodhi_email')
         password = config.get('bodhi_password')
@@ -109,22 +109,22 @@ class Bugzilla(object):
         Args:
             bug_id: The id of the bug you want a URL for.
         Returns:
-            str: The requested URL.
+            The requested URL.
         """
         return "%s/show_bug.cgi?id=%s" % (config['bz_baseurl'], bug_id)
 
-    def getbug(self, bug_id: int) -> typing.Any:
+    def getbug(self, bug_id: int) -> 'bugzilla.bug.Bug':
         """
         Retrieve a bug from Bugzilla.
 
         Args:
             bug_id: The id of the bug you wish to retrieve.
         Returns:
-            bugzilla.bug.Bug: A Bug instance representing the bug in Bugzilla.
+            A Bug instance representing the bug in Bugzilla.
         """
         return self.bz.getbug(bug_id)
 
-    def comment(self, bug_id: int, comment: str):
+    def comment(self, bug_id: int, comment: str) -> None:
         """
         Add a comment to the given bug.
 
@@ -159,7 +159,7 @@ class Bugzilla(object):
         except Exception:
             log.exception("Unable to add comment to bug #%d" % bug_id)
 
-    def on_qa(self, bug_id: int, comment: str):
+    def on_qa(self, bug_id: int, comment: str) -> None:
         """
         Change the status of this bug to ON_QA if it is not already ON_QA, VERIFIED, or CLOSED.
 
@@ -193,7 +193,7 @@ class Bugzilla(object):
         except Exception:
             log.exception("Unable to alter bug #%d" % bug_id)
 
-    def close(self, bug_id: int, versions: typing.Mapping[str, str], comment: str):
+    def close(self, bug_id: int, versions: typing.Mapping[str, str], comment: str) -> None:
         """
         Close the bug given by bug_id, mark it as fixed in the given versions, and add a comment.
 
@@ -240,8 +240,8 @@ class Bugzilla(object):
                     "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
                     bug_id, err.faultCode, err.faultString)
 
-    def update_details(self, bug: typing.Union[typing.Any, None],
-                       bug_entity: 'models.Bug'):
+    def update_details(self, bug: typing.Union['bugzilla.bug.Bug', None],
+                       bug_entity: 'models.Bug') -> None:
         """
         Update the details on bug_entity to match what is found in Bugzilla.
 
@@ -276,7 +276,7 @@ class Bugzilla(object):
         if 'security' in [keyword.lower() for keyword in keywords]:
             bug_entity.security = True
 
-    def modified(self, bug_id: typing.Union[int, str], comment: str):
+    def modified(self, bug_id: typing.Union[int, str], comment: str) -> None:
         """
         Change the status of this bug to MODIFIED if not already MODIFIED, VERIFIED, or CLOSED.
 
@@ -310,7 +310,7 @@ class Bugzilla(object):
             log.exception("Unable to alter bug #%s" % bug_id)
 
 
-def set_bugtracker():
+def set_bugtracker() -> None:
     """Set the module-level bugtracker attribute to the correct bugtracker, based on the config."""
     global bugtracker
     if config.get('bugtracker') == 'bugzilla':
