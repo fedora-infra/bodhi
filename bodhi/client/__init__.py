@@ -173,6 +173,10 @@ release_options = [
     click.option('--mail-template', help='Name of the email template for this release'),
     click.option('--composed-by-bodhi/--not-composed-by-bodhi', is_flag=True, default=True,
                  help='The flag that indicates whether the release is composed by Bodhi or not'),
+    click.option('--package-manager', type=click.Choice(['unspecified', 'dnf', 'yum']),
+                 help='The package manager used by this release'),
+    click.option('--testing-repository',
+                 help='The name of the testing repository used to test updates'),
     click.option(
         '--create-automatic-updates/--no-create-automatic-updates',
         help=('Configure for this release, whether or not automatic updates are '
@@ -1243,6 +1247,8 @@ def print_release(release):
     click.echo("  Email Template:           %s" % release['mail_template'])
     click.echo("  Composed by Bodhi:        %s" % release['composed_by_bodhi'])
     click.echo("  Create Automatic Updates: %s" % release['create_automatic_updates'])
+    click.echo("  Package Manager:          %s" % release['package_manager'])
+    click.echo("  Testing Repository:       %s" % release['testing_repository'])
 
 
 def print_errors(data):
