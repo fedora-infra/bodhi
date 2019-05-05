@@ -24,7 +24,7 @@ import sqlalchemy
 
 from bodhi.server.models import (
     Bug, BuildrootOverride, Comment, Group, RpmPackage, Release, ReleaseState, RpmBuild,
-    Update, UpdateRequest, UpdateSeverity, UpdateType, User, TestCase)
+    Update, UpdateRequest, UpdateSeverity, UpdateType, User, TestCase, PackageManager)
 
 
 def create_update(session, build_nvrs, release_name='F17'):
@@ -107,7 +107,7 @@ def populate(db):
         override_tag='f17-override',
         branch='f17', state=ReleaseState.current,
         create_automatic_updates=True,
-    )
+        package_manager=PackageManager.unspecified, testing_repository=None)
     db.add(release)
     db.flush()
     # This mock will help us generate a consistent update alias.

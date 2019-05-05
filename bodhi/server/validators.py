@@ -36,6 +36,7 @@ from .models import (
     ContentType,
     Group,
     Package,
+    PackageManager,
     Release,
     RpmBuild,
     ReleaseState,
@@ -552,7 +553,8 @@ def validate_enums(request, **kwargs):
                         ("suggest", UpdateSuggestion),
                         ("type", UpdateType),
                         ("content_type", ContentType),
-                        ("state", ReleaseState)):
+                        ("state", ReleaseState),
+                        ("package_manager", PackageManager)):
         value = request.validated.get(param)
         if value is None:
             continue

@@ -25,7 +25,7 @@ import unittest
 
 from bodhi.server import util, models
 from bodhi.server.config import config
-from bodhi.server.models import (ComposeState, TestGatingStatus, Update, UpdateStatus, UpdateType)
+from bodhi.server.models import ComposeState, TestGatingStatus, Update
 from bodhi.tests.server import base
 
 
@@ -1424,68 +1424,3 @@ class TestTransactionalSessionMaker(base.BaseTestCase):
         Session.return_value.commit.assert_called_once_with()
         Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
-
-
-class TestUpdateInstallCommand(base.BaseTestCase):
-    """Test the update_install_command() function."""
-
-    def test_upgrade_in_testing(self):
-        """Update is an enhancement, a security or a bugfix and is in testing."""
-        context = {'request': mock.MagicMock()}
-        update = models.Update.query.first()
-        update.status = UpdateStatus.testing
-        update.type = UpdateType.bugfix
-
-        command = util.update_install_command(context, update)
-
-        self.assertEqual(
-            command,
-            'sudo dnf upgrade --enablerepo=updates-testing --advisory={}'.format(update.alias))
-
-    def test_upgrade_in_stable(self):
-        """Update is an enhancement, a security or a bugfix and is in stable."""
-        context = {'request': mock.MagicMock()}
-        update = models.Update.query.first()
-        update.status = UpdateStatus.stable
-        update.type = UpdateType.bugfix
-
-        command = util.update_install_command(context, update)
-
-        self.assertEqual(
-            command,
-            'sudo dnf upgrade --advisory={}'.format(update.alias))
-
-    def test_newpackage_in_testing(self):
-        """Update is a newpackage and is in testing."""
-        context = {'request': mock.MagicMock()}
-        update = models.Update.query.first()
-        update.status = UpdateStatus.testing
-        update.type = UpdateType.newpackage
-
-        command = util.update_install_command(context, update)
-
-        self.assertEqual(
-            command,
-            r'sudo dnf install --enablerepo=updates-testing --advisory={} \*'.format(update.alias))
-
-    def test_newpackage_in_stable(self):
-        """Update is a newpackage and is in stable."""
-        context = {'request': mock.MagicMock()}
-        update = models.Update.query.first()
-        update.status = UpdateStatus.stable
-        update.type = UpdateType.newpackage
-
-        command = util.update_install_command(context, update)
-
-        self.assertEqual(
-            command,
-            r'sudo dnf install --advisory={} \*'.format(update.alias))
-
-    def test_cannot_install(self):
-        """Update is out of stable or testing repositories."""
-        context = {'request': mock.MagicMock()}
-        update = models.Update.query.first()
-        update.status = UpdateStatus.obsolete
-
-        with self.assertRaises(ValueError):
-            util.update_install_command(context, update)
