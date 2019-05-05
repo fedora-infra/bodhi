@@ -36,22 +36,32 @@ from fedora.client import AuthError, openidproxyclient
 log = logging.getLogger(__name__)
 
 
-def _warn_if_url_and_staging_set(ctx, param, value):
+def _warn_if_url_or_openid_and_staging_set(ctx, param, value):
     """
-    Print a warning to stderr if the user has set both the --url and --staging flags.
+    Print a warning to stderr if the user has set both the --url/--openid-api and --staging flags.
 
-    This ensures that the user is aware that --staging supersedes --url.
+    This ensures that the user is aware that --staging supersedes --url/--openid-api.
 
     Args:
         ctx (click.core.Context): The Click context, used to find out if the --staging flag is set.
-        param (click.core.Option): The option being handled. Unused.
-        value (unicode): The value of the --url flag.
+        param (click.core.Option): The option being handled.
+        value (unicode): The value of the option being handled.
     Returns:
-        unicode: The value of the --url flag.
+        unicode: The value of the option being handled.
     """
-    if ctx.params.get('staging', False):
-        click.echo('\nWarning: url and staging flags are both set. url will be ignored.\n',
+    if ctx.params.get('staging', False) and (param.name in ['url', 'openid_api']) and \
+            value is not None:
+        click.echo(f'\nWarning: {param.name} and staging flags are '
+                   f'both set. {param.name} will be ignored.\n',
                    err=True)
+    if param.name == 'staging' and value:
+        if ctx.params.get('url', False):
+            click.echo(f'\nWarning: url and staging flags are both set. url will be ignored.\n',
+                       err=True)
+        if ctx.params.get('openid_api', False):
+            click.echo('\nWarning: openid_api and staging flags '
+                       'are both set. openid_api will be ignored.\n',
+                       err=True)
     return value
 
 
@@ -80,15 +90,16 @@ def _set_logging_debug(ctx, param, value):
 url_option = click.option('--url', envvar='BODHI_URL', default=bindings.BASE_URL,
                           help=('URL of a Bodhi server. Ignored if --staging is set. Can be set '
                                 'with BODHI_URL environment variable'),
-                          callback=_warn_if_url_and_staging_set)
+                          callback=_warn_if_url_or_openid_and_staging_set)
 openid_option = click.option(
     '--openid-api', envvar='BODHI_OPENID_API',
     default=openidproxyclient.FEDORA_OPENID_API,
     help=('URL of an OpenID API to use to authenticate to Bodhi. Ignored if --staging is set. Can '
           'be set with BODHI_OPENID_API environment variable'),
-    callback=_warn_if_url_and_staging_set)
+    callback=_warn_if_url_or_openid_and_staging_set)
 staging_option = click.option('--staging', help='Use the staging bodhi instance',
-                              is_flag=True, default=False)
+                              is_flag=True, default=False,
+                              callback=_warn_if_url_or_openid_and_staging_set)
 debug_option = click.option('--debug', help='Display debugging information.',
                             is_flag=True, default=False,
                             callback=_set_logging_debug)

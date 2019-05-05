@@ -1452,7 +1452,7 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
 
-class TestWarnIfUrlAndStagingSet(unittest.TestCase):
+class TestWarnIfUrlOrOpenidAndStagingSet(unittest.TestCase):
     """
     This class tests the _warn_if_url_and_staging_set() function.
     """
@@ -1463,9 +1463,11 @@ class TestWarnIfUrlAndStagingSet(unittest.TestCase):
         """
         ctx = mock.MagicMock()
         ctx.params = {'staging': False}
+        param = mock.MagicMock()
+        param.name = 'url'
 
-        result = client._warn_if_url_and_staging_set(ctx, mock.MagicMock(),
-                                                     'http://localhost:6543')
+        result = client._warn_if_url_or_openid_and_staging_set(
+            ctx, param, 'http://localhost:6543')
 
         self.assertEqual(result, 'http://localhost:6543')
         self.assertEqual(echo.call_count, 0)
@@ -1477,9 +1479,11 @@ class TestWarnIfUrlAndStagingSet(unittest.TestCase):
         """
         ctx = mock.MagicMock()
         ctx.params = {}
+        param = mock.MagicMock()
+        param.name = 'url'
 
-        result = client._warn_if_url_and_staging_set(ctx, mock.MagicMock(),
-                                                     'http://localhost:6543')
+        result = client._warn_if_url_or_openid_and_staging_set(
+            ctx, param, 'http://localhost:6543')
 
         self.assertEqual(result, 'http://localhost:6543')
         self.assertEqual(echo.call_count, 0)
@@ -1487,17 +1491,48 @@ class TestWarnIfUrlAndStagingSet(unittest.TestCase):
     @mock.patch('bodhi.client.click.echo')
     def test_staging_true(self, echo):
         """
-        A warning should be printed to stderr when staging is True.
+        A warning should be printed to stderr when staging is True and url/openid provided.
         """
+        # Check url param when staging is set
         ctx = mock.MagicMock()
         ctx.params = {'staging': True}
+        param = mock.MagicMock()
+        param.name = 'url'
 
-        result = client._warn_if_url_and_staging_set(ctx, mock.MagicMock(),
-                                                     'http://localhost:6543')
+        result = client._warn_if_url_or_openid_and_staging_set(
+            ctx, param, 'http://localhost:6543')
 
         self.assertEqual(result, 'http://localhost:6543')
         echo.assert_called_once_with(
             '\nWarning: url and staging flags are both set. url will be ignored.\n', err=True)
+
+        # Check staging param when url is set
+        echo.reset_mock()
+        ctx = mock.MagicMock()
+        ctx.params = {'url': 'fake_url'}
+        param = mock.MagicMock()
+        param.name = 'staging'
+
+        result = client._warn_if_url_or_openid_and_staging_set(ctx, param, True)
+
+        self.assertEqual(result, True)
+        echo.assert_called_once_with(
+            '\nWarning: url and staging flags are both set. url will be ignored.\n', err=True)
+
+        # Check staging param when openid_api is set
+        echo.reset_mock()
+        ctx = mock.MagicMock()
+        ctx.params = {'openid_api': 'fake_openid'}
+        param = mock.MagicMock()
+        param.name = 'staging'
+
+        result = client._warn_if_url_or_openid_and_staging_set(ctx, param, True)
+
+        self.assertEqual(result, True)
+        echo.assert_called_once_with(
+            '\nWarning: openid_api and staging flags are both set. openid_api will be ignored.\n',
+            err=True
+        )
 
 
 class TestEdit(unittest.TestCase):
