@@ -125,7 +125,7 @@ class EnumSymbol(object):
         Return a JSON representation of this EnumSymbol.
 
         Args:
-            request (pyramid.util.Request): The current request.
+            request (pyramid.request.Request): The current request.
         Returns:
             basestring: A string representation of this EnumSymbol's value.
         """
@@ -345,7 +345,7 @@ class BodhiBase(object):
         Return a JSON representation of this model.
 
         Args:
-            request (pyramid.util.Request or None): The current web request, or None.
+            request (pyramid.request.Request or None): The current web request, or None.
             exclude (iterable or None): An iterable of strings naming the attributes to exclude from
                 the JSON representation of the model. If None (the default), the class's
                 __exclude_columns__ attribute will be used.
@@ -366,7 +366,7 @@ class BodhiBase(object):
             obj (BodhiBase): The model to serialize.
             seen (list or None): A list of attributes we have already serialized. Used by this
                 method to keep track of its state, as it uses recursion.
-            request (pyramid.util.Request or None): The current web request, or None.
+            request (pyramid.request.Request or None): The current web request, or None.
             exclude (iterable or None): An iterable of strings naming the attributes to exclude from
                 the JSON representation of the model. If None (the default), the class's
                 __exclude_columns__ attribute will be used.
@@ -423,7 +423,7 @@ class BodhiBase(object):
             obj (BodhiBase): The object we are trying to describe a relationship on.
             relation (object): A relationship attribute on obj we are trying to learn about.
             seen (list): A list of objects we have already recursed over.
-            req (pyramid.util.Request): The current request.
+            req (pyramid.request.Request): The current request.
         Returns:
             object: The to_json() or the id of a sqlalchemy relationship.
         """
@@ -1989,7 +1989,7 @@ class Update(Base):
         Create a new update.
 
         Args:
-            request (pyramid.util.Request): The current web request.
+            request (pyramid.request.Request): The current web request.
             data (dict): A key-value mapping of the new update's attributes.
         Returns:
             tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
@@ -2056,7 +2056,7 @@ class Update(Base):
         Edit the update.
 
         Args:
-            request (pyramid.util.Request): The current web request.
+            request (pyramid.request.Request): The current web request.
             data (dict): A key-value mapping of what should be altered in this update.
         Returns:
             tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
@@ -2791,7 +2791,7 @@ class Update(Base):
         Return the absolute URL to this update.
 
         Args:
-            request (pyramid.util.Request or None): The current web request. Unused.
+            request (pyramid.request.Request or None): The current web request. Unused.
         """
         base = config['base_address']
         return os.path.join(base, self.get_url())
@@ -3512,8 +3512,8 @@ class Update(Base):
         Return a JSON representation of this update.
 
         Args:
-            request (pyramid.util.Request or None): The current web request, or None. Passed on to
-                :meth:`BodhiBase.__json__`.
+            request (pyramid.request.Request or None): The current web request,
+                or None. Passed on to :meth:`BodhiBase.__json__`.
         Returns:
             basestring: A JSON representation of this update.
         """
@@ -3741,7 +3741,7 @@ class Compose(Base):
         Serialize this compose in JSON format.
 
         Args:
-            request (pyramid.util.Request or None): The current web request, or None.
+            request (pyramid.request.Request or None): The current web request, or None.
             exclude (iterable or None): See superclass docblock.
             include (iterable or None): See superclass docblock.
             composer (bool): If True, increase the number of excluded attributes so that only the

@@ -41,7 +41,7 @@ class Composes(object):
         Initialize the Compose resource.
 
         Args:
-            request (pyramid.util.Request): The current web request.
+            request (pyramid.request.Request): The current web request.
             context (None): Unused.
         """
         self.request = request

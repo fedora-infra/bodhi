@@ -80,7 +80,7 @@ class html_handler(pyramid.httpexceptions.HTTPError):
         status code to the code specified by errors.
 
         Args:
-            request (pyramid.util.Request): The current Request.
+            request (pyramid.request.Request): The current Request.
         """
         location = config.get('mako.directories')
         directory = get_absolute_path(location)
