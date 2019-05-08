@@ -192,7 +192,7 @@ def cache_nvrs(request, build):
 
 
 @postschema_validator
-def validate_nvrs(request, **kwargs):
+def validate_build_nvrs(request, **kwargs):
     """
     Ensure that the given builds reference valid Build objects.
 
@@ -497,7 +497,7 @@ def validate_acls(request, **kwargs):
 
 
 @postschema_validator
-def validate_uniqueness(request, **kwargs):
+def validate_build_uniqueness(request, **kwargs):
     """
     Check for multiple builds from the same package and same release.
 
@@ -506,7 +506,7 @@ def validate_uniqueness(request, **kwargs):
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     builds = request.validated.get('builds', [])
-    if not builds:  # validate_nvr failed
+    if not builds:  # validate_build_nvrs failed
         return
     for build1 in builds:
         rel1 = cache_release(request, build1)

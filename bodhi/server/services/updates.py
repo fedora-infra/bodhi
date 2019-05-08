@@ -41,8 +41,8 @@ import bodhi.server.schemas
 import bodhi.server.services.errors
 import bodhi.server.util
 from bodhi.server.validators import (
-    validate_nvrs,
-    validate_uniqueness,
+    validate_build_nvrs,
+    validate_build_uniqueness,
     validate_build_tags,
     validate_acls,
     validate_builds,
@@ -410,10 +410,10 @@ def query_updates(request):
               error_handler=bodhi.server.services.errors.json_handler,
               validators=(
                   colander_body_validator,
-                  validate_nvrs,
+                  validate_build_nvrs,
                   validate_builds,
                   validate_build_tags,
-                  validate_uniqueness,
+                  validate_build_uniqueness,
                   validate_acls,
                   validate_enums,
                   validate_requirements,
