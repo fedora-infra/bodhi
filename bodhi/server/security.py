@@ -38,7 +38,7 @@ class ACLFactory(object):
         Initialize the Factory.
 
         Args:
-            request (pyramid.util.Request): The current request.
+            request (pyramid.request.Request): The current request.
             context (object): The request's context (unused).
         """
         self.request = request
