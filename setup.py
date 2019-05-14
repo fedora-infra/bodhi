@@ -136,7 +136,9 @@ setup(
     maintainer_email="infrastructure@lists.fedoraproject.org",
     platforms=["Fedora", "GNU/Linux"],
     keywords=["fedora", "fedora-messaging"],
-    packages=['bodhi.messages'],
+    packages=find_packages(
+        exclude=['bodhi.client', 'bodhi.client.*', 'bodhi.server', 'bodhi.server.*', 'bodhi.tests',
+                 'bodhi.tests.*']),
     include_package_data=True,
     zip_safe=False,
     install_requires=["fedora_messaging"],
@@ -157,7 +159,12 @@ setup(
             "bodhi.compose.start.v1=bodhi.messages.schemas.compose:ComposeStartV1",
             "bodhi.compose.sync.done.v1=bodhi.messages.schemas.compose:ComposeSyncDoneV1",
             "bodhi.compose.sync.wait.v1=bodhi.messages.schemas.compose:ComposeSyncWaitV1",
+            "bodhi.repo.done.v1=bodhi.messages.schemas.compose:RepoDoneV1",
             "bodhi.update.comment.v1=bodhi.messages.schemas.update:UpdateCommentV1",
+            (
+                "bodhi.update.complete.stable.v1="
+                "bodhi.messages.schemas.update:UpdateCompleteStableV1"
+            ),
             (
                 "bodhi.update.complete.testing.v1="
                 "bodhi.messages.schemas.update:UpdateCompleteTestingV1"
@@ -218,7 +225,6 @@ setup(
     [console_scripts]
     initialize_bodhi_db = bodhi.server.scripts.initializedb:main
     bodhi-clean-old-composes = bodhi.server.scripts.clean_old_composes:clean_up
-    bodhi-dequeue-stable = bodhi.server.scripts.dequeue_stable:dequeue_stable
     bodhi-push = bodhi.server.push:push
     bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
     bodhi-untag-branched = bodhi.server.scripts.untag_branched:main

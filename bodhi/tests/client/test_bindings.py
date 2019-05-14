@@ -1548,7 +1548,7 @@ class TestBodhiClient_candidates(unittest.TestCase):
              mock.call('f26-updates-testing', latest=True)])
         client.send_request.assert_called_once_with('releases/', params={}, verb='GET')
         exception.assert_called_once_with(
-            "Unable to query candidate builds for {'candidate_tag': 'f26-updates-testing'}")
+            "Unable to query candidate builds for %s", {'candidate_tag': 'f26-updates-testing'})
 
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies', mock.MagicMock())
     @mock.patch('bodhi.client.bindings.BodhiClient.get_koji_session')

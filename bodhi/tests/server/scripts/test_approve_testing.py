@@ -24,6 +24,7 @@ from unittest.mock import call, patch
 
 from fedora_messaging import api, testing as fml_testing
 
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.config import config
 from bodhi.server import models
 from bodhi.server.scripts import approve_testing
@@ -47,11 +48,16 @@ class TestMain(BaseTestCase):
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         with fml_testing.mock_sends():
             self.db.commit()
+        expected_message = update_schemas.UpdateRequirementsMetStableV1.from_dict(
+            {'update': update})
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
+                with fml_testing.mock_sends(expected_message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
+                    # The approve testing script changes the update, so let's put the changed
+                    # update into our expected message body.
+                    expected_message.body['update'] = models.Update.query.first().__json__()
 
                 # Now we will run main() again, but this time we expect Bodhi not to add any
                 # further comments.

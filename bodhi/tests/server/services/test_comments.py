@@ -21,6 +21,7 @@ from unittest import mock
 
 from fedora_messaging import api, testing as fml_testing
 
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.models import (Build, Comment, Release, RpmBuild, RpmPackage, Update,
                                  UpdateRequest, UpdateStatus, UpdateType, User)
 from bodhi.tests.server import base
@@ -89,24 +90,27 @@ class TestCommentsService(base.BaseTestCase):
                                  status=400)
         self.assertIn('2 is greater than maximum value 1', res)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_commenting_with_critpath_feedback(self, publish):
+    def test_commenting_with_critpath_feedback(self):
         comment = self.make_comment()
         comment['karma_critpath'] = -1  # roll out the trucks
-        res = self.app.post_json('/comments/', comment)
+
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', comment)
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         self.assertEqual(res.json_body['comment']['karma_critpath'], -1)
-        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_commenting_with_bug_feedback(self, publish):
+    def test_commenting_with_bug_feedback(self):
         comment = self.make_comment()
         comment['bug_feedback.0.bug_id'] = 12345
         comment['bug_feedback.0.karma'] = 1
-        res = self.app.post_json('/comments/', comment)
+
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', comment)
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
@@ -114,14 +118,15 @@ class TestCommentsService(base.BaseTestCase):
         self.assertIn('bug_feedback', res.json_body['comment'])
         feedback = res.json_body['comment']['bug_feedback']
         self.assertEqual(len(feedback), 1)
-        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_commenting_with_testcase_feedback(self, publish):
+    def test_commenting_with_testcase_feedback(self):
         comment = self.make_comment()
         comment['testcase_feedback.0.testcase_name'] = "Wat"
         comment['testcase_feedback.0.karma'] = -1
-        res = self.app.post_json('/comments/', comment)
+
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', comment)
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
@@ -129,84 +134,85 @@ class TestCommentsService(base.BaseTestCase):
         self.assertIn('testcase_feedback', res.json_body['comment'])
         feedback = res.json_body['comment']['testcase_feedback']
         self.assertEqual(len(feedback), 1)
-        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_commenting_with_login(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment())
+    def test_commenting_with_login(self):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', self.make_comment())
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
-        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_commenting_twice_with_neutral_karma(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment())
+    def test_commenting_twice_with_neutral_karma(self):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', self.make_comment())
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
-        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
 
-        res = self.app.post_json('/comments/', self.make_comment())
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', self.make_comment())
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
-        self.assertEqual(publish.call_count, 2)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_commenting_twice_with_double_positive_karma(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
+    def test_commenting_twice_with_double_positive_karma(self):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
         self.assertEqual(res.json_body['comment']['karma'], 1)
-        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEqual(res.json_body['comment']['update']['karma'], 1)
 
-        res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
-        self.assertEqual(publish.call_count, 2)
-
         # Mainly, ensure that the karma didn't increase *again*
         self.assertEqual(res.json_body['comment']['update']['karma'], 1)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_commenting_twice_with_positive_then_negative_karma(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
+    def test_commenting_twice_with_positive_then_negative_karma(self):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', self.make_comment(up2, karma=1))
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
-        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEqual(res.json_body['comment']['update']['karma'], 1)
 
-        res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
-        self.assertEqual(publish.call_count, 2)
 
         # Mainly, ensure that original karma is overwritten..
         self.assertEqual(res.json_body['comment']['update']['karma'], -1)
         self.assertEqual(res.json_body['caveats'][0]['description'],
                          'Your karma standing was reversed.')
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_commenting_with_negative_karma(self, publish):
-        res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
+    def test_commenting_with_negative_karma(self):
+        with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
+            res = self.app.post_json('/comments/', self.make_comment(up2, karma=-1))
+
         self.assertNotIn('errors', res.json_body)
         self.assertIn('comment', res.json_body)
         self.assertEqual(res.json_body['comment']['text'], 'Test')
         self.assertEqual(res.json_body['comment']['user_id'], 1)
-        publish.assert_called_once_with(topic='update.comment', msg=mock.ANY)
         self.assertEqual(res.json_body['comment']['update']['karma'], -1)
 
     def test_empty_comment(self):

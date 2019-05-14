@@ -612,7 +612,7 @@ class Job(object):
             args.extend(['-v', '{}:/results:z'.format(self.archive_dir)])
 
         if include_git:
-            args.extend(['-v', f"{os.path.join(PROJECT_PATH, '.git')}:/bodhi/.git:ro,Z"])
+            args.extend(['-v', f"{os.path.join(PROJECT_PATH, '.git')}:/bodhi/.git:ro,z"])
 
         args.append(self._container_image)
         args.extend(self._command)

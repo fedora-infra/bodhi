@@ -41,6 +41,7 @@ import fedora_messaging
 from bodhi.server import initialize_db, util, bugs as bug_module
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
+from bodhi.server.logging import setup as setup_logging
 from bodhi.server.models import Bug, Update, UpdateType
 
 
@@ -63,6 +64,7 @@ class UpdatesHandler(object):
 
     def __init__(self, *args, **kwargs):
         """Initialize the UpdatesHandler."""
+        setup_logging()
         initialize_db(config)
         self.db_factory = util.transactional_session_maker()
 
@@ -75,6 +77,10 @@ class UpdatesHandler(object):
     def __call__(self, message: fedora_messaging.api.Message):
         """
         Process the given message, updating relevant bugs and test cases.
+
+        Duplicate messages: if the server delivers the message multiple times,
+        the bugs and test cases are simply re-fetched and updated, so nothing
+        bad happens.
 
         Args:
             message: A message about a new or edited update.

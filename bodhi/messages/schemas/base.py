@@ -21,6 +21,7 @@ Each message is defined as a Python class. For details, see `fedora-messaging
 messages.
 """
 
+import json
 import re
 import typing
 
@@ -69,6 +70,24 @@ class BodhiMessage(message.Message):
         if username is None:
             return None
         return user_avatar_url(username)
+
+    @classmethod
+    def from_dict(cls, message: dict) -> 'BodhiMessage':
+        """
+        Generate a message based on the given message dictionary.
+
+        Args:
+            message: A dictionary representation of the message you wish to instantiate.
+        Returns:
+            A Message.
+        """
+        # Dirty, nasty hack that I feel shame for: use the fedmsg encoder that modifies
+        # messages quietly if they have objects with __json__ methods on them.
+        # For now, copy that behavior. In the future, callers should pass
+        # fedora_messaging.api.Message sub-classes or this whole API should go away.
+        body = json.loads(json.dumps(message, cls=FedMsgEncoder))
+
+        return cls(body=body)
 
     @property
     def usernames(self) -> typing.List[str]:
@@ -231,3 +250,16 @@ class UserV1(typing.NamedTuple):
             },
             'required': ['name']
         }
+
+
+class FedMsgEncoder(json.encoder.JSONEncoder):
+    """Encoder with convenience support.
+
+    If an object has a ``__json__()`` method, use it to serialize to JSON.
+    """
+
+    def default(self, obj):
+        """Encode objects which don't have a more specific encoding method."""
+        if hasattr(obj, "__json__"):
+            return obj.__json__()
+        return super().default(obj)

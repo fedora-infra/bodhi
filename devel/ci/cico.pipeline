@@ -157,15 +157,20 @@ node('bodhi') {
         // Download the database dumps for the integration tests.
         onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci integration-download --no-tty'
 
-        parallel(
-            f28: {test_release('f28')},
-            f29: {test_release('f29')},
-            f30: {test_release('f30')},
-            pip: {test_release('pip')},
-            rawhide: {test_release('rawhide')},
-        )
-
         def failed = false
+
+        try {
+            parallel(
+                f28: {test_release('f28')},
+                f29: {test_release('f29')},
+                f30: {test_release('f30')},
+                pip: {test_release('pip')},
+                rawhide: {test_release('rawhide')},
+            )
+        } catch(error) {
+            failed = error
+        }
+
         def releases = ['f28', 'f29', 'f30', 'pip', 'rawhide']
         for (release in releases) {
             try {
@@ -174,6 +179,7 @@ node('bodhi') {
                 failed = error
             }
         }
+
         if (failed) {
             throw failed
         }

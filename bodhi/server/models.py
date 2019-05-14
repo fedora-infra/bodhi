@@ -38,6 +38,8 @@ from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 import requests.exceptions
 
+from bodhi.messages.schemas import (buildroot_override as override_schemas,
+                                    errata as errata_schemas, update as update_schemas)
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
@@ -969,6 +971,9 @@ class Package(Base):
         Returns a tuple with two lists:
         * The first list contains usernames that have commit access.
         * The second list contains FAS group names that have commit access.
+
+        Raises:
+            RuntimeError: If Pagure did not give us a 200 code.
         """
         pagure_url = config.get('pagure_url')
         # Pagure uses plural names for its namespaces such as "rpms" except for
@@ -1203,9 +1208,6 @@ class Build(Base):
     This model uses single-table inheritance to allow for different build types.
 
     Attributes:
-        inherited (bool): The purpose of this column is unknown, and it appears to be unused. At the
-            time of this writing, there are 112,234 records with inherited set to False and 0 with
-            it set to True in the Fedora Bodhi deployment.
         nvr (unicode): The nvr field is really a mapping to the Koji build_target.name field, and is
             used to reference builds in Koji. It is named nvr in reference to the dash-separated
             name-version-release Koji name for RPMs, but it is used by other types as well. At the
@@ -1835,6 +1837,8 @@ class Update(Base):
             release_name (basestring): The name of the release, such as "f25".
         Returns:
             bool: ``True`` if the update contains a critical path package, ``False`` otherwise.
+        Raises:
+            RuntimeError: If the PDC did not give us a 200 code.
         """
         relname = release_name.lower()
         components = defaultdict(list)
@@ -1886,6 +1890,7 @@ class Update(Base):
             dict: The response from Greenwave for this update.
         Raises:
             BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
+            RuntimeError: If Greenwave did not give us a 200 code.
         """
         if not config.get('greenwave_api_url'):
             raise BodhiException('No greenwave_api_url specified')
@@ -1943,6 +1948,8 @@ class Update(Base):
             data (dict): A key-value mapping of the new update's attributes.
         Returns:
             tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
+        Raises:
+            RuntimeError: If the PDC did not give us a 200 code.
         """
         db = request.db
         user = User.get(request.user.name)
@@ -2010,6 +2017,7 @@ class Update(Base):
             tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
         Raises:
             LockedUpdateException: If the update is locked.
+            RuntimeError: If the PDC did not give us a 200 code.
         """
         db = request.db
         buildinfo = request.buildinfo
@@ -2120,8 +2128,8 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
-        notifications.publish(topic='update.edit', msg=dict(
-            update=up, agent=request.user.name, new_bugs=new_bugs))
+        notifications.publish(update_schemas.UpdateEditV1.from_dict(
+            message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
 
         return up, caveats
 
@@ -2174,6 +2182,11 @@ class Update(Base):
 
         If a build is associated with multiple updates, make sure that
         all updates are safe to obsolete, or else just skip it.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        Returns:
+            list: A list of dictionaries that describe caveats.
         """
         caveats = []
         for build in self.builds:
@@ -2426,19 +2439,18 @@ class Update(Base):
             raise LockedUpdateException("Can't change the request on a "
                                         "locked update")
 
-        topic = 'update.request.%s' % action
         if action is UpdateRequest.unpush:
             self.unpush(db)
-            self.comment(db, 'This update has been unpushed.', author=username)
-            notifications.publish(topic=topic, msg=dict(
-                update=self, agent=username))
+            self.comment(db, u'This update has been unpushed.', author=username)
+            notifications.publish(update_schemas.UpdateRequestUnpushV1.from_dict(dict(
+                update=self, agent=username)))
             log.debug("%s has been unpushed." % self.alias)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete(db)
             log.debug("%s has been obsoleted." % self.alias)
-            notifications.publish(topic=topic, msg=dict(
-                update=self, agent=username))
+            notifications.publish(update_schemas.UpdateRequestObsoleteV1.from_dict(dict(
+                update=self, agent=username)))
             return
 
         # If status is pending going to testing request and action is revoke,
@@ -2448,8 +2460,8 @@ class Update(Base):
             self.status = UpdateStatus.unpushed
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
-            notifications.publish(topic=topic, msg=dict(
-                update=self, agent=username))
+            notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
+                update=self, agent=username)))
             return
 
         # If status is testing going to stable request and action is revoke,
@@ -2458,15 +2470,15 @@ class Update(Base):
                 self.status is UpdateStatus.testing and action is UpdateRequest.revoke:
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
-            notifications.publish(topic=topic, msg=dict(
-                update=self, agent=username))
+            notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
+                update=self, agent=username)))
             return
 
         elif action is UpdateRequest.revoke:
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
-            notifications.publish(topic=topic, msg=dict(
-                update=self, agent=username))
+            notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
+                update=self, agent=username)))
             return
 
         # Disable pushing critical path updates for pending releases directly to stable
@@ -2507,7 +2519,7 @@ class Update(Base):
                 # If we haven't met the stable karma requirements, check if it
                 # has met the mandatory time-in-testing requirements
                 if self.mandatory_days_in_testing:
-                    if not self.met_testing_requirements and \
+                    if not self.has_stable_comment and \
                        not self.meets_testing_requirements:
                         if self.release.id_prefix == "FEDORA-EPEL":
                             flash_notes = config.get('not_yet_tested_epel_msg')
@@ -2544,8 +2556,14 @@ class Update(Base):
                 self.alias, action.description, notes, flash_notes))
         self.comment(db, 'This update has been submitted for %s by %s. %s' % (
             action.description, username, notes), author='bodhi')
-        topic = 'update.request.%s' % action
-        notifications.publish(topic=topic, msg=dict(update=self, agent=username))
+        action_message_map = {
+            UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
+            UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
+            UpdateRequest.testing: update_schemas.UpdateRequestTestingV1,
+            UpdateRequest.unpush: update_schemas.UpdateRequestUnpushV1,
+            UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1}
+        notifications.publish(action_message_map[action].from_dict(
+            dict(update=self, agent=username)))
 
     def waive_test_results(self, username, comment=None, tests=None):
         """
@@ -2561,6 +2579,7 @@ class Update(Base):
             LockedUpdateException: If the Update is locked.
             BodhiException: If test gating is not enabled in this Bodhi instance,
                             or if the tests have passed.
+            RuntimeError: Either WaiverDB or Greenwave did not give us a 200 code.
         """
         log.debug('Attempting to waive test results for this update %s' % self.alias)
 
@@ -2705,9 +2724,8 @@ class Update(Base):
         if mailinglist:
             for subject, body in mail.get_template(self, self.release.mail_template):
                 mail.send_mail(sender, mailinglist, subject, body)
-                notifications.publish(
-                    topic='errata.publish',
-                    msg=dict(subject=subject, body=body, update=self))
+                notifications.publish(errata_schemas.ErrataPublishV1.from_dict(
+                    dict(subject=subject, body=body, update=self)))
         else:
             log.error("Cannot find mailing list address for update notice")
             log.error("release_name = %r", release_name)
@@ -2935,10 +2953,8 @@ class Update(Base):
 
         # Publish to Fedora Messaging
         if author not in config.get('system_users'):
-            notifications.publish(topic='update.comment', msg=dict(
-                comment=comment.__json__(),
-                agent=author,
-            ))
+            notifications.publish(update_schemas.UpdateCommentV1.from_dict(
+                {'comment': comment.__json__(), 'agent': author}))
 
         # Send a notification to everyone that has commented on this update
         people = set()
@@ -3197,9 +3213,8 @@ class Update(Base):
                 log.info("Automatically marking %s as stable", self.alias)
                 self.set_request(db, UpdateRequest.stable, agent)
                 self.date_pushed = None
-                notifications.publish(
-                    topic='update.karma.threshold.reach',
-                    msg=dict(update=self, status='stable'))
+                notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
+                    dict(update=self, status='stable')))
             else:
                 # Add the 'testing_approval_msg_based_on_karma' message now
                 log.info((
@@ -3211,9 +3226,8 @@ class Update(Base):
             else:
                 log.info("Automatically unpushing %s", self.alias)
                 self.obsolete(db)
-                notifications.publish(
-                    topic='update.karma.threshold.reach',
-                    msg=dict(update=self, status='unstable'))
+                notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
+                    dict(update=self, status='unstable')))
 
     @property
     def builds_json(self):
@@ -3319,28 +3333,17 @@ class Update(Base):
         return self.days_in_testing >= num_days
 
     @property
-    def met_testing_requirements(self):
+    def has_stable_comment(self):
         """
-        Return True if the update has already been found to meet requirements in the past.
+        Return whether Bodhi has commented on the update that the requirements have been met.
 
-        Return whether or not this update has already met the testing
-        requirements and bodhi has commented on the update that the
-        requirements have been met. This is used to determine whether bodhi
-        should add the comment about the Update's eligibility to be pushed,
-        as we only want Bodhi to add the comment once.
-
-        If this release does not have a mandatory testing requirement, then
-        simply return True.
+        This is used to determine whether bodhi should add the comment
+        about the Update's eligibility to be pushed, as we only want Bodhi
+        to add the comment once.
 
         Returns:
             bool: See description above for what the bool might mean.
         """
-        min_num_days = self.mandatory_days_in_testing
-        if min_num_days:
-            if not self.meets_testing_requirements:
-                return False
-        else:
-            return True
         for comment in self.comments_since_karma_reset:
             if comment.user.name == 'bodhi' and \
                comment.text.startswith('This update has reached') and \
@@ -3807,7 +3810,7 @@ class Comment(Base):
     text = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-    update_id = Column(Integer, ForeignKey('updates.id'))
+    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
 
     def url(self):
@@ -4025,6 +4028,7 @@ class Bug(Base):
 
         Args:
             update (Update): The update that is associated with this bug.
+            comment (str): A comment to leave on the bug when modifying it.
         """
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying parent security bug %s', self.bug_id)
@@ -4250,10 +4254,8 @@ class BuildrootOverride(Base):
         koji_session = buildsys.get_session()
         koji_session.tagBuild(self.build.release.override_tag, self.build.nvr)
 
-        notifications.publish(
-            topic='buildroot_override.tag',
-            msg=dict(override=self),
-        )
+        notifications.publish(override_schemas.BuildrootOverrideTagV1.from_dict(
+            dict(override=self)))
 
         self.expired_date = None
 
@@ -4270,7 +4272,5 @@ class BuildrootOverride(Base):
             log.error('Unable to untag override %s: %s' % (self.build.nvr, e))
         self.expired_date = datetime.utcnow()
 
-        notifications.publish(
-            topic='buildroot_override.untag',
-            msg=dict(override=self),
-        )
+        notifications.publish(override_schemas.BuildrootOverrideUntagV1.from_dict(
+            {'override': self}))

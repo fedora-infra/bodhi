@@ -23,6 +23,7 @@ import copy
 from fedora_messaging import api, testing as fml_testing
 import webtest
 
+from bodhi.messages.schemas import buildroot_override as override_schemas
 from bodhi.server.models import (
     BuildrootOverride,
     RpmBuild,
@@ -286,8 +287,7 @@ class TestOverridesService(base.BaseTestCase):
         body = res.json_body
         self.assertEqual(len(body['overrides']), 0)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_create_override(self, publish):
+    def test_create_override(self):
         release = Release.get('F17')
 
         package = RpmPackage(name='not-bodhi')
@@ -301,11 +301,9 @@ class TestOverridesService(base.BaseTestCase):
         data = {'nvr': build.nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
-        res = self.app.post('/overrides/', data)
 
-        publish.assert_called_once_with(
-            topic='buildroot_override.tag', msg=mock.ANY)
-        self.assertEqual(len(publish.call_args_list), 1)
+        with fml_testing.mock_sends(override_schemas.BuildrootOverrideTagV1):
+            res = self.app.post('/overrides/', data)
 
         o = res.json_body
         self.assertEqual(o['build_id'], build.id)
@@ -314,8 +312,7 @@ class TestOverridesService(base.BaseTestCase):
                          expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEqual(o['expired_date'], None)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_create_override_for_build_with_test_gating_status_failed(self, publish):
+    def test_create_override_for_build_with_test_gating_status_failed(self):
         """
         Test that Override is not created when the test gating status is failed.
         """
@@ -328,17 +325,14 @@ class TestOverridesService(base.BaseTestCase):
         update.test_gating_status = TestGatingStatus.failed
         self.db.add(build)
         self.db.flush()
-
-        publish.reset_mock()
-
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
         data = {'nvr': build.nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
-        res = self.app.post('/overrides/', data, status=400)
 
-        publish.assert_not_called()
+        with fml_testing.mock_sends():
+            res = self.app.post('/overrides/', data, status=400)
 
         errors = res.json_body['errors']
         self.assertEqual(len(errors), 1)
@@ -347,8 +341,7 @@ class TestOverridesService(base.BaseTestCase):
                          "Cannot create a buildroot override if "
                          "build's test gating status is failed.")
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_create_duplicate_override(self, publish):
+    def test_create_duplicate_override(self):
         release = Release.get('F17')
         package = RpmPackage(name='not-bodhi')
         self.db.add(package)
@@ -361,11 +354,9 @@ class TestOverridesService(base.BaseTestCase):
         data = {'nvr': build.nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
-        res = self.app.post('/overrides/', data)
 
-        publish.assert_called_once_with(
-            topic='buildroot_override.tag', msg=mock.ANY)
-        self.assertEqual(len(publish.call_args_list), 1)
+        with fml_testing.mock_sends(override_schemas.BuildrootOverrideTagV1):
+            res = self.app.post('/overrides/', data)
 
         o = res.json_body
         self.assertEqual(o['build_id'], build.id)
@@ -386,8 +377,7 @@ _____________
 new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         self.assertEqual(o['notes'], new_notes)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_create_override_multiple_nvr(self, publish):
+    def test_create_override_multiple_nvr(self):
         release = Release.get('F17')
         package = RpmPackage(name='not-bodhi')
         self.db.add(package)
@@ -409,9 +399,10 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
             'expiration_date': expiration_date,
             'csrf_token': self.get_csrf_token(),
         }
-        res = self.app.post('/overrides/', data)
 
-        self.assertEqual(len(publish.call_args_list), 2)
+        with fml_testing.mock_sends(override_schemas.BuildrootOverrideTagV1,
+                                    override_schemas.BuildrootOverrideTagV1):
+            res = self.app.post('/overrides/', data)
 
         result = res.json_body
         self.assertEqual(result['caveats'][0]['description'],
@@ -429,8 +420,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
                          expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEqual(o2['expired_date'], None)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_create_override_too_long(self, publish):
+    def test_create_override_too_long(self):
         release = Release.get('F17')
 
         package = RpmPackage(name='not-bodhi')
@@ -446,8 +436,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
                 'csrf_token': self.get_csrf_token()}
         self.app.post('/overrides/', data, status=400)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_create_override_for_newer_build(self, publish):
+    def test_create_override_for_newer_build(self):
         old_build = RpmBuild.get('bodhi-2.0-1.fc17')
 
         build = RpmBuild(nvr='bodhi-2.0-2.fc17', package=old_build.package,
@@ -460,11 +449,12 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         data = {'nvr': build.nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
-        res = self.app.post('/overrides/', data)
+        expected_messages = (
+            override_schemas.BuildrootOverrideUntagV1,
+            override_schemas.BuildrootOverrideTagV1)
 
-        publish.assert_any_call(topic='buildroot_override.tag', msg=mock.ANY)
-        publish.assert_any_call(
-            topic='buildroot_override.untag', msg=mock.ANY)
+        with fml_testing.mock_sends(*expected_messages):
+            res = self.app.post('/overrides/', data)
 
         o = res.json_body
         self.assertEqual(o['build_id'], build.id)
@@ -477,8 +467,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
 
         self.assertNotEqual(old_build.override['expired_date'], None)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_cannot_edit_override_build(self, publish):
+    def test_cannot_edit_override_build(self):
         release = Release.get('F17')
 
         old_nvr = 'bodhi-2.0-1.fc17'
@@ -499,14 +488,15 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
             'edited': old_nvr,
             'csrf_token': self.get_csrf_token(),
         })
-        res = self.app.post('/overrides/', o)
+
+        with fml_testing.mock_sends():
+            res = self.app.post('/overrides/', o)
 
         override = res.json_body
         self.assertEqual(override['build_id'], old_build_id)
         self.assertEqual(override['notes'], 'blah blah blah')
         self.assertEqual(override['expiration_date'], expiration_date)
         self.assertEqual(override['expired_date'], None)
-        self.assertEqual(len(publish.call_args_list), 0)
 
     def test_edit_nonexistent_build(self):
         """
@@ -635,8 +625,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
             'Cannot combine multiple NVRs with editing a buildroot override.',
         )
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_expire_override(self, publish):
+    def test_expire_override(self):
         old_nvr = 'bodhi-2.0-1.fc17'
 
         res = self.app.get('/overrides/%s' % old_nvr,
@@ -645,28 +634,27 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
 
         o.update({'nvr': o['build']['nvr'], 'expired': True,
                   'edited': old_nvr, 'csrf_token': self.get_csrf_token()})
-        res = self.app.post('/overrides/', o)
+
+        with fml_testing.mock_sends(override_schemas.BuildrootOverrideUntagV1):
+            res = self.app.post('/overrides/', o)
 
         override = res.json_body
         self.assertEqual(override['build'], o['build'])
         self.assertEqual(override['notes'], o['notes'])
         self.assertEqual(override['expiration_date'], o['expiration_date'])
         self.assertNotEqual(override['expired_date'], None)
-        publish.assert_called_once_with(
-            topic='buildroot_override.untag', msg=mock.ANY)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_unexpire_override(self, publish):
+    def test_unexpire_override(self):
         # First expire a buildroot override
         old_nvr = 'bodhi-2.0-1.fc17'
         override = RpmBuild.get(old_nvr).override
-        override.expire()
+
+        with fml_testing.mock_sends(override_schemas.BuildrootOverrideUntagV1):
+            override.expire()
+            self.db.commit()
+
         self.db.add(override)
         self.db.flush()
-
-        publish.assert_called_once_with(
-            topic='buildroot_override.untag', msg=mock.ANY)
-        publish.reset_mock()
 
         # And now push its expiration_date into the future
         res = self.app.get('/overrides/%s' % old_nvr,
@@ -679,30 +667,27 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         o.update({'nvr': o['build']['nvr'],
                   'edited': old_nvr, 'expiration_date': expiration_date,
                   'csrf_token': self.get_csrf_token()})
-        res = self.app.post('/overrides/', o)
+
+        with fml_testing.mock_sends(override_schemas.BuildrootOverrideTagV1):
+            res = self.app.post('/overrides/', o)
 
         override = res.json_body
         self.assertEqual(override['build'], o['build'])
         self.assertEqual(override['notes'], o['notes'])
         self.assertEqual(override['expiration_date'], o['expiration_date'])
         self.assertEqual(override['expired_date'], None)
-        publish.assert_called_once_with(
-            topic='buildroot_override.tag', msg=mock.ANY)
 
-    @mock.patch('bodhi.server.notifications.publish')
-    def test_create_override_with_missing_pkg(self, publish):
+    def test_create_override_with_missing_pkg(self):
         nvr = 'not-bodhi-2.0-2.fc17'
         expiration_date = datetime.utcnow() + timedelta(days=1)
 
         data = {'nvr': nvr, 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
                 'csrf_token': self.get_csrf_token()}
-        res = self.app.post('/overrides/', data,
-                            headers={'Accept': 'application/json'})
 
-        publish.assert_called_once_with(
-            topic='buildroot_override.tag', msg=mock.ANY)
-        self.assertEqual(len(publish.call_args_list), 1)
+        with fml_testing.mock_sends(override_schemas.BuildrootOverrideTagV1):
+            res = self.app.post('/overrides/', data,
+                                headers={'Accept': 'application/json'})
 
         o = res.json_body
         self.assertEqual(o['nvr'], nvr)

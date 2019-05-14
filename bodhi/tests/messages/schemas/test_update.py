@@ -20,6 +20,7 @@ import unittest
 from bodhi.messages.schemas.base import BuildV1, UpdateV1, UserV1
 from bodhi.messages.schemas.update import (
     UpdateCommentV1,
+    UpdateCompleteStableV1,
     UpdateCompleteTestingV1,
     UpdateEditV1,
     UpdateEjectV1,
@@ -79,6 +80,44 @@ class UpdateMessageTests(unittest.TestCase):
                 },
                 "request": "testing",
                 "repo": "test_repo",
+            }
+        )
+        check_message(msg, expected)
+
+    def test_complete_stable_v1(self):
+        expected = {
+            "topic": "bodhi.update.complete.stable",
+            "summary": (
+                "eclipseo's golang-github-SAP-go-hdb-0.14.1-1.fc29 t… bodhi update "
+                "completed push to stable"
+            ),
+            "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
+            "agent_avatar": (
+                "https://seccdn.libravatar.org/avatar/"
+                "20652954adacfd9f6e26536bbcf3b5fbc850dc61f8a2e67c5bfbc6e345032976"
+                "?s=64&d=retro"
+            ),
+            "usernames": ["eclipseo", 'mohanboddu'],
+            "packages": ["golang-github-SAP-go-hdb", 'texworks'],
+            'update': UpdateV1(
+                'FEDORA-2019-d64d0caab3',
+                [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29'),
+                 BuildV1('texworks-0.6.3-1.fc29')],
+                UserV1('eclipseo'), 'stable', None)
+        }
+        msg = UpdateCompleteStableV1(
+            body={
+                "update": {
+                    "alias": "FEDORA-2019-d64d0caab3",
+                    "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
+                               {'nvr': 'texworks-0.6.3-1.fc29'}],
+                    "title": "fedmsg-0.2.7-2.el6",
+                    'request': None,
+                    "status": "stable",
+                    "user": {"name": "eclipseo"}
+                },
+                'agent': 'mohanboddu'
             }
         )
         check_message(msg, expected)

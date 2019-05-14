@@ -236,3 +236,49 @@ class ComposeSyncWaitV1(BodhiMessage):
             A summary for this message.
         """
         return f"bodhi composer is waiting for {self.repo} to hit the master mirror"
+
+
+class RepoDoneV1(BodhiMessage):
+    """Sent when a repo is created and ready to be signed or otherwise processed."""
+
+    body_schema = {
+        'id': f'{SCHEMA_URL}/v1/bodhi.repo.done#',
+        '$schema': 'http://json-schema.org/draft-04/schema#',
+        'description': 'Schema for message sent when a repo is created and ready to be signed',
+        'type': 'object',
+        'properties': {
+            'agent': {
+                'type': 'string',
+                'description': 'The name of the user who started this compose.'
+            },
+            'path': {
+                'type': 'string',
+                'description': 'The path of the repository that was composed.'
+            },
+            'repo': {
+                'type': 'string',
+                'description': 'The name of the repository that was composed.'
+            },
+        },
+        'required': ['agent', 'path', 'repo'],
+    }
+
+    topic = "bodhi.repo.done"
+
+    @property
+    def repo(self) -> str:
+        """Return the name of the repository being composed."""
+        return self.body.get('repo')
+
+    @property
+    def summary(self) -> str:
+        """
+        Return a short, human-readable representation of this message.
+
+        This should provide a short summary of the message, much like the subject line
+        of an email.
+
+        Returns:
+            A summary for this message.
+        """
+        return f"bodhi composer is finished building {self.repo}"

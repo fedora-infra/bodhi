@@ -13,7 +13,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     gcc \
     git \
     python3-createrepo_c \
-    python3-hawkey \
     python3-koji \
     make \
     python3-alembic \
@@ -39,6 +38,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-pyramid-mako \
     python3-pytest \
     python3-pytest-cov \
+    python3-pyyaml \
     python3-responses \
     python3-simplemediawiki \
     python3-sqlalchemy \

@@ -30,6 +30,7 @@ from pyramid.paster import get_appsettings
 
 from ..models import Update, UpdateStatus
 from ..config import config
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import Session, initialize_db, notifications
 
 
@@ -80,8 +81,8 @@ def main(argv=sys.argv):
                 print('%s doesn\'t have mandatory days in testing' % update.release.name)
                 continue
 
-            # If this has already met testing requirements, skip it
-            if update.met_testing_requirements:
+            # If this update was already commented, skip it
+            if update.has_stable_comment:
                 continue
 
             # Approval message when testing based on karma threshold
@@ -104,9 +105,8 @@ def main(argv=sys.argv):
                     config.get('testing_approval_msg') % update.mandatory_days_in_testing)
                 update.comment(db, text, author='bodhi')
 
-                notifications.publish(
-                    topic='update.requirements_met.stable',
-                    msg=dict(update=update))
+                notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
+                    dict(update=update)))
                 db.commit()
 
     except Exception as e:
