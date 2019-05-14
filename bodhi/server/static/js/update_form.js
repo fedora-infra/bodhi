@@ -325,53 +325,35 @@ $(document).ready(function() {
                     return;
                 }
                 $.ajax({
-                    url: "https://bugzilla.redhat.com/jsonrpc.cgi?method=Bug.get&params=%5B%7B%22ids%22:" + item + "%7D%5D",
+                    url: "https://bugzilla.redhat.com/rest/bug?id=" + item,
                     timeout: 10000,
                     dataType: 'jsonp',
                     success: function(data) {
-                        // Received error response
-                        if (data.error) {
-                            // Error 102 is due to bug being private
-                            // Bodhi can't handle private bugs, we should avoid
-                            // attaching them to updates
-                            if (data.error.code == 102) {
-                                messenger.post({
-                                    message: 'Bodhi can\'t manage private bugs! (#' + item + ')',
-                                    type: 'error',
-                                });
-                            }
-                            else {
-                                messenger.post({
-                                    message: data.error.message,
-                                    type: 'error',
-                                });
-                            }
-                            return;
-                        }
-                        // There should be only one
-                        if (data.result.bugs.length != 1) {
+                        // Received ampty response
+                        // Maybe the bug is private, not existent or wrong input from the user
+                        if (data.bugs.length != 1) {
                             messenger.post({
-                                message: 'Received bad response for bug #' + item,
+                                message: 'Cannot find data for bug #' + item + '. Either the bug is private or doesn\'t exist.',
                                 type: 'error',
                             });
                             return;
                         }
                         // Check Bug product
-                        var product = data.result.bugs[0].product;
+                        var product = data.bugs[0].product;
                         if (settings.bz_products.indexOf(product) == -1) {
                             var r = confirm('Bug #' + item + ' doesn\'t seem to refer to Fedora or Fedora EPEL.\nAre you sure you want to reference it in this update? Bodhi will not be able to operate on this bug!');
                             if (r === false) { return; }
                         }
                         // Alert user if bug is already closed
-                        if (data.result.bugs[0].status == "CLOSED") {
+                        if (data.bugs[0].status == "CLOSED") {
                             var r = confirm('Bug #' + item + ' is already in CLOSED state.\nAre you sure you want to reference it in this update?');
                             if (r === false) { return; }
                         }
                         var release = product
-                        if (data.result.bugs[0].version[0] !== 'unspecified') {
-                            release += ' ' + data.result.bugs[0].version[0];
+                        if (data.bugs[0].version[0] !== 'unspecified') {
+                            release += ' ' + data.bugs[0].version[0];
                         }
-                        add_bug_checkbox(item, data.result.bugs[0].summary, release, true, true);
+                        add_bug_checkbox(item, data.bugs[0].summary, release, true, true);
                     },
                     error: function(jqXHR, textStatus) {
                         if (textStatus == 'timeout') {
