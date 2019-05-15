@@ -152,6 +152,7 @@ Bug fixes
 * A variety of spelling and grammatical errors were fixed (:issue:`3131`).
 * Bodhi's markdown now uses TLS for links to pear in its markdown (:issue:`3173`).
 * Stop using an API that ``dnf`` removed (:issue:`3198`).
+* Do not crash on invalid RSS requests (:issue:`3227`).
 
 
 Development improvements
