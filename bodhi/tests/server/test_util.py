@@ -1553,3 +1553,37 @@ class TestTransactionalSessionMaker(base.BaseTestCase):
         Session.return_value.commit.assert_called_once_with()
         Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
+
+
+class TestPyfileToModule(unittest.TestCase):
+    """Test the pyfile_to_module() function."""
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp('bodhi')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_basic_call(self):
+        filepath = os.path.join(self.tempdir, "testfile.py")
+        with open(filepath, "w") as fh:
+            fh.write("FOO = 'bar'\n")
+        result = util.pyfile_to_module(filepath, "testfile")
+        self.assertEqual(getattr(result, "FOO"), "bar")
+        self.assertEqual(result.__file__, filepath)
+        self.assertEqual(result.__name__, "testfile")
+
+    def test_invalid_path(self):
+        filepath = os.path.join(self.tempdir, "does-not-exist.py")
+        with self.assertRaises(IOError) as cm:
+            util.pyfile_to_module(filepath, "testfile")
+        self.assertEqual(
+            cm.exception.strerror, 'Unable to load file (No such file or directory)')
+
+    def test_invalid_path_silent(self):
+        filepath = os.path.join(self.tempdir, "does-not-exist.py")
+        try:
+            result = util.pyfile_to_module(filepath, "testfile", silent=True)
+        except IOError as e:
+            self.fail("pyfile_to_module raised an exception in silent mode: {}".format(e))
+        self.assertFalse(result)

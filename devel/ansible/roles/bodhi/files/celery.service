@@ -1,0 +1,12 @@
+[Unit]
+Description=celery
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Environment=PYTHONPATH=/home/vagrant/bodhi
+User=vagrant
+ExecStart=/usr/bin/celery-3 worker -A bodhi.server.tasks.app -l info -Q celery,has_koji_mount
+
+[Install]
+WantedBy=multi-user.target

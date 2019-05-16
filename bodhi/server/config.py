@@ -283,6 +283,9 @@ class BodhiConfig(dict):
         'cache_dir': {
             'value': None,
             'validator': _validate_none_or(validate_path)},
+        'celery_config': {
+            'value': '/etc/bodhi/celeryconfig.py',
+            'validator': str},
         'clean_old_composes': {
             'value': True,
             'validator': _validate_bool},

@@ -30,7 +30,7 @@ def db_container(docker_backend, docker_network):
 
     Args:
         docker_backend (conu.DockerBackend): The Docker backend (fixture).
-        docker_network (str): The Docker network ID (fixture).
+        docker_network (dict): The Docker network ID (fixture).
 
     Yields:
         conu.DockerContainer: The PostgreSQL container.

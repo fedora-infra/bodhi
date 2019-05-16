@@ -24,6 +24,7 @@ RUN dnf install -y \
 
 # Mimic RPM's handling of Python3-specific binaries
 RUN ln -s alembic /usr/local/bin/alembic-3
+RUN ln -s celery /usr/local/bin/celery-3
 
 # Create bodhi user
 RUN groupadd -r bodhi && \
@@ -34,7 +35,8 @@ RUN python3 setup.py build && pip3 install .
 
 # Configuration
 RUN mkdir -p /etc/bodhi
-COPY production.ini /etc/bodhi/production.ini
+COPY devel/ci/integration/bodhi/production.ini /etc/bodhi/production.ini
+COPY devel/ci/integration/bodhi/celeryconfig.py /etc/bodhi/celeryconfig.py
 
 COPY devel/ci/integration/bodhi/start.sh /etc/bodhi/start.sh
 COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml
@@ -50,6 +52,8 @@ RUN \
 
 # Apache
 RUN mkdir -p /httpdir && chown bodhi:bodhi /httpdir
+# Celery results
+RUN mkdir -p /srv/celery-results && chown -R bodhi:bodhi /srv/celery-results
 
 EXPOSE 8080
 USER bodhi

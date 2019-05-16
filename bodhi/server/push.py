@@ -22,8 +22,10 @@ from sqlalchemy.sql import or_
 import click
 
 from bodhi.messages.schemas import composer as composer_schemas
+from pyramid.config import Configurator
+
 from bodhi.server import (buildsys, initialize_db, get_koji)
-from bodhi.server.config import config
+from bodhi.server.config import config, get_configfile
 from bodhi.server.models import (Compose, ComposeState, Release, ReleaseState, Build, Update,
                                  UpdateRequest)
 from bodhi.server.util import transactional_session_maker
@@ -93,6 +95,7 @@ def push(username, yes, **kwargs):
 
     initialize_db(config)
     db_factory = transactional_session_maker()
+
     composes = []
     with db_factory() as session:
         if not resume and session.query(Compose).count():
