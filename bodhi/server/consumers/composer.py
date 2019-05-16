@@ -45,10 +45,9 @@ from twisted.internet import reactor
 from twisted.internet.threads import blockingCallFromThread
 
 from bodhi.messages.schemas import compose as compose_schemas, update as update_schemas
-from bodhi.server import bugs, initialize_db, buildsys, notifications, mail
+from bodhi.server import buildsys, notifications, mail
 from bodhi.server.config import config, validate_path
 from bodhi.server.exceptions import BodhiException
-from bodhi.server.logging import setup as setup_logging
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
@@ -151,16 +150,11 @@ class ComposerHandler(object):
         Raises:
             ValueError: If pungi.cmd is set to a path that does not exist.
         """
-        setup_logging()
-
         if not db_factory:
-            initialize_db(config)
             self.db_factory = transactional_session_maker()
         else:
             self.db_factory = db_factory
 
-        buildsys.setup_buildsystem(config)
-        bugs.set_bugtracker()
         self.compose_dir = compose_dir
 
         self.max_composes_sem = threading.BoundedSemaphore(config.get('max_concurrent_composes'))

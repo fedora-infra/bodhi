@@ -308,15 +308,7 @@ class TestUpdatesHandlerInit(unittest.TestCase):
 
         self.assertEqual(h.handle_bugs, False)
 
-    @mock.patch('bodhi.server.consumers.updates.setup_logging')
-    def test_sets_up_logging(self, setup_logging):
-        """Assert that __init__() sets up logging."""
-        updates.UpdatesHandler()
-
-        setup_logging.assert_called_once_with()
-
-    @mock.patch('bodhi.server.consumers.updates.bug_module.set_bugtracker')
-    def test_typical_config(self, set_bugtracker):
+    def test_typical_config(self):
         """
         Test the method with a typical config.
         """
@@ -325,7 +317,6 @@ class TestUpdatesHandlerInit(unittest.TestCase):
 
         self.assertEqual(h.handle_bugs, True)
         self.assertEqual(type(h.db_factory), util.TransactionalSessionMaker)
-        set_bugtracker.assert_called_once_with()
 
 
 class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):

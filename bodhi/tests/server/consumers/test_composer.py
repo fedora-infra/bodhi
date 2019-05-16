@@ -281,24 +281,6 @@ That was the actual one''' % compose_dir
         """
         return _make_msg(self.db_factory, extra_push_args)
 
-    @mock.patch('bodhi.server.consumers.composer.bugs.set_bugtracker')
-    def test___init___sets_bugtracker(self, set_bugtracker):
-        """
-        Assert that Handler.__init__() calls bodhi.server.bugs.set_bugtracker().
-        """
-        ComposerHandler(db_factory=self.db_factory, compose_dir=self.tempdir)
-
-        set_bugtracker.assert_called_once_with()
-
-    @mock.patch('bodhi.server.consumers.composer.setup_logging')
-    def test___init___sets_logging(self, setup_logging):
-        """
-        Assert that Handler.__init__() calls bodhi.server.log.setup().
-        """
-        ComposerHandler(db_factory=self.db_factory, compose_dir=self.tempdir)
-
-        setup_logging.assert_called_once_with()
-
     @mock.patch.dict('bodhi.server.config.config', {
         'pungi.cmd': '/does/not/exist',
         'compose_dir': '/does/not/exist',
@@ -322,14 +304,12 @@ That was the actual one''' % compose_dir
                 str(exc.exception),
                 '"/does/really/not/exist" does not exist. Check the {} setting.'.format(s))
 
-    @mock.patch('bodhi.server.consumers.composer.initialize_db')
     @mock.patch('bodhi.server.consumers.composer.transactional_session_maker')
-    def test___init___without_db_factory(self, transactional_session_maker, initialize_db):
+    def test___init___without_db_factory(self, transactional_session_maker):
         """__init__() should make its own db_factory if not given one."""
         m = ComposerHandler(compose_dir=self.tempdir)
 
         self.assertEqual(m.db_factory, transactional_session_maker.return_value)
-        initialize_db.assert_called_once_with(config)
         transactional_session_maker.assert_called_once_with()
 
     def test__get_composes_api_2(self):

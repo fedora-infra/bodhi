@@ -26,9 +26,6 @@ import logging
 
 import fedora_messaging
 
-from bodhi.server import initialize_db
-from bodhi.server.config import config
-from bodhi.server.logging import setup as setup_logging
 from bodhi.server.models import Build
 from bodhi.server.util import transactional_session_maker
 
@@ -44,8 +41,6 @@ class SignedHandler(object):
 
     def __init__(self):
         """Initialize the SignedHandler."""
-        setup_logging()
-        initialize_db(config)
         self.db_factory = transactional_session_maker()
 
     def __call__(self, message: fedora_messaging.api.Message):

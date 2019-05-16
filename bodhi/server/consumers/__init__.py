@@ -25,6 +25,8 @@ import logging
 
 import fedora_messaging
 
+from bodhi.server import bugs, buildsys, initialize_db
+from bodhi.server.config import config
 from bodhi.server.consumers.composer import ComposerHandler
 from bodhi.server.consumers.signed import SignedHandler
 from bodhi.server.consumers.updates import UpdatesHandler
@@ -33,30 +35,41 @@ from bodhi.server.consumers.updates import UpdatesHandler
 log = logging.getLogger('bodhi')
 
 
-def messaging_callback(msg: fedora_messaging.api.Message):  # noqa: D401
-    """
-    Callback method called by fedora-messaging consume.
+class Consumer:
+    """All Bodhi messages are received by this class's __call__() method."""
 
-    Redirect messages to the correct handler using the
-    message topic.
+    def __init__(self):
+        """Set up the database, build system, bug tracker, and handlers."""
+        log.info('Initializing Bodhi')
+        initialize_db(config)
+        buildsys.setup_buildsystem(config)
+        bugs.set_bugtracker()
 
-    Args:
-        msg: The message received from the broker.
-    """
-    log.info(f'Received message from fedora-messaging with topic: {msg.topic}')
+        self.composer_handler = ComposerHandler()
+        self.signed_handler = SignedHandler()
+        self.updates_handler = UpdatesHandler()
 
-    if msg.topic.endswith('.bodhi.composer.start'):
-        handler = ComposerHandler()
-        log.debug('Passing message to the Composer handler')
-        handler(msg)
+    def __call__(self, msg: fedora_messaging.api.Message):  # noqa: D401
+        """
+        Callback method called by fedora-messaging consume.
 
-    if msg.topic.endswith('.buildsys.tag'):
-        handler = SignedHandler()
-        log.debug('Passing message to the Signed handler')
-        handler(msg)
+        Redirect messages to the correct handler using the
+        message topic.
 
-    if msg.topic.endswith('.bodhi.update.request.testing') \
-       or msg.topic.endswith('.bodhi.update.edit'):
-        handler = UpdatesHandler()
-        log.debug('Passing message to the Updates handler')
-        handler(msg)
+        Args:
+            msg: The message received from the broker.
+        """
+        log.info(f'Received message from fedora-messaging with topic: {msg.topic}')
+
+        if msg.topic.endswith('.bodhi.composer.start'):
+            log.debug('Passing message to the Composer handler')
+            self.composer_handler(msg)
+
+        if msg.topic.endswith('.buildsys.tag'):
+            log.debug('Passing message to the Signed handler')
+            self.signed_handler(msg)
+
+        if msg.topic.endswith('.bodhi.update.request.testing') \
+           or msg.topic.endswith('.bodhi.update.edit'):
+            log.debug('Passing message to the Updates handler')
+            self.updates_handler(msg)
