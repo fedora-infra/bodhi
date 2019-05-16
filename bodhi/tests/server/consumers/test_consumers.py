@@ -19,12 +19,33 @@ from unittest import mock
 
 from fedora_messaging.api import Message
 
+from bodhi.server import config
+from bodhi.server.consumers import composer, Consumer, signed, updates
 from bodhi.tests.server import base
-from bodhi.server.consumers import messaging_callback
 
 
-class TestConsumers(base.BaseTestCase):
-    """Test class for the messaging_callback function """
+@mock.patch.dict(
+    config.config,
+    {'pungi.cmd': '/usr/bin/true', 'compose_dir': '/usr/bin/true',
+     'compose_stage_dir': '/usr/bin/true'})
+class TestConsumer(base.BaseTestCase):
+    """Test class for the Consumer class."""
+
+    @mock.patch('bodhi.server.consumers.bugs.set_bugtracker')
+    @mock.patch('bodhi.server.consumers.buildsys.setup_buildsystem')
+    @mock.patch('bodhi.server.consumers.initialize_db')
+    @mock.patch('bodhi.server.consumers.log.info')
+    def test__init__(self, info, initialize_db, setup_buildsystem, set_bugtracker):
+        """Test the __init__() method."""
+        consumer = Consumer()
+
+        self.assertTrue(isinstance(consumer.composer_handler, composer.ComposerHandler))
+        self.assertTrue(isinstance(consumer.signed_handler, signed.SignedHandler))
+        self.assertTrue(isinstance(consumer.updates_handler, updates.UpdatesHandler))
+        info.assert_called_once_with('Initializing Bodhi')
+        initialize_db.assert_called_once_with(config.config)
+        setup_buildsystem.assert_called_once_with(config.config)
+        set_bugtracker.assert_called_once_with()
 
     @mock.patch('bodhi.server.consumers.ComposerHandler')
     def test_messaging_callback_composer(self, Handler):
@@ -34,7 +55,9 @@ class TestConsumers(base.BaseTestCase):
         )
         handler = mock.Mock()
         Handler.side_effect = lambda: handler
-        messaging_callback(msg)
+
+        Consumer()(msg)
+
         handler.assert_called_once_with(msg)
 
     @mock.patch('bodhi.server.consumers.SignedHandler')
@@ -45,7 +68,9 @@ class TestConsumers(base.BaseTestCase):
         )
         handler = mock.Mock()
         Handler.side_effect = lambda: handler
-        messaging_callback(msg)
+
+        Consumer()(msg)
+
         handler.assert_called_once_with(msg)
 
     @mock.patch('bodhi.server.consumers.UpdatesHandler')
@@ -56,7 +81,9 @@ class TestConsumers(base.BaseTestCase):
         )
         handler = mock.Mock()
         Handler.side_effect = lambda: handler
-        messaging_callback(msg)
+
+        Consumer()(msg)
+
         handler.assert_called_once_with(msg)
 
     @mock.patch('bodhi.server.consumers.UpdatesHandler')
@@ -67,5 +94,7 @@ class TestConsumers(base.BaseTestCase):
         )
         handler = mock.Mock()
         Handler.side_effect = lambda: handler
-        messaging_callback(msg)
+
+        Consumer()(msg)
+
         handler.assert_called_once_with(msg)

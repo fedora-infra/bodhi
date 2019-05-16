@@ -38,10 +38,9 @@ import time
 
 import fedora_messaging
 
-from bodhi.server import initialize_db, util, bugs as bug_module
+from bodhi.server import util, bugs as bug_module
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
-from bodhi.server.logging import setup as setup_logging
 from bodhi.server.models import Bug, Update, UpdateType
 
 
@@ -64,15 +63,11 @@ class UpdatesHandler(object):
 
     def __init__(self, *args, **kwargs):
         """Initialize the UpdatesHandler."""
-        setup_logging()
-        initialize_db(config)
         self.db_factory = util.transactional_session_maker()
 
         self.handle_bugs = bool(config.get('bodhi_email'))
         if not self.handle_bugs:
             log.warning("No bodhi_email defined; not fetching bug details")
-        else:
-            bug_module.set_bugtracker()
 
     def __call__(self, message: fedora_messaging.api.Message):
         """
