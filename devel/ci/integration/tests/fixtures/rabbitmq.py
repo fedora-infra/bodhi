@@ -32,6 +32,7 @@ def rabbitmq_container(
     Args:
         docker_backend: The Docker backend (fixture).
         docker_network: The Docker network ID (fixture).
+
     Yields:
         The RabbitMQ container.
     """

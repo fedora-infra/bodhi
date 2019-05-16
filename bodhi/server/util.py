@@ -20,6 +20,7 @@
 from collections import defaultdict, OrderedDict
 from contextlib import contextmanager
 from urllib.parse import urlencode
+import errno
 import functools
 import hashlib
 import json
@@ -29,6 +30,7 @@ import socket
 import subprocess
 import tempfile
 import time
+import types
 import typing
 
 from pyramid.i18n import TranslationStringFactory
@@ -1490,3 +1492,32 @@ def get_absolute_path(location):
     module, final = location.split(':')
     base = os.path.dirname(__import__(module).__file__)
     return base + "/" + final
+
+
+def pyfile_to_module(
+        filename: str, modname: str, silent: bool = False) -> typing.Union[types.ModuleType, bool]:
+    """Create a Python module from a Python file.
+
+    This function behaves as if the file was imported as module. Copied from Flask's
+    ``flask.config.Config.from_pyfile`` method.
+
+    Args:
+        filename: the filename to load.  This can either be an
+                  absolute filename or a filename relative to the
+                  current working directory.
+        modname: the name of the module that will be produced.
+        silent: set to ``True`` if you want silent failure for missing
+                files.
+    """
+    filename = os.path.join(os.getcwd(), filename)
+    d = types.ModuleType(modname)
+    d.__file__ = filename
+    try:
+        with open(filename) as config_file:
+            exec(compile(config_file.read(), filename, 'exec'), d.__dict__)
+    except IOError as e:
+        if silent and e.errno in (errno.ENOENT, errno.EISDIR):
+            return False
+        e.strerror = 'Unable to load file (%s)' % e.strerror
+        raise
+    return d

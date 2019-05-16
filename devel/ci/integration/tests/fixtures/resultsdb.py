@@ -27,7 +27,7 @@ def resultsdb_container(docker_backend, docker_network, db_container, rabbitmq_c
 
     Args:
         docker_backend (conu.DockerBackend): The Docker backend (fixture).
-        docker_network (str): The Docker network ID (fixture).
+        docker_network (dict): The Docker network ID (fixture).
         db_container(conu.DockerContainer): The PostgreSQL container (fixture).
         rabbitmq_container (conu.DockerContainer): The RabbitMQ container
             (fixture).
