@@ -878,7 +878,8 @@ EXAMPLE_RELEASE_MUNCH = Munch({
     'long_name': 'Fedora 27', 'state': 'pending', 'version': '27', 'name': 'F27',
     'override_tag': 'f27-override', 'id_prefix': 'FEDORA', 'composed_by_bodhi': True,
     'pending_testing_tag': 'f27-updates-testing-pending', 'stable_tag': 'f27-updates',
-    'candidate_tag': 'f27-updates-candidate', 'mail_template': 'fedora_errata_template'})
+    'candidate_tag': 'f27-updates-candidate', 'mail_template': 'fedora_errata_template',
+    'create_automatic_updates': False})
 
 
 EXPECTED_RELEASE_OUTPUT = """Saved release:

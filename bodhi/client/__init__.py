@@ -171,6 +171,11 @@ release_options = [
     click.option('--mail-template', help='Name of the email template for this release'),
     click.option('--composed-by-bodhi/--not-composed-by-bodhi', is_flag=True, default=True,
                  help='The flag that indicates whether the release is composed by Bodhi or not'),
+    click.option(
+        '--create-automatic-updates/--no-create-automatic-updates',
+        help=('Configure for this release, whether or not automatic updates are '
+              'created for builds which are tagged into its Koji candidate tag.'),
+        is_flag=True, default=False),
     openid_option,
     staging_option,
     url_option,
