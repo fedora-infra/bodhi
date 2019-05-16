@@ -27,7 +27,12 @@ import fedora_messaging
 
 from bodhi.server import bugs, buildsys, initialize_db
 from bodhi.server.config import config
-from bodhi.server.consumers.composer import ComposerHandler
+try:
+    from bodhi.server.consumers.composer import ComposerHandler
+except ImportError:  # pragma: no cover
+    # If the composer isn't installed, it's OK, we just won't be able to process composer.start
+    # messages.
+    ComposerHandler = None  # pragma: no cover
 from bodhi.server.consumers.signed import SignedHandler
 from bodhi.server.consumers.updates import UpdatesHandler
 
@@ -45,7 +50,11 @@ class Consumer:
         buildsys.setup_buildsystem(config)
         bugs.set_bugtracker()
 
-        self.composer_handler = ComposerHandler()
+        if ComposerHandler:
+            self.composer_handler = ComposerHandler()
+        else:
+            log.info('The composer is not installed - Bodhi will ignore composer.start messages.')
+            self.composer_handler = None
         self.signed_handler = SignedHandler()
         self.updates_handler = UpdatesHandler()
 
@@ -62,8 +71,14 @@ class Consumer:
         log.info(f'Received message from fedora-messaging with topic: {msg.topic}')
 
         if msg.topic.endswith('.bodhi.composer.start'):
-            log.debug('Passing message to the Composer handler')
-            self.composer_handler(msg)
+            if self.composer_handler:
+                log.debug('Passing message to the Composer handler')
+                self.composer_handler(msg)
+            else:
+                msg = ('Unable to process composer.start message topics because the Composer is '
+                       'not installed!')
+                log.error(msg)
+                raise fedora_messaging.exceptions.Nack(msg)
 
         if msg.topic.endswith('.buildsys.tag'):
             log.debug('Passing message to the Signed handler')
