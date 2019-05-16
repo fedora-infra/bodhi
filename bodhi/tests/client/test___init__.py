@@ -2173,6 +2173,41 @@ class TestEditRelease(unittest.TestCase):
                       'mail_template': 'fedora_errata_template',
                       'composed_by_bodhi': False, 'create_automatic_updates': False}))
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_RELEASE_MUNCH, autospec=True)
+    def test_edit_create_automatic_updates_flag(self, send_request):
+        """
+        Assert correct behavior while editing 'created_automatic_updates' flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit_release,
+            ['--name', 'F27', '--create-automatic-updates'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
+        bindings_client = send_request.mock_calls[0][1][0]
+        self.assertEqual(send_request.call_count, 2)
+        self.assertEqual(send_request.mock_calls[0],
+                         mock.call(bindings_client, 'releases/F27', verb='GET', auth=True))
+        self.assertEqual(
+            send_request.mock_calls[1],
+            mock.call(
+                bindings_client, 'releases/', verb='POST', auth=True,
+                data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
+                      'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
+                      'pending_stable_tag': 'f27-updates-pending',
+                      'pending_signing_tag': 'f27-signing-pending',
+                      'long_name': 'Fedora 27', 'state': 'pending',
+                      'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
+                      'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
+                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
+                      'mail_template': 'fedora_errata_template',
+                      'composed_by_bodhi': True, 'create_automatic_updates': True}))
+
 
 class TestInfo(unittest.TestCase):
     """
