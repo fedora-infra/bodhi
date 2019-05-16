@@ -1966,7 +1966,8 @@ class TestCreate(unittest.TestCase):
                   'testing_tag': None, 'pending_stable_tag': None, 'long_name': None, 'state': None,
                   'version': None, 'override_tag': None, 'branch': None, 'id_prefix': None,
                   'pending_testing_tag': None, 'pending_signing_tag': None, 'stable_tag': None,
-                  'candidate_tag': None, 'mail_template': None, 'composed_by_bodhi': True})
+                  'candidate_tag': None, 'mail_template': None, 'composed_by_bodhi': True,
+                  'create_automatic_updates': False})
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -2026,7 +2027,8 @@ class TestEditRelease(unittest.TestCase):
                       'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
                       'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
                       'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True}))
+                      'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True,
+                      'create_automatic_updates': False}))
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -2062,7 +2064,8 @@ class TestEditRelease(unittest.TestCase):
                       'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
                       'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
                       'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True}))
+                      'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True,
+                      'create_automatic_updates': False}))
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2132,7 +2135,8 @@ class TestEditRelease(unittest.TestCase):
                       'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
                       'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
                       'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'edited_fedora_errata_template', 'composed_by_bodhi': True}))
+                      'mail_template': 'edited_fedora_errata_template', 'composed_by_bodhi': True,
+                      'create_automatic_updates': False}))
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2167,7 +2171,7 @@ class TestEditRelease(unittest.TestCase):
                       'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
                       'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
                       'mail_template': 'fedora_errata_template',
-                      'composed_by_bodhi': False}))
+                      'composed_by_bodhi': False, 'create_automatic_updates': False}))
 
 
 class TestInfo(unittest.TestCase):
