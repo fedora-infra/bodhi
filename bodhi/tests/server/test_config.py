@@ -352,7 +352,14 @@ class ValidatePathTests(unittest.TestCase):
         with self.assertRaises(ValueError) as exc:
             config.validate_path('/does/not/exist')
 
-        self.assertEqual(str(exc.exception), '"/does/not/exist" does not exist.')
+        self.assertEqual(str(exc.exception), "'/does/not/exist' does not exist.")
+
+    def test_path_is_none(self):
+        """Test with a None value."""
+        with self.assertRaises(ValueError) as exc:
+            config.validate_path(None)
+
+        self.assertEqual(str(exc.exception), "None does not exist.")
 
     def test_path_exists(self):
         """Test with a path that exists."""

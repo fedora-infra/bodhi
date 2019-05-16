@@ -159,8 +159,8 @@ def validate_path(value: str) -> str:
     Raises:
         ValueError: If os.path.exists returns False.
     """
-    if not os.path.exists(value):
-        raise ValueError('"{}" does not exist.'.format(value))
+    if value is None or not os.path.exists(value):
+        raise ValueError(f'{value!r} does not exist.')
 
     return str(value)
 
