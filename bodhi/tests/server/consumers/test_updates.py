@@ -25,6 +25,7 @@ import sqlalchemy
 
 from fedora_messaging.api import Message
 
+from bodhi.messages.schemas.update import UpdateEditV1, UpdateRequestTestingV1
 from bodhi.server import config, exceptions, models, util
 from bodhi.server.consumers import updates
 from bodhi.tests.server import base
@@ -43,11 +44,11 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        message = Message(
-            topic='bodhi.update.edit',
-            body={'msg': {'update': {'alias': update.alias},
-                          'new_bugs': ['12345', '123456']}}
-        )
+        message = UpdateEditV1(
+            body={
+                'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                           'user': {'name': 'brodhi'}, 'status': 'pending', 'request': 'testing'},
+                'new_bugs': [12345, 123456]})
 
         h(message)
 
@@ -80,11 +81,12 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        message = Message(
-            topic='bodhi.update.edit',
-            body={'msg': {'update': {'alias': update.alias},
-                          'new_bugs': ['12345', '123456']}}
-        )
+        message = UpdateEditV1(
+            body={
+                'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                           'user': {'name': 'brodhi'}, 'status': str(update.status),
+                           'request': str(update.request)},
+                'new_bugs': [12345, 123456]})
 
         h(message)
 
@@ -118,11 +120,13 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        message = Message(
-            topic='bodhi.update.edit',
-            body={'msg': {'update': {'alias': update.alias},
-                          'new_bugs': ['12345']}}
-        )
+        message = UpdateEditV1(
+            body={
+                'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                           'user': {'name': 'brodhi'}, 'status': str(update.status),
+                           'request': str(update.request)},
+                'new_bugs': [12345]})
+
         h(message)
 
         self.assertEqual(work_on_bugs.call_count, 1)
@@ -144,11 +148,12 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         # Throw a bogus bug id in there to ensure it doesn't raise AssertionError.
-        message = Message(
-            topic='bodhi.update.request.testing',
-            body={'msg': {'update': {'alias': update.alias},
-                          'new_bugs': []}}
-        )
+        message = UpdateEditV1(
+            body={
+                'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                           'user': {'name': 'brodhi'}, 'status': str(update.status),
+                           'request': str(update.request)},
+                'new_bugs': []})
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': False,
@@ -181,11 +186,12 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         # Throw a bogus bug id in there to ensure it doesn't raise AssertionError.
-        message = Message(
-            topic='bodhi.update.request.testing',
-            body={'msg': {'update': {'alias': update.alias},
-                          'new_bugs': []}}
-        )
+        message = UpdateEditV1(
+            body={
+                'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                           'user': {'name': 'brodhi'}, 'status': str(update.status),
+                           'request': str(update.request)},
+                'new_bugs': []})
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': False,
@@ -223,19 +229,20 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        # Throw a bogus bug id in there to ensure it doesn't raise AssertionError.
-        message = Message(
-            topic='bodhi.update.request.testing',
-            body={'msg': {'update': {'alias': update.alias},
-                          'new_bugs': ['this isnt a real bug lol']}}
-        )
+        message = UpdateEditV1(
+            body={
+                'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                           'user': {'name': 'brodhi'}, 'status': str(update.status),
+                           'request': str(update.request)},
+                'new_bugs': [12345]})
+
         h(message)
 
         self.assertEqual(work_on_bugs.call_count, 1)
         self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][1],
                                    sqlalchemy.orm.session.Session))
         self.assertEqual(work_on_bugs.mock_calls[0][1][2].title, 'bodhi-2.0-1.fc17')
-        # Despite our weird bogus bug id, the update's bug list should have been used.
+        # The update's bug list should have been used.
         self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][3]], [12345])
         self.assertEqual(fetch_test_cases.call_count, 1)
         self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][1],
@@ -254,9 +261,11 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         # Use a bogus topic to trigger the NotImplementedError.
         message = Message(
             topic='bodhi.update.nawjustkiddin',
-            body={'msg': {'update': {'alias': update.alias},
-                          'new_bugs': ['12345']}}
+            body={'update': {'alias': update.alias},
+                  'new_bugs': ['12345']}
         )
+        message.update = update
+
         self.assertRaises(NotImplementedError, h, message)
 
         self.assertEqual(work_on_bugs.call_count, 0)
@@ -276,6 +285,12 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
             topic='bodhi.update.request.testing',
             body={'msg': {'update': {'alias': 'does not exist'}}}
         )
+        message = UpdateRequestTestingV1(
+            body={
+                'update': {'alias': 'does not exist', 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                           'user': {'name': 'brodhi'}, 'status': 'pending',
+                           'request': 'testing'}})
+
         with self.assertRaises(exceptions.BodhiException) as exc:
             h(message)
 
