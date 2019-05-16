@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE variants PUBLIC "-//Red Hat, Inc.//DTD Variants info//EN" "variants2012.dtd">
+<variants>
+    <variant id="Everything" name="Everything" type="variant">
+        <arches>
+            <arch>x86_64</arch>
+	    [% if release.version_int >= 25 or release.version_int == 6 %]
+		<arch>i386</arch>
+	    [% endif %]
+	    [% if release.version_int >= 25 %]
+	        <arch>armhfp</arch>
+	    [% endif %]
+	    [% if release.version_int >= 26 or release.version_int <= 7 %]
+		<arch>ppc64</arch>
+	    [% endif %]
+	    [% if release.version_int >= 26 or release.version_int == 7 %]
+	        <arch>aarch64</arch>
+		<arch>ppc64le</arch>
+	    [% endif %]
+	    [% if release.version_int >= 27 %]
+	        <arch>s390x</arch>
+	    [% endif %]
+        </arches>
+    </variant>
+    <variant id="AtomicHost" name="AtomicHost" type="variant" is_empty="true">
+        <arches>
+            <arch>aarch64</arch>
+            <arch>x86_64</arch>
+            <arch>ppc64le</arch>
+        </arches>
+    </variant>
+</variants>

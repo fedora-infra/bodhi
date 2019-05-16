@@ -59,7 +59,7 @@ class TestMessageSchemasV1CollectionGet(base.BaseTestCase):
             set([
                 'bodhi.buildroot_override.tag', 'bodhi.buildroot_override.untag',
                 'bodhi.compose.complete', 'bodhi.compose.composing', 'bodhi.compose.start',
-                'bodhi.compose.sync.done', 'bodhi.compose.sync.wait', 'bodhi.composer.start',
+                'bodhi.compose.sync.done', 'bodhi.compose.sync.wait',
                 'bodhi.errata.publish', 'bodhi.repo.done', 'bodhi.update.comment',
                 'bodhi.update.complete.stable', 'bodhi.update.complete.testing',
                 'bodhi.update.edit', 'bodhi.update.eject', 'bodhi.update.karma.threshold.reach',

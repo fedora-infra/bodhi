@@ -33,7 +33,6 @@ if celery.version_info < (4, 3) and sys.version_info >= (3, 7):  # pragma: no co
     from celery.app.routes import re as routes_re
     routes_re._pattern_type = Pattern
 
-
 log = logging.getLogger('bodhi')
 
 # The Celery app object.
@@ -46,3 +45,24 @@ def _do_init():
     initialize_db(config)
     buildsys.setup_buildsystem(config)
     bugs.set_bugtracker()
+
+
+@app.task(name="compose")
+def compose(api_version: int, **kwargs):
+    """Trigger the compose.
+
+    All arguments besides the ``api_version`` will be transmitted to the task handler.
+
+    Args:
+        api_version: Version of the task API. Change it if the handling of the
+            arguments have changed in the task handler.
+    """
+    # Import here to avoid an import loop.
+    # The compose task is routed independently in the configuration, therefore
+    # the task will not be attemted on a host that does not have the composer
+    # installed.
+    from bodhi.server.tasks.composer import ComposerHandler
+    log.info("Received a compose order")
+    _do_init()
+    composer = ComposerHandler()
+    composer.run(api_version=api_version, data=kwargs)

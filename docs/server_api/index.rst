@@ -22,7 +22,6 @@ schemas via `JSON Schema`_.
    messages/base
    messages/buildroot_override
    messages/compose
-   messages/composer
    messages/errata
    messages/update
 

@@ -154,7 +154,6 @@ setup(
                 "bodhi.messages.schemas.buildroot_override:BuildrootOverrideUntagV1"
             ),
             "bodhi.errata.publish.v1=bodhi.messages.schemas.errata:ErrataPublishV1",
-            "bodhi.composer.start.v1=bodhi.messages.schemas.composer:ComposerStartV1",
             "bodhi.compose.complete.v1=bodhi.messages.schemas.compose:ComposeCompleteV1",
             "bodhi.compose.composing.v1=bodhi.messages.schemas.compose:ComposeComposingV1",
             "bodhi.compose.start.v1=bodhi.messages.schemas.compose:ComposeStartV1",

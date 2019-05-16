@@ -40,6 +40,13 @@ COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/conf
 COPY devel/ci/integration/bodhi/httpd.conf /etc/bodhi/httpd.conf
 COPY apache/bodhi.wsgi /etc/bodhi/bodhi.wsgi
 RUN sed -i -e 's,/var/www,/httpdir,g' /etc/bodhi/bodhi.wsgi
+COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml
+# Composes
+COPY devel/ci/integration/bodhi/pungi-call-dump.sh /etc/bodhi/pungi-call-dump.sh
+COPY devel/ci/integration/bodhi/pungi.rpm.conf.j2 /etc/bodhi/pungi.rpm.conf.j2
+COPY devel/ci/integration/bodhi/pungi.module.conf.j2 /etc/bodhi/pungi.module.conf.j2
+COPY devel/ci/integration/bodhi/variants.rpm.xml.j2 /etc/bodhi/variants.rpm.xml.j2
+COPY devel/ci/integration/bodhi/variants.module.xml.j2 /etc/bodhi/variants.module.xml.j2
 
 RUN \
 # Set up krb5
@@ -51,6 +58,8 @@ RUN \
 RUN mkdir -p /httpdir && chown bodhi:bodhi /httpdir
 # Celery results
 RUN mkdir -p /srv/celery-results && chown -R bodhi:bodhi /srv/celery-results
+# Composes
+RUN mkdir -p /srv/composes/final /srv/composes/stage && chown -R bodhi:bodhi /srv/composes
 
 EXPOSE 8080
 USER bodhi
