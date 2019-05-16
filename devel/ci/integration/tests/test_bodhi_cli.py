@@ -214,22 +214,23 @@ def test_releases_info(bodhi_container, db_container):
         result = _run_cli(bodhi_container, ["releases", "info", release["name"]])
         assert result.exit_code == 0
         expected = """Release:
-  Name:                {name}
-  Long Name:           {long_name}
-  Version:             {version}
-  Branch:              {branch}
-  ID Prefix:           {id_prefix}
-  Dist Tag:            {dist_tag}
-  Stable Tag:          {stable_tag}
-  Testing Tag:         {testing_tag}
-  Candidate Tag:       {candidate_tag}
-  Pending Signing Tag: {pending_signing_tag}
-  Pending Testing Tag: {pending_testing_tag}
-  Pending Stable Tag:  {pending_stable_tag}
-  Override Tag:        {override_tag}
-  State:               {state}
-  Email Template:      {mail_template}
-  Composed by Bodhi:   {composed_by_bodhi}
+  Name:                     {name}
+  Long Name:                {long_name}
+  Version:                  {version}
+  Branch:                   {branch}
+  ID Prefix:                {id_prefix}
+  Dist Tag:                 {dist_tag}
+  Stable Tag:               {stable_tag}
+  Testing Tag:              {testing_tag}
+  Candidate Tag:            {candidate_tag}
+  Pending Signing Tag:      {pending_signing_tag}
+  Pending Testing Tag:      {pending_testing_tag}
+  Pending Stable Tag:       {pending_stable_tag}
+  Override Tag:             {override_tag}
+  State:                    {state}
+  Email Template:           {mail_template}
+  Composed by Bodhi:        {composed_by_bodhi}
+  Create Automatic Updates: {create_automatic_updates}
 """.format(**release)
         assert result.output == expected
 

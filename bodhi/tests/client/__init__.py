@@ -883,22 +883,23 @@ EXAMPLE_RELEASE_MUNCH = Munch({
 
 
 EXPECTED_RELEASE_OUTPUT = """Saved release:
-  Name:                F27
-  Long Name:           Fedora 27
-  Version:             27
-  Branch:              f27
-  ID Prefix:           FEDORA
-  Dist Tag:            f27
-  Stable Tag:          f27-updates
-  Testing Tag:         f27-updates-testing
-  Candidate Tag:       f27-updates-candidate
-  Pending Signing Tag: f27-signing-pending
-  Pending Testing Tag: f27-updates-testing-pending
-  Pending Stable Tag:  f27-updates-pending
-  Override Tag:        f27-override
-  State:               pending
-  Email Template:      fedora_errata_template
-  Composed by Bodhi:   True
+  Name:                     F27
+  Long Name:                Fedora 27
+  Version:                  27
+  Branch:                   f27
+  ID Prefix:                FEDORA
+  Dist Tag:                 f27
+  Stable Tag:               f27-updates
+  Testing Tag:              f27-updates-testing
+  Candidate Tag:            f27-updates-candidate
+  Pending Signing Tag:      f27-signing-pending
+  Pending Testing Tag:      f27-updates-testing-pending
+  Pending Stable Tag:       f27-updates-pending
+  Override Tag:             f27-override
+  State:                    pending
+  Email Template:           fedora_errata_template
+  Composed by Bodhi:        True
+  Create Automatic Updates: False
 """
 
 EXAMPLE_ARCHIVED_RELEASE_MUNCH = Munch({
