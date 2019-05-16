@@ -19,8 +19,10 @@
 import os
 import shutil
 import tempfile
+import time
 from contextlib import contextmanager
 
+import conu
 from fedora_messaging import message
 
 
@@ -52,6 +54,28 @@ def make_db_and_user(db_container, name, use_dump=False):
         db_container.copy_to(db_dump, "/tmp/database.dump")
         db_container.execute(["/usr/bin/psql", "-q", "-U", name, "-f", "/tmp/database.dump"])
         db_container.execute(["rm", "/tmp/database.dump"])
+
+
+def wait_for_file(
+        container: conu.DockerContainer, path: str, dir_not_empty: bool = False,
+        timeout: int = 120):
+    """Check that a file is in a container.
+
+    Args:
+        container: The container where the file is.
+        path: The file path in the container.
+        timeout: How long to wait before throwing an exception.
+    """
+    while timeout > 0:
+        try:
+            container.execute(["ls", path])
+        except conu.exceptions.ConuException:
+            timeout = timeout - 1
+            if timeout == 0:
+                raise conu.exception.ConuException(f"Timeout reached waiting for {path}")
+            time.sleep(1)
+        else:
+            break
 
 
 @contextmanager

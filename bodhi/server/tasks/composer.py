@@ -40,7 +40,6 @@ from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 import jinja2
-import fedora_messaging
 import sqlalchemy.orm.exc
 
 from bodhi.messages.schemas import compose as compose_schemas, update as update_schemas
@@ -166,7 +165,7 @@ class ComposerHandler(object):
             except ValueError as e:
                 raise ValueError('{} Check the {} setting.'.format(str(e), setting))
 
-    def __call__(self, message: fedora_messaging.api.Message):
+    def run(self, api_version: int, data: dict):
         """
         Begin the push process.
 
@@ -176,21 +175,19 @@ class ComposerHandler(object):
         If there are any security updates in the push, then those repositories
         will be executed before all others.
 
-        Duplicate messages: if a requested compose is already pending or has
-        already started, it will be skipped.
-
         Args:
-            message: The message we are processing. This is how we know what compose jobs to run.
+            api_version: API version number.
+            data: Information about the compose job we are processing.
         """
-        message = message.body
-        resume = message.get('resume', False)
-        agent = message.get('agent')
-        notifications.publish(compose_schemas.ComposeStartV1.from_dict(dict(agent=agent)),
-                              force=True)
+        resume = data.get('resume', False)
+        agent = data.get('agent')
+        notifications.publish(
+            compose_schemas.ComposeStartV1.from_dict(dict(agent=agent)),
+            force=True)
 
         results = []
         threads = []
-        for compose in self._get_composes(message):
+        for compose in self._get_composes(api_version, data):
             log.info('Now starting composes')
 
             composer = get_composer(ContentType.from_string(compose['content_type']))
@@ -216,7 +213,7 @@ class ComposerHandler(object):
         for result in results:
             log.info(result)
 
-    def _get_composes(self, msg: dict):
+    def _get_composes(self, api_version: int, data: dict):
         """
         Return a list of dictionaries that represent the :class:`Composes <Compose>` we should run.
 
@@ -228,14 +225,14 @@ class ComposerHandler(object):
         message.
 
         Args:
-            msg: The body of the received message.
+            data: Information about the compose job we are processing.
         Returns:
             list: A list of dictionaries, as returned from :meth:`Compose.__json__`.
         """
         with self.db_factory() as db:
-            if 'api_version' in msg and msg['api_version'] == 2:
+            if api_version == 2:
                 try:
-                    composes = [Compose.from_dict(db, c) for c in msg['composes']]
+                    composes = [Compose.from_dict(db, c) for c in data['composes']]
                 except sqlalchemy.orm.exc.NoResultFound:
                     # It is possible for messages to get into our queue that reference Composes that
                     # no longer exist. If this happens, we really just want to ignore the message so
@@ -243,10 +240,10 @@ class ComposerHandler(object):
                     # this happens, because that will Nack the message put it back into the queue,
                     # resulting in a Nack loop.
                     # See https://github.com/fedora-infra/bodhi/issues/3318
-                    log.info('Ignoring a compose message that references non-existing Composes')
+                    log.info('Ignoring a compose task that references non-existing Composes')
                     return []
             else:
-                raise ValueError('Unable to process message: {}'.format(msg))
+                raise ValueError('Unable to process request: {}'.format(data))
 
             # Filter out composes that are pending or have started, for example in
             # case of duplicate messages.

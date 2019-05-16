@@ -6,7 +6,6 @@ topic_prefix = "org.fedoraproject.prod"
 queue = "bodhi"
 exchange = "amq.topic"
 routing_keys = [
-    "org.fedoraproject.*.bodhi.composer.start",
     "org.fedoraproject.*.buildsys.tag",
     "org.fedoraproject.*.bodhi.update.request.testing",
     "org.fedoraproject.*.bodhi.update.edit",
