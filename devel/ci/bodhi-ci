@@ -40,7 +40,7 @@ CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 LABEL_TEMPLATE = '{:>8}-{:<34}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 RELEASES = ('f29', 'f30', 'rawhide', 'pip')
-INTEGRATION_APPS = ("resultsdb", "waiverdb", "greenwave", "rabbitmq")
+INTEGRATION_APPS = ("resultsdb", "waiverdb", "greenwave", "rabbitmq", "ipsilon")
 
 
 def _set_concurrency(ctx, param, value):

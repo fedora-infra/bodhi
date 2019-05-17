@@ -42,7 +42,7 @@ def db_container(docker_backend, docker_network):
     container = image.run_via_api()
     container.start()
     docker_backend.d.connect_container_to_network(
-        container.get_id(), docker_network["Id"], aliases=["db"],
+        container.get_id(), docker_network["Id"], aliases=["db", "db.ci"],
     )
     container.wait_for_port(5432, timeout=64)
     container.execute(

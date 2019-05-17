@@ -441,7 +441,7 @@ class BodhiConfig(dict):
             'value': 'https://id.fedoraproject.org/openid/',
             'validator': str},
         'openid.sreg_required': {
-            'value': 'email',
+            'value': 'email nickname',
             'validator': str},
         'openid.success_callback': {
             'value': 'bodhi.server.security:remember_me',

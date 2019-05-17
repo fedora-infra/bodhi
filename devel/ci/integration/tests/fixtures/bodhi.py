@@ -54,7 +54,7 @@ def bodhi_container(
     container = image.run_via_api()
     container.start()
     docker_backend.d.connect_container_to_network(
-        container.get_id(), docker_network["Id"], aliases=["bodhi"],
+        container.get_id(), docker_network["Id"], aliases=["bodhi", "bodhi.ci"],
     )
     # Update the database schema
     container.execute(["alembic-3", "-c", "/bodhi/alembic.ini", "upgrade", "head"])
