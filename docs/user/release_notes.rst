@@ -83,7 +83,6 @@ Dependency changes
 * kitchen is no longer required (:issue:`3094`).
 * hawkey is no longer required.
 * PyYAML is now a required dependency (:issue:`3174`).
-* Twisted is now required (:issue:`3145`).
 * Bodhi now requires Python 3.6 or greater (:issue:`2856`).
 * Bodhi no longer uses or works with ``fedmsg``.
 
