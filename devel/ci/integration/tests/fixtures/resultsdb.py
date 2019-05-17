@@ -43,7 +43,7 @@ def resultsdb_container(docker_backend, docker_network, db_container, rabbitmq_c
     container = image.run_via_api()
     container.start()
     docker_backend.d.connect_container_to_network(
-        container.get_id(), docker_network["Id"], aliases=["resultsdb"],
+        container.get_id(), docker_network["Id"], aliases=["resultsdb", "resultsdb.ci"],
     )
     # Add sample data in the database
     container.execute(["resultsdb", "init_db"])
