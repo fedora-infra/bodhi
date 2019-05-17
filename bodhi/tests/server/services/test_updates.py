@@ -81,6 +81,7 @@ mock_absent_taskotron_results = {
 }
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestNewUpdate(BaseTestCase):
     """
     This class contains tests for the new_update() function.
@@ -883,6 +884,7 @@ class TestNewUpdate(BaseTestCase):
                          "Must specify severity for a security update")
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestSetRequest(BaseTestCase):
     """
     This class contains tests for the set_request() function.
@@ -1014,6 +1016,7 @@ class TestSetRequest(BaseTestCase):
         log_exception.assert_called_once_with("Unhandled exception in set_request")
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestEditUpdateForm(BaseTestCase):
 
     def test_edit_with_permission(self):
@@ -1106,6 +1109,7 @@ class TestEditUpdateForm(BaseTestCase):
                                      '\\n.*min="7" value="10"\\n.*>'))
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestUpdatesService(BaseTestCase):
 
     def test_content_type(self):
@@ -5281,6 +5285,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(update.meets_testing_requirements, True)
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestWaiveTestResults(BaseTestCase):
     """
     This class contains tests for the waive_test_results() function.
@@ -5823,6 +5828,7 @@ class TestWaiveTestResults(BaseTestCase):
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestGetTestResults(BaseTestCase):
     """
     This class contains tests for the get_test_results() function.
