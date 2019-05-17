@@ -29,7 +29,6 @@ from bodhi.server import bugs, buildsys, initialize_db
 from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.consumers.signed import SignedHandler
-from bodhi.server.consumers.updates import UpdatesHandler
 from bodhi.server.consumers.greenwave import GreenwaveHandler
 
 
@@ -48,7 +47,6 @@ class Consumer:
 
         self.automatic_update_handler = AutomaticUpdateHandler()
         self.signed_handler = SignedHandler()
-        self.updates_handler = UpdatesHandler()
         self.greenwave_handler = GreenwaveHandler()
 
     def __call__(self, msg: fedora_messaging.api.Message):  # noqa: D401
@@ -70,11 +68,6 @@ class Consumer:
 
                 log.debug('Passing message to the Automatic Update handler')
                 self.automatic_update_handler(msg)
-
-            if msg.topic.endswith('.bodhi.update.request.testing') \
-               or msg.topic.endswith('.bodhi.update.edit'):
-                log.debug('Passing message to the Updates handler')
-                self.updates_handler(msg)
 
             if msg.topic.endswith('.greenwave.decision.update'):
                 log.debug('Passing message to the Greenwave handler')

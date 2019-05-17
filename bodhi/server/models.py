@@ -45,6 +45,7 @@ from bodhi.messages.schemas import (buildroot_override as override_schemas,
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
+from bodhi.server.tasks import handle_update
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
@@ -2126,7 +2127,7 @@ class Update(Base):
             data['builds'], data['release'].name)
 
         # Create the Bug entities, but don't talk to rhbz yet.  We do that
-        # offline in the UpdatesHandler message consumer now.
+        # offline in the UpdatesHandler task worker now.
         bugs = []
         if data['bugs']:
             for bug_num in data['bugs']:
@@ -2315,6 +2316,12 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
+        handle_update.delay(
+            api_version=1, action='edit',
+            update=up.__json__(request=request),
+            agent=request.user.name,
+            new_bugs=new_bugs
+        )
         notifications.publish(update_schemas.UpdateEditV1.from_dict(
             message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
 
@@ -2752,6 +2759,12 @@ class Update(Base):
             )
         self.comment(db, comment_text, author=u'bodhi')
 
+        if action == UpdateRequest.testing:
+            handle_update.delay(
+                api_version=1, action="testing",
+                update=self.__json__(),
+                agent=username
+            )
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -4132,7 +4145,7 @@ class Bug(Base):
         """
         Grab details from rhbz to populate our bug fields.
 
-        This is typically called "offline" in the UpdatesHandler consumer.
+        This is typically called "offline" in the UpdatesHandler task.
 
         Args:
             bug: The Bug to retrieve details from Bugzilla about. If

@@ -1631,6 +1631,7 @@ class TestUpdateInit(BaseTestCase):
         self.assertEqual(str(exc.exception), 'You must specify a Release when creating an Update.')
 
 
+@mock.patch("bodhi.server.models.handle_update", mock.Mock())
 class TestUpdateEdit(BaseTestCase):
     """Tests for the Update.edit() method."""
 
@@ -2296,6 +2297,7 @@ class TestUpdateMeetsTestingRequirements(BaseTestCase):
         self.assertEqual(update.meets_testing_requirements, False)
 
 
+@mock.patch("bodhi.server.models.handle_update", mock.Mock())
 class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
     klass = model.Update

@@ -21,7 +21,7 @@ from fedora_messaging.api import Message
 from fedora_messaging.exceptions import Nack
 
 from bodhi.server import config
-from bodhi.server.consumers import Consumer, signed, updates
+from bodhi.server.consumers import Consumer, signed
 from bodhi.tests.server import base
 
 
@@ -41,7 +41,6 @@ class TestConsumer(base.BaseTestCase):
         consumer = Consumer()
 
         self.assertTrue(isinstance(consumer.signed_handler, signed.SignedHandler))
-        self.assertTrue(isinstance(consumer.updates_handler, updates.UpdatesHandler))
         info.assert_called_once_with('Initializing Bodhi')
         initialize_db.assert_called_once_with(config.config)
         setup_buildsystem.assert_called_once_with(config.config)
@@ -82,32 +81,6 @@ class TestConsumer(base.BaseTestCase):
 
         signed_handler.assert_called_once_with(msg)
         automatic_update_handler.assert_called_once_with(msg)
-
-    @mock.patch('bodhi.server.consumers.UpdatesHandler')
-    def test_messaging_callback_updates_testing(self, Handler):
-        msg = Message(
-            topic="org.fedoraproject.prod.bodhi.update.request.testing",
-            body={}
-        )
-        handler = mock.Mock()
-        Handler.side_effect = lambda: handler
-
-        Consumer()(msg)
-
-        handler.assert_called_once_with(msg)
-
-    @mock.patch('bodhi.server.consumers.UpdatesHandler')
-    def test_messaging_callback_updates_edit(self, Handler):
-        msg = Message(
-            topic="org.fedoraproject.prod.bodhi.update.edit",
-            body={}
-        )
-        handler = mock.Mock()
-        Handler.side_effect = lambda: handler
-
-        Consumer()(msg)
-
-        handler.assert_called_once_with(msg)
 
     @mock.patch('bodhi.server.consumers.GreenwaveHandler')
     def test_messaging_callback_greenwave(self, Handler):
