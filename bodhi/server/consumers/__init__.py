@@ -70,21 +70,24 @@ class Consumer:
         """
         log.info(f'Received message from fedora-messaging with topic: {msg.topic}')
 
-        if msg.topic.endswith('.bodhi.composer.start'):
-            if self.composer_handler:
-                log.debug('Passing message to the Composer handler')
-                self.composer_handler(msg)
-            else:
-                msg = ('Unable to process composer.start message topics because the Composer is '
-                       'not installed!')
-                log.error(msg)
-                raise fedora_messaging.exceptions.Nack(msg)
+        try:
+            if msg.topic.endswith('.bodhi.composer.start'):
+                if self.composer_handler:
+                    log.debug('Passing message to the Composer handler')
+                    self.composer_handler(msg)
+                else:
+                    raise ValueError('Unable to process composer.start message topics because the '
+                                     'Composer is not installed')
 
-        if msg.topic.endswith('.buildsys.tag'):
-            log.debug('Passing message to the Signed handler')
-            self.signed_handler(msg)
+            if msg.topic.endswith('.buildsys.tag'):
+                log.debug('Passing message to the Signed handler')
+                self.signed_handler(msg)
 
-        if msg.topic.endswith('.bodhi.update.request.testing') \
-           or msg.topic.endswith('.bodhi.update.edit'):
-            log.debug('Passing message to the Updates handler')
-            self.updates_handler(msg)
+            if msg.topic.endswith('.bodhi.update.request.testing') \
+               or msg.topic.endswith('.bodhi.update.edit'):
+                log.debug('Passing message to the Updates handler')
+                self.updates_handler(msg)
+        except Exception as e:
+            error_msg = f'{str(e)}: Unable to handle message: {msg}'
+            log.exception(error_msg)
+            raise fedora_messaging.exceptions.Nack(error_msg)
