@@ -32,23 +32,15 @@ class TestSignedHandlerConsume(unittest.TestCase):
         self.sample_message = Message(
             topic='',
             body={
-                'i': 628,
-                'timestamp': 1484692585,
-                'msg_id': '2017-821031da-be3a-4f4b-91df-0baa834ca8a4',
-                'crypto': 'x509',
-                'topic': 'org.fedoraproject.prod.buildsys.tag',
-                'signature': '100% real please trust me',
-                'msg': {
-                    'build_id': 442562,
-                    'name': 'colord',
-                    'tag_id': 214,
-                    'instance': 's390',
-                    'tag': 'f26-updates-testing-pending',
-                    'user': 'sharkcz',
-                    'version': '1.3.4',
-                    'owner': 'sharkcz',
-                    'release': '1.fc26'
-                },
+                'build_id': 442562,
+                'name': 'colord',
+                'tag_id': 214,
+                'instance': 's390',
+                'tag': 'f26-updates-testing-pending',
+                'user': 'sharkcz',
+                'version': '1.3.4',
+                'owner': 'sharkcz',
+                'release': '1.fc26'
             },
         )
         self.handler = signed.SignedHandler()
@@ -58,7 +50,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         """Assert that messages marking the build as signed updates the database"""
         build = mock_build_model.get.return_value
         build.signed = False
-        build.release.pending_testing_tag = self.sample_message.body["msg"]["tag"]
+        build.release.pending_testing_tag = self.sample_message.body["tag"]
 
         self.handler(self.sample_message)
         self.assertTrue(build.signed is True)
@@ -101,7 +93,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
     def test_consume_duplicate(self, mock_build_model, mock_log):
         """Assert that the handler is idempotent."""
         build = mock_build_model.get.return_value
-        build.release.pending_testing_tag = self.sample_message.body["msg"]["tag"]
+        build.release.pending_testing_tag = self.sample_message.body["tag"]
         build.signed = True
 
         self.handler(self.sample_message)
