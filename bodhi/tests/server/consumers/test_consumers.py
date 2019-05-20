@@ -84,7 +84,7 @@ class TestConsumer(base.BaseTestCase):
         handler.assert_called_once_with(msg)
 
     @mock.patch('bodhi.server.consumers.ComposerHandler', None)
-    @mock.patch('bodhi.server.consumers.log.error')
+    @mock.patch('bodhi.server.consumers.log.exception')
     def test_messaging_callback_composer_not_installed(self, error):
         """Test receiving a composer.start message when the composer is not installed."""
         msg = Message(
@@ -96,7 +96,7 @@ class TestConsumer(base.BaseTestCase):
             Consumer()(msg)
 
         msg = ('Unable to process composer.start message topics because the Composer is not '
-               'installed!')
+               f'installed: Unable to handle message: {msg}')
         error.assert_called_once_with(msg)
         self.assertEqual(str(exc.exception), msg)
 
