@@ -85,6 +85,7 @@ Dependency changes
 * PyYAML is now a required dependency (:issue:`3174`).
 * Bodhi now requires Python 3.6 or greater (:issue:`2856`).
 * Bodhi no longer uses or works with ``fedmsg``.
+* Backoff is now a required dependency (:issue:`3237`).
 
 
 Server upgrade instructions
