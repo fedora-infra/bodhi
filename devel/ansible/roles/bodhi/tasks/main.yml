@@ -24,6 +24,7 @@
       - postgresql-server
       - python3-alembic
       - python3-arrow
+      - python3-backoff
       - python3-bleach
       - python3-click
       - python3-colander

@@ -1,4 +1,4 @@
-# Copyright 2014-2017 Red Hat, Inc.
+# Copyright 2014-2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -21,6 +21,7 @@ import typing
 
 from sqlalchemy import event
 from fedora_messaging import api, exceptions as fml_exceptions
+import backoff
 
 from bodhi.server import Session
 
@@ -42,7 +43,7 @@ def send_messages_after_commit(session):
     if 'messages' in session.info:
         for m in session.info['messages']:
             try:
-                api.publish(m)
+                _publish_with_retry(m)
             except fml_exceptions.BaseException:
                 # In the future we should handle errors more gracefully
                 _log.exception("An error occurred publishing %r after a database commit", m)
@@ -62,7 +63,7 @@ def publish(message: 'base.BodhiMessage', force: bool = False):
             the messages is sent immediately.
     """
     if force:
-        api.publish(message)
+        _publish_with_retry(message)
         return
 
     session = Session()
@@ -70,3 +71,16 @@ def publish(message: 'base.BodhiMessage', force: bool = False):
         session.info['messages'] = []
     session.info['messages'].append(message)
     _log.debug('Queuing message %r for delivery on session commit', message.id)
+
+
+@backoff.on_exception(
+    backoff.expo,
+    (fml_exceptions.ConnectionException, fml_exceptions.PublishReturned), max_time=120)
+def _publish_with_retry(message: 'base.BodhiMessage'):
+    """
+    Call fedora_messaging.api.publish with the given message, and retry upon temporary failures.
+
+    The goal of this function is to try to recover from temporary failures by trying again for a
+    while. If it is unable to succeed, it will ultimately raise the Exception.
+    """
+    api.publish(message)
