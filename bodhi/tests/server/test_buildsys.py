@@ -19,6 +19,7 @@
 
 from threading import Lock
 from unittest import mock
+import os
 import unittest
 
 import koji
@@ -75,6 +76,14 @@ class TestGetKrbConf(unittest.TestCase):
         config = buildsys.get_krb_conf(config)
 
         self.assertEqual(config, {'ccache': 'a_ccache'})
+
+    def test_krb_ccache_uid(self):
+        """Assert behavior for krb ccache uid replacement."""
+        config = {'some_meaningless_other_key': 'boring_value', 'krb_ccache': 'a_ccache_%{uid}'}
+
+        config = buildsys.get_krb_conf(config)
+
+        self.assertEqual(config, {'ccache': 'a_ccache_%d' % os.geteuid()})
 
     def test_krb_keytab(self):
         """Assert behavior when only krb_keytab is present."""
