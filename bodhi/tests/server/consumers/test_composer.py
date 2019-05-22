@@ -2011,25 +2011,26 @@ testmodule:master:20172:2
             with mock_sends(*[base_schemas.BodhiMessage] * 3):
                 self.handler(self._make_msg())
 
-        with self.db_factory() as session:
-            up = session.query(Update).one()
+        with mock_sends(*[base_schemas.BodhiMessage] * 3):
+            with self.db_factory() as session:
+                up = session.query(Update).one()
 
-            # Ensure the update is still locked and in testing
-            self.assertEqual(up.locked, True)
-            self.assertEqual(up.status, UpdateStatus.pending)
-            self.assertEqual(up.request, UpdateRequest.testing)
+                # Ensure the update is still locked and in testing
+                self.assertEqual(up.locked, True)
+                self.assertEqual(up.status, UpdateStatus.pending)
+                self.assertEqual(up.request, UpdateRequest.testing)
 
-            # Have the update reach the stable karma threshold
-            self.assertEqual(up.karma, 1)
-            up.comment(session, "foo", 1, 'foo')
-            self.assertEqual(up.karma, 2)
-            self.assertEqual(up.request, UpdateRequest.testing)
-            up.comment(session, "foo", 1, 'bar')
-            self.assertEqual(up.karma, 3)
-            self.assertEqual(up.request, UpdateRequest.testing)
-            up.comment(session, "foo", 1, 'biz')
-            self.assertEqual(up.request, UpdateRequest.testing)
-            self.assertEqual(up.karma, 4)
+                # Have the update reach the stable karma threshold
+                self.assertEqual(up.karma, 1)
+                up.comment(session, "foo", 1, 'foo')
+                self.assertEqual(up.karma, 2)
+                self.assertEqual(up.request, UpdateRequest.testing)
+                up.comment(session, "foo", 1, 'bar')
+                self.assertEqual(up.karma, 3)
+                self.assertEqual(up.request, UpdateRequest.testing)
+                up.comment(session, "foo", 1, 'biz')
+                self.assertEqual(up.request, UpdateRequest.testing)
+                self.assertEqual(up.karma, 4)
 
         # finish push and unlock updates
         msg = self._make_msg()
@@ -2037,14 +2038,15 @@ testmodule:master:20172:2
         with mock_sends(*[base_schemas.BodhiMessage] * 6):
             self.handler(msg)
 
-        with self.db_factory() as session:
-            up = session.query(Update).one()
-            up.comment(session, "foo", 1, 'baz')
-            self.assertEqual(up.karma, 5)
+        with mock_sends(*[base_schemas.BodhiMessage] * 2):
+            with self.db_factory() as session:
+                up = session.query(Update).one()
+                up.comment(session, "foo", 1, 'baz')
+                self.assertEqual(up.karma, 5)
 
-            # Ensure the composer set the autokarma once the push is done
-            self.assertEqual(up.locked, False)
-            self.assertEqual(up.request, UpdateRequest.stable)
+                # Ensure the composer set the autokarma once the push is done
+                self.assertEqual(up.locked, False)
+                self.assertEqual(up.request, UpdateRequest.stable)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread._wait_for_pungi')

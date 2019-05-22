@@ -2732,7 +2732,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.karma, 2)
         self.assertEqual(update.request, None)
         # Let's flush out any messages that have been sent.
-        self.db.commit()
+        self.db.info['messages'] = []
         expected_message_0 = update_schemas.UpdateCommentV1.from_dict(
             {'comment': self.obj['comments'][0], 'agent': 'biz'})
         expected_message_1 = update_schemas.UpdateKarmaThresholdV1.from_dict(
@@ -2795,7 +2795,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.status, UpdateStatus.testing)
         self.assertEqual(update.karma, -2)
         # Let's flush out any messages that have been sent.
-        self.db.commit()
+        self.db.info['messages'] = []
         expected_message_0 = update_schemas.UpdateCommentV1.from_dict(
             {'comment': self.obj['comments'][0], 'agent': 'biz'})
         expected_message_1 = update_schemas.UpdateKarmaThresholdV1.from_dict(

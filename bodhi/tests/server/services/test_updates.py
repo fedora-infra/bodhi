@@ -29,7 +29,7 @@ import koji
 import requests
 from webtest import TestApp
 
-from bodhi.messages.schemas import update as update_schemas
+from bodhi.messages.schemas import base as base_schemas, update as update_schemas
 from bodhi.server import main
 from bodhi.server.config import config
 from bodhi.server.models import (
@@ -282,7 +282,8 @@ class TestNewUpdate(BaseTestCase):
         """
         self.app.app.registry.settings['koji_web_url'] = 'https://koji.fedoraproject.org/koji/'
         nvr = 'bodhi-2.0.0-2.fc17'
-        resp = self.app.post_json('/updates/', self.get_update(nvr))
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', self.get_update(nvr))
 
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
@@ -296,7 +297,8 @@ class TestNewUpdate(BaseTestCase):
         """
         self.app.app.registry.settings['koji_web_url'] = 'https://koji.fedoraproject.org/koji'
         nvr = 'bodhi-2.0.0-2.fc17'
-        resp = self.app.post_json('/updates/', self.get_update(nvr))
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', self.get_update(nvr))
 
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
@@ -311,7 +313,8 @@ class TestNewUpdate(BaseTestCase):
         """
         self.app.app.registry.settings['koji_web_url'] = 'https://host.org'
         nvr = 'bodhi-2.0.0-2.fc17'
-        resp = self.app.post_json('/updates/', self.get_update(nvr))
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', self.get_update(nvr))
 
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
@@ -476,7 +479,10 @@ class TestNewUpdate(BaseTestCase):
     def test_new_update_with_multiple_bugs(self, *args):
         update = self.get_update('bodhi-2.0.0-2.fc17')
         update['bugs'] = ['1234', '5678']
-        r = self.app.post_json('/updates/', update)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', update)
+
         up = r.json_body
         # This Update inherits one bug from the Update it obsoleted.
         self.assertEqual(len(up['bugs']), 3)
@@ -489,7 +495,10 @@ class TestNewUpdate(BaseTestCase):
     def test_new_update_with_multiple_bugs_as_str(self, *args):
         update = self.get_update('bodhi-2.0.0-2.fc17')
         update['bugs'] = '1234, 5678'
-        r = self.app.post_json('/updates/', update)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', update)
+
         up = r.json_body
         # This Update inherits one bug from the Update it obsoleted.
         self.assertEqual(len(up['bugs']), 3)
@@ -1198,7 +1207,10 @@ class TestUpdatesService(BaseTestCase):
         update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
         update['notes'] = 'testing!!!'
         update['edited'] = res.json['alias']
-        res = app.post_json('/updates/', update)
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            res = app.post_json('/updates/', update)
+
         self.assertNotIn('bodhi does not have commit access to bodhi', res)
         build = self.db.query(RpmBuild).filter_by(nvr=nvr).one()
         self.assertIsNotNone(build.update)
@@ -1269,6 +1281,8 @@ class TestUpdatesService(BaseTestCase):
         update = Build.query.filter_by(nvr=nvr).one().update
         self.assertEqual(update.karma, 3)
         self.assertEqual(update.request, UpdateRequest.stable)
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         # Set it back to testing
         update.request = UpdateRequest.testing
@@ -1277,20 +1291,22 @@ class TestUpdatesService(BaseTestCase):
         with mock.patch('bodhi.server.Session.remove'):
             app = TestApp(main({}, testing='bob', session=self.db, **self.app_settings))
 
-        res = app.post_json(f'/updates/{update.alias}/request',
-                            dict(update=nvr, request='stable',
-                                 csrf_token=app.get('/csrf').json_body['csrf_token']),
-                            status=200)
+        with fml_testing.mock_sends(update_schemas.UpdateRequestStableV1):
+            res = app.post_json(f'/updates/{update.alias}/request',
+                                dict(update=nvr, request='stable',
+                                     csrf_token=app.get('/csrf').json_body['csrf_token']),
+                                status=200)
 
         self.assertEqual(res.json_body['update']['request'], 'stable')
 
         with mock.patch('bodhi.server.Session.remove'):
             app = TestApp(main({}, testing='bob', session=self.db, **self.app_settings))
 
-        res = app.post_json(f'/updates/{update.alias}/request',
-                            dict(update=nvr, request='obsolete',
-                                 csrf_token=app.get('/csrf').json_body['csrf_token']),
-                            status=200)
+        with fml_testing.mock_sends(update_schemas.UpdateRequestObsoleteV1):
+            res = app.post_json(f'/updates/{update.alias}/request',
+                                dict(update=nvr, request='obsolete',
+                                     csrf_token=app.get('/csrf').json_body['csrf_token']),
+                                status=200)
 
         self.assertEqual(res.json_body['update']['request'], None)
         # We need to re-fetch the update from the database since the post calls committed the
@@ -2967,11 +2983,14 @@ class TestUpdatesService(BaseTestCase):
         args['stable_karma'] = 2
         args['unstable_karma'] = -2
         args['severity'] = 'urgent'
-        self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            self.app.post_json('/updates/', args)
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.pending
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         up.comment(self.db, 'WFM', author='dustymabe', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
@@ -2992,11 +3011,14 @@ class TestUpdatesService(BaseTestCase):
         args['autokarma'] = True
         args['stable_karma'] = 2
         args['unstable_karma'] = -2
-        self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            self.app.post_json('/updates/', args)
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.pending
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         up.comment(self.db, 'WFM', author='dustymabe', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
@@ -3014,11 +3036,14 @@ class TestUpdatesService(BaseTestCase):
         args['autokarma'] = False
         args['stable_karma'] = 2
         args['unstable_karma'] = -2
-        self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            self.app.post_json('/updates/', args)
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.pending
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         up.comment(self.db, 'WFM', author='dustymabe', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
@@ -3038,14 +3063,20 @@ class TestUpdatesService(BaseTestCase):
     def test_obsoletion_locked_with_open_request(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            self.app.post_json('/updates/', args)
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.locked = True
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        r = self.app.post_json('/updates/', args).json_body
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args).json_body
+
         self.assertEqual(r['request'], 'testing')
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
@@ -3056,10 +3087,15 @@ class TestUpdatesService(BaseTestCase):
     def test_obsoletion_unlocked_with_open_request(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            self.app.post_json('/updates/', args)
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        r = self.app.post_json('/updates/', args).json_body
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args).json_body
+
         self.assertEqual(r['request'], 'testing')
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
@@ -3071,13 +3107,20 @@ class TestUpdatesService(BaseTestCase):
         """ Ensure that we don't obsolete updates that have a stable request """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            self.app.post_json('/updates/', args)
+
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = UpdateRequest.stable
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        r = self.app.post_json('/updates/', args).json_body
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', args).json_body
+
         self.assertEqual(r['request'], 'testing')
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
@@ -3198,11 +3241,15 @@ class TestUpdatesService(BaseTestCase):
         and check status after revoking the request
         """
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
         up.request = UpdateRequest.stable
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestRevokeV1):
             resp = self.app.post_json(
@@ -3220,11 +3267,15 @@ class TestUpdatesService(BaseTestCase):
         and check status after revoking the request
         """
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.pending
         up.request = UpdateRequest.testing
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestRevokeV1):
             resp = self.app.post_json(
@@ -3247,12 +3298,15 @@ class TestUpdatesService(BaseTestCase):
         args['stable_karma'] = 1
         args['unstable_karma'] = -1
 
-        response = self.app.post_json('/updates/', args)
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            response = self.app.post_json('/updates/', args)
+
         up = Update.get(response.json['alias'])
         up.status = UpdateStatus.pending
         up.request = UpdateRequest.testing
         up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         self.assertEqual(up.karma, -1)
@@ -3271,12 +3325,15 @@ class TestUpdatesService(BaseTestCase):
         args['stable_karma'] = 1
         args['unstable_karma'] = -1
 
-        response = self.app.post_json('/updates/', args)
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            response = self.app.post_json('/updates/', args)
+
         up = Update.get(response.json['alias'])
         up.status = UpdateStatus.pending
         up.request = UpdateRequest.testing
         up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         self.assertEqual(up.karma, -1)
@@ -3296,12 +3353,15 @@ class TestUpdatesService(BaseTestCase):
         args['stable_karma'] = 2
         args['unstable_karma'] = -2
 
-        response = self.app.post_json('/updates/', args)
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            response = self.app.post_json('/updates/', args)
+
         up = Update.get(response.json['alias'])
         up.status = UpdateStatus.pending
         up.request = UpdateRequest.testing
         up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         self.assertEqual(up.karma, -1)
@@ -3321,11 +3381,14 @@ class TestUpdatesService(BaseTestCase):
         args['stable_karma'] = 2
         args['unstable_karma'] = -2
 
-        response = self.app.post_json('/updates/', args)
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            response = self.app.post_json('/updates/', args)
+
         up = Update.get(response.json['alias'])
         up.status = UpdateStatus.testing
         up.request = UpdateRequest.stable
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
@@ -3349,11 +3412,15 @@ class TestUpdatesService(BaseTestCase):
     def test_request_after_unpush(self, *args):
         """Test request of this update after unpushing"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
         up.request = UpdateRequest.stable
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1,
                                     update_schemas.UpdateRequestUnpushV1):
@@ -3441,7 +3508,10 @@ class TestUpdatesService(BaseTestCase):
         testing.
         """
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
         up.request = None
@@ -3449,7 +3519,8 @@ class TestUpdatesService(BaseTestCase):
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         self.assertEqual(len(up.builds), 1)
         up.test_gating_status = TestGatingStatus.passed
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
         self.assertEqual(up.days_in_testing, 7)
         self.assertEqual(up.meets_testing_requirements, True)
 
@@ -3467,14 +3538,18 @@ class TestUpdatesService(BaseTestCase):
         https://github.com/fedora-infra/bodhi/issues/725
         """
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.pending
         up.request = None
         up.release.state = ReleaseState.archived
         self.assertEqual(len(up.builds), 1)
         up.test_gating_status = TestGatingStatus.passed
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         resp = self.app.post_json(
             f'/updates/{up.alias}/request',
@@ -3491,7 +3566,10 @@ class TestUpdatesService(BaseTestCase):
     def test_stable_request_failed_taskotron_results(self, *args):
         """Test submitting a stable request, but with bad taskotron results"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
         up.request = None
@@ -3499,7 +3577,8 @@ class TestUpdatesService(BaseTestCase):
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         self.assertEqual(len(up.builds), 1)
         up.test_gating_status = TestGatingStatus.passed
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
         self.assertEqual(up.days_in_testing, 7)
         self.assertEqual(up.meets_testing_requirements, True)
 
@@ -3517,7 +3596,10 @@ class TestUpdatesService(BaseTestCase):
     def test_stable_request_absent_taskotron_results(self, *args):
         """Test submitting a stable request, but with absent task results"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
         up.request = None
@@ -3525,7 +3607,8 @@ class TestUpdatesService(BaseTestCase):
         up.date_testing = up.comments[-1].timestamp - timedelta(days=7)
         self.assertEqual(len(up.builds), 1)
         up.test_gating_status = TestGatingStatus.passed
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
         self.assertEqual(up.days_in_testing, 7)
         self.assertEqual(up.meets_testing_requirements, True)
 
@@ -3544,7 +3627,10 @@ class TestUpdatesService(BaseTestCase):
         """Test submitting a stable request to an update that already been
         pushed to stable"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.stable
         up.request = None
@@ -3553,7 +3639,8 @@ class TestUpdatesService(BaseTestCase):
         up.comment(self.db, 'This update has been pushed to stable', author='bodhi')
         self.assertEqual(len(up.builds), 1)
         up.test_gating_status = TestGatingStatus.passed
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
         self.assertEqual(up.days_in_testing, 14)
         self.assertEqual(up.meets_testing_requirements, True)
 
@@ -3571,7 +3658,10 @@ class TestUpdatesService(BaseTestCase):
         """Test submitting a testing request to an update that already been
         pushed to testing"""
         args = self.get_update('bodhi-2.0.0-3.fc17')
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
         up.request = None
@@ -3579,7 +3669,8 @@ class TestUpdatesService(BaseTestCase):
         up.date_testing = up.comments[-1].timestamp - timedelta(days=14)
         self.assertEqual(len(up.builds), 1)
         up.test_gating_status = TestGatingStatus.passed
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
         self.assertEqual(up.days_in_testing, 14)
         self.assertEqual(up.meets_testing_requirements, True)
 
@@ -3738,7 +3829,11 @@ class TestUpdatesService(BaseTestCase):
         args['edited'] = update.alias
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         args['bugs'] = '56789,98765'
-        r = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1,
+                                    update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
         up = r.json_body
 
         self.assertEqual(len(up['bugs']), 2)
@@ -3752,7 +3847,9 @@ class TestUpdatesService(BaseTestCase):
         args['edited'] = update.alias
         args['builds'] = 'bodhi-2.0.0-3.fc17'
         args['bugs'] = '98765'
-        r = self.app.post_json('/updates/', args)
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
         up = r.json_body
         self.assertEqual(len(up['bugs']), 1)
         bug_ids = [bug['bug_id'] for bug in up['bugs']]
@@ -3800,7 +3897,9 @@ class TestUpdatesService(BaseTestCase):
         args['require_testcases'] = False
         args['require_bugs'] = True
 
-        r = self.app.post_json('/updates/', args)
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
         up = r.json_body
         self.assertEqual(up['status'], 'testing')
         self.assertEqual(up['request'], None)
@@ -3832,7 +3931,10 @@ class TestUpdatesService(BaseTestCase):
         # Mark it as testing
         args['edited'] = update.alias
         args['type'] = 'bugfix'
-        r = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
         up = r.json_body
         self.assertEqual(up['status'], 'testing')
         self.assertEqual(up['request'], None)
@@ -3862,13 +3964,16 @@ class TestUpdatesService(BaseTestCase):
         upd.request = None
         upd.comment(self.db, 'LGTM', author='bob', karma=1)
         upd.comment(self.db, 'LGTM2ME2', author='other_bob', karma=1)
-        self.db.commit()
         self.assertEqual(upd.karma, 2)
+        self.db.info['messages'] = []
 
         # Then.. edit it and change the builds!
         args['edited'] = upd.alias
         args['builds'] = 'bodhi-2.0.0-3.fc17'
-        r = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(*[base_schemas.BodhiMessage] * 2):
+            r = self.app.post_json('/updates/', args)
+
         up = r.json_body
         self.assertEqual(up['title'], 'bodhi-2.0.0-3.fc17')
         # This is what we really want to test here.
@@ -3905,7 +4010,8 @@ class TestUpdatesService(BaseTestCase):
         new_nvr = 'bodhi-2.0.0-3.fc17'
         args['edited'] = upd.alias
         args['builds'] = new_nvr
-        r = self.app.post_json('/updates/', args)
+        with fml_testing.mock_sends(*[base_schemas.BodhiMessage] * 3):
+            r = self.app.post_json('/updates/', args)
         up = r.json_body
         self.assertEqual(up['title'], new_nvr)
         # This is what we really want to test here.
@@ -3922,7 +4028,8 @@ class TestUpdatesService(BaseTestCase):
         newer_nvr = 'bodhi-2.0.0-4.fc17'
         args['edited'] = upd.alias
         args['builds'] = newer_nvr
-        r = self.app.post_json('/updates/', args)
+        with fml_testing.mock_sends(*[base_schemas.BodhiMessage] * 2):
+            r = self.app.post_json('/updates/', args)
         up = r.json_body
         self.assertEqual(up['title'], newer_nvr)
         # This is what we really want to test here.
@@ -4103,7 +4210,9 @@ class TestUpdatesService(BaseTestCase):
         args['stable_karma'] = 4
         args['unstable_karma'] = -4
 
-        r = self.app.post_json('/updates/', args)
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
         up = r.json_body
         self.assertEqual(up['status'], 'testing')
         self.assertEqual(up['request'], None)
@@ -4232,6 +4341,8 @@ class TestUpdatesService(BaseTestCase):
         # request to None.
         self.assertEqual(up.request, UpdateRequest.testing)
         self.assertEqual(up.status, UpdateStatus.testing)
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         resp = self.app.get(f'/updates/{up.alias}',
                             headers={'Accept': 'text/html'})
@@ -4279,6 +4390,8 @@ class TestUpdatesService(BaseTestCase):
         # request to None.
         self.assertEqual(up.request, UpdateRequest.testing)
         self.assertEqual(up.status, UpdateStatus.testing)
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         resp = self.app.get(f'/updates/{up.alias}',
                             headers={'Accept': 'text/html'})
@@ -4373,7 +4486,8 @@ class TestUpdatesService(BaseTestCase):
         """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
         update = Update.get(resp.json['alias'])
         update.date_stable = datetime.utcnow()
         update.status = UpdateStatus.stable
@@ -4394,7 +4508,10 @@ class TestUpdatesService(BaseTestCase):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['requirements'] = ''
-        resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
+
         update = Update.get(resp.json['alias'])
         update.status = UpdateStatus.testing
         update.request = None
@@ -4403,7 +4520,8 @@ class TestUpdatesService(BaseTestCase):
         update.stable_karma = 1
         update.test_gating_status = TestGatingStatus.failed
         update.comment(self.db, 'works', 1, 'bowlofeggs')
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
         self.app.app.registry.settings['test_gating.required'] = True
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
@@ -4417,7 +4535,10 @@ class TestUpdatesService(BaseTestCase):
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['requirements'] = ''
-        resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
+
         update = Update.get(resp.json['alias'])
         update.status = UpdateStatus.testing
         update.request = None
@@ -4426,7 +4547,8 @@ class TestUpdatesService(BaseTestCase):
         update.stable_karma = 1
         update.test_gating_status = TestGatingStatus.passed
         update.comment(self.db, 'works', 1, 'bowlofeggs')
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
         self.app.app.registry.settings['test_gating.required'] = True
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
@@ -4442,7 +4564,10 @@ class TestUpdatesService(BaseTestCase):
         """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         update = Update.get(resp.json['alias'])
         update.status = UpdateStatus.testing
         update.request = None
@@ -4450,7 +4575,8 @@ class TestUpdatesService(BaseTestCase):
         update.autokarma = False
         update.stable_karma = 1
         update.comment(self.db, 'works', 1, 'bowlofeggs')
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -4468,7 +4594,10 @@ class TestUpdatesService(BaseTestCase):
         """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         update = Update.get(resp.json['alias'])
         update.severity = UpdateSeverity.urgent
         update.status = UpdateStatus.testing
@@ -4477,7 +4606,8 @@ class TestUpdatesService(BaseTestCase):
         update.autokarma = False
         update.stable_karma = 1
         update.comment(self.db, 'works', 1, 'bowlofeggs')
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -4495,14 +4625,18 @@ class TestUpdatesService(BaseTestCase):
         """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         update = Update.get(resp.json['alias'])
         update.status = UpdateStatus.testing
         update.request = None
         update.pushed = True
         # This update has been in testing a while, so a "Push to Stable" button should appear.
         update.date_testing = datetime.now() - timedelta(days=30)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -4520,7 +4654,10 @@ class TestUpdatesService(BaseTestCase):
         """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         update = Update.get(resp.json['alias'])
         update.severity = UpdateSeverity.urgent
         update.status = UpdateStatus.testing
@@ -4529,7 +4666,8 @@ class TestUpdatesService(BaseTestCase):
         # This urgent update has been in testing a while, so a "Push to Stable" button should
         # appear.
         update.date_testing = datetime.now() - timedelta(days=30)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -4546,7 +4684,10 @@ class TestUpdatesService(BaseTestCase):
         """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         update = Update.get(resp.json['alias'])
         update.status = UpdateStatus.testing
         update.request = None
@@ -4554,7 +4695,8 @@ class TestUpdatesService(BaseTestCase):
         update.critpath = True
         # This update has been in testing a while, so a "Push to Stable" button should appear.
         update.date_testing = datetime.now() - timedelta(days=30)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -4570,14 +4712,18 @@ class TestUpdatesService(BaseTestCase):
         """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         update = Update.get(resp.json['alias'])
         update.severity = severity
         update.status = UpdateStatus.testing
         update.request = None
         update.pushed = True
         update.date_testing = datetime.now() - timedelta(days=30)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -4633,14 +4779,18 @@ class TestUpdatesService(BaseTestCase):
         """
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
-        resp = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            resp = self.app.post_json('/updates/', args)
+
         update = Update.get(resp.json['alias'])
         update.severity = None
         update.status = UpdateStatus.testing
         update.request = None
         update.pushed = True
         update.date_testing = datetime.now() - timedelta(days=30)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -4693,6 +4843,8 @@ class TestUpdatesService(BaseTestCase):
 
         text = str(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author='bodhi')
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         # Checks Push to Stable text in the html page for this update
         resp = self.app.get(f'/updates/{upd.alias}',
@@ -4742,6 +4894,8 @@ class TestUpdatesService(BaseTestCase):
 
         text = str(config.get('testing_approval_msg_based_on_karma'))
         upd.comment(self.db, text, author='bodhi')
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         # Checks Push to Stable text in the html page for this update
         resp = self.app.get(f'/updates/{upd.alias}',
@@ -4776,14 +4930,20 @@ class TestUpdatesService(BaseTestCase):
         new_nvr = 'bodhi-2.0.0-3.fc17'
         args['edited'] = upd.alias
         args['builds'] = new_nvr
-        r = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
         up = r.json_body
         self.assertEqual(up['title'], new_nvr)
 
         # Change it back to ensure we can still reference the older build
         args['edited'] = upd.alias
         args['builds'] = nvr
-        r = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
         up = r.json_body
         self.assertEqual(up['title'], nvr)
 
@@ -4812,7 +4972,8 @@ class TestUpdatesService(BaseTestCase):
         update.comment(self.db, "foo2", 1, 'foo2')
         update.comment(self.db, "foo3", 1, 'foo3')
         self.db.add(update)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         # Try and submit an older build to stable
         resp = self.app.post_json(
@@ -4900,13 +5061,18 @@ class TestUpdatesService(BaseTestCase):
         update.comment(self.db, 'lgtm', author='friend', karma=1)
         update.comment(self.db, 'lgtm', author='friend2', karma=1)
         update.comment(self.db, 'bad', author='enemy', karma=-1)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         self.assertEqual(update.meets_testing_requirements, False)
 
         args['edited'] = update.alias
         args['builds'] = 'bodhi-2.0.0-3.fc17'
-        r = self.app.post_json('/updates/', args)
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1,
+                                    update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', args)
+
         up = r.json_body
 
         self.assertEqual(up['title'], 'bodhi-2.0.0-3.fc17')
@@ -4917,7 +5083,8 @@ class TestUpdatesService(BaseTestCase):
         self.date_testing = update.date_testing + timedelta(days=7)
         update.comment(self.db, 'lgtm', author='friend3', karma=1)
         update.comment(self.db, 'lgtm2', author='friend4', karma=1)
-        self.db.commit()
+        # Let's clear any messages that might get sent
+        self.db.info['messages'] = []
 
         self.assertEqual(update.days_to_stable, 0)
         self.assertEqual(update.meets_testing_requirements, True)
