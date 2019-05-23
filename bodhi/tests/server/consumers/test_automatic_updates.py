@@ -22,8 +22,10 @@ from unittest import mock
 import logging
 
 from fedora_messaging.api import Message
+from fedora_messaging.testing import mock_sends
 import pytest
 
+from bodhi.messages.schemas.update import UpdateMessage
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import Build, Release, Update, UpdateType, User
@@ -66,7 +68,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
     def test_consume(self):
         """Assert that messages about tagged builds create an update."""
         # process the message
-        self.handler(self.sample_message)
+        with mock_sends(UpdateMessage):
+            self.handler(self.sample_message)
 
         # check if the update exists...
         update = self.db.query(Update).filter(
@@ -135,7 +138,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.db.query(User).filter_by(name=expected_username).delete()
         self.db.flush()
 
-        self.handler(self.sample_message)
+        with mock_sends(UpdateMessage):
+            self.handler(self.sample_message)
 
         assert(f"Creating bodhi user for '{expected_username}'."
                in caplog.messages)
@@ -153,7 +157,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             self.db.add(user)
         self.db.flush()
 
-        self.handler(self.sample_message)
+        with mock_sends(UpdateMessage):
+            self.handler(self.sample_message)
 
         assert(f"Creating bodhi user for '{expected_username}'."
                not in caplog.messages)
@@ -176,7 +181,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         """Assert that duplicate messages ignore existing build/update."""
         caplog.set_level(logging.DEBUG)
 
-        self.handler(self.sample_message)
+        with mock_sends(UpdateMessage):
+            self.handler(self.sample_message)
 
         caplog.clear()
 
