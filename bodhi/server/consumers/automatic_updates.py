@@ -29,7 +29,7 @@ import fedora_messaging
 from bodhi.server import buildsys
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import Build, ContentType, Package, Release
-from bodhi.server.models import Update, UpdateType, User
+from bodhi.server.models import Update, UpdateRequest, UpdateType, User
 from bodhi.server.util import transactional_session_maker
 
 
@@ -129,7 +129,7 @@ class AutomaticUpdateHandler:
                 user = User(name=owner_name)
                 dbsession.add(user)
 
-            log.debug(f"Update for {bnvr} doesn't exist yet, creating and adding it.")
+            log.debug(f"Creating new update for {bnvr}.")
             update = Update(
                 release=rel,
                 builds=[build],
@@ -139,6 +139,12 @@ class AutomaticUpdateHandler:
                 unstable_karma=-3,
                 user=user,
             )
+
+            log.debug("Setting request for new update.")
+            update.set_request(dbsession, UpdateRequest.testing, owner_name)
+
+            log.debug("Adding new update to the database.")
             dbsession.add(update)
 
+            log.debug("Committing changes to the database.")
             dbsession.commit()
