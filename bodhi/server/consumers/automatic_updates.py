@@ -29,7 +29,7 @@ import fedora_messaging
 from bodhi.server import buildsys
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import Build, ContentType, Package, Release
-from bodhi.server.models import Update, UpdateType
+from bodhi.server.models import Update, UpdateType, User
 from bodhi.server.util import transactional_session_maker
 
 
@@ -76,6 +76,25 @@ class AutomaticUpdateHandler:
         btag = body['tag']
         bnvr = '{name}-{version}-{release}'.format(**body)
 
+        koji = buildsys.get_session()
+
+        kbuildinfo = koji.getBuild(bnvr)
+        if not kbuildinfo:
+            raise BodhiException(f"Can't find Koji build for {bnvr}.")
+
+        if 'nvr' not in kbuildinfo:
+            raise BodhiException(f"Koji build info for {bnvr} doesn't contain 'nvr'.")
+
+        if 'owner_name' not in kbuildinfo:
+            raise BodhiException(f"Koji build info for {bnvr} doesn't contain 'owner_name'.")
+
+        # some APIs want the Koji build info, some others want the same
+        # wrapped in a larger (request?) structure
+        rbuildinfo = {
+            'info': kbuildinfo,
+            'nvr': kbuildinfo['nvr'].rsplit('-', 2),
+        }
+
         with self.db_factory() as dbsession:
             rel = dbsession.query(Release).filter_by(create_automatic_updates=True,
                                                      candidate_tag=btag).first()
@@ -83,22 +102,6 @@ class AutomaticUpdateHandler:
                 log.debug(f"Ignoring build being tagged into {btag!r}, no release configured for "
                           "automatic updates for it found.")
                 return
-
-            koji = buildsys.get_session()
-
-            kbuildinfo = koji.getBuild(bnvr)
-            if not kbuildinfo:
-                raise BodhiException(f"Can't find Koji build for {bnvr}.")
-
-            if 'nvr' not in kbuildinfo:
-                raise BodhiException(f"Koji build info for {bnvr} doesn't contain 'nvr'.")
-
-            # some APIs want the Koji build info, some others want the same
-            # wrapped in a larger (request?) structure
-            rbuildinfo = {
-                'info': kbuildinfo,
-                'nvr': kbuildinfo['nvr'].rsplit('-', 2),
-            }
 
             bcls = ContentType.infer_content_class(Build, kbuildinfo)
             build = bcls.get(bnvr)
@@ -116,6 +119,16 @@ class AutomaticUpdateHandler:
             build = bcls(nvr=bnvr, package=pkg)
             dbsession.add(build)
 
+            owner_name = kbuildinfo['owner_name']
+            user = User.get(owner_name)
+            if not user:
+                log.debug(f"Creating bodhi user for '{owner_name}'.")
+                # Leave email, groups blank, these will be filled
+                # in or updated when they log into Bodhi next time, see
+                # bodhi.server.security:remember_me().
+                user = User(name=owner_name)
+                dbsession.add(user)
+
             log.debug(f"Update for {bnvr} doesn't exist yet, creating and adding it.")
             update = Update(
                 release=rel,
@@ -124,6 +137,7 @@ class AutomaticUpdateHandler:
                 type=UpdateType.unspecified,
                 stable_karma=3,
                 unstable_karma=-3,
+                user=user,
             )
             dbsession.add(update)
 
