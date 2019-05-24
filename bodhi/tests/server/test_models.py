@@ -2118,12 +2118,13 @@ class TestUpdateMeetsTestingRequirements(BaseTestCase):
         update = model.Update.query.first()
         update.critpath = True
         update.stable_karma = 1
-        update.comment(self.db, 'testing', author='enemy', karma=-1)
-        update.comment(self.db, 'testing', author='bro', karma=1)
-        # Despite meeting the stable_karma, the function should still not mark this as meeting
-        # testing requirements because critpath packages have a higher requirement for minimum
-        # karma. So let's get it a second one.
-        update.comment(self.db, 'testing', author='ham', karma=1)
+        with mock.patch('bodhi.server.models.handle_update'):
+            update.comment(self.db, 'testing', author='enemy', karma=-1)
+            update.comment(self.db, 'testing', author='bro', karma=1)
+            # Despite meeting the stable_karma, the function should still not mark this as meeting
+            # testing requirements because critpath packages have a higher requirement for minimum
+            # karma. So let's get it a second one.
+            update.comment(self.db, 'testing', author='ham', karma=1)
 
         self.assertEqual(update.meets_testing_requirements, True)
 

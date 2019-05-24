@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import json
 import os
 import shutil
 import tempfile
@@ -68,14 +69,18 @@ def wait_for_file(
     """
     while timeout > 0:
         try:
-            container.execute(["ls", path])
+            output = container.execute(["ls", path])
+            output = "".join(line.decode("utf-8") for line in output)
         except conu.exceptions.ConuException:
-            timeout = timeout - 1
-            if timeout == 0:
-                raise conu.exception.ConuException(f"Timeout reached waiting for {path}")
-            time.sleep(1)
+            pass
         else:
-            break
+            if not dir_not_empty or len(output.strip()) != 0:
+                # The directory must have a file in it.
+                break
+        time.sleep(1)
+        timeout = timeout - 1
+    if timeout == 0:
+        raise conu.exceptions.ConuException(f"Timeout reached waiting for {path}")
 
 
 @contextmanager
@@ -158,3 +163,25 @@ def get_sent_messages(rabbitmq_container):
             serialized_messages = fh.read().replace("\n", ",")
     serialized_messages = "[%s]" % serialized_messages[:-1]
     return message.loads(serialized_messages)
+
+
+def get_task_results(container):
+    """Read a file in a container.
+
+    Args:
+        container (conu.DockerContainer): The container where the file is.
+        binary (bool): Whether the file should be opened in binary mode.
+
+    Returns:
+        file: The opened file object.
+    """
+    result_path = "/srv/celery-results"
+    results = []
+    with tempfile.TemporaryDirectory() as tempdir:
+        container.copy_from(result_path, tempdir)
+        for root, dirs, files in os.walk(tempdir):
+            for filename in files:
+                with open(os.path.join(root, filename)) as fh:
+                    result = json.load(fh)
+                results.append(result)
+    return results
