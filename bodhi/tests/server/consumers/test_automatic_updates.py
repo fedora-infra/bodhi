@@ -96,11 +96,11 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
     # Test robustness: malformed messages, unknown koji builds, incomplete
     # buildinfo, release missing from the DB
 
-    def test_missing_mandatory_elems(self):
+    @pytest.mark.parametrize('missing_elem', ('tag', 'build_id', 'name', 'version', 'release'))
+    def test_missing_mandatory_elems(self, missing_elem):
         """Test tag message without mandatory elements."""
         msg = deepcopy(self.sample_message)
-        for elem in ('build_id', 'name', 'version', 'release'):
-            del msg.body[elem]
+        del msg.body[missing_elem]
         with pytest.raises(BodhiException):
             self.handler(msg)
 
