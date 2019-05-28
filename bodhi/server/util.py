@@ -728,6 +728,7 @@ def type2html(context, kind):
         'bugfix': 'warning',
         'newpackage': 'primary',
         'enhancement': 'success',
+        'unspecified': 'default',
     }.get(kind)
 
     return "<span class='label label-%s'>%s</span>" % (cls, kind)
