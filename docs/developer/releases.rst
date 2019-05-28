@@ -8,7 +8,7 @@ This document describes the process for making a Bodhi release.
 Branches
 ========
 
-Bodhi follows `semantic versioning`_, and so backwards incompatible changes get a major release,
+Bodhi follows `semantic versioning`_, and so `backwards incompatible`_ changes get a major release,
 releases with new features get a minor release, and releases that only contain bug fixes get a patch
 release.
 
@@ -405,3 +405,4 @@ infrastructure mailing list.
 .. _Fedora's staging instance: https://bodhi.stg.fedoraproject.org
 .. _Fedora Infrastructure Bodhi SOP: https://fedora-infra-docs.readthedocs.io/en/latest/sysadmin-guide/sops/bodhi.html#performing-a-bodhi-upgrade
 .. _python-rpdb: https://src.stg.fedoraproject.org/rpms/python-rpdb
+.. _backwards incompatible: https://www.theonion.com/craftsman-confirms-new-hammer-backwards-compatible-with-1834722479
