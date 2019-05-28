@@ -67,6 +67,7 @@ Backwards incompatible changes
   need information that is not included in the supported schema, please work with the Bodhi project
   to get the schema adjusted accordingly. Bodhi's messages are now documented in
   :doc:`../server_api/index`.
+* The ``fedmsg_enabled`` setting was removed, since fedmsg is not used anymore.
 
 
 Dependency changes
