@@ -11,12 +11,12 @@ fi
 shopt -s expand_aliases
 alias bci="sudo -E /home/vagrant/bodhi/devel/ci/bodhi-ci"
 alias bdocs="make -C /home/vagrant/bodhi/docs clean && make -C /home/vagrant/bodhi/docs html && make -C /home/vagrant/bodhi/docs man"
-alias blog="sudo journalctl -u bodhi"
-alias brestart="sudo systemctl restart bodhi && echo 'The Application is running on http://localhost:6543'"
-alias bstart="sudo systemctl start bodhi && echo 'The Application is running on http://localhost:6543'"
-alias bstop="sudo systemctl stop bodhi"
+alias blog="sudo journalctl -u bodhi -u fm-consumer@config"
+alias brestart="sudo systemctl restart bodhi && sudo systemctl restart fm-consumer@config && echo 'The Application is running on http://localhost:6543'"
+alias bstart="sudo systemctl start bodhi && sudo systemctl start fm-consumer@config && echo 'The Application is running on http://localhost:6543'"
+alias bstop="sudo systemctl stop bodhi && sudo systemctl stop fm-consumer@config"
 alias bteststyle="flake8-3 && pydocstyle bodhi && bci mypy"
-alias bfedmsg="sudo journalctl -u print-messages"
+alias bmessages="sudo journalctl -u print-messages"
 
 
 function bresetdb {

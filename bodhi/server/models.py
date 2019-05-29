@@ -610,6 +610,7 @@ class UpdateType(DeclEnum):
     security = 'security', 'security'
     newpackage = 'newpackage', 'newpackage'
     enhancement = 'enhancement', 'enhancement'
+    unspecified = 'unspecified', 'unspecified'
 
 
 class UpdateRequest(DeclEnum):
@@ -759,6 +760,9 @@ class Release(Base):
             associated with this release.
         composed_by_bodhi (bool): The flag that indicates whether the release is composed by
             Bodhi or not. Defaults to True.
+        create_automatic_updates (bool): A flag indicating that updated should
+            be created automatically for Koji builds tagged into the
+            `candidate_tag`. Defaults to False.
     """
 
     __tablename__ = 'releases'
@@ -783,6 +787,9 @@ class Release(Base):
 
     state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
     composed_by_bodhi = Column(Boolean, default=True)
+    create_automatic_updates = Column(Boolean, default=False)
+
+    _version_int_regex = re.compile(r'\D+(\d+)[CMF]?$')
 
     @property
     def version_int(self):
@@ -792,8 +799,7 @@ class Release(Base):
         Returns:
             int: The version of the release.
         """
-        regex = re.compile(r'\D+(\d+)[CMF]?$')
-        return int(regex.match(self.name).groups()[0])
+        return int(self._version_int_regex.match(self.name).groups()[0])
 
     @property
     def mandatory_days_in_testing(self):
