@@ -144,7 +144,7 @@ class ComposerHandler(object):
             db_factory (bodhi.server.util.TransactionalSessionMaker or None): If given, used as the
                 db_factory for this Composer. If None (the default), a new TransactionalSessionMaker
                 is created and used.
-            compose_dir (basestring): The directory in which to place composes.
+            compose_dir (str): The directory in which to place composes.
         Raises:
             ValueError: If pungi.cmd is set to a path that does not exist.
         """
@@ -279,11 +279,11 @@ class ComposerThread(threading.Thread):
                 number of ComposerThreads run at the same time.
             compose (dict): A dictionary representation of the Compose to run, formatted like the
                 output of :meth:`Compose.__json__`.
-            agent (basestring): The user who is executing the compose.
+            agent (str): The user who is executing the compose.
             log (logging.Logger): A logger to use for this compose.
             db_factory (bodhi.server.util.TransactionalSessionMaker): A DB session to use while
                 composing.
-            compose_dir (basestring): A path to a directory to generate the compose in.
+            compose_dir (str): A path to a directory to generate the compose in.
             resume (bool): Whether or not we are resuming a previous failed compose. Defaults to
                 False.
         """
@@ -333,7 +333,7 @@ class ComposerThread(threading.Thread):
         Yield log string messages about the results of this compose run.
 
         Yields:
-            basestring: A string for human readers indicating the success of the compose.
+            str: A string for human readers indicating the success of the compose.
         """
         attrs = ['name', 'success']
         yield "  name:  %(name)-20s  success:  %(success)s" % dict(
@@ -459,7 +459,7 @@ class ComposerThread(threading.Thread):
 
         Args:
             update (bodhi.server.models.Update): The Update being ejected.
-            reason (basestring): A human readable explanation for the ejection, which is used in a
+            reason (str): A human readable explanation for the ejection, which is used in a
                 comment on the update, in a log message, and in a bus message.
         """
         update.locked = False
@@ -770,7 +770,7 @@ class ComposerThread(threading.Thread):
         Return an iterable of security updates in the given release.
 
         Args:
-            release (basestring): The long_name of a Release object, used to query for the matching
+            release (str): The long_name of a Release object, used to query for the matching
                 Release model.
         Returns:
             iterable: An iterable of security Update objects from the given release.
@@ -794,7 +794,7 @@ class ComposerThread(threading.Thread):
         in testing.
 
         Args:
-            release (basestring): The long_name of the Release to be queried.
+            release (str): The long_name of the Release to be queried.
         Return:
             list: The list of unapproved critical path updates for the given release.
         """
@@ -868,11 +868,11 @@ class PungiComposerThread(ComposerThread):
                 number of ComposerThreads run at the same time.
             compose (dict): A dictionary representation of the Compose to run, formatted like the
                 output of :meth:`Compose.__json__`.
-            agent (basestring): The user who is executing the compose.
+            agent (str): The user who is executing the compose.
             log (logging.Logger): A logger to use for this compose.
             db_factory (bodhi.server.util.TransactionalSessionMaker): A DB session to use while
                 composing.
-            compose_dir (basestring): A path to a directory to generate the compose in.
+            compose_dir (str): A path to a directory to generate the compose in.
             resume (bool): Whether or not we are resuming a previous failed compose. Defaults to
                 False.
         """
@@ -942,7 +942,7 @@ class PungiComposerThread(ComposerThread):
         Child classes should override this to place type-specific Pungi files in the config dir.
 
         Args:
-            pungi_conf_dir (basestring): A path to the directory that Pungi's configs are being
+            pungi_conf_dir (str): A path to the directory that Pungi's configs are being
                 written to.
             template_env (jinja2.Environment): The jinja2 environment to be used while rendering the
                 variants.xml template.
@@ -1002,10 +1002,10 @@ class PungiComposerThread(ComposerThread):
         master mirror.
 
         Args:
-            arch (basestring): The architecture for which a URL needs to be formed.
+            arch (str): The architecture for which a URL needs to be formed.
 
         Returns:
-            basestring: A URL on the master mirror where the repomd.xml file should be synchronized.
+            str: A URL on the master mirror where the repomd.xml file should be synchronized.
         """
         release = self.compose.release.id_prefix.lower().replace('-', '_')
         version = self.compose.release.version
@@ -1324,7 +1324,7 @@ class RPMComposerThread(PungiComposerThread):
         Generate and write the variants.xml file for this Pungi run.
 
         Args:
-            pungi_conf_dir (basestring): A path to the directory that Pungi's configs are being
+            pungi_conf_dir (str): A path to the directory that Pungi's configs are being
                 written to.
             template_env (jinja2.Environment): The jinja2 environment to be used while rendering the
                 variants.xml template.
@@ -1346,7 +1346,7 @@ class ModuleComposerThread(PungiComposerThread):
         Generate and write the variants.xml file for this Pungi run.
 
         Args:
-            pungi_conf_dir (basestring): A path to the directory that Pungi's configs are being
+            pungi_conf_dir (str): A path to the directory that Pungi's configs are being
                 written to.
             template_env (jinja2.Environment): The jinja2 environment to be used while rendering the
                 variants.xml template.

@@ -41,7 +41,7 @@ def create_update(session, build_nvrs, release_name='F17'):
 
     Args:
         build_nvrs (iterable): An iterable of strings of NVRs to put into the update.
-        release_name (basestring): The name of the release to associate with the update.
+        release_name (str): The name of the release to associate with the update.
     Returns:
         bodhi.server.models.Update: The generated update.
     """

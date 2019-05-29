@@ -36,7 +36,7 @@ def get_configfile():
     exists. Otherwise, it returns None.
 
     Returns:
-        basestring or None: The path of a config file, or None if no config file is found.
+        str or None: The path of a config file, or None if no config file is found.
     """
     configfile = None
     setupdir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..')
@@ -58,7 +58,7 @@ def _generate_list_validator(splitter=' ', validator=str):
     with the given validator.
 
     Args:
-        splitter (basestring): A string to use to split the input into a list.
+        splitter (str): A string to use to split the input into a list.
         validator (function):  A function to apply to each element of the list to validate it.
     Returns:
         function: A validator function that accepts an argument to be validated.
@@ -71,9 +71,9 @@ def _generate_list_validator(splitter=' ', validator=str):
         list.
 
         Args:
-            value (basestring or list): The list to be validated.
+            value (str or list): The list to be validated.
         Returns:
-            unicode: The interpreted list.
+            str: The interpreted list.
         Raises:
             ValueError: If validator fails on any of the list's elements.
         """
@@ -98,7 +98,7 @@ def _validate_bool(value):
     as a bool. It will return a bool. If it cannot do that, it will raise ValueError.
 
     Args:
-        value (basestring or bool): The value to be validated as a bool.
+        value (str or bool): The value to be validated as a bool.
     Returns:
         bool: The boolean interpretation of value.
     Raises:
@@ -149,9 +149,9 @@ def validate_path(value):
     raise ValueError.
 
     Args:
-        value (basestring): The path to be validated.
+        value (str): The path to be validated.
     Returns:
-        unicode: The path.
+        str: The path.
     Raises:
         ValueError: If os.path.exists returns False.
     """
@@ -175,15 +175,15 @@ def _validate_rstripped_str(value):
 
 
 def _validate_secret(value):
-    """Ensure that the value is not CHANGEME and convert it to unicode.
+    """Ensure that the value is not CHANGEME and convert it to a string.
 
     This function is used to ensure that secret values in the config have been set by the user to
     something other than the default of CHANGEME.
 
     Args:
-        value (basestring): The value to be validated.
+        value (str): The value to be validated.
     Returns:
-        unicode: The value.
+        str: The value.
     Raises:
         ValueError: If value is "CHANGEME".
     """
@@ -197,9 +197,9 @@ def _validate_tls_url(value):
     """Ensure that the value is a string that starts with https://.
 
     Args:
-        value (basestring): The value to be validated.
+        value (str): The value to be validated.
     Returns:
-        unicode: The value.
+        str: The value.
     Raises:
         ValueError: If value is not a string starting with https://.
     """

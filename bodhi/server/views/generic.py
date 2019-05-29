@@ -153,7 +153,7 @@ def get_update_counts(releaseid):
 
     Args:
         request (pyramid.request.Request): The current request
-        releaseid (basestring): The id of the Release object you would like the counts performed on
+        releaseid (str): The id of the Release object you would like the counts performed on
     Returns:
         dict: A dictionary expressing the counts, as described above.
     """

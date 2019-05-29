@@ -219,7 +219,7 @@ class CorsOrigins(object):
         Initialize the CorsOrigins object.
 
         Args:
-            name (basestring): The name of the setting for the CORS config.
+            name (str): The name of the setting for the CORS config.
         """
         self.name = name
         self.origins = None

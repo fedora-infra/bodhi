@@ -68,7 +68,7 @@ def get_rpm_header(nvr, tries=0):
     Get the rpm header for a given build.
 
     Args:
-        nvr (basestring): The name-version-release string of the build you want headers for.
+        nvr (str): The name-version-release string of the build you want headers for.
         tries (int): The number of attempts that have been made to retrieve the nvr so far. Defaults
             to 0.
     Returns:
@@ -122,10 +122,10 @@ def link(href, text):
     Return an HTML anchor tag for the given href using the given text.
 
     Args:
-        href (basestring): The URL to link.
-        text (basestring): The text to render for the link.
+        href (str): The URL to link.
+        text (str): The text to render for the link.
     Returns:
-        basestring: The requested anchor tag.
+        str: The requested anchor tag.
     """
     return '<a href="%s">%s</a>' % (href, text)
 
@@ -182,7 +182,7 @@ class memoized(object):
         Return the function's docstring.
 
         Returns:
-            basestring: The wrapped function's docstring.
+            str: The wrapped function's docstring.
         """
         return self.func.__doc__
 
@@ -205,8 +205,8 @@ def get_critpath_components(collection='master', component_type='rpm', component
     Return a list of critical path packages for a given collection, filtered by components.
 
     Args:
-        collection (basestring): The collection/branch to search. Defaults to 'master'.
-        component_type (basestring): The component type to search for. This only affects PDC
+        collection (str): The collection/branch to search. Defaults to 'master'.
+        component_type (str): The component type to search for. This only affects PDC
             queries. Defaults to 'rpm'.
         components (frozenset or None): The list of components we are interested in. If None (the
             default), all components for the given collection and type are returned.
@@ -240,7 +240,7 @@ def sanity_check_repodata(myurl, repo_type):
     Sanity check the repodata for a given repository.
 
     Args:
-        myurl (basestring): A path to a repodata directory.
+        myurl (str): A path to a repodata directory.
         repo_type (str): This should be set to 'yum' for Yum repositories, 'module' for module
             repositories, or 'source' for source repositories.
     Raises:
@@ -337,8 +337,8 @@ def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
     to run some repository actions on it.
 
     Args:
-        tempdir (basestring): Temporary directory that will be removed at the end.
-        myurl (basestring): A path to a repodata directory.
+        tempdir (str): Temporary directory that will be removed at the end.
+        myurl (str): A path to a repodata directory.
         dnf_args (list): A list of arguments after DNF is set up to use the repo under test.
             Example would be ["search", "kernel"] or ["module", "list"].
     Raises:
@@ -365,7 +365,7 @@ def age(context, date, nuke_ago=False):
         date (datetime.datetime): A date you wish a human readable age since.
         nuke_ago (bool): If True, remove " ago" from the age. Defaults to False.
     Returns:
-        basestring: A human readable age since the given date.
+        str: A human readable age since the given date.
     """
     humanized = arrow.get(date).humanize()
     if nuke_ago:
@@ -391,10 +391,10 @@ def avatar(context, username, size):
 
     Args:
         context (mako.runtime.Context): The current template rendering context.
-        username (basestring): The username to return an avatar URL for.
+        username (str): The username to return an avatar URL for.
         size (int): The size of the avatar you wish to retrieve, in unknown libravatar units.
     Returns:
-        basestring: A URL to an avatar for the given username.
+        str: A URL to an avatar for the given username.
     """
     # Handle some system users
     # https://github.com/fedora-infra/bodhi/issues/308
@@ -441,7 +441,7 @@ def splitter(value):
         ['one', 'two', 'three', 'four']
 
     Args:
-        value (basestring, colander.null, or iterable): The value to interpret as a list.
+        value (str, colander.null, or iterable): The value to interpret as a list.
     Returns:
         list: A list of strings.
     """
@@ -469,7 +469,7 @@ def version(context=None):
     Args:
         context (mako.runtime.Context or None): Unused. Defaults to None.
     Returns:
-        basestring: The Bodhi server's version.
+        str: The Bodhi server's version.
     """
     return pkg_resources.get_distribution('bodhi').version
 
@@ -481,7 +481,7 @@ def hostname(context=None):
     Args:
         context (mako.runtime.Context or None): Unused. Defaults to None.
     Returns:
-        basestring: The Bodhi server's hostname.
+        str: The Bodhi server's hostname.
     """
     return socket.gethostname()
 
@@ -492,9 +492,9 @@ def markup(context, text):
 
     Args:
         context (mako.runtime.Context): Unused.
-        text (basestring): Markdown text to be converted to HTML.
+        text (str): Markdown text to be converted to HTML.
     Returns:
-        basestring: HTML representation of the markdown text.
+        str: HTML representation of the markdown text.
     """
     # determine the major component of the bleach version installed.
     # this is similar to the approach that Pagure uses to determine the bleach version
@@ -549,7 +549,7 @@ def composestate2html(context, state):
         state (bodhi.server.models.ComposeState): The ComposeState to render as a span
             tag.
     Returns:
-        basestring: An HTML span tag representing the ComposeState.
+        str: An HTML span tag representing the ComposeState.
     """
     cls = {
         'requested': 'primary',
@@ -576,7 +576,7 @@ def status2html(context, status):
         severity (bodhi.server.models.UpdateStatus): The UpdateStatus to render as a span
             tag.
     Returns:
-        basestring: An HTML span tag representing the UpdateStatus.
+        str: An HTML span tag representing the UpdateStatus.
     """
     status = str(status)
     cls = {
@@ -607,7 +607,7 @@ def state2class(context, state):
         context (mako.runtime.Context): Unused.
         state (bodhi.server.models.ReleaseState): The ReleaseState value you wish to classify.
     Returns:
-        basestring: A string representing the classification of the given ReleaseState. Can return
+        str: A string representing the classification of the given ReleaseState. Can return
             'danger', 'warning', 'success', or 'default active'.
     """
     state = str(state)
@@ -628,7 +628,7 @@ def type2color(context, t):
         context (mako.runtime.Context): The current template rendering context.
         t (bodhi.server.models.UpdateType): The UpdateType you wish to choose a color for.
     Returns:
-        basestring: A string in the format rgba(RED, GREEN, BLUE, ALPHA), where RED, GREEN, BLUE,
+        str: A string in the format rgba(RED, GREEN, BLUE, ALPHA), where RED, GREEN, BLUE,
             and ALPHA are replaced with numerical values to represent a color.
     """
     t = str(t)
@@ -649,7 +649,7 @@ def state2html(context, state):
         context (mako.runtime.Context): The current template rendering context.
         state (bodhi.server.models.ReleaseState): The ReleaseState you wish to render as HTML.
     Returns:
-        basestring: An HTML rendering of the given ReleaseState.
+        str: An HTML rendering of the given ReleaseState.
     """
     state_class = state2class(context, state)
     return "<span class='label label-%s'>%s</span>" % (state_class, state)
@@ -662,9 +662,9 @@ def karma2class(context, karma, default='default'):
     Args:
         context (mako.runtime.Context): Unused.
         karma (int): The karma value you wish to classify.
-        default (basestring): The default value if karma is not within the range -2 <= karma <= 2.
+        default (str): The default value if karma is not within the range -2 <= karma <= 2.
     Returns:
-        basestring: A string representing the classification of the given karma. Can return
+        str: A string representing the classification of the given karma. Can return
             'danger', 'info', 'success', or the default value.
     """
     if karma and karma >= -2 and karma <= 2:
@@ -687,7 +687,7 @@ def karma2html(context, karma):
         karma (int or tuple): The karma value or values you wish to render a span tag or td tags
             for.
     Returns:
-        basestring: An HTML span tag or a list of td tags representing the karma or karma tuple.
+        str: An HTML span tag or a list of td tags representing the karma or karma tuple.
     """
     # Recurse if we are handle multiple karma values
     if isinstance(karma, tuple):
@@ -720,7 +720,7 @@ def type2html(context, kind):
         severity (bodhi.server.models.UpdateType): The UpdateType to render as a span
             tag.
     Returns:
-        basestring: An HTML span tag representing the UpdateType.
+        str: An HTML span tag representing the UpdateType.
     """
     kind = str(kind)
     cls = {
@@ -743,7 +743,7 @@ def type2icon(context, kind):
         severity (bodhi.server.models.UpdateType): The UpdateType to render as a span
             tag.
     Returns:
-        basestring: An HTML span tag representing the UpdateType.
+        str: An HTML span tag representing the UpdateType.
     """
     kind = str(kind)
     cls = {
@@ -779,7 +779,7 @@ def severity2html(context, severity):
         severity (bodhi.server.models.UpdateSeverity): The UpdateSeverity to render as a span
             tag.
     Returns:
-        basestring: An HTML span tag representing the UpdateSeverity.
+        str: An HTML span tag representing the UpdateSeverity.
     """
     severity = str(severity)
     cls = {
@@ -801,7 +801,7 @@ def request2html(context, request):
         context (mako.runtime.Context): Unused.
         request (bodhi.server.models.UpdateRequest): The UpdateRequest to render as a span tag.
     Returns:
-        basestring: An HTML span tag representing the UpdateRequest.
+        str: An HTML span tag representing the UpdateRequest.
     """
     request = str(request)
     cls = {
@@ -873,9 +873,9 @@ def page_url(context, page):
     Args:
         context (mako.runtime.Context): The current template context, used to get the current path
             URL.
-        page (basestring): The requested page number.
+        page (str): The requested page number.
     Returns:
-        basestring: The current path appended with a GET query for the requested page.
+        str: The current path appended with a GET query for the requested page.
     """
     request = context.get('request')
     params = dict(request.params)
@@ -892,7 +892,7 @@ def bug_link(context, bug, short=False):
         short (bool): If False, includes the title of the bug in the response, or a spinner if the
             title is unknown. If True, only returns the anchor tag. Defaults to False.
     Returns:
-        basestring: The requested link.
+        str: The requested link.
     """
     url = "https://bugzilla.redhat.com/show_bug.cgi?id=" + str(bug.bug_id)
     display = "#%i" % bug.bug_id
@@ -919,7 +919,7 @@ def testcase_link(context, test, short=False):
         short (bool): If False, returns "Test Case " then the HTML anchor tag with the link. If
             True, only returns the anchor tag. Defaults to False.
     Returns:
-        basestring: The requested link.
+        str: The requested link.
     """
     url = config.get('test_case_base_url') + test.name
     display = test.name.replace('QA:Testcase ', '')
@@ -1009,12 +1009,12 @@ def cmd(cmd, cwd=None, raise_on_error=False):
     Args:
         cmd (list): The command to be run. This is expressed as a list to be
             passed directly to subprocess.Popen().
-        cwd (basestring or None): The current working directory to use when launching the
+        cwd (str or None): The current working directory to use when launching the
             subprocess.
         raise_on_error (bool): If True, raise a RuntimeError if the command's exit code is non-0.
             Defaults to False.
     Returns:
-        tuple: A 3-tuple of the standard output (basestring), standard error (basestring), and the
+        tuple: A 3-tuple of the standard output (str), standard error (str), and the
             process's return code (int).
     Raises:
         RuntimeError: If exception is True and the command's exit code is non-0.
@@ -1042,9 +1042,9 @@ def tokenize(string):
     ['a', 'b', 'c', 'd'].
 
     Args:
-        string (basestring): The string to be interpreted as an iterable.
+        string (str): The string to be interpreted as an iterable.
     Yields:
-        basestring: The individual tokens found in the comma or space separated string.
+        str: The individual tokens found in the comma or space separated string.
     """
     for substring in string.split(','):
         substring = substring.strip()
@@ -1060,7 +1060,7 @@ def taskotron_results(settings, entity='results/latest', max_queries=10, **kwarg
     Yield resultsdb results using query arguments.
 
     Args:
-        entity (basestring): The API endpoint to use (see resultsdb documentation).
+        entity (str): The API endpoint to use (see resultsdb documentation).
         max_queries (int): The maximum number of queries to perform (pages to retrieve). ``1`` means
             just a single page. ``None`` or ``0`` means no limit. Please note some tests might have
             thousands of results in the database and it's very reasonable to limit queries (thus the
@@ -1136,7 +1136,7 @@ def sort_severity(value):
     This is used to sort severities from low to high.
 
     Args:
-        value (basestring): The human readable UpdateSeverity string.
+        value (str): The human readable UpdateSeverity string.
     Returns:
         int: A number representing the sorting order of the given UpdateSeverity string, or 99 if an
             unknown value is given.
@@ -1160,9 +1160,9 @@ def severity_updateinfo_str(value):
     portable clients.
 
     Args:
-        value (basestring): The Bodhi severity to be mapped to a repodata severity string.
+        value (str): The Bodhi severity to be mapped to a repodata severity string.
     Returns:
-        basestring: A severity string to be included in repodata.
+        str: A severity string to be included in repodata.
     """
     severity_map = {
         'unspecified': "None",
@@ -1185,8 +1185,8 @@ def get_critpath_components_from_pdc(branch, component_type='rpm', components=No
     Search PDC for critical path packages based on the specified branch.
 
     Args:
-        branch (basestring): The branch name to search by.
-        component_type (basestring): The component type to search by. Defaults to ``rpm``.
+        branch (str): The branch name to search by.
+        component_type (str): The component type to search by. Defaults to ``rpm``.
         components (frozenset or None): The list of components we are interested in. If None (the
             default), all components for the given branch and type are returned.
     Returns:
@@ -1240,12 +1240,12 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
     Perform an HTTP request with response type and error handling.
 
     Args:
-        api_url (basestring): The URL to query.
-        service_name (basestring): The service name being queried (used to form human friendly error
+        api_url (str): The URL to query.
+        service_name (str): The service name being queried (used to form human friendly error
             messages).
-        error_key (basestring): The key that indexes error messages in the JSON body for the given
+        error_key (str): The key that indexes error messages in the JSON body for the given
             service. If this is set to None, the JSON response will be used as the error message.
-        method (basestring): The HTTP method to use for the request. Defaults to ``GET``.
+        method (str): The HTTP method to use for the request. Defaults to ``GET``.
         data (dict): Query string parameters that will be sent along with the request to the server.
         headers (dict): The headers to send along with the request.
         retries (int): The number of times to retry, each after a 1 second sleep, if we get a
@@ -1305,7 +1305,7 @@ def pagure_api_get(pagure_api_url):
     Perform a GET request against Pagure.
 
     Args:
-        pagure_api_url (basestring): The URL to GET, including query parameters.
+        pagure_api_url (str): The URL to GET, including query parameters.
     Returns:
         dict: A dictionary response representing the API response's JSON.
     Raises:
@@ -1319,7 +1319,7 @@ def pdc_api_get(pdc_api_url):
     Perform a GET request against PDC.
 
     Args:
-        pdc_api_url (basestring): The URL to GET, including query parameters.
+        pdc_api_url (str): The URL to GET, including query parameters.
     Returns:
         dict: A dictionary response representing the API response's JSON.
     Raises:
@@ -1335,7 +1335,7 @@ def greenwave_api_post(greenwave_api_url, data):
     Post a request to Greenwave.
 
     Args:
-        greenwave_api_url (basestring): The URL to query.
+        greenwave_api_url (str): The URL to query.
         data (dict): The parameters to send along with the request.
     Returns:
         dict: A dictionary response representing the API response's JSON.
@@ -1353,7 +1353,7 @@ def waiverdb_api_post(waiverdb_api_url, data):
     Post a request to WaiverDB.
 
     Args:
-        waiverdb_api_url (basestring): The URL to query.
+        waiverdb_api_url (str): The URL to query.
         data (dict): The parameters to send along with the request.
     Returns:
         dict: A dictionary response representing the API response's JSON.

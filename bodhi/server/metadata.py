@@ -41,12 +41,12 @@ def insert_in_repo(comp_type, repodata, filetype, extension, source):
 
     Args:
         comp_type (int): createrepo_c compression type indication.
-        repodata (basestring): The path to the repo where the metadata will be inserted.
-        filetype (basestring): What type of metadata will be inserted by createrepo_c.
+        repodata (str): The path to the repo where the metadata will be inserted.
+        filetype (str): What type of metadata will be inserted by createrepo_c.
             This does allow any string to be inserted (custom types). There are some
             types which are used with dnf repos as primary, updateinfo, comps, filelist etc.
-        extension (basestring): The file extension (xml, sqlite).
-        source (basestring): A file path. File holds the dump of metadata until
+        extension (str): The file extension (xml, sqlite).
+        source (str): A file path. File holds the dump of metadata until
             copied to the repodata folder.
     """
     log.info('Inserting %s.%s into %s', filetype, extension, repodata)
@@ -78,12 +78,12 @@ def modifyrepo(comp_type, compose_path, filetype, extension, source):
     Inject a file into the repodata for each architecture with the help of createrepo_c.
 
     Args:
-        compose_path (basestring): The path to the compose where the metadata will be inserted.
-        filetype (basestring): What type of metadata will be inserted by createrepo_c.
+        compose_path (str): The path to the compose where the metadata will be inserted.
+        filetype (str): What type of metadata will be inserted by createrepo_c.
             This does allow any string to be inserted (custom types). There are some
             types which are used with dnf repos as primary, updateinfo, comps, filelist etc.
-        extension (basestring): The file extension (xml, sqlite).
-        source (basestring): A file path. File holds the dump of metadata until
+        extension (str): The file extension (xml, sqlite).
+        source (str): A file path. File holds the dump of metadata until
             copied to the repodata folder.
     """
     repo_path = os.path.join(compose_path, 'compose', 'Everything')
@@ -112,7 +112,7 @@ class UpdateInfoMetadata(object):
             release (bodhi.server.models.Release): The Release that is being composed.
             request (bodhi.server.models.UpdateRequest): The Request that is being composed.
             db (): A database session to be used for queries.
-            composedir (basestring): A path to the composedir.
+            composedir (str): A path to the composedir.
             close_shelf (bool): Whether to close the shelve, which is used to cache updateinfo
                 between composes.
         """
@@ -176,7 +176,7 @@ class UpdateInfoMetadata(object):
 
         Args:
             koji (koji.ClientSession): An initialized Koji client.
-            nvr (basestring): The nvr for which you wish to retrieve Koji data.
+            nvr (str): The nvr for which you wish to retrieve Koji data.
         Returns:
             list: A list of dictionaries describing all the subpackages that are part of the given
                 nvr.
@@ -284,7 +284,7 @@ class UpdateInfoMetadata(object):
         Add the updateinfo.xml file to the repository.
 
         Args:
-            compose_path (basestring): The path to the compose where the metadata will be inserted.
+            compose_path (str): The path to the compose where the metadata will be inserted.
         """
         fd, tmp_file_path = tempfile.mkstemp()
         os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
