@@ -120,7 +120,7 @@ def test_release = { String release ->
         },
         unit: {
             bodhi_ci(release, 'unit', 'unit', '--no-build --no-init')
-            bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init')
+            bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init -Z')
         }
     )
 }
