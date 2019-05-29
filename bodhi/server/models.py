@@ -63,9 +63,9 @@ class EnumSymbol(object):
 
         Args:
             cls_ (EnumMeta): The metaclass this symbol is tied to.
-            name (basestring): The name of this symbol.
-            value (basestring): The value used in the database to represent this symbol.
-            description (basestring): A human readable description of this symbol.
+            name (str): The name of this symbol.
+            value (str): The value used in the database to represent this symbol.
+            description (str): A human readable description of this symbol.
         """
         self.cls_ = cls_
         self.name = name
@@ -107,7 +107,7 @@ class EnumSymbol(object):
         Return a string representation of this EnumSymbol.
 
         Returns:
-            basestring: A string representation of this EnumSymbol's value.
+            str: A string representation of this EnumSymbol's value.
         """
         return "<%s>" % self.name
 
@@ -127,7 +127,7 @@ class EnumSymbol(object):
         Args:
             request (pyramid.request.Request): The current request.
         Returns:
-            basestring: A string representation of this EnumSymbol's value.
+            str: A string representation of this EnumSymbol's value.
         """
         return self.value
 
@@ -140,7 +140,7 @@ class EnumMeta(type):
         Initialize the metaclass.
 
         Args:
-            classname (basestring): The name of the enum.
+            classname (str): The name of the enum.
             bases (list): A list of base classes for the enum.
             dict_ (dict): A key-value mapping for the new enum's attributes.
         Returns:
@@ -174,7 +174,7 @@ class DeclEnum(metaclass=EnumMeta):
         Convert a string version of the enum to its enum type.
 
         Args:
-            value (basestring): A string that you wish to convert to an Enum value.
+            value (str): A string that you wish to convert to an Enum value.
         Returns:
             EnumSymbol: The symbol corresponding to the value.
         Raises:
@@ -249,7 +249,7 @@ class DeclEnumType(SchemaType, TypeDecorator):
                 of.
             dialect (sqlalchemy.engine.default.DefaultDialect): Unused.
         Returns:
-            basestring: The EnumSymbol's value.
+            str: The EnumSymbol's value.
         """
         if value is None:
             return None
@@ -260,7 +260,7 @@ class DeclEnumType(SchemaType, TypeDecorator):
         Return the enum that matches the given string.
 
         Args:
-            value (basestring): The name of an enum.
+            value (str): The name of an enum.
             dialect (sqlalchemy.engine.default.DefaultDialect): Unused.
         Returns:
             EnumSymbol or None: The enum that matches value, or ``None`` if ``value`` is ``None``.
@@ -336,7 +336,7 @@ class BodhiBase(object):
         Return a string representation of this model.
 
         Returns:
-            basestring: A string representation of this model.
+            str: A string representation of this model.
         """
         return '<{0} {1}>'.format(self.__class__.__name__, self.__json__())
 
@@ -748,28 +748,28 @@ class Release(Base):
     Represent a distribution release, such as Fedora 27.
 
     Attributes:
-        name (unicode): The name of the release, such as 'F27'.
-        long_name (unicode): A human readable name for the release, such as 'Fedora 27'.
-        version (unicode): The version of the release, such as '27'.
-        id_prefix (unicode): The prefix to use when forming update aliases for this release, such as
+        name (str): The name of the release, such as 'F27'.
+        long_name (str): A human readable name for the release, such as 'Fedora 27'.
+        version (str): The version of the release, such as '27'.
+        id_prefix (str): The prefix to use when forming update aliases for this release, such as
             'FEDORA'.
-        branch (unicode): The dist-git branch associated with this release, such as 'f27'.
-        dist_tag (unicode): The koji dist_tag associated with this release, such as 'f27'.
-        stable_tag (unicode): The koji tag to be used for stable builds in this release, such as
+        branch (str): The dist-git branch associated with this release, such as 'f27'.
+        dist_tag (str): The koji dist_tag associated with this release, such as 'f27'.
+        stable_tag (str): The koji tag to be used for stable builds in this release, such as
             'f27-updates'.
-        testing_tag (unicode): The koji tag to be used for testing builds in this release, such as
+        testing_tag (str): The koji tag to be used for testing builds in this release, such as
             'f27-updates-testing'.
-        candidate_tag (unicode): The koji tag used for builds that are candidates to be updates,
+        candidate_tag (str): The koji tag used for builds that are candidates to be updates,
             such as 'f27-updates-candidate'.
-        pending_signing_tag (unicode): The koji tag that specifies that a build is waiting to be
+        pending_signing_tag (str): The koji tag that specifies that a build is waiting to be
             signed, such as 'f27-signing-pending'.
-        pending_testing_tag (unicode): The koji tag that indicates that a build is waiting to be
+        pending_testing_tag (str): The koji tag that indicates that a build is waiting to be
             composed into the testing repository, such as 'f27-updates-testing-pending'.
-        pending_stable_tag (unicode): The koji tag that indicates that a build is waiting to be
+        pending_stable_tag (str): The koji tag that indicates that a build is waiting to be
             composed into the stable repository, such as 'f27-updates-pending'.
-        override_tag (unicode): The koji tag that is used when a build is added as a buildroot
+        override_tag (str): The koji tag that is used when a build is added as a buildroot
             override, such as 'f27-override'.
-        mail_template (unicode): The notification mail template.
+        mail_template (str): The notification mail template.
         state (:class:`ReleaseState`): The current state of the release. Defaults to
             ``ReleaseState.disabled``.
         id (int): The primary key of this release.
@@ -782,7 +782,7 @@ class Release(Base):
             `candidate_tag`. Defaults to False.
         package_manager (EnumSymbol): The package manager this release uses. This must be one of
             the values defined in :class:`PackageManager`.
-        testing_repository (unicode): The name of repository where updates are placed for
+        testing_repository (str): The name of repository where updates are placed for
             testing before being pushed to the main repository.
     """
 
@@ -856,7 +856,7 @@ class Release(Base):
         Return the collection name of this release (eg: Fedora EPEL).
 
         Returns:
-            basestring: The collection name of this release.
+            str: The collection name of this release.
         """
         return ' '.join(self.long_name.split()[:-1])
 
@@ -931,7 +931,7 @@ class TestCase(Base):
     Represents test cases from the wiki.
 
     Attributes:
-        name (unicode): The name of the test case.
+        name (str): The name of the test case.
         package_id (int): The primary key of the :class:`Package` associated with this test case.
         package (Package): The package associated with this test case.
     """
@@ -952,8 +952,8 @@ class Package(Base):
     This model uses single-table inheritance to allow for different package types.
 
     Attributes:
-        name (unicode): A unicode string that uniquely identifies the package.
-        requirements (unicode): A unicode string that lists space-separated taskotron test
+        name (str): A text string that uniquely identifies the package.
+        requirements (str): A text string that lists space-separated taskotron test
             results that must pass for this package
         type (int): The polymorphic identity column. This is used to identify what Python
             class to create when loading rows from the database.
@@ -1117,7 +1117,7 @@ class Package(Base):
         Return a string representation of the package.
 
         Returns:
-            basestring: A string representing this package.
+            str: A string representing this package.
         """
         x = header(self.name)
         states = {'pending': [], 'testing': [], 'stable': []}
@@ -1238,7 +1238,7 @@ class Build(Base):
     This model uses single-table inheritance to allow for different build types.
 
     Attributes:
-        nvr (unicode): The nvr field is really a mapping to the Koji build_target.name field, and is
+        nvr (str): The nvr field is really a mapping to the Koji build_target.name field, and is
             used to reference builds in Koji. It is named nvr in reference to the dash-separated
             name-version-release Koji name for RPMs, but it is used by other types as well. At the
             time of this writing, it was not practical to rename nvr since it is used in the REST
@@ -1407,7 +1407,7 @@ class ModuleBuild(Build):
     Note that this model uses single-table inheritance with its Build superclass.
 
     Attributes:
-        nvr (unicode): A unique Koji identifier for the module build.
+        nvr (str): A unique Koji identifier for the module build.
     """
 
     __mapper_args__ = {
@@ -1452,7 +1452,7 @@ class RpmBuild(Build):
     Note that this model uses single-table inheritance with its Build superclass.
 
     Attributes:
-        nvr (unicode): A dash (-) separated string of an RPM's name, version, and release (e.g.
+        nvr (str): A dash (-) separated string of an RPM's name, version, and release (e.g.
             'bodhi-2.5.0-1.fc26')
         epoch (int): The RPM's epoch.
     """
@@ -1466,7 +1466,7 @@ class RpmBuild(Build):
     @property
     def evr(self):
         """
-        Return the RpmBuild's epoch, version, release, all basestrings in a 3-tuple.
+        Return the RpmBuild's epoch, version, release, all strings in a 3-tuple.
 
         Return:
             tuple: (epoch, version, release)
@@ -1484,7 +1484,7 @@ class RpmBuild(Build):
         If there is no other Build, this returns ``None``.
 
         Returns:
-            basestring or None: An nvr string, formatted like RpmBuild.nvr. If there is no other
+            str or None: An nvr string, formatted like RpmBuild.nvr. If there is no other
                 Build, returns ``None``.
         """
         koji_session = buildsys.get_session()
@@ -1559,7 +1559,7 @@ class Update(Base):
             karma the update must receive before being automatically marked as stable.
         unstable_karma (int): A positive integer that indicates the amount of "bad"
             karma the update must receive before being automatically marked as unstable.
-        requirements (unicode): A list of taskotron tests that must pass for this
+        requirements (str): A list of taskotron tests that must pass for this
             update to be considered stable.
         require_bugs (bool): Indicates whether or not positive feedback needs to be
             provided for the associated bugs before the update can be considered
@@ -1569,7 +1569,7 @@ class Update(Base):
             update can pass to stable. If the update has no associated wiki test cases,
             this option has no effect.
         display_name (str): Allows the user to customize the name of the update.
-        notes (unicode): Notes about the update. This is a human-readable field that
+        notes (str): Notes about the update. This is a human-readable field that
             describes what the update is for (e.g. the bugs it fixes).
         type (EnumSymbol): The type of the update (e.g. enhancement, bugfix, etc). It
             must be one of the values defined in :class:`UpdateType`.
@@ -1602,7 +1602,7 @@ class Update(Base):
             or ``None``.
         date_stable (DateTime): The date the update was placed into the stable repository or
             ``None``.
-        alias (unicode): The update alias (e.g. FEDORA-EPEL-2009-12345).
+        alias (str): The update alias (e.g. FEDORA-EPEL-2009-12345).
         release_id (int): A foreign key to the releases ``id``.
         release (Release): The ``Release`` object this update relates to via the ``release_id``.
         comments (sqlalchemy.orm.collections.InstrumentedList): A list of the :class:`Comment`
@@ -1853,7 +1853,7 @@ class Update(Base):
 
         Args:
             builds (list): :class:`Builds <Build>` to be considered.
-            release_name (basestring): The name of the release, such as "f25".
+            release_name (str): The name of the release, such as "f25".
         Returns:
             bool: ``True`` if the update contains a critical path package, ``False`` otherwise.
         Raises:
@@ -1893,7 +1893,7 @@ class Update(Base):
         Form and return the proper Greenwave API subject field for this Update as JSON.
 
         Returns:
-            basestring: A JSON list of objects that are appropriate to be passed to the Greenwave
+            str: A JSON list of objects that are appropriate to be passed to the Greenwave
                 API subject field for a decision about this Update.
         """
         return json.dumps(self.greenwave_subject)
@@ -2314,7 +2314,7 @@ class Update(Base):
         Return all koji tags for all builds on this update.
 
         Returns:
-            list: basestrings of the koji tags used in this update.
+            list: strings of the koji tags used in this update.
         """
         return list(set(sum([b.get_tags() for b in self.builds], [])))
 
@@ -2332,13 +2332,13 @@ class Update(Base):
         Return a title for the update based on the :class:`Builds <Build>` it is associated with.
 
         Args:
-            delim (basestring): The delimiter used to separate the builds. Defaults to ' '.
+            delim (str): The delimiter used to separate the builds. Defaults to ' '.
             limit (int or None): If provided, limit the number of builds included to the given
                 number. If ``None`` (the default), no limit is used.
-            after_limit (basestring): If a limit is set, use this string after the limit is reached.
+            after_limit (str): If a limit is set, use this string after the limit is reached.
                 Defaults to '…'.
         Returns:
-            basestring: A title for this update.
+            str: A title for this update.
         """
         all_nvrs = [x.nvr for x in self.builds]
         nvrs = all_nvrs[:limit]
@@ -2353,7 +2353,7 @@ class Update(Base):
             show_titles (bool): If True, include the bug titles in the output. If False, include
                 only bug ids.
         Returns:
-            basestring: A space separated list of bugs associated with this update.
+            str: A space separated list of bugs associated with this update.
         """
         val = ''
         if show_titles:
@@ -2457,9 +2457,9 @@ class Update(Base):
 
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
-            action (UpdateRequest or basestring): The desired request. May be expressed as an
+            action (UpdateRequest or str): The desired request. May be expressed as an
                 UpdateRequest instance, or as a string describing the desired request.
-            username (basestring): The username of the user making the request.
+            username (str): The username of the user making the request.
         Raises:
             BodhiException: Two circumstances can raise this ``Exception``:
 
@@ -2615,9 +2615,9 @@ class Update(Base):
         Attempt to waive test results for this update.
 
         Args:
-            username (basestring): The name of the user who is waiving the test results.
-            comment (basestring): A comment from the user describing their decision.
-            tests (list of basestring): A list of testcases to be waived. Defaults to ``None``
+            username (str): The name of the user who is waiving the test results.
+            comment (str): A comment from the user describing their decision.
+            tests (list of str): A list of testcases to be waived. Defaults to ``None``
                 If left as ``None``, all ``unsatisfied_requirements`` returned by greenwave
                 will be waived, otherwise only the testcase found in both list will be waived.
         Raises:
@@ -2666,7 +2666,7 @@ class Update(Base):
         Add the given koji tag to all :class:`Builds <Build>` in this update.
 
         Args:
-            tag (basestring): The tag to be added to the builds.
+            tag (str): The tag to be added to the builds.
         """
         log.debug('Adding tag %s to %s', tag, self.get_title())
         if not tag:
@@ -2684,7 +2684,7 @@ class Update(Base):
         Remove the given koji tag from all builds in this update.
 
         Args:
-            tag (basestring): The tag to remove from the :class:`Builds <Build>` in this update.
+            tag (str): The tag to remove from the :class:`Builds <Build>` in this update.
             koji (koji.ClientSession or None): A koji client to use to perform the action. If None
                 (the default), this method will use :func:`buildsys.get_session` to get one and
                 multicall will be used.
@@ -2780,7 +2780,7 @@ class Update(Base):
         Return the relative URL to this update.
 
         Returns:
-            basestring: A URL.
+            str: A URL.
         """
         path = ['updates']
         path.append(self.alias)
@@ -2803,7 +2803,7 @@ class Update(Base):
         Return a string representation of this update.
 
         Returns:
-            basestring: A string representation of the update.
+            str: A string representation of the update.
         """
         val = "%s\n%s\n%s\n" % ('=' * 80, '\n'.join(wrap(
             self.alias, width=80, initial_indent=' ' * 5,
@@ -2855,7 +2855,7 @@ class Update(Base):
         be a security update.
 
         Args:
-            bug_ids (list): A list of basestrings of bug ids to associate with this update.
+            bug_ids (list): A list of strings of bug ids to associate with this update.
             session (sqlalchemy.orm.session.Session): A database session.
         Returns:
             list: :class:`Bugs <Bug>` that are newly associated with the update.
@@ -3137,7 +3137,7 @@ class Update(Base):
         for test gating decisions.
 
         Returns:
-            basestring: The product version associated with this Update's Release.
+            str: The product version associated with this Update's Release.
         """
         return self.release.long_name.lower().replace(' ', '-')
 
@@ -3235,7 +3235,7 @@ class Update(Base):
 
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
-            agent (basestring): The username of the user who has provided karma.
+            agent (str): The username of the user who has provided karma.
         Raises:
             LockedUpdateException: If the update is locked.
         """
@@ -3280,7 +3280,7 @@ class Update(Base):
         Return a JSON representation of this update's associated builds.
 
         Returns:
-            basestring: A JSON list of the :class:`Builds <Build>` associated with this update.
+            str: A JSON list of the :class:`Builds <Build>` associated with this update.
         """
         return json.dumps([build.nvr for build in self.builds])
 
@@ -3290,7 +3290,7 @@ class Update(Base):
         Return a JSON representation of this update's requirements.
 
         Returns:
-            basestring: A JSON representation of this update's requirements.
+            str: A JSON representation of this update's requirements.
         """
         return json.dumps(list(tokenize(self.requirements or '')))
 
@@ -3455,7 +3455,7 @@ class Update(Base):
         Return a list of all TestCase names associated with all packages in this update.
 
         Returns:
-            list: A list of basestrings naming the :class:`TestCases <TestCase>` associated with
+            list: A list of strings naming the :class:`TestCases <TestCase>` associated with
                 this update.
         """
         tests = set()
@@ -3487,7 +3487,7 @@ class Update(Base):
         Return the tag the update has requested.
 
         Returns:
-            basestring: The Koji tag that corresponds to the update's current request.
+            str: The Koji tag that corresponds to the update's current request.
         Raises:
             RuntimeError: If a Koji tag is unable to be determined.
         """
@@ -3515,7 +3515,7 @@ class Update(Base):
             request (pyramid.request.Request or None): The current web request,
                 or None. Passed on to :meth:`BodhiBase.__json__`.
         Returns:
-            basestring: A JSON representation of this update.
+            str: A JSON representation of this update.
         """
         result = super(Update, self).__json__(request=request)
         # Duplicate alias as updateid for backwards compat with bodhi1
@@ -3583,10 +3583,10 @@ class Compose(Base):
         __exclude_columns__ (tuple): A tuple of columns to exclude when __json__() is called.
         __include_extras__ (tuple): A tuple of attributes to add when __json__() is called.
         __tablename__ (str): The name of the table in the database.
-        checkpoints (unicode): A JSON serialized object describing the checkpoints the composer has
+        checkpoints (str): A JSON serialized object describing the checkpoints the composer has
             reached.
         date_created (datetime.datetime): The time this Compose was created.
-        error_message (unicode): An error message indicating what happened if the Compose failed.
+        error_message (str): An error message indicating what happened if the Compose failed.
         id (None): We don't want the superclass's primary key since we will use a natural primary
             key for this model.
         release_id (int): The primary key of the :class:`Release` that is being composed. Forms half
@@ -3748,7 +3748,7 @@ class Compose(Base):
                 attributes required by the Composer to identify Composes are included. Defaults to
                 False. If used, overrides exclude and include.
         Returns:
-            basestring: A JSON representation of the Compose.
+            str: A JSON representation of the Compose.
         """
         if composer:
             exclude = ('checkpoints', 'error_message', 'date_created', 'state_date', 'release',
@@ -3780,7 +3780,7 @@ class Compose(Base):
         Return a human-readable representation of this compose.
 
         Returns:
-            basestring: A string to be displayed to users describing this compose.
+            str: A string to be displayed to users describing this compose.
         """
         return '<Compose: {} {}>'.format(self.release.name, self.request.description)
 
@@ -3839,7 +3839,7 @@ class Comment(Base):
     Attributes:
         karma (int): The karma associated with this comment. Defaults to 0.
         karma_critpath (int): The critpath karma associated with this comment. Defaults to 0.
-        text (unicode): The text of the comment.
+        text (str): The text of the comment.
         timestamp (datetime.datetime): The time the comment was created. Defaults to
             the return value of datetime.utcnow().
         update (Update): The update that this comment pertains to.
@@ -3944,9 +3944,9 @@ class Bug(Base):
 
     Attributes:
         bug_id (int): The bug's id.
-        title (unicode): The description of the bug.
+        title (str): The description of the bug.
         security (bool): True if the bug is marked as a security issue.
-        url (unicode): The URL for the bug. Inaccessible due to being overridden by the url
+        url (str): The URL for the bug. Inaccessible due to being overridden by the url
             property (https://github.com/fedora-infra/bodhi/issues/1995).
         parent (bool): True if this is a parent tracker bug for release-specific bugs.
     """
@@ -4091,8 +4091,8 @@ class User(Base):
     A Bodhi user.
 
     Attributes:
-        name (unicode): The username.
-        email (unicode): An e-mail address for the user.
+        name (str): The username.
+        email (str): An e-mail address for the user.
         comments (sqlalchemy.orm.dynamic.AppenderQuery): An iterable of :class:`Comments <Comment>`
             the user has written.
         updates (sqlalchemy.orm.dynamic.AppenderQuery): An iterable of :class:`Updates <Update>` the
@@ -4150,7 +4150,7 @@ class Group(Base):
     A group of users.
 
     Attributes:
-        name (unicode): The name of the Group.
+        name (str): The name of the Group.
         users (sqlalchemy.orm.collections.InstrumentedList): An iterable of the
             :class:`Users <User>` who are in the group.
     """
@@ -4174,7 +4174,7 @@ class BuildrootOverride(Base):
     for updates that depend on each other to be built.
 
     Attributes:
-        notes (unicode): A text field that holds arbitrary notes about the buildroot override.
+        notes (str): A text field that holds arbitrary notes about the buildroot override.
         submission_date (DateTime): The date that the buildroot override was submitted.
         expiration_date (DateTime): The date that the buildroot override expires.
         expired_date (DateTime): The date that the buildroot override expired.

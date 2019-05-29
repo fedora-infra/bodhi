@@ -194,7 +194,7 @@ class TestComposer(base.BaseTestCase):
         Args:
             composer_thread (bodhi.server.consumers.composer.ComposerThread): The ComposerThread
                 that Pungi is running inside.
-            tag (basestring): The type of tag you wish to compose ("stable_tag" or "testing_tag").
+            tag (str): The type of tag you wish to compose ("stable_tag" or "testing_tag").
             release (bodhi.server.models.Release): The Release you are composing.
             empty (bool): Whether to make an empty folder.
             noarches (bool): Whether to create a base compose dir without arches.

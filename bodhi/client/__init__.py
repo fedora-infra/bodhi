@@ -45,9 +45,9 @@ def _warn_if_url_or_openid_and_staging_set(ctx, param, value):
     Args:
         ctx (click.core.Context): The Click context, used to find out if the --staging flag is set.
         param (click.core.Option): The option being handled.
-        value (unicode): The value of the option being handled.
+        value (str): The value of the option being handled.
     Returns:
-        unicode: The value of the option being handled.
+        str: The value of the option being handled.
     """
     if ctx.params.get('staging', False) and (param.name in ['url', 'openid_api']) and \
             value is not None:
@@ -266,9 +266,10 @@ def _save_override(url, user, password, staging, edit=False, openid_api=None, **
     Create or edit a buildroot override.
 
     Args:
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
         staging (bool): Whether to use the staging server or not.
         edit (bool): Set to True to edit an existing buildroot override.
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -348,7 +349,8 @@ def list_composes(url, staging, verbose, debug):
     # developer docs
     """
     Args:
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         staging (bool): Whether to use the staging server or not.
         verbose (bool): Whether to show verbose output or not.
         debug (bool): If the --debug flag was set
@@ -371,8 +373,8 @@ def require_severity_for_security_update(type, severity):
     Print an error message if the user did not provide severity for a security update.
 
     Args:
-        type (unicode): The value of the update 'type'.
-        severity (unicode): The value of the update 'severity'.
+        type (str): The value of the update 'type'.
+        severity (str): The value of the update 'severity'.
     """
     if type == 'security' and severity not in ('low', 'medium', 'high', 'urgent'):
         raise click.BadParameter('must specify severity for a security update',
@@ -400,9 +402,10 @@ def new(user, password, url, debug, openid_api, **kwargs):
     # Developer Docs
     """
     Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         debug (bool): If the --debug flag was set
         openid_api (str): A URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -441,10 +444,10 @@ def _validate_edit_update(ctx, param, value):
     The update argument can only be an update id.
 
     Args:
-        param (basestring): The name of the parameter being validated. Unused.
-        value (basestring): The value of the value being validated.
+        param (str): The name of the parameter being validated. Unused.
+        value (str): The value of the value being validated.
     Returns:
-        basestring: The value if it passes validation.
+        str: The value if it passes validation.
     Raises:
         click.BadParameter: If the value is invalid.
     """
@@ -477,9 +480,10 @@ def edit(user, password, url, debug, openid_api, **kwargs):
     The update argument must be an update id.
 
     Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         debug (bool): If the --debug flag was set
         openid_api (str): A URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -583,7 +587,8 @@ def query(url, debug, mine=False, rows=None, **kwargs):
     Query updates based on flags.
 
     Args:
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         mine (Boolean): If the --mine flag was set
         debug (Boolean): If the --debug flag was set
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -621,13 +626,14 @@ def request(update, state, user, password, url, openid_api, **kwargs):
     Change an update's request to the given state.
 
     Args:
-        update (unicode): The update you wish to modify.
-        state (unicode): The state you wish to change the update's request to. Valid options are
-                         testing, stable, obsolete, unpush, and revoke.
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
+        update (str): The update you wish to modify.
+        state (str): The state you wish to change the update's request to. Valid options are
+                     testing, stable, obsolete, unpush, and revoke.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
         staging (bool): Whether to use the staging server or not.
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         openid_api (str): The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
@@ -667,13 +673,14 @@ def comment(update, text, karma, user, password, url, openid_api, **kwargs):
     Comment on an update.
 
     Args:
-        update (unicode): The update you wish to modify.
-        text (unicode): The text of the comment you wish to leave on the update.
+        update (str): The update you wish to modify.
+        text (str): The text of the comment you wish to leave on the update.
         karma (int): The karma you wish to leave on the update. Must be +1, 0, or -1.
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
         staging (bool): Whether to use the staging server or not.
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         openid_api (str): The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
@@ -705,10 +712,11 @@ def download(url, **kwargs):
 
     Args:
         staging (bool):   Whether to use the staging server or not.
-        arch (unicode):   Requested architecture of packages to download.
-                          "all" will retrieve packages from all architectures.
+        arch (str):   Requested architecture of packages to download.
+                      "all" will retrieve packages from all architectures.
         debuginfo (bool): Whether to include debuginfo packages.
-        url (unicode):    The URL of a Bodhi server. Ignored if staging is True.
+        url (str):    The URL of a Bodhi server to create the update on. Ignored if staging is
+                      True.
         kwargs (dict):    Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
@@ -815,11 +823,12 @@ def waive(update, show, test, comment, url, openid_api, **kwargs):
     The update argument must be an update id..
 
     Args:
-        update (unicode): The update who unsatisfied requirements wish to waive.
+        update (str): The update who unsatisfied requirements wish to waive.
         show (boolean): Whether to show all missing required tests of the specified update.
-        test (tuple(unicode)): Waive those specified tests or all of them if 'all' is specified.
-        comment (unicode): A comment explaining the waiver.
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
+        test (tuple(str)): Waive those specified tests or all of them if 'all' is specified.
+        comment (str): A comment explaining the waiver.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         openid_api (str): The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
@@ -898,16 +907,17 @@ def query_buildroot_overrides(url, user=None, mine=False, packages=None,
     Query the buildroot overrides.
 
     Args:
-        user (unicode): If supplied, overrides for this user will be queried.
+        user (str): If supplied, overrides for this user will be queried.
         staging (bool): Whether to use the staging server or not.
         mine (bool): Whether to use the --mine flag was given.
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
-        packages (unicode): If supplied, the overrides for these package are queried
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
+        packages (str): If supplied, the overrides for these package are queried
         expired (bool): If supplied, True returns only expired overrides, False only active.
-        releases (unicode): If supplied, the overrides for these releases are queried.
-        builds (unicode): If supplied, the overrides for these builds are queried.
-        rows (unicode): The limit of rows displayed per page for query result.
-        page (unicode): If supplied, returns the results for a specific page number.
+        releases (str): If supplied, the overrides for these releases are queried.
+        builds (str): If supplied, the overrides for these builds are queried.
+        rows (str): The limit of rows displayed per page for query result.
+        page (str): If supplied, returns the results for a specific page number.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
@@ -935,9 +945,10 @@ def save_buildroot_overrides(user, password, url, staging, openid_api, **kwargs)
     Create a buildroot override.
 
     Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         staging (bool): Whether to use the staging server or not.
         openid_api (str): A URL for the OpenID API to authenticate with Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -962,9 +973,10 @@ def edit_buildroot_overrides(user, password, url, staging, openid_api, **kwargs)
     Edit a buildroot override.
 
     Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server. Ignored if staging is True.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         staging (bool): Whether to use the staging server or not.
         openid_api (str): A URL for the OpenID API to authenticate with Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.

@@ -100,7 +100,7 @@ def validate_csrf_token(node, value):
 
     Args:
         node (colander.SchemaNode): The Colander Schema Node that validates the token.
-        value (basestring): The value of the CSRF to be validated.
+        value (str): The value of the CSRF to be validated.
     Raises:
         colander.Invalid: If the CSRF token does not match the expected value.
     """
@@ -116,7 +116,7 @@ def cache_tags(request, build):
 
     Args:
         request (pyramid.request.Request): The current request.
-        build (basestring): The NVR of the build to cache.
+        build (str): The NVR of the build to cache.
     Returns:
         list or None: The list of tags, or None if there was a failure communicating with koji.
     """
@@ -142,7 +142,7 @@ def cache_release(request, build):
 
     Args:
         request (pyramid.request.Request): The current request.
-        build (basestring): The NVR of the build to cache.
+        build (str): The NVR of the build to cache.
     Returns:
         Release or None: The release object, or None if no release can be matched to the tags
             associated with the build.
@@ -169,7 +169,7 @@ def cache_nvrs(request, build):
 
     Args:
         request (pyramid.request.Request): The current request.
-        build (basestring): The NVR of the build to cache.
+        build (str): The NVR of the build to cache.
     Raises:
         ValueError: If the build could not be found in koji.
         koji.GenericError: If an error was thrown by koji's getBuild() call.
@@ -870,7 +870,7 @@ def _conditionally_get_update(request):
 
     # This may or may not be true.. if a *different* validator runs first, then
     # request.validated['update'] will be an Update object.  But if it does
-    # not, then request.validated['update'] will be a unicode object.
+    # not, then request.validated['update'] will be a str object.
     # So.. we have to handle either situation.  It is, however, not our
     # responsibility to put the update object back in the request.validated
     # dict.  Note, for speed purposes, sqlalchemy should cache this for us.
@@ -942,7 +942,7 @@ def validate_testcase_feedback(request, **kwargs):
 
     # This may or may not be true.. if a *different* validator runs first, then
     # request.validated['update'] will be an Update object.  But if it does
-    # not, then request.validated['update'] will be a unicode object.
+    # not, then request.validated['update'] will be a str object.
     # So.. we have to handle either situation.  It is, however, not our
     # responsibility to put the update object back in the request.validated
     # dict.  Note, for speed purposes, sqlalchemy should cache this for us.
@@ -1042,7 +1042,7 @@ def _validate_override_build(request, nvr, db):
 
     Args:
         request (pyramid.request.Request): The current request.
-        nvr (basestring): The NVR for a :class:`Build`.
+        nvr (str): The NVR for a :class:`Build`.
         db (sqlalchemy.orm.session.Session): A database session.
     Returns:
         bodhi.server.models.Build: A build that matches the given nvr.
