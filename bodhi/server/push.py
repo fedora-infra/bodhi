@@ -128,7 +128,7 @@ def push(username, yes, **kwargs):
 
                 if not update.signed:
                     click.echo(
-                        'Warning: {update.get_title()} has unsigned builds and has been skipped')
+                        f'Warning: {update.get_title()} has unsigned builds and has been skipped')
                     continue
 
                 updates.append(update)
