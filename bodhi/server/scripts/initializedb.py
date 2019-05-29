@@ -1,3 +1,7 @@
+# Copyright © 2013-2019 Red Hat, Inc. and others.
+#
+# This file is part of Bodhi.
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
@@ -16,10 +20,11 @@
 import os
 import sys
 
-from pyramid.paster import get_appsettings, setup_logging
+from pyramid.paster import get_appsettings
 
 from ..models import Base
 from bodhi.server import initialize_db
+from bodhi.server.logging import setup as setup_logging
 
 
 def usage(argv):
@@ -47,7 +52,7 @@ def main(argv=sys.argv):
     if len(argv) != 2:
         usage(argv)
     config_uri = argv[1]
-    setup_logging(config_uri)
+    setup_logging()
     settings = get_appsettings(config_uri)
     engine = initialize_db(settings)
     Base.metadata.bind = engine

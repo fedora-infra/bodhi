@@ -1,4 +1,4 @@
-# Copyright © 2018, 2019 Red Hat, Inc.
+# Copyright © Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -15,19 +15,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Test the bodhi package."""
+"""
+Index the update_id column on the comments table.
 
-import _pytest.logging
+Revision ID: 19e28e9851a2
+Revises: 7ba286412ad4
+Create Date: 2019-04-30 22:29:42.553574
+"""
+from alembic import op
 
 
-if not hasattr(_pytest.logging.LogCaptureFixture, 'messages'):
-    # Monkey patch old versions of _pytest.logging.LogCaptureFixture
-    class MonkeyLogCaptureFixture(_pytest.logging.LogCaptureFixture):
-        """Adds 'messages' property to LogCaptureFixture."""
+# revision identifiers, used by Alembic.
+revision = '19e28e9851a2'
+down_revision = '7ba286412ad4'
 
-        @property
-        def messages(self):
-            """Return a list of format-interpolated log messages."""
-            return [r.getMessage() for r in self.records]
 
-    _pytest.logging.LogCaptureFixture = MonkeyLogCaptureFixture
+def upgrade():
+    """Add an index on comments.update_id."""
+    op.create_index(op.f('ix_comments_update_id'), 'comments', ['update_id'], unique=False)
+
+
+def downgrade():
+    """Drop the index on comments.update_id."""
+    op.drop_index(op.f('ix_comments_update_id'), table_name='comments')

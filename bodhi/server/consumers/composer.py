@@ -43,7 +43,7 @@ import jinja2
 import fedora_messaging
 
 from bodhi.messages.schemas import compose as compose_schemas, update as update_schemas
-from bodhi.server import bugs, initialize_db, buildsys, notifications, mail
+from bodhi.server import buildsys, notifications, mail
 from bodhi.server.config import config, validate_path
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
@@ -149,13 +149,10 @@ class ComposerHandler(object):
             ValueError: If pungi.cmd is set to a path that does not exist.
         """
         if not db_factory:
-            initialize_db(config)
             self.db_factory = transactional_session_maker()
         else:
             self.db_factory = db_factory
 
-        buildsys.setup_buildsystem(config)
-        bugs.set_bugtracker()
         self.compose_dir = compose_dir
 
         self.max_composes_sem = threading.BoundedSemaphore(config.get('max_concurrent_composes'))
@@ -177,6 +174,9 @@ class ComposerHandler(object):
 
         If there are any security updates in the push, then those repositories
         will be executed before all others.
+
+        Duplicate messages: if a requested compose is already pending or has
+        already started, it will be skipped.
 
         Args:
             message: The message we are processing. This is how we know what compose jobs to run.
@@ -236,6 +236,10 @@ class ComposerHandler(object):
                 composes = [Compose.from_dict(db, c) for c in msg['composes']]
             else:
                 raise ValueError('Unable to process message: {}'.format(msg))
+
+            # Filter out composes that are pending or have started, for example in
+            # case of duplicate messages.
+            composes = [c for c in composes if c.state == ComposeState.requested]
 
             for c in composes:
                 # Acknowledge that we've received the command to run these composes.
@@ -824,7 +828,12 @@ class ContainerComposerThread(ComposerThread):
     ctype = ContentType.container
 
     def _compose_updates(self):
-        """Use skopeo to copy images to the correct repos and tags."""
+        """
+        Use skopeo to copy images to the correct repos and tags.
+
+        Raises:
+            RuntimeError: If skopeo returns a non-0 exit code during copy_container.
+        """
         for update in self.compose.updates:
 
             if update.request is UpdateRequest.stable:

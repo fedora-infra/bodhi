@@ -52,7 +52,7 @@ class TestMain(BaseTestCase):
 
         untag_branched.main(['untag_branched', 'some_config_path'])
 
-        setup_logging.assert_called_once_with('some_config_path')
+        setup_logging.assert_called_once_with()
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged
@@ -83,7 +83,7 @@ class TestMain(BaseTestCase):
 
         untag_branched.main(['untag_branched', 'some_config_path'])
 
-        setup_logging.assert_called_once_with('some_config_path')
+        setup_logging.assert_called_once_with()
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged
@@ -115,7 +115,7 @@ class TestMain(BaseTestCase):
 
         untag_branched.main(['untag_branched', 'some_config_path'])
 
-        setup_logging.assert_called_once_with('some_config_path')
+        setup_logging.assert_called_once_with()
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged
@@ -151,7 +151,7 @@ class TestMain(BaseTestCase):
 
         untag_branched.main(['untag_branched', 'some_config_path'])
 
-        setup_logging.assert_called_once_with('some_config_path')
+        setup_logging.assert_called_once_with()
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged
@@ -189,7 +189,7 @@ class TestMain(BaseTestCase):
 
         untag_branched.main(['untag_branched', 'some_config_path'])
 
-        setup_logging.assert_called_once_with('some_config_path')
+        setup_logging.assert_called_once_with()
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged
@@ -223,7 +223,7 @@ class TestMain(BaseTestCase):
 
         untag_branched.main(['untag_branched', 'some_config_path'])
 
-        setup_logging.assert_called_once_with('some_config_path')
+        setup_logging.assert_called_once_with()
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged

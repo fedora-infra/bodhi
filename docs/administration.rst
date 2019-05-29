@@ -21,6 +21,67 @@ commented settings. Here is a copy of the example config file with in-line docum
    :literal:
 
 
+Logging
+-------
+
+The example configuration above includes an example default logging configuration. However, you may
+wish to do something more advanced, such as e-mail error messages to an address with rate limiting.
+Bodhi provides a rate limiting Python logging Filter at ```bodhi.server.logging.RateLimiter```.
+
+Unfortunately, it is not possible to use Python logging filters with Pyramid's ini file, so if you
+wish to use Bodhi's ```RateLimiter``` log filter, you will need to configure Pyramid to use
+`pyramid_sawing`_ so that it can use more advanced logging configuration. As a quick example, you
+might put something like this into ``/etc/bodhi/production.ini`` to configure Pyramid to use
+```pyramid_sawing``` and to look for a logging config at ```/etc/bodhi/logging.yaml```::
+
+    pyramid.includes =
+        pyramid_sawing
+    pyramid_sawing.file = /etc/bodhi/logging.yaml
+
+Then you could configure all of you logging in ```/etc/bodhi/logging.yaml```. Here is a snippet you
+could use in that file to get Bodhi to e-mail error logs, but to limit them to one e-mail per hour
+per process per spot in the code that logs errors::
+
+    ---
+    version: 1
+
+    formatters:
+      generic:
+        format: '%(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s'
+    filters:
+      rate_limit:
+        (): bodhi.server.logging.RateLimiter
+        rate: 3600
+    handlers:
+      smtp:
+        class: logging.handlers.SMTPHandler
+        mailhost: "smtp.example.com"
+        fromaddr: "bodhi@example.com"
+        toaddrs:
+            - "admin@example.com"
+        subject: "Bodhi had a sad"
+        level: ERROR
+        formatter: generic
+        filters: [rate_limit]
+    loggers:
+      bodhi:
+        level: INFO
+        handlers: [smtp]
+        propagate: 0
+    root:
+      level: NOTSET
+      handlers: []
+
+
+You can read more detail about the ```RateLimiter``` below:
+
+.. autoclass:: bodhi.server.logging.RateLimiter
+   :members:
+
+
+.. _pyramid_sawing: https://pypi.org/project/pyramid_sawing/
+
+
 Composes
 ========
 

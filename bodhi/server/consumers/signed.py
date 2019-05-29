@@ -26,8 +26,6 @@ import logging
 
 import fedora_messaging
 
-from bodhi.server import initialize_db
-from bodhi.server.config import config
 from bodhi.server.models import Build
 from bodhi.server.util import transactional_session_maker
 
@@ -43,7 +41,6 @@ class SignedHandler(object):
 
     def __init__(self):
         """Initialize the SignedHandler."""
-        initialize_db(config)
         self.db_factory = transactional_session_maker()
 
     def __call__(self, message: fedora_messaging.api.Message):
@@ -55,32 +52,26 @@ class SignedHandler(object):
         Example message format::
             {
                 'body': {
-                    'i': 628,
-                    'timestamp': 1484692585,
-                    'msg_id': '2017-821031da-be3a-4f4b-91df-0baa834ca8a4',
-                    'crypto': 'x509',
-                    'topic': 'org.fedoraproject.prod.buildsys.tag',
-                    'signature': '100% real please trust me',
-                    'msg': {
-                        'build_id': 442562,
-                        'name': 'colord',
-                        'tag_id': 214,
-                        'instance': 's390',
-                        'tag': 'f26-updates-testing-pending',
-                        'user': 'sharkcz',
-                        'version': '1.3.4',
-                        'owner': 'sharkcz',
-                        'release': '1.fc26'
-                    },
+                    'build_id': 442562,
+                    'name': 'colord',
+                    'tag_id': 214,
+                    'instance': 's390',
+                    'tag': 'f26-updates-testing-pending',
+                    'user': 'sharkcz',
+                    'version': '1.3.4',
+                    'owner': 'sharkcz',
+                    'release': '1.fc26'
                 },
             }
 
         The message can contain additional keys.
 
+        Duplicate messages: this method is idempotent.
+
         Args:
             message: The incoming message in the format described above.
         """
-        message = message.body['msg']
+        message = message.body
         build_nvr = '%(name)s-%(version)s-%(release)s' % message
         tag = message['tag']
 
@@ -98,6 +89,10 @@ class SignedHandler(object):
 
             if build.release.pending_testing_tag != tag:
                 log.info("Tag is not pending_testing tag, skipping")
+                return
+
+            if build.signed:
+                log.info("Build was already marked as signed (maybe a duplicate message)")
                 return
 
             # This build was moved into the pending_testing tag for the applicable release, which

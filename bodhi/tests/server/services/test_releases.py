@@ -364,7 +364,7 @@ class TestReleasesService(base.BaseTestCase):
     def test_change_release_state_to_archived(self):
         """
         Test that when we make release archived, all release updates state will change to
-        'obsolete' or or stay 'stable'/'unpushed'
+        'obsolete' or stay 'stable'/'unpushed'
         """
         python_nose = self.create_update(['python-nose-1.3.7-11.fc17'])
         python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc17'])

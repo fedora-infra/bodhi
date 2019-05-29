@@ -225,7 +225,6 @@ setup(
     [console_scripts]
     initialize_bodhi_db = bodhi.server.scripts.initializedb:main
     bodhi-clean-old-composes = bodhi.server.scripts.clean_old_composes:clean_up
-    bodhi-dequeue-stable = bodhi.server.scripts.dequeue_stable:dequeue_stable
     bodhi-push = bodhi.server.push:push
     bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
     bodhi-untag-branched = bodhi.server.scripts.untag_branched:main
