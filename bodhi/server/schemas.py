@@ -396,6 +396,10 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
         colander.Boolean(true_choices=('true', '1')),
         missing=True,
     )
+    create_automatic_updates = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        missing=False,
+    )
 
 
 class ListUserSchema(PaginatedSchema, SearchableSchema):

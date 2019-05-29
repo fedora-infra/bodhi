@@ -100,18 +100,26 @@ class TestConsumer(base.BaseTestCase):
         error.assert_called_once_with(msg)
         self.assertEqual(str(exc.exception), msg)
 
+    @mock.patch('bodhi.server.consumers.AutomaticUpdateHandler')
     @mock.patch('bodhi.server.consumers.SignedHandler')
-    def test_messaging_callback_signed(self, Handler):
+    def test_messaging_callback_signed_automatic_update(self,
+                                                        SignedHandler,
+                                                        AutomaticUpdateHandler):
         msg = Message(
             topic="org.fedoraproject.prod.buildsys.tag",
             body={}
         )
-        handler = mock.Mock()
-        Handler.side_effect = lambda: handler
+
+        signed_handler = mock.Mock()
+        SignedHandler.side_effect = lambda: signed_handler
+
+        automatic_update_handler = mock.Mock()
+        AutomaticUpdateHandler.side_effect = lambda: automatic_update_handler
 
         Consumer()(msg)
 
-        handler.assert_called_once_with(msg)
+        signed_handler.assert_called_once_with(msg)
+        automatic_update_handler.assert_called_once_with(msg)
 
     @mock.patch('bodhi.server.consumers.UpdatesHandler')
     def test_messaging_callback_updates_testing(self, Handler):

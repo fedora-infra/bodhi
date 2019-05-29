@@ -178,7 +178,7 @@
 - name: Copy the fedora-messaging configuration file bodhi.toml
   copy:
       src: bodhi.toml
-      dest: /etc/fedora-messaging/bodhi.toml
+      dest: /etc/fedora-messaging/config.toml
       owner: root
       group: root
       mode: 644
@@ -197,7 +197,7 @@
 
 - name: Start and enable the bodhi consumer service
   service:
-      name: fm-consumer@bodhi
+      name: fm-consumer@config
       state: started
       enabled: yes
 

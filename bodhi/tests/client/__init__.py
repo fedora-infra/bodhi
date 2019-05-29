@@ -878,26 +878,28 @@ EXAMPLE_RELEASE_MUNCH = Munch({
     'long_name': 'Fedora 27', 'state': 'pending', 'version': '27', 'name': 'F27',
     'override_tag': 'f27-override', 'id_prefix': 'FEDORA', 'composed_by_bodhi': True,
     'pending_testing_tag': 'f27-updates-testing-pending', 'stable_tag': 'f27-updates',
-    'candidate_tag': 'f27-updates-candidate', 'mail_template': 'fedora_errata_template'})
+    'candidate_tag': 'f27-updates-candidate', 'mail_template': 'fedora_errata_template',
+    'create_automatic_updates': False})
 
 
 EXPECTED_RELEASE_OUTPUT = """Saved release:
-  Name:                F27
-  Long Name:           Fedora 27
-  Version:             27
-  Branch:              f27
-  ID Prefix:           FEDORA
-  Dist Tag:            f27
-  Stable Tag:          f27-updates
-  Testing Tag:         f27-updates-testing
-  Candidate Tag:       f27-updates-candidate
-  Pending Signing Tag: f27-signing-pending
-  Pending Testing Tag: f27-updates-testing-pending
-  Pending Stable Tag:  f27-updates-pending
-  Override Tag:        f27-override
-  State:               pending
-  Email Template:      fedora_errata_template
-  Composed by Bodhi:   True
+  Name:                     F27
+  Long Name:                Fedora 27
+  Version:                  27
+  Branch:                   f27
+  ID Prefix:                FEDORA
+  Dist Tag:                 f27
+  Stable Tag:               f27-updates
+  Testing Tag:              f27-updates-testing
+  Candidate Tag:            f27-updates-candidate
+  Pending Signing Tag:      f27-signing-pending
+  Pending Testing Tag:      f27-updates-testing-pending
+  Pending Stable Tag:       f27-updates-pending
+  Override Tag:             f27-override
+  State:                    pending
+  Email Template:           fedora_errata_template
+  Composed by Bodhi:        True
+  Create Automatic Updates: False
 """
 
 EXAMPLE_ARCHIVED_RELEASE_MUNCH = Munch({
