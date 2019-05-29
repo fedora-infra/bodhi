@@ -22,6 +22,7 @@ from contextlib import contextmanager
 from urllib.parse import urlencode
 import functools
 import hashlib
+import itertools
 import json
 import os
 import pkg_resources
@@ -315,24 +316,54 @@ def sanity_check_repodata(myurl, repo_type):
 
         if repo_type in ('yum', 'source'):
             tests.append((['list', 'available'], 'testrepo'))
+            tests.append((['updateinfo'], '.*'))
         elif repo_type == 'module':
             tests.append((['module', 'list'], '.*'))
+
+        cfg_options = {
+            '--setopt=zchunk': ['0', '1'],
+        }
+
+        cfg_combinations = build_cfg_combinations(cfg_options)
 
         for test in tests:
             dnfargs, expout = test
 
-            # Make sure every DNF test runs in a new temp dir
-            testdir = tempfile.mkdtemp(dir=tmpdir)
-            output = sanity_check_repodata_dnf(testdir, myurl, *dnfargs)
-            if (expout == ".*" and len(output.strip()) != 0) or (expout in output):
-                continue
-            else:
-                raise RepodataException(
-                    f"DNF did not return expected output when running test!"
-                    + f" Test: {dnfargs}, expected: {expout}, output: {output}")
+            for config in cfg_combinations:
+                config = list(config)
+
+                # Make sure every DNF test runs in a new temp dir
+                testdir = tempfile.mkdtemp(dir=tmpdir)
+                output = sanity_check_repodata_dnf(testdir, myurl, config, *dnfargs)
+                if (expout == ".*" and len(output.strip()) != 0) or (expout in output):
+                    continue
+                else:
+                    raise RepodataException(
+                        f"DNF did not return expected output when running test!"
+                        + f" Test: {dnfargs}, config: {config}, expected: {expout},"
+                        + f" output: {output}")
 
 
-def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
+def build_cfg_combinations(options):
+    """
+    Builds the Cartesian product of cfg_options
+
+    Args:
+        options (dict): A dict of option -> [values].
+    Returns:
+        list: A list of all config option combinations to test.
+    """
+    raw_options = []
+    for option in options:
+        raw_option = []
+        for value in options[option]:
+            raw_option.append("%s=%s" % (option, value))
+        raw_options.append(raw_option)
+
+    return list(itertools.product(*raw_options))
+
+
+def sanity_check_repodata_dnf(tempdir, myurl, config, *dnf_args):
     """
     Call DNF to try to parse and sanity check the repository.
 
@@ -354,7 +385,7 @@ def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
            '--setopt=skip_if_unavailable=0',
            '--setopt=testrepo.skip_if_unavailable=0',
            '--refresh',
-           '--nogpgcheck'] + list(dnf_args)
+           '--nogpgcheck'] + config + list(dnf_args)
 
     return subprocess.check_output(cmd, encoding='utf-8')
 

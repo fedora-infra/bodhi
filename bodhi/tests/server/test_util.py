@@ -487,7 +487,8 @@ class TestSanityCheckRepodata(unittest.TestCase):
 
         self.assertEqual(str(exc.exception),
                          "DNF did not return expected output when running test!"
-                         + " Test: ['module', 'list'], expected: .*, output: ")
+                         + " Test: ['module', 'list'], config: ['--setopt=zchunk=0'], expected: .*"
+                         + ", output: ")
 
     def test_updateinfo_empty_tags(self):
         """RepodataException should be raised if <id/> is found in updateinfo."""
