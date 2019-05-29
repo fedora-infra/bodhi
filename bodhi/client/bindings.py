@@ -65,7 +65,7 @@ class UpdateNotFound(BodhiClientException):
 
     def __init__(self, update):
         """Initialize the Exception."""
-        self.update = str(update)
+        self.update = update
 
     def __unicode__(self):
         """
@@ -85,8 +85,8 @@ class ComposeNotFound(BodhiClientException):
 
     def __init__(self, release, request):
         """Initialize the Exception."""
-        self.release = str(release)
-        self.request = str(request)
+        self.release = release
+        self.request = request
 
     def __unicode__(self):
         """
