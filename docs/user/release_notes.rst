@@ -2,6 +2,26 @@
 Release notes
 =============
 
+v4.0.1
+------
+
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Fix zchunk updateinfo getting injected as updateinfo_zck (:issue:`3261`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 4.0.1:
+
+* Patrick Uiterwijk
+
+
 v4.0.0
 ======
 
