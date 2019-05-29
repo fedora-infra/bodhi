@@ -12,6 +12,7 @@ Bug fixes
 ^^^^^^^^^
 
 * Fix zchunk updateinfo getting injected as updateinfo_zck (:issue:`3261`).
+* Fix a broken template in ``bodhi-push`` (:issue:`3256`).
 
 
 Contributors
@@ -19,6 +20,7 @@ Contributors
 
 The following developers contributed to Bodhi 4.0.1:
 
+* Randy Barlow
 * Patrick Uiterwijk
 
 
