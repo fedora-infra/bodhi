@@ -8,10 +8,6 @@ pull_request_rules:
   - label!=WIP
   - approved-reviews-by=@fedora-infra/bodhi
   - status-success=DCO
-  - status-success=f28-docs
-  - status-success=f28-unit
-  - status-success=f28-diff-cover
-  - status-success=f28-integration
   - status-success=f29-docs
   - status-success=f29-unit
   - status-success=f29-diff-cover
@@ -38,10 +34,6 @@ pull_request_rules:
   - author=@fedora-infra/bodhi
   - "#approved-reviews-by>=1"
   - status-success=DCO
-  - status-success=f28-docs
-  - status-success=f28-unit
-  - status-success=f28-diff-cover
-  - status-success=f28-integration
   - status-success=f29-docs
   - status-success=f29-unit
   - status-success=f29-diff-cover
@@ -82,3 +74,11 @@ pull_request_rules:
   - label!=WIP
   - label=3.14-backports
   name: backport 3.14
+- actions:
+    backport:
+      branches:
+      - '4.0'
+  conditions:
+  - label!=WIP
+  - label=4.0-backports
+  name: backport 4.0

@@ -610,6 +610,7 @@ class UpdateType(DeclEnum):
     security = 'security', 'security'
     newpackage = 'newpackage', 'newpackage'
     enhancement = 'enhancement', 'enhancement'
+    unspecified = 'unspecified', 'unspecified'
 
 
 class UpdateRequest(DeclEnum):
@@ -759,6 +760,9 @@ class Release(Base):
             associated with this release.
         composed_by_bodhi (bool): The flag that indicates whether the release is composed by
             Bodhi or not. Defaults to True.
+        create_automatic_updates (bool): A flag indicating that updated should
+            be created automatically for Koji builds tagged into the
+            `candidate_tag`. Defaults to False.
     """
 
     __tablename__ = 'releases'
@@ -783,6 +787,9 @@ class Release(Base):
 
     state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
     composed_by_bodhi = Column(Boolean, default=True)
+    create_automatic_updates = Column(Boolean, default=False)
+
+    _version_int_regex = re.compile(r'\D+(\d+)[CMF]?$')
 
     @property
     def version_int(self):
@@ -792,8 +799,7 @@ class Release(Base):
         Returns:
             int: The version of the release.
         """
-        regex = re.compile(r'\D+(\d+)[CMF]?$')
-        return int(regex.match(self.name).groups()[0])
+        return int(self._version_int_regex.match(self.name).groups()[0])
 
     @property
     def mandatory_days_in_testing(self):
@@ -971,6 +977,9 @@ class Package(Base):
         Returns a tuple with two lists:
         * The first list contains usernames that have commit access.
         * The second list contains FAS group names that have commit access.
+
+        Raises:
+            RuntimeError: If Pagure did not give us a 200 code.
         """
         pagure_url = config.get('pagure_url')
         # Pagure uses plural names for its namespaces such as "rpms" except for
@@ -1205,9 +1214,6 @@ class Build(Base):
     This model uses single-table inheritance to allow for different build types.
 
     Attributes:
-        inherited (bool): The purpose of this column is unknown, and it appears to be unused. At the
-            time of this writing, there are 112,234 records with inherited set to False and 0 with
-            it set to True in the Fedora Bodhi deployment.
         nvr (unicode): The nvr field is really a mapping to the Koji build_target.name field, and is
             used to reference builds in Koji. It is named nvr in reference to the dash-separated
             name-version-release Koji name for RPMs, but it is used by other types as well. At the
@@ -1837,6 +1843,8 @@ class Update(Base):
             release_name (basestring): The name of the release, such as "f25".
         Returns:
             bool: ``True`` if the update contains a critical path package, ``False`` otherwise.
+        Raises:
+            RuntimeError: If the PDC did not give us a 200 code.
         """
         relname = release_name.lower()
         components = defaultdict(list)
@@ -1888,6 +1896,7 @@ class Update(Base):
             dict: The response from Greenwave for this update.
         Raises:
             BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
+            RuntimeError: If Greenwave did not give us a 200 code.
         """
         if not config.get('greenwave_api_url'):
             raise BodhiException('No greenwave_api_url specified')
@@ -1945,6 +1954,8 @@ class Update(Base):
             data (dict): A key-value mapping of the new update's attributes.
         Returns:
             tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
+        Raises:
+            RuntimeError: If the PDC did not give us a 200 code.
         """
         db = request.db
         user = User.get(request.user.name)
@@ -2012,6 +2023,7 @@ class Update(Base):
             tuple: A 2-tuple of the edited update and a list of dictionaries that describe caveats.
         Raises:
             LockedUpdateException: If the update is locked.
+            RuntimeError: If the PDC did not give us a 200 code.
         """
         db = request.db
         buildinfo = request.buildinfo
@@ -2176,6 +2188,11 @@ class Update(Base):
 
         If a build is associated with multiple updates, make sure that
         all updates are safe to obsolete, or else just skip it.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        Returns:
+            list: A list of dictionaries that describe caveats.
         """
         caveats = []
         for build in self.builds:
@@ -2568,6 +2585,7 @@ class Update(Base):
             LockedUpdateException: If the Update is locked.
             BodhiException: If test gating is not enabled in this Bodhi instance,
                             or if the tests have passed.
+            RuntimeError: Either WaiverDB or Greenwave did not give us a 200 code.
         """
         log.debug('Attempting to waive test results for this update %s' % self.alias)
 
@@ -4016,6 +4034,7 @@ class Bug(Base):
 
         Args:
             update (Update): The update that is associated with this bug.
+            comment (str): A comment to leave on the bug when modifying it.
         """
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying parent security bug %s', self.bug_id)
