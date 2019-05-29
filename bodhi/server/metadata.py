@@ -65,7 +65,7 @@ def insert_in_repo(comp_type, repodata, filetype, extension, source):
         # add hash to the compressed metadata file
         rec_comp.rename_file()
         # set type of metadata
-        rec_comp.type = filetype
+        rec_comp.type = ft
         # insert metadata about our metadata in repomd.xml
         repomd.set_record(rec_comp)
     with open(repomd_xml, 'w') as repomd_file:
