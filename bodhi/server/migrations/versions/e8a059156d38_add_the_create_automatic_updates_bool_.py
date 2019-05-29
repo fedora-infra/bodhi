@@ -1,4 +1,4 @@
-# Copyright © 2018, 2019 Red Hat, Inc.
+# Copyright (c) 2019 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -15,19 +15,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Test the bodhi package."""
+"""
+Add the create_automatic_updates bool to Release.
 
-import _pytest.logging
+Revision ID: e8a059156d38
+Revises: 3a2e248d1757
+Create Date: 2019-05-02 15:43:06.332525
+"""
+from alembic import op
+import sqlalchemy as sa
 
 
-if not hasattr(_pytest.logging.LogCaptureFixture, 'messages'):
-    # Monkey patch old versions of _pytest.logging.LogCaptureFixture
-    class MonkeyLogCaptureFixture(_pytest.logging.LogCaptureFixture):
-        """Adds 'messages' property to LogCaptureFixture."""
+# revision identifiers, used by Alembic.
+revision = 'e8a059156d38'
+down_revision = '3a2e248d1757'
 
-        @property
-        def messages(self):
-            """Return a list of format-interpolated log messages."""
-            return [r.getMessage() for r in self.records]
 
-    _pytest.logging.LogCaptureFixture = MonkeyLogCaptureFixture
+def upgrade():
+    """Add the create_automatic_updates bool column to releases."""
+    op.add_column('releases', sa.Column('create_automatic_updates', sa.Boolean(), nullable=True))
+
+
+def downgrade():
+    """Remove the create_automatic_updates bool column from releases."""
+    op.drop_column('releases', 'create_automatic_updates')
