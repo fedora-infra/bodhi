@@ -27,6 +27,7 @@ import fedora_messaging
 
 from bodhi.server import bugs, buildsys, initialize_db
 from bodhi.server.config import config
+from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 try:
     from bodhi.server.consumers.composer import ComposerHandler
 except ImportError:  # pragma: no cover
@@ -50,6 +51,7 @@ class Consumer:
         buildsys.setup_buildsystem(config)
         bugs.set_bugtracker()
 
+        self.automatic_update_handler = AutomaticUpdateHandler()
         if ComposerHandler:
             self.composer_handler = ComposerHandler()
         else:
@@ -82,6 +84,9 @@ class Consumer:
             if msg.topic.endswith('.buildsys.tag'):
                 log.debug('Passing message to the Signed handler')
                 self.signed_handler(msg)
+
+                log.debug('Passing message to the Automatic Update handler')
+                self.automatic_update_handler(msg)
 
             if msg.topic.endswith('.bodhi.update.request.testing') \
                or msg.topic.endswith('.bodhi.update.edit'):
