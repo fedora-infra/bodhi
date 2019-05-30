@@ -681,14 +681,14 @@ $(document).ready(function(){
 
           % if update.content_type:
           % if update.status in [models.UpdateStatus.testing, models.UpdateStatus.stable] and not (update.release.package_manager == models.PackageManager.unspecified or update.release.testing_repository is None):
-          <div class="p-t-1">
+          <div class="p-t-2">
           <h4>How to install</h4>
             <pre style="position: relative;"><span class="label label-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${update.install_command}</code></pre>
           </div>
           % endif
           % endif
 
-          <div class="p-t-3">
+          <div class="p-t-2">
             <h4>Comments <span class="label label-default">${len(update.comments)}</span>
               <small><a href="${request.route_url('comments_rss')}?updates=${update.alias}">
                   <span class="fa fa-rss"></span>
