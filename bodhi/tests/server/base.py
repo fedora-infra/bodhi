@@ -368,7 +368,7 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False):
     </packagelist>
   </group>
 </comps>'''
-    updateinfofile = '<id>'
+    updateinfofile = 'something<id>someID</id>something'
     if not os.path.isdir(path):
         os.makedirs(path)
     if not comps and not source:
