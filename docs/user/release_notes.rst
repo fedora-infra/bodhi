@@ -2,6 +2,26 @@
 Release notes
 =============
 
+v4.0.2
+------
+
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Drop updateinfo <id> tag detection (:issue:`3269`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 4.0.2:
+
+* Patrick Uiterwijk
+
+
 v4.0.1
 ------
 
