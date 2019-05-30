@@ -501,18 +501,6 @@ class TestSanityCheckRepodata(unittest.TestCase):
 
         self.assertEqual(str(exc.exception), 'updateinfo.xml.gz contains empty ID tags')
 
-    def test_updateinfo_missing_id_tags(self):
-        """RepodataException should be raised if <id> is not found in updateinfo."""
-        updateinfo = os.path.join(self.tempdir, 'updateinfo.xml')
-        with open(updateinfo, 'w') as uinfo:
-            uinfo.write('')
-        base.mkmetadatadir(self.tempdir, updateinfo=updateinfo)
-
-        with self.assertRaises(util.RepodataException) as exc:
-            util.sanity_check_repodata(self.tempdir, repo_type='yum')
-
-        self.assertEqual(str(exc.exception), 'updateinfo.xml.gz does not contain ID tags')
-
     def test_comps_invalid_notxml(self):
         """RepodataException should be raised if comps is invalid."""
         comps = os.path.join(self.tempdir, 'comps.xml')

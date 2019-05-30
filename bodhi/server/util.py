@@ -303,9 +303,6 @@ def sanity_check_repodata(myurl, repo_type):
         ret = subprocess.call(['zgrep', '<id/>', repo_info['updateinfo']])
         if not ret:
             raise RepodataException('updateinfo.xml.gz contains empty ID tags')
-        ret = subprocess.call(['zgrep', '<id>', repo_info['updateinfo']])
-        if ret:
-            raise RepodataException('updateinfo.xml.gz does not contain ID tags')
 
         # Now call out to DNF to check if the repo is usable
         # "tests" is a list of tuples with (dnf args, expected output) to run.
