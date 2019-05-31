@@ -24,9 +24,11 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
   ``flake8`` utility to automatically check your code.
 * Add an entry to `docs/user/release_notes.rst`_ for any changes you make that should be in release
   notes.
-* Make sure your commits are atomic. Each commit should focus on one improvement or bug fix. If you
-  need to build upon changes that are related but aren't atomic, feel free to send more than one
-  commit in the same pull request.
+* Make sure your commits are atomic. With only rare exceptions, each improvement or bug fix should
+  have exactly one commit. This makes it much easier to peruse the git history to find out which
+  changes relate to a feature or bugfix implementation, and is particularly valuable when commits
+  need to be cherry picked. If you need to build upon prior unmerged commits while fixing a
+  different issue, feel free to send more than one commit in the same pull request.
 * Your commit messages must include a Signed-off-by tag with your name and e-mail address,
   indicating that you agree to the
   `Developer Certificate of Origin <https://developercertificate.org/>`_. Bodhi uses version 1.1 of
