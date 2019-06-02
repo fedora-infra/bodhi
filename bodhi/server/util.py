@@ -415,7 +415,7 @@ def avatar(context, username, size):
         )
 
     def work(username, size):
-        openid = "http://%s.id.fedoraproject.org/" % username
+        openid = "http://" + config.get('openid_template').format(username=username) + "/"
         if config.get('libravatar_enabled'):
             if config.get('libravatar_dns'):
                 return get_libravatar_url(openid, https, size)
