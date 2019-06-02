@@ -1523,9 +1523,6 @@ class TestRpmBuild(ModelTest):
         self.obj.epoch = '1'
         self.assertEqual(self.obj.evr, ("1", "1.0.8", "3.fc11"))
 
-    def test_url(self):
-        self.assertEqual(self.obj.get_url(), '/TurboGears-1.0.8-3.fc11')
-
 
 class TestUpdateInit(BaseTestCase):
     """Tests for the update.__init__() method."""

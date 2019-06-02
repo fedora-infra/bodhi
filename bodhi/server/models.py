@@ -1310,17 +1310,6 @@ class Build(Base):
         """
         return (self.nvr_name, self.nvr_version, self.nvr_release)
 
-    def get_url(self):
-        """
-        Return a the url to details about this build.
-
-        This method appears to be unused and incorrect.
-
-        Return:
-            str: A URL for this build.
-        """
-        return '/' + self.nvr
-
     def get_tags(self, koji=None):
         """
         Return a list of koji tags for this build.
