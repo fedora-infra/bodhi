@@ -758,7 +758,7 @@ class Release(Base):
             associated with this release.
         composed_by_bodhi (bool): The flag that indicates whether the release is composed by
             Bodhi or not. Defaults to True.
-        create_automatic_updates (bool): A flag indicating that updated should
+        create_automatic_updates (bool): A flag indicating that updates should
             be created automatically for Koji builds tagged into the
             `candidate_tag`. Defaults to False.
     """
