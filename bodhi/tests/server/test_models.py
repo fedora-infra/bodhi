@@ -3804,7 +3804,7 @@ class TestUpdate(ModelTest):
             self.obj.waive_test_results('foo', 'this is not true!')
 
         # Check for the comment
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(self.obj.comments[-1].text, expected_comment)
 
         expected_calls = []
@@ -3872,7 +3872,7 @@ class TestUpdate(ModelTest):
                 '{}/waivers/'.format(config.get('waiverdb_api_url')), wdata)
 
         # Check for the comment
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(update.comments[-1].text, expected_comment)
 
     def test_comment_on_test_gating_status_change(self):
@@ -3883,7 +3883,7 @@ class TestUpdate(ModelTest):
         self.obj.test_gating_status = TestGatingStatus.waiting
 
         # Check for the comment about test_gating_status change
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(self.obj.comments[0].text, expected_comment)
         self.assertEqual(len(self.obj.comments), 1)
 

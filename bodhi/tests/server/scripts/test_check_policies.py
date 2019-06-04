@@ -123,7 +123,7 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
             # Check for the comment
-            expected_comment = "This update test gating status has been changed to 'failed'."
+            expected_comment = "This update's test gating status has been changed to 'failed'."
             self.assertEqual(update.comments[-1].text, expected_comment)
 
         expected_query = {
@@ -203,7 +203,7 @@ class TestCheckPolicies(BaseTestCase):
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
         # Check for the comment
-        expected_comment = "This update test gating status has been changed to 'failed'."
+        expected_comment = "This update's test gating status has been changed to 'failed'."
         self.assertEqual(update.comments[-1].text, expected_comment)
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
@@ -225,7 +225,7 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.ignored)
             # Check for the comment
-            expected_comment = "This update test gating status has been changed to 'ignored'."
+            expected_comment = "This update's test gating status has been changed to 'ignored'."
             self.assertEqual(update.comments[-1].text, expected_comment)
 
         expected_query = {
