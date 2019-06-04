@@ -3555,7 +3555,7 @@ class Update(Base):
         if value != old:
             target.comment(
                 Session(),
-                f"This update test gating status has been changed to '{value}'.",
+                f"This update's test gating status has been changed to '{value}'.",
                 author="bodhi",
             )
 
