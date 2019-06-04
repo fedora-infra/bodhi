@@ -33,6 +33,7 @@ RUN pip-3 install \
     cornice_sphinx \
     diff-cover \
     flake8 \
+    flake8-import-order \
     responses \
     pydocstyle \
     pytest \

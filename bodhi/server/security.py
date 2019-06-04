@@ -16,8 +16,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of authentication and authorization functions and classes."""
-from cornice.errors import Errors
 
+from cornice.errors import Errors
 from pyramid.security import (Allow, ALL_PERMISSIONS, DENY_ALL)
 from pyramid.security import remember, forget
 from pyramid.httpexceptions import HTTPFound

@@ -35,16 +35,15 @@ import re
 import textwrap
 import typing
 
+from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError, ServerError
 try:
     import dnf
 except ImportError:  # pragma: no cover
     # dnf is not available on EL 7.
     dnf = None  # pragma: no cover
+import fedora.client.openidproxyclient
 import koji
 import requests.exceptions
-
-from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError, ServerError
-import fedora.client.openidproxyclient
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import munch  # noqa: 401
