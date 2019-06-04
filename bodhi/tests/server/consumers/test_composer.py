@@ -38,12 +38,10 @@ from bodhi.messages.schemas import (
     composer as composer_schemas, errata as errata_schemas, update as update_schemas)
 from bodhi.server import buildsys, exceptions, log, push
 from bodhi.server.config import config
-
 from bodhi.server.consumers.composer import (
     checkpoint, ComposerHandler, ComposerThread, ContainerComposerThread,
     FlatpakComposerThread, RPMComposerThread, ModuleComposerThread,
     PungiComposerThread)
-
 from bodhi.server.exceptions import LockedUpdateException
 from bodhi.server.models import (
     Build, BuildrootOverride, Compose, ComposeState, ContainerBuild, FlatpakBuild,

@@ -21,9 +21,8 @@ from unittest import mock
 import copy
 import unittest
 
-import sqlalchemy
-
 from fedora_messaging.api import Message
+import sqlalchemy
 
 from bodhi.messages.schemas.update import UpdateEditV1, UpdateRequestTestingV1
 from bodhi.server import config, exceptions, models, util

@@ -23,7 +23,6 @@ from datetime import datetime
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
 from pyramid.exceptions import HTTPNotFound
-
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 

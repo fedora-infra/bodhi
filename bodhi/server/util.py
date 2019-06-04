@@ -24,7 +24,6 @@ import functools
 import hashlib
 import json
 import os
-import pkg_resources
 import re
 import socket
 import subprocess
@@ -40,6 +39,7 @@ import libcomps
 import libravatar
 import librepo
 import markdown
+import pkg_resources
 import requests
 import rpm
 
