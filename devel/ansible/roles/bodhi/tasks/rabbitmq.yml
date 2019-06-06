@@ -24,6 +24,14 @@
   notify:
     - reload rabbitmq
 
+- name: Make sure /var/lib/rabbitmq is owned by the rabbitmq user
+  file:
+    path: /var/lib/rabbitmq
+    state: directory
+    recurse: yes
+    owner: rabbitmq
+    group: rabbitmq
+
 - name: start rabbitmq
   service: name=rabbitmq-server state=started enabled=yes
 
