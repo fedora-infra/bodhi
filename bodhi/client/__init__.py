@@ -253,7 +253,7 @@ def handle_errors(method):
         try:
             method(*args, **kwargs)
         except AuthError as e:
-            click.secho("%s: Check your FAS username & password" % (e), fg='red', bold=True)
+            click.secho(f"{e}: Check your FAS username & password", fg='red', bold=True)
             sys.exit(1)
         except bindings.BodhiClientException as e:
             click.secho(str(e), fg='red', bold=True)
@@ -286,10 +286,10 @@ def _save_override(url, user, password, staging, edit=False, openid_api=None, **
         print_resp(resp, client, override_hint=False)
         command = _generate_wait_repo_command(resp, client)
         if command:
-            click.echo("\n\nRunning {}\n".format(' '.join(command)))
+            click.echo(f"\n\nRunning {' '.join(command)}\n")
             ret = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if ret:
-                click.echo("WARNING: ensuring active override failed for {}".format(resp.build.nvr))
+                click.echo(f"WARNING: ensuring active override failed for {resp.build.nvr}")
                 sys.exit(ret)
     else:
         print_resp(resp, client, override_hint=True)
@@ -740,9 +740,9 @@ def download(url, **kwargs):
             expecteds = len(value.split(','))
             resp = client.query(**{attr: value})
             if len(resp.updates) == 0:
-                click.echo("WARNING: No {0} found!".format(attr))
+                click.echo(f"WARNING: No {attr} found!")
             elif len(resp.updates) < expecteds:
-                click.echo("WARNING: Some {0} not found!".format(attr))
+                click.echo(f"WARNING: Some {attr} not found!")
             # Not sure if we need a check for > expecteds, I don't
             # *think* that should ever be possible for these opts.
 
@@ -750,23 +750,23 @@ def download(url, **kwargs):
             if debuginfo:
                 args.append('--debuginfo')
             for update in resp.updates:
-                click.echo("Downloading packages from {0}".format(update['alias']))
+                click.echo(f"Downloading packages from {update['alias']}")
                 for build in update['builds']:
                     # subprocess is icky, but koji module doesn't
                     # expose this in any usable way, and we don't want
                     # to rewrite it here.
                     if requested_arch is None:
                         args.extend(['--arch=noarch',
-                                     '--arch={0}'.format(platform.machine()), build['nvr']])
+                                     f'--arch={platform.machine()}', build['nvr']])
                     else:
                         if 'all' in requested_arch:
                             args.append(build['nvr'])
                         if 'all' not in requested_arch:
                             args.extend(['--arch=noarch',
-                                         '--arch={0}'.format(requested_arch), build['nvr']])
+                                         f'--arch={requested_arch}', build['nvr']])
                     ret = subprocess.call(args)
                     if ret:
-                        click.echo("WARNING: download of {0} failed!".format(build['nvr']))
+                        click.echo(f"WARNING: download of {build['nvr']} failed!")
 
 
 def _get_notes(**kwargs):
@@ -845,15 +845,15 @@ def waive(update, show, test, comment, url, openid_api, **kwargs):
         if 'errors' in test_status:
             click.echo('One or more error occured while retrieving the unsatisfied requirements:')
             for el in test_status.errors:
-                click.echo('  - %s' % el.description)
+                click.echo(f'  - {el.description}')
         elif 'decision' not in test_status:
             click.echo('Could not retrieve the unsatisfied requirements from bodhi.')
         else:
-            click.echo('CI status: %s' % test_status.decision.summary)
+            click.echo(f'CI status: {test_status.decision.summary}')
             if test_status.decision.unsatisfied_requirements:
                 click.echo('Missing tests:')
                 for req in test_status.decision.unsatisfied_requirements:
-                    click.echo('  - %s' % req.testcase)
+                    click.echo(f'  - {req.testcase}')
             else:
                 click.echo('Missing tests: None')
     else:
@@ -865,7 +865,7 @@ def waive(update, show, test, comment, url, openid_api, **kwargs):
             click.echo('Waiving all unsatisfied requirements')
             resp = client.waive(update, comment)
         else:
-            click.echo('Waiving unsatisfied requirements: %s' % ', '.join(test))
+            click.echo(f"Waiving unsatisfied requirements: {', '.join(test)}")
             resp = client.waive(update, comment, test)
         print_resp(resp, client)
 
@@ -1000,8 +1000,8 @@ def _generate_wait_repo_command(override, client):
     """
     if 'release_id' in override.build:
         release = client.get_releases(ids=[override.build.release_id])['releases'][0]
-        return ('koji', 'wait-repo', '{}-build'.format(release.dist_tag),
-                '--build={}'.format(override.build.nvr))
+        return ('koji', 'wait-repo', f'{release.dist_tag}-build',
+                f'--build={override.build.nvr}')
 
 
 def _print_override_koji_hint(override, client):
@@ -1022,7 +1022,7 @@ def _print_override_koji_hint(override, client):
     if command:
         click.echo(
             '\n\nUse the following to ensure the override is active:\n\n'
-            '\t$ {}\n'.format(' '.join(command)))
+            f"\t$ {' '.join(command)}\n")
 
 
 def print_resp(resp, client, verbose=False, override_hint=True):
@@ -1043,8 +1043,7 @@ def print_resp(resp, client, verbose=False, override_hint=True):
             for update in resp.updates:
                 click.echo(client.update_str(update, minimal=True))
         if 'total' in resp:
-            click.echo('%s updates found (%d shown)' % (
-                resp.total, len(resp.updates)))
+            click.echo(f'{resp.total} updates found ({len(resp.updates)} shown)')
     elif resp.get('update'):
         click.echo(client.update_str(resp['update']))
     elif resp.get('alias'):
@@ -1059,13 +1058,13 @@ def print_resp(resp, client, verbose=False, override_hint=True):
                 click.echo(client.override_str(override).strip())
         if 'total' in resp:
             click.echo(
-                '%s overrides found (%d shown)' % (resp.total, len(resp.overrides)))
+                f'{resp.total} overrides found ({len(resp.overrides)} shown)')
     elif 'build' in resp:
         click.echo(client.override_str(resp, minimal=False))
         if override_hint:
             _print_override_koji_hint(resp, client)
     elif 'comment' in resp:
-        click.echo('The following comment was added to %s' % resp.comment['update'].alias)
+        click.echo(f"The following comment was added to {resp.comment['update'].alias}")
         click.echo(resp.comment.text)
     elif 'compose' in resp:
         click.echo(client.compose_str(resp['compose'], minimal=False))
@@ -1124,7 +1123,7 @@ def edit_release(user, password, url, debug, composed_by_bodhi, openid_api, **kw
         click.echo("ERROR: Please specify the name of the release to edit")
         return
 
-    res = client.send_request('releases/%s' % edited, verb='GET', auth=True)
+    res = client.send_request(f'releases/{edited}', verb='GET', auth=True)
 
     data = munch.unmunchify(res)
 
@@ -1157,7 +1156,7 @@ def info_release(name, url, **kwargs):
     """Retrieve and print info about a named release."""
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
 
-    res = client.send_request('releases/%s' % name, verb='GET', auth=False)
+    res = client.send_request(f'releases/{name}', verb='GET', auth=False)
 
     if 'errors' in res:
         print_errors(res)
@@ -1221,17 +1220,17 @@ def print_releases_list(releases):
     if pending:
         click.echo('pending:')
         for release in pending:
-            click.echo("  Name:                %s" % release['name'])
+            click.echo(f"  Name:                {release['name']}")
 
     if archived:
         click.echo('\narchived:')
         for release in archived:
-            click.echo("  Name:                %s" % release['name'])
+            click.echo(f"  Name:                {release['name']}")
 
     if current:
         click.echo('\ncurrent:')
         for release in current:
-            click.echo("  Name:                %s" % release['name'])
+            click.echo(f"  Name:                {release['name']}")
 
 
 def print_release(release):
@@ -1241,25 +1240,25 @@ def print_release(release):
     Args:
         release (munch.Munch): The release to be printed.
     """
-    click.echo("  Name:                     %s" % release['name'])
-    click.echo("  Long Name:                %s" % release['long_name'])
-    click.echo("  Version:                  %s" % release['version'])
-    click.echo("  Branch:                   %s" % release['branch'])
-    click.echo("  ID Prefix:                %s" % release['id_prefix'])
-    click.echo("  Dist Tag:                 %s" % release['dist_tag'])
-    click.echo("  Stable Tag:               %s" % release['stable_tag'])
-    click.echo("  Testing Tag:              %s" % release['testing_tag'])
-    click.echo("  Candidate Tag:            %s" % release['candidate_tag'])
-    click.echo("  Pending Signing Tag:      %s" % release['pending_signing_tag'])
-    click.echo("  Pending Testing Tag:      %s" % release['pending_testing_tag'])
-    click.echo("  Pending Stable Tag:       %s" % release['pending_stable_tag'])
-    click.echo("  Override Tag:             %s" % release['override_tag'])
-    click.echo("  State:                    %s" % release['state'])
-    click.echo("  Email Template:           %s" % release['mail_template'])
-    click.echo("  Composed by Bodhi:        %s" % release['composed_by_bodhi'])
-    click.echo("  Create Automatic Updates: %s" % release['create_automatic_updates'])
-    click.echo("  Package Manager:          %s" % release['package_manager'])
-    click.echo("  Testing Repository:       %s" % release['testing_repository'])
+    click.echo(f"  Name:                     {release['name']}")
+    click.echo(f"  Long Name:                {release['long_name']}")
+    click.echo(f"  Version:                  {release['version']}")
+    click.echo(f"  Branch:                   {release['branch']}")
+    click.echo(f"  ID Prefix:                {release['id_prefix']}")
+    click.echo(f"  Dist Tag:                 {release['dist_tag']}")
+    click.echo(f"  Stable Tag:               {release['stable_tag']}")
+    click.echo(f"  Testing Tag:              {release['testing_tag']}")
+    click.echo(f"  Candidate Tag:            {release['candidate_tag']}")
+    click.echo(f"  Pending Signing Tag:      {release['pending_signing_tag']}")
+    click.echo(f"  Pending Testing Tag:      {release['pending_testing_tag']}")
+    click.echo(f"  Pending Stable Tag:       {release['pending_stable_tag']}")
+    click.echo(f"  Override Tag:             {release['override_tag']}")
+    click.echo(f"  State:                    {release['state']}")
+    click.echo(f"  Email Template:           {release['mail_template']}")
+    click.echo(f"  Composed by Bodhi:        {release['composed_by_bodhi']}")
+    click.echo(f"  Create Automatic Updates: {release['create_automatic_updates']}")
+    click.echo(f"  Package Manager:          {release['package_manager']}")
+    click.echo(f"  Testing Repository:       {release['testing_repository']}")
 
 
 def print_errors(data):
@@ -1270,7 +1269,7 @@ def print_errors(data):
         errors (munch.Munch): The errors to be formatted and printed.
     """
     for error in data['errors']:
-        click.echo("ERROR: %s" % error['description'])
+        click.echo(f"ERROR: {error['description']}")
 
     sys.exit(1)
 
