@@ -28,7 +28,6 @@ import fedora_messaging
 
 from bodhi.server.models import Build
 from bodhi.server.util import transactional_session_maker
-from bodhi.server.exceptions import BodhiException
 
 log = logging.getLogger(__name__)
 
@@ -54,13 +53,15 @@ class GreenwaveHandler:
         subject_identifier = msg.get("subject_identifier")
 
         if subject_identifier is None:
-            raise BodhiException("Couldn't find subject_identifier in the Greenwave message")
+            log.debug("Couldn't find subject_identifier in Greenwave message")
+            return
 
         with self.db_factory():
 
             build = Build.get(subject_identifier)
             if build is None:
-                raise BodhiException(f"Couldn't find build {subject_identifier} in DB")
+                log.debug(f"Couldn't find build {subject_identifier} in DB")
+                return
 
             log.info(f"Updating the test_gating_status for: {build.update.alias}")
             build.update.update_test_gating_status()
