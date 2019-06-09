@@ -888,8 +888,8 @@ class TestSetRequest(BaseTestCase):
                 side_effect=BodhiException('BodhiException. oops!'))
     @mock.patch('bodhi.server.services.updates.Update.check_requirements',
                 return_value=(True, "a fake reason"))
-    @mock.patch('bodhi.server.services.updates.log.error')
-    def test_BodhiException_exception(self, log_error, check_requirements, send_request, *args):
+    @mock.patch('bodhi.server.services.updates.log.info')
+    def test_BodhiException_exception(self, log_info, check_requirements, send_request, *args):
         """Ensure that an BodhiException Exception is handled by set_request()."""
         nvr = 'bodhi-2.0-1.fc17'
 
@@ -906,8 +906,8 @@ class TestSetRequest(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body['errors'][0]['description'],
                          'BodhiException. oops!')
-        log_error.assert_called_once()
-        self.assertEqual("Failed to set the request: %s", log_error.call_args_list[0][0][0])
+        self.assertEqual(log_info.call_count, 2)
+        self.assertEqual("Failed to set the request: %s", log_info.call_args_list[1][0][0])
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.set_request',

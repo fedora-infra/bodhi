@@ -201,7 +201,7 @@ def set_request(request):
     try:
         update.set_request(request.db, action, request.user.name)
     except BodhiException as e:
-        log.error("Failed to set the request: %s", e)
+        log.info("Failed to set the request: %s", e)
         request.errors.add('body', 'request', str(e))
     except Exception as e:
         log.exception("Unhandled exception in set_request")
