@@ -257,6 +257,10 @@ The ``updates`` command allows users to interact with bodhi updates.
         A comma or space-separated list of required Taskotron tasks that must pass for this update
         to reach stable.
 
+    ``--display-name <text>``
+
+        The name of the update
+
 ``bodhi updates edit [options] <update>``
 
     Edit an existing bodhi update, given an update id or an update title. The
@@ -315,6 +319,10 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         A comma or space-separated list of required Taskotron tasks that must pass for this update
         to reach stable.
+
+    ``--display-name <text>``
+
+        The name of the update
 
 ``bodhi updates query [options]``
 

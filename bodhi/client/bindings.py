@@ -173,7 +173,7 @@ class BodhiClient(OpenIdBaseClient):
             username (basestring): The username to use to authenticate with the server.
             password (basestring): The password to use to authenticate with the server.
             staging (bool): If True, use the staging server. If False, use base_url.
-            opennid_api (str or None): If not None, the URL to an OpenID API to use to authenticate
+            openid_api (str or None): If not None, the URL to an OpenID API to use to authenticate
                 to Bodhi. Ignored if staging is True.
             kwargs (dict): Other keyword arguments to pass on to
                            :class:`fedora.client.OpenIdBaseClient`
@@ -218,6 +218,7 @@ class BodhiClient(OpenIdBaseClient):
         the ``edited`` keyword argument.
 
         Args:
+            display_name (basestring): The name of the update.
             builds (basestring): A list of koji builds for this update.
             type (basestring): The type of this update: ``security``, ``bugfix``,
                 ``enhancement``, and ``newpackage``.
@@ -601,6 +602,7 @@ class BodhiClient(OpenIdBaseClient):
                 'builds': section,
                 'bugs': config.get(section, 'bugs', raw=True),
                 'close_bugs': config.getboolean(section, 'close_bugs'),
+                'display_name': config.get(section, 'display_name', raw=True),
                 'type': config.get(section, 'type', raw=True),
                 'type_': config.get(section, 'type', raw=True),
                 'request': config.get(section, 'request', raw=True),

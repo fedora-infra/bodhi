@@ -1247,8 +1247,8 @@ class Build(Base):
         update_id (int): A foreign key to the Update that this Build is part of.
         release (sqlalchemy.orm.relationship): A relationship to the Release that this build is part
             of.
-        type (int): The polymorphic identify of the row. This is used by sqlalchemy to identify
-            which subclass of Build to use.
+        type (ContentType): The polymorphic identify of the row. This is used by sqlalchemy to
+            identify which subclass of Build to use.
     """
 
     __tablename__ = 'builds'
@@ -1331,17 +1331,6 @@ class Build(Base):
             tuple: A 3-tuple representing the name, version and release from the build.
         """
         return (self.nvr_name, self.nvr_version, self.nvr_release)
-
-    def get_url(self):
-        """
-        Return a the url to details about this build.
-
-        This method appears to be unused and incorrect.
-
-        Return:
-            str: A URL for this build.
-        """
-        return '/' + self.nvr
 
     def get_tags(self, koji=None):
         """

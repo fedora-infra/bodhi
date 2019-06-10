@@ -24,7 +24,6 @@ from fedora_messaging.api import Message
 from bodhi.server import models
 from bodhi.server.consumers import greenwave
 from bodhi.server.config import config
-from bodhi.server.exceptions import BodhiException
 from bodhi.tests.server.base import BaseTestCase, TransactionalSessionMaker
 
 
@@ -72,31 +71,26 @@ class TestGreenwaveHandler(BaseTestCase):
         self.assertEqual(mock_log.debug.call_count, 1)
         mock_log.debug.assert_called_with("Ignoring message without body.")
 
-    def test_greenwave_message_missing_info(self):
+    @mock.patch('bodhi.server.consumers.greenwave.log')
+    def test_greenwave_message_missing_info(self, mock_log):
         """
         Assert that the consumer raise an exception if we could not find the
         subject_identifier in the message
         """
 
         bad_message = Message(topic="", body={"msg": {}})
-        with self.assertRaises(BodhiException) as context:
-            self.handler(bad_message)
+        self.handler(bad_message)
+        self.assertEqual(mock_log.debug.call_count, 1)
+        mock_log.debug.assert_called_with("Couldn't find subject_identifier in Greenwave message")
 
-        self.assertIn(
-            "Couldn't find subject_identifier in the Greenwave message", context.exception.args
-        )
-
-    def test_greenwave_wrong_build_nvr(self):
+    @mock.patch('bodhi.server.consumers.greenwave.log')
+    def test_greenwave_wrong_build_nvr(self, mock_log):
         """
         Assert that the consumer raise an exception if we could not find the
         subject_identifier (build nvr) in the DB.
         """
         self.handler.db_factory = TransactionalSessionMaker(self.Session)
         self.sample_message.body["subject_identifier"] = "notapackage-2.0-1.fc17"
-
-        with self.assertRaises(BodhiException) as context:
-            self.handler(self.sample_message)
-
-        self.assertIn(
-            "Couldn't find build notapackage-2.0-1.fc17 in DB", context.exception.args
-        )
+        self.handler(self.sample_message)
+        self.assertEqual(mock_log.debug.call_count, 1)
+        mock_log.debug.assert_called_with("Couldn't find build notapackage-2.0-1.fc17 in DB")
