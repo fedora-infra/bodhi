@@ -418,7 +418,8 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
              mock.call().compress_and_fill().rename_file()])
         rec = mock_cr.RepomdRecord.return_value
         rec_comp = rec.compress_and_fill.return_value
-        self.assertEqual(rec_comp.type, 'garbage')
+        # The last comp_type added is the _zck one
+        self.assertEqual(rec_comp.type, 'garbage_zck')
         self.assertEqual(
             mock_cr.Repomd.return_value.set_record.mock_calls,
             [mock.call(rec_comp), mock.call(rec_comp)])
@@ -497,6 +498,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         rec.compress_and_fill.assert_called_once_with(mock_cr.SHA256, mock_cr.XZ_COMPRESSION)
         rec_comp = rec.compress_and_fill.return_value
         rec_comp.rename_file.assert_called_once_with()
+        # The last inserted type is without _zck
         self.assertEqual(rec_comp.type, 'garbage')
         mock_cr.Repomd.return_value.set_record.assert_called_once_with(rec_comp)
 

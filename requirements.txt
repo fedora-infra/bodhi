@@ -1,13 +1,13 @@
 alembic
 arrow
+backoff
 bleach
 click
 colander
 cornice>=3.1.0
 dogpile.cache
 pyasn1-modules  # Due to an unfortunate dash in its name, installs break if pyasn1 is installed first
-fedora_messaging>=1.6.0
-Twisted
+fedora_messaging
 feedgen
 jinja2
 markdown
