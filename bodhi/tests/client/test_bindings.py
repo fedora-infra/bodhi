@@ -54,7 +54,7 @@ class TestBodhiClient___init__(unittest.TestCase):
         self.assertEqual(client.username, 'some_user')
         self.assertEqual(client.timeout, 60)
         self.assertEqual(client._password, 's3kr3t')
-        self.assertEqual(client.csrf_token, None)
+        self.assertEqual(client.csrf_token, '')
         self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API,
                          'https://example.com/api/v1/')
 
@@ -70,7 +70,7 @@ class TestBodhiClient___init__(unittest.TestCase):
         self.assertEqual(client.username, 'some_user')
         self.assertEqual(client.timeout, 60)
         self.assertEqual(client._password, 's3kr3t')
-        self.assertEqual(client.csrf_token, None)
+        self.assertEqual(client.csrf_token, '')
         self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API, 'default')
 
     def test_staging_true(self):
@@ -87,7 +87,7 @@ class TestBodhiClient___init__(unittest.TestCase):
         self.assertEqual(client.timeout, None)
         self.assertEqual(client.retries, 5)
         self.assertEqual(client._password, 's3kr3t')
-        self.assertEqual(client.csrf_token, None)
+        self.assertEqual(client.csrf_token, '')
         self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API, bindings.STG_OPENID_API)
 
 
