@@ -22,6 +22,8 @@ Fedora-flavored Markdown.
 Author: Ralph Bean <rbean@redhat.com>
 """
 
+import typing
+
 from markdown.extensions import Extension
 import markdown.inlinepatterns
 import markdown.postprocessors
@@ -30,34 +32,38 @@ import pyramid.threadlocal
 
 from bodhi import MENTION_RE
 
+if typing.TYPE_CHECKING:  # pragma: no cover
+    import re  # noqa: 401
+    import xml  # noqa: 401
+
 
 BUGZILLA_RE = r'([a-zA-Z]+)(#[0-9]{5,})'
 
 
-def user_url(name):
+def user_url(name: str) -> str:
     """
     Return a URL to the given username.
 
     Args:
-        name (basestring): The username of the user we want a URL for.
+        name: The username of the user we want a URL for.
     Returns:
-        basestring: A URL to the requested user.
+        A URL to the requested user.
     """
     request = pyramid.threadlocal.get_current_request()
     return request.route_url('user', name=name)
 
 
-def bug_url(tracker, idx):
+def bug_url(tracker: str, idx: typing.Union[int, str]) -> typing.Optional[str]:
     """
     Return the URL for the given bug.
 
     Args:
-        tracker (basestring): Which bug tracker is being referenced. May be any of 'fedora',
-            'gcc', 'gnome', 'kde', 'mozilla', 'pear', 'perl', 'php', 'python', 'rh', 'rhbz'
-            or 'sourceware'.
-        idx (basestring or int): The bug number.
+        tracker: Which bug tracker is being referenced. May be any of 'fedora',
+            'gcc', 'gnome', 'kde', 'mozilla', 'pear', 'perl', 'php', 'python', 'rh', 'rhbz', or
+            'sourceware'.
+        idx: The bug number.
     Returns:
-        basestring: The URL of the given bug.
+        The URL of the given bug or None if tracker unsupported.
     """
     try:
         trackers = {
@@ -83,14 +89,14 @@ def bug_url(tracker, idx):
 class MentionPattern(markdown.inlinepatterns.Pattern):
     """Match username mentions and point to their profiles."""
 
-    def handleMatch(self, m):
+    def handleMatch(self, m: 're.Match') -> 'xml.etree.ElementTree.Element':
         """
         Build and return an Element that links to the matched User's profile.
 
         Args:
-            m (re.MatchObject): The regex match on the username.
+            m: The regex match on the username.
         Return:
-            xml.etree.Element: An html anchor referencing the user's profile.
+            An html anchor referencing the user's profile.
         """
         el = markdown.util.etree.Element("a")
         name = markdown.util.AtomicString(m.group(2))
@@ -102,14 +108,14 @@ class MentionPattern(markdown.inlinepatterns.Pattern):
 class BugzillaPattern(markdown.inlinepatterns.Pattern):
     """Match bug tracker patterns."""
 
-    def handleMatch(self, m):
+    def handleMatch(self, m: 're.Match') -> 'xml.etree.ElementTree.Element':
         """
         Build and return an Element that links to the referenced bug.
 
         Args:
-            m (re.MatchObject): The regex match on the bug.
+            m: The regex match on the bug.
         Returns:
-            xml.etree.Element: An html anchor referencing the matched bug.
+            An html anchor referencing the matched bug.
         """
         tracker = markdown.util.AtomicString(m.group(2))
         idx = markdown.util.AtomicString(m.group(3))
@@ -127,14 +133,14 @@ class BugzillaPattern(markdown.inlinepatterns.Pattern):
 class SurroundProcessor(markdown.postprocessors.Postprocessor):
     """A postprocessor to surround the text with a markdown <div>."""
 
-    def run(self, text):
+    def run(self, text: str) -> str:
         """
         Return text wrapped in a <div> with a markdown class.
 
         Args:
-            text (str): The text to wrap in a <div>.
+            text: The text to wrap in a <div>.
         Returns:
-            str: The text wrapped in a <div>.
+            The text wrapped in a <div>.
         """
         return "<div class='markdown'>" + text + "</div>"
 
@@ -142,13 +148,13 @@ class SurroundProcessor(markdown.postprocessors.Postprocessor):
 class BodhiExtension(Extension):
     """Bodhi's markdown Extension."""
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md: markdown.Markdown, md_globals: dict) -> None:
         """
         Extend markdown to add our patterns and postprocessor.
 
         Args:
-            md (Markdown): An instance of the Markdown class.
-            md_globals (dict): Contains all the various global variables within the markdown module.
+            md: An instance of the Markdown class.
+            md_globals: Contains all the various global variables within the markdown module.
         """
         md.inlinePatterns.add('mention', MentionPattern(MENTION_RE, md), '_end')
         md.inlinePatterns.add('bugzilla', BugzillaPattern(BUGZILLA_RE, md), '_end')
