@@ -16,10 +16,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define special view renderers, such as RSS."""
+import logging
 import operator
 
 from pytz import utc
 from feedgen.feed import FeedGenerator
+from pyramid.exceptions import HTTPBadRequest
+
+
+log = logging.getLogger(__name__)
 
 
 def rss(info):
@@ -64,6 +69,15 @@ def rss(info):
         elif 'overrides' in data:
             key = 'overrides'
             feed_title = 'Update overrides'
+        else:
+            # This is a request we don't know how to render. Let's return BadRequest and log.
+            log.debug('Unable to render RSS feed for data: %s', data)
+            # See if we have a request so we can set a code without raising an Exception
+            if request is not None:
+                response.status = HTTPBadRequest.code
+                return 'Invalid RSS feed request'
+            else:
+                raise HTTPBadRequest('Invalid RSS feed request')
 
         feed_description_list = []
         for k in request.GET.keys():

@@ -107,16 +107,14 @@ class EnumSymbol(object):
         """
         return "<%s>" % self.name
 
-    def __unicode__(self):
+    def __str__(self) -> str:
         """
         Return a string representation of this EnumSymbol.
 
         Returns:
-            unicode: A string representation of this EnumSymbol's value.
+            A string representation of this EnumSymbol's value.
         """
         return str(self.value)
-
-    __str__ = __unicode__
 
     def __json__(self, request=None):
         """
@@ -610,6 +608,7 @@ class UpdateType(DeclEnum):
     security = 'security', 'security'
     newpackage = 'newpackage', 'newpackage'
     enhancement = 'enhancement', 'enhancement'
+    unspecified = 'unspecified', 'unspecified'
 
 
 class UpdateRequest(DeclEnum):
@@ -715,6 +714,21 @@ class ComposeState(DeclEnum):
     cleaning = 'cleaning', 'Cleaning old composes'
 
 
+class PackageManager(DeclEnum):
+    """
+    An enum used to specify what package manager is used by a specific Release.
+
+    Attributes:
+        unspecified (EnumSymbol): for releases where the package manager is not specified.
+        dnf (EnumSymbol): DNF package manager.
+        yum (EnumSymbol): YUM package manager.
+    """
+
+    unspecified = 'unspecified', 'package manager not specified'
+    dnf = 'dnf', 'dnf'
+    yum = 'yum', 'yum'
+
+
 ##
 #  Association tables
 ##
@@ -759,6 +773,13 @@ class Release(Base):
             associated with this release.
         composed_by_bodhi (bool): The flag that indicates whether the release is composed by
             Bodhi or not. Defaults to True.
+        create_automatic_updates (bool): A flag indicating that updates should
+            be created automatically for Koji builds tagged into the
+            `candidate_tag`. Defaults to False.
+        package_manager (EnumSymbol): The package manager this release uses. This must be one of
+            the values defined in :class:`PackageManager`.
+        testing_repository (unicode): The name of repository where updates are placed for
+            testing before being pushed to the main repository.
     """
 
     __tablename__ = 'releases'
@@ -783,6 +804,12 @@ class Release(Base):
 
     state = Column(ReleaseState.db_type(), default=ReleaseState.disabled, nullable=False)
     composed_by_bodhi = Column(Boolean, default=True)
+    create_automatic_updates = Column(Boolean, default=False)
+
+    _version_int_regex = re.compile(r'\D+(\d+)[CMF]?$')
+
+    package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
+    testing_repository = Column(UnicodeText, nullable=True)
 
     @property
     def version_int(self):
@@ -792,8 +819,7 @@ class Release(Base):
         Returns:
             int: The version of the release.
         """
-        regex = re.compile(r'\D+(\d+)[CMF]?$')
-        return int(regex.match(self.name).groups()[0])
+        return int(self._version_int_regex.match(self.name).groups()[0])
 
     @property
     def mandatory_days_in_testing(self):
@@ -1221,8 +1247,8 @@ class Build(Base):
         update_id (int): A foreign key to the Update that this Build is part of.
         release (sqlalchemy.orm.relationship): A relationship to the Release that this build is part
             of.
-        type (int): The polymorphic identify of the row. This is used by sqlalchemy to identify
-            which subclass of Build to use.
+        type (ContentType): The polymorphic identify of the row. This is used by sqlalchemy to
+            identify which subclass of Build to use.
     """
 
     __tablename__ = 'builds'
@@ -1305,17 +1331,6 @@ class Build(Base):
             tuple: A 3-tuple representing the name, version and release from the build.
         """
         return (self.nvr_name, self.nvr_version, self.nvr_release)
-
-    def get_url(self):
-        """
-        Return a the url to details about this build.
-
-        This method appears to be unused and incorrect.
-
-        Return:
-            str: A URL for this build.
-        """
-        return '/' + self.nvr
 
     def get_tags(self, koji=None):
         """
@@ -1913,6 +1928,32 @@ class Update(Base):
 
         return util.greenwave_api_post(api_url, data)
 
+    def install_command(self) -> str:
+        """
+        Return the appropriate command for installing the Update.
+
+        Returns:
+            The dnf command to install the Update.
+        Raises:
+            ValueError: When the update is not in stable or testing state, or when
+                the package manager or the testing repository are not known.
+        """
+        if self.status != UpdateStatus.stable and self.status != UpdateStatus.testing:
+            raise ValueError('Only updates in stable or testing can be installed!')
+
+        if self.release.package_manager == PackageManager.unspecified \
+                or self.release.testing_repository is None:
+            raise ValueError('We don\'t know the package manager or the testing repository!')
+
+        command = 'sudo {} {}{} --advisory={}{}'.format(
+            self.release.package_manager.value,
+            'install' if self.type == UpdateType.newpackage else 'upgrade',
+            (' --enablerepo=' + self.release.testing_repository)
+            if self.status == UpdateStatus.testing else '',
+            self.alias,
+            r' \*' if self.type == UpdateType.newpackage else '')
+        return command
+
     def update_test_gating_status(self):
         """Query Greenwave about this update and set the test_gating_status as appropriate."""
         try:
@@ -2182,6 +2223,11 @@ class Update(Base):
 
         If a build is associated with multiple updates, make sure that
         all updates are safe to obsolete, or else just skip it.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        Returns:
+            list: A list of dictionaries that describe caveats.
         """
         caveats = []
         for build in self.builds:
@@ -4023,6 +4069,7 @@ class Bug(Base):
 
         Args:
             update (Update): The update that is associated with this bug.
+            comment (str): A comment to leave on the bug when modifying it.
         """
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying parent security bug %s', self.bug_id)

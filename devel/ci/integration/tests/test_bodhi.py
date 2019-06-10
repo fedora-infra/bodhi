@@ -378,34 +378,46 @@ def test_get_packages_json(bodhi_container, db_container):
         "FROM updates "
         "ORDER BY date_submitted DESC LIMIT 1"
     )
-    query_packages = (
+    query_builds = (
         "SELECT "
-        "  packages.name, "
-        "  packages.type "
+        "  packages.name "
         "FROM builds "
         "JOIN packages ON builds.package_id = packages.id "
-        "WHERE update_id = %s LIMIT 1"
+        "WHERE update_id = %s"
+    )
+    query_packages = (
+        "SELECT "
+        "  packages.type "
+        "FROM packages "
+        "WHERE name = %s"
     )
     db_ip = db_container.get_IPv4s()[0]
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    packages = []
     with conn:
         with conn.cursor() as curs:
             curs.execute(query_updates)
             update_id = curs.fetchone()[0]
-            curs.execute(query_packages, (update_id, ))
-            row = curs.fetchone()
-            package_name = row[0]
-            package_type = row[1]
+            curs.execute(query_builds, (update_id, ))
+            rows = curs.fetchone()
+            package_name = rows[0]
+            curs.execute(query_packages, (package_name, ))
+            rows = curs.fetchall()
+            for row in rows:
+                print(row)
+                package = {}
+                package['name'] = package_name
+                package['type'] = row[0]
+                package['requirements'] = None
+                packages.append(package)
     conn.close()
 
-    # GET on user with latest update
+    # GET on package with particular name
     with bodhi_container.http_client(port="8080") as c:
-        http_response = c.get(f"/packages/?name={package_name}")
+        http_response = c.get(f"/packages/?name={packages[0]['name']}")
 
     expected_json = {
-        "packages": [
-            {"name": package_name, "requirements": None, "type": package_type}
-        ],
+        "packages": packages,
         "page": 1,
         "pages": 1,
         "rows_per_page": 20,
@@ -492,7 +504,7 @@ def test_get_overrides_view(bodhi_container, db_container):
                 expected_overrides.append({"nvr": row[0], "username": row[1]})
     conn.close()
 
-    # GET on user with latest update
+    # GET on latest overrides
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
         http_response = c.get(f"/overrides", headers=headers)

@@ -24,6 +24,7 @@ from bodhi.server import util
 from bodhi.server.config import config
 from bodhi.server.models import (
     ContentType,
+    PackageManager,
     ReleaseState,
     UpdateRequest,
     UpdateSeverity,
@@ -172,6 +173,10 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
 
     bugs = Bugs(colander.Sequence(accept_scalar=True), missing=None, preparer=[util.splitter])
 
+    display_name = colander.SchemaNode(
+        colander.String(),
+        missing='',
+    )
     close_bugs = colander.SchemaNode(
         colander.Boolean(),
         missing=True,
@@ -395,6 +400,19 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     composed_by_bodhi = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
         missing=True,
+    )
+    create_automatic_updates = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        missing=False,
+    )
+    package_manager = colander.SchemaNode(
+        colander.String(),
+        validator=colander.OneOf(list(PackageManager.values())),
+        missing="unspecified",
+    )
+    testing_repository = colander.SchemaNode(
+        colander.String(),
+        missing=None,
     )
 
 

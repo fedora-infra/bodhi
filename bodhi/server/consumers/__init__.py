@@ -25,38 +25,80 @@ import logging
 
 import fedora_messaging
 
-from bodhi.server.consumers.composer import ComposerHandler
+from bodhi.server import bugs, buildsys, initialize_db
+from bodhi.server.config import config
+from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
+try:
+    from bodhi.server.consumers.composer import ComposerHandler
+except ImportError:  # pragma: no cover
+    # If the composer isn't installed, it's OK, we just won't be able to process composer.start
+    # messages.
+    ComposerHandler = None  # pragma: no cover
 from bodhi.server.consumers.signed import SignedHandler
 from bodhi.server.consumers.updates import UpdatesHandler
+from bodhi.server.consumers.greenwave import GreenwaveHandler
 
 
 log = logging.getLogger('bodhi')
 
 
-def messaging_callback(msg: fedora_messaging.api.Message):  # noqa: D401
-    """
-    Callback method called by fedora-messaging consume.
+class Consumer:
+    """All Bodhi messages are received by this class's __call__() method."""
 
-    Redirect messages to the correct handler using the
-    message topic.
+    def __init__(self):
+        """Set up the database, build system, bug tracker, and handlers."""
+        log.info('Initializing Bodhi')
+        initialize_db(config)
+        buildsys.setup_buildsystem(config)
+        bugs.set_bugtracker()
 
-    Args:
-        msg: The message received from the broker.
-    """
-    log.info(f'Received message from fedora-messaging with topic: {msg.topic}')
+        self.automatic_update_handler = AutomaticUpdateHandler()
+        if ComposerHandler:
+            self.composer_handler = ComposerHandler()
+        else:
+            log.info('The composer is not installed - Bodhi will ignore composer.start messages.')
+            self.composer_handler = None
+        self.signed_handler = SignedHandler()
+        self.updates_handler = UpdatesHandler()
+        self.greenwave_handler = GreenwaveHandler()
 
-    if msg.topic.endswith('.bodhi.composer.start'):
-        handler = ComposerHandler()
-        log.debug('Passing message to the Composer handler')
-        handler(msg)
+    def __call__(self, msg: fedora_messaging.api.Message):  # noqa: D401
+        """
+        Callback method called by fedora-messaging consume.
 
-    if msg.topic.endswith('.buildsys.tag'):
-        handler = SignedHandler()
-        log.debug('Passing message to the Signed handler')
-        handler(msg)
+        Redirect messages to the correct handler using the
+        message topic.
 
-    if msg.topic.endswith('.bodhi.update.request.testing') \
-       or msg.topic.endswith('.bodhi.update.edit'):
-        handler = UpdatesHandler()
-        log.debug('Passing message to the Updates handler')
-        handler(msg)
+        Args:
+            msg: The message received from the broker.
+        """
+        log.info(f'Received message from fedora-messaging with topic: {msg.topic}')
+
+        try:
+            if msg.topic.endswith('.bodhi.composer.start'):
+                if self.composer_handler:
+                    log.debug('Passing message to the Composer handler')
+                    self.composer_handler(msg)
+                else:
+                    raise ValueError('Unable to process composer.start message topics because the '
+                                     'Composer is not installed')
+
+            if msg.topic.endswith('.buildsys.tag'):
+                log.debug('Passing message to the Signed handler')
+                self.signed_handler(msg)
+
+                log.debug('Passing message to the Automatic Update handler')
+                self.automatic_update_handler(msg)
+
+            if msg.topic.endswith('.bodhi.update.request.testing') \
+               or msg.topic.endswith('.bodhi.update.edit'):
+                log.debug('Passing message to the Updates handler')
+                self.updates_handler(msg)
+
+            if msg.topic.endswith('.greenwave.decision.update'):
+                log.debug('Passing message to the Greenwave handler')
+                self.greenwave_handler(msg)
+        except Exception as e:
+            error_msg = f'{str(e)}: Unable to handle message: {msg}'
+            log.exception(error_msg)
+            raise fedora_messaging.exceptions.Nack(error_msg)
