@@ -520,6 +520,7 @@ class UpdateMessageTests(unittest.TestCase):
                 "9c9f7784935381befc302fe3c814f9136e7a33953d0318761669b8643f4df55c"
                 "?s=64&d=retro"
             ),
+            "new_bugs": [1708925, 1706626],
             "usernames": ["ralph"],
             "packages": ["tzdata"],
             'update': UpdateV1('FEDORA-2019-7dbbb74a13', [BuildV1('tzdata-2014i-1.fc19')],
@@ -527,6 +528,7 @@ class UpdateMessageTests(unittest.TestCase):
         }
         msg = UpdateEditV1(
             body={
+                "new_bugs": [1708925, 1706626],
                 "update": {
                     "close_bugs": True,
                     "pushed": False,

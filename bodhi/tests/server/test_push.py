@@ -1089,6 +1089,9 @@ class TestPush(base.BaseTestCase):
                     expected_message.body['composes'] = [
                         python_paste_deploy.compose.__json__(composer=True)]
 
+        self.assertIn(
+            f'Warning: {python_nose.get_title()} has unsigned builds and has been skipped',
+            result.output)
         self.assertEqual(result.exception, None)
         self.assertEqual(result.exit_code, 0)
         python_nose = self.db.query(models.Build).filter_by(

@@ -48,7 +48,7 @@ from bodhi.server.exceptions import LockedUpdateException
 from bodhi.server.models import (
     Build, BuildrootOverride, Compose, ComposeState, ContainerBuild, FlatpakBuild,
     Release, ReleaseState, RpmBuild, TestGatingStatus, Update, UpdateRequest, UpdateStatus,
-    UpdateType, User, ModuleBuild, ContentType, Package)
+    UpdateType, User, ModuleBuild, ContentType, Package, PackageManager)
 from bodhi.tests.server import base
 
 
@@ -78,11 +78,6 @@ mock_absent_taskotron_results = {
     'target': 'bodhi.server.util.taskotron_results',
     'return_value': [],
 }
-
-
-def fake_blockingCallFromThread(reactor, function, *args, **kwargs):
-    """Just run the function, no messing with threads."""
-    return function(*args, **kwargs)
 
 
 class TestCheckpoint(unittest.TestCase):
@@ -126,7 +121,6 @@ def _make_msg(transactional_session_maker, extra_push_args=None):
     return publish.mock_calls[0][1][0]
 
 
-@mock.patch("bodhi.server.consumers.composer.blockingCallFromThread", fake_blockingCallFromThread)
 # We don't need real pungi config files, we just need them to exist. Let's also mock all calls to
 # pungi.
 @mock.patch.dict(
@@ -281,24 +275,6 @@ That was the actual one''' % compose_dir
         """
         return _make_msg(self.db_factory, extra_push_args)
 
-    @mock.patch('bodhi.server.consumers.composer.bugs.set_bugtracker')
-    def test___init___sets_bugtracker(self, set_bugtracker):
-        """
-        Assert that Handler.__init__() calls bodhi.server.bugs.set_bugtracker().
-        """
-        ComposerHandler(db_factory=self.db_factory, compose_dir=self.tempdir)
-
-        set_bugtracker.assert_called_once_with()
-
-    @mock.patch('bodhi.server.consumers.composer.setup_logging')
-    def test___init___sets_logging(self, setup_logging):
-        """
-        Assert that Handler.__init__() calls bodhi.server.log.setup().
-        """
-        ComposerHandler(db_factory=self.db_factory, compose_dir=self.tempdir)
-
-        setup_logging.assert_called_once_with()
-
     @mock.patch.dict('bodhi.server.config.config', {
         'pungi.cmd': '/does/not/exist',
         'compose_dir': '/does/not/exist',
@@ -322,14 +298,12 @@ That was the actual one''' % compose_dir
                 str(exc.exception),
                 '"/does/really/not/exist" does not exist. Check the {} setting.'.format(s))
 
-    @mock.patch('bodhi.server.consumers.composer.initialize_db')
     @mock.patch('bodhi.server.consumers.composer.transactional_session_maker')
-    def test___init___without_db_factory(self, transactional_session_maker, initialize_db):
+    def test___init___without_db_factory(self, transactional_session_maker):
         """__init__() should make its own db_factory if not given one."""
         m = ComposerHandler(compose_dir=self.tempdir)
 
         self.assertEqual(m.db_factory, transactional_session_maker.return_value)
-        initialize_db.assert_called_once_with(config)
         transactional_session_maker.assert_called_once_with()
 
     def test__get_composes_api_2(self):
@@ -905,7 +879,9 @@ That was the actual one'''
                 pending_stable_tag='f18-updates-pending',
                 override_tag='f18-override',
                 state=ReleaseState.current,
-                branch='f18')
+                branch='f18',
+                package_manager=PackageManager.unspecified,
+                testing_repository=None)
             db.add(release)
             build = RpmBuild(nvr='bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
                              signed=True)
@@ -982,7 +958,9 @@ That was the actual one'''
                 pending_stable_tag='f18-updates-pending',
                 override_tag='f18-override',
                 state=ReleaseState.current,
-                branch='f18')
+                branch='f18',
+                package_manager=PackageManager.unspecified,
+                testing_repository=None)
             db.add(release)
             build = RpmBuild(nvr='bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
                              signed=True)
@@ -1050,7 +1028,9 @@ That was the actual one'''
                 pending_stable_tag='f18-updates-pending',
                 override_tag='f18-override',
                 state=ReleaseState.current,
-                branch='f18')
+                branch='f18',
+                package_manager=PackageManager.unspecified,
+                testing_repository=None)
             db.add(release)
             build = RpmBuild(nvr='bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
                              signed=True)
@@ -2011,25 +1991,26 @@ testmodule:master:20172:2
             with mock_sends(*[base_schemas.BodhiMessage] * 3):
                 self.handler(self._make_msg())
 
-        with self.db_factory() as session:
-            up = session.query(Update).one()
+        with mock_sends(*[base_schemas.BodhiMessage] * 3):
+            with self.db_factory() as session:
+                up = session.query(Update).one()
 
-            # Ensure the update is still locked and in testing
-            self.assertEqual(up.locked, True)
-            self.assertEqual(up.status, UpdateStatus.pending)
-            self.assertEqual(up.request, UpdateRequest.testing)
+                # Ensure the update is still locked and in testing
+                self.assertEqual(up.locked, True)
+                self.assertEqual(up.status, UpdateStatus.pending)
+                self.assertEqual(up.request, UpdateRequest.testing)
 
-            # Have the update reach the stable karma threshold
-            self.assertEqual(up.karma, 1)
-            up.comment(session, "foo", 1, 'foo')
-            self.assertEqual(up.karma, 2)
-            self.assertEqual(up.request, UpdateRequest.testing)
-            up.comment(session, "foo", 1, 'bar')
-            self.assertEqual(up.karma, 3)
-            self.assertEqual(up.request, UpdateRequest.testing)
-            up.comment(session, "foo", 1, 'biz')
-            self.assertEqual(up.request, UpdateRequest.testing)
-            self.assertEqual(up.karma, 4)
+                # Have the update reach the stable karma threshold
+                self.assertEqual(up.karma, 1)
+                up.comment(session, "foo", 1, 'foo')
+                self.assertEqual(up.karma, 2)
+                self.assertEqual(up.request, UpdateRequest.testing)
+                up.comment(session, "foo", 1, 'bar')
+                self.assertEqual(up.karma, 3)
+                self.assertEqual(up.request, UpdateRequest.testing)
+                up.comment(session, "foo", 1, 'biz')
+                self.assertEqual(up.request, UpdateRequest.testing)
+                self.assertEqual(up.karma, 4)
 
         # finish push and unlock updates
         msg = self._make_msg()
@@ -2037,14 +2018,15 @@ testmodule:master:20172:2
         with mock_sends(*[base_schemas.BodhiMessage] * 6):
             self.handler(msg)
 
-        with self.db_factory() as session:
-            up = session.query(Update).one()
-            up.comment(session, "foo", 1, 'baz')
-            self.assertEqual(up.karma, 5)
+        with mock_sends(*[base_schemas.BodhiMessage] * 2):
+            with self.db_factory() as session:
+                up = session.query(Update).one()
+                up.comment(session, "foo", 1, 'baz')
+                self.assertEqual(up.karma, 5)
 
-            # Ensure the composer set the autokarma once the push is done
-            self.assertEqual(up.locked, False)
-            self.assertEqual(up.request, UpdateRequest.stable)
+                # Ensure the composer set the autokarma once the push is done
+                self.assertEqual(up.locked, False)
+                self.assertEqual(up.request, UpdateRequest.stable)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread._wait_for_pungi')
@@ -2171,7 +2153,6 @@ testmodule:master:20172:2
         exception_log.assert_called_once_with("Problem expiring override")
 
 
-@mock.patch("bodhi.server.consumers.composer.blockingCallFromThread", fake_blockingCallFromThread)
 class ComposerThreadBaseTestCase(base.BaseTestCase):
     """Methods that are useful for testing ComposerThread subclasses."""
 
@@ -2595,8 +2576,6 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
 class TestComposerThread_perform_gating(ComposerThreadBaseTestCase):
     """Test the ComposerThread.perform_gating() method."""
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     def test_expires_compose_updates(self):
         """Ensure that the method expires the compose's updates attribute."""
         msg = self._make_msg()
@@ -2687,8 +2666,6 @@ class TestComposerThread_check_all_karma_thresholds(ComposerThreadBaseTestCase):
 class TestComposerThread__determine_tag_actions(ComposerThreadBaseTestCase):
     """Test ComposerThread._determine_tag_actions()."""
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch('bodhi.server.models.buildsys.get_session')
     def test_from_tag_not_found(self, get_session):
         """Updates should be ejected if the from tag cannot be determined."""
@@ -2725,8 +2702,6 @@ class TestComposerThread__determine_tag_actions(ComposerThreadBaseTestCase):
 
 class TestComposerThread_eject_from_compose(ComposerThreadBaseTestCase):
     """This test class contains tests for the ComposerThread.eject_from_compose() method."""
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     def test_testing_request(self):
         """
         Assert correct behavior when the update's request is set to testing.
@@ -2871,8 +2846,6 @@ class TestComposerThread_save_state(ComposerThreadBaseTestCase):
 
 class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
     """This test class contains tests for the PungiComposerThread._wait_for_sync() method."""
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch.dict(
         'bodhi.server.consumers.composer.config',
         {'fedora_testing_master_repomd':
@@ -2915,8 +2888,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         self.assertTrue(urlopen.mock_calls[0] in expected_calls)
         save.assert_called_once_with(ComposeState.syncing_repo)
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch.dict(
         'bodhi.server.consumers.composer.config',
         {'fedora_testing_master_repomd':
@@ -2947,8 +2918,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         self.assertEqual(str(exc.exception), "Not found an arch to _wait_for_sync with")
         save.assert_not_called()
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch.dict(
         'bodhi.server.consumers.composer.config',
         {'fedora_testing_master_repomd':
@@ -2991,8 +2960,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         sleep.assert_has_calls([mock.call(200), mock.call(200)])
         save.assert_called_with(ComposeState.syncing_repo)
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch.dict(
         'bodhi.server.consumers.composer.config',
         {'fedora_testing_master_repomd':
@@ -3039,8 +3006,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         sleep.assert_called_once_with(200)
         save.assert_called_once_with(ComposeState.syncing_repo)
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch.dict(
         'bodhi.server.consumers.composer.config',
         {'fedora_testing_master_repomd':
@@ -3088,8 +3053,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         sleep.assert_called_once_with(200)
         save.assert_called_once_with(ComposeState.syncing_repo)
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch.dict(
         'bodhi.server.consumers.composer.config',
         {'fedora_testing_master_repomd':
@@ -3136,8 +3099,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         sleep.assert_called_once_with(200)
         save.assert_called_once_with(ComposeState.syncing_repo)
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch.dict(
         'bodhi.server.consumers.composer.config',
         {'fedora_testing_master_repomd': None})
@@ -3171,8 +3132,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
                          'fedora_testing_master_repomd in the config file')
         save.assert_called_once_with(ComposeState.syncing_repo)
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch('bodhi.server.consumers.composer.PungiComposerThread.save_state')
     @mock.patch('bodhi.server.consumers.composer.time.sleep',
                 mock.MagicMock(side_effect=Exception('This should not happen during this test.')))
@@ -3200,8 +3159,6 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             'Cannot find local repomd: %s', os.path.join(repodata, 'repomd.xml'))
         save.assert_not_called()
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch.dict(
         'bodhi.server.consumers.composer.config',
         {'fedora_testing_master_repomd':
@@ -3299,8 +3256,6 @@ class TestComposerThread__mark_status_changes(ComposerThreadBaseTestCase):
 class TestComposerThread_send_notifications(ComposerThreadBaseTestCase):
     """Test ComposerThread.send_notifications."""
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     def test_getlogin_raising_oserror(self):
         """Assert that "composer" is used as the agent if getlogin() raises OSError."""
         t = ComposerThread(self.semmock, self._make_msg().body['composes'][0],
@@ -3506,8 +3461,6 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
 class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCase):
     """Test PungiComposerThread._wait_for_repo_signature()."""
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch('bodhi.server.consumers.composer.log')
     def test_dont_wait_for_signatures(self, mocked_log):
         """Test that if wait_for_repo_sig is disabled, nothing happens."""
@@ -3526,8 +3479,6 @@ class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCas
             mocked_log.info.mock_calls,
             [mock.call('Not waiting for a repo signature')])
 
-    @mock.patch("bodhi.server.consumers.composer.blockingCallFromThread",
-                fake_blockingCallFromThread)
     @mock.patch('os.path.exists', side_effect=[
         # First time, none of the signatures exist
         False, False, False,

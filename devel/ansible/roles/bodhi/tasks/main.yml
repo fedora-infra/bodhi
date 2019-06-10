@@ -24,6 +24,7 @@
       - postgresql-server
       - python3-alembic
       - python3-arrow
+      - python3-backoff
       - python3-bleach
       - python3-click
       - python3-colander
@@ -177,7 +178,7 @@
 - name: Copy the fedora-messaging configuration file bodhi.toml
   copy:
       src: bodhi.toml
-      dest: /etc/fedora-messaging/bodhi.toml
+      dest: /etc/fedora-messaging/config.toml
       owner: root
       group: root
       mode: 644
@@ -196,7 +197,7 @@
 
 - name: Start and enable the bodhi consumer service
   service:
-      name: fm-consumer@bodhi
+      name: fm-consumer@config
       state: started
       enabled: yes
 

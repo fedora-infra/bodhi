@@ -728,6 +728,7 @@ def type2html(context, kind):
         'bugfix': 'warning',
         'newpackage': 'primary',
         'enhancement': 'success',
+        'unspecified': 'default',
     }.get(kind)
 
     return "<span class='label label-%s'>%s</span>" % (cls, kind)
@@ -1486,30 +1487,3 @@ def get_absolute_path(location):
     module, final = location.split(':')
     base = os.path.dirname(__import__(module).__file__)
     return base + "/" + final
-
-
-def update_install_command(context, update):
-    """
-    Return the dnf command for installing the Update.
-
-    Args:
-        context (mako.runtime.Context): Unused.
-        update (bodhi.server.models.Update): The Update you want to install.
-    Returns:
-        basestring: The dnf command to install the Update.
-    Raises:
-        ValueError: When provided update is not in stable or testing state.
-    """
-    status = str(update.status)
-    alias = update.alias
-    update_type = str(update.type)
-
-    if status != 'stable' and status != 'testing':
-        raise ValueError('Only updates in stable or testing can be installed!')
-
-    command = 'sudo dnf {}{} --advisory={}{}'.format(
-        'install' if update_type == 'newpackage' else 'upgrade',
-        ' --enablerepo=updates-testing' if status == 'testing' else '',
-        alias,
-        r' \*' if update_type == 'newpackage' else '')
-    return command

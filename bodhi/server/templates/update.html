@@ -54,16 +54,16 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
     var handle_unsatisfied_requirements = function(data){
         $.each(data['unsatisfied_requirements'], function(i, requirement) {
             if (requirement.type == 'test-result-missing') {
-                if (missing_tests[requirement.item] === undefined)
-                    missing_tests[requirement.item] = [];
-                missing_tests[requirement.item].push(requirement);
+                if (missing_tests[requirement.subject_identifier] === undefined)
+                    missing_tests[requirement.subject_identifier] = [];
+                missing_tests[requirement.subject_identifier].push(requirement);
             }
             // the user may have already specified this in the required taskotron tests
             if ($.inArray(requirement.testcase, requirements) == -1) {
                 requirements.push(requirement.testcase);
             }
             $('#failed_requirements').append('<li class="list-group-item">' + requirement.testcase + '</li>');
-            
+
             // there is at least one unsatisfied requirement, so show the button to be able to waive.
             $('#waive').show();
         });
@@ -680,10 +680,10 @@ $(document).ready(function(){
           % endif
 
           % if update.content_type:
-          % if update.content_type.value == 'rpm' and ('testing' in update.status or 'stable' in update.status):
+          % if update.status in [models.UpdateStatus.testing, models.UpdateStatus.stable] and not (update.release.package_manager == models.PackageManager.unspecified or update.release.testing_repository is None):
           <div class="p-t-1">
           <h4>How to install</h4>
-            <pre style="position: relative;"><span class="label label-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${self.util.update_install_command(update)}</code></pre>
+            <pre style="position: relative;"><span class="label label-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${update.install_command}</code></pre>
           </div>
           % endif
           % endif

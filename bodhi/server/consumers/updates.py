@@ -35,13 +35,12 @@ gets received here and triggers us to do all that network-laden heavy lifting.
 
 import logging
 import time
+import typing
 
-import fedora_messaging
-
-from bodhi.server import initialize_db, util, bugs as bug_module
+from bodhi.server import util, bugs as bug_module
+from bodhi.messages.schemas.update import UpdateEditV1, UpdateRequestTestingV1
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
-from bodhi.server.logging import setup as setup_logging
 from bodhi.server.models import Bug, Update, UpdateType
 
 
@@ -64,17 +63,13 @@ class UpdatesHandler(object):
 
     def __init__(self, *args, **kwargs):
         """Initialize the UpdatesHandler."""
-        setup_logging()
-        initialize_db(config)
         self.db_factory = util.transactional_session_maker()
 
         self.handle_bugs = bool(config.get('bodhi_email'))
         if not self.handle_bugs:
             log.warning("No bodhi_email defined; not fetching bug details")
-        else:
-            bug_module.set_bugtracker()
 
-    def __call__(self, message: fedora_messaging.api.Message):
+    def __call__(self, message: typing.Union[UpdateEditV1, UpdateRequestTestingV1]):
         """
         Process the given message, updating relevant bugs and test cases.
 
@@ -85,9 +80,8 @@ class UpdatesHandler(object):
         Args:
             message: A message about a new or edited update.
         """
-        msg = message.body['msg']
         topic = message.topic
-        alias = msg['update'].get('alias')
+        alias = message.update.alias
 
         log.info("Updates Handler handling  %s, %s" % (alias, topic))
 
@@ -101,8 +95,8 @@ class UpdatesHandler(object):
                 raise BodhiException("Couldn't find alias '%s' in DB" % alias)
 
             bugs = []
-            if topic.endswith('update.edit'):
-                for idx in msg['new_bugs']:
+            if isinstance(message, UpdateEditV1):
+                for idx in message.new_bugs:
                     bug = Bug.get(idx)
 
                     # Sanity check
@@ -115,7 +109,7 @@ class UpdatesHandler(object):
 
                     bugs.append(bug)
 
-            elif topic.endswith('update.request.testing'):
+            elif isinstance(message, UpdateRequestTestingV1):
                 bugs = update.bugs
             else:
                 raise NotImplementedError("Should never get here.")

@@ -65,19 +65,16 @@ class UpdateNotFound(BodhiClientException):
 
     def __init__(self, update):
         """Initialize the Exception."""
-        self.update = str(update)
+        self.update = update
 
-    def __unicode__(self):
+    def __str__(self) -> str:
         """
         Return a human readable error message.
 
         Returns:
-            unicode: An error message.
+            An error message.
         """
         return f'Update not found: {self.update}'
-
-    # Use __unicode__ method under __str__ name for Python 3
-    __str__ = __unicode__
 
 
 class ComposeNotFound(BodhiClientException):
@@ -85,20 +82,17 @@ class ComposeNotFound(BodhiClientException):
 
     def __init__(self, release, request):
         """Initialize the Exception."""
-        self.release = str(release)
-        self.request = str(request)
+        self.release = release
+        self.request = request
 
-    def __unicode__(self):
+    def __str__(self) -> str:
         """
         Return a human readable error message.
 
         Returns:
-            unicode: An error message.
+            An error message.
         """
         return f'Compose with request "{self.request}" not found for release "{self.release}"'
-
-    # Use __unicode__ method under __str__ name for Python 3
-    __str__ = __unicode__
 
 
 def errorhandled(method):
@@ -179,7 +173,7 @@ class BodhiClient(OpenIdBaseClient):
             username (basestring): The username to use to authenticate with the server.
             password (basestring): The password to use to authenticate with the server.
             staging (bool): If True, use the staging server. If False, use base_url.
-            opennid_api (str or None): If not None, the URL to an OpenID API to use to authenticate
+            openid_api (str or None): If not None, the URL to an OpenID API to use to authenticate
                 to Bodhi. Ignored if staging is True.
             kwargs (dict): Other keyword arguments to pass on to
                            :class:`fedora.client.OpenIdBaseClient`
@@ -224,6 +218,7 @@ class BodhiClient(OpenIdBaseClient):
         the ``edited`` keyword argument.
 
         Args:
+            display_name (basestring): The name of the update.
             builds (basestring): A list of koji builds for this update.
             type (basestring): The type of this update: ``security``, ``bugfix``,
                 ``enhancement``, and ``newpackage``.
@@ -607,6 +602,7 @@ class BodhiClient(OpenIdBaseClient):
                 'builds': section,
                 'bugs': config.get(section, 'bugs', raw=True),
                 'close_bugs': config.getboolean(section, 'close_bugs'),
+                'display_name': config.get(section, 'display_name', raw=True),
                 'type': config.get(section, 'type', raw=True),
                 'type_': config.get(section, 'type', raw=True),
                 'request': config.get(section, 'request', raw=True),

@@ -120,7 +120,7 @@ def test_release = { String release ->
         },
         unit: {
             bodhi_ci(release, 'unit', 'unit', '--no-build --no-init')
-            bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init')
+            bodhi_ci(release, 'diff_cover', 'diff-cover', '--no-build --no-init -Z')
         }
     )
 }
@@ -161,7 +161,6 @@ node('bodhi') {
 
         try {
             parallel(
-                f28: {test_release('f28')},
                 f29: {test_release('f29')},
                 f30: {test_release('f30')},
                 pip: {test_release('pip')},
@@ -171,7 +170,7 @@ node('bodhi') {
             failed = error
         }
 
-        def releases = ['f28', 'f29', 'f30', 'pip', 'rawhide']
+        def releases = ['f29', 'f30', 'pip', 'rawhide']
         for (release in releases) {
             try {
                 bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')

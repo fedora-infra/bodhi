@@ -22,7 +22,7 @@ import webtest
 
 from bodhi import server
 from bodhi.server.config import config
-from bodhi.server.models import Build, Release, ReleaseState, Update, UpdateStatus
+from bodhi.server.models import Build, PackageManager, Release, ReleaseState, Update, UpdateStatus
 from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base, create_update
 
@@ -42,7 +42,9 @@ class TestReleasesService(base.BaseTestCase):
             pending_testing_tag='f22-updates-testing-pending',
             pending_stable_tag='f22-updates-pending',
             override_tag='f22-override',
-            branch='f22')
+            branch='f22',
+            package_manager=PackageManager.dnf,
+            testing_repository='updates-testing')
 
         self.db.add(release)
         self.db.commit()
@@ -180,6 +182,8 @@ class TestReleasesService(base.BaseTestCase):
                  "pending_signing_tag": "f42-updates-testing-signing",
                  "pending_testing_tag": "f42-updates-testing-pending",
                  "override_tag": "f42-override",
+                 "package_manager": "dnf",
+                 "testing_repository": "updates-testing",
                  "csrf_token": self.get_csrf_token(),
                  }
         self.app.post("/releases/", attrs, status=200)
@@ -189,7 +193,10 @@ class TestReleasesService(base.BaseTestCase):
         r = self.db.query(Release).filter(Release.name == attrs["name"]).one()
 
         for k, v in attrs.items():
-            self.assertEqual(getattr(r, k), v)
+            if k in ['state', 'package_manager']:
+                self.assertEqual(getattr(r, k).value, v)
+            else:
+                self.assertEqual(getattr(r, k), v)
 
         self.assertEqual(r.state, ReleaseState.disabled)
 

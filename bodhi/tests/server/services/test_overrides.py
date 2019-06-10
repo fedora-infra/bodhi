@@ -26,6 +26,7 @@ import webtest
 from bodhi.messages.schemas import buildroot_override as override_schemas
 from bodhi.server.models import (
     BuildrootOverride,
+    PackageManager,
     RpmBuild,
     RpmPackage,
     Release,
@@ -167,7 +168,9 @@ class TestOverridesService(base.BaseTestCase):
                             pending_testing_tag='f42-updates-testing-pending',
                             pending_stable_tag='f42-updates-pending',
                             override_tag='f42-override',
-                            branch='f42'))
+                            branch='f42',
+                            package_manager=PackageManager.dnf,
+                            testing_repository='updates-testing'))
         self.db.flush()
 
         res = self.app.get('/overrides/', {'releases': 'F42'})
