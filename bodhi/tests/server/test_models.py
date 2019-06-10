@@ -37,7 +37,7 @@ from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
     BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
-    UpdateSuggestion, UpdateType, TestGatingStatus)
+    UpdateSuggestion, UpdateType, TestGatingStatus, PackageManager)
 from bodhi.tests.server.base import BaseTestCase, DummyUser
 
 
@@ -464,8 +464,8 @@ class TestEnumSymbol(unittest.TestCase):
 
         self.assertEqual(repr(s), '<name>')
 
-    def test___unicode__(self):
-        """Ensure correct operation of the __unicode__() method."""
+    def test___str__(self):
+        """Ensure correct operation of the __str__() method."""
         s = model.EnumSymbol(model.UpdateStatus, 'name', 'value', 'description')
 
         self.assertEqual(str(s), 'value')
@@ -692,7 +692,9 @@ class TestRelease(ModelTest):
         pending_stable_tag="dist-f11-updates-pending",
         override_tag="dist-f11-override",
         state=model.ReleaseState.current,
-        composed_by_bodhi=True)
+        composed_by_bodhi=True,
+        package_manager=PackageManager.yum,
+        testing_repository='updates-testing')
 
     def test_collection_name(self):
         """Test the collection_name property of the Release."""
@@ -738,7 +740,9 @@ class TestReleaseModular(ModelTest):
         pending_stable_tag="dist-f11-updates-pending",
         override_tag="dist-f11-override",
         state=model.ReleaseState.current,
-        composed_by_bodhi=True)
+        composed_by_bodhi=True,
+        package_manager=PackageManager.dnf,
+        testing_repository='updates-testing')
 
     def test_version_int(self):
         self.assertEqual(self.obj.version_int, 11)
@@ -770,7 +774,9 @@ class TestReleaseContainer(ModelTest):
         pending_stable_tag="dist-f11-updates-pending",
         override_tag="dist-f11-override",
         state=model.ReleaseState.current,
-        composed_by_bodhi=True)
+        composed_by_bodhi=True,
+        package_manager=PackageManager.unspecified,
+        testing_repository=None)
 
     def test_version_int(self):
         self.assertEqual(self.obj.version_int, 11)
@@ -802,7 +808,9 @@ class TestReleaseFlatpak(ModelTest):
         pending_stable_tag="f29-flatpak-updates-pending",
         override_tag="f29-flatpak-override",
         state=model.ReleaseState.current,
-        composed_by_bodhi=True)
+        composed_by_bodhi=True,
+        package_manager=PackageManager.unspecified,
+        testing_repository=None)
 
     def test_version_int(self):
         self.assertEqual(self.obj.version_int, 29)
@@ -1523,9 +1531,6 @@ class TestRpmBuild(ModelTest):
         self.obj.epoch = '1'
         self.assertEqual(self.obj.evr, ("1", "1.0.8", "3.fc11"))
 
-    def test_url(self):
-        self.assertEqual(self.obj.get_url(), '/TurboGears-1.0.8-3.fc11')
-
 
 class TestUpdateInit(BaseTestCase):
     """Tests for the update.__init__() method."""
@@ -1638,6 +1643,96 @@ class TestUpdateGetBugKarma(BaseTestCase):
 
         self.assertEqual(bad, 0)
         self.assertEqual(good, 0)
+
+
+class TestUpdateInstallCommand(BaseTestCase):
+    """Test the update_install_command() function."""
+
+    def test_upgrade_in_testing(self):
+        """Update is an enhancement, a security or a bugfix and is in testing."""
+        update = model.Update.query.first()
+        update.status = UpdateStatus.testing
+        update.type = UpdateType.bugfix
+        update.release.package_manager = PackageManager.dnf
+        update.release.testing_repository = 'updates-testing'
+
+        command = update.install_command()
+
+        self.assertEqual(
+            command,
+            'sudo dnf upgrade --enablerepo=updates-testing --advisory={}'.format(update.alias))
+
+    def test_upgrade_in_stable(self):
+        """Update is an enhancement, a security or a bugfix and is in stable."""
+        update = model.Update.query.first()
+        update.status = UpdateStatus.stable
+        update.type = UpdateType.bugfix
+        update.release.package_manager = PackageManager.dnf
+        update.release.testing_repository = 'updates-testing'
+
+        command = update.install_command()
+
+        self.assertEqual(
+            command,
+            'sudo dnf upgrade --advisory={}'.format(update.alias))
+
+    def test_newpackage_in_testing(self):
+        """Update is a newpackage and is in testing."""
+        update = model.Update.query.first()
+        update.status = UpdateStatus.testing
+        update.type = UpdateType.newpackage
+        update.release.package_manager = PackageManager.dnf
+        update.release.testing_repository = 'updates-testing'
+
+        command = update.install_command()
+
+        self.assertEqual(
+            command,
+            r'sudo dnf install --enablerepo=updates-testing --advisory={} \*'.format(update.alias))
+
+    def test_newpackage_in_stable(self):
+        """Update is a newpackage and is in stable."""
+        update = model.Update.query.first()
+        update.status = UpdateStatus.stable
+        update.type = UpdateType.newpackage
+        update.release.package_manager = PackageManager.dnf
+        update.release.testing_repository = 'updates-testing'
+
+        command = update.install_command()
+
+        self.assertEqual(
+            command,
+            r'sudo dnf install --advisory={} \*'.format(update.alias))
+
+    def test_cannot_install(self):
+        """Update is out of stable or testing repositories."""
+        update = model.Update.query.first()
+        update.status = UpdateStatus.obsolete
+
+        with self.assertRaises(ValueError):
+            update.install_command()
+
+    def test_update_command_not_possible_missing_packagemanager(self):
+        """The Release of the Update misses the package manager definition."""
+        update = model.Update.query.first()
+        update.status = UpdateStatus.stable
+        update.type = UpdateType.newpackage
+        update.release.package_manager = PackageManager.unspecified
+        update.release.testing_repository = 'updates-testing'
+
+        with self.assertRaises(ValueError):
+            update.install_command()
+
+    def test_update_command_not_possible_missing_repo(self):
+        """The Release of the Update misses the testing repository definition."""
+        update = model.Update.query.first()
+        update.status = UpdateStatus.stable
+        update.type = UpdateType.newpackage
+        update.release.package_manager = PackageManager.dnf
+        update.release.testing_repository = None
+
+        with self.assertRaises(ValueError):
+            update.install_command()
 
 
 class TestUpdateGetTestcaseKarma(BaseTestCase):
@@ -2732,7 +2827,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.karma, 2)
         self.assertEqual(update.request, None)
         # Let's flush out any messages that have been sent.
-        self.db.commit()
+        self.db.info['messages'] = []
         expected_message_0 = update_schemas.UpdateCommentV1.from_dict(
             {'comment': self.obj['comments'][0], 'agent': 'biz'})
         expected_message_1 = update_schemas.UpdateKarmaThresholdV1.from_dict(
@@ -2795,7 +2890,7 @@ class TestUpdate(ModelTest):
         self.assertEqual(update.status, UpdateStatus.testing)
         self.assertEqual(update.karma, -2)
         # Let's flush out any messages that have been sent.
-        self.db.commit()
+        self.db.info['messages'] = []
         expected_message_0 = update_schemas.UpdateCommentV1.from_dict(
             {'comment': self.obj['comments'][0], 'agent': 'biz'})
         expected_message_1 = update_schemas.UpdateKarmaThresholdV1.from_dict(

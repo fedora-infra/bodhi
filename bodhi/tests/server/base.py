@@ -87,14 +87,15 @@ def _configure_test_db(db_uri=DEFAULT_DB):
     return engine
 
 
-class BaseTestCase(unittest.TestCase):
+class BaseTestCaseMixin:
     """
     The base test class for Bodhi.
 
-    This class configures the global scoped session with a test database.
-    The test database makes use of nested transactions to provide a clean
-    slate for each test. Tests may call both ``commit`` and ``rollback``
-    on the database session they acquire from ``bodhi.server.Session``.
+    This class configures the global scoped session with a test database before
+    calling test methods. The test database makes use of nested transactions to
+    provide a clean slate for each test. Tests may call both ``commit`` and
+    ``rollback`` on the database session they acquire from
+    ``bodhi.server.Session``.
     """
 
     _populate_db = True
@@ -139,7 +140,7 @@ class BaseTestCase(unittest.TestCase):
         'sqlalchemy.url': DEFAULT_DB
     }
 
-    def setUp(self):
+    def _setup_method(self):
         """Set up Bodhi for testing."""
         # Ensure "cached" objects are cleared before each test.
         models.Release._all_releases = None
@@ -226,7 +227,7 @@ class BaseTestCase(unittest.TestCase):
             'csrf_token': self.get_csrf_token(),
         }
 
-    def tearDown(self):
+    def _teardown_method(self):
         """Roll back all the changes from the test and clean up the session."""
         self._request_sesh.stop()
         self.db.close()
@@ -258,7 +259,7 @@ class BaseTestCase(unittest.TestCase):
         """
         return create_update(self.db, build_nvrs, release_name)
 
-    def create_release(self, version):
+    def create_release(self, version, create_automatic_updates=False):
         """
         Create and return a :class:`Release` with the given version.
 
@@ -277,12 +278,47 @@ class BaseTestCase(unittest.TestCase):
             pending_testing_tag='f{}-updates-testing-pending'.format(version),
             pending_stable_tag='f{}-updates-pending'.format(version),
             override_tag='f{}-override'.format(version),
-            branch='f{}'.format(version), state=models.ReleaseState.current)
+            branch='f{}'.format(version), state=models.ReleaseState.current,
+            create_automatic_updates=create_automatic_updates,
+            package_manager=models.PackageManager.unspecified,
+            testing_repository=None)
         self.db.add(release)
         models.Release._all_releases = None
         models.Release._tag_cache = None
         self.db.flush()
         return release
+
+
+class BasePyTestCase(BaseTestCaseMixin):
+    """Wraps BaseTestCaseMixin for pytest users.
+
+    {}
+    """.format(BaseTestCaseMixin.__doc__)
+
+    def setup_method(self, method):
+        """Set up Bodhi for testing."""
+        return self._setup_method()
+
+    def teardown_method(self, method):
+        """Roll back all the changes from the test and clean up the session."""
+        return self._teardown_method()
+
+
+class BaseTestCase(unittest.TestCase, BaseTestCaseMixin):
+    """Wrap BaseTestCaseMixin for old-style unittest.TestCase users.
+
+    Don't derive new tests from this.
+
+    {}
+    """.format(BaseTestCaseMixin.__doc__)
+
+    def setUp(self):
+        """Dispatch to BasePyTestCase.setup_method()."""
+        return self._setup_method()
+
+    def tearDown(self):
+        """Dispatch to BasePyTestCase.teardown_method()."""
+        return self._teardown_method()
 
 
 class DummyUser(object):
@@ -368,7 +404,7 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False):
     </packagelist>
   </group>
 </comps>'''
-    updateinfofile = ''
+    updateinfofile = 'something<id>someID</id>something'
     if not os.path.isdir(path):
         os.makedirs(path)
     if not comps and not source:

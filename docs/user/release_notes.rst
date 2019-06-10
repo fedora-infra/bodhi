@@ -2,6 +2,48 @@
 Release notes
 =============
 
+v4.0.2
+------
+
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Drop updateinfo <id> tag detection (:issue:`3269`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 4.0.2:
+
+* Patrick Uiterwijk
+
+
+v4.0.1
+------
+
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Fix zchunk updateinfo getting injected as updateinfo_zck (:issue:`3261`).
+* Fix a broken template in ``bodhi-push`` (:issue:`3256`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 4.0.1:
+
+* Randy Barlow
+* Patrick Uiterwijk
+
+
 v4.0.0
 ======
 
@@ -67,6 +109,7 @@ Backwards incompatible changes
   need information that is not included in the supported schema, please work with the Bodhi project
   to get the schema adjusted accordingly. Bodhi's messages are now documented in
   :doc:`../server_api/index`.
+* The ``fedmsg_enabled`` setting was removed, since fedmsg is not used anymore.
 
 
 Dependency changes
@@ -83,9 +126,9 @@ Dependency changes
 * kitchen is no longer required (:issue:`3094`).
 * hawkey is no longer required.
 * PyYAML is now a required dependency (:issue:`3174`).
-* Twisted is now required (:issue:`3145`).
 * Bodhi now requires Python 3.6 or greater (:issue:`2856`).
 * Bodhi no longer uses or works with ``fedmsg``.
+* Backoff is now a required dependency (:issue:`3237`).
 
 
 Server upgrade instructions
@@ -152,6 +195,7 @@ Bug fixes
 * A variety of spelling and grammatical errors were fixed (:issue:`3131`).
 * Bodhi's markdown now uses TLS for links to pear in its markdown (:issue:`3173`).
 * Stop using an API that ``dnf`` removed (:issue:`3198`).
+* Do not crash on invalid RSS requests (:issue:`3227`).
 
 
 Development improvements

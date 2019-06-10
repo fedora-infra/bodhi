@@ -39,7 +39,7 @@ CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 # This template is used to generate the summary lines that are printed out at the end.
 LABEL_TEMPLATE = '{:>8}-{:<34}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-RELEASES = ('f28', 'f29', 'f30', 'rawhide', 'pip')
+RELEASES = ('f29', 'f30', 'rawhide', 'pip')
 
 
 def _set_concurrency(ctx, param, value):
@@ -128,6 +128,9 @@ releases_option = click.option(
           "Acceptable values: {}".format(', '.join(RELEASES))))
 tty_option = click.option('--tty/--no-tty', default=True, help='Allocate a pseudo-TTY.',
                           callback=_set_global)
+z_option = click.option(
+    '-Z', default=False, callback=_set_global, is_flag=True,
+    help="Use the container runtime's Z flag when bind mounting the .git folder")
 
 container_runtime = 'docker'
 failfast = False
@@ -136,6 +139,7 @@ init = True
 # _set_global().
 no_build = False
 tty = False
+z = False
 
 
 @click.group()
@@ -204,8 +208,9 @@ def clean(concurrency, container_runtime, init, release, tty):
 @no_build_option
 @releases_option
 @tty_option
+@z_option
 def diff_cover(archive, archive_path, concurrency, container_runtime, no_build, failfast, init,
-               release, tty):
+               release, tty, z):
     """Run the diff cover test."""
     _run_jobs(_build_jobs_list('diff_cover', concurrency, release, archive=archive,
                                archive_path=archive_path))
@@ -612,7 +617,11 @@ class Job(object):
             args.extend(['-v', '{}:/results:z'.format(self.archive_dir)])
 
         if include_git:
-            args.extend(['-v', f"{os.path.join(PROJECT_PATH, '.git')}:/bodhi/.git:ro,z"])
+            mount_flags = ['ro']
+            if z:
+                mount_flags.append('Z')
+            args.extend([
+                '-v', f"{os.path.join(PROJECT_PATH, '.git')}:/bodhi/.git:{','.join(mount_flags)}"])
 
         args.append(self._container_image)
         args.extend(self._command)
@@ -828,8 +837,10 @@ class MyPyJob(Job):
         """
         super(MyPyJob, self).__init__(*args, **kwargs)
 
-        self._command = ['/usr/local/bin/mypy', '--follow-imports', 'silent', 'bodhi/messages',
-                         'bodhi/server/bugs.py', 'bodhi/server/buildsys.py', 'devel/ci/bodhi-ci']
+        self._command = [
+            '/usr/local/bin/mypy', '--follow-imports', 'silent', 'bodhi/client/bindings.py',
+            'bodhi/messages', 'bodhi/server/bugs.py', 'bodhi/server/buildsys.py',
+            'devel/ci/bodhi-ci']
         self._convert_command_for_container()
 
 

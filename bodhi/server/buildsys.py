@@ -77,6 +77,20 @@ class DevBuildsys:
     __rpms__ = []  # type: typing.List[typing.Dict[str, object]]
     __tags__ = []  # type: typing.List[typing.Tuple[str, typing.Mapping[str, typing.Any]]]
 
+    _build_data = {'build_id': 16058,
+                   'completion_time': '2007-08-24 23:26:10.890319',
+                   'completion_ts': 1187997970,
+                   'creation_event_id': 151517,
+                   'creation_time': '2007-08-24 19:38:29.422344',
+                   'extra': None,
+                   'epoch': None,
+                   'owner_id': 388,
+                   'owner_name': 'lmacken',
+                   'package_id': 8,
+                   'state': 1,
+                   'tag_id': 19,
+                   'task_id': 127621}
+
     def __init__(self):
         """Initialize the DevBuildsys."""
         self._multicall = False
@@ -166,25 +180,20 @@ class DevBuildsys:
     @multicall_enabled
     def getBuild(self, build='TurboGears-1.0.2.2-2.fc17', other=False, testing=False):
         """Emulate Koji's getBuild."""
+        # needed to test against non-existent builds
+        if 'youdontknowme' in build:
+            return None
+
         theid = 16058
         if other and not testing:
             theid = 16059
         elif other and testing:
             theid = 16060
-        data = {'build_id': 16058,
-                'completion_time': '2007-08-24 23:26:10.890319',
-                'completion_ts': 1187997970,
-                'creation_event_id': 151517,
-                'creation_time': '2007-08-24 19:38:29.422344',
-                'extra': None,
-                'epoch': None,
-                'id': theid,
-                'owner_id': 388,
-                'owner_name': 'lmacken',
-                'package_id': 8,
-                'state': 1,
-                'tag_id': 19,
-                'task_id': 127621}
+
+        data = self._build_data.copy()
+        data['id'] = theid
+        if 'noowner' in build:
+            del data['owner_name']
 
         name, version, release = build.rsplit("-", 2)
         release_tokens = release.split(".")
@@ -265,6 +274,9 @@ class DevBuildsys:
                      'release': release,
                      'tag_name': tag,
                      'version': version})
+
+        if 'testmissingnvr' in build:
+            del data['nvr']
 
         return data
 

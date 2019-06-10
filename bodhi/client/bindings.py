@@ -33,6 +33,7 @@ import logging
 import os
 import re
 import textwrap
+import typing
 
 try:
     import dnf
@@ -44,6 +45,9 @@ import requests.exceptions
 
 from fedora.client import AuthError, OpenIdBaseClient, FedoraClientError, ServerError
 import fedora.client.openidproxyclient
+
+if typing.TYPE_CHECKING:  # pragma: no cover
+    import munch  # noqa: 401
 
 
 log = logging.getLogger(__name__)
@@ -63,48 +67,53 @@ class BodhiClientException(FedoraClientError):
 class UpdateNotFound(BodhiClientException):
     """Used to indicate that a referenced Update is not found on the server."""
 
-    def __init__(self, update):
-        """Initialize the Exception."""
-        self.update = str(update)
+    def __init__(self, update: str):
+        """
+        Initialize the Exception.
 
-    def __unicode__(self):
+        Args:
+            update: The alias of the update that was not found.
+        """
+        self.update = update
+
+    def __str__(self) -> str:
         """
         Return a human readable error message.
 
         Returns:
-            unicode: An error message.
+            An error message.
         """
         return f'Update not found: {self.update}'
-
-    # Use __unicode__ method under __str__ name for Python 3
-    __str__ = __unicode__
 
 
 class ComposeNotFound(BodhiClientException):
     """Used to indicate that a referenced Compose is not found on the server."""
 
-    def __init__(self, release, request):
-        """Initialize the Exception."""
-        self.release = str(release)
-        self.request = str(request)
+    def __init__(self, release: str, request: str):
+        """
+        Initialize the Exception.
 
-    def __unicode__(self):
+        Args:
+            release: The release component of the compose that was not found.
+            request: The request component of the compose that was not found.
+        """
+        self.release = release
+        self.request = request
+
+    def __str__(self) -> str:
         """
         Return a human readable error message.
 
         Returns:
-            unicode: An error message.
+            An error message.
         """
         return f'Compose with request "{self.request}" not found for release "{self.release}"'
 
-    # Use __unicode__ method under __str__ name for Python 3
-    __str__ = __unicode__
 
-
-def errorhandled(method):
+def errorhandled(method: typing.Callable) -> typing.Callable:
     """Raise exceptions on failure. Used as a decorator for BodhiClient methods."""
     @functools.wraps(method)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs) -> typing.Any:
         try:
             result = method(*args, **kwargs)
             # Bodhi allows comments to be written by unauthenticated users if they solve a Captcha.
@@ -146,7 +155,7 @@ def errorhandled(method):
     return wrapper
 
 
-def _days_since(data_str):
+def _days_since(data_str: str) -> int:
     """
     Return number of days since the datetime passed as input in the form '%Y-%m-%d %H:%M:%S'.
 
@@ -156,10 +165,10 @@ def _days_since(data_str):
     cannot be mocked.
 
     Args:
-        data_str (basestring): The 'date_pushed' or 'date_submitted' from the Update object.
+        data_str: The 'date_pushed' or 'date_submitted' from the Update object.
 
     Returns:
-        int: Number of days since the date in input.
+        Number of days since the date in input.
     """
     update_time = datetime.datetime.strptime(data_str, '%Y-%m-%d %H:%M:%S')
     return (datetime.datetime.utcnow() - update_time).days
@@ -168,21 +177,22 @@ def _days_since(data_str):
 class BodhiClient(OpenIdBaseClient):
     """Python bindings to the Bodhi server REST API."""
 
-    def __init__(self, base_url=BASE_URL, username=None, password=None, staging=False,
-                 openid_api=None, **kwargs):
+    def __init__(self, base_url: str = BASE_URL, username: typing.Optional[str] = None,
+                 password: typing.Optional[str] = None, staging: bool = False,
+                 openid_api: typing.Optional[str] = None, **kwargs):
         """
         Initialize the Bodhi client.
 
         Args:
-            base_url (basestring): The URL of the Bodhi server to connect to. Ignored if
-                                   ```staging``` is True.
-            username (basestring): The username to use to authenticate with the server.
+            base_url: The URL of the Bodhi server to connect to. Ignored if
+                      ```staging``` is True.
+            username: The username to use to authenticate with the server.
             password (basestring): The password to use to authenticate with the server.
-            staging (bool): If True, use the staging server. If False, use base_url.
-            opennid_api (str or None): If not None, the URL to an OpenID API to use to authenticate
+            staging: If True, use the staging server. If False, use base_url.
+            openid_api: If not None, the URL to an OpenID API to use to authenticate
                 to Bodhi. Ignored if staging is True.
-            kwargs (dict): Other keyword arguments to pass on to
-                           :class:`fedora.client.OpenIdBaseClient`
+            kwargs: Other keyword arguments to pass on to
+                    :class:`fedora.client.OpenIdBaseClient`
         """
         if openid_api:
             fedora.client.openidproxyclient.FEDORA_OPENID_API = openid_api
@@ -198,24 +208,24 @@ class BodhiClient(OpenIdBaseClient):
                                           **kwargs)
 
         self._password = password
-        self.csrf_token = None
+        self.csrf_token = ''
 
     @property
-    def password(self):
+    def password(self) -> str:
         """
         Return the user's password.
 
         If the user's password is not known, prompt the user for their password.
 
         Returns:
-            basestring: The user's password.
+            The user's password.
         """
         if not self._password:
             self._password = getpass.getpass()
         return self._password
 
     @errorhandled
-    def save(self, **kwargs):
+    def save(self, **kwargs) -> 'munch.Munch':
         """
         Save an update.
 
@@ -224,6 +234,7 @@ class BodhiClient(OpenIdBaseClient):
         the ``edited`` keyword argument.
 
         Args:
+            display_name (basestring): The name of the update.
             builds (basestring): A list of koji builds for this update.
             type (basestring): The type of this update: ``security``, ``bugfix``,
                 ``enhancement``, and ``newpackage``.
@@ -256,7 +267,7 @@ class BodhiClient(OpenIdBaseClient):
             require_testcases (bool): A boolean to require that this update passes
                 all test cases before reaching stable.
         Returns:
-            munch.Munch: The Bodhi server's response to the request.
+            The Bodhi server's response to the request.
         """
         kwargs['csrf_token'] = self.csrf()
         if 'type_' in kwargs:
@@ -266,16 +277,15 @@ class BodhiClient(OpenIdBaseClient):
                                  data=kwargs)
 
     @errorhandled
-    def request(self, update, request):
+    def request(self, update: str, request: str) -> 'munch.Munch':
         """
         Request an update state change.
 
         Args:
-            update (basestring): The alias of the update.
-            request (basestring): The request (``testing``, ``stable``, ``obsolete``,
-                ``unpush``, ``revoke``).
+            update: The alias of the update.
+            request: The request (``testing``, ``stable``, ``obsolete``, ``unpush``, ``revoke``).
         Returns:
-            munch.Munch: The response from Bodhi to the request.
+            The response from Bodhi to the request.
         Raises:
             UpdateNotFound: If the server returns a 404 error code.
         """
@@ -292,18 +302,18 @@ class BodhiClient(OpenIdBaseClient):
                 raise
 
     @errorhandled
-    def waive(self, update, comment, tests=None):
+    def waive(self, update: str, comment: str,
+              tests: typing.Optional[typing.Iterable[str]] = None) -> 'munch.Munch':
         """
         Waive unsatisfied requirements on an update.
 
         Args:
-            update (basestring): The alias of the update.
-            comment (basestring): A comment explaining the waiver.
-            tests (tuple(basestring) or None): The list of unsatisfied requirements
-                to waive. If not specified, all unsatisfied requirements of this
-                update will be waived.
+            update: The alias of the update.
+            comment: A comment explaining the waiver.
+            tests: The list of unsatisfied requirements to waive. If not specified, all unsatisfied
+                   requirements of this update will be waived.
         Returns:
-            munch.Munch: The response from Bodhi to the request.
+            The response from Bodhi to the request.
         Raises:
             UpdateNotFound: If the server returns a 404 error code.
         """
@@ -319,7 +329,7 @@ class BodhiClient(OpenIdBaseClient):
                 raise
 
     @errorhandled
-    def query(self, **kwargs):
+    def query(self, **kwargs) -> 'munch.Munch':
         """
         Query bodhi for a list of updates.
 
@@ -367,7 +377,7 @@ class BodhiClient(OpenIdBaseClient):
                 (min:1 max: 100 default: 20).
             page (int): Return a specific page of results.
         Returns:
-            munch.Munch: The response from Bodhi describing the query results.
+            The response from Bodhi describing the query results.
         """
         # bodhi1 compat
         if 'limit' in kwargs:
@@ -401,36 +411,36 @@ class BodhiClient(OpenIdBaseClient):
             kwargs['bugs'] = None
         return self.send_request('updates/', verb='GET', params=kwargs)
 
-    def get_test_status(self, update):
+    def get_test_status(self, update: str) -> 'munch.Munch':
         """
         Query bodhi for the test status of the specified update..
 
         Args:
-            update (basestring): The alias of the update to
-                retrieve the test status of.
+            update: The alias of the update to retrieve the test status of.
         Returns:
-            munch.Munch: The response from Bodhi describing the query results.
+            The response from Bodhi describing the query results.
         """
         return self.send_request(f'updates/{update}/get-test-results', verb='GET')
 
     @errorhandled
-    def comment(self, update, comment, karma=0):
+    def comment(self, update: str, comment: str, karma: int = 0) -> 'munch.Munch':
         """
         Add a comment to an update.
 
         Args:
-            update (basestring): The alias of the update comment on.
-            comment (basestring): The text of the comment to add to the update.
-            karma (int): The amount of karma to leave. May be -1, 0, or 1. Defaults to 0.
+            update: The alias of the update comment on.
+            comment: The text of the comment to add to the update.
+            karma: The amount of karma to leave. May be -1, 0, or 1. Defaults to 0.
         Returns:
-            munch.Munch: The response from the post to comments/.
+            The response from the post to comments/.
         """
         return self.send_request(
             'comments/', verb='POST', auth=True,
             data={'update': update, 'text': comment, 'karma': karma, 'csrf_token': self.csrf()})
 
     @errorhandled
-    def save_override(self, nvr, duration, notes, edit=False, expired=False):
+    def save_override(self, nvr: str, duration: int, notes: str, edit: bool = False,
+                      expired: bool = False) -> 'munch.Munch':
         """
         Save a buildroot override.
 
@@ -438,15 +448,13 @@ class BodhiClient(OpenIdBaseClient):
         existing one.
 
         Args:
-            nvr (basestring): The nvr of a koji build.
-            duration (int): Number of days from now that this override should
-                expire.
-            notes (basestring): Notes about why this override is in place.
-            edit (bool): True if we are editing an existing override, False otherwise. Defaults to
-                False.
-            expired (bool): Set to True to expire an override. Defaults to False.
+            nvr: The nvr of a koji build.
+            duration: Number of days from now that this override should expire.
+            notes: Notes about why this override is in place.
+            edit: True if we are editing an existing override, False otherwise. Defaults to False.
+            expired: Set to True to expire an override. Defaults to False.
         Returns:
-            munch.Munch: A dictionary-like representation of the saved override.
+            A dictionary-like representation of the saved override.
         """
         expiration_date = datetime.datetime.utcnow() + \
             datetime.timedelta(days=duration)
@@ -462,15 +470,15 @@ class BodhiClient(OpenIdBaseClient):
             'overrides/', verb='POST', auth=True, data=data)
 
     @errorhandled
-    def get_compose(self, release, request):
+    def get_compose(self, release: str, request: str) -> 'munch.Munch':
         """
         Get information about compose.
 
         Args:
-            release (basestring): The name of the release.
-            request (basestring): The request (``testing``, ``stable``).
+            release: The name of the release.
+            request: The request (``testing``, ``stable``).
         Returns:
-            munch.Munch: The response from Bodhi to the request.
+            The response from Bodhi to the request.
         Raises:
             ComposeNotFound: If the server returns a 404 error code.
         """
@@ -484,19 +492,21 @@ class BodhiClient(OpenIdBaseClient):
                 raise
 
     @errorhandled
-    def list_composes(self):
+    def list_composes(self) -> 'munch.Munch':
         """
         List composes.
 
         Returns:
-            munch.Munch: A dictionary-like representation of the Composes.
+            A dictionary-like representation of the Composes.
         """
         return self.send_request('composes/', verb='GET')
 
     @errorhandled
-    def list_overrides(self, user=None, packages=None,
-                       expired=None, releases=None, builds=None,
-                       rows_per_page=None, page=None):
+    def list_overrides(
+            self, user: typing.Optional[str] = None, packages: typing.Optional[str] = None,
+            expired: typing.Optional[bool] = None, releases: typing.Optional[str] = None,
+            builds: typing.Optional[str] = None, rows_per_page: typing.Optional[int] = None,
+            page: typing.Optional[int] = None) -> 'munch.Munch':
         """
         List buildroot overrides.
 
@@ -513,7 +523,7 @@ class BodhiClient(OpenIdBaseClient):
             page (int): Return a specific page of results.
                 (default:None)
         """
-        params = {}
+        params: typing.MutableMapping[str, typing.Union[int, str, None]] = {}
         if user:
             params['user'] = user
         if packages:
@@ -561,7 +571,7 @@ class BodhiClient(OpenIdBaseClient):
             self._load_cookies()
 
     @errorhandled
-    def csrf(self):
+    def csrf(self) -> str:
         """
         Return CSRF token if already acquired, otherwise login, get a CSRF, cache it, and return.
 
@@ -569,6 +579,9 @@ class BodhiClient(OpenIdBaseClient):
 
         If there is not, this method ensures that we know the username, logs in if we aren't already
         logged in acquires and caches a CSRF token, and returns it.
+
+        Returns:
+            The CSRF token.
         """
         if not self.csrf_token:
             self.init_username()
@@ -578,14 +591,14 @@ class BodhiClient(OpenIdBaseClient):
                 'csrf', verb='GET', auth=True)['csrf_token']
         return self.csrf_token
 
-    def parse_file(self, input_file):
+    def parse_file(self, input_file: str) -> typing.Iterable[dict]:
         """
         Parse an update template file.
 
         Args:
-            input_file (basestring): The filename of the update template.
+            input_file: The filename of the update template.
         Returns:
-            list: A list of dictionaries of parsed update values which
+            A list of dictionaries of parsed update values which
                 can be directly passed to the ``save`` method.
         Raises:
             ValueError: If the ``input_file`` does not exist, or if it cannot be parsed.
@@ -607,6 +620,7 @@ class BodhiClient(OpenIdBaseClient):
                 'builds': section,
                 'bugs': config.get(section, 'bugs', raw=True),
                 'close_bugs': config.getboolean(section, 'close_bugs'),
+                'display_name': config.get(section, 'display_name', raw=True),
                 'type': config.get(section, 'type', raw=True),
                 'type_': config.get(section, 'type', raw=True),
                 'request': config.get(section, 'request', raw=True),
@@ -623,19 +637,18 @@ class BodhiClient(OpenIdBaseClient):
         return updates
 
     @errorhandled
-    def latest_builds(self, package):
+    def latest_builds(self, package: str) -> 'munch.Munch':
         """
         Get the latest builds for a package.
 
         Args:
-            package (basestring): The package name, for example "kernel".
+            package: The package name, for example "kernel".
         Returns:
-            munch.Munch: A dict-like object of the release dist tag to the
-                latest build.
+            A dict-like object of the release dist tag to the latest build.
         """
         return self.send_request('latest_builds', params={'package': package})
 
-    def testable(self):
+    def testable(self) -> typing.Iterator[dict]:
         """
         Return a generator that iterates installed testing updates.
 
@@ -670,16 +683,16 @@ class BodhiClient(OpenIdBaseClient):
                     yield update
 
     @staticmethod
-    def compose_str(compose, minimal=True):
+    def compose_str(compose: dict, minimal: bool = True) -> str:
         """
         Return a string representation of a compose.
 
         Args:
-            compose (dict): A dictionary representation of a Compose.
-            minimal (bool): If True, return a minimal one-line representation of the compose.
+            compose: A dictionary representation of a Compose.
+            minimal: If True, return a minimal one-line representation of the compose.
                 Otherwise, return a more verbose string. Defaults to True.
         Returns:
-            basestring: A human readable string describing the compose.
+            A human readable string describing the compose.
         """
         line_formatter = '{0:<16}: {1}'
         security = '*' if compose['security'] else ' '
@@ -711,16 +724,16 @@ class BodhiClient(OpenIdBaseClient):
         return ''.join(compose_lines)
 
     @staticmethod
-    def override_str(override, minimal=True):
+    def override_str(override: dict, minimal: bool = True) -> str:
         """
         Return a string representation of a given override dictionary.
 
         Args:
-            override (dict): An override dictionary.
-            minimal (bool): If True, return a minimal one-line representation of the override.
+            override: An override dictionary.
+            minimal: If True, return a minimal one-line representation of the override.
                 Otherwise, return a more verbose string. Defaults to True.
         Returns:
-            basestring: A human readable string describing the given override.
+            A human readable string describing the given override.
         """
         if isinstance(override, str):
             return override
@@ -740,16 +753,16 @@ class BodhiClient(OpenIdBaseClient):
 
         return val
 
-    def update_str(self, update, minimal=False):
+    def update_str(self, update: dict, minimal: bool = False) -> str:
         """
         Return a string representation of a given update dictionary.
 
         Args:
-            update (dict): An update dictionary, acquired by the ``list`` method.
-            minimal (bool): If True, return a minimal one-line representation of the update.
+            update: An update dictionary, acquired by the ``list`` method.
+            minimal: If True, return a minimal one-line representation of the update.
                 Otherwise, return a more verbose representation. Defaults to False.
         Returns:
-            basestring: A human readable string describing the given update.
+            A human readable string describing the given update.
         """
         if isinstance(update, str):
             return update
@@ -887,7 +900,7 @@ class BodhiClient(OpenIdBaseClient):
         return ''.join(update_lines)
 
     @errorhandled
-    def get_releases(self, **kwargs):
+    def get_releases(self, **kwargs) -> 'munch.Munch':
         """
         Return a list of bodhi releases.
 
@@ -898,18 +911,18 @@ class BodhiClient(OpenIdBaseClient):
                  "locked": false, "name": "F12", "long_name": "Fedora 12"}]}
 
         Args:
-            kwargs (dict): A dictionary of extra parameters to pass along with the request.
+            kwargs: A dictionary of extra parameters to pass along with the request.
         Returns:
-            dict: A dictionary describing Bodhi's release objects.
+            A dictionary describing Bodhi's release objects.
         """
         return self.send_request('releases/', verb='GET', params=kwargs)
 
-    def get_koji_session(self):
+    def get_koji_session(self) -> koji.ClientSession:
         """
         Return an authenticated koji session.
 
         Returns:
-            koji.ClientSession: An initialized authenticated koji client.
+            An initialized authenticated koji client.
         """
         config = configparser.ConfigParser()
         if os.path.exists(os.path.join(os.path.expanduser('~'), '.koji', 'config')):
@@ -921,12 +934,12 @@ class BodhiClient(OpenIdBaseClient):
 
     koji_session = property(fget=get_koji_session)
 
-    def candidates(self):
+    def candidates(self) -> typing.Iterable[dict]:
         """
         Get a list list of update candidates.
 
         Returns:
-            list: A list of koji builds (dictionaries returned by koji.listTagged()) that are tagged
+            A list of koji builds (dictionaries returned by koji.listTagged()) that are tagged
             as candidate builds and are owned by the current user.
         """
         self.init_username()

@@ -5,7 +5,7 @@ amqp_url = "amqp://"
 
 publish_exchange = "amq.topic"
 
-callback = "bodhi.server.consumers:messaging_callback"
+callback = "bodhi.server.consumers:Consumer"
 
 # The topic_prefix configuration value will add a prefix to the topics of every sent message.
 # This is used for migrating from fedmsg, and should not be used afterwards.

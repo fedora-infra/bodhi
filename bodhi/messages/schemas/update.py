@@ -256,15 +256,33 @@ class UpdateEditV1(UpdateMessage):
                 'type': 'string',
                 'description': 'The user who edited the update',
             },
+            'new_bugs': {
+                'type': 'array',
+                'description': 'An array of bug ids that have been added to the update',
+                'items': {
+                    'type': 'integer',
+                    'description': 'A Bugzilla bug ID'
+                }
+            },
             'update': UpdateV1.schema(),
         },
-        'required': ['agent', 'update'],
+        'required': ['agent', 'new_bugs', 'update'],
         'definitions': {
             'build': BuildV1.schema(),
         }
     }
 
     topic = "bodhi.update.edit"
+
+    @property
+    def new_bugs(self) -> typing.Iterable[int]:
+        """
+        Return an iterable of the new bugs that have been added to the update.
+
+        Returns:
+            A list of Bugzilla bug IDs.
+        """
+        return self.body['new_bugs']
 
     @property
     def summary(self) -> str:

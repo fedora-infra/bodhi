@@ -54,7 +54,7 @@ class TestBodhiClient___init__(unittest.TestCase):
         self.assertEqual(client.username, 'some_user')
         self.assertEqual(client.timeout, 60)
         self.assertEqual(client._password, 's3kr3t')
-        self.assertEqual(client.csrf_token, None)
+        self.assertEqual(client.csrf_token, '')
         self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API,
                          'https://example.com/api/v1/')
 
@@ -70,7 +70,7 @@ class TestBodhiClient___init__(unittest.TestCase):
         self.assertEqual(client.username, 'some_user')
         self.assertEqual(client.timeout, 60)
         self.assertEqual(client._password, 's3kr3t')
-        self.assertEqual(client.csrf_token, None)
+        self.assertEqual(client.csrf_token, '')
         self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API, 'default')
 
     def test_staging_true(self):
@@ -87,7 +87,7 @@ class TestBodhiClient___init__(unittest.TestCase):
         self.assertEqual(client.timeout, None)
         self.assertEqual(client.retries, 5)
         self.assertEqual(client._password, 's3kr3t')
-        self.assertEqual(client.csrf_token, None)
+        self.assertEqual(client.csrf_token, '')
         self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API, bindings.STG_OPENID_API)
 
 
@@ -1504,9 +1504,9 @@ class TestUpdateNotFound(unittest.TestCase):
         self.assertEqual(exc.update, 'bodhi-2.2.4-1.el7')
         self.assertEqual(type(exc.update), str)
 
-    def test___unicode__(self):
+    def test___str__(self):
         """
-        Assert that __unicode__() works properly.
+        Assert that __str__() works properly.
         """
         exc = bindings.UpdateNotFound('bodhi-2.2.4-1.el7')
 
@@ -1647,6 +1647,9 @@ class TestBodhiClient_parse_file(unittest.TestCase):
             "# Here is where you give an explanation of your update.\n",
             "notes=Initial Release\n",
             "\n",
+            "# Update name\n",
+            "display_name=fake update name\n",
+            "\n",
             "# Enable request automation based on the stable/unstable karma thresholds\n",
             "autokarma=True\n",
             "stable_karma=3\n",
@@ -1667,8 +1670,9 @@ class TestBodhiClient_parse_file(unittest.TestCase):
         updates = client.parse_file("sad")
 
         self.assertEqual(len(updates), 1)
-        self.assertEqual(len(updates[0]), 12)
+        self.assertEqual(len(updates[0]), 13)
         self.assertEqual(updates[0]['close_bugs'], True)
+        self.assertEqual(updates[0]['display_name'], 'fake update name')
         self.assertEqual(updates[0]['unstable_karma'], '-3')
         self.assertEqual(updates[0]['severity'], 'unspecified')
         self.assertEqual(updates[0]['stable_karma'], '3')
