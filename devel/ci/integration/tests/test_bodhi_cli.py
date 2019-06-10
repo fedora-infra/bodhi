@@ -231,6 +231,8 @@ def test_releases_info(bodhi_container, db_container):
   Email Template:           {mail_template}
   Composed by Bodhi:        {composed_by_bodhi}
   Create Automatic Updates: {create_automatic_updates}
+  Package Manager:          {package_manager}
+  Testing Repository:       {testing_repository}
 """.format(**release)
         assert result.output == expected
 

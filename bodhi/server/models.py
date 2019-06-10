@@ -714,6 +714,21 @@ class ComposeState(DeclEnum):
     cleaning = 'cleaning', 'Cleaning old composes'
 
 
+class PackageManager(DeclEnum):
+    """
+    An enum used to specify what package manager is used by a specific Release.
+
+    Attributes:
+        unspecified (EnumSymbol): for releases where the package manager is not specified.
+        dnf (EnumSymbol): DNF package manager.
+        yum (EnumSymbol): YUM package manager.
+    """
+
+    unspecified = 'unspecified', 'package manager not specified'
+    dnf = 'dnf', 'dnf'
+    yum = 'yum', 'yum'
+
+
 ##
 #  Association tables
 ##
@@ -761,6 +776,10 @@ class Release(Base):
         create_automatic_updates (bool): A flag indicating that updates should
             be created automatically for Koji builds tagged into the
             `candidate_tag`. Defaults to False.
+        package_manager (EnumSymbol): The package manager this release uses. This must be one of
+            the values defined in :class:`PackageManager`.
+        testing_repository (unicode): The name of repository where updates are placed for
+            testing before being pushed to the main repository.
     """
 
     __tablename__ = 'releases'
@@ -788,6 +807,9 @@ class Release(Base):
     create_automatic_updates = Column(Boolean, default=False)
 
     _version_int_regex = re.compile(r'\D+(\d+)[CMF]?$')
+
+    package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
+    testing_repository = Column(UnicodeText, nullable=True)
 
     @property
     def version_int(self):
@@ -1905,6 +1927,32 @@ class Update(Base):
         api_url = '{}/decision'.format(config.get('greenwave_api_url'))
 
         return util.greenwave_api_post(api_url, data)
+
+    def install_command(self) -> str:
+        """
+        Return the appropriate command for installing the Update.
+
+        Returns:
+            The dnf command to install the Update.
+        Raises:
+            ValueError: When the update is not in stable or testing state, or when
+                the package manager or the testing repository are not known.
+        """
+        if self.status != UpdateStatus.stable and self.status != UpdateStatus.testing:
+            raise ValueError('Only updates in stable or testing can be installed!')
+
+        if self.release.package_manager == PackageManager.unspecified \
+                or self.release.testing_repository is None:
+            raise ValueError('We don\'t know the package manager or the testing repository!')
+
+        command = 'sudo {} {}{} --advisory={}{}'.format(
+            self.release.package_manager.value,
+            'install' if self.type == UpdateType.newpackage else 'upgrade',
+            (' --enablerepo=' + self.release.testing_repository)
+            if self.status == UpdateStatus.testing else '',
+            self.alias,
+            r' \*' if self.type == UpdateType.newpackage else '')
+        return command
 
     def update_test_gating_status(self):
         """Query Greenwave about this update and set the test_gating_status as appropriate."""
