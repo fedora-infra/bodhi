@@ -37,6 +37,7 @@ RUN pip-3 install \
     pydocstyle \
     pytest \
     pytest-cov \
+    "sphinx<2.1" \
     sqlalchemy_schemadisplay \
     webtest
 

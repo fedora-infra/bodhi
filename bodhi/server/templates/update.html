@@ -680,15 +680,15 @@ $(document).ready(function(){
           % endif
 
           % if update.content_type:
-          % if update.content_type.value == 'rpm' and ('testing' in update.status or 'stable' in update.status):
-          <div class="p-t-1">
+          % if update.status in [models.UpdateStatus.testing, models.UpdateStatus.stable] and not (update.release.package_manager == models.PackageManager.unspecified or update.release.testing_repository is None):
+          <div class="p-t-2">
           <h4>How to install</h4>
-            <pre style="position: relative;"><span class="label label-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${self.util.update_install_command(update)}</code></pre>
+            <pre style="position: relative;"><span class="label label-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${update.install_command}</code></pre>
           </div>
           % endif
           % endif
 
-          <div class="p-t-3">
+          <div class="p-t-2">
             <h4>Comments <span class="label label-default">${len(update.comments)}</span>
               <small><a href="${request.route_url('comments_rss')}?updates=${update.alias}">
                   <span class="fa fa-rss"></span>
@@ -701,7 +701,10 @@ $(document).ready(function(){
               </div>
               % endfor
             </div>
+          </div>
 
+          <div class="p-t-2">
+            <h4>Add Comment &amp; Feedback</h4>
             % if request.user:
             <form id="new_comment" class="form-horizontal" role="form"
               action="javascript:form.submit();">
@@ -715,15 +718,9 @@ $(document).ready(function(){
               <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
               <input type="hidden" name="update" value="${update.alias}"/>
 
-              <hr/>
-
               <div class="row">
                 <div class="col-md-12">
-
-                  <h5 class="m-t-2">
-                    <strong>Add Comment &amp; Feedback</strong>
                     <div id="preview_button" class="btn btn-sm btn-secondary pull-xs-right">Toggle Preview</div>
-                  </h5>
 
                     <div class="form-group" id="comment-textarea" class="m-t-2">
                         <textarea class="form-control" id="text" name="text" rows="6"
@@ -807,6 +804,18 @@ $(document).ready(function(){
                 </div>
               </div>
             </form>
+            % else:
+            <div class="row m-t-1">
+              <div class="col-md-12">
+                <p>
+                % if request.matched_route:
+                  Please <a class="nav-link" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
+                % else:
+                  Please <a class="nav-link" href="${request.route_url('login')}">login</a> to add feedback.
+                % endif
+                </p>
+              </div>
+            </div>
             % endif
 
           </div>

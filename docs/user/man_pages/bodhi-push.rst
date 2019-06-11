@@ -27,6 +27,10 @@ Options
 
     A comma-separated list of builds to include in the push.
 
+``--updates TEXT``
+
+    A comma-separated list of update aliases to include in the push.
+
 ``--releases TEXT``
 
     A comma-separated list of releases to include in this push. By default, current and pending

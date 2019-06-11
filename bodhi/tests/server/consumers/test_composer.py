@@ -48,7 +48,7 @@ from bodhi.server.exceptions import LockedUpdateException
 from bodhi.server.models import (
     Build, BuildrootOverride, Compose, ComposeState, ContainerBuild, FlatpakBuild,
     Release, ReleaseState, RpmBuild, TestGatingStatus, Update, UpdateRequest, UpdateStatus,
-    UpdateType, User, ModuleBuild, ContentType, Package)
+    UpdateType, User, ModuleBuild, ContentType, Package, PackageManager)
 from bodhi.tests.server import base
 
 
@@ -879,7 +879,9 @@ That was the actual one'''
                 pending_stable_tag='f18-updates-pending',
                 override_tag='f18-override',
                 state=ReleaseState.current,
-                branch='f18')
+                branch='f18',
+                package_manager=PackageManager.unspecified,
+                testing_repository=None)
             db.add(release)
             build = RpmBuild(nvr='bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
                              signed=True)
@@ -956,7 +958,9 @@ That was the actual one'''
                 pending_stable_tag='f18-updates-pending',
                 override_tag='f18-override',
                 state=ReleaseState.current,
-                branch='f18')
+                branch='f18',
+                package_manager=PackageManager.unspecified,
+                testing_repository=None)
             db.add(release)
             build = RpmBuild(nvr='bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
                              signed=True)
@@ -1024,7 +1028,9 @@ That was the actual one'''
                 pending_stable_tag='f18-updates-pending',
                 override_tag='f18-override',
                 state=ReleaseState.current,
-                branch='f18')
+                branch='f18',
+                package_manager=PackageManager.unspecified,
+                testing_repository=None)
             db.add(release)
             build = RpmBuild(nvr='bodhi-2.0-1.fc18', release=release, package=up.builds[0].package,
                              signed=True)

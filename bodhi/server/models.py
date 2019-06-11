@@ -26,6 +26,7 @@ import os
 import re
 import rpm
 import time
+import typing
 import uuid
 
 from simplemediawiki import MediaWiki
@@ -46,6 +47,9 @@ from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
+
+if typing.TYPE_CHECKING:  # pragma: no cover
+    import pyramid  # noqa: 401
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
@@ -714,6 +718,21 @@ class ComposeState(DeclEnum):
     cleaning = 'cleaning', 'Cleaning old composes'
 
 
+class PackageManager(DeclEnum):
+    """
+    An enum used to specify what package manager is used by a specific Release.
+
+    Attributes:
+        unspecified (EnumSymbol): for releases where the package manager is not specified.
+        dnf (EnumSymbol): DNF package manager.
+        yum (EnumSymbol): YUM package manager.
+    """
+
+    unspecified = 'unspecified', 'package manager not specified'
+    dnf = 'dnf', 'dnf'
+    yum = 'yum', 'yum'
+
+
 ##
 #  Association tables
 ##
@@ -758,9 +777,13 @@ class Release(Base):
             associated with this release.
         composed_by_bodhi (bool): The flag that indicates whether the release is composed by
             Bodhi or not. Defaults to True.
-        create_automatic_updates (bool): A flag indicating that updated should
+        create_automatic_updates (bool): A flag indicating that updates should
             be created automatically for Koji builds tagged into the
             `candidate_tag`. Defaults to False.
+        package_manager (EnumSymbol): The package manager this release uses. This must be one of
+            the values defined in :class:`PackageManager`.
+        testing_repository (unicode): The name of repository where updates are placed for
+            testing before being pushed to the main repository.
     """
 
     __tablename__ = 'releases'
@@ -788,6 +811,9 @@ class Release(Base):
     create_automatic_updates = Column(Boolean, default=False)
 
     _version_int_regex = re.compile(r'\D+(\d+)[CMF]?$')
+
+    package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
+    testing_repository = Column(UnicodeText, nullable=True)
 
     @property
     def version_int(self):
@@ -1225,8 +1251,8 @@ class Build(Base):
         update_id (int): A foreign key to the Update that this Build is part of.
         release (sqlalchemy.orm.relationship): A relationship to the Release that this build is part
             of.
-        type (int): The polymorphic identify of the row. This is used by sqlalchemy to identify
-            which subclass of Build to use.
+        type (ContentType): The polymorphic identify of the row. This is used by sqlalchemy to
+            identify which subclass of Build to use.
     """
 
     __tablename__ = 'builds'
@@ -1309,17 +1335,6 @@ class Build(Base):
             tuple: A 3-tuple representing the name, version and release from the build.
         """
         return (self.nvr_name, self.nvr_version, self.nvr_release)
-
-    def get_url(self):
-        """
-        Return a the url to details about this build.
-
-        This method appears to be unused and incorrect.
-
-        Return:
-            str: A URL for this build.
-        """
-        return '/' + self.nvr
 
     def get_tags(self, koji=None):
         """
@@ -1916,6 +1931,32 @@ class Update(Base):
         api_url = '{}/decision'.format(config.get('greenwave_api_url'))
 
         return util.greenwave_api_post(api_url, data)
+
+    def install_command(self) -> str:
+        """
+        Return the appropriate command for installing the Update.
+
+        Returns:
+            The dnf command to install the Update.
+        Raises:
+            ValueError: When the update is not in stable or testing state, or when
+                the package manager or the testing repository are not known.
+        """
+        if self.status != UpdateStatus.stable and self.status != UpdateStatus.testing:
+            raise ValueError('Only updates in stable or testing can be installed!')
+
+        if self.release.package_manager == PackageManager.unspecified \
+                or self.release.testing_repository is None:
+            raise ValueError('We don\'t know the package manager or the testing repository!')
+
+        command = 'sudo {} {}{} --advisory={}{}'.format(
+            self.release.package_manager.value,
+            'install' if self.type == UpdateType.newpackage else 'upgrade',
+            (' --enablerepo=' + self.release.testing_repository)
+            if self.status == UpdateStatus.testing else '',
+            self.alias,
+            r' \*' if self.type == UpdateType.newpackage else '')
+        return command
 
     def update_test_gating_status(self):
         """Query Greenwave about this update and set the test_gating_status as appropriate."""
@@ -3817,18 +3858,18 @@ class Comment(Base):
     update_id = Column(Integer, ForeignKey('updates.id'), index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
 
-    def url(self):
+    def url(self) -> str:
         """
         Return a URL to this comment.
 
         Returns:
-            basestring: A URL to this comment.
+            A URL to this comment.
         """
         url = self.update.get_url() + '#comment-' + str(self.id)
         return url
 
     @property
-    def unique_testcase_feedback(self):
+    def unique_testcase_feedback(self) -> typing.List[TestCaseKarma]:
         """
         Return a list of unique :class:`TestCaseKarma` objects found in the testcase_feedback.
 
@@ -3836,7 +3877,7 @@ class Comment(Base):
         correct number of TestCases in testcase_feedback as a list.
 
         Returns:
-            list: A list of unique :class:`TestCaseKarma` objects associated with this comment.
+            A list of unique :class:`TestCaseKarma` objects associated with this comment.
         """
         feedbacks = self.testcase_feedback
         unique_feedbacks = set()
@@ -3849,24 +3890,24 @@ class Comment(Base):
         return filtered_feedbacks
 
     @property
-    def rss_title(self):
+    def rss_title(self) -> str:
         """
         Return a formatted title for the comment using update alias and comment id.
 
         Returns:
-            basestring: A string representation of the comment for RSS feed.
+            A string representation of the comment for RSS feed.
         """
         return "{} comment #{}".format(self.update.alias, self.id)
 
-    def __json__(self, *args, **kwargs):
+    def __json__(self, *args, **kwargs) -> dict:
         """
         Return a JSON string representation of this comment.
 
         Args:
-            args (list): A list of extra args to pass on to :meth:`BodhiBase.__json__`.
-            kwargs (dict): Extra kwargs to pass on to :meth:`BodhiBase.__json__`.
+            args: A list of extra args to pass on to :meth:`BodhiBase.__json__`.
+            kwargs: Extra kwargs to pass on to :meth:`BodhiBase.__json__`.
         Returns:
-            basestring: A JSON representation of this comment.
+            A JSON-serializable dict representation of this comment.
         """
         result = super(Comment, self).__json__(*args, **kwargs)
         # Duplicate 'user' as 'author' just for backwards compat with bodhi1.
@@ -3884,12 +3925,12 @@ class Comment(Base):
 
         return result
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Return a str representation of this comment.
 
         Returns:
-            str: A str representation of this comment.
+            A str representation of this comment.
         """
         karma = '0'
         if self.karma != 0:
@@ -3930,35 +3971,35 @@ class Bug(Base):
     parent = Column(Boolean, default=False)
 
     @property
-    def url(self):
+    def url(self) -> str:
         """
         Return a URL to the bug.
 
         Returns:
-            basestring: The URL to this bug.
+            The URL to this bug.
         """
         return config['buglink'] % self.bug_id
 
-    def update_details(self, bug=None):
+    def update_details(self, bug: typing.Optional['bugzilla.bug.Bug'] = None) -> None:
         """
         Grab details from rhbz to populate our bug fields.
 
         This is typically called "offline" in the UpdatesHandler consumer.
 
         Args:
-            bug (bugzilla.bug.Bug or None): The Bug to retrieve details from Bugzilla about. If
-                None, self.bug_id will be used to retrieve the bug. Defaults to None.
+            bug: The Bug to retrieve details from Bugzilla about. If
+                 None, self.bug_id will be used to retrieve the bug. Defaults to None.
         """
         bugs.bugtracker.update_details(bug, self)
 
-    def default_message(self, update):
+    def default_message(self, update: Update) -> str:
         """
         Return a default comment to add to a bug with add_comment().
 
         Args:
-            update (Update): The update that is related to the bug.
+            update: The update that is related to the bug.
         Returns:
-            basestring: The default comment to add to the bug related to the given update.
+            The default comment to add to the bug related to the given update.
         """
         message = config['stable_bug_msg'] % (
             update.get_title(delim=', '), "%s %s" % (
@@ -3975,13 +4016,13 @@ class Bug(Base):
             message += template % (config.get('base_address') + update.get_url())
         return message
 
-    def add_comment(self, update, comment=None):
+    def add_comment(self, update: Update, comment: typing.Optional[str] = None) -> None:
         """
         Add a comment to the bug, pertaining to the given update.
 
         Args:
-            update (Update): The update that is related to the bug.
-            comment (basestring or None): The comment to add to the bug. If None, a default message
+            update: The update that is related to the bug.
+            comment: The comment to add to the bug. If None, a default message
                 is added to the bug. Defaults to None.
         """
         if update.type is UpdateType.security and self.parent \
@@ -3993,7 +4034,7 @@ class Bug(Base):
             log.debug("Adding comment to Bug #%d: %s" % (self.bug_id, comment))
             bugs.bugtracker.comment(self.bug_id, comment)
 
-    def testing(self, update):
+    def testing(self, update: Update) -> None:
         """
         Change the status of this bug to ON_QA.
 
@@ -4001,7 +4042,7 @@ class Bug(Base):
         update.
 
         Args:
-            update (Update): The update associated with the bug.
+            update: The update associated with the bug.
         """
         # Skip modifying Security Response bugs for testing updates
         if update.type is UpdateType.security and self.parent:
@@ -4010,12 +4051,12 @@ class Bug(Base):
             comment = self.default_message(update)
             bugs.bugtracker.on_qa(self.bug_id, comment)
 
-    def close_bug(self, update):
+    def close_bug(self, update: Update) -> None:
         """
         Close the bug.
 
         Args:
-            update (Update): The update associated with the bug.
+            update: The update associated with the bug.
         """
         # Build a mapping of package names to build versions
         # so that .close() can figure out which build version fixes which bug.
@@ -4024,15 +4065,15 @@ class Bug(Base):
         ])
         bugs.bugtracker.close(self.bug_id, versions=versions, comment=self.default_message(update))
 
-    def modified(self, update, comment):
+    def modified(self, update: Update, comment: str) -> None:
         """
         Change the status of this bug to MODIFIED unless it is a parent security bug.
 
         Also, comment on the bug stating that an update has been submitted.
 
         Args:
-            update (Update): The update that is associated with this bug.
-            comment (str): A comment to leave on the bug when modifying it.
+            update: The update that is associated with this bug.
+            comment: A comment to leave on the bug when modifying it.
         """
         if update.type is UpdateType.security and self.parent:
             log.debug('Not modifying parent security bug %s', self.bug_id)
@@ -4075,28 +4116,28 @@ class User(Base):
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
 
-    def avatar(self, request):
+    def avatar(self, request: 'pyramid.request') -> typing.Union[str, None]:
         """
         Return a URL for the User's avatar, or None if request is falsey.
 
         Args:
-            request (pyramid.util.Request): The current web request.
+            request: The current web request.
         Returns:
-            basestring or None: A URL for the User's avatar, or None if request is falsey.
+            A URL for the User's avatar, or None if request is falsey.
         """
         if not request:
             return None
         context = dict(request=request)
         return get_avatar(context=context, username=self.name, size=24)
 
-    def openid(self, request):
+    def openid(self, request: 'pyramid.request') -> str:
         """
         Return an openid identity URL.
 
         Args:
-            request (pyramid.util.Request): The current web request.
+            request: The current web request.
         Returns:
-            basestring: The openid identity URL for the User object.
+            The openid identity URL for the User object.
         """
         if not request:
             return None
@@ -4163,25 +4204,25 @@ class BuildrootOverride(Base):
                                              lazy='joined'))
 
     @property
-    def nvr(self):
+    def nvr(self) -> str:
         """
         Return the NVR of the :class:`Build` associated with this override.
 
         Returns:
-            basestring: The override's :class:`Build's <Build>` NVR.
+            The override's :class:`Build's <Build>` NVR.
         """
         return self.build.nvr
 
     @classmethod
-    def new(cls, request, **data):
+    def new(cls, request: 'pyramid.request', **data) -> 'BuildrootOverride':
         """
         Create a new buildroot override.
 
         Args:
-            request (pyramid.util.Request): The current web request.
-            data (dict): A dictionary of all the attributes to be used on the new override.
+            request: The current web request.
+            data: A dictionary of all the attributes to be used on the new override.
         Returns:
-            BuildrootOverride: The newly created BuildrootOverride instance.
+            The newly created BuildrootOverride instance.
         """
         db = request.db
 
@@ -4212,15 +4253,15 @@ class BuildrootOverride(Base):
         return override
 
     @classmethod
-    def edit(cls, request, **data):
+    def edit(cls, request: 'pyramid.request', **data) -> 'BuildrootOverride':
         """
         Edit an existing buildroot override.
 
         Args:
-            request (pyramid.util.Request): The current web request.
-            data (dict): The changed being made to the BuildrootOverride.
+            request: The current web request.
+            data: The changed being made to the BuildrootOverride.
         Returns:
-            BuildrootOverride: The new updated override.
+            The new updated override.
         """
         db = request.db
 
@@ -4253,7 +4294,7 @@ class BuildrootOverride(Base):
 
         return override
 
-    def enable(self):
+    def enable(self) -> None:
         """Mark the BuildrootOverride as enabled."""
         koji_session = buildsys.get_session()
         koji_session.tagBuild(self.build.release.override_tag, self.build.nvr)
@@ -4263,7 +4304,7 @@ class BuildrootOverride(Base):
 
         self.expired_date = None
 
-    def expire(self):
+    def expire(self) -> None:
         """Mark the BuildrootOverride as expired."""
         if self.expired_date is not None:
             return

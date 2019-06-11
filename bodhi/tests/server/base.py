@@ -280,7 +280,8 @@ class BaseTestCaseMixin:
             override_tag='f{}-override'.format(version),
             branch='f{}'.format(version), state=models.ReleaseState.current,
             create_automatic_updates=create_automatic_updates,
-        )
+            package_manager=models.PackageManager.unspecified,
+            testing_repository=None)
         self.db.add(release)
         models.Release._all_releases = None
         models.Release._tag_cache = None

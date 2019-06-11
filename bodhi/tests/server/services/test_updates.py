@@ -35,7 +35,7 @@ from bodhi.server.config import config
 from bodhi.server.models import (
     Build, BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
     ReleaseState, RpmBuild, Update, UpdateRequest, UpdateStatus, UpdateType,
-    UpdateSeverity, UpdateSuggestion, User, TestGatingStatus)
+    UpdateSeverity, UpdateSuggestion, User, TestGatingStatus, PackageManager)
 from bodhi.server.util import call_api
 from bodhi.tests.server.base import BaseTestCase
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
@@ -1662,7 +1662,7 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/rss/updates/',
                            headers={'Accept': 'application/atom+xml'})
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
-        self.assertIn('bodhi-2.0-1.fc17', res)
+        self.assertIn('FEDORA-2019-a3bbe1a8f2', res)
         self.assertIn('Released updates', res)
         self.assertIn('All updates', res)
 
@@ -2852,7 +2852,9 @@ class TestUpdatesService(BaseTestCase):
             pending_testing_tag='f18-updates-testing-pending',
             pending_stable_tag='f18-updates-pending',
             override_tag='f18-override',
-            branch='f18')
+            branch='f18',
+            package_manager=PackageManager.unspecified,
+            testing_repository=None)
         self.db.add(release)
         pkg = RpmPackage(name='nethack')
         self.db.add(pkg)
@@ -3781,7 +3783,9 @@ class TestUpdatesService(BaseTestCase):
             pending_testing_tag='f18-updates-testing-pending',
             pending_stable_tag='f18-updates-pending',
             override_tag='f18-override',
-            branch='f18')
+            branch='f18',
+            package_manager=PackageManager.unspecified,
+            testing_repository=None)
         self.db.add(release)
         pkg = RpmPackage(name='nethack')
         self.db.add(pkg)
