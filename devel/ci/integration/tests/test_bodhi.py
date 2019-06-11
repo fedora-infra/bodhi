@@ -20,7 +20,7 @@ import math
 
 import psycopg2
 
-from tests.utils import read_file
+from .utils import read_file
 
 
 def test_get_root(bodhi_container, db_container):

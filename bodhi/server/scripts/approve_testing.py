@@ -28,10 +28,10 @@ import logging
 
 from pyramid.paster import get_appsettings
 
-from ..models import Update, UpdateStatus
-from ..config import config
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import Session, initialize_db, notifications
+from ..models import Update, UpdateStatus
+from ..config import config
 
 
 logger = logging.getLogger('approve-testing')

@@ -24,7 +24,6 @@ import hashlib
 import json
 import os
 import re
-import rpm
 import time
 import typing
 import uuid
@@ -38,6 +37,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 import requests.exceptions
+import rpm
 
 from bodhi.messages.schemas import (buildroot_override as override_schemas,
                                     errata as errata_schemas, update as update_schemas)
