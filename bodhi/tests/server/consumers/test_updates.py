@@ -228,12 +228,11 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        message = UpdateEditV1(
+        message = UpdateRequestTestingV1(
             body={
                 'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
                            'user': {'name': 'brodhi'}, 'status': str(update.status),
-                           'request': str(update.request)},
-                'new_bugs': [12345]})
+                           'request': str(update.request)}})
 
         h(message)
 
