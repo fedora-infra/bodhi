@@ -1709,8 +1709,9 @@ class TestUpdateInstallCommand(BaseTestCase):
         update = model.Update.query.first()
         update.status = UpdateStatus.obsolete
 
-        with self.assertRaises(ValueError):
-            update.install_command()
+        command = update.install_command()
+
+        self.assertEqual(command, '')
 
     def test_update_command_not_possible_missing_packagemanager(self):
         """The Release of the Update misses the package manager definition."""
@@ -1720,8 +1721,9 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.unspecified
         update.release.testing_repository = 'updates-testing'
 
-        with self.assertRaises(ValueError):
-            update.install_command()
+        command = update.install_command()
+
+        self.assertEqual(command, '')
 
     def test_update_command_not_possible_missing_repo(self):
         """The Release of the Update misses the testing repository definition."""
@@ -1731,8 +1733,9 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = None
 
-        with self.assertRaises(ValueError):
-            update.install_command()
+        command = update.install_command()
+
+        self.assertEqual(command, '')
 
 
 class TestUpdateGetTestcaseKarma(BaseTestCase):
