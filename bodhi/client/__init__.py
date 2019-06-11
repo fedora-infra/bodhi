@@ -26,11 +26,11 @@ import traceback
 import re
 import functools
 
+from fedora.client import AuthError, openidproxyclient
 import click
 import munch
 
 from bodhi.client import bindings
-from fedora.client import AuthError, openidproxyclient
 
 
 log = logging.getLogger(__name__)

@@ -28,6 +28,7 @@ import koji
 import pyramid.threadlocal
 import rpm
 
+from bodhi.server.config import config
 from . import log
 from .models import (
     Build,
@@ -55,7 +56,6 @@ from .util import (
     tokenize,
     taskotron_results,
 )
-from bodhi.server.config import config
 
 
 csrf_error_message = """CSRF tokens do not match.  This happens if you have

@@ -21,12 +21,11 @@ import json
 import re
 import textwrap
 
+from conu import ConuException
+from munch import Munch
 import requests
 import psycopg2
 import pytest
-
-from conu import ConuException
-from munch import Munch
 
 from .utils import replace_file
 

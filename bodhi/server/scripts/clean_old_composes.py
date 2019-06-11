@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Cleans up old composes that are left over in compose_dir."""
 import collections
-
-import click
 import os
 import shutil
+
+import click
 
 from bodhi.server import config
 
