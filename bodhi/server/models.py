@@ -1932,6 +1932,7 @@ class Update(Base):
 
         return util.greenwave_api_post(api_url, data)
 
+    @property
     def install_command(self) -> str:
         """
         Return the appropriate command for installing the Update.
