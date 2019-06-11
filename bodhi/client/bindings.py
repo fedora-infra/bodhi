@@ -246,8 +246,6 @@ class BodhiClient(OpenIdBaseClient):
             close_bugs (bool): Close bugs when update is stable.
             suggest (basestring): Suggest that the user reboot or logout after update.
                 (``reboot``, ``logout``).
-            inheritance (bool): Follow koji build inheritance, which may result in
-                this update being pushed out to additional releases.
             autokarma (bool): Allow bodhi to automatically change the state of this
                 update based on the ``karma`` from user feedback.  It will
                 push your update to ``stable`` once it reaches the ``stable_karma``
