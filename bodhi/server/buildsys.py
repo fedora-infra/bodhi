@@ -21,6 +21,7 @@ from threading import Lock
 import logging
 import time
 import typing
+import os
 from functools import wraps
 
 import koji
@@ -570,6 +571,7 @@ def get_krb_conf(config: 'BodhiConfig') -> typing.Mapping[str, str]:
     if keytab:
         args['keytab'] = keytab
     if ccache:
+        ccache = ccache.replace('%{uid}', str(os.geteuid()))
         args['ccache'] = ccache
     return args
 
