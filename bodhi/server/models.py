@@ -816,6 +816,24 @@ class Release(Base):
     testing_repository = Column(UnicodeText, nullable=True)
 
     @property
+    def critpath_min_karma(self) -> int:
+        """
+        Return the min_karma for critpath updates for this release.
+
+        If the release doesn't specify a min_karma, the default critpath.min_karma setting is used
+        instead.
+
+        Returns:
+            The minimum karma required for critical path updates for this release.
+        """
+        if self.setting_status:
+            min_karma = config.get(
+                f'{self.setting_prefix}.{self.setting_status}.critpath.min_karma', None)
+            if min_karma:
+                return int(min_karma)
+        return config.get('critpath.min_karma')
+
+    @property
     def version_int(self):
         """
         Return an integer representation of the version of this release.
@@ -924,6 +942,31 @@ class Release(Base):
             release = session.query(cls).filter_by(name=tag_rels[tag]).first()
             if release:
                 return release
+
+    @property
+    def setting_prefix(self) -> str:
+        """
+        Return the prefix for settings that pertain to this Release.
+
+        Returns:
+            The Release's setting prefix.
+        """
+        return self.name.lower().replace('-', '')
+
+    @property
+    def setting_status(self) -> typing.Optional[str]:
+        """
+        Return the status of the Release from settings.
+
+        Return the Release's status setting from the config. For example, if the release is f30,
+        this will return the value of f30.status from the config file.
+
+        Note: This is not the same as Release.state.
+
+        Returns:
+            The status of the release.
+        """
+        return config.get(f'{self.setting_prefix}.status', None)
 
 
 class TestCase(Base):
@@ -3355,18 +3398,16 @@ class Update(Base):
         # https://fedorahosted.org/bodhi/ticket/642
         if self.meets_testing_requirements:
             return True
-        release_name = self.release.name.lower().replace('-', '')
-        status = config.get('%s.status' % release_name, None)
-        if status:
-            num_admin_approvals = config.get('%s.%s.critpath.num_admin_approvals' % (
-                release_name, status), None)
-            min_karma = config.get('%s.%s.critpath.min_karma' % (
-                release_name, status), None)
+        min_karma = self.release.critpath_min_karma
+        if self.release.setting_status:
+            num_admin_approvals = config.get(
+                f'{self.release.setting_prefix}.{self.release.setting_status}'
+                '.critpath.num_admin_approvals')
             if num_admin_approvals is not None and min_karma:
                 return self.num_admin_approvals >= int(num_admin_approvals) and \
-                    self.karma >= int(min_karma)
+                    self.karma >= min_karma
         return self.num_admin_approvals >= config.get('critpath.num_admin_approvals') and \
-            self.karma >= config.get('critpath.min_karma')
+            self.karma >= min_karma
 
     @property
     def meets_testing_requirements(self):
@@ -3384,6 +3425,9 @@ class Update(Base):
         if config.get('test_gating.required') and not self.test_gating_passed:
             return False
 
+        if self.karma >= self.release.critpath_min_karma:
+            return True
+
         if self.critpath:
             # Ensure there is no negative karma. We're looking at the sum of
             # each users karma for this update, which takes into account
@@ -3395,9 +3439,7 @@ class Update(Base):
         if not num_days:
             return True
 
-        # non-autokarma updates have met the testing requirements if they've reached the karma
-        # threshold.
-        if not self.autokarma and self.karma >= self.stable_karma:
+        if self.karma >= self.stable_karma:
             return True
 
         # Any update that reaches num_days has met the testing requirements.
