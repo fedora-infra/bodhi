@@ -745,6 +745,34 @@ class TestRelease(ModelTest):
         self.assertIs(releases, model.Release.all_releases())
 
 
+class TestReleaseCritpathMinKarma(BaseTestCase):
+    """Tests for the Release.critpath_min_karma property."""
+
+    @mock.patch.dict(
+        config, {'critpath.min_karma': 2, 'f17.beta.critpath.min_karma': 42, 'f17.status': "beta"})
+    def test_setting_status_min(self):
+        """If a min is defined for the release, it should be returned."""
+        release = model.Release.query.first()
+
+        self.assertEqual(release.critpath_min_karma, 42)
+
+    @mock.patch.dict(
+        config, {'critpath.min_karma': 25, 'f17.status': "beta"})
+    def test_setting_status_no_min(self):
+        """If no min is defined for the release, the general min karma config should be returned."""
+        release = model.Release.query.first()
+
+        self.assertEqual(release.critpath_min_karma, 25)
+
+    @mock.patch.dict(
+        config, {'critpath.min_karma': 72})
+    def test_setting_status_no_setting_status(self):
+        """If no status is defined for the release, the general min karma should be returned."""
+        release = model.Release.query.first()
+
+        self.assertEqual(release.critpath_min_karma, 72)
+
+
 class TestReleaseModular(ModelTest):
     """Unit test case for the ``Release`` model for modular releases."""
     klass = model.Release
@@ -2006,6 +2034,72 @@ class TestUpdateValidateBuilds(BaseTestCase):
 class TestUpdateMeetsTestingRequirements(BaseTestCase):
     """Test the Update.meets_testing_requirements() method."""
 
+    def test_autokarma_update_reaching_stable_karma(self):
+        """
+        Assert that meets_testing_requirements() correctly returns True for autokarma updates
+        that haven't reached the days in testing but have reached the stable_karma threshold.
+        """
+        update = model.Update.query.first()
+        update.autokarma = True
+        update.status = UpdateStatus.testing
+        update.stable_karma = 1
+        # Now let's add some karma to get it to the required threshold
+        update.comment(self.db, 'testing', author='hunter2', karma=1)
+
+        # meets_testing_requirement() should return True since the karma threshold has been reached
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_critpath_14_days_negative_karma(self):
+        """critpath packages in testing for 14 days shouldn't go stable with negative karma."""
+        update = model.Update.query.first()
+        update.critpath = True
+        update.status = model.UpdateStatus.testing
+        update.request = None
+        update.date_testing = datetime.utcnow() - timedelta(days=15)
+        update.stable_karma = 1
+        update.comment(self.db, 'testing', author='enemy', karma=-1)
+        # This gets the update to positive karma, but not to the required 2 karma needed for
+        # critpath.
+        update.comment(self.db, 'testing', author='bro', karma=1)
+
+        self.assertEqual(update.meets_testing_requirements, False)
+
+    def test_critpath_14_days_no_negative_karma(self):
+        """critpath packages in testing for 14 days can go stable without negative karma."""
+        update = model.Update.query.first()
+        update.critpath = True
+        update.status = model.UpdateStatus.testing
+        update.request = None
+        update.date_testing = datetime.utcnow() - timedelta(days=15)
+        update.stable_karma = 1
+
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_critpath_karma_2_met(self):
+        """critpath packages should be allowed to go stable when meeting required karma."""
+        update = model.Update.query.first()
+        update.critpath = True
+        update.stable_karma = 1
+        update.comment(self.db, 'testing', author='enemy', karma=-1)
+        update.comment(self.db, 'testing', author='bro', karma=1)
+        # Despite meeting the stable_karma, the function should still not mark this as meeting
+        # testing requirements because critpath packages have a higher requirement for minimum
+        # karma. So let's get it a second one.
+        update.comment(self.db, 'testing', author='ham', karma=1)
+
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_critpath_karma_2_required(self):
+        """critpath packages should require a minimum karma."""
+        update = model.Update.query.first()
+        update.critpath = True
+        update.stable_karma = 1
+
+        # Despite meeting the stable_karma, the function should still not mark this as meeting
+        # testing requirements because critpath packages have a higher requirement for minimum
+        # karma.
+        self.assertEqual(update.meets_testing_requirements, False)
+
     def test_critpath_negative_karma(self):
         """
         Assert that meets_testing_requirements() correctly returns False for critpath updates
@@ -2015,6 +2109,19 @@ class TestUpdateMeetsTestingRequirements(BaseTestCase):
         update.critpath = True
         update.comment(self.db, 'testing', author='enemy', karma=-1)
         self.assertEqual(update.meets_testing_requirements, False)
+
+    def test_karma_2_met(self):
+        """Regular packages should be allowed to go stable when meeting required karma."""
+        update = model.Update.query.first()
+        update.stable_karma = 3
+        update.comment(self.db, 'testing', author='enemy', karma=-1)
+        update.comment(self.db, 'testing', author='bro', karma=1)
+        # Despite meeting the stable_karma, the function should still not mark this as meeting
+        # testing requirements because critpath packages have a higher requirement for minimum
+        # karma. So let's get it a second one.
+        update.comment(self.db, 'testing', author='ham', karma=1)
+
+        self.assertEqual(update.meets_testing_requirements, True)
 
     def test_non_autokarma_update_below_stable_karma(self):
         """It should return False for non-autokarma updates below stable karma and time."""
@@ -2037,8 +2144,6 @@ class TestUpdateMeetsTestingRequirements(BaseTestCase):
         update.autokarma = False
         update.status = UpdateStatus.testing
         update.stable_karma = 1
-        # Now let's add some karma to get it to the required threshold
-        update.comment(self.db, 'testing', author='hunter2', karma=1)
 
         # meets_testing_requirement() should return True since the karma threshold has been reached
         self.assertEqual(update.meets_testing_requirements, True)
@@ -2132,6 +2237,26 @@ class TestUpdateMeetsTestingRequirements(BaseTestCase):
                        author='bowlofeggs')
         # Assert that our preconditions from the docblock are correct.
         self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_time_in_testing_met(self):
+        """It should return True for non-critpath updates that meet time in testing."""
+        update = model.Update.query.first()
+        update.status = model.UpdateStatus.testing
+        update.request = None
+        update.date_testing = datetime.utcnow() - timedelta(days=8)
+        update.stable_karma = 10
+
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_time_in_testing_unmet(self):
+        """It should return False for non-critpath updates that don't yet meet time in testing."""
+        update = model.Update.query.first()
+        update.status = model.UpdateStatus.testing
+        update.request = None
+        update.date_testing = datetime.utcnow() - timedelta(days=6)
+        update.stable_karma = 10
+
+        self.assertEqual(update.meets_testing_requirements, False)
 
 
 class TestUpdate(ModelTest):
