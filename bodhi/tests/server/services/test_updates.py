@@ -1584,8 +1584,11 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('callback', res)
         self.assertIn('bodhi-2.0-1.fc17', res)
 
-    def test_get_single_update_rss(self):
-        self.app.get('/updates/bodhi-2.0-1.fc17',
+    def test_get_single_update_rss_fail_406(self):
+        """Test a 406 return status if we try to get a single update via rss."""
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+
+        self.app.get(f'/updates/{update.alias}',
                      headers={'Accept': 'application/atom+xml'},
                      status=406)
 
