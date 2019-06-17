@@ -268,6 +268,7 @@ class TestMain(base.BaseTestCase):
         generic._generate_home_page_stats.invalidate()
         self.assertEqual(generic._generate_home_page_stats(), 7)
 
+    @mock.patch.dict('bodhi.server.config.config', {'warm_cache_on_start': True})
     def test_warms_up_releases_cache(self):
         """main() should warm up the _all_releases cache."""
         # Let's force the release cache to None
