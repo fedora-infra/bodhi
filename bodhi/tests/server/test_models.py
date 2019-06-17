@@ -1817,7 +1817,6 @@ class TestUpdateUpdateTestGatingStatus(BaseTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
                   "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
-                              {"original_spec_nvr": f"{update.builds[0].nvr}"},
                               {"item": f"{update.alias}", "type": "bodhi_update"}],
                   "verbose": True},
             headers={'Content-Type': 'application/json'}, timeout=60)
@@ -1862,7 +1861,6 @@ class TestUpdateUpdateTestGatingStatus(BaseTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
                   "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
-                              {"original_spec_nvr": f"{update.builds[0].nvr}"},
                               {"item": f"{update.alias}", "type": "bodhi_update"}],
                   "verbose": True},
             headers={'Content-Type': 'application/json'}, timeout=60)
@@ -2116,7 +2114,6 @@ class TestUpdate(ModelTest):
         self.assertEqual(
             self.obj.greenwave_subject,
             [{'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-             {'original_spec_nvr': 'TurboGears-1.0.8-3.fc11'},
              {'item': self.obj.alias, 'type': 'bodhi_update'}])
 
     def test_greenwave_subject_json(self):
@@ -2127,7 +2124,6 @@ class TestUpdate(ModelTest):
         self.assertEqual(
             json.loads(subject),
             [{'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-             {'original_spec_nvr': 'TurboGears-1.0.8-3.fc11'},
              {'item': self.obj.alias, 'type': 'bodhi_update'}])
 
     def test_mandatory_days_in_testing_critpath(self):
