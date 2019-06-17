@@ -27,7 +27,6 @@ import pytest
 
 from bodhi.messages.schemas.update import UpdateMessage
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
-from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import Build, Release, Update, UpdateType, User
 from bodhi.tests.server import base
 
@@ -65,8 +64,10 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.handler = AutomaticUpdateHandler(self.db_factory)
 
     # Test the main code path.
-    def test_consume(self):
+    def test_consume(self, caplog):
         """Assert that messages about tagged builds create an update."""
+        caplog.set_level(logging.DEBUG)
+
         # process the message
         with mock_sends(UpdateMessage):
             self.handler(self.sample_message)
@@ -83,6 +84,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
         assert update.user and update.user.name == expected_username
 
+        assert not any(r.levelno >= logging.WARNING for r in caplog.records)
+
     # The following tests cover lesser-travelled code paths.
 
     @mock.patch('bodhi.server.consumers.automatic_updates.transactional_session_maker')
@@ -97,36 +100,47 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
     # buildinfo, release missing from the DB
 
     @pytest.mark.parametrize('missing_elem', ('tag', 'build_id', 'name', 'version', 'release'))
-    def test_missing_mandatory_elems(self, missing_elem):
+    def test_missing_mandatory_elems(self, missing_elem, caplog):
         """Test tag message without mandatory elements."""
+        caplog.set_level(logging.DEBUG)
         msg = deepcopy(self.sample_message)
         del msg.body[missing_elem]
-        with pytest.raises(BodhiException):
-            self.handler(msg)
+        self.handler(msg)
+        assert any(r.levelno == logging.DEBUG
+                   and r.getMessage() == f"Received incomplete tag message. Missing: {missing_elem}"
+                   for r in caplog.records)
 
-    def test_unknown_koji_build(self):
+    def test_unknown_koji_build(self, caplog):
         """Test tag message about unknown koji build."""
+        caplog.set_level(logging.DEBUG)
         msg = deepcopy(self.sample_message)
         msg.body['release'] += '.youdontknowme'
-        with pytest.raises(BodhiException):
-            self.handler(msg)
+        self.handler(msg)
+        assert any(r.levelno == logging.DEBUG
+                   and r.getMessage().startswith("Can't find Koji build for ")
+                   for r in caplog.records)
 
-    def test_incomplete_koji_buildinfo_nvr(self):
+    def test_incomplete_koji_buildinfo_nvr(self, caplog):
         """Test koji returning incomplete buildinfo: no nvr."""
+        caplog.set_level(logging.DEBUG)
         msg = deepcopy(self.sample_message)
         msg.body['release'] += '.testmissingnvr'
-        with pytest.raises(BodhiException):
-            self.handler(msg)
+        self.handler(msg)
+        assert any(r.levelno == logging.DEBUG
+                   and r.getMessage().startswith("Koji build info for ")
+                   and r.getMessage().endswith(" doesn't contain 'nvr'.")
+                   for r in caplog.records)
 
     def test_incomplete_koji_buildinfo_owner(self, caplog):
         """Test koji returning incomplete buildinfo: no owner."""
         caplog.set_level(logging.DEBUG)
-
         msg = deepcopy(self.sample_message)
         msg.body['release'] += '.noowner'
-
-        with pytest.raises(BodhiException):
-            self.handler(msg)
+        self.handler(msg)
+        assert any(r.levelno == logging.DEBUG
+                   and r.getMessage().startswith("Koji build info for ")
+                   and r.getMessage().endswith(" doesn't contain 'owner_name'.")
+                   for r in caplog.records)
 
     def test_missing_user(self, caplog):
         """Test Koji build user missing from DB."""
