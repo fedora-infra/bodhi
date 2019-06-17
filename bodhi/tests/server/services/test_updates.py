@@ -5252,7 +5252,6 @@ class TestWaiveTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5331,7 +5330,6 @@ class TestWaiveTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5430,7 +5428,6 @@ class TestWaiveTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5513,7 +5510,6 @@ class TestWaiveTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5612,7 +5608,6 @@ class TestWaiveTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5766,7 +5761,6 @@ class TestGetTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5809,7 +5803,6 @@ class TestGetTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5851,7 +5844,6 @@ class TestGetTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5885,7 +5877,6 @@ class TestGetTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,

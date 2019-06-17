@@ -423,9 +423,6 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
                 {"item": b, "type": "koji_build"}
                 for b in update.builds
             ] + [
-                {"original_spec_nvr": b}
-                for b in update.builds
-            ] + [
                 {"item": update.alias, "type": "bodhi_update"}
             ],
             "verbose": True,
