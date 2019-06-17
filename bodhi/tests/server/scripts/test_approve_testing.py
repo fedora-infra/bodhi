@@ -20,6 +20,7 @@ This module contains tests for the bodhi.server.scripts.approve_testing module.
 """
 from datetime import datetime, timedelta
 from io import StringIO
+import logging
 from unittest.mock import call, patch
 
 from fedora_messaging import api, testing as fml_testing
@@ -31,6 +32,9 @@ from bodhi.server.scripts import approve_testing
 from bodhi.tests.server.base import BaseTestCase
 
 
+# Don't muck around with global log level.
+@patch('bodhi.server.scripts.approve_testing.logging.basicConfig',
+       new=lambda *p, **k: None)
 class TestMain(BaseTestCase):
     """
     This class contains tests for the main() function.
@@ -483,3 +487,32 @@ class TestMain(BaseTestCase):
             stdout.getvalue(),
             'usage: nosetests <config_uri>\n(example: "nosetests development.ini")\n')
         exit.assert_called_once_with(1)
+
+    @patch('sys.exit')
+    def test_log_level_is_left_alone(self, exit):
+        """Ensure calling main() here leaves the global log level alone.
+
+        This is because having it changed can play havoc on other tests that
+        examine logging output."""
+
+        class SentinelInt(int):
+            """A child class of int which is suited as a sentinel value.
+
+            The important difference to int is that SentinelInt doesn't use
+            singleton objects for low values:
+
+                >>> 5 is 5
+                True
+                >>> SentinelInt(5) is SentinelInt(5)
+                False
+            """
+
+        saved_log_level = logging.root.level
+        sentinel = logging.root.level = SentinelInt(logging.WARNING)
+
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                approve_testing.main(['nosetests', 'some_config.ini', 'testnoses'])
+
+        self.assertIs(logging.root.level, sentinel)
+        logging.root.level = saved_log_level

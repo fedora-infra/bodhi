@@ -35,7 +35,6 @@ from ..config import config
 
 
 logger = logging.getLogger('approve-testing')
-logging.basicConfig(level=logging.ERROR)
 
 
 def usage(argv):
@@ -65,6 +64,8 @@ def main(argv=sys.argv):
     Args:
         argv (list): A list of command line arguments. Defaults to sys.argv.
     """
+    logging.basicConfig(level=logging.ERROR)
+
     if len(argv) != 2:
         usage(argv)
 
