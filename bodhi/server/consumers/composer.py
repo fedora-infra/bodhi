@@ -41,6 +41,7 @@ from urllib.request import urlopen
 
 import jinja2
 import fedora_messaging
+import sqlalchemy.orm.exc
 
 from bodhi.messages.schemas import compose as compose_schemas, update as update_schemas
 from bodhi.server import buildsys, notifications, mail
@@ -233,7 +234,17 @@ class ComposerHandler(object):
         """
         with self.db_factory() as db:
             if 'api_version' in msg and msg['api_version'] == 2:
-                composes = [Compose.from_dict(db, c) for c in msg['composes']]
+                try:
+                    composes = [Compose.from_dict(db, c) for c in msg['composes']]
+                except sqlalchemy.orm.exc.NoResultFound:
+                    # It is possible for messages to get into our queue that reference Composes that
+                    # no longer exist. If this happens, we really just want to ignore the message so
+                    # that it gets dropped. In particular, we do not want to raise an Exception when
+                    # this happens, because that will Nack the message put it back into the queue,
+                    # resulting in a Nack loop.
+                    # See https://github.com/fedora-infra/bodhi/issues/3318
+                    log.info('Ignoring a compose message that references non-existing Composes')
+                    return []
             else:
                 raise ValueError('Unable to process message: {}'.format(msg))
 
