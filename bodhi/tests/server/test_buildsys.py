@@ -108,6 +108,40 @@ class TestKojiLogin(unittest.TestCase):
     @mock.patch.object(buildsys, '_koji_hub', 'http://example.com/koji')
     @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
     @mock.patch('bodhi.server.buildsys.log.error')
+    @mock.patch('time.sleep')
+    def test_AuthError(self, sleep, error, krb_login):
+        """backoff should take effect if an AuthError is raised."""
+        krb_login.side_effect = [koji.AuthError, koji.AuthError, True]
+        config = {'some_meaningless_other_key': 'boring_value', 'krb_ccache': 'a_ccache',
+                  'krb_keytab': 'a_keytab', 'krb_principal': 'a_principal'}
+        default_koji_opts = {
+            'krb_rdns': False,
+            'max_retries': 30,
+            'retry_interval': 10,
+            'offline_retry': True,
+            'offline_retry_interval': 10,
+            'anon_retry': True,
+        }
+
+        client = buildsys.koji_login(config, authenticate=True)
+
+        for key in default_koji_opts:
+            self.assertEqual(default_koji_opts[key], client.opts[key])
+        self.assertEqual(type(client), koji.ClientSession)
+        # Due to the use of backoff, we should have called krb_login three times.
+        self.assertEqual(
+            krb_login.mock_calls,
+            [mock.call(ccache='a_ccache', keytab='a_keytab', principal='a_principal')] * 3)
+        # No error should have been logged
+        self.assertEqual(error.call_count, 0)
+        # Make sure sleep was called twice, but we don't want to assert what values were used
+        # because that's up to backoff and we don't want different versions of backoff to make
+        # different choices and cause this test to fail.
+        self.assertEqual(sleep.call_count, 2)
+
+    @mock.patch.object(buildsys, '_koji_hub', 'http://example.com/koji')
+    @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
+    @mock.patch('bodhi.server.buildsys.log.error')
     def test_authenticate_false(self, error, krb_login):
         """If authenticate is False, no attempt to call krb_login() shold be made."""
         config = {'some_meaningless_other_key': 'boring_value', 'krb_ccache': 'a_ccache',
