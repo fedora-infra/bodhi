@@ -888,8 +888,8 @@ class TestSetRequest(BaseTestCase):
                 side_effect=BodhiException('BodhiException. oops!'))
     @mock.patch('bodhi.server.services.updates.Update.check_requirements',
                 return_value=(True, "a fake reason"))
-    @mock.patch('bodhi.server.services.updates.log.error')
-    def test_BodhiException_exception(self, log_error, check_requirements, send_request, *args):
+    @mock.patch('bodhi.server.services.updates.log.info')
+    def test_BodhiException_exception(self, log_info, check_requirements, send_request, *args):
         """Ensure that an BodhiException Exception is handled by set_request()."""
         nvr = 'bodhi-2.0-1.fc17'
 
@@ -906,8 +906,8 @@ class TestSetRequest(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body['errors'][0]['description'],
                          'BodhiException. oops!')
-        log_error.assert_called_once()
-        self.assertEqual("Failed to set the request: %s", log_error.call_args_list[0][0][0])
+        self.assertEqual(log_info.call_count, 2)
+        self.assertEqual("Failed to set the request: %s", log_info.call_args_list[1][0][0])
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.set_request',
@@ -1584,8 +1584,11 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('callback', res)
         self.assertIn('bodhi-2.0-1.fc17', res)
 
-    def test_get_single_update_rss(self):
-        self.app.get('/updates/bodhi-2.0-1.fc17',
+    def test_get_single_update_rss_fail_406(self):
+        """Test a 406 return status if we try to get a single update via rss."""
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+
+        self.app.get(f'/updates/{update.alias}',
                      headers={'Accept': 'application/atom+xml'},
                      status=406)
 
@@ -1662,7 +1665,7 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get('/rss/updates/',
                            headers={'Accept': 'application/atom+xml'})
         self.assertIn('application/rss+xml', res.headers['Content-Type'])
-        self.assertIn('bodhi-2.0-1.fc17', res)
+        self.assertIn('FEDORA-2019-a3bbe1a8f2', res)
         self.assertIn('Released updates', res)
         self.assertIn('All updates', res)
 
@@ -5280,7 +5283,7 @@ class TestWaiveTestResults(BaseTestCase):
         # The test gating status should have been reset to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
         # Check for the comment multiple ways
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
         self.assertEqual(up.comments[-1].text, expected_comment)
 
@@ -5375,7 +5378,7 @@ class TestWaiveTestResults(BaseTestCase):
         # The test gating status should have been reset to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
         # Check for the comment multiple ways
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
         self.assertEqual(up.comments[-1].text, expected_comment)
 
@@ -5458,7 +5461,7 @@ class TestWaiveTestResults(BaseTestCase):
         # The test gating status should have been reset to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
         # Check for the comment multiple ways
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
         self.assertEqual(up.comments[-1].text, expected_comment)
 
@@ -5557,7 +5560,7 @@ class TestWaiveTestResults(BaseTestCase):
         # The test gating status should have been updated to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
         # Check for the comment multiple ways
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
         self.assertEqual(up.comments[-1].text, expected_comment)
 

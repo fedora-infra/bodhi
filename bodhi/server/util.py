@@ -24,7 +24,6 @@ import functools
 import hashlib
 import json
 import os
-import pkg_resources
 import re
 import socket
 import subprocess
@@ -40,6 +39,7 @@ import libcomps
 import libravatar
 import librepo
 import markdown
+import pkg_resources
 import requests
 import rpm
 
@@ -415,7 +415,7 @@ def avatar(context, username, size):
         )
 
     def work(username, size):
-        openid = "http://%s.id.fedoraproject.org/" % username
+        openid = "http://" + config.get('openid_template').format(username=username) + "/"
         if config.get('libravatar_enabled'):
             if config.get('libravatar_dns'):
                 return get_libravatar_url(openid, https, size)
@@ -1247,6 +1247,7 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
             service. If this is set to None, the JSON response will be used as the error message.
         method (basestring): The HTTP method to use for the request. Defaults to ``GET``.
         data (dict): Query string parameters that will be sent along with the request to the server.
+        headers (dict): The headers to send along with the request.
         retries (int): The number of times to retry, each after a 1 second sleep, if we get a
             non-200 HTTP code. Defaults to 3.
     Returns:

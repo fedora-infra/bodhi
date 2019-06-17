@@ -17,11 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines utilities for accessing Bugzilla."""
 
+from collections import namedtuple
 from xmlrpc import client as xmlrpc_client
 import logging
 import typing
 
-from collections import namedtuple
 import bugzilla
 
 from bodhi.server.config import config

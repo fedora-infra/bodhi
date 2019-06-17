@@ -101,7 +101,7 @@ def rss(info):
         getters = {
             'updates': {
                 'title': operator.itemgetter('alias'),
-                'link': linker('update', 'id', 'title'),
+                'link': linker('update', 'id', 'alias'),
                 'description': operator.itemgetter('notes'),
                 'pubdate': lambda obj: utc.localize(obj['date_submitted']),
             },

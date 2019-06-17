@@ -24,18 +24,16 @@ those stable updates with the testing tags for 1 day before untagging.
 https://github.com/fedora-infra/bodhi/issues/576
 """
 
+from datetime import datetime, timedelta
 import os
 import sys
 import logging
 
-from datetime import datetime, timedelta
-
 from pyramid.paster import get_appsettings
-
-from ..models import Release, ReleaseState, Update, UpdateStatus
 
 from bodhi.server import buildsys, Session, initialize_db
 from bodhi.server.logging import setup as setup_logging
+from ..models import Release, ReleaseState, Update, UpdateStatus
 
 
 def usage(argv):

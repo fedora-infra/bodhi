@@ -20,10 +20,14 @@
 from textwrap import wrap
 import os
 import smtplib
+import typing
 
 from bodhi.server import log
 from bodhi.server.config import config
 from bodhi.server.util import get_rpm_header, get_absolute_path
+
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from bodhi.server.models import Update  # noqa: 401
 
 
 #
@@ -238,14 +242,14 @@ link below:
 }
 
 
-def read_template(name):
+def read_template(name: str) -> str:
     """
     Read template text from file.
 
     Args:
-        name (basestring): The name of the email template stored in 'release' table in database.
+        name: The name of the email template stored in 'release' table in database.
     Returns:
-        basestring: The text read from the file.
+        The text read from the file.
     """
     location = config.get('mail.templates_basepath')
     directory = get_absolute_path(location)
@@ -263,16 +267,16 @@ def read_template(name):
         log.error("Path does not exist: %s" % (template_path))
 
 
-def get_template(update, use_template='fedora_errata_template'):
+def get_template(update: 'Update', use_template: str = 'fedora_errata_template') -> list:
     """
     Build the update notice for a given update.
 
     Args:
-        update (bodhi.server.models.Update): The update to generate a template about.
-        use_template (basestring): The name of the variable in bodhi.server.mail that references the
+        update: The update to generate a template about.
+        use_template: The name of the variable in bodhi.server.mail that references the
             template to generate this notice with.
     Returns:
-        list: A list of templates for the given update.
+        A list of templates for the given update.
     """
     from bodhi.server.models import UpdateStatus, UpdateType
     use_template = read_template(use_template)
@@ -354,14 +358,14 @@ def get_template(update, use_template='fedora_errata_template'):
     return templates
 
 
-def _send_mail(from_addr, to_addr, body):
+def _send_mail(from_addr: str, to_addr: str, body: str) -> None:
     """
     Send emails with smtplib. This is a lower level function than send_e-mail().
 
     Args:
-        from_addr (str): The e-mail address to use in the envelope from field.
-        to_addr (str): The e-mail address to use in the envelope to field.
-        body (str): The body of the e-mail.
+        from_addr: The e-mail address to use in the envelope from field.
+        to_addr: The e-mail address to use in the envelope to field.
+        body: The body of the e-mail.
     """
     smtp_server = config.get('smtp_server')
     if not smtp_server:
@@ -381,16 +385,17 @@ def _send_mail(from_addr, to_addr, body):
             smtp.quit()
 
 
-def send_mail(from_addr, to_addr, subject, body_text, headers=None):
+def send_mail(from_addr: str, to_addr: str, subject: str, body_text: str,
+              headers: typing.Optional[dict] = None) -> None:
     """
     Send an e-mail.
 
     Args:
-        from_addr (str): The address to use in the From: header.
-        to_addr (str): The address to send the e-mail to.
-        subject (str): The subject of the e-mail.
-        body_text (str): The body of the e-mail to be sent.
-        headers (dict or None): A mapping of header fields to values to be included in the e-mail,
+        from_addr: The address to use in the From: header.
+        to_addr: The address to send the e-mail to.
+        subject: The subject of the e-mail.
+        body_text: The body of the e-mail to be sent.
+        headers: A mapping of header fields to values to be included in the e-mail,
             if not None.
     """
     if not from_addr:
@@ -413,18 +418,19 @@ def send_mail(from_addr, to_addr, subject, body_text, headers=None):
     _send_mail(from_addr, to_addr, body)
 
 
-def send(to, msg_type, update, sender=None, agent='bodhi'):
+def send(to: typing.Iterable[str], msg_type: str, update: 'Update',
+         sender: typing.Optional[str] = None, agent: str = 'bodhi') -> None:
     """
     Send an update notification email to a given recipient.
 
     Args:
-        to (iterable): An iterable strs of e-mail addresses to send an update e-mail to.
-        msg_type (basestring): The message template to use. Should be one of the keys in the
+        to: An iterable strs of e-mail addresses to send an update e-mail to.
+        msg_type: The message template to use. Should be one of the keys in the
             MESSAGES template.
-        update (bodhi.server.models.Update): The Update we are mailing people about.
-        sender (str or None): The address to use in the From: header. If None, the
+        update: The Update we are mailing people about.
+        sender: The address to use in the From: header. If None, the
             "bodhi_email" setting will be used as the From: header.
-        agent (basestring): The username that performed the action that generated this e-mail.
+        agent: The username that performed the action that generated this e-mail.
     """
     critpath = getattr(update, 'critpath', False) and '[CRITPATH] ' or ''
     headers = {}
@@ -459,13 +465,13 @@ def send(to, msg_type, update, sender=None, agent='bodhi'):
         send_mail(sender, person, subject, body, headers=headers)
 
 
-def send_releng(subject, body):
+def send_releng(subject: str, body: str) -> None:
     """
     Send the Release Engineering team a message.
 
     Args:
-        subject (basestring): The subject of the e-mail.
-        body (basestring): The body of the e-mail.
+        subject: The subject of the e-mail.
+        body: The body of the e-mail.
     """
     send_mail(config.get('bodhi_email'), config.get('release_team_address'),
               subject, body)
