@@ -1060,6 +1060,7 @@ def taskotron_results(settings, entity='results/latest', max_queries=10, **kwarg
     Yield resultsdb results using query arguments.
 
     Args:
+        settings (bodhi.server.config.BodhiConfig): Bodhi's settings.
         entity (str): The API endpoint to use (see resultsdb documentation).
         max_queries (int): The maximum number of queries to perform (pages to retrieve). ``1`` means
             just a single page. ``None`` or ``0`` means no limit. Please note some tests might have
