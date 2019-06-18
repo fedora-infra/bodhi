@@ -54,7 +54,6 @@ class TestCheckPolicies(BaseTestCase):
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
             'verbose': True
@@ -87,7 +86,6 @@ class TestCheckPolicies(BaseTestCase):
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_testing',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
             'verbose': True,
@@ -112,9 +110,6 @@ class TestCheckPolicies(BaseTestCase):
                      'item': {'item': 'glibc-1.0-1.f26', 'type': 'koji_build'},
                      'type': 'test-result-missing', 'scenario': None},
                     {'testcase': 'dist.rpmdeplint',
-                     'item': {'original_spec_nvr': 'glibc-1.0-1.f26'},
-                     'type': 'test-result-missing', 'scenario': None},
-                    {'testcase': 'dist.rpmdeplint',
                      'item': {'item': update.alias, 'type': 'bodhi_update'},
                      'type': 'test-result-missing', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
@@ -130,7 +125,6 @@ class TestCheckPolicies(BaseTestCase):
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
             'verbose': True
@@ -163,7 +157,6 @@ class TestCheckPolicies(BaseTestCase):
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
             'verbose': True
@@ -195,7 +188,6 @@ class TestCheckPolicies(BaseTestCase):
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [{'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                        {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                         {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                          'type': 'bodhi_update'}],
             'verbose': True
@@ -232,7 +224,6 @@ class TestCheckPolicies(BaseTestCase):
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
             'verbose': True

@@ -24,6 +24,7 @@ import typing
 import os
 from functools import wraps
 
+import backoff
 import koji
 
 if typing.TYPE_CHECKING:  # pragma: no cover
@@ -525,6 +526,7 @@ class DevBuildsys:
             return headers
 
 
+@backoff.on_exception(backoff.expo, koji.AuthError, max_time=600)
 def koji_login(config: 'BodhiConfig', authenticate: bool) -> koji.ClientSession:
     """
     Login to Koji and return the session.
