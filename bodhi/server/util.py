@@ -717,7 +717,7 @@ def type2html(context, kind):
 
     Args:
         context (mako.runtime.Context): Unused.
-        severity (bodhi.server.models.UpdateType): The UpdateType to render as a span
+        kind (bodhi.server.models.UpdateType): The UpdateType to render as a span
             tag.
     Returns:
         str: An HTML span tag representing the UpdateType.
