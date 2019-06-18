@@ -98,6 +98,14 @@ class TestDownload(unittest.TestCase):
     """
     Test the download() function.
     """
+
+    EXAMPLE_QUERY_MUNCH_MULTI_BUILDS = copy.deepcopy(client_test_data.EXAMPLE_QUERY_MUNCH)
+    EXAMPLE_QUERY_MUNCH_MULTI_BUILDS.updates[0]['builds'].append({
+        'epoch': 0,
+        'nvr': 'nodejs-pants-0.3.0-2.fc25',
+        'signed': True
+    })
+
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
@@ -188,6 +196,30 @@ class TestDownload(unittest.TestCase):
                          'Downloading packages from FEDORA-2017-c95b33872d\n')
         call.assert_called_once_with([
             'koji', 'download-build', '--debuginfo', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=EXAMPLE_QUERY_MUNCH_MULTI_BUILDS, autospec=True)
+    @mock.patch('bodhi.client.subprocess.call', return_value=0)
+    def test_multiple_builds(self, call, send_request):
+        """
+        Assert correct behavior with multiple builds.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.download,
+            ['--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25',
+             '--arch', 'all'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         'Downloading packages from FEDORA-2017-c95b33872d\n')
+        call.assert_any_call([
+            'koji', 'download-build', 'nodejs-pants-0.3.0-2.fc25'])
+        call.assert_any_call([
+            'koji', 'download-build', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))

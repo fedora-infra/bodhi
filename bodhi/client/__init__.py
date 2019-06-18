@@ -741,12 +741,12 @@ def download(url, **kwargs):
                 # *think* that should ever be possible for these opts.
 >>>>>>> 9bc91a81c... Verify the correct number of received items.
 
-            args = ['koji', 'download-build']
-            if debuginfo:
-                args.append('--debuginfo')
             for update in resp.updates:
                 click.echo("Downloading packages from {0}".format(update['alias']))
                 for build in update['builds']:
+                    args = ['koji', 'download-build']
+                    if debuginfo:
+                        args.append('--debuginfo')
                     # subprocess is icky, but koji module doesn't
                     # expose this in any usable way, and we don't want
                     # to rewrite it here.
