@@ -557,8 +557,10 @@ def test_get_build_json(bodhi_container, db_container):
         http_response = c.get(f"/builds/{nvr}")
 
     build = {
-        "nvr": nvr, "release_id": release_id, "signed": signed, "type": build_type, "epoch": epoch,
+        "nvr": nvr, "release_id": release_id, "signed": signed, "type": build_type,
     }
+    if build_type == 'rpm':
+        build["epoch"] = epoch
     try:
         assert http_response.ok
         assert build == http_response.json()
@@ -604,6 +606,8 @@ def test_get_builds_json(bodhi_container, db_container):
                 build = {}
                 for value, description in zip(row, curs.description):
                     build[description.name] = value
+                if build["type"] != 'rpm':
+                    build.pop("epoch")
                 builds.append(build)
     conn.close()
 
