@@ -1247,6 +1247,7 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
             service. If this is set to None, the JSON response will be used as the error message.
         method (basestring): The HTTP method to use for the request. Defaults to ``GET``.
         data (dict): Query string parameters that will be sent along with the request to the server.
+        headers (dict): The headers to send along with the request.
         retries (int): The number of times to retry, each after a 1 second sleep, if we get a
             non-200 HTTP code. Defaults to 3.
     Returns:

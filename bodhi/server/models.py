@@ -1929,22 +1929,25 @@ class Update(Base):
 
         return util.greenwave_api_post(api_url, data)
 
+    @property
     def install_command(self) -> str:
         """
         Return the appropriate command for installing the Update.
 
+        There are three conditions under which the empty string is returned:
+            * If the update is not in a stable or testing repository.
+            * If the release has not specified a package manager.
+            * If the release has not specified a testing repository.
+
         Returns:
-            The dnf command to install the Update.
-        Raises:
-            ValueError: When the update is not in stable or testing state, or when
-                the package manager or the testing repository are not known.
+            The dnf command to install the Update, or the empty string.
         """
         if self.status != UpdateStatus.stable and self.status != UpdateStatus.testing:
-            raise ValueError('Only updates in stable or testing can be installed!')
+            return ''
 
         if self.release.package_manager == PackageManager.unspecified \
                 or self.release.testing_repository is None:
-            raise ValueError('We don\'t know the package manager or the testing repository!')
+            return ''
 
         command = 'sudo {} {}{} --advisory={}{}'.format(
             self.release.package_manager.value,

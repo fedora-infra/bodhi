@@ -4,6 +4,8 @@
   from urllib.parse import urljoin
 
   from bodhi.server import models
+
+  install_command = update.install_command
 %>
 
 <%block name="pagetitle">
@@ -676,13 +678,11 @@ $(document).ready(function(){
           </div>
           % endif
 
-          % if update.content_type:
-          % if update.status in [models.UpdateStatus.testing, models.UpdateStatus.stable] and not (update.release.package_manager == models.PackageManager.unspecified or update.release.testing_repository is None):
+          % if install_command:
           <div class="p-t-2">
           <h4>How to install</h4>
-            <pre style="position: relative;"><span class="label label-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${update.install_command}</code></pre>
+            <pre style="position: relative;"><span class="label label-default" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${install_command}</code></pre>
           </div>
-          % endif
           % endif
 
           <div class="p-t-2">

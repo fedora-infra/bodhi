@@ -1656,10 +1656,8 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        command = update.install_command()
-
         self.assertEqual(
-            command,
+            update.install_command,
             'sudo dnf upgrade --enablerepo=updates-testing --advisory={}'.format(update.alias))
 
     def test_upgrade_in_stable(self):
@@ -1670,10 +1668,8 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        command = update.install_command()
-
         self.assertEqual(
-            command,
+            update.install_command,
             'sudo dnf upgrade --advisory={}'.format(update.alias))
 
     def test_newpackage_in_testing(self):
@@ -1684,10 +1680,8 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        command = update.install_command()
-
         self.assertEqual(
-            command,
+            update.install_command,
             r'sudo dnf install --enablerepo=updates-testing --advisory={} \*'.format(update.alias))
 
     def test_newpackage_in_stable(self):
@@ -1698,10 +1692,8 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        command = update.install_command()
-
         self.assertEqual(
-            command,
+            update.install_command,
             r'sudo dnf install --advisory={} \*'.format(update.alias))
 
     def test_cannot_install(self):
@@ -1709,8 +1701,7 @@ class TestUpdateInstallCommand(BaseTestCase):
         update = model.Update.query.first()
         update.status = UpdateStatus.obsolete
 
-        with self.assertRaises(ValueError):
-            update.install_command()
+        self.assertEqual(update.install_command, '')
 
     def test_update_command_not_possible_missing_packagemanager(self):
         """The Release of the Update misses the package manager definition."""
@@ -1720,8 +1711,7 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.unspecified
         update.release.testing_repository = 'updates-testing'
 
-        with self.assertRaises(ValueError):
-            update.install_command()
+        self.assertEqual(update.install_command, '')
 
     def test_update_command_not_possible_missing_repo(self):
         """The Release of the Update misses the testing repository definition."""
@@ -1731,8 +1721,7 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = None
 
-        with self.assertRaises(ValueError):
-            update.install_command()
+        self.assertEqual(update.install_command, '')
 
 
 class TestUpdateGetTestcaseKarma(BaseTestCase):
