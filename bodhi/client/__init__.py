@@ -755,12 +755,12 @@ def download(url, **kwargs):
                 # Not sure if we need a check for > expecteds, I don't
                 # *think* that should ever be possible for these opts.
 
-            args = ['koji', 'download-build']
-            if debuginfo:
-                args.append('--debuginfo')
             for update in resp.updates:
                 click.echo(f"Downloading packages from {update['alias']}")
                 for build in update['builds']:
+                    args = ['koji', 'download-build']
+                    if debuginfo:
+                        args.append('--debuginfo')
                     # subprocess is icky, but koji module doesn't
                     # expose this in any usable way, and we don't want
                     # to rewrite it here.
