@@ -269,6 +269,33 @@ class TestDownload(unittest.TestCase):
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    @mock.patch('bodhi.client.subprocess.call', return_value=0)
+    def test_updateid(self, call, send_request):
+        """
+        Assert correct behavior with the --updateid flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.download,
+            ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertEqual(result.output,
+                         'Downloading packages from FEDORA-2017-c95b33872d\n')
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client, 'updates/', verb='GET',
+            params={'updateid': 'FEDORA-2017-c95b33872d'})
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        call.assert_called_once_with([
+            'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
+            'nodejs-grunt-wrap-0.3.0-2.fc25'])
+
 
 class TestComposeInfo(unittest.TestCase):
     """
