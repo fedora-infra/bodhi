@@ -76,12 +76,14 @@ class ComposeMessageTests(unittest.TestCase):
             'agent': 'mohanboddu',
             'repo': 'test_repo',
             'success': False,
+            'ctype': 'container',
         }
         msg = ComposeCompleteV1(
             body={
                 'agent': 'mohanboddu',
                 'success': False,
                 'repo': 'test_repo',
+                'ctype': 'container',
             }
         )
         check_message(msg, expected)
@@ -98,12 +100,14 @@ class ComposeMessageTests(unittest.TestCase):
             'agent': 'mohanboddu',
             'repo': 'test_repo',
             'success': True,
+            'ctype': 'container',
         }
         msg = ComposeCompleteV1(
             body={
                 'agent': 'mohanboddu',
                 'success': True,
                 'repo': 'test_repo',
+                'ctype': 'container',
             }
         )
         check_message(msg, expected)
