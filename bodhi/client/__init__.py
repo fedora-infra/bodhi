@@ -741,10 +741,19 @@ def download(url, **kwargs):
             resp = client.query(**{attr: value})
             if len(resp.updates) == 0:
                 click.echo(f"WARNING: No {attr} found!")
-            elif len(resp.updates) < expecteds:
-                click.echo(f"WARNING: Some {attr} not found!")
-            # Not sure if we need a check for > expecteds, I don't
-            # *think* that should ever be possible for these opts.
+            else:
+                if attr == 'updateid':
+                    resp_no = len(resp.updates)
+                else:
+                    # attr == 'builds', add up number of builds for each returned update
+                    resp_no = functools.reduce(
+                        lambda x, y: x + len(y.get('builds', [])), resp.updates, 0
+                    )
+
+                if resp_no < expecteds:
+                    click.echo(f"WARNING: Some {attr} not found!")
+                # Not sure if we need a check for > expecteds, I don't
+                # *think* that should ever be possible for these opts.
 
             args = ['koji', 'download-build']
             if debuginfo:
