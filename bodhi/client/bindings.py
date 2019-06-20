@@ -268,6 +268,8 @@ class BodhiClient(OpenIdBaseClient):
                 update have been confirmed by testers.
             require_testcases (bool): A boolean to require that this update passes
                 all test cases before reaching stable.
+            from_tag (str): The name of a Koji tag from which to pull builds
+                instead of providing them manually in `builds`.
         Returns:
             The Bodhi server's response to the request.
         """
