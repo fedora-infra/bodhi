@@ -600,8 +600,8 @@ def query(url: str, debug: bool, mine: bool = False, rows: typing.Optional[int] 
     Args:
         url: The URL of a Bodhi server to create the update on. Ignored if staging is
                        True.
-        mine: If the --mine flag was set
         debug: If the --debug flag was set
+        mine: If the --mine flag was set
         rows: How many rows to fetch
         kwargs: Other keyword arguments passed to us by click.
     """
@@ -927,10 +927,9 @@ def query_buildroot_overrides(
     Query the buildroot overrides.
 
     Args:
-        user: If supplied, overrides for this user will be queried.
-        staging: Whether to use the staging server or not.
-        mine: Whether to use the --mine flag was given.
         url: The URL of a Bodhi server to create the update on. Ignored if staging is True.
+        user: If supplied, overrides for this user will be queried.
+        mine: Whether to use the --mine flag was given.
         packages: If supplied, the overrides for these package are queried
         expired: If supplied, True returns only expired overrides, False only active.
         releases: If supplied, the overrides for these releases are queried.
