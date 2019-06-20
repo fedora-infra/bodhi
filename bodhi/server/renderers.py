@@ -48,7 +48,7 @@ def rss(info):
                 be different types of objects, such as updates, users, comments, or overrides.
             system (pyramid.events.BeforeRender): Used to get the current request.
         Returns:
-            basestring: An RSS document representing the given data.
+            str: An RSS document representing the given data.
         """
         request = system.get('request')
         if request is not None:

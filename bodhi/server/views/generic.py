@@ -152,8 +152,8 @@ def get_update_counts(releaseid):
         stable_security_total
 
     Args:
-        request (pyramid.util.Request): The current request
-        releaseid (basestring): The id of the Release object you would like the counts performed on
+        request (pyramid.request.Request): The current request
+        releaseid (str): The id of the Release object you would like the counts performed on
     Returns:
         dict: A dictionary expressing the counts, as described above.
     """
@@ -227,7 +227,7 @@ def new_update(request):
     Return the new update form.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
     Returns:
         dict: A dictionary with four keys. "update" indexes None. "types" indexes a list of the
             possible UpdateTypes. "severities" indexes a list of the possible severity values.
@@ -258,7 +258,7 @@ def latest_candidates(request):
     "package" parameter.
 
     Args:
-        request (pyramid.util.Request): The current request. The package name is specified in the
+        request (pyramid.request.Request): The current request. The package name is specified in the
             request's "package" parameter.
     Returns:
         list: A list of dictionaries of the found builds. Each dictionary has two keys: "nvr" maps
@@ -318,7 +318,7 @@ def latest_builds(request):
     Return a list of the latest builds for a given package.
 
     Args:
-        request (pyramid.util.Request): The current request. The request's "package" parameter is
+        request (pyramid.request.Request): The current request. The request's "package" parameter is
             used to pass the package name being queried.
     Returns:
         dict: A dictionary of the release dist tag to the latest build.
@@ -342,7 +342,7 @@ def new_override(request):
     Return the new buildroot override form.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
     Returns:
         dict: A dictionary of the form {nvr: nvr}, where the request nvr field indexes itself.
     Raises:
@@ -361,7 +361,7 @@ def api_version(request):
     Return the Bodhi API version.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
     Returns:
         dict: A dictionary with a "version" key indexing a string of the Bodhi version.
     """
@@ -378,7 +378,7 @@ def notfound_view(context, request):
 
     Args:
         context (pyramid.httpexceptions.HTTPNotFound): The 404 not found error.
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
     Returns:
         bodhi.server.services.errors.html_handler: A pyramid.httpexceptions.HTTPError to be rendered
             to the user for the 404.
@@ -399,7 +399,7 @@ def exception_html_view(exc, request):
 
     Args:
         exc (Exception): The unhandled exception.
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
     Returns:
         bodhi.server.services.errors.html_handler: A pyramid.httpexceptions.HTTPError to be rendered
             to the user for the given exception.
@@ -435,7 +435,7 @@ def exception_json_view(exc, request):
 
     Args:
         exc (Exception): The unhandled exception.
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
     Returns:
         bodhi.server.services.errors.json_handler: A pyramid.httpexceptions.HTTPError to be rendered
             to the user for the given exception.

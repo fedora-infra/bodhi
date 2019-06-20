@@ -235,6 +235,15 @@ class SaveUpdateSchema(CSRFProtectedSchema, colander.MappingSchema):
         colander.Boolean(),
         missing=True,
     )
+    autotime = colander.SchemaNode(
+        colander.Boolean(),
+        missing=True,
+    )
+    stable_days = colander.SchemaNode(
+        colander.Integer(),
+        validator=colander.Range(min=0),
+        missing=0,
+    )
 
 
 class Cosmetics(colander.MappingSchema):

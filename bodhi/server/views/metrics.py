@@ -64,7 +64,7 @@ def metrics(request):
     Return a response with metric data to be graphed.
 
     Args:
-        request (pyramid.util.Request): The current Request.
+        request (pyramid.request.Request): The current Request.
     Returns:
         dict: A dictionary with keys 'data', 'ticks', 'eldata', and 'elticket'. The 'el' prefixed
             keys are for enterprise Linux. These data are used to render the graphs by the template

@@ -24,6 +24,7 @@ import typing
 import os
 from functools import wraps
 
+import backoff
 import koji
 
 if typing.TYPE_CHECKING:  # pragma: no cover
@@ -410,7 +411,7 @@ class DevBuildsys:
         Retrieve the given tag from koji.
 
         Args:
-            taginfo (int or basestring): The tag you want info about.
+            taginfo (int or str): The tag you want info about.
             strict (bool): If True, raise an Exception if epel tags are queried. Defaults to False.
         Returns:
             dict or None: A dictionary of tag information, or None if epel is requested and strict
@@ -525,6 +526,7 @@ class DevBuildsys:
             return headers
 
 
+@backoff.on_exception(backoff.expo, koji.AuthError, max_time=600)
 def koji_login(config: 'BodhiConfig', authenticate: bool) -> koji.ClientSession:
     """
     Login to Koji and return the session.

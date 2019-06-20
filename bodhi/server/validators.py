@@ -79,7 +79,7 @@ def postschema_validator(f):
         Run the validator, but only if there aren't errors and there is validated data.
 
         Args:
-            request (pyramid.util.Request): The current web request.
+            request (pyramid.request.Request): The current web request.
             kwargs (dict): The other arguments to pass on to the wrapped validator.
         """
         # The check on request.errors is to make sure we don't bypass other checks without
@@ -100,7 +100,7 @@ def validate_csrf_token(node, value):
 
     Args:
         node (colander.SchemaNode): The Colander Schema Node that validates the token.
-        value (basestring): The value of the CSRF to be validated.
+        value (str): The value of the CSRF to be validated.
     Raises:
         colander.Invalid: If the CSRF token does not match the expected value.
     """
@@ -115,8 +115,8 @@ def cache_tags(request, build):
     Cache the tags for a koji build.
 
     Args:
-        request (pyramid.util.Request): The current request.
-        build (basestring): The NVR of the build to cache.
+        request (pyramid.request.Request): The current request.
+        build (str): The NVR of the build to cache.
     Returns:
         list or None: The list of tags, or None if there was a failure communicating with koji.
     """
@@ -141,8 +141,8 @@ def cache_release(request, build):
     Cache the builds release from the request.
 
     Args:
-        request (pyramid.util.Request): The current request.
-        build (basestring): The NVR of the build to cache.
+        request (pyramid.request.Request): The current request.
+        build (str): The NVR of the build to cache.
     Returns:
         Release or None: The release object, or None if no release can be matched to the tags
             associated with the build.
@@ -168,8 +168,8 @@ def cache_nvrs(request, build):
     Cache the NVR from the given build on the request, and the koji getBuild() response.
 
     Args:
-        request (pyramid.util.Request): The current request.
-        build (basestring): The NVR of the build to cache.
+        request (pyramid.request.Request): The current request.
+        build (str): The NVR of the build to cache.
     Raises:
         ValueError: If the build could not be found in koji.
         koji.GenericError: If an error was thrown by koji's getBuild() call.
@@ -192,12 +192,12 @@ def cache_nvrs(request, build):
 
 
 @postschema_validator
-def validate_nvrs(request, **kwargs):
+def validate_build_nvrs(request, **kwargs):
     """
     Ensure that the given builds reference valid Build objects.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     for build in request.validated.get('builds', []):
@@ -221,7 +221,7 @@ def validate_builds(request, **kwargs):
     Ensure that the builds parameter is valid for the request.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     edited = request.validated.get('edited')
@@ -269,7 +269,7 @@ def validate_build_tags(request, **kwargs):
     Ensure that all of the referenced builds are tagged as candidates.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     tag_types, tag_rels = Release.get_tags(request.db)
@@ -320,7 +320,7 @@ def validate_tags(request, **kwargs):
     Ensure that the referenced tags are valid Koji tags.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     tag_types, tag_rels = Release.get_tags(request.db)
@@ -346,7 +346,7 @@ def validate_acls(request, **kwargs):
     Ensure the user has commit privs to these builds or is an admin.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     if not request.user:
@@ -497,16 +497,16 @@ def validate_acls(request, **kwargs):
 
 
 @postschema_validator
-def validate_uniqueness(request, **kwargs):
+def validate_build_uniqueness(request, **kwargs):
     """
     Check for multiple builds from the same package and same release.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     builds = request.validated.get('builds', [])
-    if not builds:  # validate_nvr failed
+    if not builds:  # validate_build_nvrs failed
         return
     for build1 in builds:
         rel1 = cache_release(request, build1)
@@ -544,7 +544,7 @@ def validate_enums(request, **kwargs):
     Convert from strings to our enumerated types.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     for param, enum in (("request", UpdateRequest),
@@ -568,7 +568,7 @@ def validate_packages(request, **kwargs):
     Make sure referenced packages exist.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     packages = request.validated.get("packages")
@@ -600,7 +600,7 @@ def validate_updates(request, **kwargs):
     Make sure referenced updates exist.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     updates = request.validated.get("updates")
@@ -633,7 +633,7 @@ def validate_groups(request, **kwargs):
     Make sure the referenced groups exist.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     groups = request.validated.get("groups")
@@ -666,7 +666,7 @@ def validate_release(request, **kwargs):
     Make sure the referenced release exists.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     releasename = request.validated.get("release")
@@ -691,7 +691,7 @@ def validate_releases(request, **kwargs):
     Make sure referenced releases exist.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     releases = request.validated.get("releases")
@@ -727,7 +727,7 @@ def validate_bugs(request, **kwargs):
     Ensure that the list of bugs are all valid integers.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     bugs = request.validated.get('bugs')
@@ -745,7 +745,7 @@ def validate_severity(request, **kwargs):
     Ensure that severity is specified for a 'security' update.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     type = request.validated.get('type')
@@ -762,7 +762,7 @@ def validate_update(request, **kwargs):
     Make sure the requested update exists.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     idx = request.validated.get('update')
@@ -782,7 +782,7 @@ def ensure_user_exists(param, request):
 
     Args:
         param (string): Request parameter that references a username to be validated.
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     users = request.validated.get(param)
@@ -814,7 +814,7 @@ def validate_username(request, **kwargs):
     Make sure the referenced user exists.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     return ensure_user_exists("user", request)
@@ -825,7 +825,7 @@ def validate_update_owner(request, **kwargs):
     Make sure the referenced update owner is an existing user.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     return ensure_user_exists("update_owner", request)
@@ -836,7 +836,7 @@ def validate_ignore_user(request, **kwargs):
     Make sure the ignore_user parameter references an existing user.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     return ensure_user_exists("ignore_user", request)
@@ -848,7 +848,7 @@ def validate_update_id(request, **kwargs):
     Ensure that a given update id exists.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     update = Update.get(request.matchdict['id'])
@@ -870,7 +870,7 @@ def _conditionally_get_update(request):
 
     # This may or may not be true.. if a *different* validator runs first, then
     # request.validated['update'] will be an Update object.  But if it does
-    # not, then request.validated['update'] will be a unicode object.
+    # not, then request.validated['update'] will be a str object.
     # So.. we have to handle either situation.  It is, however, not our
     # responsibility to put the update object back in the request.validated
     # dict.  Note, for speed purposes, sqlalchemy should cache this for us.
@@ -886,7 +886,7 @@ def validate_bug_feedback(request, **kwargs):
     Ensure that bug feedback references bugs associated with the given update.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     feedback = request.validated.get('bug_feedback')
@@ -927,7 +927,7 @@ def validate_testcase_feedback(request, **kwargs):
     Ensure that the referenced test case exists and is associated with the referenced package.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     feedback = request.validated.get('testcase_feedback')
@@ -942,7 +942,7 @@ def validate_testcase_feedback(request, **kwargs):
 
     # This may or may not be true.. if a *different* validator runs first, then
     # request.validated['update'] will be an Update object.  But if it does
-    # not, then request.validated['update'] will be a unicode object.
+    # not, then request.validated['update'] will be a str object.
     # So.. we have to handle either situation.  It is, however, not our
     # responsibility to put the update object back in the request.validated
     # dict.  Note, for speed purposes, sqlalchemy should cache this for us.
@@ -982,7 +982,7 @@ def validate_comment_id(request, **kwargs):
     Ensure that a given comment id exists.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     idx = request.matchdict['id']
@@ -1009,7 +1009,7 @@ def validate_override_builds(request, **kwargs):
     Ensure that the override builds are properly referenced.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     nvrs = splitter(request.validated['nvr'])
@@ -1041,8 +1041,8 @@ def _validate_override_build(request, nvr, db):
     Workhorse function for validate_override_builds.
 
     Args:
-        request (pyramid.util.Request): The current request.
-        nvr (basestring): The NVR for a :class:`Build`.
+        request (pyramid.request.Request): The current request.
+        nvr (str): The NVR for a :class:`Build`.
         db (sqlalchemy.orm.session.Session): A database session.
     Returns:
         bodhi.server.models.Build: A build that matches the given nvr.
@@ -1125,7 +1125,7 @@ def validate_expiration_date(request, **kwargs):
     Ensure the expiration date is in the future.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     expiration_date = request.validated.get('expiration_date')
@@ -1155,7 +1155,7 @@ def _get_valid_requirements(request, requirements):
     Return a list of valid testcases from taskotron.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         requirements (list): A list of strings that identify test cases.
     Returns:
         generator: An iterator over the test case names that exist in taskotron.
@@ -1176,7 +1176,7 @@ def validate_requirements(request, **kwargs):
     Validate the requirements parameter for the stack.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     requirements = request.validated.get('requirements')
@@ -1203,7 +1203,7 @@ def validate_request(request, **kwargs):
     Ensure that this update is newer than whatever is in the requested state.
 
     Args:
-        request (pyramid.util.Request): The current request.
+        request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
     log.debug('validating request')

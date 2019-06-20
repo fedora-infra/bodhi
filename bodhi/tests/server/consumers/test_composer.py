@@ -194,7 +194,7 @@ class TestComposer(base.BaseTestCase):
         Args:
             composer_thread (bodhi.server.consumers.composer.ComposerThread): The ComposerThread
                 that Pungi is running inside.
-            tag (basestring): The type of tag you wish to compose ("stable_tag" or "testing_tag").
+            tag (str): The type of tag you wish to compose ("stable_tag" or "testing_tag").
             release (bodhi.server.models.Release): The Release you are composing.
             empty (bool): Whether to make an empty folder.
             noarches (bool): Whether to create a base compose dir without arches.
@@ -331,15 +331,23 @@ That was the actual one''' % compose_dir
             # The Compose's state should not have been altered.
             self.assertEqual(compose.state, ComposeState.requested)
 
-    def test_push_invalid_compose(self):
-        msg = self._make_msg()
-        msg.body['composes'][0]['release_id'] = 65535
+    @mock.patch('bodhi.server.consumers.composer.log.info')
+    def test__get_composes_not_found(self, info):
+        """
+        Test _get_composes() with a message referencing a Compose that does not exist.
 
-        with self.assertRaises(Exception) as exc:
-            with mock_sends(*[base_schemas.BodhiMessage] * 5):
-                self.handler(msg)
+        We don't want Bodhi to Nack messages that reference Composes that no longer exist, because
+        that will lead to Nack loops. If we receive a message like this, _get_composes() should just
+        return the empty list. See https://github.com/fedora-infra/bodhi/issues/3318
+        """
+        message = self._make_msg().body
+        message['composes'][0]['release_id'] = 65535
 
-        self.assertEqual(str(exc.exception), 'No row was found for one()')
+        composes = self.handler._get_composes(message)
+
+        self.assertEqual(composes, [])
+        info.assert_called_once_with(
+            'Ignoring a compose message that references non-existing Composes')
 
     def test__get_composes_duplicate(self):
         """Test _get_composes() when a duplicate message is received."""

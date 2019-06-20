@@ -12,16 +12,16 @@ Before you submit a pull request to Bodhi, please ensure that it meets these cri
 
 * All tests must pass.
 * New code must have 100% test coverage. This one is particularly important, as we don't want to
-  deploy any broken code into production. After you've run ``btest``, you can verify your new code's
-  test coverage with ``bdiff-cover`` in the Vagrant environment, or
-  ``diff-cover coverage.xml --compare-branch=origin/develop --fail-under=100`` if you are not using
-  Vagrant.
+  deploy any broken code into production. At the end of ``btest`` run, you can see your code coverage.
 * New functions, methods, and classes must have docblocks that explain what the code block is, and
   describing any parameters it accepts and what it returns (if anything). You can use the
-  ``pydocstyle`` utility to automatically check your code for this.
-* Parameter and return value types should be declared using `type hints`_.
+  ``pydocstyle`` utility to automatically check your code for this. You can also run ``bci pydocstyle``
+  in Vagrant.
+* Parameter and return value types should be declared using `type hints`_. You can test this by running
+  ``bci mypy`` in Vagrant.
 * New code must follow `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`_. You can use the
-  ``flake8`` utility to automatically check your code.
+  ``flake8`` utility to automatically check your code. Alternatively you can run ``bci flake8``
+  in Vagrant.
 * Add an entry to `docs/user/release_notes.rst`_ for any changes you make that should be in release
   notes.
 * Make sure your commits are atomic. With only rare exceptions, each improvement or bug fix should

@@ -1,0 +1,43 @@
+amqp_url = "amqp:///"
+callback = "fm_dumper:callback"
+topic_prefix = "org.fedoraproject.prod"
+
+[[bindings]]
+queue = "dumper"
+exchange = "amq.topic"
+routing_keys = ["#"]
+
+[client_properties]
+app = "dumper"
+
+[queues.dumper]
+durable = true
+auto_delete = false
+exclusive = false
+arguments = {}
+
+[log_config]
+version = 1
+disable_existing_loggers = true
+
+[log_config.formatters.simple]
+format = "%(asctime)s [%(name)s %(levelname)s] %(message)s"
+
+[log_config.handlers.console]
+class = "logging.StreamHandler"
+formatter = "simple"
+stream = "ext://sys.stdout"
+
+[log_config.loggers.fedora_messaging]
+level = "INFO"
+propagate = false
+handlers = ["console"]
+
+[log_config.loggers.pika]
+level = "WARNING"
+propagate = false
+handlers = ["console"]
+
+[log_config.root]
+level = "INFO"
+handlers = ["console"]

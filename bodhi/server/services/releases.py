@@ -67,7 +67,7 @@ def get_release_html(request):
     Args:
         request (pyramid.Request): The current request.
     Returns:
-        basestring: An HTML representation of the requested Release.
+        str: An HTML representation of the requested Release.
     """
     id = request.matchdict.get('name')
     release = Release.get(id)

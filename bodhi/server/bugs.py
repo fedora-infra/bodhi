@@ -109,7 +109,7 @@ class Bugzilla(object):
         Args:
             bug_id: The id of the bug you want a URL for.
         Returns:
-            basestring: The requested URL.
+            str: The requested URL.
         """
         return "%s/show_bug.cgi?id=%s" % (config['bz_baseurl'], bug_id)
 

@@ -186,7 +186,7 @@ class BodhiClient(OpenIdBaseClient):
             base_url: The URL of the Bodhi server to connect to. Ignored if
                       ```staging``` is True.
             username: The username to use to authenticate with the server.
-            password (basestring): The password to use to authenticate with the server.
+            password: The password to use to authenticate with the server.
             staging: If True, use the staging server. If False, use base_url.
             openid_api: If not None, the URL to an OpenID API to use to authenticate
                 to Bodhi. Ignored if staging is True.
@@ -233,18 +233,23 @@ class BodhiClient(OpenIdBaseClient):
         the ``edited`` keyword argument.
 
         Args:
-            display_name (basestring): The name of the update.
-            builds (basestring): A list of koji builds for this update.
-            type (basestring): The type of this update: ``security``, ``bugfix``,
+            display_name (str): The name of the update.
+            builds (str): A list of koji builds for this update.
+            type (str): The type of this update: ``security``, ``bugfix``,
                 ``enhancement``, and ``newpackage``.
-            bugs (basestring): A list of Red Hat Bugzilla ID's associated with this
+            bugs (str): A list of Red Hat Bugzilla ID's associated with this
                 update.
-            notes (basestring): Details as to why this update exists.
-            request (basestring): Request for this update to change state, either to
+            notes (str): Details as to why this update exists.
+            request (str): Request for this update to change state, either to
                 ``testing``, ``stable``, ``unpush``, ``obsolete`` or None.
             close_bugs (bool): Close bugs when update is stable.
-            suggest (basestring): Suggest that the user reboot or logout after update.
+            suggest (str): Suggest that the user reboot or logout after update.
                 (``reboot``, ``logout``).
+            autotime (bool): Allow bodhi to automatically change the state of this
+                update based on the time spent in testing by this update. It
+                will push your update to ``stable`` once it reaches the ``stable_days``.
+            stable_days (int): The minimun amount of time an update has to spend in
+                ``testing`` before being automatically pushed to ``stable``.
             autokarma (bool): Allow bodhi to automatically change the state of this
                 update based on the ``karma`` from user feedback.  It will
                 push your update to ``stable`` once it reaches the ``stable_karma``
@@ -252,11 +257,11 @@ class BodhiClient(OpenIdBaseClient):
             stable_karma (int): The upper threshold for marking an update as
                 ``stable``.
             unstable_karma (int): The lower threshold for unpushing an update.
-            edited (basestring): The update alias of the existing update that we are
+            edited (str): The update alias of the existing update that we are
                 editing.
-            severity (basestring): The severity of this update (``urgent``, ``high``,
+            severity (str): The severity of this update (``urgent``, ``high``,
                 ``medium``, ``low``).
-            requirements (basestring): A list of required Taskotron tests that must pass
+            requirements (str): A list of required Taskotron tests that must pass
                 for this update to reach stable. (e.g. ``dist.rpmdeplint``,
                 ``dist.upgradepath``, ``dist.rpmlint``, etc).
             require_bugs (bool): A boolean to require that all of the bugs in your
@@ -331,45 +336,45 @@ class BodhiClient(OpenIdBaseClient):
         Query bodhi for a list of updates.
 
         Args:
-            alias (basestring): The update alias.
-            updateid (basestring): The update ID (eg: FEDORA-2015-0001).
-            content_type (basestring): A content type (rpm, module) to limit the query to.
-            releases (basestring): A comma separated list of releases that you wish to query updates
+            alias (str): The update alias.
+            updateid (str): The update ID (eg: FEDORA-2015-0001).
+            content_type (str): A content type (rpm, module) to limit the query to.
+            releases (str): A comma separated list of releases that you wish to query updates
                 for.
-            status (basestring): The update status (``pending``, ``testing``, ``stable``,
+            status (str): The update status (``pending``, ``testing``, ``stable``,
                 ``obsolete``, ``unpushed``)
-            type (basestring): The type of the update: ``security``, ``bugfix``,
+            type (str): The type of the update: ``security``, ``bugfix``,
                 ``enhancement``, and ``newpackage``.
-            bugs (basestring): A comma separated list of Red Hat Bugzilla IDs.
-            request (basestring): An update request to query for
+            bugs (str): A comma separated list of Red Hat Bugzilla IDs.
+            request (str): An update request to query for
                 ``testing``, ``stable``, ``unpush``, ``obsolete`` or None.
             mine (bool): If True, only query the users updates. Default: False.
-            packages (basestring): A space or comma delimited list of package names.
+            packages (str): A space or comma delimited list of package names.
             limit (int): A deprecated argument, sets ``rows_per_page``. See its docstring for more
                 info.
-            approved_before (basestring): A datetime string.
-            approved_since (basestring): A datetime string.
-            builds (basestring): A space or comma delimited string of build nvrs.
+            approved_before (str): A datetime string.
+            approved_since (str): A datetime string.
+            builds (str): A space or comma delimited string of build nvrs.
             critpath (bool): A boolean to query only critical path updates.
             locked (bool): A boolean to filter only locked updates.
-            modified_before (basestring): A datetime string to query updates that have been modified
+            modified_before (str): A datetime string to query updates that have been modified
                 before a certain time.
-            modified_since (basestring): A datetime string to query updates that have been modified
+            modified_since (str): A datetime string to query updates that have been modified
                 since a certain time.
             pushed (bool): A boolean to filter only pushed updates.
-            pushed_before (basestring): A datetime string to filter updates pushed before a certain
+            pushed_before (str): A datetime string to filter updates pushed before a certain
                 time.
-            pushed_since (basestring): A datetime string to filter updates pushed since a
+            pushed_since (str): A datetime string to filter updates pushed since a
                 certain time.
-            severity (basestring): A severity type to filter by (``unspecified``,
+            severity (str): A severity type to filter by (``unspecified``,
                 ``urgent``, ``high``, ``medium``, ``low``).
-            submitted_before (basestring): A datetime string to filter updates submitted
+            submitted_before (str): A datetime string to filter updates submitted
                 before a certain time.
-            submitted_since (basestring): A datetime string to filter updates submitted
+            submitted_since (str): A datetime string to filter updates submitted
                 after a certain time.
-            suggest (basestring): Query for updates that suggest a user restart
+            suggest (str): Query for updates that suggest a user restart
                 (``logout``, ``reboot``).
-            user (basestring): Query for updates submitted by a specific user.
+            user (str): Query for updates submitted by a specific user.
             rows_per_page (int): Limit the results to a certain number of rows per page
                 (min:1 max: 100 default: 20).
             page (int): Return a specific page of results.
@@ -508,13 +513,13 @@ class BodhiClient(OpenIdBaseClient):
         List buildroot overrides.
 
         Args:
-            user (basestring): A username whose buildroot overrides you want returned.
-            packages (basestring): Comma separated package names to filter buildroot overrides by.
+            user (str): A username whose buildroot overrides you want returned.
+            packages (str): Comma separated package names to filter buildroot overrides by.
             expired (bool): If True, only return expired overrides. If False, only return active
                 overrides.
-            releases (basestring): Comma separated Release shortnames to filter buildroot overrides
+            releases (str): Comma separated Release shortnames to filter buildroot overrides
                 by.
-            builds (basestring): Comma separated build NVRs to filter overrides by.
+            builds (str): Comma separated build NVRs to filter overrides by.
             rows_per_page (int): Limit the results to a certain number of rows per page.
                 (default:None)
             page (int): Return a specific page of results.
@@ -759,7 +764,7 @@ class BodhiClient(OpenIdBaseClient):
             minimal: If True, return a minimal one-line representation of the update.
                 Otherwise, return a more verbose representation. Defaults to False.
         Returns:
-            A human readable string describing the given update.
+            str: A human readable string describing the given update.
         """
         if isinstance(update, str):
             return update

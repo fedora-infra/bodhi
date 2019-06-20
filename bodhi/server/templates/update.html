@@ -214,9 +214,6 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
         // seem to break anything
         var arch = result.data.arch;
         var item = result.data.item;
-        if (item === undefined && testcase.startsWith('org.centos.prod.ci.pipeline')){
-            item = result.data.original_spec_nvr[0] + '#' + result.data.rev;
-        }
         var submit_time = new Date(result.submit_time);
 
         if (latest[item] === undefined)
@@ -930,7 +927,7 @@ $(document).ready(function(){
 
               <div  class="p-b-1">
                 <div>
-                  <strong>Autopush</strong>
+                  <strong>Autopush (karma)</strong>
                 </div>
                 <div>
                   % if update.autokarma is True:
@@ -942,8 +939,31 @@ $(document).ready(function(){
                     </td>
                   % elif update.autokarma is False:
                   <td>
-                    <span class='text-muted' data-toggle='tooltip' title='The update will never be automatically pushed
-                    to stable.'>
+                    <span class='text-muted' data-toggle='tooltip' title='The update will not be automatically pushed
+                    to stable based on karma.'>
+                      <span class='label label-danger'>Disabled</span>
+                    </span>
+                  </td>
+                  % endif
+                </div>
+              </div>
+
+              <div  class="p-b-1">
+                <div>
+                  <strong>Autopush (time)</strong>
+                </div>
+                <div>
+                  % if update.autotime is True:
+                  <td>
+                    <span class='text-muted' data-toggle='tooltip' title='The update will be automatically pushed
+                    to stable once the required time in testing is reached.'>
+                      <span class='label label-success'>Enabled</span>
+                    </span>
+                    </td>
+                  % elif update.autotime is False:
+                  <td>
+                    <span class='text-muted' data-toggle='tooltip' title='The update will not be automatically pushed
+                    to stable base on time in testing.'>
                       <span class='label label-danger'>Disabled</span>
                     </span>
                   </td>
