@@ -57,7 +57,7 @@ class FakeBugTracker(object):
             args: The list of args passed to the method.
             kwargs: The kwargs passed to the method.
         """
-        log.debug('__noop__(%s)' % str(args))
+        log.debug('__noop__(%s)', str(args))
 
     comment = update_details = modified = close = on_qa = __noop__
 
@@ -78,7 +78,7 @@ class Bugzilla(object):
         user = config.get('bodhi_email')
         password = config.get('bodhi_password')
         url = config.get("bz_server")
-        log.info("Using BZ URL %s" % url)
+        log.info("Using BZ URL %s", url)
         if config['bugzilla_api_key']:
             self._bz = bugzilla.Bugzilla(url=url, api_key=config.get('bugzilla_api_key'),
                                          cookiefile=None, tokenfile=None)
@@ -133,11 +133,11 @@ class Bugzilla(object):
                 except xmlrpc_client.Fault as e:
                     attempts += 1
                     log.error(
-                        "\nA fault has occurred \nFault code: %d \nFault string: %s" %
-                        (e.faultCode, e.faultString))
+                        "\nA fault has occurred \nFault code: %d \nFault string: %s",
+                        e.faultCode, e.faultString)
         except InvalidComment:
             log.error(
-                "Comment too long for bug #%d:  %s" % (bug_id, comment))
+                "Comment too long for bug #%d:  %s", bug_id, comment)
         except xmlrpc_client.Fault as err:
             if err.faultCode == 102:
                 log.info('Cannot retrieve private bug #%d.', bug_id)
@@ -146,7 +146,7 @@ class Bugzilla(object):
                     "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
                     bug_id, err.faultCode, err.faultString)
         except Exception:
-            log.exception("Unable to add comment to bug #%d" % bug_id)
+            log.exception("Unable to add comment to bug #%d", bug_id)
 
     def on_qa(self, bug_id: int, comment: str) -> None:
         """
@@ -165,10 +165,10 @@ class Bugzilla(object):
         try:
             bug = self.bz.getbug(bug_id)
             if bug.product not in config.get('bz_products'):
-                log.info("Skipping set on_qa on {0!r} bug #{1}".format(bug.product, bug_id))
+                log.info("Skipping set on_qa on %s bug #%s" % (repr(bug.product), bug_id))
                 return
             if bug.bug_status not in ('ON_QA', 'VERIFIED', 'CLOSED'):
-                log.debug("Setting Bug #%d to ON_QA" % bug_id)
+                log.debug("Setting Bug #%d to ON_QA", bug_id)
                 bug.setstatus('ON_QA', comment=comment)
             else:
                 bug.addcomment(comment)
@@ -180,7 +180,7 @@ class Bugzilla(object):
                     "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
                     bug_id, err.faultCode, err.faultString)
         except Exception:
-            log.exception("Unable to alter bug #%d" % bug_id)
+            log.exception("Unable to alter bug #%d", bug_id)
 
     def close(self, bug_id: int, versions: typing.Mapping[str, str], comment: str) -> None:
         """
@@ -198,7 +198,7 @@ class Bugzilla(object):
         try:
             bug = self.bz.getbug(bug_id)
             if bug.product not in config.get('bz_products'):
-                log.info("Skipping set closed on {0!r} bug #{1}".format(bug.product, bug_id))
+                log.info("Skipping set closed on %s bug #%s" % (repr(bug.product), bug_id))
                 return
             # If this bug is for one of these builds...
             if bug.component in versions:
@@ -281,10 +281,10 @@ class Bugzilla(object):
         try:
             bug = self.bz.getbug(bug_id)
             if bug.product not in config.get('bz_products'):
-                log.info("Skipping set modified on {0!r} bug #{1}".format(bug.product, bug_id))
+                log.info("Skipping set modified on %s bug #%s" % (repr(bug.product), bug_id))
                 return
             if bug.bug_status not in ('MODIFIED', 'VERIFIED', 'CLOSED'):
-                log.info('Setting bug #%s status to MODIFIED' % bug_id)
+                log.info('Setting bug #%s status to MODIFIED', bug_id)
                 bug.setstatus('MODIFIED', comment=comment)
             else:
                 bug.addcomment(comment)
@@ -296,7 +296,7 @@ class Bugzilla(object):
                     "Got fault from Bugzilla on #%d: fault code: %d, fault string: %s",
                     bug_id, err.faultCode, err.faultString)
         except Exception:
-            log.exception("Unable to alter bug #%s" % bug_id)
+            log.exception("Unable to alter bug #%s", bug_id)
 
 
 def set_bugtracker() -> None:
