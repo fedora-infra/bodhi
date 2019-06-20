@@ -16,7 +16,7 @@
 <div class="row">
   <div class="col-md-12">
     <!--<div class="card card-${util.karma2class(comment.karma)}">-->
-    <div class="card m-y-1">
+    <div class="card my-1">
       <div class="card-header clearfix">
         <span>
           % if comment.user:
@@ -34,19 +34,19 @@
           % endif
         </span>
 
-        <span class="pull-xs-right">
+        <span class="float-right">
           <a href="${comment.url()}" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
             ${util.age(comment.timestamp)}
           </a>
         </span>
       </div>
 
-      <div class="card-block p-b-1">
+      <div class="card-body pb-1">
         <div class="row">
         <div class="col-md-12">
           ${util.markup(comment.text) | n}
         </div>
-        <div class="col-md-12 p-t-2">
+        <div class="col-md-12 pt-2">
           % if comment.karma:
           <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
           % endif
