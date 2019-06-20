@@ -281,6 +281,8 @@ def _save_override(url: str, user: str, password: str, staging: bool, edit: bool
         password: The user's password.
         staging: Whether to use the staging server or not.
         edit: Set to True to edit an existing buildroot override.
+        openid_api: The URL to an OpenID server that can be used to authenticate to the Bodhi
+            server.
         kwargs: Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, username=user, password=password, staging=staging,
@@ -453,6 +455,7 @@ def _validate_edit_update(
     The update argument can only be an update id.
 
     Args:
+        ctx: The click Context. Unused.
         param: The name of the parameter being validated. Unused.
         value: The value of the value being validated.
     Returns:
@@ -599,6 +602,7 @@ def query(url: str, debug: bool, mine: bool = False, rows: typing.Optional[int] 
                        True.
         mine: If the --mine flag was set
         debug: If the --debug flag was set
+        rows: How many rows to fetch
         kwargs: Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
