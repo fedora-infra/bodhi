@@ -202,7 +202,7 @@ The ``updates`` command allows users to interact with bodhi updates.
         You can specify an architecture of packages to download. "all" will download packages for all architectures.
         Omitting this option will download packages for the architecture you are currently running.
 
-``bodhi updates new [options] <builds>``
+``bodhi updates new [options] <builds_or_tag>``
 
     Create a new bodhi update containing the builds, given as a comma separated list of NVRs. The
     ``new`` subcommand supports the following options:
@@ -271,6 +271,11 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         The name of the update
 
+    ``--from-tag``
+
+        If this flag is provided, ``<builds_or_tag>`` will be interpreted as a Koji tag and expand
+        to all latest builds in it. Only a single tag can be provided.
+
 ``bodhi updates edit [options] <update>``
 
     Edit an existing bodhi update, given an update id or an update title. The
@@ -333,6 +338,12 @@ The ``updates`` command allows users to interact with bodhi updates.
     ``--display-name <text>``
 
         The name of the update
+
+    ``--from-tag``
+
+        If given, for updates that were created from a Koji tag, this will update
+        the builds to the latest ones in the tag.
+
 
 ``bodhi updates query [options]``
 
