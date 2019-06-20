@@ -21,6 +21,8 @@ import shutil
 import tempfile
 from contextlib import contextmanager
 
+from fedora_messaging import message
+
 
 def make_db_and_user(db_container, name, use_dump=False):
     """Create a database and a user in PostgreSQL.
@@ -114,3 +116,21 @@ def replace_file(container, path, contents):
             yield
         finally:
             container.copy_to(backupfile, path)
+
+
+def get_sent_messages(rabbitmq_container):
+    """Read a file in a container.
+
+    Args:
+        rabbitmq_container (conu.DockerContainer): The RabbitMQ container.
+
+    Returns:
+        list(Message): A list of Message instance that were sent over the broker.
+    """
+    with tempfile.TemporaryDirectory() as tempdir:
+        destfile = os.path.join(tempdir, "file")
+        rabbitmq_container.copy_from("/var/log/fedora-messaging/messages.log", destfile)
+        with open(destfile, "r") as fh:
+            serialized_messages = fh.read().replace("\n", ",")
+    serialized_messages = "[%s]" % serialized_messages[:-1]
+    return message.loads(serialized_messages)

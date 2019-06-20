@@ -137,7 +137,8 @@ class BaseTestCaseMixin:
         'cors_connect_src': 'http://0.0.0.0:6543',
         'cors_origins_ro': 'http://0.0.0.0:6543',
         'cors_origins_rw': 'http://0.0.0.0:6543',
-        'sqlalchemy.url': DEFAULT_DB
+        'sqlalchemy.url': DEFAULT_DB,
+        'warm_cache_on_start': False
     }
 
     def _setup_method(self):
@@ -192,7 +193,7 @@ class BaseTestCaseMixin:
             app (TestApp): The app to use to get the token. Defaults to None, which will use
                 self.app.
         Returns:
-            basestring: A CSRF token.
+            str: A CSRF token.
         """
         if not app:
             app = self.app
@@ -205,7 +206,7 @@ class BaseTestCaseMixin:
         This is useful for tests that want to POST to the API to create an update.
 
         Args:
-            builds (basestring): A comma-separated list of NVRs to include in the update.
+            builds (str): A comma-separated list of NVRs to include in the update.
             stable_karma (int): The stable karma threshold to use on the update.
             unstable_karma (int): The unstable karma threshold to use on the update.
         """
@@ -253,7 +254,7 @@ class BaseTestCaseMixin:
         Args:
             build_nvrs (iterable): An iterable of 3-tuples. Each 3-tuple is strings that express
                 the name, version, and release of the desired build.
-            release_name (basestring): The name of the release to associate with the new updates.
+            release_name (str): The name of the release to associate with the new updates.
         Returns:
             bodhi.server.models.Update: The new update.
         """
@@ -264,7 +265,7 @@ class BaseTestCaseMixin:
         Create and return a :class:`Release` with the given version.
 
         Args:
-            version (basestring): A string of the version of the release, such as 27.
+            version (str): A string of the version of the release, such as 27.
         Returns:
             bodhi.server.models.Release: A new release.
         """
@@ -331,7 +332,7 @@ class DummyUser(object):
         request = pyramid.testing.DummyRequest(user=DummyUser('bowlofeggs'))
 
     Attributes:
-        name (basestring): The name of the user. Defaults to 'guest'.
+        name (str): The name of the user. Defaults to 'guest'.
     """
 
     def __init__(self, name='guest'):
@@ -339,7 +340,7 @@ class DummyUser(object):
         Set the name attribute.
 
         Args:
-            name (basestring): The user name.
+            name (str): The user name.
         """
         self.name = name
 
@@ -385,11 +386,11 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False):
     If the metadata doesn't exist, then create it.
 
     Args:
-        path (basestring): The directory to generate metadata for.
-        updateinfo (basestring or None or bool): The updateinfo to insert instead of example.
+        path (str): The directory to generate metadata for.
+        updateinfo (str or None or bool): The updateinfo to insert instead of example.
             No updateinfo is inserted if False is passed. Passing True provides undefined
             behavior.
-        comps (basestring or None): The comps to insert instead of example.
+        comps (str or None): The comps to insert instead of example.
         source (True): If True, do not insert comps or prestodelta. Defaults to False.
     """
     compsfile = '''<?xml version="1.0" encoding="UTF-8"?>

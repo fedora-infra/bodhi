@@ -57,7 +57,7 @@ class BuildrootOverrideMessage(BodhiMessage):
         Returns:
             A relevant URL.
         """
-        return "https://bodhi.fedoraproject.org/overrides/{nvr}".format(nvr=self.build.nvr)
+        return f"https://bodhi.fedoraproject.org/overrides/{self.build.nvr}"
 
     @property
     def packages(self) -> typing.Iterable[str]:

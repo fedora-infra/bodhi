@@ -21,9 +21,8 @@ from unittest import mock
 import copy
 import unittest
 
-import sqlalchemy
-
 from fedora_messaging.api import Message
+import sqlalchemy
 
 from bodhi.messages.schemas.update import UpdateEditV1, UpdateRequestTestingV1
 from bodhi.server import config, exceptions, models, util
@@ -164,9 +163,6 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                      'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                      'type': 'test-result-missing', 'scenario': None},
                     {'testcase': 'dist.rpmdeplint',
-                     'item': {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
-                     'type': 'test-result-missing', 'scenario': None},
-                    {'testcase': 'dist.rpmdeplint',
                      'item': {'item': update.alias, 'type': 'bodhi_update'},
                      'type': 'test-result-missing', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
@@ -202,9 +198,6 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                      'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
                      'type': 'test-result-missing', 'scenario': None},
                     {'testcase': 'dist.rpmdeplint',
-                     'item': {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
-                     'type': 'test-result-missing', 'scenario': None},
-                    {'testcase': 'dist.rpmdeplint',
                      'item': {'item': update.alias, 'type': 'bodhi_update'},
                      'type': 'test-result-missing', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
@@ -229,12 +222,11 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        message = UpdateEditV1(
+        message = UpdateRequestTestingV1(
             body={
                 'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
                            'user': {'name': 'brodhi'}, 'status': str(update.status),
-                           'request': str(update.request)},
-                'new_bugs': [12345]})
+                           'request': str(update.request)}})
 
         h(message)
 

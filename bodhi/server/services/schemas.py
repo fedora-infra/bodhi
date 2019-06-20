@@ -28,7 +28,7 @@ from bodhi.server import security
 from bodhi.server.services import errors
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    import pyramid.util.Request  # noqa: 401
+    import pyramid.request.Request  # noqa: 401
 
 
 READ_ACL = 'view_schemas'
@@ -44,7 +44,7 @@ class MessageSchemasV1:
     on a single schema are served at ``/message-schemas/v1/<topic>``.
     """
 
-    def __init__(self, request: 'pyramid.util.Request', context: None = None):
+    def __init__(self, request: 'pyramid.request.Request', context: None = None):
         """
         Initialize the MessageSchemas resource.
 

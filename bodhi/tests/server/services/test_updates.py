@@ -490,7 +490,49 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['bugs'][1]['bug_id'], 5678)
         self.assertEqual(up['bugs'][2]['bug_id'], 12345)
 
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_new_update_with_high_stable_days(self, publish, *args):
+        update = self.get_update('bodhi-2.0.0-2.fc17')
+        update['stable_days'] = 10
+        r = self.app.post_json('/updates/', update)
+        up = r.json_body
+
+        self.assertEqual(up['stable_days'], 10)
+
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_new_update_with_invalid_stable_days(self, publish, *args):
+        update = self.get_update('bodhi-2.0.0-2.fc17')
+        update['stable_days'] = -1
+        r = self.app.post_json('/updates/', update, status=400)
+        up = r.json_body
+
+        self.assertEqual(up['status'], 'error')
+        self.assertEqual(up['errors'][0]['description'], "-1 is less than minimum value 0")
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_edit_update_stable_days(self, publish, *args):
+        args = self.get_update(u'bodhi-2.0.0-2.fc17')
+        args['stable_days'] = '50'
+        r = self.app.post_json('/updates/', args)
+        self.assertEqual(r.json['stable_days'], 50)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_edit_update_too_low_stable_days(self, publish, *args):
+        args = self.get_update(u'bodhi-2.0.0-2.fc17')
+        args['stable_days'] = '1'
+        r = self.app.post_json('/updates/', args)
+        self.assertEqual(r.json['stable_days'], 7)
+        self.assertEqual(r.json['caveats'][0]['description'],
+                         'The number of stable days required was set to the mandatory '
+                         'release value of 7 days')
+
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_multiple_bugs_as_str(self, *args):
         update = self.get_update('bodhi-2.0.0-2.fc17')
@@ -613,7 +655,7 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(r['request'], 'testing')
 
         # Since we're obsoleting something owned by someone else.
-        self.assertEqual(r['caveats'][0]['description'],
+        self.assertEqual(r['caveats'][1]['description'],
                          'This update has obsoleted bodhi-2.0.0-2.fc17, '
                          'and has inherited its bugs and notes.')
 
@@ -658,13 +700,13 @@ class TestNewUpdate(BaseTestCase):
                 r = self.app.post_json('/updates/', args).json_body
 
         # Since we're trying to obsolete security update with non security update.
-        self.assertEqual(r['caveats'][0]['description'],
+        self.assertEqual(r['caveats'][1]['description'],
                          'Adjusting type of this update to security,'
                          'since it obsoletes another security update')
         self.assertEqual(r['request'], 'testing')
 
         # Since we're obsoleting something owned by someone else.
-        self.assertEqual(r['caveats'][1]['description'],
+        self.assertEqual(r['caveats'][2]['description'],
                          'This update has obsoleted bodhi-2.0.0-2.fc17, '
                          'and has inherited its bugs and notes.')
 
@@ -714,7 +756,7 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(r['request'], 'testing')
 
         # Since we're obsoleting something owned by someone else.
-        self.assertEqual(r['caveats'][0]['description'],
+        self.assertEqual(r['caveats'][1]['description'],
                          'This update has obsoleted bodhi-2.0.0-2.fc17, '
                          'and has inherited its bugs and notes.')
 
@@ -773,7 +815,7 @@ class TestNewUpdate(BaseTestCase):
 
         self.assertEqual(r['request'], 'testing')
         # The exception handler should have put an error message in the caveats.
-        self.assertEqual(r['caveats'][0]['description'],
+        self.assertEqual(r['caveats'][1]['description'],
                          "Problem obsoleting older updates: bet you didn't see this coming!")
         # Check for the comment multiple ways. The comment will be about the update being submitted
         # for testing instead of being about the obsoletion, since the obsoletion failed.
@@ -888,8 +930,8 @@ class TestSetRequest(BaseTestCase):
                 side_effect=BodhiException('BodhiException. oops!'))
     @mock.patch('bodhi.server.services.updates.Update.check_requirements',
                 return_value=(True, "a fake reason"))
-    @mock.patch('bodhi.server.services.updates.log.error')
-    def test_BodhiException_exception(self, log_error, check_requirements, send_request, *args):
+    @mock.patch('bodhi.server.services.updates.log.info')
+    def test_BodhiException_exception(self, log_info, check_requirements, send_request, *args):
         """Ensure that an BodhiException Exception is handled by set_request()."""
         nvr = 'bodhi-2.0-1.fc17'
 
@@ -906,8 +948,8 @@ class TestSetRequest(BaseTestCase):
         self.assertEqual(res.json_body['status'], 'error')
         self.assertEqual(res.json_body['errors'][0]['description'],
                          'BodhiException. oops!')
-        log_error.assert_called_once()
-        self.assertEqual("Failed to set the request: %s", log_error.call_args_list[0][0][0])
+        self.assertEqual(log_info.call_count, 2)
+        self.assertEqual("Failed to set the request: %s", log_info.call_args_list[1][0][0])
 
     @mock.patch(**mock_valid_requirements)
     @mock.patch('bodhi.server.services.updates.Update.set_request',
@@ -1584,8 +1626,11 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('callback', res)
         self.assertIn('bodhi-2.0-1.fc17', res)
 
-    def test_get_single_update_rss(self):
-        self.app.get('/updates/bodhi-2.0-1.fc17',
+    def test_get_single_update_rss_fail_406(self):
+        """Test a 406 return status if we try to get a single update via rss."""
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+
+        self.app.get(f'/updates/{update.alias}',
                      headers={'Accept': 'application/atom+xml'},
                      status=406)
 
@@ -3057,9 +3102,10 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.status, UpdateStatus.pending)
         self.assertEqual(up.request, UpdateRequest.testing)
 
-        text = str(config.get('testing_approval_msg_based_on_karma'))
+        text = str(config.get('testing_approval_msg'))
         up.comment(self.db, text, author='bodhi')
-        self.assertIn('pushed to stable now if the maintainer wishes', up.comments[-1]['text'])
+        self.assertEqual('This update can be pushed to stable now if the maintainer wishes',
+                         up.comments[-1]['text'])
 
     @mock.patch(**mock_valid_requirements)
     def test_obsoletion_locked_with_open_request(self, *args):
@@ -3711,8 +3757,11 @@ class TestUpdatesService(BaseTestCase):
             resp = self.app.post_json('/updates/', args)
 
         # Note that this does **not** obsolete the other update
-        self.assertEqual(len(resp.json_body['caveats']), 1)
+        self.assertEqual(len(resp.json_body['caveats']), 2)
         self.assertEqual(resp.json_body['caveats'][0]['description'],
+                         'The number of stable days required was set to the mandatory '
+                         'release value of 7 days')
+        self.assertEqual(resp.json_body['caveats'][1]['description'],
                          "Please be aware that there is another update in "
                          "flight owned by bob, containing "
                          "bodhi-2.0-2.fc17. Are you coordinating with "
@@ -3801,11 +3850,17 @@ class TestUpdatesService(BaseTestCase):
         data = r.json_body
 
         self.assertIn('caveats', data)
-        self.assertEqual(len(data['caveats']), 2)
+        self.assertEqual(len(data['caveats']), 4)
         self.assertEqual(data['caveats'][0]['description'],
                          "Your update is being split into 2, one for each release.")
+        self.assertEqual(data['caveats'][1]['description'],
+                         'The number of stable days required was set to the mandatory '
+                         'release value of 7 days')
+        self.assertEqual(data['caveats'][2]['description'],
+                         'The number of stable days required was set to the mandatory '
+                         'release value of 7 days')
         self.assertEqual(
-            data['caveats'][1]['description'],
+            data['caveats'][3]['description'],
             "This update has obsoleted bodhi-2.0-1.fc17, and has inherited its bugs and notes.")
 
         self.assertIn('updates', data)
@@ -4845,7 +4900,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(upd.autokarma, False)
         self.assertEqual(upd.pushed, True)
 
-        text = str(config.get('testing_approval_msg_based_on_karma'))
+        text = str(config.get('testing_approval_msg'))
         upd.comment(self.db, text, author='bodhi')
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
@@ -4896,7 +4951,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(upd.request, None)
         self.assertEqual(upd.autokarma, False)
 
-        text = str(config.get('testing_approval_msg_based_on_karma'))
+        text = str(config.get('testing_approval_msg'))
         upd.comment(self.db, text, author='bodhi')
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
@@ -5252,7 +5307,6 @@ class TestWaiveTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5280,7 +5334,7 @@ class TestWaiveTestResults(BaseTestCase):
         # The test gating status should have been reset to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
         # Check for the comment multiple ways
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
         self.assertEqual(up.comments[-1].text, expected_comment)
 
@@ -5331,7 +5385,6 @@ class TestWaiveTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5375,7 +5428,7 @@ class TestWaiveTestResults(BaseTestCase):
         # The test gating status should have been reset to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
         # Check for the comment multiple ways
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
         self.assertEqual(up.comments[-1].text, expected_comment)
 
@@ -5430,7 +5483,6 @@ class TestWaiveTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5458,7 +5510,7 @@ class TestWaiveTestResults(BaseTestCase):
         # The test gating status should have been reset to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
         # Check for the comment multiple ways
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
         self.assertEqual(up.comments[-1].text, expected_comment)
 
@@ -5513,7 +5565,6 @@ class TestWaiveTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5557,7 +5608,7 @@ class TestWaiveTestResults(BaseTestCase):
         # The test gating status should have been updated to waiting.
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
         # Check for the comment multiple ways
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(res.json_body["update"]['comments'][-1]['text'], expected_comment)
         self.assertEqual(up.comments[-1].text, expected_comment)
 
@@ -5612,7 +5663,6 @@ class TestWaiveTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': up.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5766,7 +5816,6 @@ class TestGetTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5809,7 +5858,6 @@ class TestGetTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5851,7 +5899,6 @@ class TestGetTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,
@@ -5885,7 +5932,6 @@ class TestGetTestResults(BaseTestCase):
                 'decision_context': 'bodhi_update_push_testing',
                 'subject': [
                     {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                    {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                     {'item': update.alias, 'type': 'bodhi_update'}
                 ],
                 'verbose': True,

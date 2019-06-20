@@ -1656,10 +1656,8 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        command = update.install_command()
-
         self.assertEqual(
-            command,
+            update.install_command,
             'sudo dnf upgrade --enablerepo=updates-testing --advisory={}'.format(update.alias))
 
     def test_upgrade_in_stable(self):
@@ -1670,10 +1668,8 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        command = update.install_command()
-
         self.assertEqual(
-            command,
+            update.install_command,
             'sudo dnf upgrade --advisory={}'.format(update.alias))
 
     def test_newpackage_in_testing(self):
@@ -1684,10 +1680,8 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        command = update.install_command()
-
         self.assertEqual(
-            command,
+            update.install_command,
             r'sudo dnf install --enablerepo=updates-testing --advisory={} \*'.format(update.alias))
 
     def test_newpackage_in_stable(self):
@@ -1698,10 +1692,8 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = 'updates-testing'
 
-        command = update.install_command()
-
         self.assertEqual(
-            command,
+            update.install_command,
             r'sudo dnf install --advisory={} \*'.format(update.alias))
 
     def test_cannot_install(self):
@@ -1709,8 +1701,7 @@ class TestUpdateInstallCommand(BaseTestCase):
         update = model.Update.query.first()
         update.status = UpdateStatus.obsolete
 
-        with self.assertRaises(ValueError):
-            update.install_command()
+        self.assertEqual(update.install_command, '')
 
     def test_update_command_not_possible_missing_packagemanager(self):
         """The Release of the Update misses the package manager definition."""
@@ -1720,8 +1711,7 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.unspecified
         update.release.testing_repository = 'updates-testing'
 
-        with self.assertRaises(ValueError):
-            update.install_command()
+        self.assertEqual(update.install_command, '')
 
     def test_update_command_not_possible_missing_repo(self):
         """The Release of the Update misses the testing repository definition."""
@@ -1731,8 +1721,7 @@ class TestUpdateInstallCommand(BaseTestCase):
         update.release.package_manager = PackageManager.dnf
         update.release.testing_repository = None
 
-        with self.assertRaises(ValueError):
-            update.install_command()
+        self.assertEqual(update.install_command, '')
 
 
 class TestUpdateGetTestcaseKarma(BaseTestCase):
@@ -1828,7 +1817,6 @@ class TestUpdateUpdateTestGatingStatus(BaseTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
                   "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
-                              {"original_spec_nvr": f"{update.builds[0].nvr}"},
                               {"item": f"{update.alias}", "type": "bodhi_update"}],
                   "verbose": True},
             headers={'Content-Type': 'application/json'}, timeout=60)
@@ -1873,7 +1861,6 @@ class TestUpdateUpdateTestGatingStatus(BaseTestCase):
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
             data={"product_version": "fedora-17", "decision_context": "bodhi_update_push_testing",
                   "subject": [{"item": f"{update.builds[0].nvr}", "type": "koji_build"},
-                              {"original_spec_nvr": f"{update.builds[0].nvr}"},
                               {"item": f"{update.alias}", "type": "bodhi_update"}],
                   "verbose": True},
             headers={'Content-Type': 'application/json'}, timeout=60)
@@ -2127,7 +2114,6 @@ class TestUpdate(ModelTest):
         self.assertEqual(
             self.obj.greenwave_subject,
             [{'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-             {'original_spec_nvr': 'TurboGears-1.0.8-3.fc11'},
              {'item': self.obj.alias, 'type': 'bodhi_update'}])
 
     def test_greenwave_subject_json(self):
@@ -2138,7 +2124,6 @@ class TestUpdate(ModelTest):
         self.assertEqual(
             json.loads(subject),
             [{'item': 'TurboGears-1.0.8-3.fc11', 'type': 'koji_build'},
-             {'original_spec_nvr': 'TurboGears-1.0.8-3.fc11'},
              {'item': self.obj.alias, 'type': 'bodhi_update'}])
 
     def test_mandatory_days_in_testing_critpath(self):
@@ -3174,7 +3159,7 @@ class TestUpdate(ModelTest):
         # The update should be eligible to receive the testing_approval_msg now.
         self.assertEqual(self.obj.meets_testing_requirements, True)
         # Add the testing_approval_message
-        text = str(config.get('testing_approval_msg') % self.obj.days_in_testing)
+        text = str(config.get('testing_approval_msg'))
         self.obj.comment(self.db, text, author='bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
@@ -3253,7 +3238,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, 'testing', author='hunter2', karma=1)
         self.obj.comment(self.db, 'testing', author='hunter3', karma=1)
         # Add the testing_approval_message
-        text = config.get('testing_approval_msg_based_on_karma')
+        text = config.get('testing_approval_msg')
         self.obj.comment(self.db, text, author='bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
@@ -3804,7 +3789,7 @@ class TestUpdate(ModelTest):
             self.obj.waive_test_results('foo', 'this is not true!')
 
         # Check for the comment
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(self.obj.comments[-1].text, expected_comment)
 
         expected_calls = []
@@ -3872,7 +3857,7 @@ class TestUpdate(ModelTest):
                 '{}/waivers/'.format(config.get('waiverdb_api_url')), wdata)
 
         # Check for the comment
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(update.comments[-1].text, expected_comment)
 
     def test_comment_on_test_gating_status_change(self):
@@ -3883,7 +3868,7 @@ class TestUpdate(ModelTest):
         self.obj.test_gating_status = TestGatingStatus.waiting
 
         # Check for the comment about test_gating_status change
-        expected_comment = "This update test gating status has been changed to 'waiting'."
+        expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(self.obj.comments[0].text, expected_comment)
         self.assertEqual(len(self.obj.comments), 1)
 

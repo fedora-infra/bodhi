@@ -54,7 +54,6 @@ class TestCheckPolicies(BaseTestCase):
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
             'verbose': True
@@ -87,7 +86,6 @@ class TestCheckPolicies(BaseTestCase):
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_testing',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
             'verbose': True,
@@ -112,9 +110,6 @@ class TestCheckPolicies(BaseTestCase):
                      'item': {'item': 'glibc-1.0-1.f26', 'type': 'koji_build'},
                      'type': 'test-result-missing', 'scenario': None},
                     {'testcase': 'dist.rpmdeplint',
-                     'item': {'original_spec_nvr': 'glibc-1.0-1.f26'},
-                     'type': 'test-result-missing', 'scenario': None},
-                    {'testcase': 'dist.rpmdeplint',
                      'item': {'item': update.alias, 'type': 'bodhi_update'},
                      'type': 'test-result-missing', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
@@ -123,14 +118,13 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
             # Check for the comment
-            expected_comment = "This update test gating status has been changed to 'failed'."
+            expected_comment = "This update's test gating status has been changed to 'failed'."
             self.assertEqual(update.comments[-1].text, expected_comment)
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
             'verbose': True
@@ -163,7 +157,6 @@ class TestCheckPolicies(BaseTestCase):
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
             'verbose': True
@@ -195,7 +188,6 @@ class TestCheckPolicies(BaseTestCase):
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [{'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                        {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                         {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                          'type': 'bodhi_update'}],
             'verbose': True
@@ -203,7 +195,7 @@ class TestCheckPolicies(BaseTestCase):
         mock_greenwave.assert_called_once_with(config['greenwave_api_url'] + '/decision',
                                                expected_query)
         # Check for the comment
-        expected_comment = "This update test gating status has been changed to 'failed'."
+        expected_comment = "This update's test gating status has been changed to 'failed'."
         self.assertEqual(update.comments[-1].text, expected_comment)
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
@@ -225,14 +217,13 @@ class TestCheckPolicies(BaseTestCase):
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             self.assertEqual(update.test_gating_status, models.TestGatingStatus.ignored)
             # Check for the comment
-            expected_comment = "This update test gating status has been changed to 'ignored'."
+            expected_comment = "This update's test gating status has been changed to 'ignored'."
             self.assertEqual(update.comments[-1].text, expected_comment)
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [
                 {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                {'original_spec_nvr': 'bodhi-2.0-1.fc17'},
                 {'item': 'FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.utcnow().year),
                  'type': 'bodhi_update'}],
             'verbose': True

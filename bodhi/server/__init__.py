@@ -85,7 +85,7 @@ def groupfinder(userid, request):
         ['group:packager', 'group:bodhiadmin']
 
     Args:
-        userid (basestring): The user's id.
+        userid (str): The user's id.
         request (pyramid.request.Request): The current web request.
     Returns:
         list or None: A list of the user's groups, or None if the user is not authenticated.

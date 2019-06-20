@@ -21,12 +21,11 @@ import json
 import re
 import textwrap
 
+from conu import ConuException
+from munch import Munch
 import requests
 import psycopg2
 import pytest
-
-from conu import ConuException
-from munch import Munch
 
 from .utils import replace_file
 
@@ -422,9 +421,6 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
             ),
             "subject": [
                 {"item": b, "type": "koji_build"}
-                for b in update.builds
-            ] + [
-                {"original_spec_nvr": b}
                 for b in update.builds
             ] + [
                 {"item": update.alias, "type": "bodhi_update"}

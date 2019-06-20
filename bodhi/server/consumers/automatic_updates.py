@@ -27,7 +27,6 @@ import logging
 import fedora_messaging
 
 from bodhi.server import buildsys
-from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import Build, ContentType, Package, Release
 from bodhi.server.models import Update, UpdateRequest, UpdateType, User
 from bodhi.server.util import transactional_session_maker
@@ -71,7 +70,8 @@ class AutomaticUpdateHandler:
             if mandatory not in body:
                 missing.append(mandatory)
         if missing:
-            raise BodhiException(f"Received incomplete tag message. Missing: {', '.join(missing)}")
+            log.debug(f"Received incomplete tag message. Missing: {', '.join(missing)}")
+            return
 
         btag = body['tag']
         bnvr = '{name}-{version}-{release}'.format(**body)
@@ -80,13 +80,16 @@ class AutomaticUpdateHandler:
 
         kbuildinfo = koji.getBuild(bnvr)
         if not kbuildinfo:
-            raise BodhiException(f"Can't find Koji build for {bnvr}.")
+            log.debug(f"Can't find Koji build for {bnvr}.")
+            return
 
         if 'nvr' not in kbuildinfo:
-            raise BodhiException(f"Koji build info for {bnvr} doesn't contain 'nvr'.")
+            log.debug(f"Koji build info for {bnvr} doesn't contain 'nvr'.")
+            return
 
         if 'owner_name' not in kbuildinfo:
-            raise BodhiException(f"Koji build info for {bnvr} doesn't contain 'owner_name'.")
+            log.debug(f"Koji build info for {bnvr} doesn't contain 'owner_name'.")
+            return
 
         # some APIs want the Koji build info, some others want the same
         # wrapped in a larger (request?) structure

@@ -1,0 +1,5 @@
+amqp_url = "amqp://rabbitmq/"
+topic_prefix = "org.fedoraproject.prod"
+
+[client_properties]
+app = "resultsdb"

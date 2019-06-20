@@ -20,10 +20,10 @@ import sys
 
 from pyramid.paster import get_appsettings
 
-from ..buildsys import setup_buildsystem
-from ..models import BuildrootOverride
 from bodhi.server import Session, initialize_db
 from bodhi.server.logging import setup as setup_logging
+from ..buildsys import setup_buildsystem
+from ..models import BuildrootOverride
 
 
 def usage(argv):

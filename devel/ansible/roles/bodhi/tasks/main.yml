@@ -36,6 +36,7 @@
       - python3-dogpile-cache
       - python3-fedora
       - python3-flake8
+      - python3-flake8-import-order
       - python3-ipdb
       - python3-koji
       - python3-librepo

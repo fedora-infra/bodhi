@@ -43,7 +43,7 @@ def markdowner(request):
         request (pyramid.request): The current request. It's "text" parameter is used to specify the
             text to be processed.
     Returns:
-        basestring: A JSON object with a single key, html, that indexes the processed text.
+        str: A JSON object with a single key, html, that indexes the processed text.
     """
     text = request.params.get('text')
     return dict(html=bodhi.server.util.markup(request.context, text))

@@ -38,7 +38,7 @@ def get_csrf_token_html(request):
     Return a plain string CSRF token.
 
     Returns:
-        basestring: A CSRF token.
+        str: A CSRF token.
     """
     return request.session.get_csrf_token()
 
@@ -50,6 +50,6 @@ def get_csrf_token_json(request):
     Return a JSON string containing a CSRF token, in a key called csrf_token.
 
     Returns:
-        basestring: A JSON string with a key csrf_token that references a CSRF token.
+        str: A JSON string with a key csrf_token that references a CSRF token.
     """
     return dict(csrf_token=request.session.get_csrf_token())

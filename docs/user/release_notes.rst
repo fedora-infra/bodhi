@@ -2,6 +2,81 @@
 Release notes
 =============
 
+v4.1.0
+------
+
+This is a feature release that adds single-package gating.
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* Add autopush and stable_days to an update.  When ``autopush`` is true, the
+  approve_testing cronjob will push the update to stable if it has meet the
+  testing requirements (``stable_days``).  ``stable_days`` cannot be smaller
+  than the release ``mandatory_days_in_testing`` (:issue:`2978`).
+* Add a login reminder for posting feedback.
+* Add ``package_manager`` enum and ``testing_repository`` string to Release
+  model.  No default is provided, so if one wants Bodhi to display the install
+  command for an update, they need to manually edit the existing releases after
+  the database migration.
+* Add a Greenwave message consumer to update the ``test_gating_status`` value.
+* Add the flatpak releases to the greenwave config.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Log permanent failures for debugging.  Previously, exceptions were raised
+  which caused the affected messages to be placed back into the queue
+  (:issue:`3306`).
+* Fix downloading packages for updates with multiple builds.
+* Verify the correct number of received items in the client.
+* Do not ask for original_spec_nvr results from greenwave.  This will have for
+  effect to improve the performance of bodhi's requests to greenwave.
+* Bodhi will now retry for up to 10 minutes if it receives ``koji.AuthError``
+  (:issue:`1201`).
+* Don't raise Exception on non-existing composes (:issue:`3318`).
+* Correct grammar on a comment that Bodhi writes.
+* Log unsuccessful attempt to set request as INFO (:issue:`3293`).
+* Use update.alias instead of update.title in updates rss link.
+* Make sure ``%{uid}`` in krb ccache gets replaced with the effective UID.
+* Create composes based on update's alias in bodhi-push (:issue:`3160`).
+* User should be able to set ``Update.display_name`` (:issue:`1369`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Leave the global log level in peace when testing.
+* Update the Developer documentation
+* Disable ``warm_cache_on_start`` in unittest (:issue:`3311`).
+* Use flake8-import-order to enforce PEP-8 imports.
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 4.1.0:
+
+* Aurélien Bompard
+* Clement Verna
+* Mattia Verga
+* Michal Konečný
+* Nils Philippsen
+* Patrick Uiterwijk
+* Randy Barlow
+* Sebastian Wojciechowski
+* Troy Dawson
+
+
 v4.0.2
 ------
 

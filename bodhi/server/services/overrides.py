@@ -23,7 +23,6 @@ from datetime import datetime
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
 from pyramid.exceptions import HTTPNotFound
-
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 
@@ -125,11 +124,11 @@ def query_overrides(request):
         builds (list): A list of NVRs to search overrides by.
         expired (bool): If True, limit search to expired overrides. If False, limit search to active
             overrides.
-        like (basestring): Perform an SQL "like" query against build NVRs with the given string.
+        like (str): Perform an SQL "like" query against build NVRs with the given string.
         packages (list): A list of package names to search overrides by.
         releases (list): A list of release names to limit the overrides search by.
-        search (basestring): Perform an SQL "ilike" query against build NVRs with the given string.
-        submitter (basestring): Search for overrides submitted by the given username.
+        search (str): Perform an SQL "ilike" query against build NVRs with the given string.
+        submitter (str): Search for overrides submitted by the given username.
 
     Returns:
         dict: A dictionary with the following keys:

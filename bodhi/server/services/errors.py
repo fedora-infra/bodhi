@@ -45,9 +45,9 @@ def camel2space(camel):
     Convert CamelCaseText to Space Separated Text.
 
     Args:
-        camel (basestring): Camel cased text you wish to convert to space separated text.
+        camel (str): Camel cased text you wish to convert to space separated text.
     Returns:
-        basestring: A space separated version of the given camel cased text.
+        str: A space separated version of the given camel cased text.
     """
     regexp = r'([A-Z][a-z0-9]+|[a-z0-9]+|[A-Z0-9]+)'
     return ' '.join(re.findall(regexp, camel))
@@ -62,7 +62,7 @@ def status2summary(status):
     Args:
         status (int): The status you wish to have a human readable string for.
     Returns:
-        basestring: A human readable error message.
+        str: A human readable error message.
     """
     cls = pyramid.httpexceptions.status_map[status]
     camel = cls.__name__[4:]
@@ -80,7 +80,7 @@ class html_handler(pyramid.httpexceptions.HTTPError):
         status code to the code specified by errors.
 
         Args:
-            request (pyramid.util.Request): The current Request.
+            request (pyramid.request.Request): The current Request.
         """
         location = config.get('mako.directories')
         directory = get_absolute_path(location)

@@ -26,11 +26,11 @@ import traceback
 import re
 import functools
 
+from fedora.client import AuthError, openidproxyclient
 import click
 import munch
 
 from bodhi.client import bindings
-from fedora.client import AuthError, openidproxyclient
 
 
 log = logging.getLogger(__name__)
@@ -45,9 +45,9 @@ def _warn_if_url_or_openid_and_staging_set(ctx, param, value):
     Args:
         ctx (click.core.Context): The Click context, used to find out if the --staging flag is set.
         param (click.core.Option): The option being handled.
-        value (unicode): The value of the option being handled.
+        value (str): The value of the option being handled.
     Returns:
-        unicode: The value of the option being handled.
+        str: The value of the option being handled.
     """
     if ctx.params.get('staging', False) and (param.name in ['url', 'openid_api']) and \
             value is not None:
@@ -117,6 +117,9 @@ new_edit_options = [
     click.option('--close-bugs', is_flag=True, help='Automatically close bugs'),
     click.option('--request', help='Requested repository',
                  type=click.Choice(['testing', 'stable', 'unpush'])),
+    click.option('--autotime', is_flag=True, help='Enable stable push base on time in testing'),
+    click.option('--stable-days', type=click.INT,
+                 help='Days in testing required to push to stable'),
     click.option('--autokarma', is_flag=True, help='Enable karma automatism'),
     click.option('--stable-karma', type=click.INT, help='Stable karma threshold'),
     click.option('--unstable-karma', type=click.INT, help='Unstable karma threshold'),
@@ -253,7 +256,7 @@ def handle_errors(method):
         try:
             method(*args, **kwargs)
         except AuthError as e:
-            click.secho("%s: Check your FAS username & password" % (e), fg='red', bold=True)
+            click.secho(f"{e}: Check your FAS username & password", fg='red', bold=True)
             sys.exit(1)
         except bindings.BodhiClientException as e:
             click.secho(str(e), fg='red', bold=True)
@@ -266,10 +269,10 @@ def _save_override(url, user, password, staging, edit=False, openid_api=None, **
     Create or edit a buildroot override.
 
     Args:
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
         staging (bool): Whether to use the staging server or not.
         edit (bool): Set to True to edit an existing buildroot override.
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -286,10 +289,10 @@ def _save_override(url, user, password, staging, edit=False, openid_api=None, **
         print_resp(resp, client, override_hint=False)
         command = _generate_wait_repo_command(resp, client)
         if command:
-            click.echo("\n\nRunning {}\n".format(' '.join(command)))
+            click.echo(f"\n\nRunning {' '.join(command)}\n")
             ret = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if ret:
-                click.echo("WARNING: ensuring active override failed for {}".format(resp.build.nvr))
+                click.echo(f"WARNING: ensuring active override failed for {resp.build.nvr}")
                 sys.exit(ret)
     else:
         print_resp(resp, client, override_hint=True)
@@ -349,8 +352,8 @@ def list_composes(url, staging, verbose, debug):
     # developer docs
     """
     Args:
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         staging (bool): Whether to use the staging server or not.
         verbose (bool): Whether to show verbose output or not.
         debug (bool): If the --debug flag was set
@@ -373,8 +376,8 @@ def require_severity_for_security_update(type, severity):
     Print an error message if the user did not provide severity for a security update.
 
     Args:
-        type (unicode): The value of the update 'type'.
-        severity (unicode): The value of the update 'severity'.
+        type (str): The value of the update 'type'.
+        severity (str): The value of the update 'severity'.
     """
     if type == 'security' and severity not in ('low', 'medium', 'high', 'urgent'):
         raise click.BadParameter('must specify severity for a security update',
@@ -402,10 +405,10 @@ def new(user, password, url, debug, openid_api, **kwargs):
     # Developer Docs
     """
     Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         debug (bool): If the --debug flag was set
         openid_api (str): A URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -444,10 +447,10 @@ def _validate_edit_update(ctx, param, value):
     The update argument can only be an update id.
 
     Args:
-        param (basestring): The name of the parameter being validated. Unused.
-        value (basestring): The value of the value being validated.
+        param (str): The name of the parameter being validated. Unused.
+        value (str): The value of the value being validated.
     Returns:
-        basestring: The value if it passes validation.
+        str: The value if it passes validation.
     Raises:
         click.BadParameter: If the value is invalid.
     """
@@ -480,10 +483,10 @@ def edit(user, password, url, debug, openid_api, **kwargs):
     The update argument must be an update id.
 
     Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         debug (bool): If the --debug flag was set
         openid_api (str): A URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -587,8 +590,8 @@ def query(url, debug, mine=False, rows=None, **kwargs):
     Query updates based on flags.
 
     Args:
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         mine (Boolean): If the --mine flag was set
         debug (Boolean): If the --debug flag was set
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -626,14 +629,14 @@ def request(update, state, user, password, url, openid_api, **kwargs):
     Change an update's request to the given state.
 
     Args:
-        update (unicode): The update you wish to modify.
-        state (unicode): The state you wish to change the update's request to. Valid options are
-                         testing, stable, obsolete, unpush, and revoke.
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
+        update (str): The update you wish to modify.
+        state (str): The state you wish to change the update's request to. Valid options are
+                     testing, stable, obsolete, unpush, and revoke.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
         staging (bool): Whether to use the staging server or not.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         openid_api (str): The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
@@ -673,14 +676,14 @@ def comment(update, text, karma, user, password, url, openid_api, **kwargs):
     Comment on an update.
 
     Args:
-        update (unicode): The update you wish to modify.
-        text (unicode): The text of the comment you wish to leave on the update.
+        update (str): The update you wish to modify.
+        text (str): The text of the comment you wish to leave on the update.
         karma (int): The karma you wish to leave on the update. Must be +1, 0, or -1.
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
         staging (bool): Whether to use the staging server or not.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         openid_api (str): The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
@@ -712,11 +715,11 @@ def download(url, **kwargs):
 
     Args:
         staging (bool):   Whether to use the staging server or not.
-        arch (unicode):   Requested architecture of packages to download.
-                          "all" will retrieve packages from all architectures.
+        arch (str):   Requested architecture of packages to download.
+                      "all" will retrieve packages from all architectures.
         debuginfo (bool): Whether to include debuginfo packages.
-        url (unicode):    The URL of a Bodhi server to create the update on. Ignored if staging is
-                          True.
+        url (str):    The URL of a Bodhi server to create the update on. Ignored if staging is
+                      True.
         kwargs (dict):    Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
@@ -740,33 +743,42 @@ def download(url, **kwargs):
             expecteds = len(value.split(','))
             resp = client.query(**{attr: value})
             if len(resp.updates) == 0:
-                click.echo("WARNING: No {0} found!".format(attr))
-            elif len(resp.updates) < expecteds:
-                click.echo("WARNING: Some {0} not found!".format(attr))
-            # Not sure if we need a check for > expecteds, I don't
-            # *think* that should ever be possible for these opts.
+                click.echo(f"WARNING: No {attr} found!")
+            else:
+                if attr == 'updateid':
+                    resp_no = len(resp.updates)
+                else:
+                    # attr == 'builds', add up number of builds for each returned update
+                    resp_no = functools.reduce(
+                        lambda x, y: x + len(y.get('builds', [])), resp.updates, 0
+                    )
 
-            args = ['koji', 'download-build']
-            if debuginfo:
-                args.append('--debuginfo')
+                if resp_no < expecteds:
+                    click.echo(f"WARNING: Some {attr} not found!")
+                # Not sure if we need a check for > expecteds, I don't
+                # *think* that should ever be possible for these opts.
+
             for update in resp.updates:
-                click.echo("Downloading packages from {0}".format(update['alias']))
+                click.echo(f"Downloading packages from {update['alias']}")
                 for build in update['builds']:
+                    args = ['koji', 'download-build']
+                    if debuginfo:
+                        args.append('--debuginfo')
                     # subprocess is icky, but koji module doesn't
                     # expose this in any usable way, and we don't want
                     # to rewrite it here.
                     if requested_arch is None:
                         args.extend(['--arch=noarch',
-                                     '--arch={0}'.format(platform.machine()), build['nvr']])
+                                     f'--arch={platform.machine()}', build['nvr']])
                     else:
                         if 'all' in requested_arch:
                             args.append(build['nvr'])
                         if 'all' not in requested_arch:
                             args.extend(['--arch=noarch',
-                                         '--arch={0}'.format(requested_arch), build['nvr']])
+                                         f'--arch={requested_arch}', build['nvr']])
                     ret = subprocess.call(args)
                     if ret:
-                        click.echo("WARNING: download of {0} failed!".format(build['nvr']))
+                        click.echo(f"WARNING: download of {build['nvr']} failed!")
 
 
 def _get_notes(**kwargs):
@@ -823,12 +835,12 @@ def waive(update, show, test, comment, url, openid_api, **kwargs):
     The update argument must be an update id..
 
     Args:
-        update (unicode): The update who unsatisfied requirements wish to waive.
+        update (str): The update who unsatisfied requirements wish to waive.
         show (boolean): Whether to show all missing required tests of the specified update.
-        test (tuple(unicode)): Waive those specified tests or all of them if 'all' is specified.
-        comment (unicode): A comment explaining the waiver.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
+        test (tuple(str)): Waive those specified tests or all of them if 'all' is specified.
+        comment (str): A comment explaining the waiver.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         openid_api (str): The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
@@ -845,15 +857,15 @@ def waive(update, show, test, comment, url, openid_api, **kwargs):
         if 'errors' in test_status:
             click.echo('One or more error occured while retrieving the unsatisfied requirements:')
             for el in test_status.errors:
-                click.echo('  - %s' % el.description)
+                click.echo(f'  - {el.description}')
         elif 'decision' not in test_status:
             click.echo('Could not retrieve the unsatisfied requirements from bodhi.')
         else:
-            click.echo('CI status: %s' % test_status.decision.summary)
+            click.echo(f'CI status: {test_status.decision.summary}')
             if test_status.decision.unsatisfied_requirements:
                 click.echo('Missing tests:')
                 for req in test_status.decision.unsatisfied_requirements:
-                    click.echo('  - %s' % req.testcase)
+                    click.echo(f'  - {req.testcase}')
             else:
                 click.echo('Missing tests: None')
     else:
@@ -865,7 +877,7 @@ def waive(update, show, test, comment, url, openid_api, **kwargs):
             click.echo('Waiving all unsatisfied requirements')
             resp = client.waive(update, comment)
         else:
-            click.echo('Waiving unsatisfied requirements: %s' % ', '.join(test))
+            click.echo(f"Waiving unsatisfied requirements: {', '.join(test)}")
             resp = client.waive(update, comment, test)
         print_resp(resp, client)
 
@@ -907,17 +919,17 @@ def query_buildroot_overrides(url, user=None, mine=False, packages=None,
     Query the buildroot overrides.
 
     Args:
-        user (unicode): If supplied, overrides for this user will be queried.
+        user (str): If supplied, overrides for this user will be queried.
         staging (bool): Whether to use the staging server or not.
         mine (bool): Whether to use the --mine flag was given.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
-        packages (unicode): If supplied, the overrides for these package are queried
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
+        packages (str): If supplied, the overrides for these package are queried
         expired (bool): If supplied, True returns only expired overrides, False only active.
-        releases (unicode): If supplied, the overrides for these releases are queried.
-        builds (unicode): If supplied, the overrides for these builds are queried.
-        rows (unicode): The limit of rows displayed per page for query result.
-        page (unicode): If supplied, returns the results for a specific page number.
+        releases (str): If supplied, the overrides for these releases are queried.
+        builds (str): If supplied, the overrides for these builds are queried.
+        rows (str): The limit of rows displayed per page for query result.
+        page (str): If supplied, returns the results for a specific page number.
         kwargs (dict): Other keyword arguments passed to us by click.
     """
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
@@ -945,10 +957,10 @@ def save_buildroot_overrides(user, password, url, staging, openid_api, **kwargs)
     Create a buildroot override.
 
     Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         staging (bool): Whether to use the staging server or not.
         openid_api (str): A URL for the OpenID API to authenticate with Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -973,10 +985,10 @@ def edit_buildroot_overrides(user, password, url, staging, openid_api, **kwargs)
     Edit a buildroot override.
 
     Args:
-        user (unicode): The username to authenticate as.
-        password (unicode): The user's password.
-        url (unicode): The URL of a Bodhi server to create the update on. Ignored if staging is
-                       True.
+        user (str): The username to authenticate as.
+        password (str): The user's password.
+        url (str): The URL of a Bodhi server to create the update on. Ignored if staging is
+                   True.
         staging (bool): Whether to use the staging server or not.
         openid_api (str): A URL for the OpenID API to authenticate with Bodhi.
         kwargs (dict): Other keyword arguments passed to us by click.
@@ -1000,8 +1012,8 @@ def _generate_wait_repo_command(override, client):
     """
     if 'release_id' in override.build:
         release = client.get_releases(ids=[override.build.release_id])['releases'][0]
-        return ('koji', 'wait-repo', '{}-build'.format(release.dist_tag),
-                '--build={}'.format(override.build.nvr))
+        return ('koji', 'wait-repo', f'{release.dist_tag}-build',
+                f'--build={override.build.nvr}')
 
 
 def _print_override_koji_hint(override, client):
@@ -1022,7 +1034,7 @@ def _print_override_koji_hint(override, client):
     if command:
         click.echo(
             '\n\nUse the following to ensure the override is active:\n\n'
-            '\t$ {}\n'.format(' '.join(command)))
+            f"\t$ {' '.join(command)}\n")
 
 
 def print_resp(resp, client, verbose=False, override_hint=True):
@@ -1043,8 +1055,7 @@ def print_resp(resp, client, verbose=False, override_hint=True):
             for update in resp.updates:
                 click.echo(client.update_str(update, minimal=True))
         if 'total' in resp:
-            click.echo('%s updates found (%d shown)' % (
-                resp.total, len(resp.updates)))
+            click.echo(f'{resp.total} updates found ({len(resp.updates)} shown)')
     elif resp.get('update'):
         click.echo(client.update_str(resp['update']))
     elif resp.get('alias'):
@@ -1059,13 +1070,13 @@ def print_resp(resp, client, verbose=False, override_hint=True):
                 click.echo(client.override_str(override).strip())
         if 'total' in resp:
             click.echo(
-                '%s overrides found (%d shown)' % (resp.total, len(resp.overrides)))
+                f'{resp.total} overrides found ({len(resp.overrides)} shown)')
     elif 'build' in resp:
         click.echo(client.override_str(resp, minimal=False))
         if override_hint:
             _print_override_koji_hint(resp, client)
     elif 'comment' in resp:
-        click.echo('The following comment was added to %s' % resp.comment['update'].alias)
+        click.echo(f"The following comment was added to {resp.comment['update'].alias}")
         click.echo(resp.comment.text)
     elif 'compose' in resp:
         click.echo(client.compose_str(resp['compose'], minimal=False))
@@ -1124,7 +1135,7 @@ def edit_release(user, password, url, debug, composed_by_bodhi, openid_api, **kw
         click.echo("ERROR: Please specify the name of the release to edit")
         return
 
-    res = client.send_request('releases/%s' % edited, verb='GET', auth=True)
+    res = client.send_request(f'releases/{edited}', verb='GET', auth=True)
 
     data = munch.unmunchify(res)
 
@@ -1157,7 +1168,7 @@ def info_release(name, url, **kwargs):
     """Retrieve and print info about a named release."""
     client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'])
 
-    res = client.send_request('releases/%s' % name, verb='GET', auth=False)
+    res = client.send_request(f'releases/{name}', verb='GET', auth=False)
 
     if 'errors' in res:
         print_errors(res)
@@ -1221,17 +1232,17 @@ def print_releases_list(releases):
     if pending:
         click.echo('pending:')
         for release in pending:
-            click.echo("  Name:                %s" % release['name'])
+            click.echo(f"  Name:                {release['name']}")
 
     if archived:
         click.echo('\narchived:')
         for release in archived:
-            click.echo("  Name:                %s" % release['name'])
+            click.echo(f"  Name:                {release['name']}")
 
     if current:
         click.echo('\ncurrent:')
         for release in current:
-            click.echo("  Name:                %s" % release['name'])
+            click.echo(f"  Name:                {release['name']}")
 
 
 def print_release(release):
@@ -1241,25 +1252,25 @@ def print_release(release):
     Args:
         release (munch.Munch): The release to be printed.
     """
-    click.echo("  Name:                     %s" % release['name'])
-    click.echo("  Long Name:                %s" % release['long_name'])
-    click.echo("  Version:                  %s" % release['version'])
-    click.echo("  Branch:                   %s" % release['branch'])
-    click.echo("  ID Prefix:                %s" % release['id_prefix'])
-    click.echo("  Dist Tag:                 %s" % release['dist_tag'])
-    click.echo("  Stable Tag:               %s" % release['stable_tag'])
-    click.echo("  Testing Tag:              %s" % release['testing_tag'])
-    click.echo("  Candidate Tag:            %s" % release['candidate_tag'])
-    click.echo("  Pending Signing Tag:      %s" % release['pending_signing_tag'])
-    click.echo("  Pending Testing Tag:      %s" % release['pending_testing_tag'])
-    click.echo("  Pending Stable Tag:       %s" % release['pending_stable_tag'])
-    click.echo("  Override Tag:             %s" % release['override_tag'])
-    click.echo("  State:                    %s" % release['state'])
-    click.echo("  Email Template:           %s" % release['mail_template'])
-    click.echo("  Composed by Bodhi:        %s" % release['composed_by_bodhi'])
-    click.echo("  Create Automatic Updates: %s" % release['create_automatic_updates'])
-    click.echo("  Package Manager:          %s" % release['package_manager'])
-    click.echo("  Testing Repository:       %s" % release['testing_repository'])
+    click.echo(f"  Name:                     {release['name']}")
+    click.echo(f"  Long Name:                {release['long_name']}")
+    click.echo(f"  Version:                  {release['version']}")
+    click.echo(f"  Branch:                   {release['branch']}")
+    click.echo(f"  ID Prefix:                {release['id_prefix']}")
+    click.echo(f"  Dist Tag:                 {release['dist_tag']}")
+    click.echo(f"  Stable Tag:               {release['stable_tag']}")
+    click.echo(f"  Testing Tag:              {release['testing_tag']}")
+    click.echo(f"  Candidate Tag:            {release['candidate_tag']}")
+    click.echo(f"  Pending Signing Tag:      {release['pending_signing_tag']}")
+    click.echo(f"  Pending Testing Tag:      {release['pending_testing_tag']}")
+    click.echo(f"  Pending Stable Tag:       {release['pending_stable_tag']}")
+    click.echo(f"  Override Tag:             {release['override_tag']}")
+    click.echo(f"  State:                    {release['state']}")
+    click.echo(f"  Email Template:           {release['mail_template']}")
+    click.echo(f"  Composed by Bodhi:        {release['composed_by_bodhi']}")
+    click.echo(f"  Create Automatic Updates: {release['create_automatic_updates']}")
+    click.echo(f"  Package Manager:          {release['package_manager']}")
+    click.echo(f"  Testing Repository:       {release['testing_repository']}")
 
 
 def print_errors(data):
@@ -1270,7 +1281,7 @@ def print_errors(data):
         errors (munch.Munch): The errors to be formatted and printed.
     """
     for error in data['errors']:
-        click.echo("ERROR: %s" % error['description'])
+        click.echo(f"ERROR: {error['description']}")
 
     sys.exit(1)
 
