@@ -30,7 +30,7 @@ from pyramid.paster import get_appsettings
 
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import Session, initialize_db, notifications
-from ..models import Update, UpdateStatus
+from ..models import Update, UpdateStatus, UpdateRequest
 from ..config import config
 
 
@@ -77,37 +77,32 @@ def main(argv=sys.argv):
         testing = db.query(Update).filter_by(status=UpdateStatus.testing,
                                              request=None)
         for update in testing:
-            # If this release does not have any testing requirements, skip it
-            if not update.release.mandatory_days_in_testing:
-                print('%s doesn\'t have mandatory days in testing' % update.release.name)
+            if not update.release.mandatory_days_in_testing and not update.autotime:
+                # If this release does not have any testing requirements and is not autotime,
+                # skip it
+                print(f"{update.release.name} doesn't have mandatory days in testing")
                 continue
 
             # If this update was already commented, skip it
             if update.has_stable_comment:
                 continue
 
-            # Approval message when testing based on karma threshold
-            if update.karma >= update.stable_karma \
-                    and not update.autokarma and update.meets_testing_requirements:
-                print(f'{update.alias} now reaches stable karma threshold')
-                text = config.get('testing_approval_msg_based_on_karma')
-                update.comment(db, text, author='bodhi')
-                db.commit()
-                continue
-
-            # If autokarma updates have reached the testing threshold, say something! Keep in mind
+            # If updates have reached the testing threshold, say something! Keep in mind
             # that we don't care about karma here, because autokarma updates get their request set
             # to stable by the Update.comment() workflow when they hit the required threshold. Thus,
             # this function only needs to consider the time requirements because these updates have
             # not reached the karma threshold.
             if update.meets_testing_requirements:
                 print(f'{update.alias} now meets testing requirements')
-                text = str(
-                    config.get('testing_approval_msg') % update.mandatory_days_in_testing)
-                update.comment(db, text, author='bodhi')
+                update.comment(db, str(config.get('testing_approval_msg')), author='bodhi')
 
                 notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
                     dict(update=update)))
+
+                if update.autotime and update.days_in_testing >= update.stable_days:
+                    print(f"Automatically marking {update.alias} as stable")
+                    update.set_request(db=db, action=UpdateRequest.stable, username="bodhi")
+
                 db.commit()
 
     except Exception as e:

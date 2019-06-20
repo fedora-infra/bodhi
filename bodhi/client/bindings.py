@@ -245,6 +245,11 @@ class BodhiClient(OpenIdBaseClient):
             close_bugs (bool): Close bugs when update is stable.
             suggest (str): Suggest that the user reboot or logout after update.
                 (``reboot``, ``logout``).
+            autotime (bool): Allow bodhi to automatically change the state of this
+                update based on the time spent in testing by this update. It
+                will push your update to ``stable`` once it reaches the ``stable_days``.
+            stable_days (int): The minimun amount of time an update has to spend in
+                ``testing`` before being automatically pushed to ``stable``.
             autokarma (bool): Allow bodhi to automatically change the state of this
                 update based on the ``karma`` from user feedback.  It will
                 push your update to ``stable`` once it reaches the ``stable_karma``
