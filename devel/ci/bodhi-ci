@@ -837,10 +837,7 @@ class MyPyJob(Job):
         """
         super(MyPyJob, self).__init__(*args, **kwargs)
 
-        self._command = [
-            '/usr/local/bin/mypy', '--follow-imports', 'silent', 'bodhi/client/bindings.py',
-            'bodhi/messages', 'bodhi/server/bugs.py', 'bodhi/server/buildsys.py',
-            'devel/ci/bodhi-ci']
+        self._command = ['/usr/local/bin/mypy']
         self._convert_command_for_container()
 
 
