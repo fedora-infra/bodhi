@@ -28,7 +28,7 @@
       Fedora Updates System
       </%block>
     </title>
-    <link href="${request.static_url('bodhi:server/static/fedora-bootstrap-1.0.1/fedora-bootstrap.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/fedora-bootstrap-1.5.0/fedora-bootstrap.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/fonts/open-sans.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/fonts/hack.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/fonts/font-awesome.css') }" rel="stylesheet" />
@@ -48,7 +48,7 @@
           <div class="row">
             <div class="col-xs-12">
               <form id="search" role="search" class="nav navbar-form navbar-left">
-                <div id="bloodhound" class="form-group m-b-0">
+                <div id="bloodhound" class="form-group mb-0">
                   <input class="typeahead form-control" name="term" type="text" placeholder="Search..." style="height:50px;background:rgba(0,0,0,0);border:0;color:white;line-height:50px;">
                 </div>
               </form>
@@ -66,16 +66,16 @@
           </div>
           <div class="col-sm-6">
             <div class="row">
-              <nav class="navbar navbar-light p-t-0 p-b-0">
+              <nav class="navbar navbar-light navbar-expand pt-0 pb-0 ml-auto">
                   <div class="container">
-                    <ul class="nav navbar-nav nav-pill pull-xs-right">
+                    <ul class="nav navbar-nav nav-pill">
                         % if request.user:
                         % if request.matched_route and request.matched_route.name in ('new_update', 'new_override'):
                         <li class="nav-item dropdown active">
                         % else:
                         <li class="nav-item dropdown">
                         % endif
-                          <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                          <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                             <span class="glyphicon glyphicon-plus"></span>
                             Create
                           </a>
@@ -95,7 +95,7 @@
                         % else:
                         <li class="nav-item dropdown">
                         % endif
-                          <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                          <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                             <span class="glyphicon glyphicon-tags"></span>
                             Stats
                           </a>
@@ -123,7 +123,7 @@
                         % else:
                         <li class="nav-item dropdown">
                         % endif
-                          <a class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                          <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                             <span class="glyphicon glyphicon-user"></span>
                             <img src="${self.util.avatar(request.user.name, size=24)}"/>
                           </a>
@@ -168,39 +168,39 @@
         </div>
       </div>
     </div>
-    <div class="bodycontent p-b-3">
+    <div class="bodycontent pb-3">
         ${self.body()}
     </div> <!-- /bodycontent -->
 
-    <div class="footer p-y-3">
+    <div class="footer py-5">
       <div class="container">
-        <p class="text-muted text-xs-center">
+        <p class="text-light text-center">
           Copyright &copy; 2007-2019 Red Hat, Inc. and
-          <a href="https://github.com/fedora-infra/bodhi/graphs/contributors">
+          <a href="https://github.com/fedora-infra/bodhi/graphs/contributors" class="text-white-50">
           others</a>.
         </p>
-        <p class="text-muted text-xs-center">
+        <p class="text-light text-center">
           Running
           <strong>bodhi-${util.version()}</strong> on
           <strong>${util.hostname()}</strong>.
         </p>
-        <p class="text-muted text-xs-center">
-          <a href="https://github.com/fedora-infra/bodhi">
+        <p class="text-light text-center">
+          <a href="https://github.com/fedora-infra/bodhi" class="text-white-50">
           bodhi</a> is Free Software.
-          Please <a href="https://github.com/fedora-infra/bodhi/issues">
+          Please <a href="https://github.com/fedora-infra/bodhi/issues" class="text-white-50">
           file issues</a>
-          if you have any problems. Read the <a href="https://bodhi.fedoraproject.org/docs">documentation</a>.
+          if you have any problems. Read the <a href="https://bodhi.fedoraproject.org/docs" class="text-white-50">documentation</a>.
         </p>
         % if request.registry.settings.get('legal_link') or request.registry.settings.get('privacy_link'):
-        <p class="text-muted text-xs-center">
+        <p class="text-light text-center">
             % if request.registry.settings.get('legal_link'):
-            <a href="${request.registry.settings.get('legal_link')}">Legal</a>
+            <a href="${request.registry.settings.get('legal_link')}" class="text-white-50">Legal</a>
             % endif
             % if request.registry.settings.get('legal_link') and request.registry.settings.get('privacy_link'):
             |
             % endif
             % if request.registry.settings.get('privacy_link'):
-            <a href="${request.registry.settings.get('privacy_link')}">Privacy policy</a>
+            <a href="${request.registry.settings.get('privacy_link')}" class="text-white-50">Privacy policy</a>
             % endif
         </p>
         % endif
@@ -232,7 +232,7 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="${request.static_url('bodhi:server/static/jquery.flot.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/jquery.flot.stack.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/fedora-bootstrap-1.0.1/fedora-bootstrap.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/fedora-bootstrap-1.5.0/fedora-bootstrap.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/moment/moment.min.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/cabbage.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
