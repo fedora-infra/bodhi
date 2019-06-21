@@ -650,7 +650,7 @@ http://localhost/updates/?releases=F18&amp;status=stable&amp;type=newpackage">
         <a class="notblue" href="http://localhost/releases/F18">
   Fedora 18
         </a>
-          <span class="label label-default">prerelease</span>
+          <span class="badge badge-secondary">prerelease</span>
       </h3>""", res)
 
 
