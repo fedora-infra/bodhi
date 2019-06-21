@@ -82,8 +82,37 @@ You can read more detail about the ```RateLimiter``` below:
 .. _pyramid_sawing: https://pypi.org/project/pyramid_sawing/
 
 
-Composes
-========
+Components
+==========
+
+CLI tools
+---------
+
+See the :doc:`user/man_pages/index` documentation for a list of CLI tools that come with Bodhi.
+
+
+Web Server
+----------
+
+Bodhi has a web server component that runs its REST API and serves the web interface.
+
+
+Message Consumers
+-----------------
+
+The following sections document the list of messaging consumers.
+
+
+Automatic updates
+^^^^^^^^^^^^^^^^^
+
+This consumer will create updates automatically when builds are tagged to a Release's candidate tag,
+if the Release associated with that tag is configured to do so by having its
+``create_automatic_updates`` boolean set to True.
+
+
+Composer
+^^^^^^^^
 
 Bodhi has a process called the "composer" that is responsible for generating the repositories that
 move packages along the path to their destiny. For each release, there are two composes that get
@@ -112,3 +141,26 @@ once they have been started, users can use ``bodhi composes list`` or they can v
 * **signing_repo**: The composer is waiting on the repository to be signed.
 * **cleaning**: The composer is cleaning up old composes. This state only occurs if
   ``clean_old_composes`` is set to True in the settings.
+
+
+Greenwave Handler
+^^^^^^^^^^^^^^^^^
+
+Bodhi's greenwave handler watches for messages sent from greenwave about bodhi updates that have
+been tested. When a message is recieved, the appropriate update is updated with the greenwave test
+status.
+
+
+Signed Handler
+^^^^^^^^^^^^^^
+
+Bodhi's signed handler is responsible for watching for messages from Robosignatory when it signs
+builds, and marking those builds as signed in the Bodhi database.
+
+
+Update Handler
+^^^^^^^^^^^^^^
+
+Bodhi's update handler watches for messages sent from the web server when updates are created or
+edited. When it sees these messages, it does background tasks, such as querying bugzilla to
+determine the titles on associated tickets, or querying the Wiki to retrieve test case information.
