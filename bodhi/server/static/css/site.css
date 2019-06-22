@@ -305,3 +305,7 @@ padding-bottom: 2em;
     color: #fff;
     cursor: pointer;
 }
+
+div#new-update-form {
+    display: none;
+}
