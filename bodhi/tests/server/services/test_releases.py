@@ -201,6 +201,16 @@ class TestReleasesService(base.BaseTestCase):
 
         self.assertEqual(r.state, ReleaseState.disabled)
 
+        # Let's check Release cache content
+        releases = Release.all_releases()
+        disabled_releases = releases["disabled"]
+        self.assertEqual(disabled_releases[0]["name"], "F42")
+        self.assertEqual(disabled_releases[1]["name"], "F22")
+        self.assertEqual(len(disabled_releases), 2)
+        current_releases = releases["current"]
+        self.assertEqual(current_releases[0]["name"], "F17")
+        self.assertEqual(len(current_releases), 1)
+
     def test_list_releases_by_current_state(self):
         """ Test that we can filter releases using the 'current' state """
         res = self.app.get('/releases/', {"state": 'current'})
