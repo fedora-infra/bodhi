@@ -1,7 +1,7 @@
 <%inherit file="master.html"/>
 <div class="container">
-  <div id='js-warning' class="col-md-10 col-md-offset-1 mt-3">
-    <div class="alert alert-warning">
+  <div id='js-warning' class="row justify-content-center pt-3">
+    <div class="col-md-8 alert alert-warning">
         <h3>
           % if not update:
           Creating a new update requires JavaScript
@@ -35,29 +35,29 @@
     <div class="row">
 
       <div class="col-md-5">
-        <div class="card card-form">
+        <div class="card card-form mb-2">
           <div class="card-header clearfix">
             <span class="float-left" data-placement="bottom" data-toggle="tooltip" title="This is a helper field, here only to pre-populate the builds and the bugs lists with relevant options.  You can leave it empty if you like.">
             Packages</span>
           </div>
           <div class="card-body p-0">
-            <form id="search" role="search">
-              <div id="packages-search" class="form-group noui mb-0">
-                <input class="typeahead form-control noui" name="term" type="text"
+            <form id="search-pkg-form" role="search">
+              <div id="packages-search" class="mb-0 p-0">
+                <input class="typeahead form-control border-0" name="term" type="text"
                        placeholder="Add a package">
               </div>
             </form>
           </div>
         </div>
 
-        <div class="card card-form">
+        <div class="card card-form mb-2">
           <div class="card-header clearfix">
             <span class="float-left" data-placement="bottom" data-toggle="tooltip" title="Here you can add a list of candidate builds that you want to be included in this update.  This is required.  (What is an update without a list of builds anyways... it doesn't make any sense.)">
             Candidate Builds</span>
           </div>
           <div class="card-body p-0">
-            <div id="builds-adder" class="input-group">
-              <input class="form-control noui" type="text"
+            <div id="builds-adder" class="input-group mb-1">
+              <input class="form-control border-0 noui" type="text"
                   placeholder="Add a build, like package-0.2.1-5.fc30">
               <span class="input-group-btn">
                 <button class="btn btn-default" type="button">
@@ -66,7 +66,7 @@
               </span>
             </div>
             <input name="builds" type="hidden"/>
-            <div id="candidate-checkboxes">
+            <div id="candidate-checkboxes" class="px-1">
 
               % if update:
                 % for build in update.builds:
@@ -83,12 +83,12 @@
       </div>
 
       <div class="col-md-7">
-        <div class="card card-form">
+        <div class="card card-form mb-2">
           <div class="card-header clearfix">
             <span class="float-left" data-placement="bottom" data-toggle="tooltip" title="Update name to display.  You can leave it empty if you like.">
             Update name</span>
           </div>
-          <div class="card-block p-a-0">
+          <div class="card-block p-0">
             <form id="search" role="search">
               <input class="typeahead form-control noui" name="display_name" type="text"
                        placeholder="Update name"
@@ -100,14 +100,14 @@ value=${update.display_name}
           </div>
         </div>
 
-        <div class="card card-form">
+        <div class="card card-form mb-2">
           <div class="card-header clearfix">
             <span class="float-left" data-placement="bottom" data-toggle="tooltip" title="Here you can add a list of bugzilla bug IDs that you want to be associated with this update.  Associated bugs will prompt testers to test them.  You can furthermore mark bug feedback as required in the 'details' panel at the bottom of this form.">
             Related Bugs</span>
           </div>
           <div class="card-body p-0">
-            <div id="bugs-adder" class="input-group">
-              <input class="form-control noui" type="text"
+            <div id="bugs-adder" class="input-group mb-1">
+              <input class="form-control border-0" type="text"
                      placeholder="Add #RHBZ">
               <span class="input-group-btn">
                 <button class="btn btn-default" type="button">
@@ -116,7 +116,7 @@ value=${update.display_name}
               </span>
             </div>
             <input name="bugs" type="hidden"/>
-            <div id="bugs-checkboxes">
+            <div id="bugs-checkboxes" class="px-1">
 
               % if update:
                 % for bug in update.bugs:
@@ -152,7 +152,7 @@ ${update.notes}
 </textarea>
           </div>
         </div>
-        <p class="text-xs-right mb-1"><small>Update notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</small></p>
+        <p class="text-right mb-1"><small>Update notes support <a href="#" data-toggle="modal" data-target="#markdown-help">Fedora-Flavored Markdown</a>.</small></p>
       </div>
 
       ${self.fragments.markdown_help_modal()}
@@ -179,145 +179,186 @@ ${update.notes}
           <div class="card-body">
             <div class="row">
               <div class="col-md-7">
-                <fieldset class="form-group radio-group">
+                <fieldset class="form-group">
                   <div data-toggle="tooltip" title="What kind of update is this?"><strong>Type</strong></div>
                   % for value in types:
-                  <label class="c-input c-radio">
-                    <input type="radio" name="type" value="${value}"
+                  <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" id="typeRadio-${value}" name="type" class="custom-control-input" value="${value}"
                     % if update and update.type.value == value:
-                    checked="checked"
+                    checked
                     % endif
-                    > ${value}
-                    <span class="c-indicator"></span>
-                  </label>
+                    >
+                    <span class="custom-control-indicator"></span>
+                    <label class="custom-control-label" for="typeRadio-${value}">${value}</label>
+                  </div>
                   % endfor
                 </fieldset>
-                <fieldset class="form-group radio-group">
+                <fieldset class="form-group">
                   <div data-toggle="tooltip" title="How important is this update, really?"><strong>Severity</strong></div>
                   % for value in severities:
-                  <label class="c-input c-radio">
-                    <input type="radio" name="severity" value="${value}"
+                  <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" id="severityRadio-${value}" name="severity" class="custom-control-input" value="${value}"
                     % if update and update.severity.value == value:
-                    checked="checked"
+                    checked
                     % endif
                     % if update and update.type.value == 'security' and value == 'unspecified':
-                    disabled="disabled"
+                    disabled
                     % endif
-                    > ${value}
-                    <span class="c-indicator"></span>
-                  </label>
+                    >
+                    <span class="custom-control-indicator"></span>
+                    <label class="custom-control-label" for="severityRadio-${value}">${value}</label>
+                  </div>
                   % endfor
                 </fieldset>
 
-                <fieldset class="form-group radio-group">
+                <fieldset class="form-group">
                   <div data-toggle="tooltip" title="What action should testers take after installing the update?  Do they need to update or reboot to see if things are really working?">
                     <strong>Suggestion</strong>
                   </div>
                   % for value in suggestions:
-                  <label class="c-input c-radio">
-                    <input type="radio" name="suggest" value="${value}"
+                  <div class="custom-control custom-radio custom-control-inline">
+                    <input type="radio" id="suggestRadio-${value}" name="suggest" class="custom-control-input" value="${value}"
                     % if update and update.suggest.value == value:
-                    checked="checked"
+                    checked
                     % endif
-                    > ${value}
-                    <span class="c-indicator"></span>
-                  </label>
+                    >
+                    <span class="custom-control-indicator"></span>
+                    <label class="custom-control-label" for="suggestRadio-${value}">${value}</label>
+                  </div>
                   % endfor
                 </fieldset>
-                <dl>
-                  <dt data-toggle="tooltip" title="If checked, then associated bugs in RHBZ will be closed once this update is pushed to the stable repository.">
-                  Close bugs on stable?</dt>
-                  <dd> <input type="checkbox" name="close_bugs" data-singleton="true"
-                      % if update and update.close_bugs:
-                      checked
-                      % elif not update:
-                      checked
-                      % endif
-                    ></dd>
-                    <dt data-toggle="tooltip" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough positive karma has been given.">
-                      Auto-request stable based on karma ?</dt>
-                      <dd> <input type="checkbox" name="autokarma" data-singleton="true"
-                          % if update and update.autokarma:
-                          checked
-                          % elif not update:
-                          checked
-                          % endif>
-                      </dd>
-                    <dt data-toggle="tooltip" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough time was spent in testing.">
-                        Auto-request stable based on time ?</dt>
-                        <dd> <input type="checkbox" name="autotime" data-singleton="true"
-                            % if update and update.autotime:
-                            checked
-                            % elif not update:
-                            checked
-                            % endif>
-                        </dd>
-                </dl>
+
+                <fieldset class="form-group">
+                  <div data-toggle="tooltip" title="If checked, then associated bugs in RHBZ will be closed once this update is pushed to the stable repository.">
+                    <strong>Close bugs on stable?</strong>
+                  </div>
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" name="close_bugs" class="custom-control-input" id="closeBugsCheck"
+                    % if update and update.close_bugs:
+                    checked
+                    % elif not update:
+                    checked
+                    % endif
+                    >
+                    <label class="custom-control-label" for="closeBugsCheck"></label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="form-group">
+                  <div data-toggle="tooltip" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough positive karma has been given.">
+                    <strong>Auto-request stable based on karma?</strong>
+                  </div>
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" name="autokarma" class="custom-control-input" id="autoKarmaCheck"
+                    % if update and update.autokarma:
+                    checked
+                    % elif not update:
+                    checked
+                    % endif
+                    >
+                    <label class="custom-control-label" for="autoKarmaCheck"></label>
+                  </div>
+                </fieldset>
+
+                <fieldset class="form-group">
+                  <div data-toggle="tooltip" title="If checked, this option allows bodhi to automatically move your update from testing to stable once enough time was spent in testing.">
+                    <strong>Auto-request stable based on time?</strong>
+                  </div>
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" name="autotime" class="custom-control-input" id="autoTimeCheck"
+                    % if update and update.autotime:
+                    checked
+                    % elif not update:
+                    checked
+                    % endif
+                    >
+                    <label class="custom-control-label" for="autoTimeCheck"></label>
+                  </div>
+                </fieldset>
               </div>
 
               <div class="col-md-5">
-                <dl>
-                  <dt data-toggle="tooltip" title="This is the threshold of positive karma required to automatically push an update from testing to stable.">
-                  Stable karma</dt>
-                  <dd> <input type="number" name="stable_karma" min="1" required
-                      % if update:
-                      value="${update.stable_karma}"
-                      % elif not update:
-                      value="3"
-                      % endif
-                    ></dd>
+                <fieldset class="form-group">
+                  <div data-toggle="tooltip" title="This is the threshold of positive karma required to automatically push an update from testing to stable.">
+                    <strong>Stable karma</strong>
+                  </div>
+                  <input type="number" class="form-control" name="stable_karma" min="1" required
+                  % if update:
+                  value="${update.stable_karma}"
+                  % elif not update:
+                  value="3"
+                  % endif
+                  >
+                </fieldset>
 
-                  <dt data-toggle="tooltip" title="This is the threshold of negative karma required to automatically unpush an update from testing.">
-                  Unstable karma</dt>
-                  <dd> <input type="number" name="unstable_karma" max="-1" required
-                      % if update:
-                      value="${update.unstable_karma}"
-                      % elif not update:
-                      value="-3"
-                      % endif
-                    ></dd>
+                <fieldset class="form-group">
+                  <div data-toggle="tooltip" title="This is the threshold of negative karma required to automatically unpush an update from testing.">
+                    <strong>Unstable karma</strong>
+                  </div>
+                  <input type="number" class="form-control" name="unstable_karma" max="-1" required
+                  % if update:
+                  value="${update.unstable_karma}"
+                  % elif not update:
+                  value="-3"
+                  % endif
+                  >
+                </fieldset>
 
-                  <dt data-toggle="tooltip" title="This is the number of days an update needs to spend in testing to be automatically pushed to stable. If empty it will be set to the minimum number of days set for the Release.">
-                  Stable days</dt>
-                  <dd> <input type="number" name="stable_days" placeholder="auto"
-                      % if update:
-                      min="${update.mandatory_days_in_testing}" value="${update.stable_days}"
-                      % elif not update:
-                      min="0" value=""
-                      % endif
-                    ></dd>
+                <fieldset class="form-group">
+                  <div data-toggle="tooltip" title="This is the number of days an update needs to spend in testing to be automatically pushed to stable. If empty it will be set to the minimum number of days set for the Release.">
+                    <strong>Stable days</strong>
+                  </div>
+                  <input type="number" class="form-control" name="stable_days" placeholder="auto"
+                  % if update:
+                  min="${update.mandatory_days_in_testing}" value="${update.stable_days}"
+                  % elif not update:
+                  min="0" value=""
+                  % endif
+                  >
+                </fieldset>
 
-                  <dt data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated bugs before the update can pass to stable.  If your update has no associated bugs, this option has no effect.">
-                  Require bugs
-                  </dt>
-                  <dd> <input type="checkbox" name="require_bugs" data-singleton="true"
-                      % if update and update.require_bugs:
-                      checked
-                      % elif not update:
-                      checked
-                      % endif
-                    ></dd>
+                <fieldset class="form-group">
+                  <div data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated bugs before the update can pass to stable.  If your update has no associated bugs, this option has no effect.">
+                    <strong>Require bugs</strong>
+                  </div>
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" name="require_bugs" class="custom-control-input" id="requireBugsCheck"
+                    % if update and update.require_bugs:
+                    checked
+                    % elif not update:
+                    checked
+                    % endif
+                    >
+                    <label class="custom-control-label" for="requireBugsCheck"></label>
+                  </div>
+                </fieldset>
 
-                  <dt data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated wiki test cases before the update can pass to stable.  If your update has no associated wiki test cases, this option has no effect.">
-                  Require testcases</dt>
-                  <dd> <input type="checkbox" name="require_testcases" data-singleton="true"
-                      % if update and update.require_testcases:
-                      checked
-                      % elif not update:
-                      checked
-                      % endif
-                    ></dd>
+                <fieldset class="form-group">
+                  <div data-toggle="tooltip" title="If checked, this will require that positive feedback be given on all associated wiki test cases before the update can pass to stable.  If your update has no associated wiki test cases, this option has no effect.">
+                    <strong>Require testcases</strong>
+                  </div>
+                  <div class="custom-control custom-checkbox">
+                    <input type="checkbox" name="require_testcases" class="custom-control-input" id="requireTestcasesCheck"
+                    % if update and update.require_testcases:
+                    checked
+                    % elif not update:
+                    checked
+                    % endif
+                    >
+                    <label class="custom-control-label" for="requireTestcasesCheck"></label>
+                  </div>
+                </fieldset>
 
-                  <dt data-toggle="tooltip" title="If specified, the update will be blocked from stable until all of the listed taskotron tests are passing.">
-                  Required checks <a target="_blank" href="https://fedoraproject.org/wiki/Taskotron/Tasks"><span class="glyphicon glyphicon-question-sign"></span></a></dt>
-                  <dd> <input type="text" name="requirements"
-                  placeholder="Required taskotron tasks"
-                      % if update and update.requirements:
-                      value="${update.requirements}"
-                      % endif
-                    ></dd>
-
-                </dl>
+                <fieldset class="form-group">
+                  <div data-toggle="tooltip" title="If specified, the update will be blocked from stable until all of the listed taskotron tests are passing.">
+                    <strong>Required checks <a target="_blank" href="https://fedoraproject.org/wiki/Taskotron/Tasks"><span class="fa fa-question-circle"></span></a></strong>
+                  </div>
+                  <input type="text" class="form-control" name="requirements" placeholder="Required taskotron tasks"
+                  % if update and update.requirements:
+                  value="${update.requirements}"
+                  % endif
+                  >
+                </fieldset>
               </div>
             </div>
 
