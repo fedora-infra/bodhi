@@ -300,3 +300,8 @@ padding-bottom: 2em;
 .badge-warning{
     background-color: #f0ad4e !important;
 }
+
+#updatebuttons a {
+    color: #fff;
+    cursor: pointer;
+}
