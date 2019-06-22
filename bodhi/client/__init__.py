@@ -1228,6 +1228,7 @@ def print_releases_list(releases):
     pending = [release for release in releases if release['state'] == 'pending']
     archived = [release for release in releases if release['state'] == 'archived']
     current = [release for release in releases if release['state'] == 'current']
+    frozen = [release for release in releases if release['state'] == 'frozen']
 
     if pending:
         click.echo('pending:')
@@ -1242,6 +1243,11 @@ def print_releases_list(releases):
     if current:
         click.echo('\ncurrent:')
         for release in current:
+            click.echo(f"  Name:                {release['name']}")
+
+    if frozen:
+        click.echo('\nfrozen:')
+        for release in frozen:
             click.echo(f"  Name:                {release['name']}")
 
 
