@@ -900,6 +900,11 @@ class Release(Base):
     _all_releases = None
 
     @classmethod
+    def clear_all_releases_cache(cls):
+        """Clear up Release cache."""
+        cls._all_releases = None
+
+    @classmethod
     def get_tags(cls, session):
         """
         Return a 2-tuple mapping tags to releases.

@@ -745,6 +745,12 @@ class TestRelease(ModelTest):
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
 
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
+
 
 class TestReleaseCritpathMinKarma(BaseTestCase):
     """Tests for the Release.critpath_min_karma property."""
@@ -807,6 +813,12 @@ class TestReleaseModular(ModelTest):
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
 
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
+
 
 class TestReleaseContainer(ModelTest):
     """Unit test case for the ``Release`` model for container releases."""
@@ -841,6 +853,12 @@ class TestReleaseContainer(ModelTest):
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
 
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
+
 
 class TestReleaseFlatpak(ModelTest):
     """Unit test case for the ``Release`` model for flatpak releases."""
@@ -874,6 +892,12 @@ class TestReleaseFlatpak(ModelTest):
         self.assertIn('long_name', releases[state.value][0], releases)
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
+
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
 
 
 class MockWiki(object):

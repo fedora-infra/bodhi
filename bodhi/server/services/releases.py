@@ -357,6 +357,9 @@ def save_release(request):
                         )
                 setattr(r, k, v)
 
+        # We have to invalidate the release cache after change
+        Release.clear_all_releases_cache()
+
     except Exception as e:
         log.exception(e)
         request.errors.add('body', 'release',
