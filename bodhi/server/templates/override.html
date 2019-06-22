@@ -29,7 +29,7 @@
     <h2>Buildroot Override for <code>${override.build.nvr}</code></h2>
     <p>Submitted by
       <a href="${request.route_url('user', name=override.submitter.name)}">
-        <img class="img-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
+        <img class="rounded-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
         ${override.submitter.name}
       </a>
     </p>
@@ -110,12 +110,12 @@
           <div class="form-group noui text-left">
             %if override is not UNDEFINED:
             <a href="${request.route_url('user', name=override.submitter.name)}">
-              <img class="img-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
+              <img class="rounded-circle" src="${util.avatar(override.submitter.name, size=24)}"/>
               ${override.submitter.name}
             </a>
             %else:
             <a href="${request.route_url('user', name=request.user.name)}">
-              <img class="img-circle" src="${util.avatar(request.user.name, size=24)}"/>
+              <img class="rounded-circle" src="${util.avatar(request.user.name, size=24)}"/>
               ${request.user.name}
             </a>
             %endif
