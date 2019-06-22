@@ -562,7 +562,7 @@ $(document).ready(function(){
               <a id='testing' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Testing</a>
               % endif
             % else:
-              <a id='revoke' href="javascript:void(0)" class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Revoke</a>
+              <a id='revoke' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Revoke</a>
             % endif
           % elif update.pushed and (update.status.value != 'stable' or (update.status.value == 'stable' and 'releng' in [group.name for group in request.user.groups])):
             <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
@@ -572,7 +572,7 @@ $(document).ready(function(){
                     Push to Stable
                 </a>
             % endif
-            <a id='unpush' href="javascript:void(0)" class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Unpush</a>
+            <a id='unpush' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Unpush</a>
           % endif
           % if self.util.can_waive_test_results(update):
             <a id='waive' class="btn btn-sm btn-primary hidden" data-toggle="modal" data-target="#waive_test_results">Waive Test Results</a>
