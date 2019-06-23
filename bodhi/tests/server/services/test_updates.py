@@ -1035,6 +1035,37 @@ class TestEditUpdateForm(BaseTestCase):
         self.assertRegex(str(resp), ('<input type="radio" name="severity" '
                                      'value="unspecified"\\n.*disabled="disabled"\\n.*>'))
 
+    def test_days_in_testing_new_update(self):
+        """
+        When creating an update the minimum value of days in testing should be set to 1
+        and the value should be empty.
+        """
+        resp = self.app.get(f'/updates/new',
+                            headers={'accept': 'text/html'})
+        self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
+                                     '\\n.*min="0" value=""\\n.*>'))
+
+    def test_days_in_testing_existing_update(self):
+        """
+        When editing an update the minimum value of days in testing should be set to
+        the mandatory days in testing of the release and the value to the actual value
+        set in the update.
+        """
+        alias = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update.alias
+        update_json = self.get_update()
+        update_json['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
+        update_json['edited'] = alias
+        update_json['requirements'] = ''
+        update_json['mandatory_days_in_testing'] = 7
+        update_json['stable_days'] = 10
+        with fml_testing.mock_sends(api.Message):
+            self.app.post_json('/updates/', update_json)
+
+        resp = self.app.get(f'/updates/{alias}/edit',
+                            headers={'accept': 'text/html'})
+        self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
+                                     '\\n.*min="7" value="10"\\n.*>'))
+
 
 class TestUpdatesService(BaseTestCase):
 
