@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 import math
+import hashlib
+from urllib.parse import urlencode
+import xml.etree.ElementTree as ET
 
 import psycopg2
 import pytest
@@ -45,6 +48,49 @@ compose_state_mapping = {
     'signing_repo': 'Signing repo',
     'cleaning': 'Cleaning old composes',
 }
+
+
+def check_rss_common_header(rss_xml, path, bodhi_ip):
+    title = None
+    description = None
+    if path == "users":
+        title = "Bodhi users"
+        description = "All users"
+
+    assert rss_xml.tag == "rss"
+    assert rss_xml.attrib == {"version": "2.0"}
+    rss_childs = list(rss_xml)
+    assert len(rss_childs) == 1
+    channel = rss_childs[0]
+    assert channel.tag == "channel"
+    assert channel.attrib == {}
+    channel_childs = list(channel)
+    assert len(channel_childs) == 28
+    assert channel_childs[0].tag == "title"
+    assert channel_childs[0].attrib == {}
+    assert channel_childs[0].text == title
+    assert channel_childs[1].tag == "link"
+    assert channel_childs[1].text == f"http://{bodhi_ip}:8080/rss/{path}/"
+    assert channel_childs[1].attrib == {}
+    assert channel_childs[2].tag == "description"
+    assert channel_childs[2].attrib == {}
+    assert channel_childs[2].text == description
+    assert channel_childs[3].tag == "{http://www.w3.org/2005/Atom}link"
+    assert channel_childs[3].attrib == {
+        "href": f"http://{bodhi_ip}:8080/rss/{path}/", "rel": "self"
+    }
+    assert channel_childs[3].text is None
+    assert channel_childs[4].tag == "docs"
+    assert channel_childs[4].attrib == {}
+    assert channel_childs[4].text == "http://www.rssboard.org/rss-specification"
+    assert channel_childs[5].tag == "generator"
+    assert channel_childs[5].attrib == {}
+    assert channel_childs[5].text == "python-feedgen"
+    assert channel_childs[6].tag == "language"
+    assert channel_childs[6].attrib == {}
+    assert channel_childs[6].text == "en"
+    assert channel_childs[7].tag == "lastBuildDate"
+    assert channel_childs[7].attrib == {}
 
 
 def test_get_root(bodhi_container, db_container):
@@ -368,6 +414,223 @@ def test_get_user_view(bodhi_container, db_container):
         assert f"{username}'s latest updates" in http_response.text
         assert f"{username}'s latest buildroot overrides" in http_response.text
         assert f"{username}'s latest comments & feedback" in http_response.text
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def create_avatar_url(username, size):
+    hardcoded_avatars = {
+        'bodhi': f'https://apps.fedoraproject.org/img/icons/bodhi-{size}.png',
+        'taskotron': f'https://apps.fedoraproject.org/img/icons/taskotron-{size}.png'
+    }
+    if username in hardcoded_avatars:
+        return hardcoded_avatars[username]
+
+    openid = f"http://{username}.id.dev.fedoraproject.org/"
+    query = urlencode({'s': size, 'd': 'retro'})
+    hash = hashlib.sha256(openid.encode('utf-8')).hexdigest()
+    return f"https://seccdn.libravatar.org/avatar/{hash}?{query}"
+
+
+def test_get_users_json(bodhi_container, db_container):
+    """Test ``/users/`` path"""
+    # Fetch users from DB
+    query_users = (
+        "SELECT "
+        "  id, "
+        "  name, "
+        "  email "
+        "FROM users "
+        "LIMIT 20"
+    )
+    query_groups = (
+        "SELECT "
+        "  groups.name as group_name "
+        "FROM user_group_table "
+        "JOIN groups ON user_group_table.group_id = groups.id "
+        "WHERE user_group_table.user_id = %s"
+    )
+    query_total_users = (
+        "SELECT "
+        "  COUNT(name) "
+        "FROM users "
+    )
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            users = []
+            curs.execute(query_users)
+            rows = curs.fetchall()
+            for row in rows:
+                users.append({"id": row[0], "name": row[1], "email": row[2]})
+            for user in users:
+                user_id = user["id"]
+                curs.execute(query_groups, (user_id, ))
+                rows = curs.fetchall()
+                user_groups = []
+                for row in rows:
+                    user_groups.append({"name": row[0]})
+                user["groups"] = user_groups
+            curs.execute(query_total_users)
+            total = curs.fetchone()[0]
+    conn.close()
+
+    # GET on users
+    with bodhi_container.http_client(port="8080") as c:
+        http_response = c.get("/users")
+
+    for user in users:
+        user["avatar"] = create_avatar_url(user["name"], 24)
+        user["openid"] = f"{user['name']}.id.dev.fedoraproject.org"
+
+    try:
+        assert http_response.ok
+        for user in users:
+            assert user in http_response.json()["users"]
+        assert http_response.json()["page"] == 1
+        assert http_response.json()["pages"] == int(math.ceil(total / float(20)))
+        assert http_response.json()["rows_per_page"] == 20
+        assert http_response.json()["total"] == total
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def test_get_user_json(bodhi_container, db_container):
+    """Test ``/users/{name}`` path"""
+    # Fetch user(of latest update) from DB
+    query_updates = (
+        "SELECT "
+        "  users.name as user_name, "
+        "  users.id as user_id, "
+        "  users.email as user_email "
+        "FROM updates "
+        "JOIN users ON updates.user_id = users.id "
+        "ORDER BY date_submitted DESC LIMIT 1"
+    )
+    query_groups = (
+        "SELECT "
+        "  groups.name as group_name "
+        "FROM user_group_table "
+        "JOIN groups ON user_group_table.group_id = groups.id "
+        "WHERE user_group_table.user_id = %s"
+    )
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_updates)
+            row = curs.fetchone()
+            user_name = row[0]
+            user_id = row[1]
+            user_email = row[2]
+            curs.execute(query_groups, (user_id, ))
+            rows = curs.fetchall()
+            user_groups = []
+            for row in rows:
+                user_groups.append({"name": row[0]})
+    conn.close()
+
+    # GET on user
+    with bodhi_container.http_client(port="8080") as c:
+        http_response = c.get(f"/users/{user_name}")
+
+    bodhi_ip = bodhi_container.get_IPv4s()[0]
+
+    user = {
+        "id": user_id,
+        "name": user_name,
+        "email": user_email,
+        "avatar": create_avatar_url(user_name, 24),
+        "openid": f"{user_name}.id.dev.fedoraproject.org",
+        "groups": user_groups,
+    }
+    urls = {
+        'comments_by': f"http://{bodhi_ip}:8080/comments/?user={user_name}",
+        'comments_on': f"http://{bodhi_ip}:8080/comments/?update_owner={user_name}",
+        'recent_updates': f"http://{bodhi_ip}:8080/updates/?user={user_name}",
+        'recent_overrides': f"http://{bodhi_ip}:8080/overrides/?user={user_name}",
+        'comments_by_rss': f"http://{bodhi_ip}:8080/rss/comments/?user={user_name}",
+        'comments_on_rss': f"http://{bodhi_ip}:8080/rss/comments/?update_owner={user_name}",
+        'recent_updates_rss': f"http://{bodhi_ip}:8080/rss/updates/?user={user_name}",
+        'recent_overrides_rss': f"http://{bodhi_ip}:8080/rss/overrides/?user={user_name}",
+    }
+    expected_json = {
+        "user": user,
+        "urls": urls,
+    }
+    try:
+        assert http_response.ok
+        assert expected_json == http_response.json()
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def test_get_users_rss(bodhi_container, db_container):
+    """Test ``/rss/users/`` path"""
+    # Fetch users from DB
+    query_users = (
+        "SELECT "
+        "  name "
+        "FROM users "
+        "LIMIT 20"
+    )
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_users)
+            rows = curs.fetchall()
+            usernames = [row[0] for row in rows]
+    conn.close()
+
+    # GET on users
+    with bodhi_container.http_client(port="8080") as c:
+        http_response = c.get("/rss/users")
+
+    bodhi_ip = bodhi_container.get_IPv4s()[0]
+
+    rss = ET.fromstring(http_response.text)
+    rss_childs = list(rss)
+    channel = rss_childs[0]
+    channel_childs = list(channel)
+
+    # Render rss content
+    rss_content = []
+    for item in channel_childs[8:]:
+        item_content = [
+            {"tag": subitem.tag, "attrib": subitem.attrib, "text": subitem.text} for subitem in item
+        ]
+        rss_content.append(item_content)
+
+    # Prepare expected content
+    expected_rss_content = []
+    for username in usernames:
+        item_content = [
+            {"tag": "title", "attrib": {}, "text": username},
+            {"tag": "link", "attrib": {}, "text": f"http://{bodhi_ip}:8080/users/{username}"},
+            {"tag": "description", "attrib": {}, "text": username},
+        ]
+        expected_rss_content.append(item_content)
+
+    try:
+        assert http_response.ok
+        check_rss_common_header(rss, "users", bodhi_ip)
+        assert len(expected_rss_content) == len(rss_content)
+        for item in expected_rss_content:
+            assert item in rss_content
     except AssertionError:
         print(http_response)
         print(http_response.text)
