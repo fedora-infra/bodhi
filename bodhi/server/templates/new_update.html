@@ -277,13 +277,13 @@ ${update.notes}
                       % endif
                     ></dd>
 
-                  <dt data-toggle="tooltip" title="This is the number of days an update needs to spend in testing to be automatically pushed to stable.">
+                  <dt data-toggle="tooltip" title="This is the number of days an update needs to spend in testing to be automatically pushed to stable. If empty it will be set to the minimum number of days set for the Release.">
                   Stable days</dt>
-                  <dd> <input type="number" name="stable_days" min="1"
+                  <dd> <input type="number" name="stable_days" placeholder="auto"
                       % if update:
-                      value="${update.stable_days}"
+                      min="${update.mandatory_days_in_testing}" value="${update.stable_days}"
                       % elif not update:
-                      value=""
+                      min="0" value=""
                       % endif
                     ></dd>
 
