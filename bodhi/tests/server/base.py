@@ -199,7 +199,8 @@ class BaseTestCaseMixin:
             app = self.app
         return app.get('/csrf', headers={'Accept': 'application/json'}).json_body['csrf_token']
 
-    def get_update(self, builds='bodhi-2.0-1.fc17', stable_karma=3, unstable_karma=-3):
+    def get_update(self, builds='bodhi-2.0-1.fc17', from_tag=None,
+                   stable_karma=3, unstable_karma=-3):
         """
         Return a dict describing an update.
 
@@ -207,15 +208,11 @@ class BaseTestCaseMixin:
 
         Args:
             builds (str): A comma-separated list of NVRs to include in the update.
+            from_tag (str): A tag from which to fill the list of builds.
             stable_karma (int): The stable karma threshold to use on the update.
             unstable_karma (int): The unstable karma threshold to use on the update.
         """
-        if isinstance(builds, list):
-            builds = ','.join(builds)
-        if not isinstance(builds, str):
-            builds = builds.encode('utf-8')
-        return {
-            'builds': builds,
+        update = {
             'bugs': '',
             'notes': 'this is a test update',
             'type': 'bugfix',
@@ -227,6 +224,18 @@ class BaseTestCaseMixin:
             'require_testcases': True,
             'csrf_token': self.get_csrf_token(),
         }
+
+        if builds:
+            if isinstance(builds, list):
+                builds = ','.join(builds)
+            if not isinstance(builds, str):
+                builds = builds.encode('utf-8')
+            update['builds'] = builds
+
+        if from_tag:
+            update['from_tag'] = from_tag
+
+        return update
 
     def _teardown_method(self):
         """Roll back all the changes from the test and clean up the session."""

@@ -41,6 +41,7 @@ import bodhi.server.schemas
 import bodhi.server.services.errors
 import bodhi.server.util
 from bodhi.server.validators import (
+    validate_builds_or_from_tag_exist,
     validate_build_nvrs,
     validate_build_uniqueness,
     validate_build_tags,
@@ -55,6 +56,7 @@ from bodhi.server.validators import (
     validate_bugs,
     validate_request,
     validate_severity,
+    validate_from_tag,
 )
 
 
@@ -414,6 +416,8 @@ def query_updates(request):
                   validate_builds,
                   validate_build_tags,
                   validate_build_uniqueness,
+                  validate_from_tag,
+                  validate_builds_or_from_tag_exist,
                   validate_acls,
                   validate_enums,
                   validate_requirements,
@@ -428,6 +432,11 @@ def new_update(request):
     edit an existing update, the update's alias must be specified in
     the ``edited`` parameter.
 
+    If the ``from_tag`` parameter is specified and ``builds`` is missing or
+    empty, the list of builds will be filled with the latest builds in this
+    Koji tag. This is done by validate_from_tag() because the list of builds
+    needs to be available in validate_acls().
+
     Args:
         request (pyramid.request): The current request.
     """
@@ -438,6 +447,12 @@ def new_update(request):
     # it since the models don't care about a csrf argument.
     data.pop('csrf_token')
 
+    # Same here, but it can be missing.
+    data.pop('builds_from_tag', None)
+
+    build_nvrs = data.get('builds', [])
+    from_tag = data.get('from_tag')
+
     caveats = []
     try:
 
@@ -445,7 +460,7 @@ def new_update(request):
         builds = []
 
         # Create the Package and Build entities
-        for nvr in data['builds']:
+        for nvr in build_nvrs:
             name, version, release = request.buildinfo[nvr]['nvr']
 
             package = Package.get_or_create(request.buildinfo[nvr])
@@ -477,7 +492,7 @@ def new_update(request):
         # were tied to the previous session that has now been terminated.
         builds = []
         releases = set()
-        for nvr in data['builds']:
+        for nvr in build_nvrs:
             # At this moment, we are sure the builds are in the database (that is what the commit
             # was for actually).
             build = Build.get(nvr)
@@ -490,6 +505,7 @@ def new_update(request):
 
             data['release'] = list(releases)[0]
             data['builds'] = [b.nvr for b in builds]
+            data['from_tag'] = from_tag
             result, _caveats = Update.edit(request, data)
             caveats.extend(_caveats)
         else:
@@ -505,6 +521,7 @@ def new_update(request):
                 _data = copy.copy(data)  # Copy it because .new(..) mutates it
                 _data['builds'] = [b for b in builds if b.release == release]
                 _data['release'] = release
+                _data['from_tag'] = from_tag
 
                 log.info('Creating new update: %r' % _data['builds'])
                 result, _caveats = Update.new(request, _data)
