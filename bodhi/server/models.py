@@ -1666,6 +1666,8 @@ class Update(Base):
             Greenwave integration was not enabled when the update was created.
         compose (Compose): The :class:`Compose` that this update is currently being composed in. The
             update is locked if this is defined.
+        from_tag (str): The koji tag from which the list of builds was
+            originally populated (if any).
     """
 
     __tablename__ = 'updates'
@@ -1738,6 +1740,9 @@ class Update(Base):
 
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
+
+    # Koji tag, if any, from which the list of builds was populated initially.
+    from_tag = Column(UnicodeText, nullable=True)
 
     def __init__(self, *args, **kwargs):
         """

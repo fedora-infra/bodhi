@@ -97,15 +97,17 @@ class TestNewUpdate(BaseTestCase):
         update['edited'] = update['builds']  # the update title..
         update['builds'] = []
         res = self.app.post_json('/updates/', update, status=400)
-        self.assertEqual(len(res.json_body['errors']), 2)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'builds')
-        self.assertEqual(
-            res.json_body['errors'][0]['description'],
-            'You may not specify an empty list of builds.')
-        self.assertEqual(res.json_body['errors'][1]['name'], 'builds')
-        self.assertEqual(
-            res.json_body['errors'][1]['description'],
-            'ACL validation mechanism was unable to determine ACLs.')
+        errors = res.json_body['errors']
+        self.assertEqual(len(errors), 3)
+        self.assertIn({'location': 'body', 'name': 'builds',
+                       'description': f"Cannot find update to edit: {update['edited']}"},
+                      errors)
+        self.assertIn({'location': 'body', 'name': 'builds',
+                       'description': 'You may not specify an empty list of builds.'},
+                      errors)
+        self.assertIn({'location': 'body', 'name': 'builds',
+                       'description': 'ACL validation mechanism was unable to determine ACLs.'},
+                      errors)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -274,6 +276,43 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['status'], 'error')
         self.assertEqual(up['errors'][0]['description'],
                          "Koji error getting build: bodhi-2.0.0-2.fc17")
+
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_valid_requirements)
+    def test_new_rpm_update_from_tag(self, *args):
+        """Test creating an update using builds from a Koji tag."""
+        # We don't want the new update to obsolete the existing one.
+        self.db.delete(Update.query.one())
+
+        update = self.get_update(builds=None, from_tag='f17-updates-candidate')
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', update)
+
+        up = r.json_body
+        self.assertEqual(up['title'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(up['builds'][0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(up['status'], 'pending')
+        self.assertEqual(up['request'], 'testing')
+        self.assertEqual(up['user']['name'], 'guest')
+        self.assertEqual(up['release']['name'], 'F17')
+        self.assertEqual(up['type'], 'bugfix')
+        self.assertEqual(up['content_type'], 'rpm')
+        self.assertEqual(up['severity'], 'unspecified')
+        self.assertEqual(up['suggest'], 'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], 'this is a test update')
+        self.assertIsNotNone(up['date_submitted'])
+        self.assertIsNone(up['date_modified'])
+        self.assertIsNone(up['date_approved'])
+        self.assertIsNone(up['date_pushed'])
+        self.assertEqual(up['locked'], False)
+        self.assertIn(up['alias'],
+                      (f'FEDORA-{YEAR}-033713b73b',
+                       f'FEDORA-{YEAR + 1}-033713b73b'))
+        self.assertEqual(up['karma'], 0)
+        self.assertEqual(up['requirements'], 'rpmlint')
+        self.assertEqual(up['from_tag'], 'f17-updates-candidate')
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_url(self, *args):
@@ -2772,6 +2811,65 @@ class TestUpdatesService(BaseTestCase):
         Removed build(s):
 
         - bodhi-2.0.0-2.fc17
+
+        Karma has been reset.
+        """).strip()
+        self.assertMultiLineEqual(up['comments'][-1]['text'], comment)
+        self.assertEqual(len(up['builds']), 1)
+        self.assertEqual(up['builds'][0]['nvr'], 'bodhi-2.0.0-3.fc17')
+        self.assertEqual(self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first(),
+                         None)
+
+    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_valid_requirements)
+    def test_edit_rpm_update_from_tag(self, *args):
+        """Test editing an update using (updated) builds from a Koji tag."""
+        # We don't want the new update to obsolete the existing one.
+        self.db.delete(Update.query.one())
+
+        # We don't want an existing buildroot override to clutter the messages.
+        self.db.delete(BuildrootOverride.query.one())
+
+        update = self.get_update(from_tag='f17-updates-candidate')
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', update)
+
+        update['edited'] = r.json['alias']
+        update['builds'] = 'bodhi-2.0.0-3.fc17'
+        update['requirements'] = 'upgradepath'
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', update)
+
+        up = r.json_body
+        self.assertEqual(up['title'], 'bodhi-2.0.0-3.fc17')
+        self.assertEqual(up['status'], 'pending')
+        self.assertEqual(up['request'], 'testing')
+        self.assertEqual(up['user']['name'], 'guest')
+        self.assertEqual(up['release']['name'], 'F17')
+        self.assertEqual(up['type'], 'bugfix')
+        self.assertEqual(up['severity'], 'unspecified')
+        self.assertEqual(up['suggest'], 'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], 'this is a test update')
+        self.assertIsNotNone(up['date_submitted'])
+        self.assertIsNotNone(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], 'FEDORA-%s-033713b73b' % YEAR)
+        self.assertEqual(up['karma'], 0)
+        self.assertEqual(up['requirements'], 'upgradepath')
+        comment = textwrap.dedent("""
+        guest edited this update.
+
+        New build(s):
+
+        - bodhi-2.0.0-3.fc17
+
+        Removed build(s):
+
+        - bodhi-2.0-1.fc17
 
         Karma has been reset.
         """).strip()
