@@ -28,7 +28,7 @@ from ..utils import make_db_and_user, edit_file
 @pytest.fixture(scope="session")
 def bodhi_container(
     docker_backend, docker_network, db_container, resultsdb_container,
-    waiverdb_container, greenwave_container
+    waiverdb_container, greenwave_container, rabbitmq_container,
 ):
     """Fixture preparing and yielding a Bodhi container to test against.
 
@@ -41,6 +41,8 @@ def bodhi_container(
         waiverdb_container (conu.DockerContainer): The WaiverDB container
             (fixture).
         greenwave_container (conu.DockerContainer): The Greenwave container
+            (fixture).
+        rabbitmq_container (conu.DockerContainer): The RabbitMQ container
             (fixture).
 
     Yields:
@@ -82,7 +84,7 @@ def bodhi_container(
             "--notification-script=pungi-wait-for-signed-ostree-handler",
         "max_update_length_for_ui": "70",
         "top_testers_timeframe": "900",
-        "buildsystem": "koji",
+        "buildsystem": "dev",
         "fedmenu.url": "https://apps.fedoraproject.org/fedmenu",
         "fedmenu.data_url": "https://apps.fedoraproject.org/js/data.js",
         "acl_system": "pagure",

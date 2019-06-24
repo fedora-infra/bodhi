@@ -1,0 +1,26 @@
+amqp_url = "amqp://rabbitmq/"
+callback = "greenwave.consumers.fedora_messaging_consumer:fedora_messaging_callback"
+topic_prefix = "org.fedoraproject.prod"
+
+[[bindings]]
+queue = "greenwave"
+exchange = "amq.topic"
+routing_keys = [
+    "org.fedoraproject.*.taskotron.result.new",
+    "org.fedoraproject.*.waiverdb.waiver.new",
+]
+
+[client_properties]
+app = "greenwave"
+
+[queues.greenwave]
+durable = true
+auto_delete = false
+exclusive = false
+arguments = {}
+
+[consumer_config]
+topic_prefix = 'org.fedoraproject'
+environment = 'prod'
+waiverdb_topic_suffix = 'waiver.new'
+resultsdb_topic_suffix = 'taskotron.result.new'
