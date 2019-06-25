@@ -710,6 +710,11 @@ class TestRelease(ModelTest):
         """Test mandatory_days_in_testing() with a value that is truthy."""
         self.assertEqual(self.obj.mandatory_days_in_testing, 42)
 
+    @mock.patch.dict(config, {'f11.current.mandatory_days_in_testing': 0, 'f11.status': 'current'})
+    def test_mandatory_days_in_testing_status_0_days(self):
+        """Test mandatory_days_in_testing() with a value that is 0."""
+        self.assertEqual(self.obj.mandatory_days_in_testing, 0)
+
     def test_setting_prefix(self):
         """Assert correct return value from the setting_prefix property."""
         self.assertEqual(self.obj.setting_prefix, 'f11')
