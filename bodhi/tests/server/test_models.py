@@ -710,6 +710,32 @@ class TestRelease(ModelTest):
         """Test mandatory_days_in_testing() with a value that is truthy."""
         self.assertEqual(self.obj.mandatory_days_in_testing, 42)
 
+<<<<<<< HEAD
+=======
+    @mock.patch.dict(config, {'f11.current.mandatory_days_in_testing': 0, 'f11.status': 'current'})
+    def test_mandatory_days_in_testing_status_0_days(self):
+        """Test mandatory_days_in_testing() with a value that is 0."""
+        self.assertEqual(self.obj.mandatory_days_in_testing, 0)
+
+    def test_setting_prefix(self):
+        """Assert correct return value from the setting_prefix property."""
+        self.assertEqual(self.obj.setting_prefix, 'f11')
+
+        # Try putting a - into the name of the release, which should get removed
+        self.obj.name = 'f-11'
+
+        self.assertEqual(self.obj.setting_prefix, 'f11')
+
+    @mock.patch.dict(config, {'f11.status': "It's doing just fine, thanks for asking"})
+    def test_setting_status_found(self):
+        """Assert correct return value from the setting_status property when config is found."""
+        self.assertEqual(self.obj.setting_status, "It's doing just fine, thanks for asking")
+
+    def test_setting_status_not_found(self):
+        """Assert correct return value from the setting_status property when config not found."""
+        self.assertEqual(self.obj.setting_status, None)
+
+>>>>>>> 4b7b632b8... Make sure we can set a release mandatory days in testing to 0.
     def test_version_int(self):
         self.assertEqual(self.obj.version_int, 11)
 
