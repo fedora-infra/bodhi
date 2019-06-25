@@ -838,10 +838,10 @@ class Release(Base):
         name = self.name.lower().replace('-', '')
         status = config.get('%s.status' % name, None)
         if status:
-            days = int(config.get(
-                '%s.%s.mandatory_days_in_testing' % (name, status)))
-            if days:
-                return days
+            days = config.get(
+                '%s.%s.mandatory_days_in_testing' % (name, status))
+            if days is not None:
+                return int(days)
         days = config.get('%s.mandatory_days_in_testing' %
                           self.id_prefix.lower().replace('-', '_'))
         if days is None:
