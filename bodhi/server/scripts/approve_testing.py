@@ -29,7 +29,7 @@ import logging
 from pyramid.paster import get_appsettings
 
 from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import Session, initialize_db, notifications
+from bodhi.server import Session, initialize_db, notifications, buildsys
 from ..models import Update, UpdateStatus, UpdateRequest
 from ..config import config
 
@@ -72,6 +72,7 @@ def main(argv=sys.argv):
     settings = get_appsettings(argv[1])
     initialize_db(settings)
     db = Session()
+    buildsys.setup_buildsystem(config)
 
     try:
         testing = db.query(Update).filter_by(status=UpdateStatus.testing,
