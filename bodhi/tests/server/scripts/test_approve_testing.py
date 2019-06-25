@@ -228,7 +228,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
                 # Now we will run main() again, but this time we expect Bodhi not to add any
                 # further comments.
@@ -299,7 +300,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
                 # Now we will run main() again, but this time we expect Bodhi not to add any
                 # further comments.
@@ -497,7 +499,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message, api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         self.assertEqual(update.request, models.UpdateRequest.stable)
 
@@ -518,7 +521,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         self.assertEqual(update.request, None)
 
@@ -538,7 +542,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message, api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         self.assertEqual(update.request, models.UpdateRequest.stable)
 
@@ -559,7 +564,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         self.assertEqual(update.request, None)
 
@@ -602,7 +608,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message, api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         self.assertEqual(update.request, models.UpdateRequest.stable)
 
@@ -624,7 +631,8 @@ class TestMain(BaseTestCase):
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message, api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         self.assertEqual(update.request, models.UpdateRequest.stable)
 
@@ -665,7 +673,8 @@ class TestMain(BaseTestCase):
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'Failed to work', author=u'luke', karma=-1)
-        self.db.commit()
+        with fml_testing.mock_sends(api.Message):
+            self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
@@ -687,11 +696,13 @@ class TestMain(BaseTestCase):
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'Works great', author=u'luke', karma=1)
-        self.db.commit()
+        with fml_testing.mock_sends(api.Message):
+            self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         self.assertEqual(update.request, None)
 
@@ -714,11 +725,13 @@ class TestMain(BaseTestCase):
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'Works great', author=u'luke', karma=1)
-        self.db.commit()
+        with fml_testing.mock_sends(api.Message):
+            self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+                with fml_testing.mock_sends(api.Message, api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
 
         self.assertEqual(update.request, models.UpdateRequest.stable)
 
@@ -742,7 +755,8 @@ class TestMain(BaseTestCase):
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
         update.comment(self.db, u'Works great', author=u'luke', karma=1)
-        self.db.commit()
+        with fml_testing.mock_sends(api.Message, api.Message, api.Message):
+            self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
