@@ -11,7 +11,7 @@ bodhi-shell: Get a handy python shell initialized with Bodhi models.
 bstart:      Start the Bodhi service.
 bstop:       Stop the Bodhi service.
 btest:       Run Bodhi's test suite.
-bteststyle:  Run just the flake8 code style tests.
+blint:       Run a series of linter checks.
 
 
 The BODHI_URL environment variable is set to http://localhost:6543 so the

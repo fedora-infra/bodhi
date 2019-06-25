@@ -15,7 +15,7 @@ alias blog="sudo journalctl -u bodhi -u fm-consumer@config"
 alias brestart="sudo systemctl restart bodhi && sudo systemctl restart fm-consumer@config && echo 'The Application is running on http://localhost:6543'"
 alias bstart="sudo systemctl start bodhi && sudo systemctl start fm-consumer@config && echo 'The Application is running on http://localhost:6543'"
 alias bstop="sudo systemctl stop bodhi && sudo systemctl stop fm-consumer@config"
-alias bteststyle="flake8-3 && pydocstyle bodhi && bci mypy"
+alias blint="flake8-3 && pydocstyle bodhi && bci mypy"
 alias bmessages="sudo journalctl -u print-messages"
 
 
@@ -33,7 +33,7 @@ function bresetdb {
 
 function btest {
     find /home/vagrant/bodhi -name "*.pyc" -delete;
-    bteststyle && bdocs && py.test-3 $@ /home/vagrant/bodhi/bodhi/tests && diff-cover /home/vagrant/bodhi/coverage.xml --compare-branch=develop --fail-under=100
+    blint && bdocs && py.test-3 $@ /home/vagrant/bodhi/bodhi/tests && diff-cover /home/vagrant/bodhi/coverage.xml --compare-branch=develop --fail-under=100
 }
 
 export BODHI_URL="http://localhost:6543/"
