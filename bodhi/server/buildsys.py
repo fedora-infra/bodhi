@@ -381,10 +381,19 @@ class DevBuildsys:
     @multicall_enabled
     def listTagged(self, tag: str, *args, **kw) -> typing.List[typing.Any]:
         """List updates tagged with teh given tag."""
+        latest = kw.get('latest', False)
         builds = []
-        for build in [self.getBuild(),
+
+        all_builds = [self.getBuild(),
                       self.getBuild(other=True),
-                      self.getBuild(other=True, testing=True)]:
+                      self.getBuild(other=True, testing=True)]
+
+        if latest:
+            # Delete all older builds which aren't the latest for their tag.
+            # Knowing which these are is simpler than trying to rpmvercmp.
+            del all_builds[0]
+
+        for build in all_builds:
             if build['nvr'] in self.__untag__:
                 log.debug('Pruning koji build %s' % build['nvr'])
                 continue

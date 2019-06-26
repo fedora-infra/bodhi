@@ -29,7 +29,8 @@ import pyramid.threadlocal
 import rpm
 
 from bodhi.server.config import config
-from . import log
+from bodhi.server.exceptions import BodhiException
+from . import buildsys, log
 from .models import (
     Build,
     Bug,
@@ -200,7 +201,7 @@ def validate_build_nvrs(request, **kwargs):
         request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
-    for build in request.validated.get('builds', []):
+    for build in request.validated.get('builds') or []:  # cope with builds being None
         try:
             cache_nvrs(request, build)
         except ValueError:
@@ -216,6 +217,35 @@ def validate_build_nvrs(request, **kwargs):
 
 
 @postschema_validator
+def validate_builds_or_from_tag_exist(request, **kwargs):
+    """
+    Ensure that at least one of the  builds or from_tags parameters exist in the request.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    builds = request.validated.get('builds')
+    from_tag = request.validated.get('from_tag')
+
+    if builds is None and from_tag is None:
+        request.errors.add('body', 'builds,from_tag',
+                           "You must specify either builds or from_tag.")
+
+    if builds is not None:
+        if not isinstance(builds, list):
+            request.errors.add('body', 'builds', "The builds parameter must be a list.")
+        elif len(builds) == 0:
+            request.errors.add('body', 'builds', "You may not specify an empty list of builds.")
+
+    if from_tag is not None:
+        if not isinstance(from_tag, str):
+            request.errors.add('body', 'from_tag', "The from_tags parameter must be a string.")
+        elif len(from_tag.strip()) == 0:
+            request.errors.add('body', 'from_tag', "You may not specify an empty from_tag.")
+
+
+@postschema_validator
 def validate_builds(request, **kwargs):
     """
     Ensure that the builds parameter is valid for the request.
@@ -226,10 +256,7 @@ def validate_builds(request, **kwargs):
     """
     edited = request.validated.get('edited')
     user = User.get(request.user.name)
-
-    if not request.validated.get('builds', []):
-        request.errors.add('body', 'builds', "You may not specify an empty list of builds.")
-        return
+    builds = request.validated.get('builds') or []  # cope with builds set to None
 
     if edited:
         up = request.db.query(Update).filter_by(alias=edited).first()
@@ -246,7 +273,7 @@ def validate_builds(request, **kwargs):
                 request.errors.add('body', 'builds',
                                    'Cannot edit stable updates')
 
-        for nvr in request.validated.get('builds', []):
+        for nvr in builds:
             # Ensure it doesn't already exist in another update
             build = request.db.query(Build).filter_by(nvr=nvr).first()
             if build and build.update is not None and up.alias != build.update.alias:
@@ -255,7 +282,7 @@ def validate_builds(request, **kwargs):
 
         return
 
-    for nvr in request.validated.get('builds', []):
+    for nvr in builds:
         build = request.db.query(Build).filter_by(nvr=nvr).first()
         if build and build.update is not None:
             request.errors.add('body', 'builds',
@@ -287,7 +314,7 @@ def validate_build_tags(request, **kwargs):
     else:
         valid_tags = tag_types['candidate']
 
-    for build in request.validated.get('builds', []):
+    for build in request.validated.get('builds') or []:
         valid = False
         tags = cache_tags(request, build)
         if tags is None:
@@ -1234,3 +1261,49 @@ def validate_request(request, **kwargs):
                         build.package.name, build.evr, target.description, other_build.evr))
                 request.errors.status = HTTPBadRequest.code
                 return
+
+
+@postschema_validator
+def validate_from_tag(request: pyramid.request.Request, **kwargs: dict):
+    """Check that an existing from_tag is valid and set `builds`.
+
+    Ensure that `from_tag` is a valid Koji tag and set `builds` to latest
+    builds from this tag if unset.
+
+    Args:
+        request: The current request.
+        kwargs: The kwargs of the related service definition. Unused.
+    """
+    koji_tag = request.validated.get('from_tag')
+
+    if koji_tag:
+        koji_client = buildsys.get_session()
+
+        if request.validated.get('builds'):
+            # Builds were specified explicitly, verify that the tag exists in Koji.
+            if not koji_client.getTag(koji_tag):
+                request.errors.add('body', 'from_tag', "The supplied from_tag doesn't exist.")
+                return
+
+            # Flag that `builds` wasn't filled from the Koji tag.
+            request.validated['builds_from_tag'] = False
+        else:
+            # Builds weren't specified explicitly, pull the list of latest NVRs here, as it is
+            # necessary for later validation of ACLs pertaining the respective components.
+            try:
+                request.validated['builds'] = [
+                    b['nvr'] for b in koji_client.listTagged(koji_tag, latest=True)
+                ]
+            except koji.GenericError as e:
+                if "invalid taginfo" in str(e).lower():
+                    request.errors.add('body', 'from_tag', "The supplied from_tag doesn't exist.")
+                else:
+                    raise BodhiException("Encountered error while requesting tagged builds from "
+                                         f"Koji: '{e}'") from e
+            else:  # no Koji error, request.validated['builds'] was filled
+                if not request.validated['builds']:
+                    request.errors.add('body', 'from_tag',
+                                       "The supplied from_tag doesn't contain any builds.")
+                else:
+                    # Flag that `builds` was filled from the Koji tag.
+                    request.validated['builds_from_tag'] = True

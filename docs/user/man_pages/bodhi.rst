@@ -544,7 +544,7 @@ The ``releases`` command allows users to manage update releases.
 
         The Koji tag to use for stable updates (e.g., f29-updates).
 
-    ``--state [disabled|pending|current|archived]``
+    ``--state [disabled|pending|frozen|current|archived]``
 
         The state of the release.
 
@@ -620,7 +620,7 @@ The ``releases`` command allows users to manage update releases.
 
         The Koji tag to use for stable updates (e.g., f29-updates).
 
-    ``--state [disabled|pending|current|archived]``
+    ``--state [disabled|pending|frozen|current|archived]``
 
         The state of the release.
 

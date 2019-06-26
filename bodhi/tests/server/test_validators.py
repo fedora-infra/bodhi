@@ -22,10 +22,13 @@ import unittest
 
 from cornice.errors import Errors
 from fedora_messaging import api, testing as fml_testing
+import koji
 from pyramid import exceptions
+import pytest
 
-from bodhi.tests.server.base import BaseTestCase
+from bodhi.tests.server.base import BasePyTestCase, BaseTestCase
 from bodhi.server import buildsys, models, validators
+from bodhi.server.exceptions import BodhiException
 
 
 class TestValidateCSRFToken(BaseTestCase):
@@ -580,3 +583,211 @@ class TestValidateTestcaseFeedback(BaseTestCase):
             [{'location': 'url', 'name': 'id',
               'description': 'Invalid update'}])
         self.assertEqual(request.errors.status, exceptions.HTTPNotFound.code)
+
+
+class TestValidateBuildsOrFromTagExist(BasePyTestCase):
+    """Test the validate_builds_or_from_tag_exist() function."""
+
+    def setup_method(self, method):
+        """Sets up the environment for each test method call."""
+        super().setup_method(method)
+
+        self.request = mock.Mock()
+        self.request.db = self.db
+        self.request.errors = Errors()
+        self.request.validated = {}
+
+    def test_valid_builds(self):
+        """A request with valid builds should pass without errors."""
+        self.request.validated['builds'] = ['foo-1-1.fc30']
+
+        validators.validate_builds_or_from_tag_exist(self.request)
+
+        assert len(self.request.errors) == 0
+
+    def test_invalid_builds(self):
+        """A request with wrongly typed builds should add an error."""
+        self.request.validated['builds'] = 'foo-1-1.fc30'
+
+        validators.validate_builds_or_from_tag_exist(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'builds',
+             'description': 'The builds parameter must be a list.'}
+        ]
+
+    def test_valid_from_tag(self):
+        """A request with valid from_tag should pass without errors."""
+        self.request.validated['from_tag'] = 'f30-something-side-tag'
+
+        validators.validate_builds_or_from_tag_exist(self.request)
+
+        assert len(self.request.errors) == 0
+
+    def test_invalid_from_tag(self):
+        """A request with wrongly typed from_tag should add an error."""
+        self.request.validated['from_tag'] = ['f30-something-side-tag']
+
+        validators.validate_builds_or_from_tag_exist(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'from_tag',
+             'description': 'The from_tags parameter must be a string.'}
+        ]
+
+    def test_missing(self):
+        """A request without `builds` or `from_tag` should add an error."""
+        validators.validate_builds_or_from_tag_exist(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'builds,from_tag',
+             'description': "You must specify either builds or from_tag."}
+        ]
+
+    def test_empty_builds(self):
+        """An empty list of builds should add an error to the request."""
+        self.request.validated['builds'] = []
+
+        validators.validate_builds_or_from_tag_exist(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'builds',
+             'description': "You may not specify an empty list of builds."}
+        ]
+
+    def test_empty_from_tag(self):
+        """An empty from_tag should add an error to the request."""
+        self.request.validated['from_tag'] = ""
+
+        validators.validate_builds_or_from_tag_exist(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'from_tag',
+             'description': "You may not specify an empty from_tag."}
+        ]
+
+
+class TestValidateFromTag(BasePyTestCase):
+    """Test the validate_from_tag() function."""
+
+    class UnknownTagDevBuildsys(buildsys.DevBuildsys):
+
+        def listTagged(self, tag, *args, **kwargs):
+            raise koji.GenericError(f"Invalid tagInfo: {tag!r}")
+
+        def getTag(self, tag, **kwargs):
+            return None
+
+    class NoBuildsDevBuildsys(buildsys.DevBuildsys):
+
+        def listTagged(self, tag, *args, **kwargs):
+            return []
+
+    class UnknownKojiGenericError(buildsys.DevBuildsys):
+
+        def listTagged(self, tag, *args, **kwargs):
+            raise koji.GenericError("foo")
+
+    @classmethod
+    def mock_get_session_for_class(cls, buildsys_cls):
+        def mock_get_session():
+            return buildsys_cls()
+        return mock_get_session
+
+    def setup_method(self, method):
+        """Sets up the environment for each test method call."""
+        super().setup_method(method)
+
+        self.request = mock.Mock()
+        self.request.db = self.db
+        self.request.errors = Errors()
+        self.request.validated = {'from_tag': 'f17-updates-candidate'}
+
+    # Successful validations
+
+    def test_known_with_builds(self):
+        """Test with known from_tag and with builds set in request.validated.
+
+        This test expects that builds_from_tag is set to False after calling
+        the validator."""
+        self.request.validated['builds'] = ['foo-1-1']
+
+        validators.validate_from_tag(self.request)
+
+        assert self.request.validated['builds_from_tag'] == False
+        assert not self.request.errors
+
+    def test_known_without_builds(self):
+        """Test with known from_tag but without builds in request.validated.
+
+        This test expects that builds_from_tag is set to True, and builds are
+        filled after calling the validator."""
+        validators.validate_from_tag(self.request)
+
+        assert self.request.validated['builds_from_tag'] == True
+        assert len(self.request.validated['builds'])
+        assert not self.request.errors
+
+    def test_without_from_tag(self):
+        """Test without from_tag supplied.
+
+        This makes the validator a no-op."""
+        del self.request.validated['from_tag']
+
+        validators.validate_from_tag(self.request)
+
+    # Error conditions
+
+    def test_known_with_empty_builds(self):
+        """Test with known from_tag but with empty builds in request.validated.
+
+        This test expects an appropriate error to be added."""
+        with mock.patch('bodhi.server.validators.buildsys.get_session',
+                        self.mock_get_session_for_class(self.NoBuildsDevBuildsys)):
+            validators.validate_from_tag(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'from_tag',
+             'description': "The supplied from_tag doesn't contain any builds."}
+        ]
+
+    def test_unknown_with_builds(self):
+        """An unknown from_tag should add an error to the request.
+
+        This test runs with a list of fills in request.validated."""
+        self.request.validated['builds'] = ['foo-1-1']
+
+        with mock.patch('bodhi.server.validators.buildsys.get_session',
+                        self.mock_get_session_for_class(self.UnknownTagDevBuildsys)):
+            validators.validate_from_tag(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'from_tag',
+             'description': "The supplied from_tag doesn't exist."}
+        ]
+
+    def test_unknown_without_builds(self):
+        """An unknown from_tag should add an error to the request.
+
+        This test runs without a list of fills in request.validated."""
+        with mock.patch('bodhi.server.validators.buildsys.get_session',
+                        self.mock_get_session_for_class(self.UnknownTagDevBuildsys)):
+            validators.validate_from_tag(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'from_tag',
+             'description': "The supplied from_tag doesn't exist."}
+        ]
+
+    def test_unknown_koji_genericerror(self):
+        """An unknown koji.GenericError should be wrapped."""
+        with pytest.raises(BodhiException) as excinfo:
+            with mock.patch('bodhi.server.validators.buildsys.get_session',
+                            self.mock_get_session_for_class(self.UnknownKojiGenericError)):
+                validators.validate_from_tag(self.request)
+
+        assert (str(excinfo.value)
+                == "Encountered error while requesting tagged builds from Koji: 'foo'")
+
+        # check type of wrapped exception
+        assert isinstance(excinfo.value.__cause__, koji.GenericError)

@@ -211,7 +211,7 @@ class TestKarma2HTML(unittest.TestCase):
     def test_karma_danger(self):
         """If karma is less than -2, the danger class should be used."""
         self.assertEqual(util.karma2html(mock.MagicMock(), -3),
-                         "<span class='label label-danger'>-3</span>")
+                         "<span class='badge badge-danger'>-3</span>")
 
 
 class TestMemoized(unittest.TestCase):
@@ -302,59 +302,59 @@ class TestComposeState2HTML(unittest.TestCase):
     def test_requested(self):
         """Assert correct return value with the requested state."""
         self.assertEqual(util.composestate2html(None, ComposeState.requested),
-                         "<span class='label label-primary'>Requested</span>")
+                         "<span class='badge badge-primary'>Requested</span>")
 
     def test_pending(self):
         """Assert correct return value with the pending state."""
         self.assertEqual(util.composestate2html(None, ComposeState.pending),
-                         "<span class='label label-primary'>Pending</span>")
+                         "<span class='badge badge-primary'>Pending</span>")
 
     def test_initializing(self):
         """Assert correct return value with the initializing state."""
         self.assertEqual(util.composestate2html(None, ComposeState.initializing),
-                         "<span class='label label-warning'>Initializing</span>")
+                         "<span class='badge badge-warning'>Initializing</span>")
 
     def test_updateinfo(self):
         """Assert correct return value with the updateinfo state."""
         self.assertEqual(util.composestate2html(None, ComposeState.updateinfo),
-                         "<span class='label label-warning'>Generating updateinfo.xml</span>")
+                         "<span class='badge badge-warning'>Generating updateinfo.xml</span>")
 
     def test_punging(self):
         """Assert correct return value with the punging state."""
         self.assertEqual(util.composestate2html(None, ComposeState.punging),
-                         "<span class='label label-warning'>Waiting for Pungi to finish</span>")
+                         "<span class='badge badge-warning'>Waiting for Pungi to finish</span>")
 
     def test_notifying(self):
         """Assert correct return value with the notifying state."""
         self.assertEqual(util.composestate2html(None, ComposeState.notifying),
-                         "<span class='label label-warning'>Sending notifications</span>")
+                         "<span class='badge badge-warning'>Sending notifications</span>")
 
     def test_success(self):
         """Assert correct return value with the success state."""
         self.assertEqual(util.composestate2html(None, ComposeState.success),
-                         "<span class='label label-success'>Success</span>")
+                         "<span class='badge badge-success'>Success</span>")
 
     def test_failed(self):
         """Assert correct return value with the failed state."""
         self.assertEqual(util.composestate2html(None, ComposeState.failed),
-                         "<span class='label label-danger'>Failed</span>")
+                         "<span class='badge badge-danger'>Failed</span>")
 
     def test_cleaning(self):
         """Assert correct return value with the cleaning state."""
         self.assertEqual(util.composestate2html(None, ComposeState.cleaning),
-                         "<span class='label label-warning'>Cleaning old composes</span>")
+                         "<span class='badge badge-warning'>Cleaning old composes</span>")
 
     def test_syncing_repo(self):
         """Assert correct return value with the syncing_repo state."""
         self.assertEqual(
             util.composestate2html(None, ComposeState.syncing_repo),
-            "<span class='label label-warning'>Wait for the repo to hit the master mirror</span>",
+            "<span class='badge badge-warning'>Wait for the repo to hit the master mirror</span>",
         )
 
     def test_signing_repo(self):
         """Assert correct return value with the signing_repo state."""
         self.assertEqual(util.composestate2html(None, ComposeState.signing_repo),
-                         "<span class='label label-warning'>Signing repo</span>")
+                         "<span class='badge badge-warning'>Signing repo</span>")
 
 
 class TestCanWaiveTestResults(base.BaseTestCase):
@@ -567,14 +567,14 @@ class TestType2Icon(unittest.TestCase):
         """Test type2icon() with a kind that starts with a consonant."""
         self.assertEqual(
             util.type2icon(None, 'security'),
-            ("<span class='label label-danger' data-toggle='tooltip' "
+            ("<span class='badge badge-danger text-white' data-toggle='tooltip' "
              "title='This is a security update'><i class='fa fa-fw fa-shield'></i></span>"))
 
     def test_vowel(self):
         """Test type2icon() with a kind that starts with a vowel."""
         self.assertEqual(
             util.type2icon(None, 'enhancement'),
-            ("<span class='label label-success' data-toggle='tooltip' "
+            ("<span class='badge badge-success text-white' data-toggle='tooltip' "
              "title='This is an enhancement update'><i class='fa fa-fw fa-bolt'></i></span>"))
 
 

@@ -19,8 +19,32 @@
 import math
 
 import psycopg2
+import pytest
 
 from .utils import read_file
+
+
+content_type_mapping = {
+    'base': 'Base',
+    'rpm': 'RPM',
+    'module': 'Module',
+    'container': 'Container',
+    'flatpak': 'Flatpak',
+}
+
+compose_state_mapping = {
+    'requested': 'Requested',
+    'pending': 'Pending',
+    'initializing': 'Initializing',
+    'updateinfo': 'Generating updateinfo.xml',
+    'punging': 'Waiting for Pungi to finish',
+    'syncing_repo': 'Wait for the repo to hit the master mirror',
+    'notifying': 'Sending notifications',
+    'success': 'Success',
+    'failed': 'Failed',
+    'signing_repo': 'Signing repo',
+    'cleaning': 'Cleaning old composes',
+}
 
 
 def test_get_root(bodhi_container, db_container):
@@ -291,14 +315,6 @@ def test_get_update_view(bodhi_container, db_container):
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
         http_response = c.get(f"/updates/{update_info['alias']}", headers=headers)
-
-    content_type_mapping = {
-        'base': 'Base',
-        'rpm': 'RPM',
-        'module': 'Module',
-        'container': 'Container',
-        'flatpak': 'Flatpak',
-    }
 
     try:
         assert http_response.ok
@@ -626,6 +642,302 @@ def test_get_builds_json(bodhi_container, db_container):
     try:
         assert http_response.ok
         assert expected_json == http_response.json()
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def test_get_compose_json(bodhi_container, db_container):
+    """Test ``/composes/{release_name}/{request}`` path"""
+    # Fetch the latest compose from the DB
+    query_composes = (
+        "SELECT "
+        "  release_id, "
+        "  request, "
+        "  checkpoints, "
+        "  error_message, "
+        "  date_created, "
+        "  state_date, "
+        "  state "
+        "FROM composes "
+        "ORDER BY date_created DESC LIMIT 1"
+    )
+    # Fetch release for compose from the DB
+    query_releases = (
+        "SELECT "
+        "  name, "
+        "  long_name, "
+        "  version, "
+        "  id_prefix, "
+        "  branch, "
+        "  dist_tag, "
+        "  stable_tag, "
+        "  testing_tag, "
+        "  candidate_tag, "
+        "  pending_signing_tag, "
+        "  pending_testing_tag, "
+        "  pending_stable_tag, "
+        "  override_tag, "
+        "  mail_template, "
+        "  state, "
+        "  composed_by_bodhi, "
+        "  create_automatic_updates, "
+        "  package_manager, "
+        "  testing_repository "
+        "FROM releases "
+        "WHERE id = %s "
+    )
+    # Fetch updates for compose from the DB
+    query_updates = (
+        "SELECT "
+        "  id, "
+        "  alias, "
+        "  type "
+        "FROM updates "
+        "WHERE release_id = %s AND locked = TRUE AND request = %s "
+        "ORDER BY date_submitted "
+    )
+    # Fetch builds for each update from the DB
+    query_builds = (
+        "SELECT "
+        "  nvr, "
+        "  type "
+        "FROM builds "
+        "WHERE update_id = %s "
+        "ORDER BY nvr "
+    )
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_composes)
+            compose = {}
+            row = curs.fetchone()
+            if row is None:
+                pytest.skip("No composes in the database")
+            for value, description in zip(row, curs.description):
+                compose[description.name] = value
+            release = {}
+            curs.execute(query_releases, (compose['release_id'], ))
+            row = curs.fetchone()
+            for value, description in zip(row, curs.description):
+                release[description.name] = value
+            curs.execute(query_updates, (compose['release_id'], compose['request'], ))
+            updates = []
+            rows = curs.fetchall()
+            for row in rows:
+                updates.append({'id': row[0], 'alias': row[1], 'type': row[2], 'builds': []})
+            for update in updates:
+                curs.execute(query_builds, (update['id'], ))
+                for row in curs.fetchall():
+                    update['builds'].append({'nvr': row[0], 'content_type': row[1]})
+    conn.close()
+
+    # GET on compose
+    with bodhi_container.http_client(port="8080") as c:
+        http_response = c.get(f"/composes/{release['name']}/{compose['request']}")
+
+    compose['date_created'] = compose['date_created'].strftime("%Y-%m-%d %H:%M:%S")
+    compose['state_date'] = compose['state_date'].strftime("%Y-%m-%d %H:%M:%S")
+    compose['security'] = False
+    for update in updates:
+        if update['type'] == 'security':
+            compose['security'] = True
+            break
+
+    if len(updates) and len(updates[0]['builds']):
+        compose['content_type'] = updates[0]['builds'][0]['content_type']
+    else:
+        compose['content_type'] = None
+    compose['release'] = release
+    compose['update_summary'] = []
+
+    for update in updates:
+        if len(update['builds']) > 2:
+            builds_left = len(update['builds']) - 2
+            suffix = f", and {builds_left} more"
+            update_builds = ", ".join([b['nvr'] for b in update['builds'][:2]])
+            update_builds += suffix
+        else:
+            update_builds = " and ".join([b['nvr'] for b in update['builds']])
+        compose['update_summary'].append({'alias': update['alias'], 'title': update_builds})
+
+    try:
+        assert http_response.ok
+        assert {"compose": compose} == http_response.json()
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def test_get_composes_view(bodhi_container, db_container):
+    """Test ``/composes`` path"""
+    # Fetch composes from the DB
+    query_composes = (
+        "SELECT "
+        "  release_id, "
+        "  request "
+        "FROM composes "
+    )
+    # Fetch release for compose from the DB
+    query_releases = (
+        "SELECT "
+        "  name "
+        "FROM releases "
+        "WHERE id = %s "
+    )
+    expected_composes = []
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_composes)
+            rows = curs.fetchall()
+            for row in rows:
+                compose = {'request': row[1]}
+                curs.execute(query_releases, (row[0], ))
+                row = curs.fetchone()
+                compose['release_name'] = row[0]
+                expected_composes.append(compose)
+    conn.close()
+
+    # GET on /composes
+    with bodhi_container.http_client(port="8080") as c:
+        headers = {'Accept': 'text/html'}
+        http_response = c.get(f"/composes", headers=headers)
+
+    try:
+        assert http_response.ok
+        assert "Composes" in http_response.text
+        for compose in expected_composes:
+            assert f"{compose['release_name']} {compose['request']}" in http_response.text
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def test_get_compose_view(bodhi_container, db_container):
+    """Test ``/composes/{release_name}/{request}`` path"""
+    # Fetch the latest compose from the DB
+    query_composes = (
+        "SELECT "
+        "  release_id, "
+        "  request, "
+        "  error_message, "
+        "  date_created, "
+        "  state_date, "
+        "  state "
+        "FROM composes "
+        "ORDER BY date_created DESC LIMIT 1"
+    )
+    # Fetch release for compose from the DB
+    query_releases = (
+        "SELECT "
+        "  name "
+        "FROM releases "
+        "WHERE id = %s "
+    )
+    # Fetch updates for compose from the DB
+    query_updates = (
+        "SELECT "
+        "  id, "
+        "  type "
+        "FROM updates "
+        "WHERE release_id = %s AND locked = TRUE AND request = %s "
+        "ORDER BY date_submitted "
+    )
+    # Fetch builds for each update from the DB
+    query_builds = (
+        "SELECT "
+        "  nvr, "
+        "  type "
+        "FROM builds "
+        "WHERE update_id = %s "
+        "ORDER BY nvr "
+    )
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_composes)
+            compose = {}
+            row = curs.fetchone()
+            if row is None:
+                pytest.skip("No composes in the database")
+            for value, description in zip(row, curs.description):
+                compose[description.name] = value
+            release = {}
+            curs.execute(query_releases, (compose['release_id'], ))
+            row = curs.fetchone()
+            compose['release_name'] = row[0]
+            curs.execute(query_updates, (compose['release_id'], compose['request'], ))
+            updates = []
+            rows = curs.fetchall()
+            for row in rows:
+                updates.append({'id': row[0], 'type': row[1], 'builds': []})
+            for update in updates:
+                curs.execute(query_builds, (update['id'], ))
+                for row in curs.fetchall():
+                    update['builds'].append({'nvr': row[0], 'content_type': row[1]})
+    conn.close()
+
+    # GET on compose
+    with bodhi_container.http_client(port="8080") as c:
+        headers = {'Accept': 'text/html'}
+        http_response = c.get(
+            f"/composes/{compose['release_name']}/{compose['request']}", headers=headers
+        )
+
+    compose['date_created'] = compose['date_created'].strftime("%Y-%m-%d %H:%M:%S")
+    compose['state_date'] = compose['state_date'].strftime("%Y-%m-%d %H:%M:%S")
+    compose['security'] = False
+    for update in updates:
+        if update['type'] == 'security':
+            compose['security'] = True
+            break
+
+    if len(updates) and len(updates[0]['builds']):
+        compose['content_type'] = updates[0]['builds'][0]['content_type']
+    else:
+        compose['content_type'] = None
+    compose['release'] = release
+    compose['updates'] = []
+
+    for update in updates:
+        if len(update['builds']) > 2:
+            builds_left = len(update['builds']) - 2
+            suffix = f", and {builds_left} more"
+            update_builds = ", ".join([b['nvr'] for b in update['builds'][:2]])
+            update_builds += suffix
+        else:
+            update_builds = " and ".join([b['nvr'] for b in update['builds']])
+        compose['updates'].append({'title': update_builds})
+
+    try:
+        assert http_response.ok
+        assert f"{compose['release_name']} {compose['request']}" in http_response.text
+        if compose['security']:
+            assert "This compose contains security updates." in http_response.text
+        assert "State" in http_response.text
+        assert compose_state_mapping[compose['state']] in http_response.text
+        if compose['content_type'] is not None:
+            assert content_type_mapping[compose['content_type']] in http_response.text
+        assert "Dates" in http_response.text
+        assert compose['date_created'] + " (UTC)" in http_response.text
+        assert compose['state_date'] + " (UTC)" in http_response.text
+        assert "Updates" in http_response.text
+        assert str(len(compose['updates'])) in http_response.text
+        for update in compose['updates']:
+            assert update['title'] in http_response.text
     except AssertionError:
         print(http_response)
         print(http_response.text)

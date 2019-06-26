@@ -275,6 +275,7 @@ def latest_candidates(request):
                      .filter(
                          models.Release.state.in_(
                              (models.ReleaseState.pending,
+                              models.ReleaseState.frozen,
                               models.ReleaseState.current)))
 
         kwargs = dict(package=pkg, latest=True)
