@@ -111,7 +111,7 @@ class Bugzilla(object):
         Returns:
             The requested URL.
         """
-        return "%s/show_bug.cgi?id=%s" % (config['bz_baseurl'], bug_id)
+        return f"{config['bz_baseurl']}/show_bug.cgi?id={bug_id}"
 
     def getbug(self, bug_id: int) -> 'bugzilla.bug.Bug':
         """
@@ -134,7 +134,7 @@ class Bugzilla(object):
         """
         try:
             if len(comment) > 65535:
-                raise InvalidComment("Comment is too long: %s" % comment)
+                raise InvalidComment(f"Comment is too long: {comment}")
             bug = self.bz.getbug(bug_id)
             attempts = 0
             while attempts < 5:
