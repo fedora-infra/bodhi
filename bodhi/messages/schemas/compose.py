@@ -44,6 +44,10 @@ class ComposeCompleteV1(BodhiMessage):
             'success': {
                 'type': 'boolean',
                 'description': 'true if the compose was successful, false otherwise.'
+            },
+            'ctype': {
+                'type': 'string',
+                'description': 'Type of the compose.'
             }
         },
         'required': ['agent', 'repo', 'success'],
@@ -60,6 +64,11 @@ class ComposeCompleteV1(BodhiMessage):
     def success(self) -> bool:
         """Return the name of the repository being composed."""
         return self.body.get('success')
+
+    @property
+    def ctype(self) -> str:
+        """Return the compose type."""
+        return self.body.get('ctype')
 
     @property
     def summary(self) -> str:

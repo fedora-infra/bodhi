@@ -47,7 +47,7 @@ def check():
         models.Update.release_id == models.Release.id
     ).filter(
         models.Release.state.in_(
-            [models.ReleaseState.current, models.ReleaseState.pending])
+            [models.ReleaseState.current, models.ReleaseState.pending, models.ReleaseState.frozen])
     ).order_by(
         # Check the older updates first so there is more time for the newer to
         # get their test results
