@@ -632,7 +632,7 @@ class TestValidateBuildsOrFromTagExist(BasePyTestCase):
 
         assert self.request.errors == [
             {'location': 'body', 'name': 'from_tag',
-             'description': 'The from_tags parameter must be a string.'}
+             'description': 'The from_tag parameter must be a string.'}
         ]
 
     def test_missing(self):
