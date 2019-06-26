@@ -10,6 +10,7 @@ routing_keys = [
     "org.fedoraproject.*.buildsys.tag",
     "org.fedoraproject.*.bodhi.update.request.testing",
     "org.fedoraproject.*.bodhi.update.edit",
+    "org.fedoraproject.*.greenwave.decision.update",
 ]
 
 [client_properties]
