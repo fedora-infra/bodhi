@@ -710,8 +710,6 @@ class TestRelease(ModelTest):
         """Test mandatory_days_in_testing() with a value that is truthy."""
         self.assertEqual(self.obj.mandatory_days_in_testing, 42)
 
-<<<<<<< HEAD
-=======
     @mock.patch.dict(config, {'f11.current.mandatory_days_in_testing': 0, 'f11.status': 'current'})
     def test_mandatory_days_in_testing_status_0_days(self):
         """Test mandatory_days_in_testing() with a value that is 0."""
@@ -735,7 +733,6 @@ class TestRelease(ModelTest):
         """Assert correct return value from the setting_status property when config not found."""
         self.assertEqual(self.obj.setting_status, None)
 
->>>>>>> 4b7b632b8... Make sure we can set a release mandatory days in testing to 0.
     def test_version_int(self):
         self.assertEqual(self.obj.version_int, 11)
 
