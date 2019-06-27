@@ -376,6 +376,10 @@ $(document).ready(function() {
 
     $.each(['testing', 'stable', 'unpush', 'revoke'], function(i, action) {
       $("#updatebuttons #" + action).click(function() {
+          if (action == 'unpush') {
+              var r = confirm('Are you sure you want to unpush this update?');
+              if (r === false) { return; }
+          }
           $("#updatebuttons a").addClass('disabled');
           cabbage.spin(); // for real!
           var url = '${request.route_url("update_request", id=update.alias)}';
