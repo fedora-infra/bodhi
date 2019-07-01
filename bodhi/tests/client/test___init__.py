@@ -721,7 +721,7 @@ class TestNew(unittest.TestCase):
                 return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
     def test_display_name_flag(self, send_request):
         """
-        Assert correct behavior with the --close-bugs flag.
+        Assert correct behavior with the --display-name flag.
         """
         runner = testing.CliRunner()
 
