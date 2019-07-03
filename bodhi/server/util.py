@@ -564,7 +564,7 @@ def composestate2html(context, state):
         'success': 'success',
         'failed': 'danger',
     }[state.value]
-    return "<span class='label label-%s'>%s</span>" % (cls, state.description)
+    return "<span class='badge badge-%s'>%s</span>" % (cls, state.description)
 
 
 def status2html(context, status):
@@ -594,8 +594,8 @@ def status2html(context, status):
         'obsolete': 'The package has been obsoleted by a different update.',
     }[status]
 
-    return "<span class='text-muted' data-toggle='tooltip' title='%s'>" % (status_desc) \
-        + "<span class='label label-%s'>%s</span>" % (cls, status) \
+    return "<span data-toggle='tooltip' title='%s'>" % (status_desc) \
+        + "<span class='badge badge-%s text-white'>%s</span>" % (cls, status) \
         + "</span>"
 
 
@@ -614,6 +614,7 @@ def state2class(context, state):
     cls = {
         'disabled': 'default active',
         'pending': 'warning',
+        'frozen': 'info',
         'current': 'success',
         'archived': 'danger'
     }
@@ -652,7 +653,7 @@ def state2html(context, state):
         str: An HTML rendering of the given ReleaseState.
     """
     state_class = state2class(context, state)
-    return "<span class='label label-%s'>%s</span>" % (state_class, state)
+    return "<span class='badge badge-%s'>%s</span>" % (state_class, state)
 
 
 def karma2class(context, karma, default='default'):
@@ -708,7 +709,7 @@ def karma2html(context, karma):
     else:
         karma = "%i" % karma
 
-    return "<span class='label label-%s'>%s</span>" % (cls, karma)
+    return "<span class='badge badge-%s'>%s</span>" % (cls, karma)
 
 
 def type2html(context, kind):
@@ -731,7 +732,7 @@ def type2html(context, kind):
         'unspecified': 'default',
     }.get(kind)
 
-    return "<span class='label label-%s'>%s</span>" % (cls, kind)
+    return "<span class='badge badge-%s text-white'>%s</span>" % (cls, kind)
 
 
 def type2icon(context, kind):
@@ -765,7 +766,7 @@ def type2icon(context, kind):
         'enhancement': 'fa-bolt',
     }.get(kind)
 
-    span = ("<span class='label label-%s' data-toggle='tooltip' "
+    span = ("<span class='badge badge-%s text-white' data-toggle='tooltip' "
             "title='This is %s %s update'><i class='fa fa-fw %s'></i></span>")
     return span % (cls, kind_article, kind, fontawesome)
 
@@ -790,7 +791,7 @@ def severity2html(context, severity):
         'unspecified': 'default',
     }.get(severity)
 
-    return "<span class='label label-%s'>%s</span>" % (cls, severity)
+    return "<span class='badge badge-%s'>%s</span>" % (cls, severity)
 
 
 def request2html(context, request):
@@ -811,7 +812,7 @@ def request2html(context, request):
         'stable': 'success',
     }.get(request)
 
-    return "<span class='label label-%s'>%s</span>" % (cls, request)
+    return "<span class='badge badge-%s'>%s</span>" % (cls, request)
 
 
 def update2html(context: 'mako.runtime.Context', update: typing.Mapping[str, str]) -> str:

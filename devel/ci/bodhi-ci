@@ -40,6 +40,7 @@ CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 LABEL_TEMPLATE = '{:>8}-{:<34}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 RELEASES = ('f29', 'f30', 'rawhide', 'pip')
+INTEGRATION_APPS = ("resultsdb", "waiverdb", "greenwave", "rabbitmq")
 
 
 def _set_concurrency(ctx, param, value):
@@ -193,7 +194,7 @@ def clean(concurrency, container_runtime, init, release, tty):
         for r in release
     ] + [
         IntegrationCleanJob(app_name=app_name, release="prod", buffer_output=buffer_output)
-        for app_name in ("resultsdb", "waiverdb", "greenwave")
+        for app_name in INTEGRATION_APPS
     ]
     _run_jobs(clean_jobs)
 
@@ -1140,7 +1141,7 @@ def _build_jobs_list(
         if command != 'integration-download':
             integration_deps_build_jobs.extend([
                 IntegrationBuildJob(app_name=app_name, release="prod", buffer_output=buffer_output)
-                for app_name in ("resultsdb", "waiverdb", "greenwave")
+                for app_name in INTEGRATION_APPS
             ])
         # Download the DB dumps
         integration_deps_build_jobs.extend([
