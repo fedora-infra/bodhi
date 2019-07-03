@@ -28,9 +28,8 @@ import logging
 
 from pyramid.paster import get_appsettings
 
-from bodhi.messages.schemas import update as update_schemas
-from bodhi.server import Session, initialize_db, notifications, buildsys
-from ..models import Update, UpdateStatus, UpdateRequest
+from bodhi.server import Session, initialize_db, buildsys
+from ..models import Update, UpdateStatus
 from ..config import config
 
 
@@ -78,33 +77,8 @@ def main(argv=sys.argv):
         testing = db.query(Update).filter_by(status=UpdateStatus.testing,
                                              request=None)
         for update in testing:
-            if not update.release.mandatory_days_in_testing and not update.autotime:
-                # If this release does not have any testing requirements and is not autotime,
-                # skip it
-                print(f"{update.release.name} doesn't have mandatory days in testing")
-                continue
-
-            # If this update was already commented, skip it
-            if update.has_stable_comment:
-                continue
-
-            # If updates have reached the testing threshold, say something! Keep in mind
-            # that we don't care about karma here, because autokarma updates get their request set
-            # to stable by the Update.comment() workflow when they hit the required threshold. Thus,
-            # this function only needs to consider the time requirements because these updates have
-            # not reached the karma threshold.
-            if update.meets_testing_requirements:
-                print(f'{update.alias} now meets testing requirements')
-                update.comment(db, str(config.get('testing_approval_msg')), author='bodhi')
-
-                notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
-                    dict(update=update)))
-
-                if update.autotime and update.days_in_testing >= update.stable_days:
-                    print(f"Automatically marking {update.alias} as stable")
-                    update.set_request(db=db, action=UpdateRequest.stable, username="bodhi")
-
-                db.commit()
+            update.move_to_stable(db)
+            db.commit()
 
     except Exception as e:
         print(str(e))

@@ -21,6 +21,7 @@ This module contains tests for the bodhi.server.scripts.approve_testing module.
 from datetime import datetime, timedelta
 from io import StringIO
 import logging
+import sys
 from unittest.mock import call, patch
 
 from fedora_messaging import api, testing as fml_testing
@@ -131,8 +132,9 @@ class TestMain(BaseTestCase):
     @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
     @patch('bodhi.server.scripts.approve_testing.Session.remove')
     @patch('bodhi.server.scripts.approve_testing.sys.exit')
+    @patch('bodhi.server.models.log')
     @patch('sys.stdout', new_callable=StringIO)
-    def test_exception_handler(self, stdout, exit, remove, comment):
+    def test_exception_handler(self, stdout, log, exit, remove, comment):
         """The Exception handler prints the Exception, rolls back and closes the db, and exits."""
         update = self.db.query(models.Update).all()[0]
         update.date_testing = datetime.utcnow() - timedelta(days=15)
@@ -154,15 +156,19 @@ class TestMain(BaseTestCase):
             self.db,
             ('This update can be pushed to stable now if the maintainer wishes'),
             author='bodhi')
-        self.assertEqual(stdout.getvalue(),
-                         f'{update.alias} now meets testing requirements\nThe DB died lol\n')
+
+        self.assertEqual(
+            [call.info(f'{update.alias} now meets testing requirements')],
+            log.mock_calls)
+        self.assertEqual(stdout.getvalue(), 'The DB died lol\n')
         remove.assert_called_once_with()
 
     @patch('bodhi.server.models.Update.comment', side_effect=[None, IOError('The DB died lol')])
     @patch('bodhi.server.scripts.approve_testing.Session.remove')
     @patch('bodhi.server.scripts.approve_testing.sys.exit')
+    @patch('bodhi.server.models.log')
     @patch('sys.stdout', new_callable=StringIO)
-    def test_exception_handler_on_the_second_update(self, stdout, exit, remove, comment):
+    def test_exception_handler_on_the_second_update(self, stdout, log, exit, remove, comment):
         """
         Ensure, that when the Exception is raised, all previous transactions are commited,
         the Exception handler prints the Exception, rolls back and closes the db, and exits.
@@ -195,9 +201,14 @@ class TestMain(BaseTestCase):
             ('This update can be pushed to stable now if the maintainer wishes'),
             author='bodhi',)
         self.assertEqual(comment.call_args_list, [comment_expected_call, comment_expected_call])
-        self.assertEqual(stdout.getvalue(),
-                         (f'{update2.alias} now meets testing requirements\n'
-                          f'{update.alias} now meets testing requirements\nThe DB died lol\n'))
+        self.assertEqual(
+            [
+                call.debug(f'Set alias for bodhi2-2.0-1.fc17 to {update2.alias}'),
+                call.info(f'{update2.alias} now meets testing requirements'),
+                call.info(f'{update.alias} now meets testing requirements'),
+            ],
+            log.mock_calls)
+        self.assertEqual(stdout.getvalue(), 'The DB died lol\n')
         remove.assert_called_once_with()
 
     def test_non_autokarma_critpath_update_meeting_karma_requirements_gets_one_comment(self):
@@ -477,6 +488,8 @@ class TestMain(BaseTestCase):
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
                 approve_testing.main(['nosetests', 'some_config.ini', 'testnoses'])
+
+        cmd = sys.argv[0].rsplit('/')[-1]
 
         self.assertEqual(
             stdout.getvalue(),

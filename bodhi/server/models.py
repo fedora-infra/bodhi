@@ -3653,6 +3653,41 @@ class Update(Base):
                 author="bodhi",
             )
 
+    def move_to_stable(self, db):
+        """
+        Move the update to stable if it was set to not spend any time in testing.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        Raises:
+            sqlalchemy.exc.SQLAlchemyError: If the database doesn't behave as expected.
+        """
+        if not self.release.mandatory_days_in_testing and not self.autotime:
+            # If this release does not have any testing requirements and is not autotime,
+            # skip it
+            log.debug(f"{self.release.name} doesn't have mandatory days in testing")
+            return
+
+        # If this update was already commented, skip it
+        if self.has_stable_comment:
+            return
+
+        # If updates have reached the testing threshold, say something! Keep in mind
+        # that we don't care about karma here, because autokarma updates get their request set
+        # to stable by the Update.comment() workflow when they hit the required threshold. Thus,
+        # this function only needs to consider the time requirements because these updates have
+        # not reached the karma threshold.
+        if self.meets_testing_requirements:
+            log.info(f'{self.alias} now meets testing requirements')
+            self.comment(db, str(config.get('testing_approval_msg')), author='bodhi')
+
+            notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
+                dict(update=self)))
+
+            if self.autotime and self.days_in_testing >= self.stable_days:
+                log.info(f"Automatically marking {self.alias} as stable")
+                self.set_request(db=db, action=UpdateRequest.stable, username="bodhi")
+
 
 event.listen(
     Update.test_gating_status,
