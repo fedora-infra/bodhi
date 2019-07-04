@@ -22,7 +22,7 @@ The script is responsible for commenting on updates after they reach the mandato
 spent in the testing repository.
 """
 
-import os
+import argparse
 import sys
 import logging
 
@@ -36,20 +36,7 @@ from ..config import config
 logger = logging.getLogger('approve-testing')
 
 
-def usage(argv):
-    """
-    Print usage information and exit with code 1.
-
-    Args:
-        argv (list): The arguments that were passed to the CLI from sys.argv.
-    """
-    cmd = os.path.basename(argv[0])
-    print('usage: %s <config_uri>\n'
-          '(example: "%s development.ini")' % (cmd, cmd))
-    sys.exit(1)
-
-
-def main(argv=sys.argv):
+def main(argv=None):
     """
     Comment on updates that are eligible to be pushed to stable.
 
@@ -59,16 +46,23 @@ def main(argv=sys.argv):
     pushed to stable.
 
     This function is the entry point for the bodhi-approve-testing console script.
-
-    Args:
-        argv (list): A list of command line arguments. Defaults to sys.argv.
     """
-    logging.basicConfig(level=logging.ERROR)
+    parser = argparse.ArgumentParser(
+        description='Comment on updates that are eligible to be pushed to stable.'
+    )
+    parser.add_argument('config_uri', help='Path to the configuration file to use')
+    parser.add_argument(
+        '--verbose', dest='verbose', action='store_true', default=False,
+        help='Increase the verbosity level of the output')
 
-    if len(argv) != 2:
-        usage(argv)
+    args = parser.parse_args(argv)
 
-    settings = get_appsettings(argv[1])
+    if args.verbose:
+        logging.basicConfig(level=logging.INFO)
+    else:
+        logging.basicConfig(level=logging.ERROR)
+
+    settings = get_appsettings(args.config_uri)
     initialize_db(settings)
     db = Session()
     buildsys.setup_buildsystem(config)
@@ -85,3 +79,7 @@ def main(argv=sys.argv):
         db.rollback()
         Session.remove()
         sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()
