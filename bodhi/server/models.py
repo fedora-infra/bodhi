@@ -27,6 +27,7 @@ import re
 import time
 import typing
 import uuid
+from urllib.error import URLError
 
 from simplemediawiki import MediaWiki
 from sqlalchemy import (and_, Boolean, Column, DateTime, event, ForeignKey,
@@ -1094,6 +1095,8 @@ class Package(Base):
 
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
+        Raises:
+            BodhiException: When retrieving testcases from Wiki failed.
         """
         if not config.get('query_wiki_test_cases'):
             return
@@ -1108,7 +1111,10 @@ class Package(Base):
             # Build query arguments and call wiki
             query = dict(action='query', list='categorymembers',
                          cmtitle=cat_page, cmlimit=limit)
-            response = wiki.call(query)
+            try:
+                response = wiki.call(query)
+            except URLError:
+                raise BodhiException('Failed retrieving testcases from Wiki')
             members = [entry['title'] for entry in
                        response.get('query', {}).get('categorymembers', {})
                        if 'title' in entry]
