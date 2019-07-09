@@ -633,15 +633,21 @@ def test_get_builds_json(bodhi_container, db_container):
 
     default_rows_per_page = 20
     expected_json = {
-        "builds": builds,
+        "builds": sorted(builds, key=lambda b: b['nvr']),
         "page": 1,
         "pages": int(math.ceil(len(builds) / float(default_rows_per_page))),
         "rows_per_page": default_rows_per_page,
         "total": len(builds),
     }
+
     try:
         assert http_response.ok
-        assert expected_json == http_response.json()
+        http_response_json = http_response.json()
+        http_response_json['builds'] = sorted(
+            http_response_json['builds'],
+            key=lambda b: b['nvr']
+        )
+        assert expected_json == http_response_json
     except AssertionError:
         print(http_response)
         print(http_response.text)
