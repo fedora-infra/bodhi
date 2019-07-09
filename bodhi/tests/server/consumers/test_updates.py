@@ -20,6 +20,7 @@
 from unittest import mock
 import copy
 import unittest
+from urllib.error import URLError
 
 from fedora_messaging.api import Message
 import sqlalchemy
@@ -381,3 +382,24 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
             h.work_on_bugs(h.db_factory, update, bugs)
 
         warning.assert_called_once_with('Error occurred during updating single bug', exc_info=True)
+
+
+class TestUpdatesHandlerFetchTestCases(base.BaseTestCase):
+    """This test class contains tests for the UpdatesHandler.fetch_test_cases() method."""
+
+    @mock.patch.dict(config.config, {'query_wiki_test_cases': True})
+    @mock.patch('bodhi.server.models.MediaWiki')
+    @mock.patch('bodhi.server.consumers.updates.log.warning')
+    def test_fetch_test_cases_exception(self, warning, MediaWiki):
+        """
+        Assert that fetch_test_cases logs a warning when an exception is raised.
+        """
+        h = updates.UpdatesHandler()
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        MediaWiki.return_value.call.side_effect = URLError("oh no!")
+
+        update = self.db.query(models.Update).filter(
+            models.Build.nvr == 'bodhi-2.0-1.fc17').one()
+        h.fetch_test_cases(h.db_factory, update)
+
+        warning.assert_called_once_with('Error occurred during fetching testcases', exc_info=True)
