@@ -607,6 +607,7 @@ def test_get_builds_json(bodhi_container, db_container):
         "  epoch "
         "FROM builds "
         "WHERE update_id = %s"
+        "ORDER BY nvr ASC"
     )
     db_ip = db_container.get_IPv4s()[0]
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
