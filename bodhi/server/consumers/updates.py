@@ -134,7 +134,10 @@ class UpdatesHandler(object):
                 cases for their associated Packages..
         """
         for build in update.builds:
-            build.package.fetch_test_cases(session)
+            try:
+                build.package.fetch_test_cases(session)
+            except BodhiException:
+                log.warning('Error occurred during fetching testcases', exc_info=True)
 
     def work_on_bugs(self, session, update, bugs):
         """

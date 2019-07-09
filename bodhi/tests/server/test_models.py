@@ -24,6 +24,7 @@ import pickle
 import time
 import unittest
 import uuid
+from urllib.error import URLError
 
 from fedora_messaging.testing import mock_sends
 from pyramid.testing import DummyRequest
@@ -744,6 +745,12 @@ class TestRelease(ModelTest):
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
 
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
+
 
 class TestReleaseCritpathMinKarma(BaseTestCase):
     """Tests for the Release.critpath_min_karma property."""
@@ -806,6 +813,12 @@ class TestReleaseModular(ModelTest):
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
 
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
+
 
 class TestReleaseContainer(ModelTest):
     """Unit test case for the ``Release`` model for container releases."""
@@ -840,6 +853,12 @@ class TestReleaseContainer(ModelTest):
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
 
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
+
 
 class TestReleaseFlatpak(ModelTest):
     """Unit test case for the ``Release`` model for flatpak releases."""
@@ -873,6 +892,12 @@ class TestReleaseFlatpak(ModelTest):
         self.assertIn('long_name', releases[state.value][0], releases)
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
+
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
 
 
 class MockWiki(object):
@@ -1229,6 +1254,18 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         self.assertEqual({tc.name for tc in model.TestCase.query.all()},
                          {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
         self.assertEqual({tc.package.name for tc in model.TestCase.query.all()}, {'gnome-shell'})
+
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_test_cases_exception(self, MediaWiki):
+        """Test querying the wiki for test cases when connection to Wiki failed"""
+        MediaWiki.return_value.call.side_effect = URLError("oh no!")
+
+        with self.assertRaises(BodhiException) as exc_context:
+            pkg = model.RpmPackage(name='gnome-shell')
+            pkg.fetch_test_cases(self.db)
+        self.assertEqual(len(pkg.test_cases), 0)
+        self.assertEqual(str(exc_context.exception), 'Failed retrieving testcases from Wiki')
 
     def test_adding_modulebuild(self):
         """Assert that validation fails when adding a ModuleBuild."""

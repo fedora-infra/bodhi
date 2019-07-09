@@ -81,7 +81,7 @@ def query_builds(request):
             above.
     Returns:
         dict: A dictionary with the following key value mappings:
-            builds: An iterable of builds that match the search criteria.
+            builds: An iterable of builds that match the search criteria, ordered by nvr.
             page: The current page.
             pages: The total number of pages.
             rows_per_page: The number of rows per page.
@@ -89,7 +89,7 @@ def query_builds(request):
     """
     db = request.db
     data = request.validated
-    query = db.query(Build)
+    query = db.query(Build).order_by(Build.nvr.asc())
 
     nvr = data.get('nvr')
     if nvr is not None:

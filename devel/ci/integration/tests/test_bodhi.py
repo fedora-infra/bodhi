@@ -607,6 +607,7 @@ def test_get_builds_json(bodhi_container, db_container):
         "  epoch "
         "FROM builds "
         "WHERE update_id = %s"
+        "ORDER BY nvr ASC"
     )
     db_ip = db_container.get_IPv4s()[0]
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
@@ -915,7 +916,7 @@ def test_get_compose_view(bodhi_container, db_container):
     for update in updates:
         if len(update['builds']) > 2:
             builds_left = len(update['builds']) - 2
-            suffix = f", and {builds_left} more"
+            suffix = f", &amp; {builds_left} more"
             update_builds = ", ".join([b['nvr'] for b in update['builds'][:2]])
             update_builds += suffix
         else:
