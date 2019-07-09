@@ -219,7 +219,7 @@ def validate_build_nvrs(request, **kwargs):
 @postschema_validator
 def validate_builds_or_from_tag_exist(request, **kwargs):
     """
-    Ensure that at least one of the  builds or from_tags parameters exist in the request.
+    Ensure that at least one of the builds or from_tag parameters exist in the request.
 
     Args:
         request (pyramid.request.Request): The current request.
@@ -240,7 +240,7 @@ def validate_builds_or_from_tag_exist(request, **kwargs):
 
     if from_tag is not None:
         if not isinstance(from_tag, str):
-            request.errors.add('body', 'from_tag', "The from_tags parameter must be a string.")
+            request.errors.add('body', 'from_tag', "The from_tag parameter must be a string.")
         elif len(from_tag.strip()) == 0:
             request.errors.add('body', 'from_tag', "You may not specify an empty from_tag.")
 
