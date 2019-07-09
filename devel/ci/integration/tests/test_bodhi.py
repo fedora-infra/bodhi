@@ -921,7 +921,7 @@ def test_get_compose_view(bodhi_container, db_container):
     for update in updates:
         if len(update['builds']) > 2:
             builds_left = len(update['builds']) - 2
-            suffix = f", and {builds_left} more"
+            suffix = f", &amp; {builds_left} more"
             update_builds = ", ".join([b['nvr'] for b in update['builds'][:2]])
             update_builds += suffix
         else:
