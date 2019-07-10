@@ -593,7 +593,7 @@ class BodhiClient(OpenIdBaseClient):
                 'csrf', verb='GET', auth=True)['csrf_token']
         return self.csrf_token
 
-    def parse_file(self, input_file: str) -> typing.Iterable[dict]:
+    def parse_file(self, input_file: str) -> typing.List[typing.Dict[str, typing.Any]]:
         """
         Parse an update template file.
 
