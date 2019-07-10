@@ -101,6 +101,12 @@
       name: pyramid_debugtoolbar
       executable: pip3
 
+# The version packaged in Fedora never seems to work right, and we'd rather have a newer one anyway
+- name: pip install mypy
+  pip:
+      name: mypy
+      executable: pip3
+
 - name: Fake a pungi install
   file:
       src: /usr/bin/true
