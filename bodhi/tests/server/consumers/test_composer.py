@@ -161,7 +161,7 @@ class TestComposer(base.BaseTestCase):
         self.handler = ComposerHandler(db_factory=self.db_factory, compose_dir=self.tempdir)
 
         # Reset "cached" objects before each test.
-        Release._all_releases = None
+        Release.clear_all_releases_cache()
         Release._tag_cache = None
 
         self.expected_sems = 0
