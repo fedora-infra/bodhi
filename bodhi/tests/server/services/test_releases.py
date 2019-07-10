@@ -22,7 +22,8 @@ import webtest
 
 from bodhi import server
 from bodhi.server.config import config
-from bodhi.server.models import Build, PackageManager, Release, ReleaseState, Update, UpdateStatus
+from bodhi.server.models import (
+    Build, PackageManager, Release, ReleaseState, Update, UpdateStatus, UpdateRequest)
 from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base, create_update
 
@@ -199,6 +200,16 @@ class TestReleasesService(base.BaseTestCase):
                 self.assertEqual(getattr(r, k), v)
 
         self.assertEqual(r.state, ReleaseState.disabled)
+
+        # Let's check Release cache content
+        releases = Release.all_releases()
+        disabled_releases = releases["disabled"]
+        self.assertEqual(disabled_releases[0]["name"], "F42")
+        self.assertEqual(disabled_releases[1]["name"], "F22")
+        self.assertEqual(len(disabled_releases), 2)
+        current_releases = releases["current"]
+        self.assertEqual(current_releases[0]["name"], "F17")
+        self.assertEqual(len(current_releases), 1)
 
     def test_list_releases_by_current_state(self):
         """ Test that we can filter releases using the 'current' state """
@@ -420,6 +431,37 @@ class TestReleasesService(base.BaseTestCase):
         python_test_update = self.db.query(Build).filter_by(
             nvr='python-test-update.fc22').one().update
         self.assertEqual(python_test_update.status, UpdateStatus.pending)
+
+    def test_change_release_state_to_frozen(self):
+        """
+        Test that when we make release frozen, Bodhi will create comment about delayed
+        push to stable in all updates requested to stable
+        """
+        python_test_update = self.create_update(['python-test-update.fc22'], 'F22')
+        # Change request to stable in python_test_update
+        python_test_update.status = UpdateStatus.testing
+        python_test_update.request = UpdateRequest.stable
+        self.db.commit()
+        name = "F22"
+
+        res = self.app.get('/releases/%s' % name, status=200)
+        r = res.json_body
+
+        r["edited"] = name
+        r["state"] = "frozen"
+        r["csrf_token"] = self.get_csrf_token()
+
+        res = self.app.post("/releases/", r, status=200)
+
+        r = self.db.query(Release).filter(Release.name == name).one()
+        self.assertEqual(r.state, ReleaseState.frozen)
+
+        # Check for the comment
+        python_test_update = self.db.query(Build).filter_by(
+            nvr='python-test-update.fc22').one().update
+        expected_comment = ('There is an ongoing freeze; this will be pushed to'
+                            ' stable after the freeze is over.')
+        self.assertEqual(python_test_update.comments[-1].text, expected_comment)
 
     def test_get_single_release_html(self):
         res = self.app.get('/releases/f17', headers={'Accept': 'text/html'})

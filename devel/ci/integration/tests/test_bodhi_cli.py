@@ -144,7 +144,7 @@ Content Type: {content_type}
      Updated: {compose['state_date'].strftime("%Y-%m-%d %H:%M:%S")}
 """
     # If the compose doesn't have a error_message, the CLI does not render the Error: line.
-    if compose['error_message'] is not None:
+    if compose['error_message']:
         expected_output += f"       Error: {compose['error_message']}\n"
 
     expected_output += "\nUpdates:\n\n"

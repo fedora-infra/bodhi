@@ -27,6 +27,7 @@ import re
 import time
 import typing
 import uuid
+from urllib.error import URLError
 
 from simplemediawiki import MediaWiki
 from sqlalchemy import (and_, Boolean, Column, DateTime, event, ForeignKey,
@@ -675,12 +676,14 @@ class ReleaseState(DeclEnum):
     Attributes:
         disabled (EnumSymbol): Indicates that the release is disabled.
         pending (EnumSymbol): Indicates that the release is pending.
+        frozen (EnumSymbol): Indicates that the release is frozen.
         current (EnumSymbol): Indicates that the release is current.
         archived (EnumSymbol): Indicates that the release is archived.
     """
 
     disabled = 'disabled', 'disabled'
     pending = 'pending', 'pending'
+    frozen = 'frozen', 'frozen'
     current = 'current', 'current'
     archived = 'archived', 'archived'
 
@@ -816,6 +819,24 @@ class Release(Base):
     testing_repository = Column(UnicodeText, nullable=True)
 
     @property
+    def critpath_min_karma(self) -> int:
+        """
+        Return the min_karma for critpath updates for this release.
+
+        If the release doesn't specify a min_karma, the default critpath.min_karma setting is used
+        instead.
+
+        Returns:
+            The minimum karma required for critical path updates for this release.
+        """
+        if self.setting_status:
+            min_karma = config.get(
+                f'{self.setting_prefix}.{self.setting_status}.critpath.min_karma', None)
+            if min_karma:
+                return int(min_karma)
+        return config.get('critpath.min_karma')
+
+    @property
     def version_int(self):
         """
         Return an integer representation of the version of this release.
@@ -838,10 +859,10 @@ class Release(Base):
         name = self.name.lower().replace('-', '')
         status = config.get('%s.status' % name, None)
         if status:
-            days = int(config.get(
-                '%s.%s.mandatory_days_in_testing' % (name, status)))
-            if days:
-                return days
+            days = config.get(
+                '%s.%s.mandatory_days_in_testing' % (name, status))
+            if days is not None:
+                return int(days)
         days = config.get('%s.mandatory_days_in_testing' %
                           self.id_prefix.lower().replace('-', '_'))
         if days is None:
@@ -877,6 +898,11 @@ class Release(Base):
         cls._all_releases = releases
         return cls._all_releases
     _all_releases = None
+
+    @classmethod
+    def clear_all_releases_cache(cls):
+        """Clear up Release cache."""
+        cls._all_releases = None
 
     @classmethod
     def get_tags(cls, session):
@@ -924,6 +950,31 @@ class Release(Base):
             release = session.query(cls).filter_by(name=tag_rels[tag]).first()
             if release:
                 return release
+
+    @property
+    def setting_prefix(self) -> str:
+        """
+        Return the prefix for settings that pertain to this Release.
+
+        Returns:
+            The Release's setting prefix.
+        """
+        return self.name.lower().replace('-', '')
+
+    @property
+    def setting_status(self) -> typing.Optional[str]:
+        """
+        Return the status of the Release from settings.
+
+        Return the Release's status setting from the config. For example, if the release is f30,
+        this will return the value of f30.status from the config file.
+
+        Note: This is not the same as Release.state.
+
+        Returns:
+            The status of the release.
+        """
+        return config.get(f'{self.setting_prefix}.status', None)
 
 
 class TestCase(Base):
@@ -1044,6 +1095,8 @@ class Package(Base):
 
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
+        Raises:
+            BodhiException: When retrieving testcases from Wiki failed.
         """
         if not config.get('query_wiki_test_cases'):
             return
@@ -1058,7 +1111,10 @@ class Package(Base):
             # Build query arguments and call wiki
             query = dict(action='query', list='categorymembers',
                          cmtitle=cat_page, cmlimit=limit)
-            response = wiki.call(query)
+            try:
+                response = wiki.call(query)
+            except URLError:
+                raise BodhiException('Failed retrieving testcases from Wiki')
             members = [entry['title'] for entry in
                        response.get('query', {}).get('categorymembers', {})
                        if 'title' in entry]
@@ -1555,8 +1611,12 @@ class Update(Base):
     Attributes:
         autokarma (bool): A boolean that indicates whether or not the update will
             be automatically pushed when the stable_karma threshold is reached.
+        autotime (bool): A boolean that indicates whether or not the update will
+            be automatically pushed when the time threshold is reached.
         stable_karma (int): A positive integer that indicates the amount of "good"
             karma the update must receive before being automatically marked as stable.
+        stable_days (int): A positive integer that indicates the number of days an update
+            needs to spend in testing before being automatically marked as stable.
         unstable_karma (int): A positive integer that indicates the amount of "bad"
             karma the update must receive before being automatically marked as unstable.
         requirements (str): A list of taskotron tests that must pass for this
@@ -1617,6 +1677,8 @@ class Update(Base):
             Greenwave integration was not enabled when the update was created.
         compose (Compose): The :class:`Compose` that this update is currently being composed in. The
             update is locked if this is defined.
+        from_tag (str): The koji tag from which the list of builds was
+            originally populated (if any).
     """
 
     __tablename__ = 'updates'
@@ -1625,7 +1687,9 @@ class Update(Base):
     __get_by__ = ('alias',)
 
     autokarma = Column(Boolean, default=True, nullable=False)
+    autotime = Column(Boolean, default=True, nullable=False)
     stable_karma = Column(Integer, nullable=False)
+    stable_days = Column(Integer, nullable=False, default=0)
     unstable_karma = Column(Integer, nullable=False)
     requirements = Column(UnicodeText)
     require_bugs = Column(Boolean, default=False)
@@ -1687,6 +1751,9 @@ class Update(Base):
 
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
+
+    # Koji tag, if any, from which the list of builds was populated initially.
+    from_tag = Column(UnicodeText, nullable=True)
 
     def __init__(self, *args, **kwargs):
         """
@@ -2034,6 +2101,16 @@ class Update(Base):
         release = data.pop('release', None)
         up = Update(**data, release=release)
 
+        # We want to make sure that the value of stable_days
+        # will not be lower than the mandatory_days_in_testing.
+        if up.mandatory_days_in_testing > up.stable_days:
+            up.stable_days = up.mandatory_days_in_testing
+            caveats.append({
+                'name': 'stable days',
+                'description': "The number of stable days required was set to the mandatory "
+                               f"release value of {up.mandatory_days_in_testing} days"
+            })
+
         log.debug("Setting request for new update.")
         up.set_request(db, req, request.user.name)
 
@@ -2072,6 +2149,16 @@ class Update(Base):
 
         caveats = []
         edited_builds = [build.nvr for build in up.builds]
+
+        # stable_days can be set by the user. We want to make sure that the value
+        # will not be lower than the mandatory_days_in_testing.
+        if up.mandatory_days_in_testing > data.get('stable_days', up.stable_days):
+            data['stable_days'] = up.mandatory_days_in_testing
+            caveats.append({
+                'name': 'stable days',
+                'description': "The number of stable days required was raised to the mandatory "
+                               f"release value of {up.mandatory_days_in_testing} days"
+            })
 
         # Determine which builds have been added
         new_builds = []
@@ -2599,8 +2686,17 @@ class Update(Base):
         log.debug(
             "%s has been submitted for %s. %s%s" % (
                 self.alias, action.description, notes, flash_notes))
-        self.comment(db, 'This update has been submitted for %s by %s. %s' % (
-            action.description, username, notes), author='bodhi')
+
+        comment_text = 'This update has been submitted for %s by %s. %s' % (
+            action.description, username, notes)
+        # Add information about push to stable delay to comment when release is frozen.
+        if self.release.state == ReleaseState.frozen and action == UpdateRequest.stable:
+            comment_text += (
+                "\n\nThere is an ongoing freeze; this will be "
+                "pushed to stable after the freeze is over. "
+            )
+        self.comment(db, comment_text, author=u'bodhi')
+
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -3261,7 +3357,7 @@ class Update(Base):
                 notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
                     dict(update=self, status='stable')))
             else:
-                # Add the 'testing_approval_msg_based_on_karma' message now
+                # Add the stable approval message now
                 log.info((
                     "%s update has reached the stable karma threshold and can be pushed to "
                     "stable now if the maintainer wishes"), self.alias)
@@ -3329,18 +3425,16 @@ class Update(Base):
         # https://fedorahosted.org/bodhi/ticket/642
         if self.meets_testing_requirements:
             return True
-        release_name = self.release.name.lower().replace('-', '')
-        status = config.get('%s.status' % release_name, None)
-        if status:
-            num_admin_approvals = config.get('%s.%s.critpath.num_admin_approvals' % (
-                release_name, status), None)
-            min_karma = config.get('%s.%s.critpath.min_karma' % (
-                release_name, status), None)
+        min_karma = self.release.critpath_min_karma
+        if self.release.setting_status:
+            num_admin_approvals = config.get(
+                f'{self.release.setting_prefix}.{self.release.setting_status}'
+                '.critpath.num_admin_approvals')
             if num_admin_approvals is not None and min_karma:
                 return self.num_admin_approvals >= int(num_admin_approvals) and \
-                    self.karma >= int(min_karma)
+                    self.karma >= min_karma
         return self.num_admin_approvals >= config.get('critpath.num_admin_approvals') and \
-            self.karma >= config.get('critpath.min_karma')
+            self.karma >= min_karma
 
     @property
     def meets_testing_requirements(self):
@@ -3358,6 +3452,9 @@ class Update(Base):
         if config.get('test_gating.required') and not self.test_gating_passed:
             return False
 
+        if self.karma >= self.release.critpath_min_karma:
+            return True
+
         if self.critpath:
             # Ensure there is no negative karma. We're looking at the sum of
             # each users karma for this update, which takes into account
@@ -3369,9 +3466,7 @@ class Update(Base):
         if not num_days:
             return True
 
-        # non-autokarma updates have met the testing requirements if they've reached the karma
-        # threshold.
-        if not self.autokarma and self.karma >= self.stable_karma:
+        if self.karma >= self.stable_karma:
             return True
 
         # Any update that reaches num_days has met the testing requirements.
@@ -3391,9 +3486,8 @@ class Update(Base):
         """
         for comment in self.comments_since_karma_reset:
             if comment.user.name == 'bodhi' and \
-               comment.text.startswith('This update has reached') and \
-               'and can be pushed to stable now if the ' \
-               'maintainer wishes' in comment.text:
+               comment.text.startswith('This update ') and \
+               'can be pushed to stable now if the maintainer wishes' in comment.text:
                 return True
         return False
 

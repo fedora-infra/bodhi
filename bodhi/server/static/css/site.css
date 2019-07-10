@@ -119,6 +119,10 @@ form#search, form#search input, .twitter-typeahead {
     width: 100%;
 }
 
+.typeahead.form-control:focus{
+    box-shadow: none!important;
+}
+
 .tt-hint {
   color: #999
 }
@@ -216,11 +220,6 @@ ul.updateslist li {
     overflow-wrap:  break-word; /* new-school */
     padding:        5px;
 }
-.markdown blockquote {
-    margin: 0 1rem;
-    color: #6a737d;
-    border-left: 0.25rem solid #dfe2e5;
-}
 
 #markdown-help strong {
     text-transform: uppercase;
@@ -296,4 +295,8 @@ padding-bottom: 2em;
 
 .notblue{
   color:inherit;
+}
+
+.badge-warning{
+    background-color: #f0ad4e !important;
 }

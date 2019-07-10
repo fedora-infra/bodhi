@@ -24,6 +24,7 @@ import pickle
 import time
 import unittest
 import uuid
+from urllib.error import URLError
 
 from fedora_messaging.testing import mock_sends
 from pyramid.testing import DummyRequest
@@ -710,6 +711,29 @@ class TestRelease(ModelTest):
         """Test mandatory_days_in_testing() with a value that is truthy."""
         self.assertEqual(self.obj.mandatory_days_in_testing, 42)
 
+    @mock.patch.dict(config, {'f11.current.mandatory_days_in_testing': 0, 'f11.status': 'current'})
+    def test_mandatory_days_in_testing_status_0_days(self):
+        """Test mandatory_days_in_testing() with a value that is 0."""
+        self.assertEqual(self.obj.mandatory_days_in_testing, 0)
+
+    def test_setting_prefix(self):
+        """Assert correct return value from the setting_prefix property."""
+        self.assertEqual(self.obj.setting_prefix, 'f11')
+
+        # Try putting a - into the name of the release, which should get removed
+        self.obj.name = 'f-11'
+
+        self.assertEqual(self.obj.setting_prefix, 'f11')
+
+    @mock.patch.dict(config, {'f11.status': "It's doing just fine, thanks for asking"})
+    def test_setting_status_found(self):
+        """Assert correct return value from the setting_status property when config is found."""
+        self.assertEqual(self.obj.setting_status, "It's doing just fine, thanks for asking")
+
+    def test_setting_status_not_found(self):
+        """Assert correct return value from the setting_status property when config not found."""
+        self.assertEqual(self.obj.setting_status, None)
+
     def test_version_int(self):
         self.assertEqual(self.obj.version_int, 11)
 
@@ -720,6 +744,40 @@ class TestRelease(ModelTest):
         self.assertIn('long_name', releases[state.value][0], releases)
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
+
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
+
+
+class TestReleaseCritpathMinKarma(BaseTestCase):
+    """Tests for the Release.critpath_min_karma property."""
+
+    @mock.patch.dict(
+        config, {'critpath.min_karma': 2, 'f17.beta.critpath.min_karma': 42, 'f17.status': "beta"})
+    def test_setting_status_min(self):
+        """If a min is defined for the release, it should be returned."""
+        release = model.Release.query.first()
+
+        self.assertEqual(release.critpath_min_karma, 42)
+
+    @mock.patch.dict(
+        config, {'critpath.min_karma': 25, 'f17.status': "beta"})
+    def test_setting_status_no_min(self):
+        """If no min is defined for the release, the general min karma config should be returned."""
+        release = model.Release.query.first()
+
+        self.assertEqual(release.critpath_min_karma, 25)
+
+    @mock.patch.dict(
+        config, {'critpath.min_karma': 72})
+    def test_setting_status_no_setting_status(self):
+        """If no status is defined for the release, the general min karma should be returned."""
+        release = model.Release.query.first()
+
+        self.assertEqual(release.critpath_min_karma, 72)
 
 
 class TestReleaseModular(ModelTest):
@@ -755,6 +813,12 @@ class TestReleaseModular(ModelTest):
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
 
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
+
 
 class TestReleaseContainer(ModelTest):
     """Unit test case for the ``Release`` model for container releases."""
@@ -789,6 +853,12 @@ class TestReleaseContainer(ModelTest):
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
 
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
+
 
 class TestReleaseFlatpak(ModelTest):
     """Unit test case for the ``Release`` model for flatpak releases."""
@@ -822,6 +892,12 @@ class TestReleaseFlatpak(ModelTest):
         self.assertIn('long_name', releases[state.value][0], releases)
         # Make sure it's the same cached object
         self.assertIs(releases, model.Release.all_releases())
+
+    def test_clear_all_releases_cache(self):
+        model.Release.all_releases()
+        self.assertIsNotNone(model.Release._all_releases)
+        model.Release.clear_all_releases_cache()
+        self.assertIsNone(model.Release._all_releases)
 
 
 class MockWiki(object):
@@ -1178,6 +1254,18 @@ class TestRpmPackage(ModelTest, unittest.TestCase):
         self.assertEqual({tc.name for tc in model.TestCase.query.all()},
                          {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
         self.assertEqual({tc.package.name for tc in model.TestCase.query.all()}, {'gnome-shell'})
+
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_test_cases_exception(self, MediaWiki):
+        """Test querying the wiki for test cases when connection to Wiki failed"""
+        MediaWiki.return_value.call.side_effect = URLError("oh no!")
+
+        with self.assertRaises(BodhiException) as exc_context:
+            pkg = model.RpmPackage(name='gnome-shell')
+            pkg.fetch_test_cases(self.db)
+        self.assertEqual(len(pkg.test_cases), 0)
+        self.assertEqual(str(exc_context.exception), 'Failed retrieving testcases from Wiki')
 
     def test_adding_modulebuild(self):
         """Assert that validation fails when adding a ModuleBuild."""
@@ -1980,6 +2068,234 @@ class TestUpdateValidateBuilds(BaseTestCase):
         self.assertEqual(str(cm.exception), 'An update must contain builds of the same type.')
 
 
+class TestUpdateMeetsTestingRequirements(BaseTestCase):
+    """Test the Update.meets_testing_requirements() method."""
+
+    def test_autokarma_update_reaching_stable_karma(self):
+        """
+        Assert that meets_testing_requirements() correctly returns True for autokarma updates
+        that haven't reached the days in testing but have reached the stable_karma threshold.
+        """
+        update = model.Update.query.first()
+        update.autokarma = True
+        update.status = UpdateStatus.testing
+        update.stable_karma = 1
+        # Now let's add some karma to get it to the required threshold
+        update.comment(self.db, 'testing', author='hunter2', karma=1)
+
+        # meets_testing_requirement() should return True since the karma threshold has been reached
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_critpath_14_days_negative_karma(self):
+        """critpath packages in testing for 14 days shouldn't go stable with negative karma."""
+        update = model.Update.query.first()
+        update.critpath = True
+        update.status = model.UpdateStatus.testing
+        update.request = None
+        update.date_testing = datetime.utcnow() - timedelta(days=15)
+        update.stable_karma = 1
+        update.comment(self.db, 'testing', author='enemy', karma=-1)
+        # This gets the update to positive karma, but not to the required 2 karma needed for
+        # critpath.
+        update.comment(self.db, 'testing', author='bro', karma=1)
+
+        self.assertEqual(update.meets_testing_requirements, False)
+
+    def test_critpath_14_days_no_negative_karma(self):
+        """critpath packages in testing for 14 days can go stable without negative karma."""
+        update = model.Update.query.first()
+        update.critpath = True
+        update.status = model.UpdateStatus.testing
+        update.request = None
+        update.date_testing = datetime.utcnow() - timedelta(days=15)
+        update.stable_karma = 1
+
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_critpath_karma_2_met(self):
+        """critpath packages should be allowed to go stable when meeting required karma."""
+        update = model.Update.query.first()
+        update.critpath = True
+        update.stable_karma = 1
+        update.comment(self.db, 'testing', author='enemy', karma=-1)
+        update.comment(self.db, 'testing', author='bro', karma=1)
+        # Despite meeting the stable_karma, the function should still not mark this as meeting
+        # testing requirements because critpath packages have a higher requirement for minimum
+        # karma. So let's get it a second one.
+        update.comment(self.db, 'testing', author='ham', karma=1)
+
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_critpath_karma_2_required(self):
+        """critpath packages should require a minimum karma."""
+        update = model.Update.query.first()
+        update.critpath = True
+        update.stable_karma = 1
+
+        # Despite meeting the stable_karma, the function should still not mark this as meeting
+        # testing requirements because critpath packages have a higher requirement for minimum
+        # karma.
+        self.assertEqual(update.meets_testing_requirements, False)
+
+    def test_critpath_negative_karma(self):
+        """
+        Assert that meets_testing_requirements() correctly returns False for critpath updates
+        with negative karma.
+        """
+        update = model.Update.query.first()
+        update.critpath = True
+        update.comment(self.db, 'testing', author='enemy', karma=-1)
+        self.assertEqual(update.meets_testing_requirements, False)
+
+    def test_karma_2_met(self):
+        """Regular packages should be allowed to go stable when meeting required karma."""
+        update = model.Update.query.first()
+        update.stable_karma = 3
+        update.comment(self.db, 'testing', author='enemy', karma=-1)
+        update.comment(self.db, 'testing', author='bro', karma=1)
+        # Despite meeting the stable_karma, the function should still not mark this as meeting
+        # testing requirements because critpath packages have a higher requirement for minimum
+        # karma. So let's get it a second one.
+        update.comment(self.db, 'testing', author='ham', karma=1)
+
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_non_autokarma_update_below_stable_karma(self):
+        """It should return False for non-autokarma updates below stable karma and time."""
+        update = model.Update.query.first()
+        update.autokarma = False
+        update.comments = []
+        update.status = UpdateStatus.testing
+        update.stable_karma = 1
+
+        # meets_testing_requirement() should return False since the karma threshold has not been
+        # reached (note that this Update does not have any karma).
+        self.assertEqual(update.meets_testing_requirements, False)
+
+    def test_non_autokarma_update_reaching_stable_karma(self):
+        """
+        Assert that meets_testing_requirements() correctly returns True for non-autokarma updates
+        that haven't reached the days in testing but have reached the stable_karma threshold.
+        """
+        update = model.Update.query.first()
+        update.autokarma = False
+        update.status = UpdateStatus.testing
+        update.stable_karma = 1
+
+        # meets_testing_requirement() should return True since the karma threshold has been reached
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_test_gating_faild_no_testing_requirements(self):
+        """
+        The Update.meets_testing_requirements() should return False, if the test gating
+        status of an update is failed.
+        """
+        update = model.Update.query.first()
+        update.autokarma = False
+        update.stable_karma = 1
+        update.test_gating_status = TestGatingStatus.failed
+        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
+                       author='bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        self.assertEqual(update.meets_testing_requirements, False)
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_test_gating_queued_no_testing_requirements(self):
+        """
+        The Update.meets_testing_requirements() should return False, if the test gating
+        status of an update is queued.
+        """
+        update = model.Update.query.first()
+        update.autokarma = False
+        update.stable_karma = 1
+        update.test_gating_status = TestGatingStatus.queued
+        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
+                       author='bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        self.assertEqual(update.meets_testing_requirements, False)
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_test_gating_running_no_testing_requirements(self):
+        """
+        The Update.meets_testing_requirements() should return False, if the test gating
+        status of an update is running.
+        """
+        update = model.Update.query.first()
+        update.autokarma = False
+        update.stable_karma = 1
+        update.test_gating_status = TestGatingStatus.running
+        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
+                       author='bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        self.assertEqual(update.meets_testing_requirements, False)
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_test_gating_missing_testing_requirements(self):
+        """
+        The Update.meets_testing_requirements() should return True, if the test gating
+        status of an update is missing.
+        """
+        update = model.Update.query.first()
+        update.autokarma = False
+        update.stable_karma = 1
+        update.test_gating_status = None
+        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
+                       author='bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_test_gating_waiting_testing_requirements(self):
+        """
+        The Update.meets_testing_requirements() should return False, if the test gating
+        status of an update is waiting.
+        """
+        update = model.Update.query.first()
+        update.autokarma = False
+        update.stable_karma = 1
+        update.test_gating_status = TestGatingStatus.waiting
+        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
+                       author='bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        self.assertEqual(update.meets_testing_requirements, False)
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
+    def test_test_gating_off(self):
+        """
+        The Update.meets_testing_requirements() should return True if the
+        testing gating is not required, regardless of its test gating status.
+        """
+        update = model.Update.query.first()
+        update.autokarma = False
+        update.stable_karma = 1
+        update.test_gating_status = TestGatingStatus.running
+        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
+                       author='bowlofeggs')
+        # Assert that our preconditions from the docblock are correct.
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_time_in_testing_met(self):
+        """It should return True for non-critpath updates that meet time in testing."""
+        update = model.Update.query.first()
+        update.status = model.UpdateStatus.testing
+        update.request = None
+        update.date_testing = datetime.utcnow() - timedelta(days=8)
+        update.stable_karma = 10
+
+        self.assertEqual(update.meets_testing_requirements, True)
+
+    def test_time_in_testing_unmet(self):
+        """It should return False for non-critpath updates that don't yet meet time in testing."""
+        update = model.Update.query.first()
+        update.status = model.UpdateStatus.testing
+        update.request = None
+        update.date_testing = datetime.utcnow() - timedelta(days=6)
+        update.stable_karma = 10
+
+        self.assertEqual(update.meets_testing_requirements, False)
+
+
 class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
     klass = model.Update
@@ -2286,96 +2602,6 @@ class TestUpdate(ModelTest):
         self.obj.request = model.UpdateRequest.stable
 
         self.assertIs(self.obj.side_tag_locked, True)
-
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
-    def test_test_gating_faild_no_testing_requirements(self):
-        """
-        The Update.meets_testing_requirements() should return False, if the test gating
-        status of an update is failed.
-        """
-        update = self.obj
-        update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.failed
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        # Assert that our preconditions from the docblock are correct.
-        self.assertEqual(update.meets_testing_requirements, False)
-
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
-    def test_test_gating_queued_no_testing_requirements(self):
-        """
-        The Update.meets_testing_requirements() should return False, if the test gating
-        status of an update is queued.
-        """
-        update = self.obj
-        update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.queued
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        # Assert that our preconditions from the docblock are correct.
-        self.assertEqual(update.meets_testing_requirements, False)
-
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
-    def test_test_gating_running_no_testing_requirements(self):
-        """
-        The Update.meets_testing_requirements() should return False, if the test gating
-        status of an update is running.
-        """
-        update = self.obj
-        update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.running
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        # Assert that our preconditions from the docblock are correct.
-        self.assertEqual(update.meets_testing_requirements, False)
-
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
-    def test_test_gating_missing_testing_requirements(self):
-        """
-        The Update.meets_testing_requirements() should return True, if the test gating
-        status of an update is missing.
-        """
-        update = self.obj
-        update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = None
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        # Assert that our preconditions from the docblock are correct.
-        self.assertEqual(update.meets_testing_requirements, True)
-
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
-    def test_test_gating_waiting_testing_requirements(self):
-        """
-        The Update.meets_testing_requirements() should return False, if the test gating
-        status of an update is waiting.
-        """
-        update = self.obj
-        update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.waiting
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        # Assert that our preconditions from the docblock are correct.
-        self.assertEqual(update.meets_testing_requirements, False)
-
-    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
-    def test_test_gating_off(self):
-        """
-        The Update.meets_testing_requirements() should return True if the
-        testing gating is not required, regardless of its test gating status.
-        """
-        update = self.obj
-        update.autokarma = False
-        update.stable_karma = 1
-        update.test_gating_status = TestGatingStatus.running
-        update.comment(self.db, 'I found $100 after applying this update.', karma=1,
-                       author='bowlofeggs')
-        # Assert that our preconditions from the docblock are correct.
-        self.assertEqual(update.meets_testing_requirements, True)
 
     @mock.patch('bodhi.server.models.bugs.bugtracker.close')
     @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
@@ -3059,6 +3285,45 @@ class TestUpdate(ModelTest):
         self.assertEqual(self.obj.request, UpdateRequest.stable)
         self.assertEqual(len(req.errors), 0)
 
+    def test_set_request_stable_when_release_is_frozen(self):
+        """Ensure that Bodhi will infom user about push to stable delay when release is frozen."""
+        req = DummyRequest()
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        req.user = model.User(name='bob')
+
+        self.obj.status = UpdateStatus.testing
+        self.obj.request = None
+
+        # Pretend it's been in testing for a week
+        self.obj.comment(
+            self.db, u'This update has been pushed to testing.', author=u'bodhi')
+        self.obj.date_testing = self.obj.comments[-1].timestamp - timedelta(days=7)
+        self.assertEqual(self.obj.days_in_testing, 7)
+        self.assertEqual(self.obj.meets_testing_requirements, True)
+
+        # Make release frozen
+        self.obj.release.state = ReleaseState.frozen
+
+        expected_message = update_schemas.UpdateRequestStableV1.from_dict(
+            {'update': self.obj, 'agent': req.user.name})
+
+        with mock_sends(expected_message):
+            self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
+            # set_request alters the update a bit, so we need to adjust the expected message to
+            # reflect those changes so the mock_sends() check will pass.
+            expected_message.body['update']['status'] = 'testing'
+            expected_message.body['update']['request'] = 'stable'
+            expected_message.body['update']['comments'] = self.obj.__json__()['comments']
+            self.db.commit()
+        self.assertEqual(self.obj.request, UpdateRequest.stable)
+        self.assertEqual(len(req.errors), 0)
+
+        # Check for information about frozen release in comment
+        expected_info = ("There is an ongoing freeze; "
+                         "this will be pushed to stable after the freeze is over.")
+        self.assertIn(expected_info, self.obj.comments[-1].text)
+
     def test_set_request_stable_epel_requirements_not_met(self):
         """Test set_request() for EPEL update requesting stable that doesn't meet requirements."""
         req = DummyRequest()
@@ -3159,7 +3424,7 @@ class TestUpdate(ModelTest):
         # The update should be eligible to receive the testing_approval_msg now.
         self.assertEqual(self.obj.meets_testing_requirements, True)
         # Add the testing_approval_message
-        text = str(config.get('testing_approval_msg') % self.obj.days_in_testing)
+        text = str(config.get('testing_approval_msg'))
         self.obj.comment(self.db, text, author='bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to
@@ -3183,43 +3448,6 @@ class TestUpdate(ModelTest):
         # Since bodhi hasn't added the testing_approval_message yet, this should be False.
         self.assertEqual(self.obj.has_stable_comment, False)
 
-    def test_meets_testing_requirements_with_non_autokarma_update_below_stable_karma(self):
-        """
-        Assert that meets_testing_requirements() correctly returns True for non-autokarma updates
-        that haven't reached the days in testing but have reached the stable_karma threshold.
-        """
-        self.obj.autokarma = False
-        self.obj.status = UpdateStatus.testing
-        self.obj.stable_karma = 1
-
-        # meets_testing_requirement() should return False since the karma threshold has not been
-        # reached (note that this Update does not have any karma).
-        self.assertEqual(self.obj.meets_testing_requirements, False)
-
-    def test_meets_testing_requirements_with_non_autokarma_update_reaching_stable_karma(self):
-        """
-        Assert that meets_testing_requirements() correctly returns True for non-autokarma updates
-        that haven't reached the days in testing but have reached the stable_karma threshold.
-        """
-        self.obj.autokarma = False
-        self.obj.status = UpdateStatus.testing
-        self.obj.stable_karma = 1
-        # Now let's add some karma to get it to the required threshold
-        self.obj.comment(self.db, 'testing', author='hunter2', karma=1)
-
-        # meets_testing_requirement() should return True since the karma threshold has been reached
-        self.assertEqual(self.obj.meets_testing_requirements, True)
-
-    def test_meets_testing_requirements_critpath_negative_karma(self):
-        """
-        Assert that meets_testing_requirements() correctly returns False for critpath updates
-        with negative karma.
-        """
-        update = self.obj
-        update.critpath = True
-        update.comment(self.db, 'testing', author='enemy', karma=-1)
-        self.assertEqual(update.meets_testing_requirements, False)
-
     def test_has_stable_comment_with_karma_after_bodhi_comment(self):
         """
         Ensure a correct True return value from Update.has_stable_comment() after a
@@ -3238,7 +3466,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, 'testing', author='hunter2', karma=1)
         self.obj.comment(self.db, 'testing', author='hunter3', karma=1)
         # Add the testing_approval_message
-        text = config.get('testing_approval_msg_based_on_karma')
+        text = config.get('testing_approval_msg')
         self.obj.comment(self.db, text, author='bodhi')
 
         # met_testing_requirement() should return True since Bodhi has commented on the Update to

@@ -97,15 +97,17 @@ class TestNewUpdate(BaseTestCase):
         update['edited'] = update['builds']  # the update title..
         update['builds'] = []
         res = self.app.post_json('/updates/', update, status=400)
-        self.assertEqual(len(res.json_body['errors']), 2)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'builds')
-        self.assertEqual(
-            res.json_body['errors'][0]['description'],
-            'You may not specify an empty list of builds.')
-        self.assertEqual(res.json_body['errors'][1]['name'], 'builds')
-        self.assertEqual(
-            res.json_body['errors'][1]['description'],
-            'ACL validation mechanism was unable to determine ACLs.')
+        errors = res.json_body['errors']
+        self.assertEqual(len(errors), 3)
+        self.assertIn({'location': 'body', 'name': 'builds',
+                       'description': f"Cannot find update to edit: {update['edited']}"},
+                      errors)
+        self.assertIn({'location': 'body', 'name': 'builds',
+                       'description': 'You may not specify an empty list of builds.'},
+                      errors)
+        self.assertIn({'location': 'body', 'name': 'builds',
+                       'description': 'ACL validation mechanism was unable to determine ACLs.'},
+                      errors)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -274,6 +276,43 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['status'], 'error')
         self.assertEqual(up['errors'][0]['description'],
                          "Koji error getting build: bodhi-2.0.0-2.fc17")
+
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_valid_requirements)
+    def test_new_rpm_update_from_tag(self, *args):
+        """Test creating an update using builds from a Koji tag."""
+        # We don't want the new update to obsolete the existing one.
+        self.db.delete(Update.query.one())
+
+        update = self.get_update(builds=None, from_tag='f17-updates-candidate')
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', update)
+
+        up = r.json_body
+        self.assertEqual(up['title'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(up['builds'][0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(up['status'], 'pending')
+        self.assertEqual(up['request'], 'testing')
+        self.assertEqual(up['user']['name'], 'guest')
+        self.assertEqual(up['release']['name'], 'F17')
+        self.assertEqual(up['type'], 'bugfix')
+        self.assertEqual(up['content_type'], 'rpm')
+        self.assertEqual(up['severity'], 'unspecified')
+        self.assertEqual(up['suggest'], 'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], 'this is a test update')
+        self.assertIsNotNone(up['date_submitted'])
+        self.assertIsNone(up['date_modified'])
+        self.assertIsNone(up['date_approved'])
+        self.assertIsNone(up['date_pushed'])
+        self.assertEqual(up['locked'], False)
+        self.assertIn(up['alias'],
+                      (f'FEDORA-{YEAR}-033713b73b',
+                       f'FEDORA-{YEAR + 1}-033713b73b'))
+        self.assertEqual(up['karma'], 0)
+        self.assertEqual(up['requirements'], 'rpmlint')
+        self.assertEqual(up['from_tag'], 'f17-updates-candidate')
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_url(self, *args):
@@ -490,7 +529,49 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['bugs'][1]['bug_id'], 5678)
         self.assertEqual(up['bugs'][2]['bug_id'], 12345)
 
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_new_update_with_high_stable_days(self, publish, *args):
+        update = self.get_update('bodhi-2.0.0-2.fc17')
+        update['stable_days'] = 10
+        r = self.app.post_json('/updates/', update)
+        up = r.json_body
+
+        self.assertEqual(up['stable_days'], 10)
+
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_new_update_with_invalid_stable_days(self, publish, *args):
+        update = self.get_update('bodhi-2.0.0-2.fc17')
+        update['stable_days'] = -1
+        r = self.app.post_json('/updates/', update, status=400)
+        up = r.json_body
+
+        self.assertEqual(up['status'], 'error')
+        self.assertEqual(up['errors'][0]['description'], "-1 is less than minimum value 0")
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_edit_update_stable_days(self, publish, *args):
+        args = self.get_update(u'bodhi-2.0.0-2.fc17')
+        args['stable_days'] = '50'
+        r = self.app.post_json('/updates/', args)
+        self.assertEqual(r.json['stable_days'], 50)
+
+    @mock.patch(**mock_valid_requirements)
+    @mock.patch('bodhi.server.notifications.publish')
+    def test_edit_update_too_low_stable_days(self, publish, *args):
+        args = self.get_update(u'bodhi-2.0.0-2.fc17')
+        args['stable_days'] = '1'
+        r = self.app.post_json('/updates/', args)
+        self.assertEqual(r.json['stable_days'], 7)
+        self.assertEqual(r.json['caveats'][0]['description'],
+                         'The number of stable days required was set to the mandatory '
+                         'release value of 7 days')
+
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': u'dummy'})
     @mock.patch(**mock_valid_requirements)
     def test_new_update_with_multiple_bugs_as_str(self, *args):
         update = self.get_update('bodhi-2.0.0-2.fc17')
@@ -613,7 +694,7 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(r['request'], 'testing')
 
         # Since we're obsoleting something owned by someone else.
-        self.assertEqual(r['caveats'][0]['description'],
+        self.assertEqual(r['caveats'][1]['description'],
                          'This update has obsoleted bodhi-2.0.0-2.fc17, '
                          'and has inherited its bugs and notes.')
 
@@ -658,13 +739,13 @@ class TestNewUpdate(BaseTestCase):
                 r = self.app.post_json('/updates/', args).json_body
 
         # Since we're trying to obsolete security update with non security update.
-        self.assertEqual(r['caveats'][0]['description'],
+        self.assertEqual(r['caveats'][1]['description'],
                          'Adjusting type of this update to security,'
                          'since it obsoletes another security update')
         self.assertEqual(r['request'], 'testing')
 
         # Since we're obsoleting something owned by someone else.
-        self.assertEqual(r['caveats'][1]['description'],
+        self.assertEqual(r['caveats'][2]['description'],
                          'This update has obsoleted bodhi-2.0.0-2.fc17, '
                          'and has inherited its bugs and notes.')
 
@@ -714,7 +795,7 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(r['request'], 'testing')
 
         # Since we're obsoleting something owned by someone else.
-        self.assertEqual(r['caveats'][0]['description'],
+        self.assertEqual(r['caveats'][1]['description'],
                          'This update has obsoleted bodhi-2.0.0-2.fc17, '
                          'and has inherited its bugs and notes.')
 
@@ -773,7 +854,7 @@ class TestNewUpdate(BaseTestCase):
 
         self.assertEqual(r['request'], 'testing')
         # The exception handler should have put an error message in the caveats.
-        self.assertEqual(r['caveats'][0]['description'],
+        self.assertEqual(r['caveats'][1]['description'],
                          "Problem obsoleting older updates: bet you didn't see this coming!")
         # Check for the comment multiple ways. The comment will be about the update being submitted
         # for testing instead of being about the obsoletion, since the obsoletion failed.
@@ -992,6 +1073,37 @@ class TestEditUpdateForm(BaseTestCase):
                             headers={'accept': 'text/html'})
         self.assertRegex(str(resp), ('<input type="radio" name="severity" '
                                      'value="unspecified"\\n.*disabled="disabled"\\n.*>'))
+
+    def test_days_in_testing_new_update(self):
+        """
+        When creating an update the minimum value of days in testing should be set to 1
+        and the value should be empty.
+        """
+        resp = self.app.get(f'/updates/new',
+                            headers={'accept': 'text/html'})
+        self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
+                                     '\\n.*min="0" value=""\\n.*>'))
+
+    def test_days_in_testing_existing_update(self):
+        """
+        When editing an update the minimum value of days in testing should be set to
+        the mandatory days in testing of the release and the value to the actual value
+        set in the update.
+        """
+        alias = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update.alias
+        update_json = self.get_update()
+        update_json['csrf_token'] = self.app.get('/csrf').json_body['csrf_token']
+        update_json['edited'] = alias
+        update_json['requirements'] = ''
+        update_json['mandatory_days_in_testing'] = 7
+        update_json['stable_days'] = 10
+        with fml_testing.mock_sends(api.Message):
+            self.app.post_json('/updates/', update_json)
+
+        resp = self.app.get(f'/updates/{alias}/edit',
+                            headers={'accept': 'text/html'})
+        self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
+                                     '\\n.*min="7" value="10"\\n.*>'))
 
 
 class TestUpdatesService(BaseTestCase):
@@ -2739,6 +2851,65 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first(),
                          None)
 
+    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_valid_requirements)
+    def test_edit_rpm_update_from_tag(self, *args):
+        """Test editing an update using (updated) builds from a Koji tag."""
+        # We don't want the new update to obsolete the existing one.
+        self.db.delete(Update.query.one())
+
+        # We don't want an existing buildroot override to clutter the messages.
+        self.db.delete(BuildrootOverride.query.one())
+
+        update = self.get_update(from_tag='f17-updates-candidate')
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            r = self.app.post_json('/updates/', update)
+
+        update['edited'] = r.json['alias']
+        update['builds'] = 'bodhi-2.0.0-3.fc17'
+        update['requirements'] = 'upgradepath'
+
+        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+            r = self.app.post_json('/updates/', update)
+
+        up = r.json_body
+        self.assertEqual(up['title'], 'bodhi-2.0.0-3.fc17')
+        self.assertEqual(up['status'], 'pending')
+        self.assertEqual(up['request'], 'testing')
+        self.assertEqual(up['user']['name'], 'guest')
+        self.assertEqual(up['release']['name'], 'F17')
+        self.assertEqual(up['type'], 'bugfix')
+        self.assertEqual(up['severity'], 'unspecified')
+        self.assertEqual(up['suggest'], 'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], 'this is a test update')
+        self.assertIsNotNone(up['date_submitted'])
+        self.assertIsNotNone(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], 'FEDORA-%s-033713b73b' % YEAR)
+        self.assertEqual(up['karma'], 0)
+        self.assertEqual(up['requirements'], 'upgradepath')
+        comment = textwrap.dedent("""
+        guest edited this update.
+
+        New build(s):
+
+        - bodhi-2.0.0-3.fc17
+
+        Removed build(s):
+
+        - bodhi-2.0-1.fc17
+
+        Karma has been reset.
+        """).strip()
+        self.assertMultiLineEqual(up['comments'][-1]['text'], comment)
+        self.assertEqual(len(up['builds']), 1)
+        self.assertEqual(up['builds'][0]['nvr'], 'bodhi-2.0.0-3.fc17')
+        self.assertEqual(self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first(),
+                         None)
+
     @mock.patch(**mock_valid_requirements)
     def test_edit_testing_update_with_new_builds(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
@@ -3060,9 +3231,10 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up.status, UpdateStatus.pending)
         self.assertEqual(up.request, UpdateRequest.testing)
 
-        text = str(config.get('testing_approval_msg_based_on_karma'))
+        text = str(config.get('testing_approval_msg'))
         up.comment(self.db, text, author='bodhi')
-        self.assertIn('pushed to stable now if the maintainer wishes', up.comments[-1]['text'])
+        self.assertEqual('This update can be pushed to stable now if the maintainer wishes',
+                         up.comments[-1]['text'])
 
     @mock.patch(**mock_valid_requirements)
     def test_obsoletion_locked_with_open_request(self, *args):
@@ -3714,8 +3886,11 @@ class TestUpdatesService(BaseTestCase):
             resp = self.app.post_json('/updates/', args)
 
         # Note that this does **not** obsolete the other update
-        self.assertEqual(len(resp.json_body['caveats']), 1)
+        self.assertEqual(len(resp.json_body['caveats']), 2)
         self.assertEqual(resp.json_body['caveats'][0]['description'],
+                         'The number of stable days required was set to the mandatory '
+                         'release value of 7 days')
+        self.assertEqual(resp.json_body['caveats'][1]['description'],
                          "Please be aware that there is another update in "
                          "flight owned by bob, containing "
                          "bodhi-2.0-2.fc17. Are you coordinating with "
@@ -3804,11 +3979,17 @@ class TestUpdatesService(BaseTestCase):
         data = r.json_body
 
         self.assertIn('caveats', data)
-        self.assertEqual(len(data['caveats']), 2)
+        self.assertEqual(len(data['caveats']), 4)
         self.assertEqual(data['caveats'][0]['description'],
                          "Your update is being split into 2, one for each release.")
+        self.assertEqual(data['caveats'][1]['description'],
+                         'The number of stable days required was set to the mandatory '
+                         'release value of 7 days')
+        self.assertEqual(data['caveats'][2]['description'],
+                         'The number of stable days required was set to the mandatory '
+                         'release value of 7 days')
         self.assertEqual(
-            data['caveats'][1]['description'],
+            data['caveats'][3]['description'],
             "This update has obsoleted bodhi-2.0-1.fc17, and has inherited its bugs and notes.")
 
         self.assertIn('updates', data)
@@ -4745,7 +4926,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is urgent.
         """
         self.assertSeverityHTML(UpdateSeverity.urgent,
-                                '<span class=\'label label-danger\'>urgent</span>')
+                                '<span class=\'badge badge-danger\'>urgent</span>')
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_high(self, *args):
@@ -4753,7 +4934,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is high.
         """
         self.assertSeverityHTML(UpdateSeverity.high,
-                                '<span class=\'label label-warning\'>high</span>')
+                                '<span class=\'badge badge-warning\'>high</span>')
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_medium(self, *args):
@@ -4761,7 +4942,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is medium.
         """
         self.assertSeverityHTML(UpdateSeverity.medium,
-                                '<span class=\'label label-primary\'>medium</span>')
+                                '<span class=\'badge badge-primary\'>medium</span>')
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_low(self, *args):
@@ -4769,7 +4950,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is low.
         """
         self.assertSeverityHTML(UpdateSeverity.low,
-                                '<span class=\'label label-success\'>low</span>')
+                                '<span class=\'badge badge-success\'>low</span>')
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_unspecified(self, *args):
@@ -4777,7 +4958,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is unspecified.
         """
         self.assertSeverityHTML(UpdateSeverity.unspecified,
-                                '<span class=\'label label-default\'>unspecified</span>')
+                                '<span class=\'badge badge-default\'>unspecified</span>')
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_absent_when_severity_is_None(self, *args):
@@ -4848,7 +5029,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(upd.autokarma, False)
         self.assertEqual(upd.pushed, True)
 
-        text = str(config.get('testing_approval_msg_based_on_karma'))
+        text = str(config.get('testing_approval_msg'))
         upd.comment(self.db, text, author='bodhi')
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
@@ -4899,7 +5080,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(upd.request, None)
         self.assertEqual(upd.autokarma, False)
 
-        text = str(config.get('testing_approval_msg_based_on_karma'))
+        text = str(config.get('testing_approval_msg'))
         upd.comment(self.db, text, author='bodhi')
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []

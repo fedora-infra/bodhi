@@ -340,21 +340,17 @@ class TestGenericViews(base.BaseTestCase):
 
         res = self.app.get('/latest_candidates', {'package': 'TurboGears'})
         body = res.json_body
-        self.assertEqual(len(body), 2)
-        self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-2.fc17')
-        self.assertEqual(body[0]['id'], 16058)
-        self.assertEqual(body[1]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
-        self.assertEqual(body[1]['id'], 16059)
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(body[0]['id'], 16059)
 
         res = self.app.get('/latest_candidates', {'package': 'TurboGears', 'testing': True})
         body = res.json_body
-        self.assertEqual(len(body), 3)
-        self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-2.fc17')
-        self.assertEqual(body[0]['id'], 16058)
-        self.assertEqual(body[1]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
-        self.assertEqual(body[1]['id'], 16059)
-        self.assertEqual(body[2]['nvr'], 'TurboGears-1.0.2.2-4.fc17')
-        self.assertEqual(body[2]['id'], 16060)
+        self.assertEqual(len(body), 2)
+        self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(body[0]['id'], 16059)
+        self.assertEqual(body[1]['nvr'], 'TurboGears-1.0.2.2-4.fc17')
+        self.assertEqual(body[1]['id'], 16060)
 
     def test_version(self):
         res = self.app.get('/api_version')
@@ -650,7 +646,7 @@ http://localhost/updates/?releases=F18&amp;status=stable&amp;type=newpackage">
         <a class="notblue" href="http://localhost/releases/F18">
   Fedora 18
         </a>
-          <span class="label label-default">prerelease</span>
+          <span class="badge badge-secondary">prerelease</span>
       </h3>""", res)
 
 

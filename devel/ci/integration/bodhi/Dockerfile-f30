@@ -7,6 +7,9 @@ LABEL \
 
 # For integration testing we're using the infrastructure repo
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
+# work around https://bugzilla.redhat.com/show_bug.cgi?id=1699396
+RUN rpm --import "$(awk -F= '{if ($0 ~ "gpgkey *=") {print $2;}}' < /etc/yum.repos.d/infra-tags.repo)"
+
 RUN dnf upgrade -y
 
 # Install Bodhi deps (that were not needed by the unittests container)
@@ -29,6 +32,7 @@ RUN mkdir -p /etc/bodhi
 COPY production.ini /etc/bodhi/production.ini
 
 COPY devel/ci/integration/bodhi/start.sh /etc/bodhi/start.sh
+COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml
 COPY devel/ci/integration/bodhi/httpd.conf /etc/bodhi/httpd.conf
 COPY apache/bodhi.wsgi /etc/bodhi/bodhi.wsgi
 RUN sed -i -e 's,/var/www,/httpdir,g' /etc/bodhi/bodhi.wsgi

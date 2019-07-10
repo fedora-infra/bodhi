@@ -30,6 +30,7 @@ from bodhi.server.models import (
     Update,
     UpdateStatus,
     UpdateType,
+    UpdateRequest,
     Build,
     BuildrootOverride,
     Package,
@@ -338,7 +339,26 @@ def save_release(request):
                             'the {} release is archived.'.format(u.release.name),
                             author='bodhi',
                         )
+                # Inform user that update requested for stable
+                # will be pushed to stable after the freeze is over.
+                if k == "state" and v == ReleaseState.frozen and \
+                        r.state != ReleaseState.frozen:
+                    updates = request.db.query(Update).filter(Update.release_id == r.id).filter(
+                        Update.request == UpdateRequest.stable
+                    ).filter(
+                        Update.locked == False
+                    ).all()
+                    for u in updates:
+                        u.comment(
+                            request.db,
+                            'There is an ongoing freeze; this will be pushed to'
+                            ' stable after the freeze is over.',
+                            author='bodhi',
+                        )
                 setattr(r, k, v)
+
+        # We have to invalidate the release cache after change
+        Release.clear_all_releases_cache()
 
     except Exception as e:
         log.exception(e)
