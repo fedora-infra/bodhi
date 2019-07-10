@@ -28,6 +28,7 @@ from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
+import pkg_resources
 
 from bodhi.server import bugs, buildsys
 from bodhi.server.config import config as bodhi_config
@@ -254,7 +255,8 @@ def main(global_config, testing=None, session=None, **settings):
 
     # Templating
     config.add_mako_renderer('.html', settings_prefix='mako.')
-    config.add_static_view('static', 'bodhi:server/static')
+    config.add_static_view(f'static/v{pkg_resources.get_distribution("bodhi").version}',
+                           'bodhi:server/static')
 
     from bodhi.server.renderers import rss
     config.add_renderer('rss', rss)
