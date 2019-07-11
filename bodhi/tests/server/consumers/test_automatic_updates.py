@@ -48,7 +48,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             'name': 'colord',
             'tag_id': 214,
             'instance': 's390',
-            'tag': 'f17-updates-candidate',
+            'tag': 'f17-updates-testing-pending',
             'user': 'sharkcz',
             'version': '1.3.4',
             'owner': 'sharkcz',
