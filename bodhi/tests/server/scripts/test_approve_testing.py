@@ -635,6 +635,32 @@ class TestMain(BaseTestCase):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         self.assertEqual(update.request, models.UpdateRequest.stable)
+        self.assertEqual(update.status, models.UpdateStatus.testing)
+
+    @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
+    def test_autotime_update_zero_day_in_testing_no_gated_gets_pushed_to_rawhide(self):
+        """
+        Ensure that an autotime update with 0 mandatory_days_in_testing that meets
+        the test requirements gets pushed to stable in rawhide.
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.autokarma = False
+        update.autotime = True
+        update.request = None
+        update.release.composed_by_bodhi = False
+        update.stable_karma = 10
+        update.stable_days = 0
+        update.date_testing = datetime.utcnow() - timedelta(days=0)
+        update.status = models.UpdateStatus.testing
+        self.db.commit()
+
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                with fml_testing.mock_sends(api.Message, api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
+
+        self.assertEqual(update.request, None)
+        self.assertEqual(update.status, models.UpdateStatus.stable)
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch.dict(config, [('test_gating.required', True)])
