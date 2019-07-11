@@ -103,6 +103,11 @@ def main(argv=sys.argv):
                 if update.autotime and update.days_in_testing >= update.stable_days:
                     print(f"Automatically marking {update.alias} as stable")
                     update.set_request(db=db, action=UpdateRequest.stable, username="bodhi")
+                    # For updates that are not included in composes run by bodhi itself,
+                    # mark them as stable
+                    if not update.release.composed_by_bodhi:
+                        update.status = UpdateStatus.stable
+                        update.request = None
 
                 db.commit()
 
