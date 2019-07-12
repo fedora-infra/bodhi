@@ -583,12 +583,12 @@ def test_skopeo_copy_cert(breakage, error):
                 assert result.exit_code == 0
                 reg2.check_fake_image('repo2', 'latest', digest, content_type)
             else:
-                with pytest.raises(Exception) as e:
+                with pytest.raises(Exception) as excinfo:
                     runner.invoke(
                         skopeo_lite.copy,
                         args,
                         catch_exceptions=False)
-                assert error in str(e)
+                assert error in str(excinfo.value)
     finally:
         shutil.rmtree(certdir1)
         shutil.rmtree(certdir2)
@@ -715,13 +715,13 @@ def test_skopeo_copy_protocol(src, dest, flags1, flags2, error):
     reg1.add_fake_image('repo1', 'latest', content_type)
 
     if error is not None:
-        with pytest.raises(Exception) as e:
+        with pytest.raises(Exception) as excinfo:
             runner.invoke(
                 skopeo_lite.copy,
                 [src, dest],
                 catch_exceptions=False)
 
-        assert error in str(e)
+        assert error in str(excinfo.value)
     else:
         result = runner.invoke(
             skopeo_lite.copy,
