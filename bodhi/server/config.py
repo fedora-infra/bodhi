@@ -61,10 +61,10 @@ def _generate_list_validator(
     with the given validator.
 
     Args:
-        splitter (str): A string to use to split the input into a list.
-        validator (function):  A function to apply to each element of the list to validate it.
+        splitter: A string to use to split the input into a list.
+        validator:  A function to apply to each element of the list to validate it.
     Returns:
-        function: A validator function that accepts an argument to be validated.
+        A validator function that accepts an argument to be validated.
     """
     def _validate_list(value: typing.Union[str, typing.List]) -> typing.List:
         """Validate that the value is a list or can be split into a list, and validate its elements.
@@ -583,7 +583,7 @@ class BodhiConfig(dict):
         Load the configuration either from the config file, or from the given settings.
 
         args:
-            settings (dict): If given, the settings are pulled from this dictionary. Otherwise, the
+            settings: If given, the settings are pulled from this dictionary. Otherwise, the
                 config file is used.
         """
         self._load_defaults()
