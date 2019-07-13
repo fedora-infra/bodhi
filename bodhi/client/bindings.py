@@ -513,17 +513,16 @@ class BodhiClient(OpenIdBaseClient):
         List buildroot overrides.
 
         Args:
-            user (str): A username whose buildroot overrides you want returned.
-            packages (str): Comma separated package names to filter buildroot overrides by.
-            expired (bool): If True, only return expired overrides. If False, only return active
+            user: A username whose buildroot overrides you want returned.
+            packages: Comma separated package names to filter buildroot overrides by.
+            expired: If True, only return expired overrides. If False, only return active
                 overrides.
-            releases (str): Comma separated Release shortnames to filter buildroot overrides
-                by.
-            builds (str): Comma separated build NVRs to filter overrides by.
-            rows_per_page (int): Limit the results to a certain number of rows per page.
-                (default:None)
-            page (int): Return a specific page of results.
-                (default:None)
+            releases: Comma separated Release shortnames to filter buildroot overrides by.
+            builds: Comma separated build NVRs to filter overrides by.
+            rows_per_page: Limit the results to a certain number of rows per page.
+            page: Return a specific page of results.
+        Returns:
+            A dictionary-like representation of the Overrides.
         """
         params: typing.MutableMapping[str, typing.Union[int, str, None]] = {}
         if user:
@@ -764,7 +763,7 @@ class BodhiClient(OpenIdBaseClient):
             minimal: If True, return a minimal one-line representation of the update.
                 Otherwise, return a more verbose representation. Defaults to False.
         Returns:
-            str: A human readable string describing the given update.
+            A human readable string describing the given update.
         """
         if isinstance(update, str):
             return update
