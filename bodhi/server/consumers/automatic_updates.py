@@ -100,7 +100,7 @@ class AutomaticUpdateHandler:
 
         with self.db_factory() as dbsession:
             rel = dbsession.query(Release).filter_by(create_automatic_updates=True,
-                                                     candidate_tag=btag).first()
+                                                     pending_testing_tag=btag).first()
             if not rel:
                 log.debug(f"Ignoring build being tagged into {btag!r}, no release configured for "
                           "automatic updates for it found.")
