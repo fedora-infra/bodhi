@@ -561,6 +561,11 @@ def test_skopeo_copy_cert(breakage, error):
                 with open(key, 'w'):
                     pass
             certs[reg] = (cert, key)
+            # Ensure RegistrySession._find_cert() encounters a file to skip
+            # over.
+            if not breakage and reg == 'registry1.example.com':
+                with open(os.path.join(certdir, 'dummy'), 'w'):
+                    pass
 
         content_type = MEDIA_TYPE_MANIFEST_V2
         reg1 = MockRegistry('registry1.example.com')
