@@ -28,7 +28,7 @@ import fedora_messaging
 
 from bodhi.server import buildsys
 from bodhi.server.models import Build, ContentType, Package, Release
-from bodhi.server.models import Update, UpdateRequest, UpdateType, User
+from bodhi.server.models import Update, UpdateStatus, UpdateType, User
 from bodhi.server.util import transactional_session_maker
 
 
@@ -100,7 +100,7 @@ class AutomaticUpdateHandler:
 
         with self.db_factory() as dbsession:
             rel = dbsession.query(Release).filter_by(create_automatic_updates=True,
-                                                     candidate_tag=btag).first()
+                                                     pending_testing_tag=btag).first()
             if not rel:
                 log.debug(f"Ignoring build being tagged into {btag!r}, no release configured for "
                           "automatic updates for it found.")
@@ -141,10 +141,15 @@ class AutomaticUpdateHandler:
                 stable_karma=3,
                 unstable_karma=-3,
                 user=user,
+                status=UpdateStatus.testing,
             )
 
-            log.debug("Setting request for new update.")
-            update.set_request(dbsession, UpdateRequest.testing, owner_name)
+            # Comment on the update that it was automatically created.
+            update.comment(
+                dbsession,
+                str("This update was automatically created"),
+                author="bodhi",
+            )
 
             log.debug("Adding new update to the database.")
             dbsession.add(update)
