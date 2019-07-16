@@ -22,6 +22,7 @@ The script is responsible for commenting on updates after they reach the mandato
 spent in the testing repository.
 """
 
+import datetime
 import os
 import sys
 import logging
@@ -107,6 +108,7 @@ def main(argv=sys.argv):
                     # mark them as stable
                     if not update.release.composed_by_bodhi:
                         update.status = UpdateStatus.stable
+                        update.date_stable = datetime.datetime.utcnow()
                         update.request = None
 
                 db.commit()
