@@ -312,7 +312,7 @@ def sanity_check_repodata(myurl, repo_type):
 
         if repo_type in ('yum', 'source'):
             tests.append((['list', 'available'], 'testrepo'))
-        elif repo_type == 'module':
+        else:  # repo_type == 'module', verified above
             tests.append((['module', 'list'], '.*'))
 
         for test in tests:
@@ -1047,12 +1047,12 @@ def tokenize(string):
         str: The individual tokens found in the comma or space separated string.
     """
     for substring in string.split(','):
-        substring = substring.strip()
-        if substring:
-            for token in substring.split():
-                token = token.strip()
-                if token:
-                    yield token
+        for token in substring.split():
+            # Using str.split() ensures that tokens don't contain white space
+            # and aren't empty. Not specifying a separator "... means split
+            # according to any whitespace, and discard empty strings from the
+            # result."
+            yield token
 
 
 def taskotron_results(settings, entity='results/latest', max_queries=10, **kwargs):
