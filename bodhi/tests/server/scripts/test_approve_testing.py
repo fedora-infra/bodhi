@@ -636,6 +636,7 @@ class TestMain(BaseTestCase):
 
         self.assertEqual(update.request, models.UpdateRequest.stable)
         self.assertEqual(update.status, models.UpdateStatus.testing)
+        self.assertEqual(update.date_stable, None)
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     def test_autotime_update_zero_day_in_testing_no_gated_gets_pushed_to_rawhide(self):
@@ -660,6 +661,7 @@ class TestMain(BaseTestCase):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         self.assertEqual(update.request, None)
+        self.assertNotEqual(update.date_stable, None)
         self.assertEqual(update.status, models.UpdateStatus.stable)
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
