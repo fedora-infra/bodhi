@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from xml.etree import ElementTree
 from unittest import mock
+import gzip
 import os
 import shutil
 import subprocess
@@ -447,40 +448,35 @@ class TestSanityCheckRepodata(unittest.TestCase):
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='yum')
 
-    @mock.patch('subprocess.check_output', return_value='Some output')
-    def test_correct_module_repo(self, *args):
-        """No Exception should be raised if the repo is a normal module repo."""
+    def _mkmetadatadir_w_modules(self):
         base.mkmetadatadir(self.tempdir)
         # We need to add a modules tag to repomd.
         repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
         repomd_tree = ElementTree.parse(repomd_path)
         ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
         root = repomd_tree.getroot()
-        ElementTree.SubElement(root, 'data', type='modules')
+        modules_elem = ElementTree.SubElement(root, 'data', type='modules')
+        # ensure librepo finds something
+        ElementTree.SubElement(modules_elem, 'location', href='repodata/modules.yaml.gz')
+        with gzip.open(os.path.join(self.tempdir, 'repodata', 'modules.yaml.gz'), 'w'):
+            pass
         for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
             # module repos don't have drpms or comps.
             if data.attrib['type'] in ('group', 'prestodelta'):
                 root.remove(data)
         repomd_tree.write(repomd_path, encoding='UTF-8', xml_declaration=True)
 
+    @mock.patch('subprocess.check_output', return_value='Some output')
+    def test_correct_module_repo(self, *args):
+        """No Exception should be raised if the repo is a normal module repo."""
+        self._mkmetadatadir_w_modules()
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='module')
 
     @mock.patch('subprocess.check_output', return_value='')
     def test_module_repo_no_dnf_output(self, *args):
         """No Exception should be raised if the repo is a normal module repo."""
-        base.mkmetadatadir(self.tempdir)
-        # We need to add a modules tag to repomd.
-        repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
-        repomd_tree = ElementTree.parse(repomd_path)
-        ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
-        root = repomd_tree.getroot()
-        ElementTree.SubElement(root, 'data', type='modules')
-        for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
-            # module repos don't have drpms or comps.
-            if data.attrib['type'] in ('group', 'prestodelta'):
-                root.remove(data)
-        repomd_tree.write(repomd_path, encoding='UTF-8', xml_declaration=True)
+        self._mkmetadatadir_w_modules()
 
         with self.assertRaises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='module')
