@@ -62,7 +62,8 @@ class TestAvatar(unittest.TestCase):
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
         self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'cool url')
-        libravatar_url.assert_called_once_with(openid='http://bowlofeggs.id.fedoraproject.org/',
+        openid_user_host = config['openid_template'].format(username='bowlofeggs')
+        libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
                                                https=False, size=50, default='retro')
 
     @mock.patch.dict(
@@ -81,7 +82,8 @@ class TestAvatar(unittest.TestCase):
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
         self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'cool url')
-        libravatar_url.assert_called_once_with(openid='http://bowlofeggs.id.fedoraproject.org/',
+        openid_user_host = config['openid_template'].format(username='bowlofeggs')
+        libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
                                                https=True, size=50, default='retro')
 
 
