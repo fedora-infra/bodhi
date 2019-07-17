@@ -146,8 +146,10 @@ class AutomaticUpdateHandler:
             if config.get('test_gating.required'):
                 log.debug(
                     'Test gating required is enforced, marking the update as '
-                    'waiting on test gating')
+                    'waiting on test gating and updating it from Greenwave to '
+                    'get the real status.')
                 update.test_gating_status = TestGatingStatus.waiting
+                update.update_test_gating_status()
 
             # Comment on the update that it was automatically created.
             update.comment(
