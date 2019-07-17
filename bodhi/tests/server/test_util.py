@@ -17,14 +17,18 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from xml.etree import ElementTree
 from unittest import mock
+import gzip
 import os
 import shutil
 import subprocess
 import tempfile
 import unittest
 
+import pytest
+
 from bodhi.server import util, models
 from bodhi.server.config import config
+from bodhi.server.exceptions import RepodataException
 from bodhi.server.models import ComposeState, TestGatingStatus, Update
 from bodhi.tests.server import base
 
@@ -61,7 +65,8 @@ class TestAvatar(unittest.TestCase):
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
         self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'cool url')
-        libravatar_url.assert_called_once_with(openid='http://bowlofeggs.id.fedoraproject.org/',
+        openid_user_host = config['openid_template'].format(username='bowlofeggs')
+        libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
                                                https=False, size=50, default='retro')
 
     @mock.patch.dict(
@@ -80,7 +85,8 @@ class TestAvatar(unittest.TestCase):
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
         self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'cool url')
-        libravatar_url.assert_called_once_with(openid='http://bowlofeggs.id.fedoraproject.org/',
+        openid_user_host = config['openid_template'].format(username='bowlofeggs')
+        libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
                                                https=True, size=50, default='retro')
 
 
@@ -447,40 +453,56 @@ class TestSanityCheckRepodata(unittest.TestCase):
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='yum')
 
-    @mock.patch('subprocess.check_output', return_value='Some output')
-    def test_correct_module_repo(self, *args):
-        """No Exception should be raised if the repo is a normal module repo."""
+    def test_invalid_repo_type(self):
+        """A ValueError should be raised with invalid repo type."""
+        with self.assertRaises(ValueError) as excinfo:
+            util.sanity_check_repodata("so", "wrong")
+
+        self.assertEqual(str(excinfo.exception),
+                         'repo_type must be one of module, source, or yum.')
+
+    @mock.patch('bodhi.server.util.librepo')
+    def test_librepo_exception(self, librepo):
+        """Verify that LibrepoExceptions are re-wrapped."""
+        class MockException(Exception):
+            pass
+        librepo.LibrepoException = MockException
+        librepo.Handle.return_value.perform.side_effect = MockException(-1, 'msg', 'general_msg')
+
+        with self.assertRaises(RepodataException) as excinfo:
+            util.sanity_check_repodata('/tmp/', 'yum')
+
+        self.assertEqual(str(excinfo.exception), 'msg')
+
+    def _mkmetadatadir_w_modules(self):
         base.mkmetadatadir(self.tempdir)
         # We need to add a modules tag to repomd.
         repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
         repomd_tree = ElementTree.parse(repomd_path)
         ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
         root = repomd_tree.getroot()
-        ElementTree.SubElement(root, 'data', type='modules')
+        modules_elem = ElementTree.SubElement(root, 'data', type='modules')
+        # ensure librepo finds something
+        ElementTree.SubElement(modules_elem, 'location', href='repodata/modules.yaml.gz')
+        with gzip.open(os.path.join(self.tempdir, 'repodata', 'modules.yaml.gz'), 'w'):
+            pass
         for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
             # module repos don't have drpms or comps.
             if data.attrib['type'] in ('group', 'prestodelta'):
                 root.remove(data)
         repomd_tree.write(repomd_path, encoding='UTF-8', xml_declaration=True)
 
+    @mock.patch('subprocess.check_output', return_value='Some output')
+    def test_correct_module_repo(self, *args):
+        """No Exception should be raised if the repo is a normal module repo."""
+        self._mkmetadatadir_w_modules()
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='module')
 
     @mock.patch('subprocess.check_output', return_value='')
     def test_module_repo_no_dnf_output(self, *args):
         """No Exception should be raised if the repo is a normal module repo."""
-        base.mkmetadatadir(self.tempdir)
-        # We need to add a modules tag to repomd.
-        repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
-        repomd_tree = ElementTree.parse(repomd_path)
-        ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
-        root = repomd_tree.getroot()
-        ElementTree.SubElement(root, 'data', type='modules')
-        for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
-            # module repos don't have drpms or comps.
-            if data.attrib['type'] in ('group', 'prestodelta'):
-                root.remove(data)
-        repomd_tree.write(repomd_path, encoding='UTF-8', xml_declaration=True)
+        self._mkmetadatadir_w_modules()
 
         with self.assertRaises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='module')
@@ -558,6 +580,36 @@ class TestSanityCheckRepodata(unittest.TestCase):
 
         # No exception should be raised.
         util.sanity_check_repodata(self.tempdir, repo_type='source')
+
+
+class TestTestcaseLink:
+    """Test the testcase_link() function."""
+
+    base_url = 'http://example.com/'
+    displayed_name = 'test case name'
+
+    def setup_method(self, method):
+        self.test = mock.Mock()
+        self.test.name = 'QA:Testcase ' + self.displayed_name
+
+    @property
+    def expected_url(self):
+        return self.base_url + self.test.name
+
+    @pytest.mark.parametrize('short', (False, True))
+    def test_fn(self, short):
+        """Test the function."""
+        with mock.patch.dict('bodhi.server.util.config',
+                             values={'test_case_base_url': self.base_url},
+                             clear=True):
+            retval = util.testcase_link(None, self.test, short=short)
+
+        if short:
+            assert not retval.startswith('Test Case ')
+        else:
+            assert retval.startswith('Test Case ')
+        assert f"href='{self.expected_url}'" in retval
+        assert f">{self.displayed_name}<" in retval
 
 
 class TestType2Icon(unittest.TestCase):
@@ -1261,6 +1313,27 @@ class TestCMDFunctions(base.BaseTestCase):
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
     @mock.patch('subprocess.Popen')
+    def test_no_err_out_zero_return_code(self, mock_popen, mock_error, mock_debug):
+        """
+        Verify behavior without any output and a zero exit code.
+        """
+        mock_popen.return_value = mock.Mock()
+        mock_popen_obj = mock_popen.return_value
+        mock_popen_obj.communicate.return_value = (None, None)
+        mock_popen_obj.returncode = 0
+
+        assert util.cmd(['/bin/true'], '"home/imgs/catpix"') == (None, None, 0)
+
+        mock_popen.assert_called_once_with(
+            ['/bin/true'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            shell=False)
+
+        mock_error.assert_not_called()
+        mock_debug.assert_called_once_with('Running /bin/true')
+
+    @mock.patch('bodhi.server.log.debug')
+    @mock.patch('bodhi.server.log.error')
+    @mock.patch('subprocess.Popen')
     def test_err_nonzero_return_code(self, mock_popen, mock_error, mock_debug):
         """
         Ensures proper behavior when there is err output and the exit code isn't 0.
@@ -1351,6 +1424,62 @@ class TestCMDFunctions(base.BaseTestCase):
         self.assertEqual(util._get_build_repository(build), 'f29/cockpit')
         self.assertEqual(util._get_build_repository(build), 'myrepo')
         session.return_value.getBuild.assert_called_with('cockpit-167-5')
+
+    def test_build_evr(self):
+        """Test the test_build_evr() function."""
+        build = {'epoch': None, 'version': '1', 'release': '2.fc30'}
+
+        self.assertEqual(util.build_evr(build), ('0', '1', '2.fc30'))
+
+        build['epoch'] = 2
+        self.assertEqual(util.build_evr(build), ('2', '1', '2.fc30'))
+
+
+@mock.patch('bodhi.server.util.cmd', autospec=True)
+@mock.patch('bodhi.server.util.config', new_callable=lambda: {
+    'container.source_registry': 'src',
+    'container.destination_registry': 'dest',
+    'skopeo.cmd': 'skopeo',
+})
+@mock.patch('bodhi.server.util._container_image_url', new=lambda sr, r, st: f'{sr}:{r}:{st}')
+@mock.patch('bodhi.server.util._get_build_repository', new=lambda b: 'testrepo')
+class TestCopyContainer:
+    """Test the copy_container() function."""
+
+    def setup_method(self, method):
+        self.build = mock.Mock()
+        self.build.nvr_version = '1'
+        self.build.nvr_release = '1'
+
+    def test_default(self, config, cmd):
+        """Test the default code path."""
+        util.copy_container(self.build)
+
+        cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'dest:testrepo:1-1'],
+                                    raise_on_error=True)
+
+    def test_with_destination_registry(self, config, cmd):
+        """Test with specified destination_registry."""
+        util.copy_container(self.build, destination_registry='boo')
+
+        cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'boo:testrepo:1-1'],
+                                    raise_on_error=True)
+
+    def test_with_destination_tag(self, config, cmd):
+        """Test with specified destination_tag."""
+        util.copy_container(self.build, destination_tag='2-2')
+
+        cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'dest:testrepo:2-2'],
+                                    raise_on_error=True)
+
+    def test_with_extra_copy_flags(self, config, cmd):
+        """Test with extra copy flags configured."""
+        config['skopeo.extra_copy_flags'] = '--quiet,--remove-signatures'
+        util.copy_container(self.build)
+
+        cmd.assert_called_once_with(['skopeo', 'copy', '--quiet', '--remove-signatures',
+                                     'src:testrepo:1-1', 'dest:testrepo:1-1'],
+                                    raise_on_error=True)
 
 
 class TestTransactionalSessionMaker(base.BaseTestCase):
