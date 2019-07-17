@@ -107,6 +107,9 @@ def main(argv=sys.argv):
                     # For updates that are not included in composes run by bodhi itself,
                     # mark them as stable
                     if not update.release.composed_by_bodhi:
+                        update.add_tag(update.release.stable_tag)
+                        update.remove_tag(update.release.pending_testing_tag)
+                        update.remove_tag(update.release.pending_stable_tag)
                         update.status = UpdateStatus.stable
                         update.date_stable = datetime.datetime.utcnow()
                         update.request = None
