@@ -5,6 +5,7 @@
       - bash-completion
       - createrepo_c
       - docker
+      - docker-compose
       - fedora-messaging
       - freetype-devel
       - gcc
@@ -105,6 +106,11 @@
 - name: pip install mypy
   pip:
       name: mypy
+      executable: pip3
+
+- name: pip install jinja2-cli
+  pip:
+      name: jinja2-cli
       executable: pip3
 
 - name: Fake a pungi install

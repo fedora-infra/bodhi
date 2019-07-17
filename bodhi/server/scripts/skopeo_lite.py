@@ -689,9 +689,14 @@ class Copier(object):
             self.src.download_blob(digest, size, self.dest.ensure_blob_path(digest))
         elif isinstance(self.src, DirectoryEndpoint) and isinstance(self.dest, RegistryEndpoint):
             self.dest.upload_blob(digest, size, self.src.get_blob_path(digest))
-        elif isinstance(self.src, RegistryEndpoint) and isinstance(self.dest, RegistryEndpoint):
-            if self.src.registry == self.dest.registry:
-                self.dest.link_blob(digest, self.src.repo)
+        else:
+            # The copy() function below ensures that the following two asserts don't fail.
+            assert (isinstance(self.src, RegistryEndpoint)
+                    and isinstance(self.dest, RegistryEndpoint))
+            assert self.src.registry == self.dest.registry
+
+            self.dest.link_blob(digest, self.src.repo)
+
         # Other forms of copying are not needed currently, and not implemented
 
     def _copy_manifest(self, info, toplevel=False):
@@ -761,6 +766,11 @@ def copy(src, dest, src_creds, src_tls_verify, src_cert_dir, dest_creds, dest_tl
     src = parse_spec(src, src_creds, src_tls_verify, src_cert_dir)
     dest = parse_spec(dest, dest_creds, dest_tls_verify, dest_cert_dir)
 
+    # Copier._copy_blob() assumes this:
+    # - The src and dest registries are of types RegistryEndpoint or DirectoryEndpoint, at least one
+    #   must be a RegistryEndpoint.
+    # - If both are a RegistryEndpoint, they must be the same so linking is possible, therefore we
+    #   copy src reg -> local dir -> dest reg if this isn't the case.
     if src.registry != dest.registry:
         tempdir = tempfile.mkdtemp()
         try:

@@ -24,8 +24,11 @@ import logging
 from fedora_messaging.api import Message
 import pytest
 
+from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
-from bodhi.server.models import Build, Release, Update, UpdateStatus, UpdateType, User
+from bodhi.server.models import (
+    Build, Release, TestGatingStatus, Update, UpdateStatus, UpdateType, User
+)
 from bodhi.tests.server import base
 
 
@@ -78,6 +81,32 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         assert update is not None
         assert update.type == UpdateType.unspecified
         assert update.status == UpdateStatus.testing
+        assert update.test_gating_status is None
+
+        expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
+        assert update.user and update.user.name == expected_username
+
+        assert not any(r.levelno >= logging.WARNING for r in caplog.records)
+
+    @mock.patch.dict(config, [('test_gating.required', True)])
+    def test_consume_with_gating(self, caplog):
+        """Assert that messages about tagged builds create an update with the expected gating status.
+        """
+        caplog.set_level(logging.DEBUG)
+
+        # process the message
+        self.handler(self.sample_message)
+
+        # check if the update exists...
+        update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+
+        # ...and some of its properties
+        assert update is not None
+        assert update.type == UpdateType.unspecified
+        assert update.status == UpdateStatus.testing
+        assert update.test_gating_status == TestGatingStatus.waiting
 
         expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
         assert update.user and update.user.name == expected_username
