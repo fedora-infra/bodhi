@@ -27,10 +27,10 @@ import logging
 import fedora_messaging
 
 from bodhi.server import buildsys
-from bodhi.server.models import Build, ContentType, Package, Release
+from bodhi.server.config import config
+from bodhi.server.models import Build, ContentType, Package, Release, TestGatingStatus
 from bodhi.server.models import Update, UpdateStatus, UpdateType, User
 from bodhi.server.util import transactional_session_maker
-
 
 log = logging.getLogger('bodhi')
 
@@ -143,6 +143,11 @@ class AutomaticUpdateHandler:
                 user=user,
                 status=UpdateStatus.testing,
             )
+            if config.get('test_gating.required'):
+                log.debug(
+                    'Test gating required is enforced, marking the update as '
+                    'waiting on test gating')
+                update.test_gating_status = TestGatingStatus.waiting
 
             # Comment on the update that it was automatically created.
             update.comment(
