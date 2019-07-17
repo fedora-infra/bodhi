@@ -639,7 +639,10 @@ class TestMain(BaseTestCase):
         self.assertEqual(update.date_stable, None)
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
-    def test_autotime_update_zero_day_in_testing_no_gated_gets_pushed_to_rawhide(self):
+    @patch('bodhi.server.models.Update.add_tag')
+    @patch('bodhi.server.models.Update.remove_tag')
+    def test_autotime_update_zero_day_in_testing_no_gated_gets_pushed_to_rawhide(
+            self, remove_tag, add_tag):
         """
         Ensure that an autotime update with 0 mandatory_days_in_testing that meets
         the test requirements gets pushed to stable in rawhide.
@@ -663,6 +666,17 @@ class TestMain(BaseTestCase):
         self.assertEqual(update.request, None)
         self.assertNotEqual(update.date_stable, None)
         self.assertEqual(update.status, models.UpdateStatus.stable)
+        # First pass, it adds f17=updatest-pending, then since we're pushing
+        # to stable directly, it adds f17-updates (the stable tag) then
+        # removes f17-updates-testing-pending and f17-updates-pending
+        self.assertEqual(
+            remove_tag.call_args_list,
+            [call('f17-updates-testing-pending'), call('f17-updates-pending')]
+        )
+        self.assertEqual(
+            add_tag.call_args_list,
+            [call('f17-updates-pending'), call('f17-updates')]
+        )
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch.dict(config, [('test_gating.required', True)])
