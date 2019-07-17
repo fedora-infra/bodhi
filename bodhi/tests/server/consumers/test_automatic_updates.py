@@ -88,14 +88,31 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         assert not any(r.levelno >= logging.WARNING for r in caplog.records)
 
-    @mock.patch.dict(config, [('test_gating.required', True)])
-    def test_consume_with_gating(self, caplog):
+    @mock.patch.dict(config, [('test_gating.required', True),
+                              ('greenwave_api_url', 'http://domain.local')])
+    @pytest.mark.parametrize('gated', (True, False, 'error'))
+    def test_consume_with_gating(self, caplog, gated):
         """Assert that messages about tagged builds create an update with the expected gating status.
         """
         caplog.set_level(logging.DEBUG)
 
         # process the message
-        self.handler(self.sample_message)
+        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            if gated == 'error':
+                mock_greenwave.side_effect = RuntimeError("Boo!")
+            else:
+                if gated:
+                    greenwave_response = {
+                        'policies_satisfied': False,
+                        'summary': "1 of 1 required test results missing",
+                    }
+                else:
+                    greenwave_response = {
+                        'policies_satisfied': True,
+                        'summary': "no tests are required",
+                    }
+                mock_greenwave.return_value = greenwave_response
+            self.handler(self.sample_message)
 
         # check if the update exists...
         update = self.db.query(Update).filter(
@@ -106,12 +123,24 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         assert update is not None
         assert update.type == UpdateType.unspecified
         assert update.status == UpdateStatus.testing
-        assert update.test_gating_status == TestGatingStatus.waiting
+        if gated == 'error':
+            assert update.test_gating_status == TestGatingStatus.greenwave_failed
+        elif gated:
+            assert update.test_gating_status == TestGatingStatus.failed
+        else:
+            assert update.test_gating_status == TestGatingStatus.ignored
 
         expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
         assert update.user and update.user.name == expected_username
 
-        assert not any(r.levelno >= logging.WARNING for r in caplog.records)
+        if gated == 'error':
+            warn_higher_records = [r for r in caplog.records if r.levelno >= logging.WARNING]
+            assert len(warn_higher_records) == 1
+            log_record = warn_higher_records[0]
+            assert log_record.levelno == logging.ERROR
+            assert log_record.message == "Boo!"
+        else:
+            assert not any(r.levelno >= logging.WARNING for r in caplog.records)
 
     # The following tests cover lesser-travelled code paths.
 
