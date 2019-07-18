@@ -133,6 +133,23 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
         assert update.user and update.user.name == expected_username
 
+        # check comments and their order
+        if gated == 'error':
+            final_status = 'greenwave_failed'
+        elif gated:
+            final_status = 'failed'
+        else:
+            final_status = 'ignored'
+
+        expected_comments = [
+            "This update was automatically created",
+            "This update's test gating status has been changed to 'waiting'.",
+            f"This update's test gating status has been changed to '{final_status}'.",
+        ]
+
+        assert (expected_comments == [c.text for c in update.comments])
+
+        # check for log records, warning or higher
         if gated == 'error':
             warn_higher_records = [r for r in caplog.records if r.levelno >= logging.WARNING]
             assert len(warn_higher_records) == 1
