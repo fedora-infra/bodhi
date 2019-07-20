@@ -93,7 +93,7 @@ class RateLimiter(logging.Filter):
         Record call sites and filter based on time.
 
         Args:
-            The log record we are filtering on.
+            record: The log record we are filtering on.
         Returns:
             True if the record should be emitted, False otherwise.
         """
