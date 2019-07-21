@@ -808,9 +808,9 @@ $(document).ready(function(){
               <div class="col-md-12">
                 <p>
                 % if request.matched_route:
-                  Please <a class="nav-link" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
+                  Please <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
                 % else:
-                  Please <a class="nav-link" href="${request.route_url('login')}">login</a> to add feedback.
+                  Please <a href="${request.route_url('login')}">login</a> to add feedback.
                 % endif
                 </p>
               </div>
