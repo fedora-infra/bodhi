@@ -499,6 +499,10 @@ $(document).ready(function(){
 $(document).ready(function(){
     var button = document.getElementById('copybutton')
 
+    if (button == null) {
+        return;
+    }
+
     button.addEventListener('click', function(event) {
         if (document.selection) { 
             document.selection.empty();
@@ -510,7 +514,6 @@ $(document).ready(function(){
             } catch (err) {
                 console.log('Oops, unable to copy');
             }
-
         } else if (window.getSelection) {
             if (window.getSelection().empty) {  // Chrome
                 window.getSelection().empty();
