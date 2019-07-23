@@ -2371,7 +2371,7 @@ class Update(Base):
             return True
         return False
 
-    def obsolete_older_updates(self, db):
+    def obsolete_older_updates(self, db, status=None):
         """Obsolete any older pending/testing updates.
 
         If a build is associated with multiple updates, make sure that
@@ -2379,21 +2379,31 @@ class Update(Base):
 
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
+            status (UpdateStatus): Status to restrict the obsolete updates to.
+              If unspecified (default) it will obsolete all the updates that
+              are in testing or in pending.
         Returns:
             list: A list of dictionaries that describe caveats.
         """
         caveats = []
         for build in self.builds:
-            for oldBuild in db.query(Build).join(Update).filter(
+            query = db.query(Build).join(Update).filter(
                 and_(Build.nvr != build.nvr,
                      Build.package == build.package,
                      Update.locked == False,
                      Update.release == self.release,
                      or_(Update.request == UpdateRequest.testing,
                          Update.request == None),
-                     or_(Update.status == UpdateStatus.testing,
-                         Update.status == UpdateStatus.pending))
-            ).all():
+                     )
+            )
+            if status:
+                query = query.filter(Update.status == status)
+            else:
+                query = query.filter(
+                    or_(Update.status == UpdateStatus.testing,
+                        Update.status == UpdateStatus.pending)
+                )
+            for oldBuild in query.all():
                 obsoletable = False
                 nvr = build.get_n_v_r()
                 if rpm.labelCompare(oldBuild.get_n_v_r(), nvr) < 0:

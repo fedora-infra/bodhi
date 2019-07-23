@@ -151,6 +151,10 @@ class AutomaticUpdateHandler:
                 author="bodhi",
             )
 
+            # Obsolete all the updates that are in pending and having this
+            # build
+            update.obsolete_older_updates(dbsession, status=UpdateStatus.pending)
+
             if config.get('test_gating.required'):
                 log.debug(
                     'Test gating required is enforced, marking the update as '
