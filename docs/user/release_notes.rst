@@ -29,6 +29,8 @@ Features
   the database migration.
 * Add a Greenwave message consumer to update the ``test_gating_status`` value.
 * Add the flatpak releases to the greenwave config.
+* Automatically create Rawhide updates in ``testing`` state or ``stable`` state
+  depending on whether they have gating tests.
 
 
 Bug fixes
@@ -50,6 +52,9 @@ Bug fixes
 * Make sure ``%{uid}`` in krb ccache gets replaced with the effective UID.
 * Create composes based on update's alias in bodhi-push (:issue:`3160`).
 * User should be able to set ``Update.display_name`` (:issue:`1369`).
+* Make ``meets_testing_requirements()`` comply with policy
+  (:issue:`1307`, :issue:`1508`, :issue:`1796`, :issue:`3282`).
+* Order builds by nvr in all places so the ordering is always consistent.
 
 
 Development improvements
