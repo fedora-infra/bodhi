@@ -19,6 +19,7 @@ RUN dnf install -y \
     python3-koji \
     /usr/bin/koji \
     python3-mod_wsgi \
+    python3-pip \
     python3-dnf \
     skopeo
 
