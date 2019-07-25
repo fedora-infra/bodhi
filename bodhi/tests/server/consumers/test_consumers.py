@@ -21,7 +21,7 @@ from fedora_messaging.api import Message
 from fedora_messaging.exceptions import Nack
 
 from bodhi.server import config
-from bodhi.server.consumers import composer, Consumer, signed, updates
+from bodhi.server.consumers import Consumer, HandlerInfo, signed, updates, composer
 from bodhi.tests.server import base
 
 
@@ -40,9 +40,14 @@ class TestConsumer(base.BaseTestCase):
         """Test the __init__() method when the composer is installed."""
         consumer = Consumer()
 
-        self.assertTrue(isinstance(consumer.composer_handler, composer.ComposerHandler))
-        self.assertTrue(isinstance(consumer.signed_handler, signed.SignedHandler))
-        self.assertTrue(isinstance(consumer.updates_handler, updates.UpdatesHandler))
+        expected = [
+            ('Composer', composer.ComposerHandler),
+            ('Signed', signed.SignedHandler),
+            ('Updates', updates.UpdatesHandler),
+        ]
+        for name, class_ in expected:
+            self.assertTrue(any(x.name == name and isinstance(x.handler, class_)
+                                for x in consumer.handler_infos))
         info.assert_called_once_with('Initializing Bodhi')
         initialize_db.assert_called_once_with(config.config)
         setup_buildsystem.assert_called_once_with(config.config)
@@ -57,9 +62,17 @@ class TestConsumer(base.BaseTestCase):
         """Test the __init__() method when the composer is not installed."""
         consumer = Consumer()
 
-        self.assertIsNone(consumer.composer_handler)
-        self.assertTrue(isinstance(consumer.signed_handler, signed.SignedHandler))
-        self.assertTrue(isinstance(consumer.updates_handler, updates.UpdatesHandler))
+        expected = [
+            ('Signed', signed.SignedHandler),
+            ('Updates', updates.UpdatesHandler),
+        ]
+        for name, class_ in expected:
+            self.assertTrue(any(x.name == name and isinstance(x.handler, class_)
+                                for x in consumer.handler_infos))
+        self.assertFalse(any(
+            isinstance(x.handler, composer.ComposerHandler) for x in consumer.handler_infos
+        ))
+
         self.assertEqual(
             info.mock_calls,
             [mock.call('Initializing Bodhi'),
@@ -85,20 +98,33 @@ class TestConsumer(base.BaseTestCase):
 
     @mock.patch('bodhi.server.consumers.ComposerHandler', None)
     @mock.patch('bodhi.server.consumers.log.exception')
-    def test_messaging_callback_composer_not_installed(self, error):
-        """Test receiving a composer.start message when the composer is not installed."""
+    def test_messaging_callback_exception(self, error):
+        """Test catching an exception when processing messages."""
         msg = Message(
-            topic="org.fedoraproject.prod.bodhi.composer.start",
+            topic="org.fedoraproject.prod.buildsys.tag",
             body={}
         )
 
-        with self.assertRaises(Nack) as exc:
-            Consumer()(msg)
+        consumer = Consumer()
 
-        msg = ('Unable to process composer.start message topics because the Composer is not '
-               f'installed: Unable to handle message: {msg}')
-        error.assert_called_once_with(msg)
-        self.assertEqual(str(exc.exception), msg)
+        with mock.patch.object(
+            consumer, 'handler_infos',
+            [HandlerInfo('.buildsys.tag', 'Automatic Update', mock.Mock())],
+        ) as handler_infos:
+            with self.assertRaises(Nack) as exc:
+                handler_infos[0].handler.side_effect = Exception("Something bad happened")
+                consumer(msg)
+
+            logmsg = (f"Something bad happened: Unable to handle message in "
+                      f"{consumer.handler_infos[-1].name} handler: {msg}")
+            error.assert_called_with(logmsg)
+
+            excmsg = (f"Unable to (fully) handle message.\nAffected handlers:\n"
+                      + "".join(f"\t{hi.name}: Something bad happened\n"
+                                for hi in consumer.handler_infos)
+                      + "Message:\n{msg}")
+
+            self.assertEqual(str(exc.exception), excmsg)
 
     @mock.patch('bodhi.server.consumers.AutomaticUpdateHandler')
     @mock.patch('bodhi.server.consumers.SignedHandler')
