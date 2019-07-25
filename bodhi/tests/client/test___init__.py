@@ -993,7 +993,14 @@ class TestQuery(unittest.TestCase):
             )
         ]
         self.assertEqual(send_request.mock_calls, calls)
-        mock_open.assert_called_with(fedora.client.openidbaseclient.b_SESSION_FILE, 'rb')
+        # Before F31 the file was opened in binary mode, and then it changed.
+        # Only check the path.
+        self.assertNotEqual(mock_open.call_count, 0)
+        first_args = [args[0][0] for args in mock_open.call_args_list]
+        self.assertIn(
+            fedora.client.openidbaseclient.b_SESSION_FILE,
+            first_args
+        )
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1128,7 +1135,14 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
             )
         ]
         self.assertEqual(send_request.mock_calls, calls)
-        mock_open.assert_called_with(fedora.client.openidbaseclient.b_SESSION_FILE, 'rb')
+        # Before F31 the file was opened in binary mode, and then it changed.
+        # Only check the path.
+        self.assertNotEqual(mock_open.call_count, 0)
+        first_args = [args[0][0] for args in mock_open.call_args_list]
+        self.assertIn(
+            fedora.client.openidbaseclient.b_SESSION_FILE,
+            first_args
+        )
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
