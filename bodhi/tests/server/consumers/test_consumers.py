@@ -21,7 +21,7 @@ from fedora_messaging.api import Message
 from fedora_messaging.exceptions import Nack
 
 from bodhi.server import config
-from bodhi.server.consumers import Consumer, signed
+from bodhi.server.consumers import Consumer, HandlerInfo, signed
 from bodhi.tests.server import base
 
 
@@ -40,7 +40,8 @@ class TestConsumer(base.BaseTestCase):
         """Test the __init__() method."""
         consumer = Consumer()
 
-        self.assertTrue(isinstance(consumer.signed_handler, signed.SignedHandler))
+        self.assertTrue(any(x.name == 'Signed' and isinstance(x.handler, signed.SignedHandler)
+                            for x in consumer.handler_infos))
         info.assert_called_once_with('Initializing Bodhi')
         initialize_db.assert_called_once_with(config.config)
         setup_buildsystem.assert_called_once_with(config.config)
@@ -49,17 +50,31 @@ class TestConsumer(base.BaseTestCase):
     @mock.patch('bodhi.server.consumers.log.exception')
     def test_messaging_callback_exception(self, error):
         """Test catching an exception when processing messages."""
-        msg = mock.Mock()
-        # Ensure msg.topic.endswith() throws an exception right away, this way we can forgo mocking
-        # out handlers or similar complications.
-        msg.topic = None
+        msg = Message(
+            topic="org.fedoraproject.prod.buildsys.tag",
+            body={}
+        )
 
-        with self.assertRaises(Nack) as exc:
-            Consumer()(msg)
+        consumer = Consumer()
 
-        msg = f"'NoneType' object has no attribute 'endswith': Unable to handle message: {msg}"
-        error.assert_called_once_with(msg)
-        self.assertEqual(str(exc.exception), msg)
+        with mock.patch.object(
+            consumer, 'handler_infos',
+            [HandlerInfo('.buildsys.tag', 'Automatic Update', mock.Mock())],
+        ) as handler_infos:
+            with self.assertRaises(Nack) as exc:
+                handler_infos[0].handler.side_effect = Exception("Something bad happened")
+                consumer(msg)
+
+            logmsg = (f"Something bad happened: Unable to handle message in "
+                      f"{consumer.handler_infos[-1].name} handler: {msg}")
+            error.assert_called_with(logmsg)
+
+            excmsg = (f"Unable to (fully) handle message.\nAffected handlers:\n"
+                      + "".join(f"\t{hi.name}: Something bad happened\n"
+                                for hi in consumer.handler_infos)
+                      + "Message:\n{msg}")
+
+            self.assertEqual(str(exc.exception), excmsg)
 
     @mock.patch('bodhi.server.consumers.AutomaticUpdateHandler')
     @mock.patch('bodhi.server.consumers.SignedHandler')
