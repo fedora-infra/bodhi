@@ -96,7 +96,14 @@ def main(argv=sys.argv):
             # not reached the karma threshold.
             if update.meets_testing_requirements:
                 print(f'{update.alias} now meets testing requirements')
-                update.comment(db, str(config.get('testing_approval_msg')), author='bodhi')
+                # Only send email notification about the update reaching
+                # testing approval on releases composed by bodhi
+                update.comment(
+                    db,
+                    str(config.get('testing_approval_msg')),
+                    author='bodhi',
+                    email_notification=update.release.composed_by_bodhi
+                )
 
                 notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
                     dict(update=update)))
