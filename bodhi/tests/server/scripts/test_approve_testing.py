@@ -24,6 +24,7 @@ import logging
 from unittest.mock import call, patch
 
 from fedora_messaging import api, testing as fml_testing
+import pytest
 
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.config import config
@@ -39,7 +40,9 @@ class TestMain(BasePyTestCase):
     """
     This class contains tests for the main() function.
     """
-    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self):
+
+    @patch('bodhi.server.models.mail')
+    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self, mail):
         """
         Ensure that an update that meets the required time in testing gets only one comment from
         Bodhi to that effect, even on subsequent runs of main().
@@ -73,6 +76,7 @@ class TestMain(BasePyTestCase):
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         assert comment_q.count() == 1
         assert comment_q[0].text == config.get('testing_approval_msg')
+        assert mail.send.call_count == 1
 
     # Set the release's mandatory days in testing to 0 to set up the condition for this test.
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
@@ -132,12 +136,14 @@ class TestMain(BasePyTestCase):
     @patch('bodhi.server.scripts.approve_testing.Session.remove')
     @patch('bodhi.server.scripts.approve_testing.sys.exit')
     @patch('sys.stdout', new_callable=StringIO)
-    def test_exception_handler(self, stdout, exit, remove, comment):
+    @pytest.mark.parametrize('composed_by_bodhi', (True, False))
+    def test_exception_handler(self, stdout, exit, remove, comment, composed_by_bodhi):
         """The Exception handler prints the Exception, rolls back and closes the db, and exits."""
         update = self.db.query(models.Update).all()[0]
         update.date_testing = datetime.utcnow() - timedelta(days=15)
         update.request = None
         update.status = models.UpdateStatus.testing
+        update.release.composed_by_bodhi = composed_by_bodhi
         self.db.flush()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -153,7 +159,9 @@ class TestMain(BasePyTestCase):
         comment.assert_called_once_with(
             self.db,
             ('This update can be pushed to stable now if the maintainer wishes'),
-            author='bodhi')
+            author='bodhi',
+            email_notification=composed_by_bodhi,
+        )
         assert stdout.getvalue() == f'{update.alias} now meets testing requirements' \
             '\nThe DB died lol\n'
         remove.assert_called_once_with()
@@ -162,7 +170,9 @@ class TestMain(BasePyTestCase):
     @patch('bodhi.server.scripts.approve_testing.Session.remove')
     @patch('bodhi.server.scripts.approve_testing.sys.exit')
     @patch('sys.stdout', new_callable=StringIO)
-    def test_exception_handler_on_the_second_update(self, stdout, exit, remove, comment):
+    @pytest.mark.parametrize('composed_by_bodhi', (True, False))
+    def test_exception_handler_on_the_second_update(
+            self, stdout, exit, remove, comment, composed_by_bodhi):
         """
         Ensure, that when the Exception is raised, all previous transactions are commited,
         the Exception handler prints the Exception, rolls back and closes the db, and exits.
@@ -171,6 +181,7 @@ class TestMain(BasePyTestCase):
         update.autotime = False
         update.date_testing = datetime.utcnow() - timedelta(days=15)
         update.request = None
+        update.release.composed_by_bodhi = composed_by_bodhi
         update.status = models.UpdateStatus.testing
 
         update2 = self.create_update(['bodhi2-2.0-1.fc17'])
@@ -193,11 +204,13 @@ class TestMain(BasePyTestCase):
         comment_expected_call = call(
             self.db,
             ('This update can be pushed to stable now if the maintainer wishes'),
-            author='bodhi',)
+            author='bodhi',
+            email_notification=composed_by_bodhi,
+        )
         assert comment.call_args_list == [comment_expected_call, comment_expected_call]
         assert stdout.getvalue() == \
-                         (f'{update2.alias} now meets testing requirements\n'
-                          f'{update.alias} now meets testing requirements\nThe DB died lol\n')
+            (f'{update2.alias} now meets testing requirements\n'
+             f'{update.alias} now meets testing requirements\nThe DB died lol\n')
         remove.assert_called_once_with()
 
     def test_non_autokarma_critpath_update_meeting_karma_requirements_gets_one_comment(self):
@@ -640,8 +653,9 @@ class TestMain(BasePyTestCase):
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch('bodhi.server.models.Update.add_tag')
     @patch('bodhi.server.models.Update.remove_tag')
+    @patch('bodhi.server.models.mail')
     def test_autotime_update_zero_day_in_testing_no_gated_gets_pushed_to_rawhide(
-            self, remove_tag, add_tag):
+            self, mail, remove_tag, add_tag):
         """
         Ensure that an autotime update with 0 mandatory_days_in_testing that meets
         the test requirements gets pushed to stable in rawhide.
@@ -673,6 +687,7 @@ class TestMain(BasePyTestCase):
 
         assert add_tag.call_args_list == \
             [call('f17-updates-pending'), call('f17-updates')]
+        assert mail.send.call_count == 1
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch.dict(config, [('test_gating.required', True)])
