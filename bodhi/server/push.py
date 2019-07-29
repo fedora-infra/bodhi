@@ -21,13 +21,12 @@ import sys
 from sqlalchemy.sql import or_
 import click
 
-from bodhi.messages.schemas import composer as composer_schemas
 from bodhi.server import (buildsys, initialize_db, get_koji)
 from bodhi.server.config import config
 from bodhi.server.models import (Compose, ComposeState, Release, ReleaseState, Build, Update,
                                  UpdateRequest)
 from bodhi.server.util import transactional_session_maker
-import bodhi.server.notifications
+from bodhi.server.tasks import compose as compose_task
 
 
 _koji = None
@@ -93,6 +92,7 @@ def push(username, yes, **kwargs):
 
     initialize_db(config)
     db_factory = transactional_session_maker()
+
     composes = []
     with db_factory() as session:
         if not resume and session.query(Compose).count():
@@ -198,10 +198,8 @@ def push(username, yes, **kwargs):
         composes = [c.__json__(composer=True) for c in composes]
 
     if composes:
-        click.echo('\nSending composer.start message')
-        bodhi.server.notifications.publish(composer_schemas.ComposerStartV1.from_dict(dict(
-            api_version=2, composes=composes, resume=resume, agent=username)),
-            force=True)
+        click.echo('\nRequesting a compose')
+        compose_task.delay(api_version=2, composes=composes, resume=resume, agent=username)
 
 
 def _filter_releases(session, query, releases=None):

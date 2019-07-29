@@ -1631,6 +1631,7 @@ class TestUpdateInit(BaseTestCase):
         self.assertEqual(str(exc.exception), 'You must specify a Release when creating an Update.')
 
 
+@mock.patch("bodhi.server.models.handle_update", mock.Mock())
 class TestUpdateEdit(BaseTestCase):
     """Tests for the Update.edit() method."""
 
@@ -2117,12 +2118,13 @@ class TestUpdateMeetsTestingRequirements(BaseTestCase):
         update = model.Update.query.first()
         update.critpath = True
         update.stable_karma = 1
-        update.comment(self.db, 'testing', author='enemy', karma=-1)
-        update.comment(self.db, 'testing', author='bro', karma=1)
-        # Despite meeting the stable_karma, the function should still not mark this as meeting
-        # testing requirements because critpath packages have a higher requirement for minimum
-        # karma. So let's get it a second one.
-        update.comment(self.db, 'testing', author='ham', karma=1)
+        with mock.patch('bodhi.server.models.handle_update'):
+            update.comment(self.db, 'testing', author='enemy', karma=-1)
+            update.comment(self.db, 'testing', author='bro', karma=1)
+            # Despite meeting the stable_karma, the function should still not mark this as meeting
+            # testing requirements because critpath packages have a higher requirement for minimum
+            # karma. So let's get it a second one.
+            update.comment(self.db, 'testing', author='ham', karma=1)
 
         self.assertEqual(update.meets_testing_requirements, True)
 
@@ -2296,6 +2298,7 @@ class TestUpdateMeetsTestingRequirements(BaseTestCase):
         self.assertEqual(update.meets_testing_requirements, False)
 
 
+@mock.patch("bodhi.server.models.handle_update", mock.Mock())
 class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
     klass = model.Update

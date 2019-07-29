@@ -1,0 +1,88 @@
+# PRODUCT INFO
+release_name = '[[ release.id_prefix.title() ]]'
+release_short = '[[ release.id_prefix.title() ]]'
+release_version = '[[ release.version ]]'
+release_type = 'updates[% if request.name == 'testing' %]-testing[% endif %]'
+release_is_layered = False
+
+# GENERAL SETTINGS
+bootable = False
+
+variants_file='module-variants.xml'
+sigkeys = [
+[% if release.version_int == 28 %]
+	'9db62fb1',
+[% elif release.version_int == 29 %]
+	'429476b4',
+[% elif release.version_int == 30 %]
+	'cfc659b9',
+[% endif %]
+{% if env == "staging" %}
+	None
+{% endif %}
+]
+
+module_defaults_dir = {
+    'scm': 'git',
+    'repo': 'https://pagure.io/releng/fedora-module-defaults.git',
+    'branch': 'f[[ release.version_int ]]',
+    'dir': '.'
+}
+
+hashed_directories = True
+
+# RUNROOT settings
+runroot = False
+
+# PDC settings
+pdc_url = 'https://pdc{{ env_suffix }}.fedoraproject.org/rest_api/v1'
+pdc_insecure = False
+pdc_develop = True
+
+# PKGSET
+pkgset_source = 'koji' # koji, repos
+
+# PKGSET - KOJI
+# pkgset_koji_tag is not used by the modular compose, but Pungi needs this
+# option to appear in a config, otherwise it fails. Once this is fixed, we can
+# remove this option completely.
+pkgset_koji_tag = 'not-used'
+pkgset_koji_inherit = False
+
+filter_system_release_packages = False
+
+# GATHER
+gather_method = 'nodeps'
+gather_profiler = True
+check_deps = False
+greedy_method = 'build'
+
+# CREATEREPO
+createrepo_c = True
+createrepo_checksum = 'sha256'
+createrepo_deltas = False
+[% if release.version_int >= 30 %]
+createrepo_extra_args = ['--zck', '--zck-dict-dir=/usr/share/fedora-repo-zdicts/f[[ release.version_int ]]']
+[% endif %]
+
+#jigdo
+create_jigdo = False
+
+skip_phases= ["live_media", "ostree"]
+
+
+translate_paths = [
+   ('/mnt/koji/compose/', 'http://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/'),
+]
+
+createiso_skip = [
+        ('^Everything$', {
+            '*': True,
+            'src': True
+        }),
+        ('^Server$', {
+            '*': True,
+            'src': True
+        }),
+]
+koji_profile = 'bodhi_koji'
