@@ -2972,7 +2972,8 @@ class Update(Base):
         return
 
     def comment(self, session, text, karma=0, author=None, karma_critpath=0,
-                bug_feedback=None, testcase_feedback=None, check_karma=True):
+                bug_feedback=None, testcase_feedback=None, check_karma=True,
+                email_notification=True):
         """Add a comment to this update.
 
         If the karma reaches the 'stable_karma' value, then request that this update be marked
@@ -3084,7 +3085,8 @@ class Update(Base):
                 people.add(comment.user.email)
             else:
                 people.add(comment.user.name)
-        mail.send(people, 'comment', self, sender=None, agent=author)
+        if email_notification:
+            mail.send(people, 'comment', self, sender=None, agent=author)
         return comment, caveats
 
     def unpush(self, db):
@@ -3612,6 +3614,9 @@ class Update(Base):
         """
         Place comment on the update when ``test_gating_status`` changes.
 
+        Only notify the users by email if the new status is in ``failed`` or
+        ``greenwave_failed``.
+
         Args:
             target (Update): The compose that has had a change to its state attribute.
             value (EnumSymbol): The new value of the test_gating_status.
@@ -3620,10 +3625,15 @@ class Update(Base):
                 transition.
         """
         if value != old:
+            notify = value in [
+                TestGatingStatus.greenwave_failed,
+                TestGatingStatus.failed,
+            ]
             target.comment(
                 Session(),
                 f"This update's test gating status has been changed to '{value}'.",
                 author="bodhi",
+                email_notification=notify,
             )
 
 
