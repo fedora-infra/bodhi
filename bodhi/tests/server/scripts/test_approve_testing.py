@@ -39,7 +39,9 @@ class TestMain(BaseTestCase):
     """
     This class contains tests for the main() function.
     """
-    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self):
+
+    @patch('bodhi.server.models.mail')
+    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self, mail):
         """
         Ensure that an update that meets the required time in testing gets only one comment from
         Bodhi to that effect, even on subsequent runs of main().
@@ -73,6 +75,7 @@ class TestMain(BaseTestCase):
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         self.assertEqual(comment_q.count(), 1)
         self.assertEqual(comment_q[0].text, config.get('testing_approval_msg'))
+        self.assertEqual(mail.send.call_count, 1)
 
     # Set the release's mandatory days in testing to 0 to set up the condition for this test.
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
@@ -153,7 +156,42 @@ class TestMain(BaseTestCase):
         comment.assert_called_once_with(
             self.db,
             ('This update can be pushed to stable now if the maintainer wishes'),
-            author='bodhi')
+            author='bodhi',
+            email_notification=True,
+        )
+        self.assertEqual(stdout.getvalue(),
+                         f'{update.alias} now meets testing requirements\nThe DB died lol\n')
+        remove.assert_called_once_with()
+
+    @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
+    @patch('bodhi.server.scripts.approve_testing.Session.remove')
+    @patch('bodhi.server.scripts.approve_testing.sys.exit')
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_exception_handler_no_email(self, stdout, exit, remove, comment):
+        """The Exception handler prints the Exception, rolls back and closes the db, and exits."""
+        update = self.db.query(models.Update).all()[0]
+        update.date_testing = datetime.utcnow() - timedelta(days=15)
+        update.request = None
+        update.status = models.UpdateStatus.testing
+        update.release.composed_by_bodhi = False
+        self.db.flush()
+
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                with patch.object(self.db, 'commit'):
+                    with patch.object(self.db, 'rollback'):
+                        approve_testing.main(['nosetests', 'some_config.ini'])
+
+                        self.assertEqual(self.db.commit.call_count, 0)
+                        self.db.rollback.assert_called_once_with()
+
+        exit.assert_called_once_with(1)
+        comment.assert_called_once_with(
+            self.db,
+            ('This update can be pushed to stable now if the maintainer wishes'),
+            author='bodhi',
+            email_notification=False,
+        )
         self.assertEqual(stdout.getvalue(),
                          f'{update.alias} now meets testing requirements\nThe DB died lol\n')
         remove.assert_called_once_with()
@@ -193,7 +231,9 @@ class TestMain(BaseTestCase):
         comment_expected_call = call(
             self.db,
             ('This update can be pushed to stable now if the maintainer wishes'),
-            author='bodhi',)
+            author='bodhi',
+            email_notification=True,
+        )
         self.assertEqual(comment.call_args_list, [comment_expected_call, comment_expected_call])
         self.assertEqual(stdout.getvalue(),
                          (f'{update2.alias} now meets testing requirements\n'
@@ -641,8 +681,9 @@ class TestMain(BaseTestCase):
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch('bodhi.server.models.Update.add_tag')
     @patch('bodhi.server.models.Update.remove_tag')
+    @patch('bodhi.server.models.mail')
     def test_autotime_update_zero_day_in_testing_no_gated_gets_pushed_to_rawhide(
-            self, remove_tag, add_tag):
+            self, mail, remove_tag, add_tag):
         """
         Ensure that an autotime update with 0 mandatory_days_in_testing that meets
         the test requirements gets pushed to stable in rawhide.
@@ -677,6 +718,7 @@ class TestMain(BaseTestCase):
             add_tag.call_args_list,
             [call('f17-updates-pending'), call('f17-updates')]
         )
+        self.assertEqual(mail.send.call_count, 1)
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch.dict(config, [('test_gating.required', True)])
