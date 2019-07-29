@@ -152,7 +152,6 @@ def get_update_counts(releaseid):
         stable_security_total
 
     Args:
-        request (pyramid.request.Request): The current request
         releaseid (str): The id of the Release object you would like the counts performed on
     Returns:
         dict: A dictionary expressing the counts, as described above.
