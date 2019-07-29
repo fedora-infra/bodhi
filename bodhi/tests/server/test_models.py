@@ -4146,7 +4146,8 @@ class TestUpdate(ModelTest):
         expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(update.comments[-1].text, expected_comment)
 
-    def test_comment_on_test_gating_status_change(self):
+    @mock.patch('bodhi.server.models.mail')
+    def test_comment_on_test_gating_status_change(self, mail):
         """Assert that Bodhi will leave comment only when test_gating_status changes."""
         # Let's make sure that update has no comments.
         self.assertEqual(len(self.obj.comments), 0)
@@ -4163,6 +4164,37 @@ class TestUpdate(ModelTest):
 
         # We should have still only one comment about test_gating_status change.
         self.assertEqual(len(self.obj.comments), 1)
+
+        # Check that no email were sent:
+        self.assertEqual(mail.send.call_count, 0)
+
+    @mock.patch('bodhi.server.models.mail')
+    def test_comment_on_test_gating_status_change_email(self, mail):
+        """Assert that Bodhi will leave comment only when test_gating_status changes."""
+        # Let's make sure that update has no comments.
+        self.assertEqual(len(self.obj.comments), 0)
+
+        # Check that no email were sent:
+        self.assertEqual(mail.send.call_count, 0)
+
+        self.obj.test_gating_status = TestGatingStatus.failed
+
+        # Check that one email was sent:
+        self.assertEqual(mail.send.call_count, 1)
+
+        # Check for the comment about test_gating_status change
+        expected_comment = "This update's test gating status has been changed to 'failed'."
+        self.assertEqual(self.obj.comments[0].text, expected_comment)
+        self.assertEqual(len(self.obj.comments), 1)
+
+        # Let's set test_gating_status to 'waiting' once again.
+        self.obj.test_gating_status = TestGatingStatus.waiting
+
+        # Check that still only one email was sent:
+        self.assertEqual(mail.send.call_count, 1)
+
+        # We should have still only one comment about test_gating_status change.
+        self.assertEqual(len(self.obj.comments), 2)
 
 
 class TestUser(ModelTest):
