@@ -342,12 +342,6 @@ class BodhiConfig(dict):
         'exclude_mail': {
             'value': ['autoqa', 'taskotron'],
             'validator': _generate_list_validator()},
-        'fedmenu.data_url': {
-            'value': 'https://apps.fedoraproject.org/js/data.js',
-            'validator': str},
-        'fedmenu.url': {
-            'value': 'https://apps.fedoraproject.org/fedmenu',
-            'validator': str},
         'file_url': {
             'value': 'https://download.fedoraproject.org/pub/fedora/linux/updates',
             'validator': str},
