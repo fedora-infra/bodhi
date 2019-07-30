@@ -2,6 +2,47 @@
 Release notes
 =============
 
+v4.2.0
+------
+
+This is a feature release that adds FIXME
+
+.. Server upgrade instructions
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   
+   This release contains database migrations. To apply them, run::
+   
+       $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* FIXME (:issue:`XXXX`).
+
+
+Bug fixes
+^^^^^^^^^
+
+* FIXME (:issue:`XXXX`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* FIXME
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 4.2.0:
+
+.. Use "git log 4.1.0.. --pretty=format:%an | sort -u"
+
+* FIXME
+
+
 v4.1.0
 ------
 
