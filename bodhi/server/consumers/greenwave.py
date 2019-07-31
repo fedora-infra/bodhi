@@ -56,6 +56,11 @@ class GreenwaveHandler:
             log.debug("Couldn't find subject_identifier in Greenwave message")
             return
 
+        subject_type = msg.get("subject_type")
+        if subject_type == "compose":
+            log.debug("Not requesting a decision for a compose")
+            return
+
         with self.db_factory():
 
             build = Build.get(subject_identifier)
