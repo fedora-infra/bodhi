@@ -34,7 +34,7 @@ class TestGreenwaveHandler(BaseTestCase):
         super().setUp()
         self.sample_message = Message(
             topic="org.fedoraproject.prod.greenwave.decision.update",
-            body={"subject_identifier": "bodhi-2.0-1.fc17"},
+            body={"subject_identifier": "bodhi-2.0-1.fc17", "subject_type": "koji_build"},
         )
         self.handler = greenwave.GreenwaveHandler()
 
@@ -94,3 +94,12 @@ class TestGreenwaveHandler(BaseTestCase):
         self.handler(self.sample_message)
         self.assertEqual(mock_log.debug.call_count, 1)
         mock_log.debug.assert_called_with("Couldn't find build notapackage-2.0-1.fc17 in DB")
+
+    @mock.patch('bodhi.server.consumers.greenwave.log')
+    def test_greenwave_compose_subject_type(self, mock_log):
+        """ Assert that the consumer ignores messages with subject_type equal to compose """
+
+        self.sample_message.body["subject_type"] = "compose"
+        self.handler(self.sample_message)
+        self.assertEqual(mock_log.debug.call_count, 1)
+        mock_log.debug.assert_called_with("Not requesting a decision for a compose")
