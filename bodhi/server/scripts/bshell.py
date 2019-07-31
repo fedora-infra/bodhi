@@ -38,5 +38,5 @@ def get_bodhi_shell():
     if configfile is not None:
         call(['pshell-3', configfile])
     else:
-        click.echo("Config file not found!")
+        click.echo("Config file not found!", err=True)
         sys.exit(1)
