@@ -89,6 +89,41 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         assert not any(r.levelno >= logging.WARNING for r in caplog.records)
 
+    def test_consume_with_orphan_build(self, caplog):
+        """
+        Assert existing builds without an update can be handled.
+
+        Such builds can exist e.g. if they're used in a buildroot override.
+        """
+        caplog.set_level(logging.DEBUG)
+
+        # Run the handler to create the build & update, then remove the update.
+        self.handler(self.sample_message)
+        build = self.db.query(Build).filter_by(nvr=self.sample_nvr).one()
+        update = build.update
+        build.update = None  # satisfy foreign key constraint
+        self.db.delete(update)
+
+        # Now test with the same message again which should encounter the
+        # build already existing in the database.
+        self.handler(self.sample_message)
+
+        # check if the update exists...
+        update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+
+        # ...and some of its properties
+        assert update is not None
+        assert update.type == UpdateType.unspecified
+        assert update.status == UpdateStatus.testing
+        assert update.test_gating_status is None
+
+        expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
+        assert update.user and update.user.name == expected_username
+
+        assert not any(r.levelno >= logging.WARNING for r in caplog.records)
+
     @mock.patch.dict(config, [('test_gating.required', True),
                               ('greenwave_api_url', 'http://domain.local')])
     @pytest.mark.parametrize('gated', (True, False, 'error'))
