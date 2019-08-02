@@ -64,7 +64,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.db_factory = base.TransactionalSessionMaker(self.Session)
         self.handler = AutomaticUpdateHandler(self.db_factory)
 
-    # Test the main code path.
+    # Test the main code paths.
+
     def test_consume(self, caplog):
         """Assert that messages about tagged builds create an update."""
         caplog.set_level(logging.DEBUG)
@@ -158,122 +159,6 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             assert log_record.message == "Boo!"
         else:
             assert not any(r.levelno >= logging.WARNING for r in caplog.records)
-
-    # The following tests cover lesser-travelled code paths.
-
-    @mock.patch('bodhi.server.consumers.automatic_updates.transactional_session_maker')
-    def test___init___without_db_factory(self, transactional_session_maker):
-        """__init__() should create db_factory if missing."""
-        handler = AutomaticUpdateHandler()
-
-        assert handler.db_factory is transactional_session_maker.return_value
-        transactional_session_maker.assert_called_once_with()
-
-    # Test robustness: malformed messages, unknown koji builds, incomplete
-    # buildinfo, release missing from the DB
-
-    @pytest.mark.parametrize('missing_elem', ('tag', 'build_id', 'name', 'version', 'release'))
-    def test_missing_mandatory_elems(self, missing_elem, caplog):
-        """Test tag message without mandatory elements."""
-        caplog.set_level(logging.DEBUG)
-        msg = deepcopy(self.sample_message)
-        del msg.body[missing_elem]
-        self.handler(msg)
-        assert any(r.levelno == logging.DEBUG
-                   and r.getMessage() == f"Received incomplete tag message. Missing: {missing_elem}"
-                   for r in caplog.records)
-
-    def test_unknown_koji_build(self, caplog):
-        """Test tag message about unknown koji build."""
-        caplog.set_level(logging.DEBUG)
-        msg = deepcopy(self.sample_message)
-        msg.body['release'] += '.youdontknowme'
-        self.handler(msg)
-        assert any(r.levelno == logging.DEBUG
-                   and r.getMessage().startswith("Can't find Koji build for ")
-                   for r in caplog.records)
-
-    def test_incomplete_koji_buildinfo_nvr(self, caplog):
-        """Test koji returning incomplete buildinfo: no nvr."""
-        caplog.set_level(logging.DEBUG)
-        msg = deepcopy(self.sample_message)
-        msg.body['release'] += '.testmissingnvr'
-        self.handler(msg)
-        assert any(r.levelno == logging.DEBUG
-                   and r.getMessage().startswith("Koji build info for ")
-                   and r.getMessage().endswith(" doesn't contain 'nvr'.")
-                   for r in caplog.records)
-
-    def test_incomplete_koji_buildinfo_owner(self, caplog):
-        """Test koji returning incomplete buildinfo: no owner."""
-        caplog.set_level(logging.DEBUG)
-        msg = deepcopy(self.sample_message)
-        msg.body['release'] += '.noowner'
-        self.handler(msg)
-        assert any(r.levelno == logging.DEBUG
-                   and r.getMessage().startswith("Koji build info for ")
-                   and r.getMessage().endswith(" doesn't contain 'owner_name'.")
-                   for r in caplog.records)
-
-    def test_missing_user(self, caplog):
-        """Test Koji build user missing from DB."""
-        caplog.set_level(logging.DEBUG)
-
-        expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
-
-        # ensure user with expected name doesn't exist
-        self.db.query(User).filter_by(name=expected_username).delete()
-        self.db.flush()
-
-        self.handler(self.sample_message)
-
-        assert(f"Creating bodhi user for '{expected_username}'."
-               in caplog.messages)
-
-    def test_existing_user(self, caplog):
-        """Test Koji build user existing in DB."""
-        caplog.set_level(logging.DEBUG)
-
-        expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
-
-        # ensure user with expected name exists
-        user = self.db.query(User).filter_by(name=expected_username).first()
-        if not user:
-            user = User(name=expected_username)
-            self.db.add(user)
-        self.db.flush()
-
-        self.handler(self.sample_message)
-
-        assert(f"Creating bodhi user for '{expected_username}'."
-               not in caplog.messages)
-
-    # Test messages that should be ignored.
-
-    def test_ignored_tag(self, caplog):
-        """Test messages re: tags not configured for automatic updates."""
-        caplog.set_level(logging.DEBUG)
-
-        msg = deepcopy(self.sample_message)
-        bogus_tag = 'thisisntthetagyourelookingfor'
-        msg.body['tag'] = bogus_tag
-        self.handler(msg)
-
-        assert any(x.startswith(f"Ignoring build being tagged into '{bogus_tag}'")
-                   for x in caplog.messages)
-
-    def test_duplicate_message(self, caplog):
-        """Assert that duplicate messages ignore existing build/update."""
-        caplog.set_level(logging.DEBUG)
-
-        self.handler(self.sample_message)
-
-        caplog.clear()
-
-        self.handler(self.sample_message)
-
-        assert (f"Build, active update for {self.sample_nvr} exists already, skipping."
-                in caplog.messages)
 
     def test_existing_pending_update(self, caplog):
         """
@@ -391,3 +276,119 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         ]
 
         assert (expected_comments == [c.text for c in update.comments])
+
+    # The following tests cover lesser-travelled code paths.
+
+    @mock.patch('bodhi.server.consumers.automatic_updates.transactional_session_maker')
+    def test___init___without_db_factory(self, transactional_session_maker):
+        """__init__() should create db_factory if missing."""
+        handler = AutomaticUpdateHandler()
+
+        assert handler.db_factory is transactional_session_maker.return_value
+        transactional_session_maker.assert_called_once_with()
+
+    # Test robustness: malformed messages, unknown koji builds, incomplete
+    # buildinfo, release missing from the DB
+
+    @pytest.mark.parametrize('missing_elem', ('tag', 'build_id', 'name', 'version', 'release'))
+    def test_missing_mandatory_elems(self, missing_elem, caplog):
+        """Test tag message without mandatory elements."""
+        caplog.set_level(logging.DEBUG)
+        msg = deepcopy(self.sample_message)
+        del msg.body[missing_elem]
+        self.handler(msg)
+        assert any(r.levelno == logging.DEBUG
+                   and r.getMessage() == f"Received incomplete tag message. Missing: {missing_elem}"
+                   for r in caplog.records)
+
+    def test_unknown_koji_build(self, caplog):
+        """Test tag message about unknown koji build."""
+        caplog.set_level(logging.DEBUG)
+        msg = deepcopy(self.sample_message)
+        msg.body['release'] += '.youdontknowme'
+        self.handler(msg)
+        assert any(r.levelno == logging.DEBUG
+                   and r.getMessage().startswith("Can't find Koji build for ")
+                   for r in caplog.records)
+
+    def test_incomplete_koji_buildinfo_nvr(self, caplog):
+        """Test koji returning incomplete buildinfo: no nvr."""
+        caplog.set_level(logging.DEBUG)
+        msg = deepcopy(self.sample_message)
+        msg.body['release'] += '.testmissingnvr'
+        self.handler(msg)
+        assert any(r.levelno == logging.DEBUG
+                   and r.getMessage().startswith("Koji build info for ")
+                   and r.getMessage().endswith(" doesn't contain 'nvr'.")
+                   for r in caplog.records)
+
+    def test_incomplete_koji_buildinfo_owner(self, caplog):
+        """Test koji returning incomplete buildinfo: no owner."""
+        caplog.set_level(logging.DEBUG)
+        msg = deepcopy(self.sample_message)
+        msg.body['release'] += '.noowner'
+        self.handler(msg)
+        assert any(r.levelno == logging.DEBUG
+                   and r.getMessage().startswith("Koji build info for ")
+                   and r.getMessage().endswith(" doesn't contain 'owner_name'.")
+                   for r in caplog.records)
+
+    def test_missing_user(self, caplog):
+        """Test Koji build user missing from DB."""
+        caplog.set_level(logging.DEBUG)
+
+        expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
+
+        # ensure user with expected name doesn't exist
+        self.db.query(User).filter_by(name=expected_username).delete()
+        self.db.flush()
+
+        self.handler(self.sample_message)
+
+        assert(f"Creating bodhi user for '{expected_username}'."
+               in caplog.messages)
+
+    def test_existing_user(self, caplog):
+        """Test Koji build user existing in DB."""
+        caplog.set_level(logging.DEBUG)
+
+        expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
+
+        # ensure user with expected name exists
+        user = self.db.query(User).filter_by(name=expected_username).first()
+        if not user:
+            user = User(name=expected_username)
+            self.db.add(user)
+        self.db.flush()
+
+        self.handler(self.sample_message)
+
+        assert(f"Creating bodhi user for '{expected_username}'."
+               not in caplog.messages)
+
+    # Test messages that should be ignored.
+
+    def test_ignored_tag(self, caplog):
+        """Test messages re: tags not configured for automatic updates."""
+        caplog.set_level(logging.DEBUG)
+
+        msg = deepcopy(self.sample_message)
+        bogus_tag = 'thisisntthetagyourelookingfor'
+        msg.body['tag'] = bogus_tag
+        self.handler(msg)
+
+        assert any(x.startswith(f"Ignoring build being tagged into '{bogus_tag}'")
+                   for x in caplog.messages)
+
+    def test_duplicate_message(self, caplog):
+        """Assert that duplicate messages ignore existing build/update."""
+        caplog.set_level(logging.DEBUG)
+
+        self.handler(self.sample_message)
+
+        caplog.clear()
+
+        self.handler(self.sample_message)
+
+        assert (f"Build, active update for {self.sample_nvr} exists already, skipping."
+                in caplog.messages)
