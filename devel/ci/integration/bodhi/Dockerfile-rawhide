@@ -27,7 +27,6 @@ RUN dnf install -y \
 # Create bodhi user
 RUN groupadd -r bodhi && \
     useradd  -r -s /sbin/nologin -d /home/bodhi/ -m -c 'Bodhi Server' -g bodhi bodhi
-
 # Install it
 RUN python3 setup.py build && pip3 install .
 
