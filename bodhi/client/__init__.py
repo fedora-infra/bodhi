@@ -134,6 +134,9 @@ new_edit_options = [
                  type=click.Choice(['logout', 'reboot'])),
     click.option('--display-name',
                  help='The name of the update'),
+    click.option('--from-tag', help='Use builds from a Koji tag instead of specifying '
+                                    'them individually.',
+                 is_flag=True),
     staging_option]
 
 
@@ -395,7 +398,7 @@ def require_severity_for_security_update(type: str, severity: str):
 @click.option('--type', default='bugfix', help='Update type', required=True,
               type=click.Choice(['security', 'bugfix', 'enhancement', 'newpackage']))
 @add_options(new_edit_options)
-@click.argument('builds')
+@click.argument('builds_or_tag')
 @click.option('--file', help='A text file containing all the update details')
 @handle_errors
 @openid_option
@@ -419,9 +422,19 @@ def new(user: str, password: str, url: str, debug: bool, openid_api: str, **kwar
         openid_api: A URL for an OpenID API to use to authenticate to Bodhi.
         kwargs: Other keyword arguments passed to us by click.
     """
-
     client = bindings.BodhiClient(base_url=url, username=user, password=password,
                                   staging=kwargs['staging'], openid_api=openid_api)
+
+    # Because bodhi.server.services.updates expects from_tag to be string
+    # copy builds to from_tag and remove builds
+    if kwargs['from_tag']:
+        if len(kwargs['builds_or_tag'].split(' ')) > 1:
+            click.echo("ERROR: Can't specify more than one tag.", err=True)
+            sys.exit(1)
+        kwargs['from_tag'] = kwargs.pop('builds_or_tag')
+    else:
+        kwargs['builds'] = kwargs.pop('builds_or_tag')
+        del kwargs['from_tag']
 
     if kwargs['file'] is None:
         updates = [kwargs]
@@ -432,7 +445,7 @@ def new(user: str, password: str, url: str, debug: bool, openid_api: str, **kwar
     kwargs['notes'] = _get_notes(**kwargs)
 
     if not kwargs['notes'] and not kwargs['file']:
-        click.echo("ERROR: must specify at least one of --file, --notes, or --notes-file")
+        click.echo("ERROR: must specify at least one of --file, --notes, or --notes-file", err=True)
         sys.exit(1)
 
     for update in updates:
@@ -517,13 +530,32 @@ def edit(user: str, password: str, url: str, debug: bool, openid_api: str, **kwa
 
         kwargs['builds'] = [b['nvr'] for b in former_update['builds']]
         kwargs['edited'] = former_update['alias']
-        if kwargs['addbuilds']:
-            for build in kwargs['addbuilds'].split(','):
-                if build not in kwargs['builds']:
-                    kwargs['builds'].append(build)
-        if kwargs['removebuilds']:
-            for build in kwargs['removebuilds'].split(','):
-                kwargs['builds'].remove(build)
+        # Because bodhi.server.services.updates expects from_tag to be string
+        # copy builds to from_tag and remove builds
+        if kwargs['from_tag']:
+            if not former_update.get('from_tag', None):
+                click.echo(
+                    "ERROR: This update was not created from a tag."
+                    " Please remove --from_tag and try again.", err=True
+                )
+                sys.exit(1)
+            if kwargs['addbuilds'] or kwargs['removebuilds']:
+                click.echo(
+                    "ERROR: The --from-tag option can't be used together with"
+                    " --addbuilds or --removebuilds.", err=True
+                )
+                sys.exit(1)
+            kwargs['from_tag'] = former_update['from_tag']
+            del kwargs['builds']
+        else:
+            kwargs.pop('from_tag')
+            if kwargs['addbuilds']:
+                for build in kwargs['addbuilds'].split(','):
+                    if build not in kwargs['builds']:
+                        kwargs['builds'].append(build)
+            if kwargs['removebuilds']:
+                for build in kwargs['removebuilds'].split(','):
+                    kwargs['builds'].remove(build)
         del kwargs['addbuilds']
         del kwargs['removebuilds']
 

@@ -35,10 +35,8 @@ gets received here and triggers us to do all that network-laden heavy lifting.
 
 import logging
 import time
-import typing
 
 from bodhi.server import util, bugs as bug_module
-from bodhi.messages.schemas.update import UpdateEditV1, UpdateRequestTestingV1
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
 from bodhi.server.models import Bug, Update, UpdateType
@@ -47,11 +45,11 @@ from bodhi.server.models import Bug, Update, UpdateType
 log = logging.getLogger('bodhi')
 
 
-class UpdatesHandler(object):
+class UpdatesHandler:
     """
     Perform background tasks when updates are created or edited.
 
-    This fedora-messaging listener waits for messages from the frontend about new or edited updates,
+    This Celery task is run when an update is created or editied in the frontend,
     and performs background tasks such as modifying Bugzilla issues (and loading information from
     Bugzilla so we can display it to the user) and looking up wiki test cases.
 
@@ -69,7 +67,7 @@ class UpdatesHandler(object):
         if not self.handle_bugs:
             log.warning("No bodhi_email defined; not fetching bug details")
 
-    def __call__(self, message: typing.Union[UpdateEditV1, UpdateRequestTestingV1]):
+    def run(self, api_version: int, data: dict):
         """
         Process the given message, updating relevant bugs and test cases.
 
@@ -78,12 +76,13 @@ class UpdatesHandler(object):
         bad happens.
 
         Args:
-            message: A message about a new or edited update.
+            api_version: API version number.
+            data: Information about a new or edited update.
         """
-        topic = message.topic
-        alias = message.update.alias
+        action = data["action"]
+        alias = data['update'].get('alias')
 
-        log.info("Updates Handler handling  %s, %s" % (alias, topic))
+        log.info("Updates Handler handling  %s, %s" % (alias, action))
 
         # Go to sleep for a second to try and avoid a race condition
         # https://github.com/fedora-infra/bodhi/issues/458
@@ -95,8 +94,8 @@ class UpdatesHandler(object):
                 raise BodhiException("Couldn't find alias '%s' in DB" % alias)
 
             bugs = []
-            if isinstance(message, UpdateEditV1):
-                for idx in message.new_bugs:
+            if action == "edit":
+                for idx in data['new_bugs']:
                     bug = Bug.get(idx)
 
                     # Sanity check
@@ -109,7 +108,7 @@ class UpdatesHandler(object):
 
                     bugs.append(bug)
 
-            elif isinstance(message, UpdateRequestTestingV1):
+            elif action == "testing":
                 bugs = update.bugs
             else:
                 raise NotImplementedError("Should never get here.")
@@ -122,7 +121,7 @@ class UpdatesHandler(object):
                 update = Update.get(alias)
                 update.update_test_gating_status()
 
-        log.info("Updates Handler done with %s, %s" % (alias, topic))
+        log.info("Updates Handler done with %s, %s" % (alias, action))
 
     def fetch_test_cases(self, session, update):
         """

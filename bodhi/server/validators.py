@@ -535,34 +535,23 @@ def validate_build_uniqueness(request, **kwargs):
     builds = request.validated.get('builds', [])
     if not builds:  # validate_build_nvrs failed
         return
-    for build1 in builds:
-        rel1 = cache_release(request, build1)
-        if not rel1:
+    seen_build = set()
+    seen_packages = set()
+    for build in builds:
+        rel = cache_release(request, build)
+        if not rel:
             return
-        seen_build = 0
-        for build2 in builds:
-            rel2 = cache_release(request, build2)
-            if not rel2:
-                return
-            if build1 == build2:
-                seen_build += 1
-                if seen_build > 1:
-                    request.errors.add('body', 'builds', 'Duplicate builds: '
-                                       '{}'.format(build1))
-                    return
-                # For some bizarre reason, neither coverage nor pdb think this line executes, even
-                # though it most certainly does during the unit tests. bowlofeggs verified by
-                # hand that the loop continues here and does not go to the lines below.
-                continue  # pragma: no cover
+        if build in seen_build:
+            request.errors.add('body', 'builds', f'Duplicate builds: {build}')
+            return
+        seen_build.add(build)
 
-            pkg1 = Package.get_or_create(request.buildinfo[build1])
-            pkg2 = Package.get_or_create(request.buildinfo[build2])
-
-            if pkg1.name == pkg2.name and rel1 == rel2:
-                request.errors.add(
-                    'body', 'builds', "Multiple {} builds specified: {} & {}".format(
-                        pkg1.name, build1, build2))
-                return
+        pkg = Package.get_or_create(request.buildinfo[build])
+        if (pkg, rel) in seen_packages:
+            request.errors.add(
+                'body', 'builds', f'Multiple {pkg.name} builds specified in {rel.name}')
+            return
+        seen_packages.add((pkg, rel))
 
 
 @postschema_validator

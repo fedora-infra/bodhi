@@ -108,19 +108,35 @@ class AutomaticUpdateHandler:
 
             bcls = ContentType.infer_content_class(Build, kbuildinfo)
             build = bcls.get(bnvr)
-            if build:
-                log.info(f"Build, active update for {bnvr} exists already, skipping.")
+            if build and build.update:
+                if build.update.status == UpdateStatus.pending:
+                    log.info(
+                        f"Build, active update for {bnvr} exists already "
+                        "in Pending, moving it along.")
+                    build.update.status = UpdateStatus.testing
+                    build.update.request = None
+                    dbsession.add(build)
+                    if config.get('test_gating.required'):
+                        log.debug(
+                            'Test gating is required, marking the update as waiting on test '
+                            'gating and updating it from Greenwave to get the real status.')
+                        build.update.test_gating_status = TestGatingStatus.waiting
+                        build.update.update_test_gating_status()
+                    dbsession.commit()
+                else:
+                    log.info(f"Build, active update for {bnvr} exists already, skipping.")
                 return
 
-            log.debug(f"Build for {bnvr} doesn't exist yet, creating.")
+            if not build:
+                log.debug(f"Build for {bnvr} doesn't exist yet, creating.")
 
-            # Package.get_or_create() infers content type already
-            log.debug("Getting/creating related package object.")
-            pkg = Package.get_or_create(rbuildinfo)
+                # Package.get_or_create() infers content type already
+                log.debug("Getting/creating related package object.")
+                pkg = Package.get_or_create(rbuildinfo)
 
-            log.debug("Creating build object, adding it to the DB.")
-            build = bcls(nvr=bnvr, package=pkg)
-            dbsession.add(build)
+                log.debug("Creating build object, adding it to the DB.")
+                build = bcls(nvr=bnvr, package=pkg)
+                dbsession.add(build)
 
             owner_name = kbuildinfo['owner_name']
             user = User.get(owner_name)

@@ -159,8 +159,8 @@ def validate_path(value: str) -> str:
     Raises:
         ValueError: If os.path.exists returns False.
     """
-    if not os.path.exists(value):
-        raise ValueError('"{}" does not exist.'.format(value))
+    if value is None or not os.path.exists(value):
+        raise ValueError(f'{value!r} does not exist.')
 
     return str(value)
 
@@ -283,6 +283,9 @@ class BodhiConfig(dict):
         'cache_dir': {
             'value': None,
             'validator': _validate_none_or(validate_path)},
+        'celery_config': {
+            'value': '/etc/bodhi/celeryconfig.py',
+            'validator': str},
         'clean_old_composes': {
             'value': True,
             'validator': _validate_bool},
@@ -339,12 +342,6 @@ class BodhiConfig(dict):
         'exclude_mail': {
             'value': ['autoqa', 'taskotron'],
             'validator': _generate_list_validator()},
-        'fedmenu.data_url': {
-            'value': 'https://apps.fedoraproject.org/js/data.js',
-            'validator': str},
-        'fedmenu.url': {
-            'value': 'https://apps.fedoraproject.org/fedmenu',
-            'validator': str},
         'file_url': {
             'value': 'https://download.fedoraproject.org/pub/fedora/linux/updates',
             'validator': str},
@@ -438,7 +435,7 @@ class BodhiConfig(dict):
             'value': 'https://id.fedoraproject.org/openid/',
             'validator': str},
         'openid.sreg_required': {
-            'value': 'email',
+            'value': 'email nickname',
             'validator': str},
         'openid.success_callback': {
             'value': 'bodhi.server.security:remember_me',

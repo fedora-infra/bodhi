@@ -15,42 +15,58 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""This test suite contains tests for the bodhi.server.consumers.updates module."""
+"""This test suite contains tests for the bodhi.server.tasks.updates module."""
 
 from unittest import mock
 import copy
 import unittest
 from urllib.error import URLError
 
-from fedora_messaging.api import Message
 import sqlalchemy
 
-from bodhi.messages.schemas.update import UpdateEditV1, UpdateRequestTestingV1
 from bodhi.server import config, exceptions, models, util
-from bodhi.server.consumers import updates
+from bodhi.server.tasks import handle_update, updates
 from bodhi.tests.server import base
 
 
-@mock.patch('bodhi.server.consumers.updates.time.sleep')
+class TestTask(unittest.TestCase):
+    @mock.patch("bodhi.server.tasks.bugs")
+    @mock.patch("bodhi.server.tasks.buildsys")
+    @mock.patch("bodhi.server.tasks.initialize_db")
+    @mock.patch("bodhi.server.tasks.config")
+    @mock.patch("bodhi.server.tasks.updates.UpdatesHandler")
+    def test_task(self, handler_class, config_mock, init_db_mock, buildsys, bugs):
+        handler = mock.Mock()
+        handler_class.side_effect = lambda: handler
+        handle_update(api_version=42, foo="bar")
+        config_mock.load_config.assert_called_with()
+        init_db_mock.assert_called_with(config_mock)
+        buildsys.setup_buildsystem.assert_called_with(config_mock)
+        bugs.set_bugtracker.assert_called_with()
+        handler.run.assert_called_with(api_version=42, data={"foo": "bar"})
+
+
+@mock.patch('bodhi.server.tasks.updates.time.sleep')
 class TestUpdatesHandlerConsume(base.BaseTestCase):
     """This test class contains tests for the UpdatesHandler.consume() method."""
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
     def test_edited_update_bug_not_in_database(self, work_on_bugs, fetch_test_cases, sleep):
         """
-        Test with a message that indicates that the update is being edited, and the list of bugs
-        contains one that UpdatesHandler does not find in the database.
+        Test an update edition when the list of bugs contains one that
+        UpdatesHandler does not find in the database.
         """
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        message = UpdateEditV1(
-            body={
+
+        h.run(
+            api_version=1,
+            data={
+                'action': 'edit',
                 'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
                            'user': {'name': 'brodhi'}, 'status': 'pending', 'request': 'testing'},
                 'new_bugs': [12345, 123456]})
-
-        h(message)
 
         self.assertEqual(work_on_bugs.call_count, 1)
         self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][0],
@@ -67,12 +83,12 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertIn(bug, update.bugs)
 
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
     def test_edited_update_bug_not_in_update(self, work_on_bugs, fetch_test_cases, sleep):
         """
-        Test with a message that indicates that the update is being edited, and the list of bugs
-        contains one that UpdatesHandler does not find in the update.
+        Test an update edition when the list of bugs contains one that
+        UpdatesHandler does not find in the update.
         """
         bug = models.Bug(bug_id=123456)
         self.db.add(bug)
@@ -81,14 +97,15 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        message = UpdateEditV1(
-            body={
+
+        h.run(
+            api_version=1,
+            data={
+                'action': 'edit',
                 'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
                            'user': {'name': 'brodhi'}, 'status': str(update.status),
                            'request': str(update.request)},
                 'new_bugs': [12345, 123456]})
-
-        h(message)
 
         self.assertEqual(work_on_bugs.call_count, 1)
         self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][0],
@@ -108,9 +125,9 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
     # can ensure that we aren't raising Exceptions from them, while allowing us to only assert that
     # we called them correctly without having to assert all of their behaviors as well.
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases',
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases',
                 side_effect=updates.UpdatesHandler.fetch_test_cases, autospec=True)
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs',
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs',
                 side_effect=updates.UpdatesHandler.work_on_bugs, autospec=True)
     def test_edited_update_bugs_in_update(self, work_on_bugs, fetch_test_cases, sleep):
         """
@@ -120,14 +137,15 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        message = UpdateEditV1(
-            body={
+
+        h.run(
+            api_version=1,
+            data={
+                'action': 'edit',
                 'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
                            'user': {'name': 'brodhi'}, 'status': str(update.status),
                            'request': str(update.request)},
                 'new_bugs': [12345]})
-
-        h(message)
 
         self.assertEqual(work_on_bugs.call_count, 1)
         self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][1],
@@ -147,13 +165,6 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
 
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
-        # Throw a bogus bug id in there to ensure it doesn't raise AssertionError.
-        message = UpdateEditV1(
-            body={
-                'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
-                           'user': {'name': 'brodhi'}, 'status': str(update.status),
-                           'request': str(update.request)},
-                'new_bugs': []})
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': False,
@@ -168,7 +179,14 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                      'type': 'test-result-missing', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
 
-            h(message)
+            h.run(
+                api_version=1,
+                data={
+                    'action': 'testing',
+                    'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                               'user': {'name': 'brodhi'}, 'status': str(update.status),
+                               'request': str(update.request)},
+                    'new_bugs': []})
 
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertIsNone(update.test_gating_status)
@@ -182,13 +200,6 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
 
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
-        # Throw a bogus bug id in there to ensure it doesn't raise AssertionError.
-        message = UpdateEditV1(
-            body={
-                'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
-                           'user': {'name': 'brodhi'}, 'status': str(update.status),
-                           'request': str(update.request)},
-                'new_bugs': []})
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': False,
@@ -203,7 +214,14 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                      'type': 'test-result-missing', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
 
-            h(message)
+            h.run(
+                api_version=1,
+                data={
+                    'action': 'testing',
+                    'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                               'user': {'name': 'brodhi'}, 'status': str(update.status),
+                               'request': str(update.request)},
+                    'new_bugs': []})
 
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
@@ -212,9 +230,9 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
     # can ensure that we aren't raising Exceptions from them, while allowing us to only assert that
     # we called them correctly without having to assert all of their behaviors as well.
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases',
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases',
                 side_effect=updates.UpdatesHandler.fetch_test_cases, autospec=True)
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs',
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs',
                 side_effect=updates.UpdatesHandler.work_on_bugs, autospec=True)
     def test_request_testing(self, work_on_bugs, fetch_test_cases, sleep):
         """
@@ -223,13 +241,13 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        message = UpdateRequestTestingV1(
-            body={
+        h.run(
+            api_version=1,
+            data={
+                'action': 'testing',
                 'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
                            'user': {'name': 'brodhi'}, 'status': str(update.status),
                            'request': str(update.request)}})
-
-        h(message)
 
         self.assertEqual(work_on_bugs.call_count, 1)
         self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][1],
@@ -242,50 +260,44 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                                    sqlalchemy.orm.session.Session))
         sleep.assert_called_once_with(1)
 
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
     def test_unknown_topic(self, work_on_bugs, fetch_test_cases, sleep):
         """
-        Assert that NotImplementedError gets raised when an unknown topic is received.
+        Assert that NotImplementedError gets raised when an unknown action is received.
         """
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        # Use a bogus topic to trigger the NotImplementedError.
-        message = Message(
-            topic='bodhi.update.nawjustkiddin',
-            body={'update': {'alias': update.alias},
-                  'new_bugs': ['12345']}
-        )
-        message.update = update
-
-        self.assertRaises(NotImplementedError, h, message)
+        # Use a bogus action to trigger the NotImplementedError.
+        self.assertRaises(
+            NotImplementedError, h.run,
+            api_version=1,
+            data={
+                'action': 'update.nawjustkiddin',
+                'update': {'alias': update.alias},
+                'new_bugs': [12345]})
 
         self.assertEqual(work_on_bugs.call_count, 0)
         self.assertEqual(fetch_test_cases.call_count, 0)
         sleep.assert_called_once_with(1)
 
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.fetch_test_cases')
-    @mock.patch('bodhi.server.consumers.updates.UpdatesHandler.work_on_bugs')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
     def test_update_not_found(self, work_on_bugs, fetch_test_cases, sleep):
         """
         If the message references an update that isn't found, assert that an Exception is raised.
         """
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
-        # Use a bogus topic to trigger the NotImplementedError.
-        message = Message(
-            topic='bodhi.update.request.testing',
-            body={'msg': {'update': {'alias': 'does not exist'}}}
-        )
-        message = UpdateRequestTestingV1(
-            body={
-                'update': {'alias': 'does not exist', 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
-                           'user': {'name': 'brodhi'}, 'status': 'pending',
-                           'request': 'testing'}})
-
         with self.assertRaises(exceptions.BodhiException) as exc:
-            h(message)
+            h.run(
+                api_version=1,
+                data={
+                    'action': 'testing',
+                    'update': {'alias': 'does not exist', 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                               'user': {'name': 'brodhi'}, 'status': 'pending',
+                               'request': 'testing'}})
 
         self.assertEqual(str(exc.exception), "Couldn't find alias 'does not exist' in DB")
         self.assertEqual(work_on_bugs.call_count, 0)
@@ -331,8 +343,8 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
     """This test class contains tests for the UpdatesHandler.work_on_bugs() method."""
 
     @mock.patch.dict(config.config, {'bodhi_email': None})
-    @mock.patch('bodhi.server.consumers.updates.log.info')
-    @mock.patch('bodhi.server.consumers.updates.log.warning')
+    @mock.patch('bodhi.server.tasks.updates.log.info')
+    @mock.patch('bodhi.server.tasks.updates.log.warning')
     def test_bodhi_email_undefined(self, warning, info):
         """work_on_bugs() should log a warning and return if bodhi_email is not defined."""
         h = updates.UpdatesHandler()
@@ -365,7 +377,7 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
 
         self.assertEqual(update.type, models.UpdateType.security)
 
-    @mock.patch('bodhi.server.consumers.updates.log.warning')
+    @mock.patch('bodhi.server.tasks.updates.log.warning')
     def test_work_on_bugs_exception(self, warning):
         """
         Assert that work_on_bugs logs a warning when an exception is raised.
@@ -377,7 +389,7 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
             models.Build.nvr == 'bodhi-2.0-1.fc17').one()
         bugs = self.db.query(models.Bug).all()
 
-        with mock.patch('bodhi.server.consumers.updates.bug_module.bugtracker.getbug',
+        with mock.patch('bodhi.server.tasks.updates.bug_module.bugtracker.getbug',
                         side_effect=RuntimeError("oh no!")):
             h.work_on_bugs(h.db_factory, update, bugs)
 
@@ -389,7 +401,7 @@ class TestUpdatesHandlerFetchTestCases(base.BaseTestCase):
 
     @mock.patch.dict(config.config, {'query_wiki_test_cases': True})
     @mock.patch('bodhi.server.models.MediaWiki')
-    @mock.patch('bodhi.server.consumers.updates.log.warning')
+    @mock.patch('bodhi.server.tasks.updates.log.warning')
     def test_fetch_test_cases_exception(self, warning, MediaWiki):
         """
         Assert that fetch_test_cases logs a warning when an exception is raised.
