@@ -260,13 +260,15 @@ def latest_candidates(request):
         request (pyramid.request.Request): The current request. The package name is specified in the
             request's "package" parameter.
     Returns:
-        list: A list of dictionaries of the found builds. Each dictionary has two keys: "nvr" maps
-            to the build's nvr field, and "id" maps to the build's id.
+        list: A list of dictionaries of the found builds. Each dictionary has 5 keys: "nvr" maps
+            to the build's nvr field, "id" maps to the build's id, "tag_name" is the tag of the
+            build, owner_name is the person who built the package in koji, and 'release_name' is
+            the bodhi release name of the package.
     """
     koji = request.koji
     db = request.db
 
-    def work(pkg, testing):
+    def work(testing, pkg=None, prefix=None):
         result = []
         koji.multicall = True
 
@@ -277,8 +279,13 @@ def latest_candidates(request):
                               models.ReleaseState.frozen,
                               models.ReleaseState.current)))
 
-        kwargs = dict(package=pkg, latest=True)
+        kwargs = dict(package=pkg, prefix=prefix, latest=True)
+        tag_release = dict()
         for release in releases:
+            tag_release[release.candidate_tag] = release.long_name
+            tag_release[release.testing_tag] = release.long_name
+            tag_release[release.pending_testing_tag] = release.long_name
+            tag_release[release.pending_signing_tag] = release.long_name
             koji.listTagged(release.candidate_tag, **kwargs)
             if testing:
                 koji.listTagged(release.testing_tag, **kwargs)
@@ -286,27 +293,37 @@ def latest_candidates(request):
                 koji.listTagged(release.pending_signing_tag, **kwargs)
 
         response = koji.multiCall() or []  # Protect against None
-
         for taglist in response:
-            for build in taglist[0]:
-                item = {
-                    'nvr': build['nvr'],
-                    'id': build['id'],
-                }
-                # Prune duplicates
-                # https://github.com/fedora-infra/bodhi/issues/450
-                if item not in result:
-                    result.append(item)
+            # if the call to koji results in errors, it returns them
+            # in the reponse as dicts. Here we detect these, and log
+            # the errors
+            if isinstance(taglist, dict):
+                log.error(taglist)
+            else:
+                for build in taglist[0]:
+                    log.debug(build)
+                    item = {
+                        'nvr': build['nvr'],
+                        'id': build['id'],
+                        'package_name': build['package_name'],
+                        'owner_name': build['owner_name'],
+                        'release_name': tag_release[build['tag_name']]
+                    }
+                    # Prune duplicates
+                    # https://github.com/fedora-infra/bodhi/issues/450
+                    if item not in result:
+                        result.append(item)
         return result
 
     pkg = request.params.get('package')
+    prefix = request.params.get('prefix')
     testing = asbool(request.params.get('testing'))
     log.debug('latest_candidate(%r, %r)' % (pkg, testing))
 
-    if not pkg:
-        return []
-
-    result = work(pkg, testing)
+    if pkg:
+        result = work(testing, pkg=pkg)
+    else:
+        result = work(testing, prefix=prefix)
 
     log.debug(result)
     return result
