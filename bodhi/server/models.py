@@ -1407,6 +1407,24 @@ class Build(Base):
             koji = buildsys.get_session()
         return [tag['name'] for tag in koji.listTags(self.nvr)]
 
+    def get_owner_name(self):
+        """
+        Return the koji username of the user who built the build.
+
+        Returns:
+            str: The username of the user.
+        """
+        return self._get_kojiinfo()['owner_name']
+
+    def get_build_id(self):
+        """
+        Return the koji build id of the build.
+
+        Returns:
+            str: The username of the user.
+        """
+        return self._get_kojiinfo()['id']
+
     def unpush(self, koji):
         """
         Move this build back to the candidate tag and remove any pending tags.
