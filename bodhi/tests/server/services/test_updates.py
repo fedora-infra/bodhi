@@ -2766,6 +2766,33 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
         self.assertEqual(up['karma'], 1)
 
+    def test_list_updates_by_gating_status(self):
+        up = self.db.query(Build).filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        up.test_gating_status = TestGatingStatus.passed
+        self.db.commit()
+        res = self.app.get('/updates/', {"gating": "passed"})
+        body = res.json_body
+        self.assertEqual(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEqual(up['title'], 'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], 'pending')
+        self.assertEqual(up['request'], 'testing')
+        self.assertEqual(up['user']['name'], 'guest')
+        self.assertEqual(up['release']['name'], 'F17')
+        self.assertEqual(up['type'], 'bugfix')
+        self.assertEqual(up['severity'], 'medium')
+        self.assertEqual(up['suggest'], 'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], 'Useful details!')
+        self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+
     def test_list_updates_by_multiple_usernames(self):
         another_user = User(name='aUser')
         self.db.add(another_user)

@@ -570,7 +570,8 @@ def validate_enums(request, **kwargs):
                         ("type", UpdateType),
                         ("content_type", ContentType),
                         ("state", ReleaseState),
-                        ("package_manager", PackageManager)):
+                        ("package_manager", PackageManager),
+                        ("gating", TestGatingStatus)):
         value = request.validated.get(param)
         if value is None:
             continue
