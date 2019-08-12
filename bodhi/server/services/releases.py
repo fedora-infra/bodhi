@@ -36,6 +36,7 @@ from bodhi.server.models import (
     Package,
     Release,
     ReleaseState,
+    TestGatingStatus,
 )
 from bodhi.server.validators import (
     validate_tags,
@@ -142,6 +143,11 @@ def get_release_html(request):
         Build.release == release
     ).count()
 
+    num_gating_passed = base_count_query.filter(
+        Update.test_gating_status == TestGatingStatus.passed).count()
+    num_gating_ignored = base_count_query.filter(
+        Update.test_gating_status == TestGatingStatus.ignored).count()
+
     return dict(release=release,
                 latest_updates=updates.limit(25).all(),
                 count=updates.count(),
@@ -161,6 +167,9 @@ def get_release_html(request):
 
                 num_active_overrides=num_active_overrides,
                 num_expired_overrides=num_expired_overrides,
+
+                num_gating_passed=num_gating_passed,
+                num_gating_ignored=num_gating_ignored,
                 )
 
 

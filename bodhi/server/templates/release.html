@@ -229,6 +229,26 @@
           </td>
         </tr>
 
+        <tr>
+          <td><small>by gating status</small></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="text-right">Passed</td>
+          <td>
+            <a href="${request.route_url('updates')}?releases=${release['name']}&gating=passed">
+              <span class="glyphicon glyphicon-chevron-right">${num_gating_passed}</span>
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td class="text-right">Ignored</td>
+          <td>
+            <a href="${request.route_url('updates')}?releases=${release['name']}&gating=ignored">
+              <span class="glyphicon glyphicon-chevron-right">${num_gating_ignored}</span>
+            </a>
+          </td>
+        </tr>
       </table>
     </div>
     <div class="col-md-7">
