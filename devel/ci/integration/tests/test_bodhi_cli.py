@@ -87,7 +87,7 @@ def test_composes_info(bodhi_container, db_container):
     """
     # Fetch updates for compse from the DB
     query_updates = """SELECT
-    u.alias, u.id, u.type
+    u.alias, u.id, u.type, u.display_name
     FROM updates u
     JOIN releases r ON r.id = u.release_id
     WHERE r.name = %s AND u.locked = TRUE AND u.request = %s
@@ -113,7 +113,10 @@ def test_composes_info(bodhi_container, db_container):
                 compose[column.name] = value
             curs.execute(query_updates, (compose['release'], compose['request'], ))
             for row in curs.fetchall():
-                updates.append({'alias': row[0], 'id': row[1], 'type': row[2], 'builds': []})
+                updates.append({
+                    'alias': row[0], 'id': row[1], 'type': row[2], 'display_name': row[3],
+                    'builds': []
+                })
             for update in updates:
                 curs.execute(query_builds, (update['id'], ))
                 for row in curs.fetchall():
@@ -149,7 +152,9 @@ Content Type: {content_type}
 
     expected_output += "\nUpdates:\n\n"
     for update in updates:
-        if len(update['builds']) > 2:
+        if update["display_name"]:
+            update_builds = update["display_name"]
+        elif len(update['builds']) > 2:
             builds_left = len(update['builds']) - 2
             suffix = f", and {builds_left} more"
             update_builds = ", ".join([u['nvr'] for u in update['builds'][:2]])
