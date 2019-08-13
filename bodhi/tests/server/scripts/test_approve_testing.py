@@ -679,6 +679,8 @@ class TestMain(BasePyTestCase):
         assert update.request is None
         assert update.date_stable is not None
         assert update.status == models.UpdateStatus.stable
+        assert update.pushed
+        assert update.date_pushed is not None
         # First pass, it adds f17=updatest-pending, then since we're pushing
         # to stable directly, it adds f17-updates (the stable tag) then
         # removes f17-updates-testing-pending and f17-updates-pending

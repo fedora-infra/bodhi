@@ -120,6 +120,8 @@ def main(argv=sys.argv):
                         update.status = UpdateStatus.stable
                         update.date_stable = datetime.datetime.utcnow()
                         update.request = None
+                        update.date_pushed = datetime.datetime.utcnow()
+                        update.pushed = True
 
                 db.commit()
 
