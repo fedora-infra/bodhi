@@ -696,7 +696,8 @@ def test_get_compose_json(bodhi_container, db_container):
         "SELECT "
         "  id, "
         "  alias, "
-        "  type "
+        "  type, "
+        "  display_name "
         "FROM updates "
         "WHERE release_id = %s AND locked = TRUE AND request = %s "
         "ORDER BY date_submitted "
@@ -730,7 +731,10 @@ def test_get_compose_json(bodhi_container, db_container):
             updates = []
             rows = curs.fetchall()
             for row in rows:
-                updates.append({'id': row[0], 'alias': row[1], 'type': row[2], 'builds': []})
+                updates.append({
+                    'id': row[0], 'alias': row[1], 'type': row[2], 'display_name': row[3],
+                    'builds': []
+                })
             for update in updates:
                 curs.execute(query_builds, (update['id'], ))
                 for row in curs.fetchall():
@@ -764,7 +768,10 @@ def test_get_compose_json(bodhi_container, db_container):
             update_builds += suffix
         else:
             update_builds = " and ".join([b['nvr'] for b in update['builds']])
-        compose['update_summary'].append({'alias': update['alias'], 'title': update_builds})
+        compose['update_summary'].append({
+            'alias': update['alias'],
+            'title': update['display_name'] or update_builds
+        })
 
     try:
         assert http_response.ok
@@ -851,7 +858,8 @@ def test_get_compose_view(bodhi_container, db_container):
     query_updates = (
         "SELECT "
         "  id, "
-        "  type "
+        "  type, "
+        "  display_name "
         "FROM updates "
         "WHERE release_id = %s AND locked = TRUE AND request = %s "
         "ORDER BY date_submitted "
@@ -884,7 +892,9 @@ def test_get_compose_view(bodhi_container, db_container):
             updates = []
             rows = curs.fetchall()
             for row in rows:
-                updates.append({'id': row[0], 'type': row[1], 'builds': []})
+                updates.append({
+                    'id': row[0], 'type': row[1], 'display_name': row[2], 'builds': []
+                })
             for update in updates:
                 curs.execute(query_builds, (update['id'], ))
                 for row in curs.fetchall():
@@ -921,7 +931,7 @@ def test_get_compose_view(bodhi_container, db_container):
             update_builds += suffix
         else:
             update_builds = " and ".join([b['nvr'] for b in update['builds']])
-        compose['updates'].append({'title': update_builds})
+        compose['updates'].append({'title': update["display_name"] or update_builds})
 
     try:
         assert http_response.ok
