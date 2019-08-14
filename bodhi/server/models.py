@@ -34,6 +34,7 @@ from sqlalchemy import (and_, Boolean, Column, DateTime, event, ForeignKey,
                         Integer, or_, Table, Unicode, UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
+from sqlalchemy.orm.base import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
@@ -1798,6 +1799,9 @@ class Update(Base):
         super(Update, self).__init__(*args, **kwargs)
 
         log.debug('Set alias for %s to %s' % (self.get_title(), alias))
+
+        if self.status == UpdateStatus.testing:
+            self._ready_for_testing(self, self.status, None, None)
 
     @property
     def side_tag_locked(self):
@@ -3753,11 +3757,49 @@ class Update(Base):
                 email_notification=notify,
             )
 
+    @staticmethod
+    def _ready_for_testing(target, value, old, initiator):
+        """
+        Signal that the update has been moved to testing.
+
+        This happens in the following cases:
+        - for stable releases: the update lands in the testing repository
+        - for rawhide: all packages in an update have been built by koji
+
+        Args:
+            target (Update): The update that has had a change to its status attribute.
+            value (EnumSymbol): The new value of Update.status.
+            old (EnumSymbol): The old value of the Update.status
+            initiator (sqlalchemy.orm.attributes.Event): The event object that is initiating this
+                transition.
+        """
+        if value != UpdateStatus.testing or value == old:
+            return
+        if old == NEVER_SET:
+            # This is the object initialization phase. This instance is not ready, don't create
+            # the message now. This method will be called again at the end of __init__
+            return
+        message = update_schemas.UpdateReadyForTestingV1.from_dict(
+            message={'update': target, 'agent': 'bodhi'}
+        )
+        # This method is called before the new attribute value is actually set,
+        # so the message needs to be updated.
+        message.body["update"]["status"] = str(value)
+        notifications.publish(message)
+
 
 event.listen(
     Update.test_gating_status,
     'set',
     Update.comment_on_test_gating_status_change,
+    active_history=True,
+)
+
+
+event.listen(
+    Update.status,
+    'set',
+    Update._ready_for_testing,
     active_history=True,
 )
 

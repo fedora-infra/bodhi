@@ -169,6 +169,10 @@ setup(
                 "bodhi.update.complete.testing.v1="
                 "bodhi.messages.schemas.update:UpdateCompleteTestingV1"
             ),
+            (
+                "bodhi.update.status.testing.v1="
+                "bodhi.messages.schemas.update:UpdateReadyForTestingV1"
+            ),
             "bodhi.update.edit.v1=bodhi.messages.schemas.update:UpdateEditV1",
             "bodhi.update.eject.v1=bodhi.messages.schemas.update:UpdateEjectV1",
             "bodhi.update.karma.threshold.v1=bodhi.messages.schemas.update:UpdateKarmaThresholdV1",
