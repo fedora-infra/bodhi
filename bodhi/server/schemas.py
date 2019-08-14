@@ -98,6 +98,13 @@ class Updates(colander.SequenceSchema):
     update = colander.SchemaNode(colander.String())
 
 
+class Status(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Update status objects."""
+
+    status = colander.SchemaNode(colander.String(),
+                                 validator=colander.OneOf(list(UpdateStatus.values())))
+
+
 class Tests(colander.SequenceSchema):
     """A SequenceSchema to validate a list of Test objects."""
 
@@ -575,11 +582,11 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         validator=colander.OneOf(list(UpdateSeverity.values())),
     )
 
-    status = colander.SchemaNode(
-        colander.String(),
+    status = Status(
+        colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        validator=colander.OneOf(list(UpdateStatus.values())),
+        preparer=[util.splitter],
     )
 
     submitted_since = colander.SchemaNode(

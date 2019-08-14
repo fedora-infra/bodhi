@@ -2669,10 +2669,26 @@ class TestUpdatesService(BaseTestCase):
         body = res.json_body
         status_vals = ", ".join(UpdateStatus.values())
         self.assertEqual(len(body.get('updates', [])), 0)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'status')
+        self.assertEqual(res.json_body['errors'][0]['name'], 'status.0')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
             ('"single" is not one of {}'.format(status_vals)))
+
+    def test_list_updates_with_multiple_statuses(self):
+        # add two more updates with different statuses. we
+        # will only test for one of these, and the bodhi one
+        # that is in the testing db by default
+        firefox = self.create_update(['firefox-61.0.2-3.fc17'])
+        firefox.status = UpdateStatus.unpushed
+        python_nose = self.create_update(['python-nose-1.3.7-11.fc17'])
+        python_nose.status = UpdateStatus.testing
+        self.db.commit()
+
+        res = self.app.get('/updates/', {"status": ["pending", "testing"]})
+        body = res.json_body
+        self.assertEqual(len(body['updates']), 2)
+        self.assertEqual(body['updates'][0]['title'], 'python-nose-1.3.7-11.fc17')
+        self.assertEqual(body['updates'][1]['title'], 'bodhi-2.0-1.fc17')
 
     def test_list_updates_by_suggest(self):
         res = self.app.get('/updates/', {"suggest": "unspecified"})
