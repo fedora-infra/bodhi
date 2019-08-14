@@ -576,7 +576,12 @@ def validate_enums(request, **kwargs):
         if value is None:
             continue
 
-        request.validated[param] = enum.from_string(value)
+        if isinstance(value, str):
+            request.validated[param] = enum.from_string(value)
+        else:
+            for index, item in enumerate(value):
+                value[index] = enum.from_string(item)
+            request.validated[param] = value
 
 
 @postschema_validator

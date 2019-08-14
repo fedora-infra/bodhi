@@ -346,7 +346,7 @@ def query_updates(request):
 
     status = data.get('status')
     if status is not None:
-        query = query.filter(Update.status == status)
+        query = query.filter(or_(*[Update.status == s for s in status]))
 
     submitted_since = data.get('submitted_since')
     if submitted_since is not None:
