@@ -2,6 +2,35 @@
 Release notes
 =============
 
+
+v4.1.1
+------
+
+This is a bugfix release.
+
+Bug fixes
+^^^^^^^^^
+
+* Disable time base auto push to stable if we recieve negative karma (:issue:`3459`).
+* Ignore the compose decision in the greenwave consumer (:issue:`3425`).
+* Handle orphan builds in automatic updates consumer (:issue:`3447`).
+* Send email only on updates going stable on releases composed by bodhi (:issue:`3431`).
+* Only send an email for the comments added when CI fails (:issue:`3431`).
+* Fix a couple tests on F31+.
+* Update the Greenwave policy in CI (:issue:`3427`).
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 4.1.1:
+
+* Aurélien Bompard
+* Clement Verna
+* Nils Philippsen
+* Pierre-Yves Chibon
+
+
 v4.1.0
 ------
 
