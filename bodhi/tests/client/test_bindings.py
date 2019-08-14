@@ -1193,6 +1193,52 @@ class TestBodhiClient_update_str(unittest.TestCase):
                            '2016-10-21 (2)\n  bodhi-pants-2.2.4-1.el7')
         self.assertEqual(text, expected_output)
 
+    @mock.patch.dict(
+        client_test_data.EXAMPLE_UPDATE_MUNCH,
+        {'builds': [], 'title': 'update-title'})
+    @mock.patch('bodhi.client.bindings.datetime.datetime')
+    def test_minimal_no_builds(self, mock_datetime):
+        """Ensure correct output when minimal is True, and there are no builds"""
+        client = bindings.BodhiClient()
+        mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
+        mock_datetime.strptime = datetime.strptime
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
+
+        expected_output = (' update-title                             rpm        stable    '
+                           '2016-10-21 (2)')
+        self.assertEqual(text, expected_output)
+
+    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'title': None, 'builds': []})
+    @mock.patch('bodhi.client.bindings.datetime.datetime')
+    def test_minimal_no_title(self, mock_datetime):
+        """Ensure correct output when minimal is True, and there are neither a title nor builds"""
+        client = bindings.BodhiClient()
+        mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
+        mock_datetime.strptime = datetime.strptime
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
+
+        expected_output = (' FEDORA-EPEL-2016-3081a94111              '
+                           'rpm        stable    '
+                           '2016-10-21 (2)')
+        self.assertEqual(text, expected_output)
+
+    @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'content_type': None})
+    @mock.patch('bodhi.client.bindings.datetime.datetime')
+    def test_minimal_no_content_type(self, mock_datetime):
+        """Ensure correct output when minimal is True, and and there is no content-type"""
+        client = bindings.BodhiClient()
+        mock_datetime.utcnow = mock.Mock(return_value=datetime(2016, 10, 24, 12, 0, 0))
+        mock_datetime.strptime = datetime.strptime
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH, minimal=True)
+
+        expected_output = (' bodhi-2.2.4-1.el7                        '
+                           'unspecified  stable    '
+                           '2016-10-21 (2)')
+        self.assertEqual(text, expected_output)
+
     @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'request': 'stable'})
     def test_request_stable(self):
         """Ensure correct output when the update is request stable."""
