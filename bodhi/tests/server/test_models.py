@@ -254,7 +254,9 @@ class TestBugDefaultMessage(BaseTestCase):
     @mock.patch('bodhi.server.models.log.warning')
     @mock.patch.dict(
         config,
-        {'stable_bug_msg': '%s%s', 'testing_bug_msg': '%s', 'base_address': 'b'}, clear=True)
+        {'stable_bug_msg': '%s%s', 'testing_bug_msg': '%s', 'base_address': 'b',
+         'critpath.min_karma': 1, 'fedora_epel.mandatory_days_in_testing': 0},
+        clear=True)
     def test_epel_without_testing_bug_epel_msg(self, warning):
         """Test with testing_bug_epel_msg undefined."""
         bug = model.Bug()
@@ -2324,7 +2326,7 @@ class TestUpdate(ModelTest):
             release=release,
             user=model.User(name='lmacken'))
 
-    def get_update(self, name='TurboGears-1.0.8-3.fc11'):
+    def get_update(self, name='TurboGears-1.0.8-3.fc11', override_args=None):
         """Return an Update instance for testing."""
         attrs = self.attrs.copy()
         pkg = self.db.query(model.RpmPackage).filter_by(name='TurboGears').one()
@@ -2332,6 +2334,7 @@ class TestUpdate(ModelTest):
         attrs.update(dict(
             builds=[model.RpmBuild(nvr=name, package=pkg, release=rel)],
             release=rel))
+        attrs.update(override_args or {})
         return self.klass(**attrs)
 
     def test___json___with_no_builds(self):
@@ -3331,6 +3334,7 @@ class TestUpdate(ModelTest):
         expected_message = update_schemas.UpdateRequestStableV1.from_dict(
             {'update': self.obj, 'agent': req.user.name})
 
+        self.db.info['messages'] = []
         with mock_sends(expected_message):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             # set_request alters the update a bit, so we need to adjust the expected message to
@@ -3366,6 +3370,7 @@ class TestUpdate(ModelTest):
         expected_message = update_schemas.UpdateRequestStableV1.from_dict(
             {'update': self.obj, 'agent': req.user.name})
 
+        self.db.info['messages'] = []
         with mock_sends(expected_message):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             # set_request alters the update a bit, so we need to adjust the expected message to
@@ -3740,6 +3745,7 @@ class TestUpdate(ModelTest):
         expected_message = errata_schemas.ErrataPublishV1.from_dict({
             'subject': subject, 'body': body, 'update': self.obj})
 
+        self.db.info['messages'] = []
         with mock_sends(expected_message):
             self.obj.send_update_notice()
             self.db.commit()
@@ -4195,6 +4201,28 @@ class TestUpdate(ModelTest):
 
         # We should have two comments, one for each test_gating_status change
         self.assertEqual(len(self.obj.comments), 2)
+
+    def test_set_status_testing(self):
+        """Test that setting an update's status to testing sends a message."""
+        self.db.info['messages'] = []
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.obj.status = UpdateStatus.testing
+            msg = self.db.info['messages'][0]
+            self.db.commit()
+        assert msg.body["update"]["status"] == "testing"
+
+    def test_create_with_status_testing(self):
+        """Test that creating an update with the status set to testing sends a message."""
+        self.db.info['messages'] = []
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.get_update(name="TurboGears-1.0.8-4.fc11", override_args={
+                "status": UpdateStatus.testing,
+                "user": self.db.query(model.User).filter_by(name='lmacken').one()
+            })
+            assert len(self.db.info['messages']) == 1
+            msg = self.db.info['messages'][0]
+            self.db.commit()
+        assert msg.body["update"]["status"] == "testing"
 
 
 class TestUser(ModelTest):

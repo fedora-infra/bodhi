@@ -74,6 +74,8 @@ class TestGenericViews(base.BaseTestCase):
         update = Update.query.first()
         update.critpath = True
         update.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         res = self.app.get('/', headers={'Accept': 'text/html'})
@@ -512,6 +514,8 @@ class TestFrontpageView(base.BaseTestCase):
         # Clear the caches
         Release._tag_cache = None
         generic._generate_home_page_stats.invalidate()
+        # Clear pending messages
+        self.db.info['messages'] = []
 
     def test_home_counts(self):
         """Test the frontpage update counts"""

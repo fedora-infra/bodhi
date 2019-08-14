@@ -22,8 +22,10 @@ from unittest import mock
 import logging
 
 from fedora_messaging.api import Message
+from fedora_messaging.testing import mock_sends
 import pytest
 
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.models import (
@@ -71,7 +73,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         caplog.set_level(logging.DEBUG)
 
         # process the message
-        self.handler(self.sample_message)
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.handler(self.sample_message)
 
         # check if the update exists...
         update = self.db.query(Update).filter(
@@ -98,7 +101,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         caplog.set_level(logging.DEBUG)
 
         # Run the handler to create the build & update, then remove the update.
-        self.handler(self.sample_message)
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.handler(self.sample_message)
         build = self.db.query(Build).filter_by(nvr=self.sample_nvr).one()
         update = build.update
         build.update = None  # satisfy foreign key constraint
@@ -106,7 +110,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         # Now test with the same message again which should encounter the
         # build already existing in the database.
-        self.handler(self.sample_message)
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.handler(self.sample_message)
 
         # check if the update exists...
         update = self.db.query(Update).filter(
@@ -148,7 +153,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
                         'summary': "no tests are required",
                     }
                 mock_greenwave.return_value = greenwave_response
-            self.handler(self.sample_message)
+            with mock_sends(update_schemas.UpdateReadyForTestingV1):
+                self.handler(self.sample_message)
 
         # check if the update exists...
         update = self.db.query(Update).filter(
@@ -201,7 +207,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         """
         caplog.set_level(logging.DEBUG)
 
-        self.handler(self.sample_message)
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.handler(self.sample_message)
         update = self.db.query(Update).filter(
             Update.builds.any(Build.nvr == self.sample_nvr)
         ).first()
@@ -212,10 +219,13 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         update.request = UpdateRequest.testing
         self.db.add(update)
         self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         caplog.clear()
 
-        self.handler(self.sample_message)
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.handler(self.sample_message)
 
         assert (f"Build, active update for {self.sample_nvr} exists already in "
                 "Pending, moving it along." in caplog.messages)
@@ -254,7 +264,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
                             'summary': "no tests are required",
                         }
                     mock_greenwave.return_value = greenwave_response
-                self.handler(self.sample_message)
+                with mock_sends(update_schemas.UpdateReadyForTestingV1):
+                    self.handler(self.sample_message)
 
                 # Quick sanity checks
                 assert mock_greenwave.call_count == 1
@@ -282,6 +293,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         update.request = UpdateRequest.testing
         self.db.add(update)
         self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         caplog.clear()
 
@@ -378,7 +391,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.db.query(User).filter_by(name=expected_username).delete()
         self.db.flush()
 
-        self.handler(self.sample_message)
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.handler(self.sample_message)
 
         assert(f"Creating bodhi user for '{expected_username}'."
                in caplog.messages)
@@ -397,7 +411,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         self.db.flush()
 
         with mock.patch('bodhi.server.models.handle_update'):
-            self.handler(self.sample_message)
+            with mock_sends(update_schemas.UpdateReadyForTestingV1):
+                self.handler(self.sample_message)
 
         assert(f"Creating bodhi user for '{expected_username}'."
                not in caplog.messages)
@@ -411,7 +426,8 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         msg = deepcopy(self.sample_message)
         bogus_tag = 'thisisntthetagyourelookingfor'
         msg.body['tag'] = bogus_tag
-        self.handler(msg)
+        with mock_sends():
+            self.handler(msg)
 
         assert any(x.startswith(f"Ignoring build being tagged into '{bogus_tag}'")
                    for x in caplog.messages)
@@ -420,11 +436,13 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         """Assert that duplicate messages ignore existing build/update."""
         caplog.set_level(logging.DEBUG)
 
-        self.handler(self.sample_message)
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.handler(self.sample_message)
 
         caplog.clear()
 
-        self.handler(self.sample_message)
+        with mock_sends():
+            self.handler(self.sample_message)
 
         assert (f"Build, active update for {self.sample_nvr} exists already, skipping."
                 in caplog.messages)

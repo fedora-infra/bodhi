@@ -36,6 +36,8 @@ class TestCheckPolicies(BaseTestCase):
         runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
@@ -99,6 +101,8 @@ class TestCheckPolicies(BaseTestCase):
         runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
@@ -142,6 +146,8 @@ class TestCheckPolicies(BaseTestCase):
         runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         update.test_gating_status = None
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -170,6 +176,8 @@ class TestCheckPolicies(BaseTestCase):
         runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         update.pushed = True
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -204,6 +212,8 @@ class TestCheckPolicies(BaseTestCase):
         runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
@@ -244,6 +254,8 @@ class TestCheckPolicies(BaseTestCase):
         runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             mock_greenwave.side_effect = Exception(
