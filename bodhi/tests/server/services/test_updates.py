@@ -20,7 +20,6 @@ from datetime import datetime, timedelta
 from unittest import mock
 from urllib import parse as urlparse
 import copy
-import re
 import textwrap
 import time
 
@@ -1028,10 +1027,8 @@ class TestEditUpdateForm(BaseTestCase):
             headers={'accept': 'text/html'})
         self.assertIn('Editing an update requires JavaScript', resp)
         # Make sure that unspecified comes first, as it should be the default.
-        regex = r''
-        for value in ('unspecified', 'reboot', 'logout'):
-            regex = regex + r'name="suggest" value="{}".*'.format(value)
-        self.assertTrue(re.search(regex, resp.body.decode('utf8').replace('\n', ' ')))
+        regex = '<select id="suggest" name="suggest">\\n.*<option value="unspecified"'
+        self.assertRegex(str(resp), regex)
 
     def test_edit_without_permission(self):
         """
@@ -1074,8 +1071,8 @@ class TestEditUpdateForm(BaseTestCase):
 
         resp = self.app.get(f'/updates/{alias}/edit',
                             headers={'accept': 'text/html'})
-        self.assertRegex(str(resp), ('<input type="radio" name="severity" '
-                                     'value="unspecified"\\n.*disabled="disabled"\\n.*>'))
+        self.assertRegex(str(resp), ('<select id="severity" name="severity">\\n.*'
+                                     '<option value="unspecified"\\n.*disabled="disabled"\\n.*>'))
 
     def test_days_in_testing_new_update(self):
         """
@@ -1085,7 +1082,7 @@ class TestEditUpdateForm(BaseTestCase):
         resp = self.app.get(f'/updates/new',
                             headers={'accept': 'text/html'})
         self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
-                                     '\\n.*min="0" value=""\\n.*>'))
+                                     ' class="form-control"\\n.*min="0" value=""\\n.*>'))
 
     def test_days_in_testing_existing_update(self):
         """
@@ -1106,7 +1103,7 @@ class TestEditUpdateForm(BaseTestCase):
         resp = self.app.get(f'/updates/{alias}/edit',
                             headers={'accept': 'text/html'})
         self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
-                                     '\\n.*min="7" value="10"\\n.*>'))
+                                     ' class="form-control"\\n.*min="7" value="10"\\n.*>'))
 
 
 @mock.patch('bodhi.server.models.handle_update', mock.Mock())

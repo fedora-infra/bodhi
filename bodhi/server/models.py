@@ -1407,6 +1407,24 @@ class Build(Base):
             koji = buildsys.get_session()
         return [tag['name'] for tag in koji.listTags(self.nvr)]
 
+    def get_owner_name(self):
+        """
+        Return the koji username of the user who built the build.
+
+        Returns:
+            str: The username of the user.
+        """
+        return self._get_kojiinfo()['owner_name']
+
+    def get_build_id(self):
+        """
+        Return the koji build id of the build.
+
+        Returns:
+            str: The username of the user.
+        """
+        return self._get_kojiinfo()['id']
+
     def unpush(self, koji):
         """
         Move this build back to the candidate tag and remove any pending tags.
@@ -3412,10 +3430,11 @@ class Update(Base):
         if self.status not in (UpdateStatus.testing, UpdateStatus.pending):
             return
         # If an update receives negative karma disable autopush
-        if self.autokarma and self._composite_karma[1] != 0 and self.status is \
+        if (self.autokarma or self.autotime) and self._composite_karma[1] != 0 and self.status is \
                 UpdateStatus.testing and self.request is not UpdateRequest.stable:
             log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
+            self.autotime = False
             text = config.get('disable_automatic_push_to_stable')
             self.comment(db, text, author='bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:

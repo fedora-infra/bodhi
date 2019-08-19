@@ -21,7 +21,7 @@
         <span>
           % if comment.user:
           <a href="${request.route_url('user', name=comment.user.name)}">
-            <img class="img-circle" src="${util.avatar(comment.user.name, size=24)}"/>
+            <img class="rounded-circle" src="${util.avatar(comment.user.name, size=24)}"/>
             ${comment.user.name}
           </a>
           % endif
@@ -88,7 +88,7 @@
   %if display_user:
   <td class="nowrap">
     <a href="${request.route_url('user', name=update['user']['name'])}">
-      <img class="img-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
+      <img class="rounded-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
       ${update['user']['name']}
     </a>
   </td>
@@ -133,7 +133,7 @@
   %if display_user:
   <td class="nowrap">
     <a href="${request.route_url('user', name=override['submitter']['name'])}">
-      <img class="img-circle" src="${util.avatar(override['submitter']['name'], size=24)}"/>
+      <img class="rounded-circle" src="${util.avatar(override['submitter']['name'], size=24)}"/>
       ${override['submitter']['name']}
     </a>
   </td>

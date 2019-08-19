@@ -499,6 +499,10 @@ $(document).ready(function(){
 $(document).ready(function(){
     var button = document.getElementById('copybutton')
 
+    if (button == null) {
+        return;
+    }
+
     button.addEventListener('click', function(event) {
         if (document.selection) { 
             document.selection.empty();
@@ -510,7 +514,6 @@ $(document).ready(function(){
             } catch (err) {
                 console.log('Oops, unable to copy');
             }
-
         } else if (window.getSelection) {
             if (window.getSelection().empty) {  // Chrome
                 window.getSelection().empty();
@@ -559,7 +562,7 @@ $(document).ready(function(){
               <a id='testing' class="btn btn-sm btn-success"><span class="fa fa-fw fa-arrow-circle-right"></span> Push to Testing</a>
               % endif
             % else:
-              <a id='revoke' href="javascript:void(0)" class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Revoke</a>
+              <a id='revoke' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Revoke</a>
             % endif
           % elif update.pushed and (update.status.value != 'stable' or (update.status.value == 'stable' and 'releng' in [group.name for group in request.user.groups])):
             <a id='edit' class="btn btn-sm btn-primary"><span class="fa fa-fw fa-pencil"></span> Edit</a>
@@ -569,7 +572,7 @@ $(document).ready(function(){
                     Push to Stable
                 </a>
             % endif
-            <a id='unpush' href="javascript:void(0)" class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Unpush</a>
+            <a id='unpush' class="btn btn-sm btn-danger"><span class="fa fa-fw fa-arrow-circle-left"></span> Unpush</a>
           % endif
           % if self.util.can_waive_test_results(update):
             <a id='waive' class="btn btn-sm btn-primary hidden" data-toggle="modal" data-target="#waive_test_results">Waive Test Results</a>
@@ -629,29 +632,26 @@ $(document).ready(function(){
   % endif
 
   <li class="nav-item">
-    <a class="nav-link" id="tab-automatedtests" data-toggle="tab" href="#automatedtests" role="tab">Automated Tests
-
-    <span style="display:none" class='badge badge-success'>
-      <span class='fa fa-check-circle'></span>
-      <span id="automatedtests-success"></span>
-    </span>
-
-    <span style="display:none" class='badge badge-info'>
-      <span class='fa fa-info-circle'></span>
-      <span id="automatedtests-info"></span>
-    </span>
-
-    <span style="display:none" class='badge badge-warning'>
-      <span class='fa fa-exclamation-circle'></span>
-      <span id="automatedtests-warning"></span>
-    </span>
-
-    <span style="display:none" class='badge badge-danger'>
-      <span class='fa fa-minus-circle'></span>
-      <span id="automatedtests-danger"></span>
-    </span>
-
-    <span id="automatedtests-progress" class="badge badge-secondary"></span>
+    <a class="nav-link" id="tab-automatedtests" data-toggle="tab" href="#automatedtests" role="tab">
+      Automated Tests
+      <span style="display:none" class='badge badge-success'>
+        <span class='fa fa-check-circle'></span>
+        <span id="automatedtests-success"></span>
+      </span>
+      <span style="display:none" class='badge badge-info'>
+        <span class='fa fa-info-circle'></span>
+        <span id="automatedtests-info"></span>
+      </span>
+      <span style="display:none" class='badge badge-warning'>
+        <span class='fa fa-exclamation-circle'></span>
+        <span id="automatedtests-warning"></span>
+      </span>
+      <span style="display:none" class='badge badge-danger'>
+        <span class='fa fa-minus-circle'></span>
+        <span id="automatedtests-danger"></span>
+      </span>
+      <span id="automatedtests-progress" class="badge badge-secondary"></span>
+    </a>
   </li>
 
 </ul>
@@ -705,7 +705,7 @@ $(document).ready(function(){
             </div>
           </div>
 
-          <div class="p-t-2">
+          <div class="pt-2">
             <h4>Add Comment &amp; Feedback</h4>
             % if request.user:
             <form id="new_comment" class="form-horizontal" role="form"
@@ -811,9 +811,9 @@ $(document).ready(function(){
               <div class="col-md-12">
                 <p>
                 % if request.matched_route:
-                  Please <a class="nav-link" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
+                  Please <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
                 % else:
-                  Please <a class="nav-link" href="${request.route_url('login')}">login</a> to add feedback.
+                  Please <a href="${request.route_url('login')}">login</a> to add feedback.
                 % endif
                 </p>
               </div>
@@ -884,7 +884,7 @@ $(document).ready(function(){
                 </div>
                 <div>
                   <a href="${request.route_url('user', name=update.user.name)}">
-                    <img class="img-circle" src="${self.util.avatar(update.user.name, size=24)}"/>
+                    <img class="rounded-circle" src="${self.util.avatar(update.user.name, size=24)}"/>
                     ${update.user.name}
                   </a>
                 </div>

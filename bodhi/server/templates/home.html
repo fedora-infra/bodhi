@@ -94,7 +94,7 @@
                 <div class="list-group-item">
                     <strong>#${str(loop.index + 1)}</strong>
                     <a href="${request.route_url('user', name=tester['name'])}">
-                      <img class="img-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
+                      <img class="rounded-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
                       ${tester['name']}
                     </a>
                   <div class="badge badge-secondary float-right">${str(count)}</div>

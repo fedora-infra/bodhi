@@ -822,6 +822,30 @@ class TestMain(BasePyTestCase):
         assert cmnts.count() == 1
         assert cmnts[0].text == 'This update has been submitted for stable by bodhi. '
 
+    def test_autotime_update_no_autokarma_negative_karma_not_pushed(self):
+        """
+        Ensure that an autotime update which negative karma does not get pushed.
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.autokarma = False
+        update.autotime = True
+        update.request = None
+        update.stable_karma = 1
+        update.stable_days = 0
+        update.date_testing = datetime.utcnow() - timedelta(days=8)
+        update.status = models.UpdateStatus.testing
+        update.comment(self.db, u'Broken', author=u'luke', karma=-1)
+        with fml_testing.mock_sends(api.Message):
+            self.db.commit()
+
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
+
+        assert update.request is None
+        assert update.autotime == False
+
     @patch('sys.exit')
     def test_log_level_is_left_alone(self, exit):
         """Ensure calling main() here leaves the global log level alone.
