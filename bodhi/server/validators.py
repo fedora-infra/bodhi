@@ -1091,6 +1091,11 @@ def _validate_override_build(request, nvr, db):
 
             build.release = release
 
+        if not build.release.override_tag:
+            request.errors.add("body", "nvr", "Cannot create a buildroot override because the"
+                               " release associated with the build does not support it.")
+            return
+
         for tag in build.get_tags():
             if tag in (build.release.candidate_tag, build.release.testing_tag):
                 # The build is tagged as a candidate or testing

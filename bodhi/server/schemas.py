@@ -397,6 +397,7 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
     override_tag = colander.SchemaNode(
         colander.String(),
+        missing="",
     )
     state = colander.SchemaNode(
         colander.String(),
