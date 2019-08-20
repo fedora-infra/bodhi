@@ -49,7 +49,7 @@
         <tr>
           <td>State</td>
           <td>
-            ${self.util.state2html(release['state'].description) | n}
+            ${release['state'].description | n}
           </td>
         </tr>
         <tr>
@@ -263,7 +263,11 @@
           </span>
         </div>
         <div class="panel-body">
-          ${self.tables.updates(latest_updates, display_release=False)}
+          <div class="list-group">
+            % for update in latest_updates:
+              ${self.fragments.update(update, display_karma=False)}
+            % endfor
+          </div>
         </div>
       </div>
     </div>

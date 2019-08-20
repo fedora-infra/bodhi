@@ -6,27 +6,47 @@ def inherit(context):
 %>
 <%inherit file="${inherit(context)}"/>
 
-<%namespace name="tables" file="tables.html"/>
+<%namespace name="fragments" file="fragments.html"/>
 
 <link rel="alternate" type="application/atom+xml" title="New Updates" href="${request.route_url('updates_rss') + '?' + request.query_string}"/>
 
 % if chrome:
-<div class="container pt-2">
+<div class="subheader py-3">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h2>Updates</h2>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container pt-4">
   <div class="row">
     <div class="col-md-12">
-      <h3>Updates <small>
-        % if page == 1:
-        <a href="${request.route_url('updates_rss') + '?' + request.query_string}">
-          <span class="fa fa-rss"></span>
-        </a>
-        % endif
-        </small>
-      </h3>
-      ${self.pager.render(page, pages)}
   % endif
-      ${tables.updates(updates, display_user, display_request)}
+          <div class="list-group">
+            % if chrome:
+            <div class="list-group-item bg-light d-flex font-weight-bold">
+              ${total} Updates
+              % if page == 1:
+              <a class="ml-1" href="${request.route_url('updates_rss') + '?' + request.query_string}">
+                <span class="fa fa-rss"></span>
+              </a>
+              % endif
+            </div>
+            % endif
+            % for update in updates:
+              ${fragments.update(update, display_user)}
+            % endfor
+            %if chrome:
+            <div class="list-group-item bg-light">
+              %if pages > 1:
+                ${self.pager.render(page, pages)}
+              %endif
+            </div>
+            %endif
+          </div>
   % if chrome:
-      ${self.pager.render(page, pages)}
     </div>
   </div>
 </div>

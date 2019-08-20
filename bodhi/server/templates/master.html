@@ -1,6 +1,5 @@
 <%namespace name="util" module="bodhi.server.util" inheritable="True"/>
 <%namespace name="pager" file="pager.html" inheritable="True" />
-<%namespace name="tables" file="tables.html" inheritable="True" />
 <%namespace name="fragments" file="fragments.html" inheritable="True" />
 <%
     from bodhi.server.config import config
@@ -76,52 +75,24 @@
               <nav class="navbar navbar-light navbar-expand pt-0 pb-0 ml-auto">
                   <div class="container">
                     <ul class="nav navbar-nav nav-pill">
-                        % if request.user:
-                        % if request.matched_route and request.matched_route.name in ('new_update', 'new_override'):
-                        <li class="nav-item dropdown active">
+                        % if request.matched_route and request.matched_route.name in ('releases', 'release'):
+                        <li class="nav-item active font-weight-bold">
                         % else:
-                        <li class="nav-item dropdown">
+                        <li class="nav-item font-weight-bold">
                         % endif
-                          <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                            <span class="glyphicon glyphicon-plus"></span>
-                            Create
+                          <a class="nav-link" href="${request.route_url('releases')}">
+                            Releases
                           </a>
-                          <div class="dropdown-menu">
-                            <a class="dropdown-item" href="${request.route_url('new_update')}">
-                                New Update
-                            </a>
-                            <a class="dropdown-item" href="${request.route_url('new_override')}">
-                                New Override
-                            </a>
-                          </div>
                         </li>
-                        % endif
 
-                        % if request.matched_route and request.matched_route.name in ('metrics', 'releases', 'release', 'overrides'):
-                        <li class="nav-item dropdown active">
+                        % if request.matched_route and request.matched_route.name in ('update', 'updates'):
+                        <li class="nav-item active font-weight-bold">
                         % else:
-                        <li class="nav-item dropdown">
+                        <li class="nav-item font-weight-bold">
                         % endif
-                          <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                            <span class="glyphicon glyphicon-tags"></span>
-                            Stats
+                          <a class="nav-link" href="${request.route_url('updates')}">
+                            Updates
                           </a>
-                          <div class="dropdown-menu">
-                            <a class="dropdown-item" href="${request.route_url('metrics')}">
-                              Overall Metrics
-                            </a>
-                            <a class="dropdown-item" href="${request.route_url('collection_composes')}">
-                              Composes
-                            </a>
-                            % for state in request.releases:
-                            <div class="dropdown-divider"></div>
-                            % for r in request.releases[state]:
-                            <a class="dropdown-item" href="${request.route_url('releases')}${r['name']}">
-                              ${r['long_name']}
-                            </a>
-                            % endfor
-                            % endfor
-                          </div>
                         </li>
 
                         % if request.user:
@@ -135,8 +106,18 @@
                             <img src="${self.util.avatar(request.user.name, size=24)}"/>
                           </a>
                           <div class="dropdown-menu">
+                              <a class="dropdown-item" href="${request.route_url('home')}">
+                                  Dashboard
+                              </a>
+                              <a class="dropdown-item" href="${request.route_url('new_update')}">
+                                  Create New Update
+                              </a>
+                              <a class="dropdown-item" href="${request.route_url('new_override')}">
+                                  Create New Override
+                              </a>
+                              <div class="dropdown-divider"></div>
                               <a class="dropdown-item" href="${request.route_url('user', name=request.user.name)}">
-                                Your Profile
+                                Your Public Profile
                               </a>
                               <a class="dropdown-item" href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
                                 Manage Alerts

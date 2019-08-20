@@ -758,7 +758,7 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         resp = self.app.get('/overrides/',
                             status=200, headers={'Accept': 'text/html'})
-        self.assertIn('<h3>Overrides <small>page #1 of 1 pages', resp)
+        self.assertIn('<h2>Overrides', resp)
         self.assertIn('<a href="http://localhost/overrides/bodhi-2.0-1.fc17">', resp)
 
     @mock.patch('bodhi.server.util.arrow.get')
