@@ -19,7 +19,6 @@
 from datetime import datetime
 from unittest import mock
 import copy
-import re
 
 import webtest
 
@@ -336,21 +335,46 @@ class TestGenericViews(base.BaseTestCase):
     def test_candidate(self):
         res = self.app.get('/latest_candidates')
         body = res.json_body
-        self.assertEqual(body, [])
+        self.assertEqual(len(body), 1)
 
         res = self.app.get('/latest_candidates', {'package': 'TurboGears'})
         body = res.json_body
         self.assertEqual(len(body), 1)
         self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
         self.assertEqual(body[0]['id'], 16059)
+        self.assertEqual(body[0]['owner_name'], 'lmacken')
+        self.assertEqual(body[0]['package_name'], 'TurboGears')
+        self.assertEqual(body[0]['release_name'], 'Fedora 17')
 
         res = self.app.get('/latest_candidates', {'package': 'TurboGears', 'testing': True})
         body = res.json_body
         self.assertEqual(len(body), 2)
         self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
         self.assertEqual(body[0]['id'], 16059)
+        self.assertEqual(body[0]['owner_name'], 'lmacken')
+        self.assertEqual(body[0]['package_name'], 'TurboGears')
+        self.assertEqual(body[0]['release_name'], 'Fedora 17')
         self.assertEqual(body[1]['nvr'], 'TurboGears-1.0.2.2-4.fc17')
         self.assertEqual(body[1]['id'], 16060)
+        self.assertEqual(body[1]['owner_name'], 'lmacken')
+        self.assertEqual(body[1]['package_name'], 'TurboGears')
+        self.assertEqual(body[1]['release_name'], 'Fedora 17')
+
+    @mock.patch('bodhi.server.views.generic.log.error')
+    @mock.patch("bodhi.server.buildsys.DevBuildsys.multiCall")
+    def test_candidate_koji_error(self, mock_listTagged, log_error):
+        # if the koji multicall returns errors, it returns a dict in
+        # the main list containing the traceback from koji. e.g. if a
+        # tag that is defined in bodhi doesnt exist on koji. This test
+        # checks that we log this to the bodhi error log.
+
+        error = {'faultcode': 1000, 'traceback': ['Traceback']}
+        mock_listTagged.return_value = [error]
+        self.app.get('/latest_candidates', {'package': 'TurboGears'})
+        # mock_listTagged.assert_called_once()
+        # self.assertEquals(res.json_body, "")
+        # log_error.assert_called()
+        log_error.assert_called_with(error)
 
     def test_version(self):
         res = self.app.get('/api_version')
@@ -385,10 +409,8 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/updates/new', headers=headers)
         self.assertIn('Creating a new update requires JavaScript', res)
         # Make sure that unspecified comes first, as it should be the default.
-        regex = r''
-        for value in ('unspecified', 'reboot', 'logout'):
-            regex = regex + r'name="suggest" value="{}".*'.format(value)
-        self.assertTrue(re.search(regex, res.body.decode('utf8').replace('\n', ' ')))
+        regex = '<select id="suggest" name="suggest">\\n.*<option value="unspecified"'
+        self.assertRegex(str(res), regex)
 
         # Test that the unlogged in user cannot see the New Update form
         anonymous_settings = copy.copy(self.app_settings)

@@ -20,7 +20,6 @@ from datetime import datetime, timedelta
 from unittest import mock
 from urllib import parse as urlparse
 import copy
-import re
 import textwrap
 import time
 
@@ -1028,10 +1027,8 @@ class TestEditUpdateForm(BaseTestCase):
             headers={'accept': 'text/html'})
         self.assertIn('Editing an update requires JavaScript', resp)
         # Make sure that unspecified comes first, as it should be the default.
-        regex = r''
-        for value in ('unspecified', 'reboot', 'logout'):
-            regex = regex + r'name="suggest" value="{}".*'.format(value)
-        self.assertTrue(re.search(regex, resp.body.decode('utf8').replace('\n', ' ')))
+        regex = '<select id="suggest" name="suggest">\\n.*<option value="unspecified"'
+        self.assertRegex(str(resp), regex)
 
     def test_edit_without_permission(self):
         """
@@ -1074,8 +1071,8 @@ class TestEditUpdateForm(BaseTestCase):
 
         resp = self.app.get(f'/updates/{alias}/edit',
                             headers={'accept': 'text/html'})
-        self.assertRegex(str(resp), ('<input type="radio" name="severity" '
-                                     'value="unspecified"\\n.*disabled="disabled"\\n.*>'))
+        self.assertRegex(str(resp), ('<select id="severity" name="severity">\\n.*'
+                                     '<option value="unspecified"\\n.*disabled="disabled"\\n.*>'))
 
     def test_days_in_testing_new_update(self):
         """
@@ -1085,7 +1082,7 @@ class TestEditUpdateForm(BaseTestCase):
         resp = self.app.get(f'/updates/new',
                             headers={'accept': 'text/html'})
         self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
-                                     '\\n.*min="0" value=""\\n.*>'))
+                                     ' class="form-control"\\n.*min="0" value=""\\n.*>'))
 
     def test_days_in_testing_existing_update(self):
         """
@@ -1106,7 +1103,7 @@ class TestEditUpdateForm(BaseTestCase):
         resp = self.app.get(f'/updates/{alias}/edit',
                             headers={'accept': 'text/html'})
         self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
-                                     '\\n.*min="7" value="10"\\n.*>'))
+                                     ' class="form-control"\\n.*min="7" value="10"\\n.*>'))
 
 
 @mock.patch('bodhi.server.models.handle_update', mock.Mock())
@@ -2747,6 +2744,33 @@ class TestUpdatesService(BaseTestCase):
 
     def test_list_updates_by_username(self):
         res = self.app.get('/updates/', {"user": "guest"})
+        body = res.json_body
+        self.assertEqual(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEqual(up['title'], 'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], 'pending')
+        self.assertEqual(up['request'], 'testing')
+        self.assertEqual(up['user']['name'], 'guest')
+        self.assertEqual(up['release']['name'], 'F17')
+        self.assertEqual(up['type'], 'bugfix')
+        self.assertEqual(up['severity'], 'medium')
+        self.assertEqual(up['suggest'], 'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], 'Useful details!')
+        self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+
+    def test_list_updates_by_gating_status(self):
+        up = self.db.query(Build).filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        up.test_gating_status = TestGatingStatus.passed
+        self.db.commit()
+        res = self.app.get('/updates/', {"gating": "passed"})
         body = res.json_body
         self.assertEqual(len(body['updates']), 1)
 

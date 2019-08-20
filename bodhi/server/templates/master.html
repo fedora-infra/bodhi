@@ -38,16 +38,23 @@
     <link href="${request.static_url('bodhi:server/static/css/site.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/css/datagrepper-feed.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/css/panel.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/selectize/selectize.bootstrap3.css') }" rel="stylesheet" />
     <script src="${request.static_url('bodhi:server/static/js/jquery-1.10.2.min.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/Chart-0.2.0.min.js')}"></script>
+    <script type="text/javascript">
+      var settings = {
+          bz_products: ["${ '","'.join(config['bz_products']) | n }"],
+          bz_server_rest: "${config['bz_server_rest']}"
+      };
+    </script>
   </head>
 
   <body>
       <div class="searchbar" style="display:none;">
         <div class="container">
           <div class="row">
-            <div class="col-xs-12">
-              <form id="search" role="search" class="nav navbar-form navbar-left">
+            <div class="col-12">
+              <form id="search" role="search">
                 <div id="bloodhound" class="form-group mb-0">
                   <input class="typeahead form-control" name="term" type="text" placeholder="Search..." style="height:50px;background:rgba(0,0,0,0);border:0;color:white;line-height:50px;">
                 </div>

@@ -369,6 +369,10 @@ def query_updates(request):
         query = query.join(Update.builds)
         query = query.filter(Build.type == content_type)
 
+    gating_status = data.get('gating')
+    if gating_status is not None:
+        query = query.filter(Update.test_gating_status == gating_status)
+
     user = data.get('user')
     if user is not None:
         query = query.filter(or_(*[Update.user == u for u in user]))
