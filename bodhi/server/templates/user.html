@@ -40,16 +40,7 @@
               },
 
           });
-      $.ajax(
-          "${urls['comments_on']}" + "&ignore_user=bodhi&chrome=False&rows_per_page=10",
-          {
-              dataType: 'html',
-              success: function(html) {
-                  $('#comments_on').parent().append(html);
-                  $('#comments_on').next('ul').addClass('linkable');
-                  $('#comments_on').remove();
-              },
-          });
+
       $.ajax(
           "${urls['comments_by']}" + "&chrome=False&rows_per_page=10",
           {
@@ -62,13 +53,14 @@
           });
   });
 </script>
+<div class="subheader">
 <div class="container pt-2">
 <div class="row" style="margin-top: 10px;">
   <div class="col-md-12">
     <div class="float-left">
       % if request.user and user['name'] == request.user.name:
         <a href="https://www.libravatar.org/openid/login/?openid_identifier=${request.user.openid}">
-          <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}"/>
+          <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" width="128px" height="128px"/>
         </a>
       % else:
         <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}"/>
@@ -80,98 +72,52 @@
     </div>
   </div>
 </div>
+</div>
+</div>
 
-<hr style="margin: 15px 0;" />
+<div class="container pt-4">
 
-<div class="row">
+<div class="row pt-3">
   <div class="col-md-12 onlyjs">
     <div>
-      <h3 class="float-left nomargin nopadding">${user['name']}'s latest updates</h3>
-      <div class="float-right">
-        <a href="${urls['recent_updates_rss']}">
-          RSS <span class="fa fa-rss"></span>
-        </a>
-        <a href="${urls['recent_updates']}&status=testing">
-          Testing<span class="glyphicon glyphicon-chevron-right"></span>
-        </a>
-        <a href="${urls['recent_updates']}&status=stable">
-          Stable<span class="glyphicon glyphicon-chevron-right"></span>
-        </a>
-        <a href="${urls['recent_updates']}">
-          All<span class="glyphicon glyphicon-chevron-right"></span>
-        </a>
-      </div>
+      <h5 class="font-weight-bold d-flex align-items-center">${user['name']}'s latest updates
+        <span class="ml-auto">
+              <a href="${urls['recent_updates']}">
+                All Updates
+              </a>
+            </span>
+      </h5>
     </div>
-    <div class="clearfix"></div>
-    <div id="recent_updates" class="spinner"></div>
+    <div id="recent_updates"><div class="list-group"><div class="list-group-item text-center bg-light p-4"><i class="fa fa-spin text-muted fa-circle-o-notch fa-2x"></i></div></div></div>
   </div>
 </div>
 
-<hr style="margin-bottom: 15px;" />
-
-<div class="row">
+<div class="row pt-4">
   <div class="col-md-12">
-    <div>
-      <h3 class="float-left nomargin nopadding">${user['name']}'s latest buildroot overrides</h3>
-      <div class="float-right">
-        <a href="${urls['recent_overrides_rss']}">
-          RSS <span class="fa fa-rss"></span>
-        </a>
-        <a href="${urls['recent_overrides']}&expired=0">
-          Active<span class="glyphicon glyphicon-chevron-right"></span>
-        </a>
-        <a href="${urls['recent_overrides']}&expired=1">
-          Expired<span class="glyphicon glyphicon-chevron-right"></span>
-        </a>
-        <a href="${urls['recent_overrides']}">
-          All<span class="glyphicon glyphicon-chevron-right"></span>
-        </a>
+      <h5 class="font-weight-bold d-flex align-items-center">${user['name']}'s latest buildroot overrides
+          <span class="ml-auto">
+                <a href="${urls['recent_overrides']}">
+                  All Overrides
+                </a>
+              </span>
+        </h5>
+        <div id="recent_overrides"><div class="list-group"><div class="list-group-item text-center bg-light p-4"><i class="fa fa-spin text-muted fa-circle-o-notch fa-2x"></i></div></div></div>
       </div>
-    </div>
-    <div class="clearfix"></div>
-    <div id="recent_overrides" class="spinner"></div>
-  </div>
 </div>
 
-<hr style="margin-bottom: 15px;" />
 
-<div class="row">
-  <div class="col-md-6">
-    <div style="margin-bottom: 40px;">
-      <h3 class="nomargin nopadding float-left">
-        Feedback received on updates <span class="count"></span>
-      </h3>
-      <span class="float-right">
-        <a href="${urls['comments_on_rss']}">
-          RSS <span class="fa fa-rss"></span>
-        </a>
-        <a href="${urls['comments_on']}">
-          View all
-          <span class="glyphicon glyphicon-chevron-right"></span>
-        </a>
-      </span>
-    </div>
-    <div class="clearfix"></div>
-    <div id="comments_on" class="spinner"></div>
-  </div>
+<div class="row pt-4">
 
-  <div class="col-md-6">
-    <div style="margin-bottom: 40px;">
-      <h3 class="nomargin nopadding float-left">
-        Feedback sent on updates <span class="count"></span>
-      </h3>
-      <span class="float-right">
-        <a href="${urls['comments_by_rss']}">
-          RSS <span class="fa fa-rss"></span>
-        </a>
-        <a href="${urls['comments_by']}">
-          View all
-          <span class="glyphicon glyphicon-chevron-right"></span>
-        </a>
-      </span>
+  <div class="col-12">
+    <h5 class="font-weight-bold d-flex align-items-center">${user['name']}'s latest comments & feedback
+        <span class="ml-auto">
+              <a href="${urls['comments_by']}">
+                All Comments
+              </a>
+            </span>
+      </h5>
+      <div id="comments_by"><div class="list-group"><div class="list-group-item text-center bg-light p-4"><i class="fa fa-spin text-muted fa-circle-o-notch fa-2x"></i></div></div></div>
     </div>
-    <div class="clearfix"></div>
-    <div id="comments_by" class="spinner"></div>
   </div>
 </div>
 </div>

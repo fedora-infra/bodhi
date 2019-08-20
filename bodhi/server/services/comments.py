@@ -25,7 +25,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_, and_
 
 from bodhi.server import log
-from bodhi.server.models import Comment, Build, Update
+from bodhi.server.models import Comment, Build, Update, User
 from bodhi.server.validators import (
     validate_packages,
     validate_update,
@@ -152,6 +152,10 @@ def query_comments(request):
     ignore_user = data.get('ignore_user')
     if ignore_user is not None:
         query = query.filter(and_(*[Comment.user != u for u in ignore_user]))
+
+    # don't show bodhi user comments in the web interface
+    if data.get("chrome"):
+        query = query.filter(and_(*[Comment.user != User.get('bodhi')]))
 
     user = data.get('user')
     if user is not None:

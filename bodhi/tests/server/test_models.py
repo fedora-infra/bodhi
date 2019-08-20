@@ -3276,9 +3276,10 @@ class TestUpdate(ModelTest):
         bug.title = 'foo\xe9bar'
         from bodhi.server.util import bug_link
         link = bug_link(None, bug)
+
         self.assertEqual(
-            link, ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a>"
-                   " foo\xe9bar"))
+            link, ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'"
+                   " class='notblue'>BZ#1</a> foo\xe9bar"))
 
     def test_set_request_pending_stable(self):
         """Ensure that we can submit an update to stable if it is pending and has enough karma."""

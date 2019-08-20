@@ -1,150 +1,241 @@
 <%namespace name="util" module="bodhi.server.util"/>
 
+<%def name="karma(karma, show_digit=False, optional_text=None, zero_thumbsup=True)">
+  <%doc>
+  Return a span with the karma thumbsup icon, and an optional count of the karma.
+
+  Example:
+  <span><i class="fa fa-thumbs-o-up text-success pr-1"></i>3</span>
+
+  Args:
+      karma (int): The amount of karma
+      show_digit (bool): if true, show the amount of karma in the returned span
+      optional_text (str): a string to place after the icon
+      zero_thumbsup: if true, and karma is 0, show the thumbsup. otherwise if false,
+                     and karma is zero, show thumbsdown.
+  
+  </%doc>
+  
+  % if karma < 0:
+    <span class="text-danger"><i class="fa fa-thumbs-down pr-1"></i> 
+  % elif karma > 0:
+    <span class="text-success"><i class="fa fa-thumbs-up pr-1"></i> 
+  % else:
+    <span class="text-muted">
+    % if zero_thumbsup:
+      <i class="fa fa-thumbs-up text-muted pr-1"></i>
+    % else:
+      <i class="fa fa-thumbs-down text-muted pr-1"></i>
+    % endif
+  %endif
+  % if optional_text:
+    ${optional_text} 
+  % endif
+  % if show_digit:
+    ${karma}
+  % endif
+  </span>
+</%def>
+
+<%def name="status_context(status)">\
+<%
+statusmap = {'pending': 'info',
+             'testing': 'warning',
+             'stable': 'success',
+             'unpushed': 'danger',
+             'obsolete': 'secondary'}
+%>\
+${statusmap[status]}\
+</%def>
+
+<%def name="status_text(update)">
+  <span class="font-weight-bold">${update.status.value}</span>
+  % if update.request:
+    <span title="this update has been requested to ${update.request.value}" data-toggle="tooltip"><i class="fa fa-arrow-right text-white"></i> ${update.request.value}</span>
+  % endif
+</%def>
+
+
+
 <%def name="comment(comment, display_update=True)">
 % if comment.user.name == "bodhi":
 <div class="row">
-        <div class="col-md-10 text-muted">
-          ${util.markup(comment.text) | n}
-        </div>
-        <div class="col-md-2 text-xs-right text-muted">
-          <a href="${comment.url()}" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
-            ${util.age(comment.timestamp)}
-          </a>
+        <div class="col-12 text-muted font-size-09">
+          <div class="card border-0">
+            <div class="card-body border-0 p-2">
+                <i class="fa fa-info-circle"></i>
+                <span class="font-weight-bold">${comment.text | n}</span>
+                <a href="${comment.url()}" class="notblue float-right" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
+                    ${util.age(comment.timestamp)}
+                  </a>
+            </div>
+          </div>
         </div>
 </div>
 % else:
-<div class="row">
+<div class="row my-2">
   <div class="col-md-12">
-    <!--<div class="card card-${util.karma2class(comment.karma)}">-->
-    <div class="card my-1">
-      <div class="card-header clearfix">
-        <span>
+    <div class="card my-2 user-comment">
+      <div class="card-header p-2 text-muted">
+        <div class="row no-gutters">
+          <div class="col font-size-09">
           % if comment.user:
-          <a href="${request.route_url('user', name=comment.user.name)}">
-            <img class="rounded-circle" src="${util.avatar(comment.user.name, size=24)}"/>
+          <a href="${request.route_url('user', name=comment.user.name)}" class="font-weight-bold notblue">
+            <img src="${util.avatar(comment.user.name, size=16)}"/>
             ${comment.user.name}
           </a>
+          % if comment.text:
+            % if comment.karma or comment.karma_critpath or comment.bug_feedback or any([True for feedback in comment.unique_testcase_feedback if feedback.karma]):
+              commented &amp; provided feedback
+            % else:
+              commented
+            % endif
+          % else:
+            provided feedback
+          % endif
           % endif
           % if display_update:
-          <small>on
             <a href="${comment.update.get_url()}">
-              ${comment.update.get_title(', ', 1, ", &hellip;") | n}
+              on ${comment.update.get_title(', ', 1, ", &hellip;") | n}
             </a>
-          </small>
           % endif
-        </span>
-
-        <span class="float-right">
-          <a href="${comment.url()}" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
-            ${util.age(comment.timestamp)}
-          </a>
-        </span>
+          <a href="${comment.url()}" class="notblue" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
+              ${util.age(comment.timestamp)}
+            </a>
+          </div>
+          <div class="col-auto">
+        % if comment.karma_critpath:
+        <span class="font-size-09 font-weight-bold">${karma(comment.karma_critpath, optional_text="critpath")}</span>
+        % endif
+        %if comment.karma and comment.karma_critpath:
+        <span class="px-2 font-size-09">|</span>
+        %endif
+        % if comment.karma:
+        <span class="font-size-09 font-weight-bold"> ${karma(comment.karma, optional_text="karma")}</span>
+        % endif
+          </div>
       </div>
-
-      <div class="card-body pb-1">
-        <div class="row">
-        <div class="col-md-12">
+      </div>
+      
+      <%
+      has_feedback = False
+      if comment.bug_feedback:
+        for feedback in comment.bug_feedback:
+          if feedback.karma:
+            has_feedback = True
+      if comment.testcase_feedback:
+        for feedback in comment.testcase_feedback:
+          if feedback.karma:
+            has_feedback = True
+      %>
+      % if has_feedback or comment.text:
+      <div class="card-body p-0">
+        % if comment.text:
+        <div class="col-md-12 py-3">
           ${util.markup(comment.text) | n}
         </div>
-        <div class="col-md-12 pt-2">
-          % if comment.karma:
-          <span class="nowrap">karma: ${util.karma2html(comment.karma) | n}</span>
-          % endif
+        %endif
 
-          % if comment.karma_critpath:
-          <span class="nowrap">critpath: ${util.karma2html(comment.karma_critpath) | n}</span>
-          % endif
-
+        % if has_feedback:
+        <div class="list-group list-group-flush font-size-09 border-top">
           % for feedback in comment.bug_feedback:
           % if feedback.karma:
-          <span class="nowrap">${util.bug_link(feedback.bug, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
+          <div class="list-group-item border-0 p-1 pl-2 bg-light ${'list-group-item-success' if feedback.karma == 1 else 'list-group-item-danger'}">${karma(feedback.karma)} ${util.bug_link(feedback.bug) | n}</div>
           % endif
           % endfor
 
           % if comment.testcase_feedback:
             % for feedback in comment.unique_testcase_feedback:
             % if feedback.karma:
-            <span class="nowrap">${util.testcase_link(feedback.testcase, short=True) | n}: ${util.karma2html(feedback.karma) | n}</span>
+            <div class="list-group-item border-0 p-1 pl-2 bg-light ${'list-group-item-success' if feedback.karma == 1 else 'list-group-item-danger'}">${karma(feedback.karma)} ${util.testcase_link(feedback.testcase) | n}</div>
             % endif
             % endfor
           % endif
         </div>
+        %endif
 
       </div>
-      </div>
+      %endif
     </div>
   </div>
 </div>
 % endif
 </%def>
 
-<%def name="update(update, display_user=True, display_request=False, display_release=True, display_karma=True)">
-  <td class="stretch-table-column">${util.type2icon(update['type'])|n} ${util.update2html(update)|n}</td>
-  <td class="nowrap">
-    <span title="${update['date_submitted']} UTC">
-      ${util.age(update['date_submitted'], True)}
-    </span>
-  </td>
-  %if display_user:
-  <td class="nowrap">
-    <a href="${request.route_url('user', name=update['user']['name'])}">
-      <img class="rounded-circle" src="${util.avatar(update['user']['name'], size=24)}"/>
+<%def name="update(update, display_user=True, display_karma=True, display_commentcount=True)">
+  <div class="list-group-item p-1">
+      <div class="row align-items-center no-gutters">
+          <div class="col-md">
+              <div class="media">
+                  ${util.type2icon(update['type'])|n}
+                  <div class="media-body ml-2">
+                      <div class="font-weight-bold">
+                        <a href="${request.route_url('update', id=update['alias'])}"">
+                        ${update.beautify_title(amp=True,nvr=True) | n}
+                        </a>
+                      </div>
+                      <div class="line-height-1">
+                        <small> created
+                        %if display_user:
+    by <a href="${request.route_url('user', name=update['user']['name'])}">
       ${update['user']['name']}
     </a>
-  </td>
-  %endif
-  %if display_release:
-  <td class="hidejs">
-    % if update['release']:
-    <a href="${request.route_url('release', name=update['release']['name'])}">
-      ${update['release']['name']}
-    </a>
-    % endif
-  </td>
-  %endif
-  %if display_karma:
-  <td class="hidejs">
-    ${util.karma2html(update['karma']) | n}
-  </td>
-  %endif
-  %if display_request:
-  <td class="hidejs">
-    % if update['request']:
-      ${util.request2html(update['request']) | n}
-    % endif
-  </td>
-  %endif
-  <td class="hidejs">
-    ${util.status2html(update['status']) | n}
-  </td>
+                        %endif
+                          <span title="${update['date_submitted']} UTC"> ${util.age(update['date_submitted'], True)}</span> ago 
+                          for <a href="${request.route_url('release', name=update['release']['name'])}">${update['release']['long_name']}
+                          </a></small>
+                    </div>
+                  </div>
+              </div>
+            </div>
+            <div class="col-auto">
+                <div>
+                  <span class="mr-3 font-size-09 p-1 font-weight-normal badge badge-${status_context(update.status.value)}">${status_text(update)}</span>
+                </div>
+            </div>
+            %if display_commentcount:
+              <div class="col-auto text-muted min-width-3 font-weight-bold mr-3">
+                  <div><i class="fa fa-comment-o pr-1"></i> ${sum(1 for c in update.comments if c.user.name != 'bodhi')}</div>
+              </div>
+            %endif
+            %if display_karma:
+            <div class="col-auto min-width-3 font-weight-bold mr-3">
+                <div>${karma(update.karma, show_digit=True)}</div>
+            </div>
+            %endif
+      </div>
+  </div>
 </%def>
 
 <%def name="override(override, display_user=True)">
-  <td>
-    <a href="${request.route_url('override', nvr=override['build']['nvr'])}">
-      ${override['build']['nvr']}
-    </a>
-  </td>
-  <td class="nowrap">
-    <span title="${override['submission_date']} UTC">
-      ${util.age(override['submission_date'], True)}
-    </span>
-  </td>
-  %if display_user:
-  <td class="nowrap">
-    <a href="${request.route_url('user', name=override['submitter']['name'])}">
-      <img class="rounded-circle" src="${util.avatar(override['submitter']['name'], size=24)}"/>
-      ${override['submitter']['name']}
-    </a>
-  </td>
-  %endif
-  <td class="hidejs">
+<div class="list-group-item p-1">
+  <div class="row align-items-center no-gutters">
+    <div class="col pl-2">
+        <div class="font-weight-bold">
+            <a href="${request.route_url('override', nvr=override['build']['nvr'])}">
+                ${override['build']['nvr']}
+              </a>
+          </div>
+          <div>
+            <small>created 
+              %if display_user:
+              by
+                <a href="${request.route_url('user', name=override['submitter']['name'])}">
+                  ${override['submitter']['name']}
+                </a>
+              %endif
+              <span title="${override['submission_date']} UTC"> ${util.age(override['submission_date'], True)}</span> ago 
+              for <a href="${request.route_url('release', name=override['build']['release']['name'])}">${override['build']['release']['long_name']}
+              </a></small>
+          </div>
+      </div>
     % if override['expired_date'] is None:
-    <span title="Expires on ${override['expiration_date']}">Active</span>
+          <div class='col-xs-auto pr-2 text-muted'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></div>
     % else:
-    <span title="Expired since ${override['expired_date']}">Expired</span>
+          <div class='col-xs-auto pr-2 text-muted'><small>expired <strong>${util.age(override['expired_date'], True)} ago</strong></small></div>
     % endif
-  </td>
+  </div>
+</div>
 </%def>
 
 <%def name="markdown_help_modal()">

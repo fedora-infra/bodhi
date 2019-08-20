@@ -39,6 +39,8 @@ $(document).ready(function() {
 
     // Attach bootstrap tooltips to everything.
     $('[data-toggle="tooltip"]').tooltip();
+    $('[data-toggle="popover"]').popover();
+
 
     // Make the rows on the comment form change color on click.
     $('.table td > input').click(function() {
