@@ -982,6 +982,34 @@ class Release(Base):
         """
         return config.get(f'{self.setting_prefix}.status', None)
 
+    def get_testing_side_tag(self, from_tag: str) -> str:
+        """
+        Return the testing side tag for this ``Release``.
+
+        Args:
+            from_tag: Name of side tag from which ``Update`` was created.
+
+        Returns:
+            Testing side tag used in koji.
+        """
+        side_tag_postfix = config.get(
+            f'{self.setting_prefix}.koji-testing-side-tag', "-testing")
+        return from_tag + side_tag_postfix
+
+    def get_pending_signing_side_tag(self, from_tag: str) -> str:
+        """
+        Return the testing side tag for this ``Release``.
+
+        Args:
+            from_tag: Name of side tag from which ``Update`` was created.
+
+        Returns:
+            Testing side tag used in koji.
+        """
+        side_tag_postfix = config.get(
+            f'{self.setting_prefix}.koji-pending-signing-side-tag', "-pending-signing")
+        return from_tag + side_tag_postfix
+
 
 class TestCase(Base):
     """

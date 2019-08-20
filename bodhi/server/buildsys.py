@@ -126,6 +126,7 @@ class DevBuildsys:
         cls.__added__ = []
         cls.__tagged__ = {}
         cls.__rpms__ = []
+        cls.__tags__ = []
 
     def multiCall(self):
         """Emulate Koji's multiCall."""
@@ -487,7 +488,7 @@ class DevBuildsys:
                  'parent_id': 6438, 'maxdepth': None, 'noconfig': False, 'child_id': 6441,
                  'nextdepth': None, 'filter': [], 'currdepth': 4}]
 
-    def addTag(self, tag: str, **opts):
+    def createTag(self, tag: str, **opts):
         """Emulate tag adding."""
         if 'parent' not in opts:
             raise ValueError('No parent in tag options')

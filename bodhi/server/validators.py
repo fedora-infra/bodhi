@@ -204,6 +204,16 @@ def validate_build_nvrs(request, **kwargs):
     for build in request.validated.get('builds') or []:  # cope with builds being None
         try:
             cache_nvrs(request, build)
+            if request.validated.get('from_tag'):
+                n, v, r = request.buildinfo[build]['nvr']
+                release = request.db.query(Release).filter(or_(Release.name == r,
+                                                               Release.name == r.upper(),
+                                                               Release.version == r)).first()
+                if release and release.composed_by_bodhi:
+                    request.errors.add(
+                        'body', 'builds',
+                        f"Can't create update from tag for release"
+                        f" '{release.name}' composed by Bodhi.")
         except ValueError:
             request.validated['builds'] = []
             request.errors.add('body', 'builds', 'Build does not exist: %s' % build)
