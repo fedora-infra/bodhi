@@ -26,7 +26,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 from requests import RequestException, Timeout as RequestsTimeout
 
-from bodhi.server import log, security
+from bodhi.server import log, security, buildsys
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
     Update,
@@ -440,6 +440,8 @@ def new_update(request):
     empty, the list of builds will be filled with the latest builds in this
     Koji tag. This is done by validate_from_tag() because the list of builds
     needs to be available in validate_acls().
+    Ensure that related tags ``from_tag``-pending-signing and ``from_tag``-testing
+    exists and if not create them in Koji.
 
     Args:
         request (pyramid.request): The current request.
@@ -492,8 +494,8 @@ def new_update(request):
         # the builds as signed.
         request.db.commit()
 
-        # After we commit the transaction, we need to get the builds and releases again, since they
-        # were tied to the previous session that has now been terminated.
+        # After we commit the transaction, we need to get the builds and releases again,
+        # since they were tied to the previous session that has now been terminated.
         builds = []
         releases = set()
         for nvr in build_nvrs:
@@ -536,6 +538,24 @@ def new_update(request):
 
             if len(releases) > 1:
                 result = dict(updates=updates)
+
+            if from_tag:
+                koji = buildsys.get_session()
+                for update in updates:
+                    # Validate that <koji_tag>-pending-signing and <koji-tag>-testing exists,
+                    # if not create them
+                    side_tag_pending_signing = update.release.get_pending_signing_side_tag(
+                        from_tag)
+                    side_tag_testing = update.release.get_testing_side_tag(from_tag)
+                    if not koji.getTag(side_tag_pending_signing):
+                        koji.createTag(side_tag_pending_signing, parent=from_tag)
+                    if not koji.getTag(side_tag_testing):
+                        koji.createTag(side_tag_testing, parent=from_tag)
+
+                    to_tag = side_tag_pending_signing
+                    # Move every new build to <from_tag>-pending-signing tag
+                    update.add_tag(to_tag)
+
     except LockedUpdateException as e:
         log.warning(str(e))
         request.errors.add('body', 'builds', "%s" % str(e))

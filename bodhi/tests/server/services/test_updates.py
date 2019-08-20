@@ -29,7 +29,7 @@ import requests
 from webtest import TestApp
 
 from bodhi.messages.schemas import base as base_schemas, update as update_schemas
-from bodhi.server import main
+from bodhi.server import main, buildsys
 from bodhi.server.config import config
 from bodhi.server.models import (
     Build, BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
@@ -85,6 +85,16 @@ class TestNewUpdate(BaseTestCase):
     """
     This class contains tests for the new_update() function.
     """
+
+    @classmethod
+    def mock_getTag(cls, tag, *kwargs):
+        if tag == 'f17-build-side-7777':
+            return {'maven_support': False, 'locked': False, 'name': 'f17-build-side-7777',
+                    'extra': {'sidetag_user': 'dudemcpants', 'sidetag': True},
+                    'perm': None, 'perm_id': None, 'arches': None, 'maven_include_all': False,
+                    'id': 7777}
+        return None
+
     @mock.patch(**mock_valid_requirements)
     def test_empty_build_name(self, *args):
         res = self.app.post_json('/updates/', self.get_update(['']), status=400)
@@ -285,8 +295,14 @@ class TestNewUpdate(BaseTestCase):
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
 
+        # We need release that is not composed by bodhi
+        release = Release.query.one()
+        release.composed_by_bodhi = False
+        self.db.commit()
+
         update = self.get_update(builds=None, from_tag='f17-build-side-7777')
-        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1), mock.patch(
+                'bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
             r = self.app.post_json('/updates/', update)
 
         up = r.json_body
@@ -313,6 +329,34 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['karma'], 0)
         self.assertEqual(up['requirements'], 'rpmlint')
         self.assertEqual(up['from_tag'], 'f17-build-side-7777')
+
+        koji_session = buildsys.get_session()
+        expected_pending_signing = ('f17-build-side-7777-pending-signing',
+                                    {'parent': 'f17-build-side-7777',
+                                     'locked': False,
+                                     'maven_support': False,
+                                     'name': 'f17-build-side-7777-pending-signing',
+                                     'perm': 'admin',
+                                     'arches': None,
+                                     'maven_include_all': False,
+                                     'perm_id': 1})
+        expected_testing = ('f17-build-side-7777-testing',
+                            {'parent': 'f17-build-side-7777',
+                             'locked': False,
+                             'maven_support': False,
+                             'name': 'f17-build-side-7777-testing',
+                             'perm': 'admin',
+                             'arches': None,
+                             'maven_include_all': False,
+                             'perm_id': 1})
+
+        self.assertIn(expected_pending_signing, koji_session.__tags__)
+        self.assertIn(expected_testing, koji_session.__tags__)
+        self.assertIn(('f17-build-side-7777-pending-signing',
+                       'gnome-backgrounds-3.0-1.fc17'),
+                      koji_session.__added__)
+
+        koji_session.clear()
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_url(self, *args):
