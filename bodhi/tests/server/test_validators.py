@@ -725,7 +725,7 @@ class TestValidateFromTag(BasePyTestCase):
         self.request = mock.Mock()
         self.request.db = self.db
         self.request.errors = Errors()
-        self.request.validated = {'from_tag': 'f17-updates-candidate'}
+        self.request.validated = {'from_tag': 'f17-build-side-7777'}
 
     # Successful validations
 
