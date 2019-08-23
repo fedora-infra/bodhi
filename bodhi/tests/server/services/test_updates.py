@@ -285,13 +285,13 @@ class TestNewUpdate(BaseTestCase):
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
 
-        update = self.get_update(builds=None, from_tag='f17-updates-candidate')
+        update = self.get_update(builds=None, from_tag='f17-build-side-7777')
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             r = self.app.post_json('/updates/', update)
 
         up = r.json_body
-        self.assertEqual(up['title'], 'TurboGears-1.0.2.2-3.fc17')
-        self.assertEqual(up['builds'][0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(up['title'], 'gnome-backgrounds-3.0-1.fc17')
+        self.assertEqual(up['builds'][0]['nvr'], 'gnome-backgrounds-3.0-1.fc17')
         self.assertEqual(up['status'], 'pending')
         self.assertEqual(up['request'], 'testing')
         self.assertEqual(up['user']['name'], 'guest')
@@ -312,7 +312,7 @@ class TestNewUpdate(BaseTestCase):
                        f'FEDORA-{YEAR + 1}-033713b73b'))
         self.assertEqual(up['karma'], 0)
         self.assertEqual(up['requirements'], 'rpmlint')
-        self.assertEqual(up['from_tag'], 'f17-updates-candidate')
+        self.assertEqual(up['from_tag'], 'f17-build-side-7777')
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_url(self, *args):
@@ -2920,7 +2920,7 @@ class TestUpdatesService(BaseTestCase):
         # We don't want an existing buildroot override to clutter the messages.
         self.db.delete(BuildrootOverride.query.one())
 
-        update = self.get_update(from_tag='f17-updates-candidate')
+        update = self.get_update(from_tag='f17-build-side-7777')
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             r = self.app.post_json('/updates/', update)
 
