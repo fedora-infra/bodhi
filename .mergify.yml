@@ -16,6 +16,10 @@ pull_request_rules:
   - status-success=f30-unit
   - status-success=f30-diff-cover
   - status-success=f30-integration
+  - status-success=f31-docs
+  - status-success=f31-unit
+  - status-success=f31-diff-cover
+  - status-success=f31-integration
   - status-success=pip-docs
   - status-success=pip-flake8
   - status-success=pip-mypy
@@ -42,6 +46,10 @@ pull_request_rules:
   - status-success=f30-unit
   - status-success=f30-diff-cover
   - status-success=f30-integration
+  - status-success=f31-docs
+  - status-success=f31-unit
+  - status-success=f31-diff-cover
+  - status-success=f31-integration
   - status-success=pip-docs
   - status-success=pip-flake8
   - status-success=pip-mypy
