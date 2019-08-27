@@ -2390,10 +2390,12 @@ class Update(Base):
         signed, or if the associated :class:`Release` does not have a ``pending_signing_tag``
         defined. Otherwise, it will return ``False``.
 
+        If the update is created ``from_tag`` always check if every build is signed.
+
         Returns:
             bool: ``True`` if the update is signed, ``False`` otherwise.
         """
-        if not self.release.pending_signing_tag:
+        if not self.release.pending_signing_tag and not self.from_tag:
             return True
         return all([build.signed for build in self.builds])
 

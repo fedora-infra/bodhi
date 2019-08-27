@@ -1903,6 +1903,15 @@ class TestUpdateSigned(BaseTestCase):
 
         self.assertTrue(update.signed)
 
+    def test_from_tag_update(self):
+        """If the update's release doesn't have a pending_signing_tag, it should return True."""
+        update = model.Update.query.first()
+        update.builds[0].signed = False
+        update.from_tag = 'f30-side-tag'
+        update.release.pending_signing_tag = ''
+
+        self.assertFalse(update.signed)
+
 
 class TestUpdateTestGatingPassed(BaseTestCase):
     """Test the Update.test_gating_passed() method."""

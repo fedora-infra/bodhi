@@ -25,8 +25,9 @@ from the pending-signing to pending-updates-testing tag by RoboSignatory.
 import logging
 
 import fedora_messaging
+from sqlalchemy import func
 
-from bodhi.server.models import Build
+from bodhi.server.models import Build, UpdateStatus
 from bodhi.server.util import transactional_session_maker
 
 log = logging.getLogger('bodhi')
@@ -87,9 +88,15 @@ class SignedHandler(object):
                 log.info('Build is not assigned to release, skipping')
                 return
 
-            if build.release.pending_testing_tag != tag:
-                log.info("Tag is not pending_testing tag, skipping")
-                return
+            if build.update.from_tag:
+                koji_testing_tag = build.release.get_testing_side_tag(build.update.from_tag)
+                if tag != koji_testing_tag:
+                    log.info("Tag is not testing side tag, skipping")
+                    return
+            else:
+                if build.release.pending_testing_tag != tag:
+                    log.info("Tag is not pending_testing tag, skipping")
+                    return
 
             if build.signed:
                 log.info("Build was already marked as signed (maybe a duplicate message)")
@@ -101,3 +108,12 @@ class SignedHandler(object):
             log.info("Build has been signed, marking")
             build.signed = True
             log.info("Build %s has been marked as signed" % build_nvr)
+
+            # If every build in update is signed change status to testing
+            if build.update.from_tag and build.update.signed():
+                log.info("Every build in update is signed, set status to testing")
+
+                build.update.status = UpdateStatus.testing
+                build.update.date_testing = func.current_timestamp()
+                build.update.request = None
+                log.info(f"Update {build.update.display_name} status has been set to testing")
