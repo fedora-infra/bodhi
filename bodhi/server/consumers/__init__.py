@@ -21,6 +21,7 @@ fedora-messaging consumer.
 This module is responsible for consuming the messaging from the fedora-messaging bus.
 It has the role to inspect the topics of the message and call the correct handler.
 """
+from collections import namedtuple
 import logging
 
 import fedora_messaging
@@ -35,6 +36,9 @@ from bodhi.server.consumers.greenwave import GreenwaveHandler
 log = logging.getLogger('bodhi')
 
 
+HandlerInfo = namedtuple('HandlerInfo', ['topic_suffix', 'name', 'handler'])
+
+
 class Consumer:
     """All Bodhi messages are received by this class's __call__() method."""
 
@@ -45,9 +49,11 @@ class Consumer:
         buildsys.setup_buildsystem(config)
         bugs.set_bugtracker()
 
-        self.automatic_update_handler = AutomaticUpdateHandler()
-        self.signed_handler = SignedHandler()
-        self.greenwave_handler = GreenwaveHandler()
+        self.handler_infos = [
+            HandlerInfo('.buildsys.tag', "Signed", SignedHandler()),
+            HandlerInfo('.buildsys.tag', 'Automatic Update', AutomaticUpdateHandler()),
+            HandlerInfo('.greenwave.decision.update', 'Greenwave', GreenwaveHandler()),
+        ]
 
     def __call__(self, msg: fedora_messaging.api.Message):  # noqa: D401
         """
@@ -61,18 +67,22 @@ class Consumer:
         """
         log.info(f'Received message from fedora-messaging with topic: {msg.topic}')
 
-        try:
-            if msg.topic.endswith('.buildsys.tag'):
-                log.debug('Passing message to the Signed handler')
-                self.signed_handler(msg)
+        error_handlers_msgs = []
 
-                log.debug('Passing message to the Automatic Update handler')
-                self.automatic_update_handler(msg)
+        for handler_info in self.handler_infos:
+            if not msg.topic.endswith(handler_info.topic_suffix):
+                continue
+            log.debug(f'Passing message to the {handler_info.name} handler')
+            try:
+                handler_info.handler(msg)
+            except Exception as e:
+                log.exception(f'{str(e)}: Unable to handle message in {handler_info.name} handler: '
+                              f'{msg}')
+                error_handlers_msgs.append((handler_info.name, str(e)))
 
-            if msg.topic.endswith('.greenwave.decision.update'):
-                log.debug('Passing message to the Greenwave handler')
-                self.greenwave_handler(msg)
-        except Exception as e:
-            error_msg = f'{str(e)}: Unable to handle message: {msg}'
-            log.exception(error_msg)
+        if error_handlers_msgs:
+            error_msg = f"Unable to (fully) handle message.\nAffected handlers:\n"
+            for handler, exc in error_handlers_msgs:
+                error_msg += f"\t{handler}: {exc}\n"
+            error_msg += "Message:\n{msg}"
             raise fedora_messaging.exceptions.Nack(error_msg)

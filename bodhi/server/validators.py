@@ -570,7 +570,8 @@ def validate_enums(request, **kwargs):
                         ("type", UpdateType),
                         ("content_type", ContentType),
                         ("state", ReleaseState),
-                        ("package_manager", PackageManager)):
+                        ("package_manager", PackageManager),
+                        ("gating", TestGatingStatus)):
         value = request.validated.get(param)
         if value is None:
             continue
@@ -1094,6 +1095,11 @@ def _validate_override_build(request, nvr, db):
                 return
 
             build.release = release
+
+        if not build.release.override_tag:
+            request.errors.add("body", "nvr", "Cannot create a buildroot override because the"
+                               " release associated with the build does not support it.")
+            return
 
         for tag in build.get_tags():
             if tag in (build.release.candidate_tag, build.release.testing_tag):

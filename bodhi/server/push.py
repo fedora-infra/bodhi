@@ -65,7 +65,7 @@ def check_if_updates_and_builds_set(
     """
     if value is not None and ((param.name == 'builds' and ctx.params.get('updates', False))
                               or (param.name == 'updates' and ctx.params.get('builds', False))):
-        click.echo('ERROR: Must specify only one of --updates or --builds')
+        click.echo('ERROR: Must specify only one of --updates or --builds', err=True)
         sys.exit(1)
     return value
 
@@ -156,7 +156,8 @@ def push(username, yes, **kwargs):
 
                 if not update.signed:
                     click.echo(
-                        f'Warning: {update.get_title()} has unsigned builds and has been skipped')
+                        f'Warning: {update.get_title()} has unsigned builds and has been skipped',
+                        err=True)
                     continue
 
                 updates.append(update)

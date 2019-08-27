@@ -265,10 +265,10 @@ def handle_errors(method: typing.Callable) -> typing.Callable:
         try:
             method(*args, **kwargs)
         except AuthError as e:
-            click.secho(f"{e}: Check your FAS username & password", fg='red', bold=True)
+            click.secho(f"{e}: Check your FAS username & password", fg='red', bold=True, err=True)
             sys.exit(1)
         except bindings.BodhiClientException as e:
-            click.secho(str(e), fg='red', bold=True)
+            click.secho(str(e), fg='red', bold=True, err=True)
             sys.exit(2)
     return wrapper
 
@@ -303,7 +303,8 @@ def _save_override(url: str, user: str, password: str, staging: bool, edit: bool
             click.echo(f"\n\nRunning {' '.join(command)}\n")
             ret = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if ret:
-                click.echo(f"WARNING: ensuring active override failed for {resp.build.nvr}")
+                click.echo(f"WARNING: ensuring active override failed for {resp.build.nvr}",
+                           err=True)
                 sys.exit(ret)
     else:
         print_resp(resp, client, override_hint=True)
@@ -454,7 +455,7 @@ def new(user: str, password: str, url: str, debug: bool, openid_api: str, **kwar
             resp = client.save(**update)
             print_resp(resp, client)
         except bindings.BodhiClientException as e:
-            click.echo(str(e))
+            click.echo(str(e), err=True)
         except Exception:
             traceback.print_exc()
 
@@ -569,7 +570,7 @@ def edit(user: str, password: str, url: str, debug: bool, openid_api: str, **kwa
         resp = client.save(**kwargs)
         print_resp(resp, client)
     except bindings.BodhiClientException as e:
-        click.echo(str(e))
+        click.echo(str(e), err=True)
 
 
 @updates.command()
@@ -771,7 +772,7 @@ def download(url: str, **kwargs):
     # At this point we need to have reduced the kwargs dict to only our
     # query options (updateid or builds)
     if not any(kwargs.values()):
-        click.echo("ERROR: must specify at least one of --updateid or --builds")
+        click.echo("ERROR: must specify at least one of --updateid or --builds", err=True)
         sys.exit(1)
 
     # As the query method doesn't let us construct OR queries, we're
@@ -782,7 +783,7 @@ def download(url: str, **kwargs):
             expecteds = len(value.split(','))
             resp = client.query(**{attr: value})
             if len(resp.updates) == 0:
-                click.echo(f"WARNING: No {attr} found!")
+                click.echo(f"WARNING: No {attr} found!", err=True)
             else:
                 if attr == 'updateid':
                     resp_no = len(resp.updates)
@@ -793,7 +794,7 @@ def download(url: str, **kwargs):
                     )
 
                 if resp_no < expecteds:
-                    click.echo(f"WARNING: Some {attr} not found!")
+                    click.echo(f"WARNING: Some {attr} not found!", err=True)
                 # Not sure if we need a check for > expecteds, I don't
                 # *think* that should ever be possible for these opts.
 
@@ -817,7 +818,7 @@ def download(url: str, **kwargs):
                                          f'--arch={requested_arch}', build['nvr']])
                     ret = subprocess.call(args)
                     if ret:
-                        click.echo(f"WARNING: download of {build['nvr']} failed!")
+                        click.echo(f"WARNING: download of {build['nvr']} failed!", err=True)
 
 
 def _get_notes(**kwargs) -> str:
@@ -838,7 +839,7 @@ def _get_notes(**kwargs) -> str:
             with open(kwargs['notes_file'], 'r') as fin:
                 return fin.read()
         else:
-            click.echo("ERROR: Cannot specify --notes and --notes-file")
+            click.echo("ERROR: Cannot specify --notes and --notes-file", err=True)
             sys.exit(1)
     else:
         return kwargs['notes']
@@ -887,17 +888,19 @@ def waive(update: str, show: bool, test: typing.Iterable[str], comment: str, url
     if show and test:
         click.echo(
             'ERROR: You can not list the unsatisfied requirements and waive them '
-            'at the same time, please use either --show or --test=... but not both.')
+            'at the same time, please use either --show or --test=... but not both.',
+            err=True)
         sys.exit(1)
 
     if show:
         test_status = client.get_test_status(update)
         if 'errors' in test_status:
-            click.echo('One or more error occured while retrieving the unsatisfied requirements:')
+            click.echo('One or more errors occurred while retrieving the unsatisfied requirements:',
+                       err=True)
             for el in test_status.errors:
-                click.echo(f'  - {el.description}')
+                click.echo(f'  - {el.description}', err=True)
         elif 'decision' not in test_status:
-            click.echo('Could not retrieve the unsatisfied requirements from bodhi.')
+            click.echo('Could not retrieve the unsatisfied requirements from bodhi.', err=True)
         else:
             click.echo(f'CI status: {test_status.decision.summary}')
             if test_status.decision.unsatisfied_requirements:
@@ -908,7 +911,8 @@ def waive(update: str, show: bool, test: typing.Iterable[str], comment: str, url
                 click.echo('Missing tests: None')
     else:
         if not comment:
-            click.echo('ERROR: Comment are mandatory when waiving unsatisfied requirements')
+            click.echo('ERROR: A comment is mandatory when waiving unsatisfied requirements',
+                       err=True)
             sys.exit(1)
 
         if 'all' in test:
@@ -1172,7 +1176,7 @@ def edit_release(user: str, password: str, url: str, debug: bool, composed_by_bo
     edited = kwargs.pop('name')
 
     if edited is None:
-        click.echo("ERROR: Please specify the name of the release to edit")
+        click.echo("ERROR: Please specify the name of the release to edit", err=True)
         return
 
     res = client.send_request(f'releases/{edited}', verb='GET', auth=True)
@@ -1322,7 +1326,7 @@ def print_errors(data: munch.Munch):
         data (munch.Munch): The errors to be formatted and printed.
     """
     for error in data['errors']:
-        click.echo(f"ERROR: {error['description']}")
+        click.echo(f"ERROR: {error['description']}", err=True)
 
     sys.exit(1)
 

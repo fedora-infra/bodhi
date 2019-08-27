@@ -518,6 +518,30 @@ class TestValidateOverrideBuilds(BaseTestCase):
               'description': 'A comma-separated list of NVRs is required.'}])
         self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
 
+    def test_release_with_no_override_tag(self):
+        """If the request has a build associated to a release with no override tag,
+        it should add an error to the request."""
+
+        build = self.db.query(models.Build).filter_by(
+            nvr='bodhi-2.0-1.fc17').first()
+
+        build.release.override_tag = ""
+        self.db.commit()
+
+        request = mock.Mock()
+        request.db = self.db
+        request.errors = Errors()
+        request.validated = {'nvr': 'bodhi-2.0-1.fc17', 'edited': False}
+
+        validators.validate_override_builds(request)
+
+        self.assertEqual(
+            request.errors,
+            [{'location': 'body', 'name': 'nvr',
+              'description': 'Cannot create a buildroot override because the'
+                             ' release associated with the build does not support it.'}])
+        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+
 
 class TestValidateRelease(BaseTestCase):
     """Test the validate_release() function."""

@@ -60,7 +60,7 @@ def check():
             session.commit()
         except Exception as e:
             # If there is a problem talking to Greenwave server, print the error.
-            click.echo(str(e))
+            click.echo(str(e), err=True)
             session.rollback()
 
 

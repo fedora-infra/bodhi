@@ -31,6 +31,7 @@ from bodhi.server.models import (
     UpdateStatus,
     UpdateSuggestion,
     UpdateType,
+    TestGatingStatus,
 )
 from bodhi.server.validators import validate_csrf_token
 
@@ -403,6 +404,7 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
     override_tag = colander.SchemaNode(
         colander.String(),
+        missing="",
     )
     state = colander.SchemaNode(
         colander.String(),
@@ -634,6 +636,13 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         location="querystring",
         missing=None,
         preparer=[util.splitter],
+    )
+
+    gating = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+        validator=colander.OneOf(list(TestGatingStatus.values())),
     )
 
 

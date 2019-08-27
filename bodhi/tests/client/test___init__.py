@@ -2941,7 +2941,7 @@ class TestWaive(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(
             result.output,
-            'One or more error occured while retrieving the unsatisfied requirements:\n'
+            'One or more errors occurred while retrieving the unsatisfied requirements:\n'
             '  - Could not contact greenwave, error code was 500\n')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
@@ -3035,7 +3035,7 @@ class TestWaive(unittest.TestCase):
         self.assertEqual(result.exit_code, 1)
         self.assertEqual(
             result.output,
-            'ERROR: Comment are mandatory when waiving unsatisfied requirements\n')
+            'ERROR: A comment is mandatory when waiving unsatisfied requirements\n')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))

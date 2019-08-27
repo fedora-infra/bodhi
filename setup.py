@@ -38,7 +38,7 @@ def get_requirements(requirements_file='requirements.txt'):
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-VERSION = '4.1.0'
+VERSION = '4.1.1'
 # Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
