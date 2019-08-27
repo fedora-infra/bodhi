@@ -3769,19 +3769,22 @@ class Update(Base):
         ``greenwave_failed``.
 
         Args:
-            target (Update): The compose that has had a change to its state attribute.
+            target (InstanceState): The state of the instance that has had a
+                change to its test_gating_status attribute.
             value (EnumSymbol): The new value of the test_gating_status.
             old (EnumSymbol): The old value of the test_gating_status
             initiator (sqlalchemy.orm.attributes.Event): The event object that is initiating this
                 transition.
         """
+        instance = target.object
+
         if value != old:
             notify = value in [
                 TestGatingStatus.greenwave_failed,
                 TestGatingStatus.failed,
             ]
-            target.comment(
-                Session(),
+            instance.comment(
+                target.session,
                 f"This update's test gating status has been changed to '{value}'.",
                 author="bodhi",
                 email_notification=notify,
@@ -3823,6 +3826,7 @@ event.listen(
     'set',
     Update.comment_on_test_gating_status_change,
     active_history=True,
+    raw=True,
 )
 
 
