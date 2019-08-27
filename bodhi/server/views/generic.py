@@ -21,7 +21,7 @@ import datetime
 
 from pyramid.settings import asbool
 from pyramid.view import view_config, notfound_view_config
-from pyramid.exceptions import HTTPForbidden
+from pyramid.exceptions import HTTPForbidden, HTTPBadRequest
 import cornice.errors
 import sqlalchemy as sa
 
@@ -204,6 +204,42 @@ def _generate_home_page_stats():
     }
 
 
+def _get_sidetags(koji, user=None, contains_builds=False):
+    """
+    Return a list of koji sidetags.
+
+    Args:
+        koji: the koji client instance from request.koji
+        user: a string of the user's FAS name
+        contains_builds: a boolean. if true, only return sidetags with builds
+    Returns:
+        dict: A list of the sidetags information.
+    """
+    sidetags = koji.listSideTags(user=user)
+
+    koji.multicall = True
+    for tag in sidetags:
+        koji.getTag(tag['name'])
+    sidetags_info = koji.multiCall()
+
+    koji.multicall = True
+    for tag in sidetags_info:
+        koji.listTagged(tag[0]['name'], latest=True)
+    builds = koji.multiCall()
+
+    result = []
+    for i, tag in enumerate(sidetags_info):
+        if (contains_builds and builds[i][0]) or not contains_builds:
+            result.append({
+                'id': tag[0]['id'],
+                'name': tag[0]['name'],
+                'sidetag_user': tag[0]['extra']['sidetag_user'],
+                'builds': builds[i][0]
+            })
+
+    return result
+
+
 @view_config(route_name='home', renderer='home.html')
 def home(request):
     """
@@ -244,6 +280,7 @@ def new_update(request):
         severities=sorted(list(models.UpdateSeverity.values()),
                           key=bodhi.server.util.sort_severity),
         suggestions=suggestions,
+        sidetags=_get_sidetags(request.koji, user=user, contains_builds=True)
     )
 
 
@@ -351,6 +388,45 @@ def latest_builds(request):
             except Exception:  # Things like EPEL don't have pending tags
                 pass
     return builds
+
+
+@view_config(route_name='get_sidetags', renderer='json')
+def get_sidetags(request):
+    """
+    Return a list of koji sidetags based on query arguments.
+
+    Args:
+        request (pyramid.request.Request): The current request. The request's "user" parameter is
+            used to pass the username being queried.
+    Returns:
+        dict: A list of the sidetags information.
+    """
+    koji = request.koji
+    # 'user': a FAS username, used to only return sidetags from that user
+    user = request.params.get('user')
+    # 'contains_builds': a boolean to only return sidetags with that contain builds
+    contains_builds = asbool(request.params.get('contains_builds'))
+
+    return _get_sidetags(koji, user=user, contains_builds=contains_builds)
+
+
+@view_config(route_name='latest_builds_in_tag', renderer='json')
+def latest_builds_in_tag(request):
+    """
+    Return a list of the latest builds for a given tag.
+
+    Args:
+        request (pyramid.request.Request): The current request. The request's "tag" parameter is
+            used to pass the koji tagname being queried.
+    Returns:
+        dict: A dictionary of the release dist tag to the latest build.
+    """
+    koji = request.koji
+    tag = request.params.get('tag')
+    if not tag:
+        raise HTTPBadRequest("tag parameter is required")
+    else:
+        return koji.listTagged(tag, latest=True)
 
 
 @view_config(route_name='new_override', renderer='override.html')

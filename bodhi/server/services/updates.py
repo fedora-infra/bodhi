@@ -145,6 +145,8 @@ def get_update_for_editing(request):
             types: The possible values for update types.
             severities: The possible values for update severity.
             suggestions: The possible values for update suggestion.
+            sidetags: a list of sidetags for the user, always empty
+            in the edit form case.
     """
     suggestions = list(bodhi.server.models.UpdateSuggestion.values())
     return dict(
@@ -153,6 +155,7 @@ def get_update_for_editing(request):
         severities=sorted(
             list(bodhi.server.models.UpdateSeverity.values()), key=bodhi.server.util.sort_severity),
         suggestions=suggestions,
+        sidetags=[],
     )
 
 

@@ -378,6 +378,41 @@ class TestGenericViews(base.BaseTestCase):
         # log_error.assert_called()
         log_error.assert_called_with(error)
 
+    def test_get_sidetags(self):
+        """Test the get_sidetags endpoint."""
+
+        # test without any parameters
+        res = self.app.get('/get_sidetags')
+        body = res.json_body
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]['id'], 7777)
+        self.assertEqual(body[0]['name'], 'f17-build-side-7777')
+        self.assertEqual(len(body[0]['builds']), 1)
+        self.assertEqual(body[0]['builds'][0]['name'], 'gnome-backgrounds')
+
+        # test with a user parameter.
+        # the actual user filtering is done on the koji side, so results
+        # are the same
+        res = self.app.get('/get_sidetags', {'user': 'dudemcpants'})
+        body = res.json_body
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]['id'], 7777)
+        self.assertEqual(body[0]['name'], 'f17-build-side-7777')
+        self.assertEqual(len(body[0]['builds']), 1)
+        self.assertEqual(body[0]['builds'][0]['name'], 'gnome-backgrounds')
+
+    def test_latest_builds_in_tag(self):
+        """Test the latest_builds_in_tag endpoint."""
+
+        # test we get a badrequest error if no tag given
+        self.app.get('/latest_builds_in_tag', status=400)
+
+        # test normal behaviour
+        res = self.app.get('/latest_builds_in_tag', {'tag': 'f17-build-side-7777'})
+        body = res.json_body
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]['name'], 'gnome-backgrounds')
+
     def test_version(self):
         res = self.app.get('/api_version')
         self.assertIn('version', res.json_body)
