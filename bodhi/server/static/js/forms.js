@@ -113,7 +113,7 @@ Form.prototype.data = function() {
             }
         } else {
             var value = $(this).val();
-            if (value != "") {
+            if (value && value != "") {
                 data[this.name].push(value);
             }
         }
