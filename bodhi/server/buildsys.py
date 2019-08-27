@@ -17,12 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define tools for interacting with the build system and a fake build system for development."""
 
-from threading import Lock
 import logging
 import time
 import typing
 import os
 from functools import wraps
+from threading import Lock
 
 import backoff
 import koji
@@ -504,9 +504,19 @@ class DevBuildsys:
         opts['perm_id'] = 1
         self.__tags__.append((tag, opts))
 
-    def deleteTag(self, tagid):
+    def deleteTag(self, tagid: typing.Union[str, int]):
         """Emulate tag deletion."""
-        del self.__tags__[tagid]
+        if isinstance(tagid, str):
+            for tid, tinfo in self.__tags__:
+                if tagid == tid:
+                    self.__tags__.remove((tid, tinfo))
+                    return
+        else:
+            del self.__tags__[tagid]
+
+    def removeSideTag(self, sidetag):
+        """Emulate side tag and build target deletion."""
+        pass
 
     def getRPMHeaders(self, rpmID: str,
                       headers: typing.Any) -> typing.Union[typing.Mapping[str, str], None]:
