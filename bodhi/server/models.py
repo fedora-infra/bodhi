@@ -219,7 +219,11 @@ class DeclEnumType(SchemaType, TypeDecorator):
         self.enum = enum
         self.impl = Enum(
             *enum.values(),
-            name="ck%s" % re.sub('([A-Z])', lambda m: "_" + m.group(1).lower(), enum.__name__))
+            name="ck%s" % re.sub('([A-Z])', lambda m: "_" + m.group(1).lower(), enum.__name__),
+            # Required for SQLAlchemy >= 1.3.8
+            # https://docs.sqlalchemy.org/en/14/changelog/changelog_13.html#change-ac119f6307026142f7a0ccbf81065f25
+            sort_key_function=lambda e: str(e),
+        )
 
     def _set_table(self, table, column):
         """
