@@ -62,7 +62,8 @@ class TestMessageSchemasV1CollectionGet(base.BaseTestCase):
                 'bodhi.compose.sync.done', 'bodhi.compose.sync.wait',
                 'bodhi.errata.publish', 'bodhi.repo.done', 'bodhi.update.comment',
                 'bodhi.update.complete.stable', 'bodhi.update.complete.testing',
-                'bodhi.update.edit', 'bodhi.update.eject', 'bodhi.update.karma.threshold.reach',
+                'bodhi.update.status.testing', 'bodhi.update.karma.threshold.reach',
+                'bodhi.update.edit', 'bodhi.update.eject',
                 'bodhi.update.request.obsolete', 'bodhi.update.request.revoke',
                 'bodhi.update.request.stable', 'bodhi.update.request.testing',
                 'bodhi.update.request.unpush', 'bodhi.update.requirements_met.stable']))
