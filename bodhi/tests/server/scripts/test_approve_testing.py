@@ -53,6 +53,9 @@ class TestMain(BasePyTestCase):
         update.request = None
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         with fml_testing.mock_sends():
             self.db.commit()
@@ -90,6 +93,9 @@ class TestMain(BasePyTestCase):
         update.autotime = False
         update.request = None
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         # Let's delete all the comments to make our assertion at the end of this simpler.
         for c in update.comments:
@@ -115,6 +121,8 @@ class TestMain(BasePyTestCase):
         update.autokarma = True
         update.request = None
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         # 6 days isn't enough time to meet the testing requirements.
         update.date_testing = datetime.utcnow() - timedelta(days=6)
         # Let's delete all the comments to make our assertion at the end of this simpler.
@@ -235,6 +243,9 @@ class TestMain(BasePyTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, 'testing', author='hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
@@ -307,6 +318,9 @@ class TestMain(BasePyTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, 'testing', author='hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
@@ -342,8 +356,9 @@ class TestMain(BasePyTestCase):
         update.critpath = True
         update.status = models.UpdateStatus.testing
         update.date_testing = datetime.utcnow() - timedelta(days=14)
-        with fml_testing.mock_sends():
-            self.db.commit()
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
@@ -407,6 +422,8 @@ class TestMain(BasePyTestCase):
         update.status = models.UpdateStatus.testing
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
@@ -464,6 +481,8 @@ class TestMain(BasePyTestCase):
         update.date_testing = datetime.utcnow() - timedelta(days=14)
         update.autotime = False
         self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
@@ -507,6 +526,8 @@ class TestMain(BasePyTestCase):
         update.stable_days = 7
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -529,6 +550,8 @@ class TestMain(BasePyTestCase):
         update.stable_days = 10
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -550,6 +573,8 @@ class TestMain(BasePyTestCase):
         update.stable_days = 10
         update.date_testing = datetime.utcnow() - timedelta(days=10)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -572,6 +597,8 @@ class TestMain(BasePyTestCase):
         update.stable_days = 10
         update.date_testing = datetime.utcnow() - timedelta(days=10)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -595,6 +622,8 @@ class TestMain(BasePyTestCase):
         update.stable_karma = 10
         update.date_testing = datetime.utcnow() - timedelta(days=1)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -616,6 +645,8 @@ class TestMain(BasePyTestCase):
         update.stable_karma = 10
         update.date_testing = datetime.utcnow()
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -639,6 +670,8 @@ class TestMain(BasePyTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -669,6 +702,8 @@ class TestMain(BasePyTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -707,6 +742,8 @@ class TestMain(BasePyTestCase):
         update.test_gating_status = models.TestGatingStatus.failed
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -727,6 +764,9 @@ class TestMain(BasePyTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, u'Failed to work', author=u'luke', karma=-1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
@@ -750,6 +790,9 @@ class TestMain(BasePyTestCase):
         update.stable_days = 10
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, u'Works great', author=u'luke', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
@@ -779,6 +822,9 @@ class TestMain(BasePyTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, u'Works great', author=u'luke', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
@@ -809,6 +855,9 @@ class TestMain(BasePyTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, u'Works great', author=u'luke', karma=1)
         with fml_testing.mock_sends(api.Message, api.Message, api.Message):
             self.db.commit()
@@ -836,6 +885,8 @@ class TestMain(BasePyTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=8)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         update.comment(self.db, u'Broken', author=u'luke', karma=-1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()

@@ -346,7 +346,7 @@ def query_updates(request):
 
     status = data.get('status')
     if status is not None:
-        query = query.filter(Update.status == status)
+        query = query.filter(or_(*[Update.status == s for s in status]))
 
     submitted_since = data.get('submitted_since')
     if submitted_since is not None:
@@ -416,11 +416,11 @@ def query_updates(request):
               error_handler=bodhi.server.services.errors.json_handler,
               validators=(
                   colander_body_validator,
+                  validate_from_tag,
                   validate_build_nvrs,
                   validate_builds,
                   validate_build_tags,
                   validate_build_uniqueness,
-                  validate_from_tag,
                   validate_builds_or_from_tag_exist,
                   validate_acls,
                   validate_enums,

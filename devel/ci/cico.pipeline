@@ -81,7 +81,7 @@ def bodhi_ci = { String release, String command, String context, String args ->
     try {
         stage(release + '-' + context) {
             timeout(time: 64, unit: 'MINUTES') {
-                onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci ' + command + ' --no-tty -r ' + release + ' ' + args
+                onmyduffynode 'cd payload && python3.6 ./devel/ci/bodhi-ci ' + command + ' --no-tty -r ' + release + ' ' + args
             }
         }
         githubNotify context: release + '-' + context, status: 'SUCCESS'
@@ -155,7 +155,7 @@ node('bodhi') {
         }
 
         // Download the database dumps for the integration tests.
-        onmyduffynode 'cd payload && python36 ./devel/ci/bodhi-ci integration-download --no-tty'
+        onmyduffynode 'cd payload && python3.6 ./devel/ci/bodhi-ci integration-download --no-tty'
 
         def failed = false
 

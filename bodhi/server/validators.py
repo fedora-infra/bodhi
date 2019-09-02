@@ -133,8 +133,8 @@ def cache_tags(request, build):
         request.errors.add('body', 'builds',
                            'Invalid koji build: %s' % build)
     # This might end up setting tags to None. That is expected, and indicates it failed.
-    request.buildinfo[build]['tags'] = tags
-    return tags
+    request.buildinfo[build]['tags'] = tags + request.from_tag_inherited
+    return tags + request.from_tag_inherited
 
 
 def cache_release(request, build):
@@ -313,6 +313,10 @@ def validate_build_tags(request, **kwargs):
         release = update.release
     else:
         valid_tags = tag_types['candidate']
+
+    from_tag = request.validated.get('from_tag')
+    if from_tag:
+        valid_tags.append(from_tag)
 
     for build in request.validated.get('builds') or []:
         valid = False
@@ -576,7 +580,12 @@ def validate_enums(request, **kwargs):
         if value is None:
             continue
 
-        request.validated[param] = enum.from_string(value)
+        if isinstance(value, str):
+            request.validated[param] = enum.from_string(value)
+        else:
+            for index, item in enumerate(value):
+                value[index] = enum.from_string(item)
+            request.validated[param] = value
 
 
 @postschema_validator
@@ -1273,10 +1282,16 @@ def validate_from_tag(request: pyramid.request.Request, **kwargs: dict):
 
     if koji_tag:
         koji_client = buildsys.get_session()
+        taginfo = koji_client.getTag(koji_tag)
+
+        # add all the inherited tags of a sidetag to from_tag_inherited
+        if taginfo and taginfo['extra']['sidetag']:
+            for tag in koji_client.getFullInheritance(koji_tag):
+                request.from_tag_inherited.append(tag['name'])
 
         if request.validated.get('builds'):
             # Builds were specified explicitly, verify that the tag exists in Koji.
-            if not koji_client.getTag(koji_tag):
+            if not taginfo:
                 request.errors.add('body', 'from_tag', "The supplied from_tag doesn't exist.")
                 return
 
