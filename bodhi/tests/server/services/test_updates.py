@@ -285,13 +285,13 @@ class TestNewUpdate(BaseTestCase):
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
 
-        update = self.get_update(builds=None, from_tag='f17-updates-candidate')
+        update = self.get_update(builds=None, from_tag='f17-build-side-7777')
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             r = self.app.post_json('/updates/', update)
 
         up = r.json_body
-        self.assertEqual(up['title'], 'TurboGears-1.0.2.2-3.fc17')
-        self.assertEqual(up['builds'][0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(up['title'], 'gnome-backgrounds-3.0-1.fc17')
+        self.assertEqual(up['builds'][0]['nvr'], 'gnome-backgrounds-3.0-1.fc17')
         self.assertEqual(up['status'], 'pending')
         self.assertEqual(up['request'], 'testing')
         self.assertEqual(up['user']['name'], 'guest')
@@ -312,7 +312,7 @@ class TestNewUpdate(BaseTestCase):
                        f'FEDORA-{YEAR + 1}-033713b73b'))
         self.assertEqual(up['karma'], 0)
         self.assertEqual(up['requirements'], 'rpmlint')
-        self.assertEqual(up['from_tag'], 'f17-updates-candidate')
+        self.assertEqual(up['from_tag'], 'f17-build-side-7777')
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_url(self, *args):
@@ -686,6 +686,8 @@ class TestNewUpdate(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
         with mock.patch(**mock_uuid4_version2):
@@ -732,6 +734,8 @@ class TestNewUpdate(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
         with mock.patch(**mock_uuid4_version2):
@@ -784,6 +788,8 @@ class TestNewUpdate(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
         args["type"] = "security"
@@ -846,6 +852,8 @@ class TestNewUpdate(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         args = self.get_update('bodhi-2.0.0-3.fc17')
 
         with mock.patch(**mock_uuid4_version2):
@@ -1156,6 +1164,8 @@ class TestUpdatesService(BaseTestCase):
         u = Update.query.one()
         u.request = None
         u.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
@@ -1382,6 +1392,8 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         self.assertEqual(update.karma, 0)
@@ -2908,7 +2920,7 @@ class TestUpdatesService(BaseTestCase):
         # We don't want an existing buildroot override to clutter the messages.
         self.db.delete(BuildrootOverride.query.one())
 
-        update = self.get_update(from_tag='f17-updates-candidate')
+        update = self.get_update(from_tag='f17-build-side-7777')
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             r = self.app.post_json('/updates/', update)
 
@@ -2969,6 +2981,8 @@ class TestUpdatesService(BaseTestCase):
         upd = Update.get(r.json['alias'])
         upd.status = UpdateStatus.testing
         upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         args['edited'] = upd.alias
@@ -3017,6 +3031,8 @@ class TestUpdatesService(BaseTestCase):
         upd = Update.get(r.json['alias'])
         upd.status = UpdateStatus.testing
         upd.request = UpdateRequest.stable
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         args['edited'] = upd.alias
@@ -3126,6 +3142,8 @@ class TestUpdatesService(BaseTestCase):
         up.status = UpdateStatus.testing
         up.request = None
         up_id = up.id
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         # Changing the notes should work
         args['edited'] = up.alias
@@ -3366,6 +3384,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         new_nvr = 'bodhi-2.0.0-3.fc17'
         args = self.get_update(new_nvr)
@@ -3696,6 +3716,8 @@ class TestUpdatesService(BaseTestCase):
         up.request = None
         self.assertEqual(len(up.builds), 1)
         up.test_gating_status = TestGatingStatus.passed
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Checks failure for requesting to stable push before the update reaches stable karma
@@ -3925,6 +3947,8 @@ class TestUpdatesService(BaseTestCase):
         up.status = UpdateStatus.testing
         up.request = None
         up.user = newuser
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         newtitle = 'bodhi-2.0-3.fc17'
@@ -4058,6 +4082,8 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Mark it as testing
@@ -4122,6 +4148,8 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Mark it as testing
@@ -4161,6 +4189,8 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Mark it as testing
@@ -4200,6 +4230,7 @@ class TestUpdatesService(BaseTestCase):
         upd.comment(self.db, 'LGTM', author='bob', karma=1)
         upd.comment(self.db, 'LGTM2ME2', author='other_bob', karma=1)
         self.assertEqual(upd.karma, 2)
+        # Clear pending messages
         self.db.info['messages'] = []
 
         # Then.. edit it and change the builds!
@@ -4234,6 +4265,8 @@ class TestUpdatesService(BaseTestCase):
         upd = Update.get(r.json['alias'])
         upd.status = UpdateStatus.testing
         upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Have bob +1 it
@@ -4294,6 +4327,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = None
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # The user gives negative karma first
@@ -4320,6 +4355,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = None
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # The user gives negative karma first
@@ -4352,6 +4389,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = None
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         #  user gives positive karma first
@@ -4381,6 +4420,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = None
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'LGTM', author='mac', karma=1)
@@ -4409,6 +4450,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = None
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
@@ -4436,6 +4479,8 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Mark it as testing
@@ -4474,6 +4519,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # A user gives negative karma first
@@ -4511,6 +4558,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['request'], 'testing')
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'LGTM', author='ralph', karma=1)
@@ -4552,6 +4601,8 @@ class TestUpdatesService(BaseTestCase):
 
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
@@ -4607,6 +4658,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['request'], 'testing')
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'LGTM Now', author='ralph', karma=1)
@@ -4652,6 +4705,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['request'], 'testing')
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
@@ -4700,6 +4755,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['request'], 'testing')
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'LGTM Now', author='ralph', karma=1)
@@ -5062,6 +5119,8 @@ class TestUpdatesService(BaseTestCase):
         upd.request = None
         upd.pushed = True
         upd.date_testing = datetime.now() - timedelta(days=1)
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Checks karma threshold is reached
@@ -5114,6 +5173,8 @@ class TestUpdatesService(BaseTestCase):
         upd.pushed = True
         upd.request = None
         upd.date_testing = datetime.now() - timedelta(days=1)
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Checks karma threshold is reached
@@ -5238,6 +5299,8 @@ class TestUpdatesService(BaseTestCase):
         upd = Update.get(r.json['alias'])
         upd.status = UpdateStatus.testing
         upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Create an update for a different build
@@ -5251,6 +5314,8 @@ class TestUpdatesService(BaseTestCase):
         upd = Update.get(r.json['alias'])
         upd.status = UpdateStatus.testing
         upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Edit the nvr2 update and add nvr1

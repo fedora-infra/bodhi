@@ -185,6 +185,14 @@ class DevBuildsys:
         if 'youdontknowme' in build:
             return None
 
+        if 'gnome-backgrounds-3.0-1.fc17' in build:
+            return {'name': 'gnome-backgrounds',
+                    'nvr': 'gnome-backgrounds-3.0-1.fc17',
+                    'package_name': 'gnome-backgrounds',
+                    'release': '1.fc17',
+                    'tag_name': 'f17-build-side-7777',
+                    'version': '3.0'}
+
         theid = 16058
         if other and not testing:
             theid = 16059
@@ -382,6 +390,8 @@ class DevBuildsys:
     def listTagged(self, tag: str, *args, **kw) -> typing.List[typing.Any]:
         """List updates tagged with teh given tag."""
         latest = kw.get('latest', False)
+        if tag == 'f17-build-side-7777':
+            return [self.getBuild(build="gnome-backgrounds-3.0-1.fc17")]
         builds = []
 
         all_builds = [self.getBuild(),
@@ -444,9 +454,38 @@ class DevBuildsys:
             else:
                 return None
 
+        # hardcode a side-tag response
+        if taginfo == 'f17-build-side-7777':
+            return {'maven_support': False, 'locked': False, 'name': 'f17-build-side-7777',
+                    'extra': {'sidetag_user': 'dudemcpants', 'sidetag': True},
+                    'perm': None, 'perm_id': None, 'arches': None, 'maven_include_all': False,
+                    'id': 7777}
+
         return {'maven_support': False, 'locked': False, 'name': taginfo,
                 'perm': None, 'id': 246, 'arches': None,
                 'maven_include_all': False, 'perm_id': None}
+
+    def getFullInheritance(self, taginfo, **kw):
+        """
+        Return a tag inheritance.
+
+        Args:
+            taginfo (int or str): The tag. does not impact the output
+        Returns:
+            list: A list of dicts of tag information
+        """
+        return [{'intransitive': False, 'name': 'f17-build', 'pkg_filter': '', 'priority': 0,
+                 'parent_id': 6448, 'maxdepth': None, 'noconfig': False, 'child_id': 7715,
+                 'nextdepth': None, 'filter': [], 'currdepth': 1},
+                {'intransitive': False, 'name': 'f17-override', 'pkg_filter': '', 'priority': 0,
+                 'parent_id': 6447, 'maxdepth': None, 'noconfig': False, 'child_id': 6448,
+                 'nextdepth': None, 'filter': [], 'currdepth': 2},
+                {'intransitive': False, 'name': 'f17-updates', 'pkg_filter': '', 'priority': 0,
+                 'parent_id': 6441, 'maxdepth': None, 'noconfig': False, 'child_id': 6447,
+                 'nextdepth': None, 'filter': [], 'currdepth': 3},
+                {'intransitive': False, 'name': 'f17', 'pkg_filter': '', 'priority': 0,
+                 'parent_id': 6438, 'maxdepth': None, 'noconfig': False, 'child_id': 6441,
+                 'nextdepth': None, 'filter': [], 'currdepth': 4}]
 
     def addTag(self, tag: str, **opts):
         """Emulate tag adding."""

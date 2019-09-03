@@ -25,6 +25,7 @@ from bodhi.messages.schemas.update import (
     UpdateEditV1,
     UpdateEjectV1,
     UpdateKarmaThresholdV1,
+    UpdateReadyForTestingV1,
     UpdateRequestRevokeV1,
     UpdateRequestStableV1,
     UpdateRequestTestingV1,
@@ -145,6 +146,44 @@ class UpdateMessageTests(unittest.TestCase):
                 UserV1('eclipseo'), 'testing', None)
         }
         msg = UpdateCompleteTestingV1(
+            body={
+                "update": {
+                    "alias": "FEDORA-2019-d64d0caab3",
+                    "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
+                               {'nvr': 'texworks-0.6.3-1.fc29'}],
+                    "title": "fedmsg-0.2.7-2.el6",
+                    'request': None,
+                    "status": "testing",
+                    "user": {"name": "eclipseo"}
+                },
+                'agent': 'mohanboddu'
+            }
+        )
+        check_message(msg, expected)
+
+    def test_ready_for_testing_v1(self):
+        expected = {
+            "topic": "bodhi.update.status.testing",
+            "summary": (
+                "eclipseo's golang-github-SAP-go-hdb-0.14.1-1.fc29 t… bodhi update "
+                "is ready for testing"
+            ),
+            "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
+            "url": "https://bodhi.fedoraproject.org/updates/FEDORA-2019-d64d0caab3",
+            "agent_avatar": (
+                "https://seccdn.libravatar.org/avatar/"
+                "20652954adacfd9f6e26536bbcf3b5fbc850dc61f8a2e67c5bfbc6e345032976"
+                "?s=64&d=retro"
+            ),
+            "usernames": ["eclipseo", 'mohanboddu'],
+            "packages": ["golang-github-SAP-go-hdb", 'texworks'],
+            'update': UpdateV1(
+                'FEDORA-2019-d64d0caab3',
+                [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29'),
+                 BuildV1('texworks-0.6.3-1.fc29')],
+                UserV1('eclipseo'), 'testing', None)
+        }
+        msg = UpdateReadyForTestingV1(
             body={
                 "update": {
                     "alias": "FEDORA-2019-d64d0caab3",
