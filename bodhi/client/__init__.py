@@ -133,7 +133,7 @@ new_edit_options = [
     click.option('--suggest', help='Post-update user suggestion',
                  type=click.Choice(['logout', 'reboot'])),
     click.option('--display-name',
-                 help='The name of the update'),
+                 help='The name of the update', default=None),
     click.option('--from-tag', help='Use builds from a Koji tag instead of specifying '
                                     'them individually.',
                  is_flag=True),
