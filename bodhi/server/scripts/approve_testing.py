@@ -119,6 +119,18 @@ def main(argv=sys.argv):
                     # mark them as stable
                     else:
                         # Single and Multi build update
+                        conflicting_builds = update.find_conflicting_builds()
+                        if conflicting_builds:
+                            builds_str = str.join(", ", conflicting_builds)
+                            update.comment(
+                                db,
+                                "This update cannot be pushed to stable. "
+                                f"These builds {builds_str} have a more recent "
+                                f"build in koji's {update.release.stable_tag} tag.",
+                                author="bodhi")
+                            db.commit()
+                            continue
+
                         update.add_tag(update.release.stable_tag)
                         update.status = UpdateStatus.stable
                         update.request = None

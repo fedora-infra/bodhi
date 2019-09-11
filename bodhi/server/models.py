@@ -1458,6 +1458,10 @@ class Build(Base):
         """
         return self._get_kojiinfo()['id']
 
+    def get_creation_time(self) -> datetime:
+        """Return the creation time of the build."""
+        return datetime.fromisoformat(self._get_kojiinfo()['creation_time'])
+
     def unpush(self, koji):
         """
         Move this build back to the candidate tag and remove any pending tags.
@@ -1482,6 +1486,21 @@ class Build(Base):
                     'Moving %s from %s to %s' % (
                         self.nvr, tag, release.candidate_tag))
                 koji.moveBuild(tag, release.candidate_tag, self.nvr)
+
+    def is_latest(self) -> bool:
+        """Check if this is the latest build available in the stable tag."""
+        koji_session = buildsys.get_session()
+        # Get the latest builds in koji in a tag for a package
+        koji_builds = koji_session.getLatestBuilds(
+            self.update.release.stable_tag,
+            package=self.package.name
+        )
+
+        for koji_build in koji_builds:
+            build_creation_time = datetime.fromisoformat(koji_build['creation_time'])
+            if self.get_creation_time() < build_creation_time:
+                return False
+        return True
 
 
 class ContainerBuild(Build):
@@ -2924,6 +2943,19 @@ class Update(Base):
             koji.untagBuild(tag, build.nvr, force=True)
         if return_multicall:
             return koji.multiCall()
+
+    def find_conflicting_builds(self) -> list:
+        """
+        Find if there are any builds conflicting with the stable tag in the update.
+
+        Returns a list of conflicting builds, empty is none found.
+        """
+        conflicting_builds = []
+        for build in self.builds:
+            if not build.is_latest():
+                conflicting_builds.append(build.nvr)
+
+        return conflicting_builds
 
     def modify_bugs(self):
         """

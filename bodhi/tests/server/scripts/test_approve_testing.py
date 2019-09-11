@@ -915,6 +915,41 @@ class TestMain(BasePyTestCase):
         assert update.request is None
         assert update.autotime == False
 
+    @patch("bodhi.server.buildsys.DevBuildsys.getLatestBuilds", return_value=[{
+        'creation_time': '2007-08-25 19:38:29.422344'}])
+    def test_update_conflicting_build_not_pushed(self, build_creation_time):
+        """
+        Ensure that an update that have conflicting builds will not get pushed.
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.autokarma = False
+        update.autotime = True
+        update.request = None
+        update.stable_karma = 1
+        update.stable_days = 7
+        update.date_testing = datetime.utcnow() - timedelta(days=8)
+        update.status = models.UpdateStatus.testing
+        update.release.composed_by_bodhi = False
+
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
+
+        assert update.status == models.UpdateStatus.testing
+
+        bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
+        cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
+        assert cmnts.count() == 2
+        assert cmnts[0].text == config.get('testing_approval_msg')
+        assert cmnts[1].text == "This update cannot be pushed to stable. "\
+            "These builds bodhi-2.0-1.fc17 have a more recent build in koji's "\
+            f"{update.release.stable_tag} tag."
+
     @patch('sys.exit')
     def test_log_level_is_left_alone(self, exit):
         """Ensure calling main() here leaves the global log level alone.
