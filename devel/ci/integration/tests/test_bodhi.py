@@ -324,7 +324,8 @@ def test_get_update_view(bodhi_container, db_container):
         assert update_info['alias'] in http_response.text
         assert update_info['status'] in http_response.text
         assert update_info['type'] in http_response.text
-        assert update_info['severity'] in http_response.text
+        if update_info['severity'] and update_info['severity'] != 'unspecified':
+            assert update_info['severity'] in http_response.text
         assert update_info['username'] in http_response.text
         assert content_type_mapping[update_info['content_type']] in http_response.text
         assert (f"The update will be marked as unstable"
