@@ -24,6 +24,8 @@ import subprocess
 import tempfile
 import unittest
 
+import bleach
+import pkg_resources
 import pytest
 
 from bodhi.server import util, models
@@ -131,12 +133,22 @@ class TestBugLink(base.BaseTestCase):
         bug.title = '<disk> <driver name="..."> should be optional'
 
         link = util.bug_link(None, bug)
-
-        self.assertEqual(
-            link,
-            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091' "
-             "class='notblue'>BZ#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should "
-             "be optional&lt;/driver&gt;&lt;/disk&gt;"))
+        # bleach v3 fixed a bug that closed out tags when sanitizing. so we check for
+        # either possible results here.
+        # https://github.com/mozilla/bleach/issues/392
+        bleach_v = pkg_resources.parse_version(bleach.__version__)
+        if bleach_v >= pkg_resources.parse_version('3.0.0'):
+            self.assertEqual(
+                link,
+                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091' "
+                 "class='notblue'>BZ#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should "
+                 "be optional"))
+        else:
+            self.assertEqual(
+                link,
+                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091' "
+                 "class='notblue'>BZ#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should "
+                 "be optional&lt;/driver&gt;&lt;/disk&gt;"))
 
     def test_short_false_without_title(self):
         """Test a call to bug_link() with short=False on a Bug that has no title."""
