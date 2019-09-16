@@ -7,7 +7,7 @@
 
       $('.hidejs').css('visibility', 'hidden');
       $('.hidejs').css('display', 'none');
-      $(".spinner").html('<img src="static/img/spinner.gif" alt="loading..." />');
+      $(".spinner").html('<i class="fa fa-spinner fa-spin fa-fw"></i>');
       $.ajax(
           'https://apps.fedoraproject.org/datagrepper/raw/?meta=date&user=${user['name']}&category=bodhi&order=desc&rows_per_page=1',
           {
@@ -88,7 +88,7 @@
             </span>
       </h5>
     </div>
-    <div id="recent_updates"><div class="list-group"><div class="list-group-item text-center bg-light p-4"><i class="fa fa-spin text-muted fa-circle-o-notch fa-2x"></i></div></div></div>
+    <div id="recent_updates"><div class="list-group"><div class="list-group-item text-center bg-light p-4"><i class="fa fa-spin text-muted fa-spinner fa-2x"></i></div></div></div>
   </div>
 </div>
 
@@ -101,7 +101,7 @@
                 </a>
               </span>
         </h5>
-        <div id="recent_overrides"><div class="list-group"><div class="list-group-item text-center bg-light p-4"><i class="fa fa-spin text-muted fa-circle-o-notch fa-2x"></i></div></div></div>
+        <div id="recent_overrides"><div class="list-group"><div class="list-group-item text-center bg-light p-4"><i class="fa fa-spin text-muted fa-spinner fa-2x"></i></div></div></div>
       </div>
 </div>
 
@@ -116,7 +116,7 @@
               </a>
             </span>
       </h5>
-      <div id="comments_by"><div class="list-group"><div class="list-group-item text-center bg-light p-4"><i class="fa fa-spin text-muted fa-circle-o-notch fa-2x"></i></div></div></div>
+      <div id="comments_by"><div class="list-group"><div class="list-group-item text-center bg-light p-4"><i class="fa fa-spin text-muted fa-spinner fa-2x"></i></div></div></div>
     </div>
   </div>
 </div>

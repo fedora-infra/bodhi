@@ -78,7 +78,7 @@ $(document).ready(function() {
             pending: [
                 '<h3 class="search"><small>Packages</small></h3>',
                 '<div>',
-                '<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>',
+                '<i class="fa fa-spinner fa-spin fa-fw"></i>',
                 '</div>'
             ].join('\n'),
             empty: [
@@ -101,7 +101,7 @@ $(document).ready(function() {
             pending: [
                 '<h3 class="search"><small>Updates</small></h3>',
                 '<div>',
-                '<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>',
+                '<i class="fa fa-spinner fa-spin fa-fw"></i>',
                 '</div>'
             ].join('\n'),
             empty: [
@@ -124,7 +124,7 @@ $(document).ready(function() {
             pending: [
                 '<h3 class="search"><small>Users</small></h3>',
                 '<div>',
-                '<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>',
+                '<i class="fa fa-spinner fa-spin fa-fw"></i>',
                 '</div>'
             ].join('\n'),
             empty: [
@@ -147,7 +147,7 @@ $(document).ready(function() {
             pending: [
                 '<h3 class="search"><small>Buildroot Overrides</small></h3>',
                 '<div>',
-                '<i class="fa fa-circle-o-notch fa-spin fa-fw"></i>',
+                '<i class="fa fa-spinner fa-spin fa-fw"></i>',
                 '</div>'
             ].join('\n'),
             empty: [
