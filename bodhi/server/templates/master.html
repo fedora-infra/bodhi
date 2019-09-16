@@ -27,18 +27,14 @@
       Fedora Updates System
       </%block>
     </title>
-    <link href="${request.static_url('bodhi:server/static/fedora-bootstrap-1.5.0/fedora-bootstrap.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/vendor/fedora-bootstrap/fedora-bootstrap.min.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/fonts/open-sans.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/fonts/hack.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/fonts/font-awesome.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/css/navbar.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/css/footer.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/css/site.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/css/datagrepper-feed.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/css/panel.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/selectize/selectize.bootstrap3.css') }" rel="stylesheet" />
-    <script src="${request.static_url('bodhi:server/static/js/jquery-1.10.2.min.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/js/Chart-0.2.0.min.js')}"></script>
+    <link href="${request.static_url('bodhi:server/static/vendor/selectize/selectize.bootstrap3-0.12.3.css') }" rel="stylesheet" />
+    <script src="${request.static_url('bodhi:server/static/vendor/jquery/jquery-1.10.2.min.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/vendor/chartjs/Chart-0.2.0.min.js')}"></script>
     <script type="text/javascript">
       var settings = {
           bz_products: ["${ '","'.join(config['bz_products']) | n }"],
@@ -217,18 +213,15 @@
     </script>
 
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="${request.static_url('bodhi:server/static/fedora-bootstrap-1.5.0/fedora-bootstrap.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/moment/moment.min.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/vendor/fedora-bootstrap/fedora-bootstrap.min.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/vendor/moment/moment.min.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/site.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/messenger/js/messenger.min.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/messenger/js/messenger-theme-flat.js')}"></script>
-    <link href="${request.static_url('bodhi:server/static/messenger/css/messenger.css') }" rel="stylesheet" />
-    <link href="${request.static_url('bodhi:server/static/messenger/css/messenger-theme-flat.css') }" rel="stylesheet" />
-    <script src="${request.static_url('bodhi:server/static/js/typeahead.bundle.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/vendor/messenger/js/messenger.min.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/vendor/messenger/js/messenger-theme-flat.js')}"></script>
+    <link href="${request.static_url('bodhi:server/static/vendor/messenger/css/messenger.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/vendor/messenger/css/messenger-theme-flat.css') }" rel="stylesheet" />
+    <script src="${request.static_url('bodhi:server/static/vendor/typeahead/typeahead.bundle.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/search.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/js/konami.js')}"></script>
-
-
   </body>
 </html>
