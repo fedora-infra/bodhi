@@ -233,7 +233,7 @@ $(document).ready(function() {
         $("#builds-card .card-body").append("<div class='list-group list-group-flush' id='sidetag-buildlist'></div>")
         
         //add the spinner while we load the builds for the chosen sidetag
-        $("#builds-card .card-body #sidetag-buildlist").append("<div class='w-100 text-center spinner py-3'><i class='fa fa-circle-o-notch fa-2x fa-spin fa-fw'></i></div>");
+        $("#builds-card .card-body #sidetag-buildlist").append("<div class='w-100 text-center spinner py-3'><i class='fa fa-spinner fa-2x fa-spin fa-fw'></i></div>");
 
         $.ajax({
             url: '/latest_builds_in_tag?tag=' + encodeURIComponent(sidetagname),
@@ -256,7 +256,7 @@ $(document).ready(function() {
 
     $("#sidetag-update").click(function(){
         //add the spinner while we load the builds for the chosen sidetag
-        $("#builds-card .card-body #sidetag-buildlist").append("<div class='w-100 text-center spinner py-3'><i class='fa fa-circle-o-notch fa-2x fa-spin fa-fw'></i></div>");
+        $("#builds-card .card-body #sidetag-buildlist").append("<div class='w-100 text-center spinner py-3'><i class='fa fa-spinner fa-2x fa-spin fa-fw'></i></div>");
 
         $.ajax({
             url: '/latest_builds_in_tag?tag=' + encodeURIComponent($('input[name="from_tag"]').val()),

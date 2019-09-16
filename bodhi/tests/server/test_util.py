@@ -149,7 +149,7 @@ class TestBugLink(base.BaseTestCase):
         self.assertEqual(
             link,
             ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
-             "class='notblue'>BZ#1234567</a> <img class='spinner' src='static/img/spinner.gif'>"))
+             "class='notblue'>BZ#1234567</a> <i class='fa fa-spinner fa-spin fa-fw'></i>"))
 
     def test_short_true(self):
         """Test a call to bug_link() with short=True."""

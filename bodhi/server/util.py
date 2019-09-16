@@ -696,7 +696,7 @@ def bug_link(context, bug, short=False):
             link = link + " " + bleach.clean(bug.title, tags=[], attributes=[])
         else:
             # Otherwise, the backend is async grabbing the title from rhbz, so
-            link = link + " <img class='spinner' src='static/img/spinner.gif'>"
+            link = link + " <i class='fa fa-spinner fa-spin fa-fw'></i>"
 
     return link
 
