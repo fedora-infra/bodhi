@@ -17,538 +17,12 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
 
 <%  update.bugs.sort(key = lambda x: x.bug_id)  %>
 
+<%block name="css">
+${parent.css()}
 <link rel="alternate" type="application/atom+xml" title="New Comments on ${update.alias}" href="${request.route_url('comments_rss')}?updates=${update.alias}"/>
-
-<script type="text/javascript">
-  $(document).ready(function() {
-    // Some handy lookups that map taskotron states to bootstrap CSS classes.
-    var classes = {
-      PASSED: 'success',
-      INFO: 'info',
-      FAILED: 'danger',
-      NEEDS_INSPECTION: 'warning',
-      ABORTED: 'warning',
-      CRASHED: 'warning',
-      ABSENT: 'danger',
-    }
-    var icons = {
-      PASSED: 'check-circle',
-      INFO: 'info-circle',
-      FAILED: 'minus-circle',
-      NEEDS_INSPECTION: 'exclamation-circle',
-      ABORTED: 'trash',
-      CRASHED: 'fire', // no joke.
-      ABSENT: 'question-circle',
-    }
-
-    var update = '${update.alias}';
-    var builds = ${update.builds_json | n};
-
-    // These are the required taskotron tests
-    var requirements = ${update.requirements_json | n};
-    // These are the known waivers of failed testcases.
-    var waivers = {};
-    // show the Greenwave decision
-    var greenwave_api_url = '${request.registry.settings["greenwave_api_url"]}';
-    var missing_tests = {};
-
-    // handle Greenwave decision
-    var handle_unsatisfied_requirements = function(data){
-        $.each(data['unsatisfied_requirements'], function(i, requirement) {
-            if (requirement.type == 'test-result-missing') {
-                if (missing_tests[requirement.subject_identifier] === undefined)
-                    missing_tests[requirement.subject_identifier] = [];
-                missing_tests[requirement.subject_identifier].push(requirement);
-            }
-            // the user may have already specified this in the required taskotron tests
-            if ($.inArray(requirement.testcase, requirements) == -1) {
-                requirements.push(requirement.testcase);
-            }
-            $('#failed_requirements').append('<li class="list-group-item">' + requirement.testcase + '</li>');
-
-            // there is at least one unsatisfied requirement, so show the button to be able to waive.
-            $('#waive').show();
-        });
-        % if request.registry.settings.get("test_gating.required") is True:
-            if (data['policies_satisfied']) {
-              label_class = classes['PASSED'];
-              icon_class = icons['PASSED'];
-            } else if (missing_tests.length != 0) {
-              label_class = classes['ABSENT'];
-              icon_class = icons['ABSENT'];
-            } else {
-              label_class = classes['FAILED'];
-              icon_class = icons['FAILED'];
-            }
-
-            var html = '<span class="badge badge-' + label_class + '">' +
-              '<span class="fa fa-' + icon_class + '">' +
-              '</span></span> ';
-            html += '<a class="gating-summary notblue" href="#automatedtests">' + data['summary'];
-            html += '</a>';
-            if (data.waivers.length != 0) {
-                 // Create url to waiverdb with waivers for this update
-                 var url = '${request.registry.settings["waiverdb_api_url"]}';
-                 url += '/waivers'
-                 url += '/?product_version=' + data.waivers[0].product_version;
-                 url += '&subject_type=' + data.waivers[0].subject_type;
-                 url += '&subject_identifier=' + data.waivers[0].subject_identifier;
-                 html += '<a class="notblue" target="_blank" href=' + url + '>';
-                 html += '<span data-toggle="tooltip" data-placement="top" ' +
-                 'title="Some tests failures were waived." ' +
-                 'class="fa fa-asterisk">' +
-                 '</span>';
-                 html += '</a>';
-            }
-            $('#test_status_badge').append(html);
-            $('#resultsdb h3').after(html);
-
-            $('.gating-summary').click(function(e){
-              e.preventDefault();
-              $('.nav-tabs a[href="#automatedtests"]').tab('show');
-            });
-        % endif
-    };
-
-    var get_greenwave_information = function(request, after_success) {
-        request.verbose = true;
-        $.ajax({
-            url: greenwave_api_url + '/decision',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(request),
-            success: function(data) {
-                $.each(data.waivers, function(i, waiver) {
-                  if (!(waiver.testcase in waivers)) { waivers[waiver.testcase] = []; }
-                  waivers[waiver.testcase].push(waiver);
-                });
-                handle_unsatisfied_requirements(data);
-                handle_results(data.results, request.subject);
-                after_success();
-            },
-            error: function (jqxhr, status, error) {
-               finish();
-               $('#resultsdb h3').after(
-                  '<h4 class="text-danger">Failed to talk to Greenwave.</h4>');
-               $('#test_status_badge').append(
-                  '<span class="text-danger">Failed to talk to Greenwave.</span>');
-            },
-        });
-    };
-
-    var make_row = function(outcome, testcase, note, arch, time, url, flavor) {
-      var icon = '<span data-toggle="tooltip" data-placement="top" ' +
-        'title="' + outcome + '" ' +
-        'class="fa fa-' + icons[outcome] + ' text-' + classes[outcome] + '">'+
-        '</span>';
-
-      var required = '';
-      if (testcase in waivers) {
-        var reason = 'Waived by ';
-        var comments = [];
-        for (let w of waivers[testcase]) {
-          waiver_details = "@" + w.username + ": '" + w.comment.replace("'", "&#39;") + "'"
-          comments.push(waiver_details);
-        }
-	reason += comments.join(", ")
-        required = '<span style="white-space:pre-line;" data-toggle="tooltip" data-placement="top" ' +
-          'title="' + reason + '" ' +
-          'class="fa fa-thumbs-up">' +
-          '</span>';
-      } else if ($.inArray(testcase, requirements) != -1) {
-        required = '<span data-toggle="tooltip" data-placement="top" ' +
-          'title="' + testcase + ' is a required test" ' +
-          'class="fa fa-asterisk">' +
-          '</span>';
-      }
-
-      if (arch != undefined) {
-        testcase = testcase + "&nbsp;<span class='badge badge-secondary'>"
-          + arch + "</label>";
-      }
-
-      if (flavor) {
-        testcase = testcase + "&nbsp;<span class='badge badge-secondary'>"
-          + flavor + "</label>";
-      }
-
-      var age = '';
-      if (time != undefined) {
-        // The ' Z' tells moment.js to interpret the time as UTC
-        // https://github.com/fedora-infra/bodhi/issues/217
-        var age = moment(time + ' Z').fromNow();
-      }
-      if (note == null){
-        note = '';
-      }
-      html = '<tr class="row-automatedtests table-' + classes[outcome];
-      if (outcome == 'ABSENT') {
-          html += ' absent-automatedtest"';
-      } else {
-          html += '" style="cursor: pointer;" data-href="' + url + '"';
-      }
-      html += '>' +
-        '<td>' + required + '</td>' +
-        '<td>' + icon + '</td>' +
-        '<td class="nowrap">' + testcase + '</td>' +
-        '<td class="stretch-table-column text-xs-right">' + note + '</td>' +
-        '<td class="nowrap">' + age + '</td>' +
-        '</tr>';
-      return html;
-    };
-
-    var handle_results = function(results, subjects) {
-      var build_results = {}
-      $.each(subjects, function(i, subject) {
-        build_results[subject.item] = [];
-      });
-
-      // First, prune duplicate results.  For instance, some depcheck runs
-      // happen multiple times on an update.  We only (imho) want to display
-      // the latest ones for each arch.  So, prune like this:
-      var latest = {};
-      $.each(results, function(i, result) {
-        var testcase = result.testcase.name;
-        var scenario = 'no_scenario';
-        if (result.data.scenario) {
-            scenario = result.data.scenario[0];
-        }
-        // note: these are actually single-item arrays, though this doesn't
-        // seem to break anything
-        var arch = result.data.arch;
-        var item = result.data.item;
-        var submit_time = new Date(result.submit_time);
-
-        var key = [item, testcase, arch, scenario].join('##');
-        var last_submit_time = latest[key];
-        if (last_submit_time === undefined || last_submit_time < submit_time) {
-          latest[key] = submit_time;
-
-          if (item in build_results) {
-            build_results[item].push(result);
-          } else {
-            build_results[item] = [result];
-          }
-        }
-      });
-
-      $.each(build_results, function(buildname, results) {
-        $("#resultsdb").append("<h4 class='pt-1'>" + buildname + "</h4>")
-
-        // no results reported
-        if (!(buildname in missing_tests) && results.length === 0) {
-          $("#resultsdb").append("<p>No results reported for this build.</p>");
-          return;
-        }
-
-        var table = $("<table class='table table-hover'></table>").appendTo("#resultsdb");
-
-        // show missing tests first
-        if (buildname in missing_tests) {
-          $.each(missing_tests[buildname], function(i, result) {
-            table.append(make_row(
-              'ABSENT',
-              result.testcase,
-              '',
-              '',
-              ''
-            ));
-          });
-        }
-
-        $.each(results, function(i, result) {
-          var scenario = 'no_scenario';
-          if (result.data.scenario) {
-              scenario = result.data.scenario[0];
-          }
-
-          var flavor;
-          if (scenario.includes("updates-server")) {
-            flavor = "server";
-          }
-          else if (scenario.includes("updates-workstation")) {
-            flavor = "workstation";
-          }
-
-          table.append(make_row(
-              result.outcome,
-              result.testcase.name,
-              result.note,
-              // note: this is a single-item array
-              result.data.arch,
-              result.submit_time,
-              result.ref_url,
-              flavor
-          ));
-        });
-      });
-    };
-
-    var update = function() {
-      // add the count of tests to the automated tests tab
-      $.each(['success', 'info', 'warning', 'danger'], function(i, counter) {
-        var count = $('.row-automatedtests.table-' + counter).length;
-        if (count > 0) {
-          $("#automatedtests-" + counter).text(count).parent().show();
-        }
-      });
-
-      // Make each cell clickable and awesome except the missing tests
-      $('#resultsdb tr').not('.absent-automatedtest').off().click(function(event, row) {
-        window.open($(this).attr('data-href'));
-      });
-
-      // And, re-do tooltips for newly created spans.
-      $('#resultsdb span').tooltip();
-    }
-
-    var finish = function() {
-      $("#tab-automatedtests .fa-spinner").remove();
-      $('#resultsdb .spinner').remove();
-      $('#test_status_badge .spinner').remove();
-    }
-
-
-    var request_results = function(url) {
-      $.ajax(url, {
-        beforeSend: function(xhr) {
-          activeResultsAjaxCalls++;
-        },
-        dataType: 'jsonp',
-        cache: false,
-        success: receive_resultsdb,
-      });
-    };
-
-    $("#tab-automatedtests").append(" <span class='fa fa-spinner fa-spin'></span>");
-
-    var request_batches = ${update.greenwave_request_batches_json | n};
-    var current_batch = 0;
-    var progress = $('#automatedtests-progress');
-    var fetch_next_batch = function() {
-      update()
-
-      if (current_batch >= request_batches.length) {
-        progress.remove()
-        finish();
-        return;
-      }
-
-      var percent = Math.floor(current_batch * 100 / request_batches.length)
-      progress.text(percent + '%')
-
-      var request = request_batches[current_batch]
-      ++current_batch;
-
-      get_greenwave_information(request, fetch_next_batch);
-    };
-    fetch_next_batch();
-  });
-</script>
-
-<script type="text/javascript">
-$(document).ready(function() {
-    var messenger = Messenger({theme: 'flat'});
-    var update_id = '${update.alias}';
-    $("#edit").attr('href',
-        '${request.route_url("update_edit", id=update.alias)}');
-
-    $.each(['testing', 'stable', 'unpush', 'revoke'], function(i, action) {
-      $("#updatebuttons #" + action).click(function() {
-          if (action == 'unpush') {
-              var r = confirm('Are you sure you want to unpush this update?');
-              if (r === false) { return; }
-          }
-          $("#updatebuttons a").addClass('disabled');
-          var url = '${request.route_url("update_request", id=update.alias)}';
-          $.ajax({
-              url: url,
-              data: {
-                request: action,
-                csrf_token: "${request.session.get_csrf_token()}",
-              },
-              method: 'POST',
-              dataType: 'json',
-              success: function(response) {
-                $("#updatebuttons a").removeClass('disabled');
-                // Just reload the page if all went well..
-                location.reload();
-              },
-              error: function(response) {
-                $("#updatebuttons a").removeClass('disabled');
-                $.each(response.responseJSON.errors, function(i, error) {
-                    msg = messenger.post({
-                      message: error.description,
-                      type: "error",
-                      hideAfter: false,
-                      showCloseButton: true,
-                    });
-                });
-              },
-          });
-      });
-    });
-
-% if self.util.can_waive_test_results(update):
-    // handle for waiving test results.
-    // set focus on the comment textarea when opening the modal.
-    $("#waive_test_results").on('shown.bs.modal', function () {
-        $('#waive_comment').trigger('focus')
-    })
-    $("#waive_test_results").submit(function(evt) {
-      evt.preventDefault();
-      var comment = $('#waive_test_results [name=waive_comment]').val();
-      var url = '${request.route_url("update_waive_test_results", id=update.alias)}';
-      var $this = $(this);
-      $.ajax({
-          url: url,
-          data: {
-            comment: comment,
-            csrf_token: "${request.session.get_csrf_token()}",
-          },
-          method: 'POST',
-          dataType: 'json',
-          success: function(response) {
-            // Just reload the page to refresh the test gating status.
-            location.reload();
-          },
-          error: function(response) {
-            $this.modal('hide');
-            $.each(response.responseJSON.errors, function(i, error) {
-                msg = messenger.post({
-                  message: error.description,
-                  type: "error",
-                  hideAfter: false,
-                  showCloseButton: true,
-                });
-            });
-          },
-      });
-    })
-% endif
-});
-</script>
-
-<script type="text/javascript">
-var form;
-$(document).ready(function(){
-  CommentsForm = function() {};
-  CommentsForm.prototype = new Form("#new_comment", "${request.route_url('comments')}");
-  CommentsForm.prototype.success = function(data) {
-    Form.prototype.success.call(this, data);
-
-    $.ajax({
-      url: this.url + "../comments/" + data.comment.id,
-      dataType: "html",
-      success: function(html) {
-        $("#comments").append(html);
-        $(".list-group-item").removeClass("list-group-item-success");
-        $(".list-group-item").removeClass("list-group-item-danger");
-      },
-      error: function(html) {
-        // TODO -- handle this
-        msg = this.messenger.post({
-          message: "Unhandled error",
-          type: "error",
-          hideAfter: false,
-          showCloseButton: true,
-        });
-      }
-    });
-
-    // Clear out the form.
-    $('#new_comment').find(':input').each(function() {
-      switch (this.type) {
-      case 'password':
-      case 'select-multiple':
-      case 'select-one':
-      case 'text':
-      case 'textarea':
-        $(this).val('');
-      case 'checkbox':
-      case 'radio':
-        this.checked = false;
-      }
-    });
-
-    // And the colors..
-    $('#new_comment tr.success').removeClass('success');
-    $('#new_comment tr.danger').removeClass('danger');
-  };
-
-  form = new CommentsForm();
-
-  $("#preview_button").click(function(){
-    update_markdown_preview($("#text").val());
-    $( "#preview_button" ).addClass("active");
-    $( "#edit_button" ).removeClass("active");
-    $( "#text" ).hide();
-    $( ".comment-preview" ).show();
-  });
-
-    $("#edit_button").click(function(){
-    $( "#preview_button" ).removeClass("active");
-    $( "#edit_button" ).addClass("active");
-    $( "#text" ).show();
-    $( ".comment-preview" ).hide();
-  });
-
-  $("input[type=radio]").change(function(){
-    if ($(this).attr("value") == 1){
-      $(this).parents(".list-group-item").addClass("list-group-item-success")
-      $(this).parents(".list-group-item").removeClass("list-group-item-danger")
-    } else if ($(this).attr("value") == -1) {
-      $(this).parents(".list-group-item").removeClass("list-group-item-success")
-      $(this).parents(".list-group-item").addClass("list-group-item-danger")
-    } else {
-      $(this).parents(".list-group-item").removeClass("list-group-item-success")
-      $(this).parents(".list-group-item").removeClass("list-group-item-danger")
-    }
-    
-  });
-
-
-});
-</script>
-
-<script type="text/javascript">
-$(document).ready(function(){
-    var button = document.getElementById('copybutton')
-
-    if (button == null) {
-        return;
-    }
-
-    button.addEventListener('click', function(event) {
-        if (document.selection) { 
-            document.selection.empty();
-            var range = document.body.createTextRange();
-            range.moveToElementText(document.getElementById('commandtext'));
-            range.select().createTextRange();
-            try {
-                document.execCommand('copy');
-            } catch (err) {
-                console.log('Oops, unable to copy');
-            }
-        } else if (window.getSelection) {
-            if (window.getSelection().empty) {  // Chrome
-                window.getSelection().empty();
-            } else if (window.getSelection().removeAllRanges) {  // Firefox
-                window.getSelection().removeAllRanges();
-            }
-            var range = document.createRange();
-            range.selectNode(document.getElementById('commandtext'));
-            window.getSelection().addRange(range);
-            try {
-                document.execCommand('copy');
-            } catch (err) {
-                console.log('Oops, unable to copy');
-            }
-        }
-    });
-});
-</script>
-
+<link href="${request.static_url('bodhi:server/static/vendor/messenger/css/messenger.css') }" rel="stylesheet" />
+<link href="${request.static_url('bodhi:server/static/vendor/messenger/css/messenger-theme-flat.css') }" rel="stylesheet" />
+</%block>
 
 <%
 actions = {}
@@ -1242,3 +716,540 @@ if can_edit:
 % endif
 
 </div> <!-- end container -->
+
+<%block name="javascript">
+${parent.javascript()}
+<script src="${request.static_url('bodhi:server/static/vendor/messenger/js/messenger.min.js')}"></script>
+<script src="${request.static_url('bodhi:server/static/vendor/messenger/js/messenger-theme-flat.js')}"></script>
+<script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
+<script src="${request.static_url('bodhi:server/static/vendor/moment/moment.min.js')}"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    // Some handy lookups that map taskotron states to bootstrap CSS classes.
+    var classes = {
+      PASSED: 'success',
+      INFO: 'info',
+      FAILED: 'danger',
+      NEEDS_INSPECTION: 'warning',
+      ABORTED: 'warning',
+      CRASHED: 'warning',
+      ABSENT: 'danger',
+    }
+    var icons = {
+      PASSED: 'check-circle',
+      INFO: 'info-circle',
+      FAILED: 'minus-circle',
+      NEEDS_INSPECTION: 'exclamation-circle',
+      ABORTED: 'trash',
+      CRASHED: 'fire', // no joke.
+      ABSENT: 'question-circle',
+    }
+
+    var update = '${update.alias}';
+    var builds = ${update.builds_json | n};
+
+    // These are the required taskotron tests
+    var requirements = ${update.requirements_json | n};
+    // These are the known waivers of failed testcases.
+    var waivers = {};
+    // show the Greenwave decision
+    var greenwave_api_url = '${request.registry.settings["greenwave_api_url"]}';
+    var missing_tests = {};
+
+    // handle Greenwave decision
+    var handle_unsatisfied_requirements = function(data){
+        $.each(data['unsatisfied_requirements'], function(i, requirement) {
+            if (requirement.type == 'test-result-missing') {
+                if (missing_tests[requirement.subject_identifier] === undefined)
+                    missing_tests[requirement.subject_identifier] = [];
+                missing_tests[requirement.subject_identifier].push(requirement);
+            }
+            // the user may have already specified this in the required taskotron tests
+            if ($.inArray(requirement.testcase, requirements) == -1) {
+                requirements.push(requirement.testcase);
+            }
+            $('#failed_requirements').append('<li class="list-group-item">' + requirement.testcase + '</li>');
+
+            // there is at least one unsatisfied requirement, so show the button to be able to waive.
+            $('#waive').show();
+        });
+        % if request.registry.settings.get("test_gating.required") is True:
+            if (data['policies_satisfied']) {
+              label_class = classes['PASSED'];
+              icon_class = icons['PASSED'];
+            } else if (missing_tests.length != 0) {
+              label_class = classes['ABSENT'];
+              icon_class = icons['ABSENT'];
+            } else {
+              label_class = classes['FAILED'];
+              icon_class = icons['FAILED'];
+            }
+
+            var html = '<span class="badge badge-' + label_class + '">' +
+              '<span class="fa fa-' + icon_class + '">' +
+              '</span></span> ';
+            html += '<a class="gating-summary notblue" href="#automatedtests">' + data['summary'];
+            html += '</a>';
+            if (data.waivers.length != 0) {
+                 // Create url to waiverdb with waivers for this update
+                 var url = '${request.registry.settings["waiverdb_api_url"]}';
+                 url += '/waivers'
+                 url += '/?product_version=' + data.waivers[0].product_version;
+                 url += '&subject_type=' + data.waivers[0].subject_type;
+                 url += '&subject_identifier=' + data.waivers[0].subject_identifier;
+                 html += '<a class="notblue" target="_blank" href=' + url + '>';
+                 html += '<span data-toggle="tooltip" data-placement="top" ' +
+                 'title="Some tests failures were waived." ' +
+                 'class="fa fa-asterisk">' +
+                 '</span>';
+                 html += '</a>';
+            }
+            $('#test_status_badge').append(html);
+            $('#resultsdb h3').after(html);
+
+            $('.gating-summary').click(function(e){
+              e.preventDefault();
+              $('.nav-tabs a[href="#automatedtests"]').tab('show');
+            });
+        % endif
+    };
+
+    var get_greenwave_information = function(request, after_success) {
+        request.verbose = true;
+        $.ajax({
+            url: greenwave_api_url + '/decision',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(request),
+            success: function(data) {
+                $.each(data.waivers, function(i, waiver) {
+                  if (!(waiver.testcase in waivers)) { waivers[waiver.testcase] = []; }
+                  waivers[waiver.testcase].push(waiver);
+                });
+                handle_unsatisfied_requirements(data);
+                handle_results(data.results, request.subject);
+                after_success();
+            },
+            error: function (jqxhr, status, error) {
+               finish();
+               $('#resultsdb h3').after(
+                  '<h4 class="text-danger">Failed to talk to Greenwave.</h4>');
+               $('#test_status_badge').append(
+                  '<span class="text-danger">Failed to talk to Greenwave.</span>');
+            },
+        });
+    };
+
+    var make_row = function(outcome, testcase, note, arch, time, url, flavor) {
+      var icon = '<span data-toggle="tooltip" data-placement="top" ' +
+        'title="' + outcome + '" ' +
+        'class="fa fa-' + icons[outcome] + ' text-' + classes[outcome] + '">'+
+        '</span>';
+
+      var required = '';
+      if (testcase in waivers) {
+        var reason = 'Waived by ';
+        var comments = [];
+        for (let w of waivers[testcase]) {
+          waiver_details = "@" + w.username + ": '" + w.comment.replace("'", "&#39;") + "'"
+          comments.push(waiver_details);
+        }
+	reason += comments.join(", ")
+        required = '<span style="white-space:pre-line;" data-toggle="tooltip" data-placement="top" ' +
+          'title="' + reason + '" ' +
+          'class="fa fa-thumbs-up">' +
+          '</span>';
+      } else if ($.inArray(testcase, requirements) != -1) {
+        required = '<span data-toggle="tooltip" data-placement="top" ' +
+          'title="' + testcase + ' is a required test" ' +
+          'class="fa fa-asterisk">' +
+          '</span>';
+      }
+
+      if (arch != undefined) {
+        testcase = testcase + "&nbsp;<span class='badge badge-secondary'>"
+          + arch + "</label>";
+      }
+
+      if (flavor) {
+        testcase = testcase + "&nbsp;<span class='badge badge-secondary'>"
+          + flavor + "</label>";
+      }
+
+      var age = '';
+      if (time != undefined) {
+        // The ' Z' tells moment.js to interpret the time as UTC
+        // https://github.com/fedora-infra/bodhi/issues/217
+        var age = moment(time + ' Z').fromNow();
+      }
+      if (note == null){
+        note = '';
+      }
+      html = '<tr class="row-automatedtests table-' + classes[outcome];
+      if (outcome == 'ABSENT') {
+          html += ' absent-automatedtest"';
+      } else {
+          html += '" style="cursor: pointer;" data-href="' + url + '"';
+      }
+      html += '>' +
+        '<td>' + required + '</td>' +
+        '<td>' + icon + '</td>' +
+        '<td class="nowrap">' + testcase + '</td>' +
+        '<td class="stretch-table-column text-xs-right">' + note + '</td>' +
+        '<td class="nowrap">' + age + '</td>' +
+        '</tr>';
+      return html;
+    };
+
+    var handle_results = function(results, subjects) {
+      var build_results = {}
+      $.each(subjects, function(i, subject) {
+        build_results[subject.item] = [];
+      });
+
+      // First, prune duplicate results.  For instance, some depcheck runs
+      // happen multiple times on an update.  We only (imho) want to display
+      // the latest ones for each arch.  So, prune like this:
+      var latest = {};
+      $.each(results, function(i, result) {
+        var testcase = result.testcase.name;
+        var scenario = 'no_scenario';
+        if (result.data.scenario) {
+            scenario = result.data.scenario[0];
+        }
+        // note: these are actually single-item arrays, though this doesn't
+        // seem to break anything
+        var arch = result.data.arch;
+        var item = result.data.item;
+        var submit_time = new Date(result.submit_time);
+
+        var key = [item, testcase, arch, scenario].join('##');
+        var last_submit_time = latest[key];
+        if (last_submit_time === undefined || last_submit_time < submit_time) {
+          latest[key] = submit_time;
+
+          if (item in build_results) {
+            build_results[item].push(result);
+          } else {
+            build_results[item] = [result];
+          }
+        }
+      });
+
+      $.each(build_results, function(buildname, results) {
+        $("#resultsdb").append("<h4 class='pt-1'>" + buildname + "</h4>")
+
+        // no results reported
+        if (!(buildname in missing_tests) && results.length === 0) {
+          $("#resultsdb").append("<p>No results reported for this build.</p>");
+          return;
+        }
+
+        var table = $("<table class='table table-hover'></table>").appendTo("#resultsdb");
+
+        // show missing tests first
+        if (buildname in missing_tests) {
+          $.each(missing_tests[buildname], function(i, result) {
+            table.append(make_row(
+              'ABSENT',
+              result.testcase,
+              '',
+              '',
+              ''
+            ));
+          });
+        }
+
+        $.each(results, function(i, result) {
+          var scenario = 'no_scenario';
+          if (result.data.scenario) {
+              scenario = result.data.scenario[0];
+          }
+
+          var flavor;
+          if (scenario.includes("updates-server")) {
+            flavor = "server";
+          }
+          else if (scenario.includes("updates-workstation")) {
+            flavor = "workstation";
+          }
+
+          table.append(make_row(
+              result.outcome,
+              result.testcase.name,
+              result.note,
+              // note: this is a single-item array
+              result.data.arch,
+              result.submit_time,
+              result.ref_url,
+              flavor
+          ));
+        });
+      });
+    };
+
+    var update = function() {
+      // add the count of tests to the automated tests tab
+      $.each(['success', 'info', 'warning', 'danger'], function(i, counter) {
+        var count = $('.row-automatedtests.table-' + counter).length;
+        if (count > 0) {
+          $("#automatedtests-" + counter).text(count).parent().show();
+        }
+      });
+
+      // Make each cell clickable and awesome except the missing tests
+      $('#resultsdb tr').not('.absent-automatedtest').off().click(function(event, row) {
+        window.open($(this).attr('data-href'));
+      });
+
+      // And, re-do tooltips for newly created spans.
+      $('#resultsdb span').tooltip();
+    }
+
+    var finish = function() {
+      $("#tab-automatedtests .fa-spinner").remove();
+      $('#resultsdb .spinner').remove();
+      $('#test_status_badge .spinner').remove();
+    }
+
+
+    var request_results = function(url) {
+      $.ajax(url, {
+        beforeSend: function(xhr) {
+          activeResultsAjaxCalls++;
+        },
+        dataType: 'jsonp',
+        cache: false,
+        success: receive_resultsdb,
+      });
+    };
+
+    $("#tab-automatedtests").append(" <span class='fa fa-spinner fa-spin'></span>");
+
+    var request_batches = ${update.greenwave_request_batches_json | n};
+    var current_batch = 0;
+    var progress = $('#automatedtests-progress');
+    var fetch_next_batch = function() {
+      update()
+
+      if (current_batch >= request_batches.length) {
+        progress.remove()
+        finish();
+        return;
+      }
+
+      var percent = Math.floor(current_batch * 100 / request_batches.length)
+      progress.text(percent + '%')
+
+      var request = request_batches[current_batch]
+      ++current_batch;
+
+      get_greenwave_information(request, fetch_next_batch);
+    };
+    fetch_next_batch();
+  });
+</script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    var messenger = Messenger({theme: 'flat'});
+    var update_id = '${update.alias}';
+    $("#edit").attr('href',
+        '${request.route_url("update_edit", id=update.alias)}');
+
+    $.each(['testing', 'stable', 'unpush', 'revoke'], function(i, action) {
+      $("#updatebuttons #" + action).click(function() {
+          if (action == 'unpush') {
+              var r = confirm('Are you sure you want to unpush this update?');
+              if (r === false) { return; }
+          }
+          $("#updatebuttons a").addClass('disabled');
+          var url = '${request.route_url("update_request", id=update.alias)}';
+          $.ajax({
+              url: url,
+              data: {
+                request: action,
+                csrf_token: "${request.session.get_csrf_token()}",
+              },
+              method: 'POST',
+              dataType: 'json',
+              success: function(response) {
+                $("#updatebuttons a").removeClass('disabled');
+                // Just reload the page if all went well..
+                location.reload();
+              },
+              error: function(response) {
+                $("#updatebuttons a").removeClass('disabled');
+                $.each(response.responseJSON.errors, function(i, error) {
+                    msg = messenger.post({
+                      message: error.description,
+                      type: "error",
+                      hideAfter: false,
+                      showCloseButton: true,
+                    });
+                });
+              },
+          });
+      });
+    });
+
+% if self.util.can_waive_test_results(update):
+    // handle for waiving test results.
+    // set focus on the comment textarea when opening the modal.
+    $("#waive_test_results").on('shown.bs.modal', function () {
+        $('#waive_comment').trigger('focus')
+    })
+    $("#waive_test_results").submit(function(evt) {
+      evt.preventDefault();
+      var comment = $('#waive_test_results [name=waive_comment]').val();
+      var url = '${request.route_url("update_waive_test_results", id=update.alias)}';
+      var $this = $(this);
+      $.ajax({
+          url: url,
+          data: {
+            comment: comment,
+            csrf_token: "${request.session.get_csrf_token()}",
+          },
+          method: 'POST',
+          dataType: 'json',
+          success: function(response) {
+            // Just reload the page to refresh the test gating status.
+            location.reload();
+          },
+          error: function(response) {
+            $this.modal('hide');
+            $.each(response.responseJSON.errors, function(i, error) {
+                msg = messenger.post({
+                  message: error.description,
+                  type: "error",
+                  hideAfter: false,
+                  showCloseButton: true,
+                });
+            });
+          },
+      });
+    })
+% endif
+});
+</script>
+
+<script type="text/javascript">
+var form;
+$(document).ready(function(){
+  CommentsForm = function() {};
+  CommentsForm.prototype = new Form("#new_comment", "${request.route_url('comments')}");
+  CommentsForm.prototype.success = function(data) {
+    Form.prototype.success.call(this, data);
+
+    $.ajax({
+      url: this.url + "../comments/" + data.comment.id,
+      dataType: "html",
+      success: function(html) {
+        $("#comments").append(html);
+        $(".list-group-item").removeClass("list-group-item-success");
+        $(".list-group-item").removeClass("list-group-item-danger");
+      },
+      error: function(html) {
+        // TODO -- handle this
+        msg = this.messenger.post({
+          message: "Unhandled error",
+          type: "error",
+          hideAfter: false,
+          showCloseButton: true,
+        });
+      }
+    });
+
+    // Clear out the form.
+    $('#new_comment').find(':input').each(function() {
+      switch (this.type) {
+      case 'password':
+      case 'select-multiple':
+      case 'select-one':
+      case 'text':
+      case 'textarea':
+        $(this).val('');
+      case 'checkbox':
+      case 'radio':
+        this.checked = false;
+      }
+    });
+
+    // And the colors..
+    $('#new_comment tr.success').removeClass('success');
+    $('#new_comment tr.danger').removeClass('danger');
+  };
+
+  form = new CommentsForm();
+
+  $("#preview_button").click(function(){
+    update_markdown_preview($("#text").val());
+    $( "#preview_button" ).addClass("active");
+    $( "#edit_button" ).removeClass("active");
+    $( "#text" ).hide();
+    $( ".comment-preview" ).show();
+  });
+
+    $("#edit_button").click(function(){
+    $( "#preview_button" ).removeClass("active");
+    $( "#edit_button" ).addClass("active");
+    $( "#text" ).show();
+    $( ".comment-preview" ).hide();
+  });
+
+  $("input[type=radio]").change(function(){
+    if ($(this).attr("value") == 1){
+      $(this).parents(".list-group-item").addClass("list-group-item-success")
+      $(this).parents(".list-group-item").removeClass("list-group-item-danger")
+    } else if ($(this).attr("value") == -1) {
+      $(this).parents(".list-group-item").removeClass("list-group-item-success")
+      $(this).parents(".list-group-item").addClass("list-group-item-danger")
+    } else {
+      $(this).parents(".list-group-item").removeClass("list-group-item-success")
+      $(this).parents(".list-group-item").removeClass("list-group-item-danger")
+    }
+    
+  });
+
+
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){
+    var button = document.getElementById('copybutton')
+
+    if (button == null) {
+        return;
+    }
+
+    button.addEventListener('click', function(event) {
+        if (document.selection) { 
+            document.selection.empty();
+            var range = document.body.createTextRange();
+            range.moveToElementText(document.getElementById('commandtext'));
+            range.select().createTextRange();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.log('Oops, unable to copy');
+            }
+        } else if (window.getSelection) {
+            if (window.getSelection().empty) {  // Chrome
+                window.getSelection().empty();
+            } else if (window.getSelection().removeAllRanges) {  // Firefox
+                window.getSelection().removeAllRanges();
+            }
+            var range = document.createRange();
+            range.selectNode(document.getElementById('commandtext'));
+            window.getSelection().addRange(range);
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.log('Oops, unable to copy');
+            }
+        }
+    });
+});
+</script>
+</%block>

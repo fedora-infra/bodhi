@@ -1,4 +1,12 @@
 <%inherit file="master.html"/>
+
+<%block name="css">
+${parent.css()}
+<link href="${request.static_url('bodhi:server/static/vendor/messenger/css/messenger.css') }" rel="stylesheet" />
+<link href="${request.static_url('bodhi:server/static/vendor/messenger/css/messenger-theme-flat.css') }" rel="stylesheet" />
+<link href="${request.static_url('bodhi:server/static/vendor/selectize/selectize.bootstrap3-0.12.3.css') }" rel="stylesheet" />
+</%block>
+
 <div class="subheader pt-3">
     <div class="container">
       <div class="row">
@@ -365,14 +373,20 @@ ${update.notes}
 
   </div>
 </div></div></div>
+<%block name="javascript">
+${parent.javascript()}
 <script src="${request.static_url('bodhi:server/static/vendor/selectize/selectize-0.12.3.min.js')}"></script>
 % if update and update.from_tag:
-  <script>var existing_sidetag_update = true</script>
+  <script>var existing_sidetag_update = true;</script>
 % else:
-  <script>var existing_sidetag_update = false</script>
+  <script>var existing_sidetag_update = false;</script>
 % endif
+<script src="${request.static_url('bodhi:server/static/vendor/messenger/js/messenger.min.js')}"></script>
+<script src="${request.static_url('bodhi:server/static/vendor/messenger/js/messenger-theme-flat.js')}"></script>
+<script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
 <script src="${request.static_url('bodhi:server/static/js/update_form.js')}"></script>
 
 <script>$("#js-warning").hide();$("#new-update-form").show();</script>
 <script> $(document).ready(function() { $('.panel-heading > span, dt').tooltip(); }); </script>
+</%block>
 

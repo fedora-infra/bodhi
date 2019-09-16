@@ -484,7 +484,8 @@ class TestReleasesService(base.BaseTestCase):
         self.assertIn('f17-updates-testing', res)
         # Since the updates are the same type and from the same month, we should see a count of 2 in
         # the graph data.
-        graph_data = 'data : [\n                2,\n              ]'
+        graph_data = 'data : [\n            2,\n          ]'
+        print(res)
         self.assertTrue(graph_data in res)
 
     def test_get_non_existent_release_html(self):

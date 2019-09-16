@@ -13,38 +13,6 @@
       <div style="clear: both;">
         <canvas id="releasechart" style="clear: both;" width="451"></canvas>
       </div>
-      <script>
-        var data = {
-          labels : [${', '.join(map(lambda x: '"' + x + '"', dates)) | n}],
-          datasets : [
-            % for ud_type in date_commits:
-            {
-              // ${ud_type}
-              fillColor : "${self.util.type2color(ud_type)}",
-              strokeColor : "rgba(220,220,220,1)",
-              pointColor : "rgba(220,220,220,1)",
-              pointStrokeColor : "#fff",
-              data : [
-                % for yearmonth in date_commits[ud_type]:
-                ${date_commits[ud_type][yearmonth]},
-                % endfor
-              ]
-            },
-            % endfor
-          ]
-        }
-        // About 25 labels should be printed at most.
-        let every_nth = Math.max(1, Math.round(data.labels.length / 25));
-        let every_filter = function(element, index) {
-            return index % every_nth == 0;
-        }
-        data.labels = data.labels.filter(every_filter);
-        for (let dataset of data.datasets) {
-            dataset.data = dataset.data.filter(every_filter);
-        }
-        var ctx = document.getElementById("releasechart").getContext("2d");
-        var myNewChart = new Chart(ctx).Line(data);
-      </script>
       <table class="table">
         <tr>
           <td>State</td>
@@ -273,3 +241,40 @@
     </div>
   </div>
 </div>
+
+<%block name="javascript">
+${parent.javascript()}
+<script src="${request.static_url('bodhi:server/static/vendor/chartjs/Chart-0.2.0.min.js')}"></script>
+<script>
+    var data = {
+      labels : [${', '.join(map(lambda x: '"' + x + '"', dates)) | n}],
+      datasets : [
+        % for ud_type in date_commits:
+        {
+          // ${ud_type}
+          fillColor : "${self.util.type2color(ud_type)}",
+          strokeColor : "rgba(220,220,220,1)",
+          pointColor : "rgba(220,220,220,1)",
+          pointStrokeColor : "#fff",
+          data : [
+            % for yearmonth in date_commits[ud_type]:
+            ${date_commits[ud_type][yearmonth]},
+            % endfor
+          ]
+        },
+        % endfor
+      ]
+    }
+    // About 25 labels should be printed at most.
+    let every_nth = Math.max(1, Math.round(data.labels.length / 25));
+    let every_filter = function(element, index) {
+        return index % every_nth == 0;
+    }
+    data.labels = data.labels.filter(every_filter);
+    for (let dataset of data.datasets) {
+        dataset.data = dataset.data.filter(every_filter);
+    }
+    var ctx = document.getElementById("releasechart").getContext("2d");
+    var myNewChart = new Chart(ctx).Line(data);
+  </script>
+</%block>
