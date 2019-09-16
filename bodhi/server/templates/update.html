@@ -360,7 +360,6 @@ $(document).ready(function() {
               if (r === false) { return; }
           }
           $("#updatebuttons a").addClass('disabled');
-          cabbage.spin(); // for real!
           var url = '${request.route_url("update_request", id=update.alias)}';
           $.ajax({
               url: url,
@@ -372,13 +371,11 @@ $(document).ready(function() {
               dataType: 'json',
               success: function(response) {
                 $("#updatebuttons a").removeClass('disabled');
-                cabbage.finish();
                 // Just reload the page if all went well..
                 location.reload();
               },
               error: function(response) {
                 $("#updatebuttons a").removeClass('disabled');
-                cabbage.finish();
                 $.each(response.responseJSON.errors, function(i, error) {
                     msg = messenger.post({
                       message: error.description,
