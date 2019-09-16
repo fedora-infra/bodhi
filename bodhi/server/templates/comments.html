@@ -9,9 +9,12 @@ def inherit(context):
 <%namespace name="util" module="bodhi.server.util"/>
 <%namespace name="fragments" file="fragments.html"/>
 
-<link rel="alternate" type="application/atom+xml" title="New Comments" href="${request.route_url('comments_rss') + '?' + request.query_string}"/>
 
 % if chrome:
+<%block name="css">
+${parent.css()}
+<link rel="alternate" type="application/atom+xml" title="New Comments" href="${request.route_url('comments_rss') + '?' + request.query_string}"/>
+</%block>
 <div class="subheader py-3">
   <div class="container">
     <div class="row">
