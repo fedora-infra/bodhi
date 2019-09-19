@@ -42,6 +42,11 @@ def _run_cli(bodhi_container, args, **kwargs):
         Munch: Execution result as an object with an ``exit_code`` property
             (``int``) and an ``output`` property (``str``).
     """
+    if "exec_create_kwargs" not in kwargs:
+        kwargs["exec_create_kwargs"] = {}
+    if "environment" not in kwargs["exec_create_kwargs"]:
+        kwargs["exec_create_kwargs"]["environment"] = {}
+    kwargs["exec_create_kwargs"]["environment"]["PYTHONWARNINGS"] = "ignore"
     try:
         output = bodhi_container.execute(
             ["bodhi"] + args + ["--url", "http://localhost:8080"],
