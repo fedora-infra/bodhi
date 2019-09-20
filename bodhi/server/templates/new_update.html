@@ -1,4 +1,12 @@
 <%inherit file="master.html"/>
+
+<%block name="css">
+${parent.css()}
+<link href="${request.static_url('bodhi:server/static/vendor/messenger/css/messenger.css') }" rel="stylesheet" />
+<link href="${request.static_url('bodhi:server/static/vendor/messenger/css/messenger-theme-flat.css') }" rel="stylesheet" />
+<link href="${request.static_url('bodhi:server/static/vendor/selectize/selectize.bootstrap3-0.12.3.css') }" rel="stylesheet" />
+</%block>
+
 <div class="subheader pt-3">
     <div class="container">
       <div class="row">
@@ -144,10 +152,45 @@ ${update.notes}
       <div class="col-10 mt-4">
         <div class="card" id="builds-card">
             <div class="card-header">
-                <h5 class="font-weight-bold mb-0">Builds</h5>
+              <div class="row">
+                  <div class="col">
+                      <h5 class="font-weight-bold my-1 ml-2">Builds</h5>
+                  </div>
+                  <%doc>
+                  if new update form, sidetags is populated with the user's sidetags.
+                  if edit update form, sidetags is always []
+                  </%doc>
+                  % if sidetags != []:
+                  <div class="col text-right pr-0">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonSidetags" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                         <span class="fa fa-tag pr-1"></span> <span class="buttonlabel">Use Side Tag</span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right w-100" aria-labelledby="dropdownMenuButtonSidetags">
+                          % for tag in sidetags:
+                          <a class="dropdown-item sidetag-item" href="javascript:void(0)" data-sidetagid="${tag['id']}" data-sidetagname="${tag['name']}"><span class="fa fa-tag pr-1"></span> <strong>${tag['name']}</strong> <div class="float-right text-muted">${len(tag['builds'])} build${'s' if len(tag['builds']) > 1 else ''}</div></a>
+                          % endfor
+                        </div>
+                      </div>
+                  </div>
+                  % endif
+                  % if update and update.from_tag:
+                  <div class="col text-right pr-0">
+                  <span class="text-muted"><span class="fa fa-tag pr-1"></span> ${update.from_tag} <button class="btn btn-outline-primary btn-sm ml-2" id="sidetag-update"><span class="fa fa-refresh"></span></button></span>
+                  </div>
+                  % endif
+                </div>
+                
             </div>
             <div class="card-body p-0">
-              <select name="builds" id="builds-search" multiple='multiple' placeholder="search and add builds">
+              % if update and update.from_tag:
+                <div class='list-group list-group-flush' id='sidetag-buildlist'>
+                  % for build in update.builds:
+                    <div class='list-group-item'>${build.nvr}</div>                  
+                  % endfor
+                </div>
+              % endif:
+              <select name="builds" id="builds-search" ${'class=d-none' if update and update.from_tag else ''} multiple='multiple' placeholder="search and add builds">
                   % if update:
                   % for build in update.builds:
                   <option selected value="${build.nvr}" data-data='{"nvr": "${build.nvr}", "release_name":"${build.release.long_name}", "id":"${build.get_build_id()}", "package_name":"${build.get_n_v_r()[0]}", "owner_name":"${build.get_owner_name()}"}'>${build.nvr}</option>
@@ -309,7 +352,11 @@ ${update.notes}
           </div>
       </div>
       <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
-
+      %if update and update.from_tag:
+      <input type="hidden" name="from_tag" value="${update.from_tag}"/>
+      %else:
+      <input type="hidden" name="from_tag" value=""/>
+      %endif
             % if update:
             <input type="hidden" name="edited" value="${update.alias}">
             % endif
@@ -326,9 +373,20 @@ ${update.notes}
 
   </div>
 </div></div></div>
-<script src="${request.static_url('bodhi:server/static/selectize/selectize-0.12.3.min.js')}"></script>
+<%block name="javascript">
+${parent.javascript()}
+<script src="${request.static_url('bodhi:server/static/vendor/selectize/selectize-0.12.3.min.js')}"></script>
+% if update and update.from_tag:
+  <script>var existing_sidetag_update = true;</script>
+% else:
+  <script>var existing_sidetag_update = false;</script>
+% endif
+<script src="${request.static_url('bodhi:server/static/vendor/messenger/js/messenger.min.js')}"></script>
+<script src="${request.static_url('bodhi:server/static/vendor/messenger/js/messenger-theme-flat.js')}"></script>
+<script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
 <script src="${request.static_url('bodhi:server/static/js/update_form.js')}"></script>
 
 <script>$("#js-warning").hide();$("#new-update-form").show();</script>
 <script> $(document).ready(function() { $('.panel-heading > span, dt').tooltip(); }); </script>
+</%block>
 

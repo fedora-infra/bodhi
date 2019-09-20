@@ -31,6 +31,7 @@ from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.consumers.signed import SignedHandler
 from bodhi.server.consumers.greenwave import GreenwaveHandler
+from bodhi.server.consumers.ci import CIHandler
 
 
 log = logging.getLogger('bodhi')
@@ -53,6 +54,7 @@ class Consumer:
             HandlerInfo('.buildsys.tag', "Signed", SignedHandler()),
             HandlerInfo('.buildsys.tag', 'Automatic Update', AutomaticUpdateHandler()),
             HandlerInfo('.greenwave.decision.update', 'Greenwave', GreenwaveHandler()),
+            HandlerInfo('.ci.koji-build.test.running', 'CI', CIHandler())
         ]
 
     def __call__(self, msg: fedora_messaging.api.Message):  # noqa: D401

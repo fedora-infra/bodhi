@@ -126,75 +126,77 @@ $(document).ready(function() {
     });
     $bugs_search_selectize = $bugs_search_selectize[0].selectize;
 
-    var buildssearchterm = "";
-    var $builds_search_selectize = $('#builds-search').selectize({
-        valueField: 'nvr',
-        labelField: 'nvr',
-        searchField: ['nvr', 'tag_name', 'owner_name'],
-        preload: true,
-        plugins: ['remove_button','restore_on_backspace'],
-        render: {
-            option: function(item, escape) {
-                return '<div class="w-100 border-bottom px-1">' +
-                '   <h6 class="font-weight-bold mb-0">' + escape(item.nvr) + '</h6>' +
-                '   <span class="badge badge-light border"><i class="fa fa-tag"></i> '+escape(item.release_name)+'</span> '+
-                '   <span class="badge badge-light border"><i class="fa fa-user"></i> '+escape(item.owner_name)+'</span> '+
-                '</div>';
-            },
-            item: function(item, escape) {
-                return '<div class="w-100 border-bottom m-0 py-1 pl-3">' +
-                       '   <span class="name">' + escape(item.nvr) + '</span>' +
-                       '   <span class="badge badge-light border float-right">' + escape(item.release_name) + '</span>' +
-                       '</div>';
-            },
-        },
-        onItemAdd: function(value, item){
-            $builds_search_selectize.setTextboxValue(buildssearchterm)
-            $builds_search_selectize.refreshOptions(true)
-            $builds_search_selectize.updatePlaceholder()
-
-            // when adding a new build, pull the bugs into the bugs chooser options
-            $bugs_search_selectize.load(loadBugs(this.options[value].package_name))
-        },
-        onType: function(searchterm){
-            buildssearchterm = searchterm;
-        },
-        onBlur: function(){
-            // make sure the placeholder reappears when focus is lost
-            $('#builds-search-selectized').attr("placeholder", $builds_search_selectize.settings.placeholder);
-        },
-        onInitialize: function(){
-            // make sure the placeholder shows when items already exist when page loads
-            $('#builds-search-selectized').attr("placeholder", "search and add builds");
-
-            // preload bugs from builds that exist when the page loads (i.e. when editing an existing update)
-            for (var b in this.options) {
-                if (this.options.hasOwnProperty(b)) {
-                    $bugs_search_selectize.load(loadBugs(this.options[b].package_name))
-                }
-
-            }
-            
-        },
-        onFocus: function(){
-            // make sure the placeholder disappears when focused
-            $('#builds-search-selectized').attr("placeholder", "");
-        },
-        load: function(query, callback) {
-            $.ajax({
-                url: '/latest_candidates?prefix=' + encodeURIComponent(query),
-                type: 'GET',
-                error: function() {
-                    callback();
+    if (!existing_sidetag_update){
+        var buildssearchterm = "";
+        var $builds_search_selectize = $('#builds-search').selectize({
+            valueField: 'nvr',
+            labelField: 'nvr',
+            searchField: ['nvr', 'tag_name', 'owner_name'],
+            preload: true,
+            plugins: ['remove_button','restore_on_backspace'],
+            render: {
+                option: function(item, escape) {
+                    return '<div class="w-100 border-bottom px-1">' +
+                    '   <h6 class="font-weight-bold mb-0">' + escape(item.nvr) + '</h6>' +
+                    '   <span class="badge badge-light border"><i class="fa fa-tag"></i> '+escape(item.release_name)+'</span> '+
+                    '   <span class="badge badge-light border"><i class="fa fa-user"></i> '+escape(item.owner_name)+'</span> '+
+                    '</div>';
                 },
-                success: function(res) {
-                    callback(res);
-                }
-            });
-        }
-    });
+                item: function(item, escape) {
+                    return '<div class="w-100 border-bottom m-0 py-1 pl-3">' +
+                        '   <span class="name">' + escape(item.nvr) + '</span>' +
+                        '   <span class="badge badge-light border float-right">' + escape(item.release_name) + '</span>' +
+                        '</div>';
+                },
+            },
+            onItemAdd: function(value, item){
+                $builds_search_selectize.setTextboxValue(buildssearchterm)
+                $builds_search_selectize.refreshOptions(true)
+                $builds_search_selectize.updatePlaceholder()
 
-    $builds_search_selectize = $builds_search_selectize[0].selectize;
+                // when adding a new build, pull the bugs into the bugs chooser options
+                $bugs_search_selectize.load(loadBugs(this.options[value].package_name))
+            },
+            onType: function(searchterm){
+                buildssearchterm = searchterm;
+            },
+            onBlur: function(){
+                // make sure the placeholder reappears when focus is lost
+                $('#builds-search-selectized').attr("placeholder", $builds_search_selectize.settings.placeholder);
+            },
+            onInitialize: function(){
+                // make sure the placeholder shows when items already exist when page loads
+                $('#builds-search-selectized').attr("placeholder", "search and add builds");
+
+                // preload bugs from builds that exist when the page loads (i.e. when editing an existing update)
+                    for (var b in this.options) {
+                        if (this.options.hasOwnProperty(b)) {
+                            $bugs_search_selectize.load(loadBugs(this.options[b].package_name))
+                        }
+        
+                    }
+
+            },
+            onFocus: function(){
+                // make sure the placeholder disappears when focused
+                $('#builds-search-selectized').attr("placeholder", "");
+            },
+            load: function(query, callback) {
+                $.ajax({
+                    url: '/latest_candidates?prefix=' + encodeURIComponent(query),
+                    type: 'GET',
+                    error: function() {
+                        callback();
+                    },
+                    success: function(res) {
+                        callback(res);
+                    }
+                });
+            }
+        });
+
+        $builds_search_selectize = $builds_search_selectize[0].selectize;
+    }
 
     $('#updatetypes').selectize();
     $('#severity').selectize();
@@ -211,6 +213,68 @@ $(document).ready(function() {
         }
     });
 
+
+    // this is the dropdown that shows on the new update form, allowing the user to 
+    // choose a sidetag. we don't show this on the edit page.
+    $(".sidetag-item").click(function(){
+        // get data about the sidetag clicked from the data- attrs
+        var sidetagid = $(this).attr('data-sidetagid');
+        var sidetagname = $(this).attr('data-sidetagname');
+
+        // change the label of the dropdown button to the sidetag name
+        $("#dropdownMenuButtonSidetags .buttonlabel").html(sidetagname)
+
+        //hide the builds adder for regular candidate-tag type updates
+        $("#builds-card .selectize-control").hide();
+
+        //remove any previously added sidetag buildlists
+        $('#sidetag-buildlist').remove();
+
+        $("#builds-card .card-body").append("<div class='list-group list-group-flush' id='sidetag-buildlist'></div>")
+        
+        //add the spinner while we load the builds for the chosen sidetag
+        $("#builds-card .card-body #sidetag-buildlist").append("<div class='w-100 text-center spinner py-3'><i class='fa fa-spinner fa-2x fa-spin fa-fw'></i></div>");
+
+        $.ajax({
+            url: '/latest_builds_in_tag?tag=' + encodeURIComponent(sidetagname),
+            type: 'GET',
+            error: function(res) {
+                console.log(res)
+            },
+            success: function(res) {
+                $("#builds-card .card-body #sidetag-buildlist").empty()
+                $.each(res, function(idx, build) {
+                    $('#sidetag-buildlist').append("<div class='list-group-item'>"+build.nvr+"</div>");
+                    $bugs_search_selectize.load(loadBugs(build.package_name))
+                });
+                $('select[name="builds"]').attr('disabled', 'disabled')
+                //set the from_tag to be the tagname
+                $('input[name="from_tag"]').val(sidetagname)
+            }
+        });
+    })
+
+    $("#sidetag-update").click(function(){
+        //add the spinner while we load the builds for the chosen sidetag
+        $("#builds-card .card-body #sidetag-buildlist").append("<div class='w-100 text-center spinner py-3'><i class='fa fa-spinner fa-2x fa-spin fa-fw'></i></div>");
+
+        $.ajax({
+            url: '/latest_builds_in_tag?tag=' + encodeURIComponent($('input[name="from_tag"]').val()),
+            type: 'GET',
+            error: function(res) {
+                console.log(res)
+            },
+            success: function(res) {
+                $("#builds-card .card-body #sidetag-buildlist").empty()
+                $.each(res, function(idx, build) {
+                    $('#sidetag-buildlist').append("<div class='list-group-item'>"+build.nvr+"</div>");
+                    $bugs_search_selectize.load(loadBugs(build.package_name))
+                });
+                $('select[name="builds"]').attr('disabled', 'disabled')
+                $('select[name="builds"]').empty()
+            }
+        });
+    })
 
 
     // Wire up the submit button
