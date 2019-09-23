@@ -1168,8 +1168,9 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get(f'/updates/{alias}', status=200, headers={'Accept': 'text/html'})
 
         self.assertTrue(
-            ('<strong>Content Type</strong>\n                </div>\n                <div>\n'
-             '                  RPM') in res.text)
+            ('<div class="col font-weight-bold text-muted">Content Type</div>') in res.text)
+        self.assertTrue(
+            ('RPM') in res.text)
 
     def test_content_type_none(self):
         """Assert that the content type being None doesn't blow up the update template."""
@@ -3465,7 +3466,7 @@ class TestUpdatesService(BaseTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn('Enabled', resp)
+        self.assertIn('Stable by Karma', resp)
 
     @mock.patch(**mock_valid_requirements)
     def test_disabled_button_for_autopush(self, *args):
@@ -3479,7 +3480,7 @@ class TestUpdatesService(BaseTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn('Disabled', resp)
+        self.assertNotIn('Stable by Karma', resp)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -4836,7 +4837,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
         self.assertNotIn('Push to Stable', resp)
-        self.assertNotIn('Edit', resp)
+        self.assertNotIn('<span class="fa fa-fw fa-pencil-square-o"></span> Edit', resp)
 
     @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
     def test_push_to_stable_button_not_present_when_test_gating_status_failed(self):
@@ -5042,7 +5043,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    def assertSeverityHTML(self, severity, text):
+    def assertSeverityHTML(self, severity, text=[]):
         """
         Assert that the "Update Severity" label appears correctly given specific 'severity'.
         """
@@ -5066,7 +5067,8 @@ class TestUpdatesService(BaseTestCase):
         # Checks correct class label and text for update severity in the html page for this update
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn(text, resp)
+        for s in text:
+            self.assertIn(s, resp)
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_urgent(self, *args):
@@ -5074,7 +5076,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is urgent.
         """
         self.assertSeverityHTML(UpdateSeverity.urgent,
-                                '<span class=\'badge badge-danger\'>urgent</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'urgent'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_high(self, *args):
@@ -5082,7 +5084,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is high.
         """
         self.assertSeverityHTML(UpdateSeverity.high,
-                                '<span class=\'badge badge-warning\'>high</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'high'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_medium(self, *args):
@@ -5090,7 +5092,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is medium.
         """
         self.assertSeverityHTML(UpdateSeverity.medium,
-                                '<span class=\'badge badge-primary\'>medium</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'medium'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_low(self, *args):
@@ -5098,15 +5100,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is low.
         """
         self.assertSeverityHTML(UpdateSeverity.low,
-                                '<span class=\'badge badge-success\'>low</span>')
-
-    @mock.patch(**mock_valid_requirements)
-    def test_update_severity_label_present_correctly_when_severity_is_unspecified(self, *args):
-        """
-        Assert that the "Update Severity" label appears correctly when the severity is unspecified.
-        """
-        self.assertSeverityHTML(UpdateSeverity.unspecified,
-                                '<span class=\'badge badge-default\'>unspecified</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'low'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_absent_when_severity_is_None(self, *args):

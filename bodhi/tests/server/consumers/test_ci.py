@@ -231,6 +231,26 @@ class TestCIHandler(base.BasePyTestCase):
         assert "Received incomplete CI message. Missing: 'artifact.nvr', 'pipeline.id'." \
                in caplog.text
 
+    @mock.patch("bodhi.server.models.mail")
+    def test_no_email_notifications(self, mock_mail, caplog):
+        """
+        Assert that we do not send emails when adding a comment to the update
+        """
+        caplog.set_level(logging.DEBUG)
+
+        # process the message
+        self.handler(self.sample_message)
+
+        comment = self.update.comments[-1]
+
+        # Check if comment was created
+        assert comment.text == "CI testing started: 'https://example.url'."
+        assert comment.user.name == "bodhi"
+
+        assert "Committing changes to the database." in caplog.text
+
+        mock_mail.assert_not_called()
+
     def test_consume_run_url_field_is_missing(self, caplog):
         """
         Assert that comment is created when run.url field is missing.

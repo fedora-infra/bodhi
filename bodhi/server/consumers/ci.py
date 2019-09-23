@@ -102,11 +102,11 @@ class CIHandler:
                 if build.update.from_tag:
                     log.debug("Update is created from tag. Skipping comment.")
                     return
+                comment = "CI testing started."
                 if run_url:
-                    build.update.comment(dbsession, f"CI testing started: '{run_url}'.",
-                                         author='bodhi')
-                else:
-                    build.update.comment(dbsession, "CI testing started.", author='bodhi')
+                    comment = f"CI testing started: '{run_url}'."
+                build.update.comment(
+                    dbsession, text=comment, author='bodhi', email_notification=False)
             else:
                 log.debug(f"No update in Bodhi for '{nvr}'. Nothing to comment on.")
                 return

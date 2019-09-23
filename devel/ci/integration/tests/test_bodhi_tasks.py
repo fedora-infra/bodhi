@@ -26,7 +26,10 @@ from .utils import read_file, wait_for_file, get_task_results
 
 def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
     try:
-        output = bodhi_container.execute(["bodhi-push", "--username", "ci", "-y"])
+        output = bodhi_container.execute(
+            ["bodhi-push", "--username", "ci", "-y"],
+            exec_create_kwargs={"environment": {"PYTHONWARNINGS": "ignore"}},
+        )
     except ConuException as e:
         assert False, str(e)
     output = "".join(line.decode("utf-8") for line in output)

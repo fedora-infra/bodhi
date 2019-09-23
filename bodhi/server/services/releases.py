@@ -212,18 +212,62 @@ def query_releases_html(request):
         dict: A dictionary with a single key, releases, mapping another dictionary that maps release
             states to a list of Release objects that are in that state.
     """
-    def collect_releases(releases):
-        x = {}
-        for r in releases:
-            if r['state'] in x:
-                x[r['state']].append(r)
-            else:
-                x[r['state']] = [r]
-        return x
+    def _get_status_counts(basequery, status):
+        """
+        Return a dictionary with the counts of objects found in the basequery.
 
-    db = request.db
-    releases = db.query(Release).order_by(Release.id.desc()).all()
-    return dict(releases=collect_releases(releases))
+        The return data is specified by total count, newpackage count, bugfix count,
+        enhancement count and security count. The dictionary keys will be named with the
+        template {status}_{type}_total. For example, if status is
+        models.UpdateStatus.stable, a dictionary with the following keys would be
+        returned:
+            stable_updates_total
+
+        Args:
+            basequery (sqlalchemy.orm.query.Query):
+                The basequery of updates we want to count and further filter on.
+            status (bodhi.server.models.UpdateStatus):
+                The update status we want to filter by in basequery
+        Return:
+            dict: A dictionary describing the counts of the updates, as described above.
+        """
+        basequery = basequery.filter(Update.status == status)
+        return {
+            '{}_updates_total'.format(status.description): basequery.count(),
+        }
+
+    def get_update_counts(releaseid):
+        """
+        Return counts for the various states and types of updates in the given release.
+
+        This function returns a dictionary that tabulates the counts of the various
+        types of Bodhi updates at the various states they can appear in. The
+        dictionary has the following keys, with pretty self-explanatory names:
+
+            pending_updates_total
+            testing_updates_total
+            stable_updates_total
+
+        Args:
+            releaseid (str): The id of the Release object you would like the counts performed on
+        Returns:
+            dict: A dictionary expressing the counts, as described above.
+        """
+        release = Release.get(releaseid)
+        basequery = Update.query.filter(Update.release == release)
+        counts = {}
+        counts.update(_get_status_counts(basequery, UpdateStatus.pending))
+        counts.update(_get_status_counts(basequery, UpdateStatus.testing))
+        counts.update(_get_status_counts(basequery, UpdateStatus.stable))
+
+        return counts
+
+    release_updates_counts = {}
+    releases = Release.all_releases()
+    for release in releases['current'] + releases['pending'] + releases['archived']:
+        release_updates_counts[release["name"]] = get_update_counts(release["name"])
+
+    return {"release_updates_counts": release_updates_counts}
 
 
 @releases.get(accept=('application/json', 'text/json'),
