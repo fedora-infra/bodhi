@@ -33,22 +33,6 @@ a:hover {
     margin-right: 0px;
 }
 
-#ghost-cabbage {
-    position: fixed;
-    top: 40px;
-    right: 55px;
-
-    zoom: 1;
-    filter: alpha(opacity=07);
-    opacity: 0.07;
-    z-index: -1;
-}
-
-#ghost-cabbage > img {
-    width: 256px;
-    height: 256px;
-}
-
 ul {
     list-style: none;
 }
@@ -250,7 +234,7 @@ ul.updateslist li {
 .comment-preview{
   background: #eee;
   border: 1px solid #ddd;
-  min-height:10em;
+  min-height:13em;
 }
 
 .nav.nav-tabs{
@@ -274,19 +258,6 @@ ul.updateslist li {
   background-color: #ffffff;
 }
 
-.front-count{
-  border:1px solid #ddd;
-  padding:1em;
-  text-align: left!important;
-  background-color: #f7f7f7;
-}
-
-.front-count-total{
-  font-size:3em;
-  line-height: 1em;
-  font-weight: 200;
-}
-
 .front-release{
   border-bottom: 1px solid #eee;
   padding-top: 1.5em;
@@ -297,13 +268,36 @@ padding-bottom: 2em;
   color:inherit;
 }
 
-.badge-warning{
+.badge-warning, .btn-warning{
     background-color: #f0ad4e !important;
+    color: white!important;
 }
 
-#updatebuttons a {
-    color: #fff;
-    cursor: pointer;
+.font-size-09{
+    font-size: 0.9em!important
+}
+
+.min-width-1{
+    min-width: 1em;
+}
+.min-width-2{
+    min-width: 2em;
+}
+.min-width-3{
+    min-width: 3em;
+}
+
+.min-width-35{
+    min-width: 3.5em;
+}
+
+.line-height-1{
+    line-height: 1em;
+}
+
+.card.user-comment{
+    border-color: #ddd!important;
+    box-shadow: 0 0 5px 0px #eee;
 }
 
 /*CSS rules for the builds adder on the add/edit update form*/

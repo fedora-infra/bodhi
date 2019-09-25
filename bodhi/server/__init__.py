@@ -307,6 +307,8 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_route('search_packages', '/search/packages')
     config.add_route('latest_candidates', '/latest_candidates')
     config.add_route('latest_builds', '/latest_builds')
+    config.add_route('get_sidetags', '/get_sidetags')
+    config.add_route('latest_builds_in_tag', '/latest_builds_in_tag')
 
     # pyramid.openid
     config.add_route('login', '/login')

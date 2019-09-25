@@ -9,30 +9,51 @@ def inherit(context):
 <%namespace name="util" module="bodhi.server.util"/>
 <%namespace name="fragments" file="fragments.html"/>
 
-<link rel="alternate" type="application/atom+xml" title="New Comments" href="${request.route_url('comments_rss') + '?' + request.query_string}"/>
 
 % if chrome:
+<%block name="css">
+${parent.css()}
+<link rel="alternate" type="application/atom+xml" title="New Comments" href="${request.route_url('comments_rss') + '?' + request.query_string}"/>
+</%block>
+<div class="subheader py-3">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h2>Comments</h2>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container pt-4">
 <div class="row">
-  <div class="col-md-10 col-md-offset-1">
-    <h3>Comments <small>page #${page} of ${pages} pages
+  <div class="col-12">
+% endif
+<div class="list-group">
+    % if chrome:
+    <div class="list-group-item bg-light d-flex font-weight-bold">
+      ${total} Comments
       % if page == 1:
-      <a href="${request.route_url('comments_rss') + '?' + request.query_string}">
+      <a class="ml-1" href="${request.route_url('comments_rss') + '?' + request.query_string}">
         <span class="fa fa-rss"></span>
       </a>
       % endif
-      </small>
-    </h3>
-    ${self.pager.render(page, pages)}
-% endif
-    <ul>
+    </div>
+    % endif
+    <div class="list-group-item">
     % for comment in comments:
-    <li>
       ${fragments.comment(comment)}
-    </li>
     % endfor
-    </ul>
-% if chrome:
-    ${self.pager.render(page, pages)}
+    </div>
+    %if chrome:
+    <div class="list-group-item bg-light">
+      ${self.pager.render(page, pages)}
+    </div>
+    %endif
   </div>
+
+
+% if chrome:
+  </div>
+</div>
 </div>
 % endif

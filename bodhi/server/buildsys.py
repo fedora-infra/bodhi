@@ -426,6 +426,7 @@ class DevBuildsys:
         """
         return [self.getBuild()]
 
+    @multicall_enabled
     def getTag(self, taginfo, **kw):
         """
         Retrieve the given tag from koji.
@@ -487,6 +488,10 @@ class DevBuildsys:
                 {'intransitive': False, 'name': 'f17', 'pkg_filter': '', 'priority': 0,
                  'parent_id': 6438, 'maxdepth': None, 'noconfig': False, 'child_id': 6441,
                  'nextdepth': None, 'filter': [], 'currdepth': 4}]
+
+    def listSideTags(self, **kw):
+        """Return a list of side tags."""
+        return [{'id': 7777, 'name': 'f17-build-side-7777'}]
 
     def createTag(self, tag: str, **opts):
         """Emulate tag adding."""
