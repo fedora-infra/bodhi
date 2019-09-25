@@ -91,6 +91,11 @@ class AutomaticUpdateHandler:
             log.debug(f"Koji build info for {bnvr} doesn't contain 'owner_name'.")
             return
 
+        if kbuildinfo['owner_name'] in config.get('automatic_updates_blacklist'):
+            log.debug(f"{bnvr} owned by {kbuildinfo['owner_name']} who is listed in "
+                      "automatic_updates_blacklist, skipping.")
+            return
+
         # some APIs want the Koji build info, some others want the same
         # wrapped in a larger (request?) structure
         rbuildinfo = {
