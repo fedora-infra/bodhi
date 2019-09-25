@@ -447,3 +447,26 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         assert (f"Build, active update for {self.sample_nvr} exists already, skipping."
                 in caplog.messages)
+
+    @mock.patch.dict(config, [('automatic_updates_blacklist', ['lmacken'])])
+    def test_user_in_blacklist(self, caplog):
+        """Test that update not created if the koji build owner is in the blacklist"""
+        caplog.set_level(logging.DEBUG)
+        body = {
+            'build_id': 4425622,
+            'name': 'python-pants',
+            'tag_id': 214,
+            'instance': 's390',
+            'tag': 'f17-updates-testing-pending',
+            'user': 'lmacken',
+            'version': '1.3.4',
+            'owner': 'lmacken',
+            'release': '1.fc26',
+        }
+
+        self.sample_message = Message(topic='', body=body)
+        self.sample_nvr = f"{body['name']}-{body['version']}-{body['release']}"
+        with mock_sends():
+            self.handler(self.sample_message)
+        assert (f"{self.sample_nvr} owned by lmacken who is listed in "
+                "automatic_updates_blacklist, skipping." in caplog.messages)

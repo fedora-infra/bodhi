@@ -247,6 +247,10 @@ class BodhiConfig(dict):
         'authtkt.timeout': {
             'value': 86400,
             'validator': int},
+        'automatic_updates_blacklist': {
+            # List of users to not create automatic updates from
+            'value': ['releng'],
+            'validator': _generate_list_validator()},
         'badge_ids': {
             'value': [],
             'validator': _generate_list_validator('|')},
