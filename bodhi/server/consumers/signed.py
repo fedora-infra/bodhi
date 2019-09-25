@@ -27,7 +27,8 @@ import logging
 import fedora_messaging
 from sqlalchemy import func
 
-from bodhi.server.models import Build, UpdateStatus
+from bodhi.server.config import config
+from bodhi.server.models import Build, UpdateStatus, TestGatingStatus
 from bodhi.server.util import transactional_session_maker
 
 log = logging.getLogger('bodhi')
@@ -110,10 +111,17 @@ class SignedHandler(object):
             log.info("Build %s has been marked as signed" % build_nvr)
 
             # If every build in update is signed change status to testing
-            if build.update.from_tag and build.update.signed():
+            if not build.update.release.composed_by_bodhi and build.update.signed():
                 log.info("Every build in update is signed, set status to testing")
 
                 build.update.status = UpdateStatus.testing
                 build.update.date_testing = func.current_timestamp()
                 build.update.request = None
+
+                if config.get("test_gating.required"):
+                    log.debug('Test gating is required, marking the update as waiting on test '
+                              'gating and updating it from Greenwave to get the real status.')
+                    build.update.test_gating_status = TestGatingStatus.waiting
+                    build.update.update_test_gating_status()
+
                 log.info(f"Update {build.update.display_name} status has been set to testing")
