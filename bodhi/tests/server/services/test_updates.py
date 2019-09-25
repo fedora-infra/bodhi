@@ -358,6 +358,15 @@ class TestNewUpdate(BaseTestCase):
 
         koji_session.clear()
 
+        # now try to create another update with the same side tag
+        update = self.get_update(builds=None, from_tag='f17-build-side-7777')
+        with fml_testing.mock_sends(), mock.patch(
+                'bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
+            r = self.app.post_json('/updates/', update, status=400)
+
+        self.assertEqual(r.json_body['errors'][0]['description'],
+                         "Update already exists using this side tag")
+
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_url(self, *args):
         """
