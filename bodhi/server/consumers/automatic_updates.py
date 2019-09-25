@@ -28,7 +28,7 @@ import fedora_messaging
 
 from bodhi.server import buildsys
 from bodhi.server.config import config
-from bodhi.server.models import Build, ContentType, Package, Release, TestGatingStatus
+from bodhi.server.models import Build, ContentType, Package, Release
 from bodhi.server.models import Update, UpdateStatus, UpdateType, User
 from bodhi.server.util import transactional_session_maker
 
@@ -105,7 +105,7 @@ class AutomaticUpdateHandler:
 
         with self.db_factory() as dbsession:
             rel = dbsession.query(Release).filter_by(create_automatic_updates=True,
-                                                     pending_testing_tag=btag).first()
+                                                     candidate_tag=btag).first()
             if not rel:
                 log.debug(f"Ignoring build being tagged into {btag!r}, no release configured for "
                           "automatic updates for it found.")
@@ -114,22 +114,7 @@ class AutomaticUpdateHandler:
             bcls = ContentType.infer_content_class(Build, kbuildinfo)
             build = bcls.get(bnvr)
             if build and build.update:
-                if build.update.status == UpdateStatus.pending:
-                    log.info(
-                        f"Build, active update for {bnvr} exists already "
-                        "in Pending, moving it along.")
-                    build.update.status = UpdateStatus.testing
-                    build.update.request = None
-                    dbsession.add(build)
-                    if config.get('test_gating.required'):
-                        log.debug(
-                            'Test gating is required, marking the update as waiting on test '
-                            'gating and updating it from Greenwave to get the real status.')
-                        build.update.test_gating_status = TestGatingStatus.waiting
-                        build.update.update_test_gating_status()
-                    dbsession.commit()
-                else:
-                    log.info(f"Build, active update for {bnvr} exists already, skipping.")
+                log.info(f"Build, active update for {bnvr} exists already, skipping.")
                 return
 
             if not build:
@@ -163,7 +148,7 @@ class AutomaticUpdateHandler:
                 unstable_karma=-3,
                 autokarma=False,
                 user=user,
-                status=UpdateStatus.testing,
+                status=UpdateStatus.pending,
             )
 
             # Comment on the update that it was automatically created.
@@ -172,14 +157,6 @@ class AutomaticUpdateHandler:
                 str("This update was automatically created"),
                 author="bodhi",
             )
-
-            if config.get('test_gating.required'):
-                log.debug(
-                    'Test gating required is enforced, marking the update as '
-                    'waiting on test gating and updating it from Greenwave to '
-                    'get the real status.')
-                update.test_gating_status = TestGatingStatus.waiting
-                update.update_test_gating_status()
 
             log.debug("Adding new update to the database.")
             dbsession.add(update)

@@ -18,18 +18,21 @@
 """This test suite contains tests for the bodhi.server.consumers.signed module."""
 
 from unittest import mock
-import unittest
 
 from fedora_messaging.api import Message
 
+from bodhi.server.config import config
 from bodhi.server.consumers import signed
-from bodhi.server.models import UpdateStatus
+from bodhi.server.models import UpdateStatus, TestGatingStatus
+from bodhi.tests.server import base
 
 
-class TestSignedHandlerConsume(unittest.TestCase):
+class TestSignedHandlerConsume(base.BasePyTestCase):
     """Test class for the :func:`SignedHandler.consume` method."""
 
-    def setUp(self):
+    def setup_method(self, method):
+        super().setup_method(method)
+
         self.sample_message = Message(
             topic='',
             body={
@@ -71,7 +74,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         build.release.pending_testing_tag = self.sample_message.body["tag"]
 
         self.handler(self.sample_message)
-        self.assertTrue(build.signed is True)
+        assert build.signed is True
 
     @mock.patch('bodhi.server.consumers.signed.Build')
     def test_consume_not_pending_testing_tag(self, mock_build_model):
@@ -86,7 +89,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         build.release.pending_testing_tag = "some tag that isn't pending testing"
 
         self.handler(self.sample_message)
-        self.assertFalse(build.signed is True)
+        assert build.signed is False
 
     @mock.patch('bodhi.server.consumers.signed.Build')
     def test_consume_no_release(self, mock_build_model):
@@ -101,7 +104,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         build.release = None
 
         self.handler(self.sample_message)
-        self.assertFalse(build.signed is True)
+        assert build.signed is False
 
     @mock.patch('bodhi.server.consumers.signed.log')
     @mock.patch('bodhi.server.consumers.signed.Build')
@@ -126,7 +129,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         self.handler(self.sample_message)
         mock_log.info.assert_called_with(
             "Build was already marked as signed (maybe a duplicate message)")
-        self.assertEqual(mock_log.info.call_count, 2)
+        assert mock_log.info.call_count == 2
 
     @mock.patch('bodhi.server.consumers.signed.log')
     @mock.patch('bodhi.server.consumers.signed.Build')
@@ -145,7 +148,7 @@ class TestSignedHandlerConsume(unittest.TestCase):
         self.handler(self.sample_side_tag_message)
         mock_log.info.assert_called_with(
             "Tag is not testing side tag, skipping")
-        self.assertEqual(mock_log.info.call_count, 2)
+        assert mock_log.info.call_count == 2
 
     @mock.patch('bodhi.server.consumers.signed.Build')
     def test_consume_from_tag_not_signed(self, mock_build_model):
@@ -164,10 +167,11 @@ class TestSignedHandlerConsume(unittest.TestCase):
         build.update = update
 
         self.handler(self.sample_side_tag_message)
-        self.assertEqual(build.signed, True)
-        self.assertEqual(update.status, UpdateStatus.pending)
+        assert build.signed is True
+        assert update.status == UpdateStatus.pending
 
     @mock.patch('bodhi.server.consumers.signed.Build')
+    @mock.patch.dict(config, [('test_gating.required', True)])
     def test_consume_from_tag(self, mock_build_model):
         """
         Assert that update created from tag is handled correctly when message
@@ -182,9 +186,12 @@ class TestSignedHandlerConsume(unittest.TestCase):
         update.from_tag = "f30-side-tag"
         update.signed.return_value = True
         update.status = UpdateStatus.pending
+        update.release.composed_by_bodhi = False
+        update.test_gating_status = None
         build.update = update
 
         self.handler(self.sample_side_tag_message)
-        self.assertEqual(build.signed, True)
-        self.assertEqual(build.update.request, None)
-        self.assertEqual(update.status, UpdateStatus.testing)
+        assert build.signed is True
+        assert build.update.request is None
+        assert update.status == UpdateStatus.testing
+        assert update.test_gating_status == TestGatingStatus.waiting
