@@ -20,7 +20,6 @@ from datetime import datetime, timedelta
 from unittest import mock
 from urllib import parse as urlparse
 import copy
-import re
 import textwrap
 import time
 
@@ -30,7 +29,7 @@ import requests
 from webtest import TestApp
 
 from bodhi.messages.schemas import base as base_schemas, update as update_schemas
-from bodhi.server import main
+from bodhi.server import main, buildsys
 from bodhi.server.config import config
 from bodhi.server.models import (
     Build, BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
@@ -81,10 +80,21 @@ mock_absent_taskotron_results = {
 }
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestNewUpdate(BaseTestCase):
     """
     This class contains tests for the new_update() function.
     """
+
+    @classmethod
+    def mock_getTag(cls, tag, *kwargs):
+        if tag == 'f17-build-side-7777':
+            return {'maven_support': False, 'locked': False, 'name': 'f17-build-side-7777',
+                    'extra': {'sidetag_user': 'dudemcpants', 'sidetag': True},
+                    'perm': None, 'perm_id': None, 'arches': None, 'maven_include_all': False,
+                    'id': 7777}
+        return None
+
     @mock.patch(**mock_valid_requirements)
     def test_empty_build_name(self, *args):
         res = self.app.post_json('/updates/', self.get_update(['']), status=400)
@@ -285,13 +295,19 @@ class TestNewUpdate(BaseTestCase):
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
 
-        update = self.get_update(builds=None, from_tag='f17-updates-candidate')
-        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+        # We need release that is not composed by bodhi
+        release = Release.query.one()
+        release.composed_by_bodhi = False
+        self.db.commit()
+
+        update = self.get_update(builds=None, from_tag='f17-build-side-7777')
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1), mock.patch(
+                'bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
             r = self.app.post_json('/updates/', update)
 
         up = r.json_body
-        self.assertEqual(up['title'], 'TurboGears-1.0.2.2-3.fc17')
-        self.assertEqual(up['builds'][0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+        self.assertEqual(up['title'], 'gnome-backgrounds-3.0-1.fc17')
+        self.assertEqual(up['builds'][0]['nvr'], 'gnome-backgrounds-3.0-1.fc17')
         self.assertEqual(up['status'], 'pending')
         self.assertEqual(up['request'], 'testing')
         self.assertEqual(up['user']['name'], 'guest')
@@ -312,7 +328,44 @@ class TestNewUpdate(BaseTestCase):
                        f'FEDORA-{YEAR + 1}-033713b73b'))
         self.assertEqual(up['karma'], 0)
         self.assertEqual(up['requirements'], 'rpmlint')
-        self.assertEqual(up['from_tag'], 'f17-updates-candidate')
+        self.assertEqual(up['from_tag'], 'f17-build-side-7777')
+
+        koji_session = buildsys.get_session()
+        expected_pending_signing = ('f17-build-side-7777-pending-signing',
+                                    {'parent': 'f17-build-side-7777',
+                                     'locked': False,
+                                     'maven_support': False,
+                                     'name': 'f17-build-side-7777-pending-signing',
+                                     'perm': 'admin',
+                                     'arches': None,
+                                     'maven_include_all': False,
+                                     'perm_id': 1})
+        expected_testing = ('f17-build-side-7777-testing',
+                            {'parent': 'f17-build-side-7777',
+                             'locked': False,
+                             'maven_support': False,
+                             'name': 'f17-build-side-7777-testing',
+                             'perm': 'admin',
+                             'arches': None,
+                             'maven_include_all': False,
+                             'perm_id': 1})
+
+        self.assertIn(expected_pending_signing, koji_session.__tags__)
+        self.assertIn(expected_testing, koji_session.__tags__)
+        self.assertIn(('f17-build-side-7777-pending-signing',
+                       'gnome-backgrounds-3.0-1.fc17'),
+                      koji_session.__added__)
+
+        koji_session.clear()
+
+        # now try to create another update with the same side tag
+        update = self.get_update(builds=None, from_tag='f17-build-side-7777')
+        with fml_testing.mock_sends(), mock.patch(
+                'bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
+            r = self.app.post_json('/updates/', update, status=400)
+
+        self.assertEqual(r.json_body['errors'][0]['description'],
+                         "Update already exists using this side tag")
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_url(self, *args):
@@ -686,6 +739,8 @@ class TestNewUpdate(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
         with mock.patch(**mock_uuid4_version2):
@@ -732,6 +787,8 @@ class TestNewUpdate(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
         with mock.patch(**mock_uuid4_version2):
@@ -784,6 +841,8 @@ class TestNewUpdate(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         args = self.get_update('bodhi-2.0.0-3.fc17')
         args["type"] = "security"
@@ -846,6 +905,8 @@ class TestNewUpdate(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         args = self.get_update('bodhi-2.0.0-3.fc17')
 
         with mock.patch(**mock_uuid4_version2):
@@ -883,6 +944,7 @@ class TestNewUpdate(BaseTestCase):
                          "Must specify severity for a security update")
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestSetRequest(BaseTestCase):
     """
     This class contains tests for the set_request() function.
@@ -1014,6 +1076,7 @@ class TestSetRequest(BaseTestCase):
         log_exception.assert_called_once_with("Unhandled exception in set_request")
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestEditUpdateForm(BaseTestCase):
 
     def test_edit_with_permission(self):
@@ -1025,10 +1088,8 @@ class TestEditUpdateForm(BaseTestCase):
             headers={'accept': 'text/html'})
         self.assertIn('Editing an update requires JavaScript', resp)
         # Make sure that unspecified comes first, as it should be the default.
-        regex = r''
-        for value in ('unspecified', 'reboot', 'logout'):
-            regex = regex + r'name="suggest" value="{}".*'.format(value)
-        self.assertTrue(re.search(regex, resp.body.decode('utf8').replace('\n', ' ')))
+        regex = '<select id="suggest" name="suggest">\\n.*<option value="unspecified"'
+        self.assertRegex(str(resp), regex)
 
     def test_edit_without_permission(self):
         """
@@ -1071,8 +1132,8 @@ class TestEditUpdateForm(BaseTestCase):
 
         resp = self.app.get(f'/updates/{alias}/edit',
                             headers={'accept': 'text/html'})
-        self.assertRegex(str(resp), ('<input type="radio" name="severity" '
-                                     'value="unspecified"\\n.*disabled="disabled"\\n.*>'))
+        self.assertRegex(str(resp), ('<select id="severity" name="severity">\\n.*'
+                                     '<option value="unspecified"\\n.*disabled="disabled"\\n.*>'))
 
     def test_days_in_testing_new_update(self):
         """
@@ -1082,7 +1143,7 @@ class TestEditUpdateForm(BaseTestCase):
         resp = self.app.get(f'/updates/new',
                             headers={'accept': 'text/html'})
         self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
-                                     '\\n.*min="0" value=""\\n.*>'))
+                                     ' class="form-control"\\n.*min="0" value=""\\n.*>'))
 
     def test_days_in_testing_existing_update(self):
         """
@@ -1103,9 +1164,10 @@ class TestEditUpdateForm(BaseTestCase):
         resp = self.app.get(f'/updates/{alias}/edit',
                             headers={'accept': 'text/html'})
         self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
-                                     '\\n.*min="7" value="10"\\n.*>'))
+                                     ' class="form-control"\\n.*min="7" value="10"\\n.*>'))
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestUpdatesService(BaseTestCase):
 
     def test_content_type(self):
@@ -1115,8 +1177,9 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get(f'/updates/{alias}', status=200, headers={'Accept': 'text/html'})
 
         self.assertTrue(
-            ('<strong>Content Type</strong>\n                </div>\n                <div>\n'
-             '                  RPM') in res.text)
+            ('<div class="col font-weight-bold text-muted">Content Type</div>') in res.text)
+        self.assertTrue(
+            ('RPM') in res.text)
 
     def test_content_type_none(self):
         """Assert that the content type being None doesn't blow up the update template."""
@@ -1155,6 +1218,8 @@ class TestUpdatesService(BaseTestCase):
         u = Update.query.one()
         u.request = None
         u.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         res = self.app.get(f'/updates/{u.alias}', status=200, headers={'Accept': 'text/html'})
 
@@ -1381,6 +1446,8 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         self.assertEqual(update.karma, 0)
@@ -2668,10 +2735,26 @@ class TestUpdatesService(BaseTestCase):
         body = res.json_body
         status_vals = ", ".join(UpdateStatus.values())
         self.assertEqual(len(body.get('updates', [])), 0)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'status')
+        self.assertEqual(res.json_body['errors'][0]['name'], 'status.0')
         self.assertEqual(
             res.json_body['errors'][0]['description'],
             ('"single" is not one of {}'.format(status_vals)))
+
+    def test_list_updates_with_multiple_statuses(self):
+        # add two more updates with different statuses. we
+        # will only test for one of these, and the bodhi one
+        # that is in the testing db by default
+        firefox = self.create_update(['firefox-61.0.2-3.fc17'])
+        firefox.status = UpdateStatus.unpushed
+        python_nose = self.create_update(['python-nose-1.3.7-11.fc17'])
+        python_nose.status = UpdateStatus.testing
+        self.db.commit()
+
+        res = self.app.get('/updates/', {"status": ["pending", "testing"]})
+        body = res.json_body
+        self.assertEqual(len(body['updates']), 2)
+        self.assertEqual(body['updates'][0]['title'], 'python-nose-1.3.7-11.fc17')
+        self.assertEqual(body['updates'][1]['title'], 'bodhi-2.0-1.fc17')
 
     def test_list_updates_by_suggest(self):
         res = self.app.get('/updates/', {"suggest": "unspecified"})
@@ -2743,6 +2826,33 @@ class TestUpdatesService(BaseTestCase):
 
     def test_list_updates_by_username(self):
         res = self.app.get('/updates/', {"user": "guest"})
+        body = res.json_body
+        self.assertEqual(len(body['updates']), 1)
+
+        up = body['updates'][0]
+        self.assertEqual(up['title'], 'bodhi-2.0-1.fc17')
+        self.assertEqual(up['status'], 'pending')
+        self.assertEqual(up['request'], 'testing')
+        self.assertEqual(up['user']['name'], 'guest')
+        self.assertEqual(up['release']['name'], 'F17')
+        self.assertEqual(up['type'], 'bugfix')
+        self.assertEqual(up['severity'], 'medium')
+        self.assertEqual(up['suggest'], 'unspecified')
+        self.assertEqual(up['close_bugs'], True)
+        self.assertEqual(up['notes'], 'Useful details!')
+        self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
+        self.assertEqual(up['date_modified'], None)
+        self.assertEqual(up['date_approved'], None)
+        self.assertEqual(up['date_pushed'], None)
+        self.assertEqual(up['locked'], False)
+        self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
+        self.assertEqual(up['karma'], 1)
+
+    def test_list_updates_by_gating_status(self):
+        up = self.db.query(Build).filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        up.test_gating_status = TestGatingStatus.passed
+        self.db.commit()
+        res = self.app.get('/updates/', {"gating": "passed"})
         body = res.json_body
         self.assertEqual(len(body['updates']), 1)
 
@@ -2864,7 +2974,7 @@ class TestUpdatesService(BaseTestCase):
         # We don't want an existing buildroot override to clutter the messages.
         self.db.delete(BuildrootOverride.query.one())
 
-        update = self.get_update(from_tag='f17-updates-candidate')
+        update = self.get_update(from_tag='f17-build-side-7777')
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             r = self.app.post_json('/updates/', update)
 
@@ -2913,6 +3023,12 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first(),
                          None)
 
+        # check that the added build was tagged in koji
+        koji_session = buildsys.get_session()
+        self.assertIn(('f17-build-side-7777-pending-signing',
+                       'bodhi-2.0.0-3.fc17'),
+                      koji_session.__added__)
+
     @mock.patch(**mock_valid_requirements)
     def test_edit_testing_update_with_new_builds(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
@@ -2925,6 +3041,8 @@ class TestUpdatesService(BaseTestCase):
         upd = Update.get(r.json['alias'])
         upd.status = UpdateStatus.testing
         upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         args['edited'] = upd.alias
@@ -2973,6 +3091,8 @@ class TestUpdatesService(BaseTestCase):
         upd = Update.get(r.json['alias'])
         upd.status = UpdateStatus.testing
         upd.request = UpdateRequest.stable
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         args['edited'] = upd.alias
@@ -3082,6 +3202,8 @@ class TestUpdatesService(BaseTestCase):
         up.status = UpdateStatus.testing
         up.request = None
         up_id = up.id
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         # Changing the notes should work
         args['edited'] = up.alias
@@ -3322,6 +3444,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         new_nvr = 'bodhi-2.0.0-3.fc17'
         args = self.get_update(new_nvr)
@@ -3357,7 +3481,7 @@ class TestUpdatesService(BaseTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn('Enabled', resp)
+        self.assertIn('Stable by Karma', resp)
 
     @mock.patch(**mock_valid_requirements)
     def test_disabled_button_for_autopush(self, *args):
@@ -3371,7 +3495,7 @@ class TestUpdatesService(BaseTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn('Disabled', resp)
+        self.assertNotIn('Stable by Karma', resp)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -3652,6 +3776,8 @@ class TestUpdatesService(BaseTestCase):
         up.request = None
         self.assertEqual(len(up.builds), 1)
         up.test_gating_status = TestGatingStatus.passed
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Checks failure for requesting to stable push before the update reaches stable karma
@@ -3881,6 +4007,8 @@ class TestUpdatesService(BaseTestCase):
         up.status = UpdateStatus.testing
         up.request = None
         up.user = newuser
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         newtitle = 'bodhi-2.0-3.fc17'
@@ -4014,6 +4142,8 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Mark it as testing
@@ -4078,6 +4208,8 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Mark it as testing
@@ -4117,6 +4249,8 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Mark it as testing
@@ -4156,6 +4290,7 @@ class TestUpdatesService(BaseTestCase):
         upd.comment(self.db, 'LGTM', author='bob', karma=1)
         upd.comment(self.db, 'LGTM2ME2', author='other_bob', karma=1)
         self.assertEqual(upd.karma, 2)
+        # Clear pending messages
         self.db.info['messages'] = []
 
         # Then.. edit it and change the builds!
@@ -4190,6 +4325,8 @@ class TestUpdatesService(BaseTestCase):
         upd = Update.get(r.json['alias'])
         upd.status = UpdateStatus.testing
         upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Have bob +1 it
@@ -4250,6 +4387,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = None
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # The user gives negative karma first
@@ -4276,6 +4415,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = None
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # The user gives negative karma first
@@ -4308,6 +4449,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = None
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         #  user gives positive karma first
@@ -4337,6 +4480,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = None
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'LGTM', author='mac', karma=1)
@@ -4365,6 +4510,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.request = None
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
@@ -4392,6 +4539,8 @@ class TestUpdatesService(BaseTestCase):
         update.request = None
         update.status = UpdateStatus.testing
         update.pushed = True
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Mark it as testing
@@ -4430,6 +4579,8 @@ class TestUpdatesService(BaseTestCase):
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
         up.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # A user gives negative karma first
@@ -4467,6 +4618,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['request'], 'testing')
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'LGTM', author='ralph', karma=1)
@@ -4508,6 +4661,8 @@ class TestUpdatesService(BaseTestCase):
 
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
@@ -4563,6 +4718,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['request'], 'testing')
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'LGTM Now', author='ralph', karma=1)
@@ -4608,6 +4765,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['request'], 'testing')
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'Failed to work', author='ralph', karma=-1)
@@ -4656,6 +4815,8 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(resp.json['request'], 'testing')
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         up.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         up.comment(self.db, 'LGTM Now', author='ralph', karma=1)
@@ -4691,7 +4852,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
         self.assertNotIn('Push to Stable', resp)
-        self.assertNotIn('Edit', resp)
+        self.assertNotIn('<span class="fa fa-fw fa-pencil-square-o"></span> Edit', resp)
 
     @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
     def test_push_to_stable_button_not_present_when_test_gating_status_failed(self):
@@ -4897,7 +5058,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    def assertSeverityHTML(self, severity, text):
+    def assertSeverityHTML(self, severity, text=[]):
         """
         Assert that the "Update Severity" label appears correctly given specific 'severity'.
         """
@@ -4921,7 +5082,8 @@ class TestUpdatesService(BaseTestCase):
         # Checks correct class label and text for update severity in the html page for this update
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn(text, resp)
+        for s in text:
+            self.assertIn(s, resp)
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_urgent(self, *args):
@@ -4929,7 +5091,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is urgent.
         """
         self.assertSeverityHTML(UpdateSeverity.urgent,
-                                '<span class=\'badge badge-danger\'>urgent</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'urgent'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_high(self, *args):
@@ -4937,7 +5099,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is high.
         """
         self.assertSeverityHTML(UpdateSeverity.high,
-                                '<span class=\'badge badge-warning\'>high</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'high'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_medium(self, *args):
@@ -4945,7 +5107,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is medium.
         """
         self.assertSeverityHTML(UpdateSeverity.medium,
-                                '<span class=\'badge badge-primary\'>medium</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'medium'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_low(self, *args):
@@ -4953,15 +5115,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is low.
         """
         self.assertSeverityHTML(UpdateSeverity.low,
-                                '<span class=\'badge badge-success\'>low</span>')
-
-    @mock.patch(**mock_valid_requirements)
-    def test_update_severity_label_present_correctly_when_severity_is_unspecified(self, *args):
-        """
-        Assert that the "Update Severity" label appears correctly when the severity is unspecified.
-        """
-        self.assertSeverityHTML(UpdateSeverity.unspecified,
-                                '<span class=\'badge badge-default\'>unspecified</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'low'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_absent_when_severity_is_None(self, *args):
@@ -5018,6 +5172,8 @@ class TestUpdatesService(BaseTestCase):
         upd.request = None
         upd.pushed = True
         upd.date_testing = datetime.now() - timedelta(days=1)
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Checks karma threshold is reached
@@ -5070,6 +5226,8 @@ class TestUpdatesService(BaseTestCase):
         upd.pushed = True
         upd.request = None
         upd.date_testing = datetime.now() - timedelta(days=1)
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Checks karma threshold is reached
@@ -5194,6 +5352,8 @@ class TestUpdatesService(BaseTestCase):
         upd = Update.get(r.json['alias'])
         upd.status = UpdateStatus.testing
         upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Create an update for a different build
@@ -5207,6 +5367,8 @@ class TestUpdatesService(BaseTestCase):
         upd = Update.get(r.json['alias'])
         upd.status = UpdateStatus.testing
         upd.request = None
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         # Edit the nvr2 update and add nvr1
@@ -5281,6 +5443,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(update.meets_testing_requirements, True)
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestWaiveTestResults(BaseTestCase):
     """
     This class contains tests for the waive_test_results() function.
@@ -5823,6 +5986,7 @@ class TestWaiveTestResults(BaseTestCase):
         self.assertEqual(up.test_gating_status, TestGatingStatus.waiting)
 
 
+@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestGetTestResults(BaseTestCase):
     """
     This class contains tests for the get_test_results() function.

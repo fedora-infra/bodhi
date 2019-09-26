@@ -21,13 +21,13 @@
 import json
 import os
 
-from bodhi.messages.schemas import buildroot_override, compose, composer, errata, update
+from bodhi.messages.schemas import buildroot_override, compose, errata, update
 
 
 DOCS_DIR = os.path.dirname(__file__)
 
 
-for module in (buildroot_override, compose, composer, errata, update):
+for module in (buildroot_override, compose, errata, update):
     with open(f"{DOCS_DIR}/generated/{module.__name__.split('.')[-1]}.rst", 'w') as rst:
         for attr in dir(module):
             attr = getattr(module, attr)

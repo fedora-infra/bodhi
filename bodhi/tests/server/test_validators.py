@@ -518,6 +518,30 @@ class TestValidateOverrideBuilds(BaseTestCase):
               'description': 'A comma-separated list of NVRs is required.'}])
         self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
 
+    def test_release_with_no_override_tag(self):
+        """If the request has a build associated to a release with no override tag,
+        it should add an error to the request."""
+
+        build = self.db.query(models.Build).filter_by(
+            nvr='bodhi-2.0-1.fc17').first()
+
+        build.release.override_tag = ""
+        self.db.commit()
+
+        request = mock.Mock()
+        request.db = self.db
+        request.errors = Errors()
+        request.validated = {'nvr': 'bodhi-2.0-1.fc17', 'edited': False}
+
+        validators.validate_override_builds(request)
+
+        self.assertEqual(
+            request.errors,
+            [{'location': 'body', 'name': 'nvr',
+              'description': 'Cannot create a buildroot override because the'
+                             ' release associated with the build does not support it.'}])
+        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+
 
 class TestValidateRelease(BaseTestCase):
     """Test the validate_release() function."""
@@ -667,6 +691,39 @@ class TestValidateBuildsOrFromTagExist(BasePyTestCase):
         ]
 
 
+class TestValidateBuildNvrs(BasePyTestCase):
+    """Test the validate_build_nvrs() function."""
+
+    def setup_method(self, method):
+        """Sets up the environment for each test method call."""
+        super().setup_method(method)
+
+        self.request = mock.Mock()
+        self.request.db = self.db
+        self.request.errors = Errors()
+
+        # We need release not composed by Bodhi
+        self.release = models.Release.query.one()
+
+    @mock.patch('bodhi.server.validators.cache_nvrs')
+    def test_build_from_release_composed_by_bodhi(self, mock_cache_nvrs):
+        """Assert that release composed by Bodhi will not be validated when from_tag is provided."""
+        self.request.validated = {'from_tag': 'f17-build-side-7777',
+                                  'builds': ['foo-1-1.f17']}
+        self.request.buildinfo = {'foo-1-1.f17': {
+            'nvr': ('foo', '1-1', 'f17'),
+        }}
+        self.release.composed_by_bodhi = True
+        validators.validate_build_nvrs(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'builds',
+             'description':
+                 f"Can't create update from tag for release"
+                 f" '{self.release.name}' composed by Bodhi."}
+        ]
+
+
 class TestValidateFromTag(BasePyTestCase):
     """Test the validate_from_tag() function."""
 
@@ -701,7 +758,7 @@ class TestValidateFromTag(BasePyTestCase):
         self.request = mock.Mock()
         self.request.db = self.db
         self.request.errors = Errors()
-        self.request.validated = {'from_tag': 'f17-updates-candidate'}
+        self.request.validated = {'from_tag': 'f17-build-side-7777'}
 
     # Successful validations
 

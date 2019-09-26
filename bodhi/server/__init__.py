@@ -129,6 +129,21 @@ def get_buildinfo(request):
     return defaultdict(dict)
 
 
+def get_from_tag_inherited(request):
+    """
+    Return a list, defaulting to empty.
+
+    A per-request cache populated by the validators and shared with the views
+    to store the list of inherited tags of a sidetag.
+
+    Args:
+        request (pyramid.request.Request): The current web request. Unused.
+    Returns:
+        list: A cache populated by the validators and used by the views.
+    """
+    return list()
+
+
 def get_releases(request):
     """
     Return a defaultdict describing all Releases keyed by state.
@@ -251,6 +266,7 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_request_method(get_koji, 'koji', reify=True)
     config.add_request_method(get_cacheregion, 'cache', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
+    config.add_request_method(get_from_tag_inherited, 'from_tag_inherited', reify=True)
     config.add_request_method(get_releases, 'releases', reify=True)
 
     # Templating
@@ -290,6 +306,8 @@ def main(global_config, testing=None, session=None, **settings):
     # Auto-completion search
     config.add_route('latest_candidates', '/latest_candidates')
     config.add_route('latest_builds', '/latest_builds')
+    config.add_route('get_sidetags', '/get_sidetags')
+    config.add_route('latest_builds_in_tag', '/latest_builds_in_tag')
 
     # pyramid.openid
     config.add_route('login', '/login')

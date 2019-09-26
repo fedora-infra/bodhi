@@ -27,6 +27,7 @@
       - python3-arrow
       - python3-backoff
       - python3-bleach
+      - python3-celery
       - python3-click
       - python3-colander
       - python3-conu
@@ -143,6 +144,23 @@
   args:
       creates: /home/vagrant/bodhi/development.ini
 
+- name: Change development.ini to make bodhi use the staging infrastructure
+  import_tasks: configure_stg.yml
+  when: (staging_fas is defined) and use_staging_infra
+
+- name: Creates /etc/bodhi directory
+  file:
+    path: /etc/bodhi
+    state: directory
+
+- name: Copy celery configuration to correct path
+  copy:
+    src: celeryconfig.py
+    dest: /etc/bodhi/celeryconfig.py
+    owner: root
+    group: root
+    mode: 644
+
 # Bug in zope.interface filled here https://github.com/zopefoundation/zope.interface/issues/114
 - name: Fix namespace-package bug in zope.interface
   copy:
@@ -162,6 +180,7 @@
   with_items:
       - bodhi.service
       - print-messages.service
+      - celery.service
 
 - name: Install the .bashrc
   copy:
@@ -185,6 +204,17 @@
       dest: /etc/motd
       mode: 0644
 
+- name: create the composes directories
+  file:
+      path: "/srv/{{item}}"
+      owner: vagrant
+      group: vagrant
+      state: directory
+  with_items:
+      - composes
+      - composes/final
+      - composes/stage
+
 - name: Set up the RabbitMQ broker
   import_tasks: rabbitmq.yml
 
@@ -196,29 +226,17 @@
       group: root
       mode: 644
 
-- name: Start and enable the bodhi service
+- name: Start and enable the bodhi-related services
   service:
-      name: bodhi
+      name: "{{ item }}"
       state: started
       enabled: yes
-
-- name: Start and enable the docker service
-  service:
-      name: docker
-      state: started
-      enabled: yes
-
-- name: Start and enable the bodhi consumer service
-  service:
-      name: fm-consumer@config
-      state: started
-      enabled: yes
-
-- name: Start and enable the fedora-messaging print service
-  service:
-      name: print-messages
-      state: started
-      enabled: yes
+  with_items:
+      - bodhi
+      - docker
+      - celery
+      - fm-consumer@config
+      - print-messages
 
 - name: Link the bodhi bash completion script
   file:

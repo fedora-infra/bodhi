@@ -254,7 +254,9 @@ class TestBugDefaultMessage(BaseTestCase):
     @mock.patch('bodhi.server.models.log.warning')
     @mock.patch.dict(
         config,
-        {'stable_bug_msg': '%s%s', 'testing_bug_msg': '%s', 'base_address': 'b'}, clear=True)
+        {'stable_bug_msg': '%s%s', 'testing_bug_msg': '%s', 'base_address': 'b',
+         'critpath.min_karma': 1, 'fedora_epel.mandatory_days_in_testing': 0},
+        clear=True)
     def test_epel_without_testing_bug_epel_msg(self, warning):
         """Test with testing_bug_epel_msg undefined."""
         bug = model.Bug()
@@ -750,6 +752,36 @@ class TestRelease(ModelTest):
         self.assertIsNotNone(model.Release._all_releases)
         model.Release.clear_all_releases_cache()
         self.assertIsNone(model.Release._all_releases)
+
+    @mock.patch.dict(config, {'f11.koji-pending-signing-side-tag': '-pending-signing-test'})
+    def test_get_pending_signing_side_tag_found(self):
+        """
+        Assert that correct side tag is returned.
+        """
+        self.assertEqual(
+            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-pending-signing-test")
+
+    def test_get_pending_signing_side_tag_not_found(self):
+        """
+        Assert that default side tag is returned.
+        """
+        self.assertEqual(
+            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-pending-signing")
+
+    @mock.patch.dict(config, {'f11.koji-testing-side-tag': '-testing-test'})
+    def test_get_testing_side_tag_found(self):
+        """
+        Assert that correct side tag is returned.
+        """
+        self.assertEqual(
+            self.obj.get_testing_side_tag("side-tag"), "side-tag-testing-test")
+
+    def test_get_testing_side_tag_not_found(self):
+        """
+        Assert that default side tag is returned.
+        """
+        self.assertEqual(
+            self.obj.get_testing_side_tag("side-tag"), "side-tag-testing")
 
 
 class TestReleaseCritpathMinKarma(BaseTestCase):
@@ -1631,6 +1663,7 @@ class TestUpdateInit(BaseTestCase):
         self.assertEqual(str(exc.exception), 'You must specify a Release when creating an Update.')
 
 
+@mock.patch("bodhi.server.models.handle_update", mock.Mock())
 class TestUpdateEdit(BaseTestCase):
     """Tests for the Update.edit() method."""
 
@@ -1869,6 +1902,15 @@ class TestUpdateSigned(BaseTestCase):
         update.release.pending_signing_tag = ''
 
         self.assertTrue(update.signed)
+
+    def test_from_tag_update(self):
+        """If the update's release doesn't have a pending_signing_tag, it should return True."""
+        update = model.Update.query.first()
+        update.builds[0].signed = False
+        update.from_tag = 'f30-side-tag'
+        update.release.pending_signing_tag = ''
+
+        self.assertFalse(update.signed)
 
 
 class TestUpdateTestGatingPassed(BaseTestCase):
@@ -2117,12 +2159,13 @@ class TestUpdateMeetsTestingRequirements(BaseTestCase):
         update = model.Update.query.first()
         update.critpath = True
         update.stable_karma = 1
-        update.comment(self.db, 'testing', author='enemy', karma=-1)
-        update.comment(self.db, 'testing', author='bro', karma=1)
-        # Despite meeting the stable_karma, the function should still not mark this as meeting
-        # testing requirements because critpath packages have a higher requirement for minimum
-        # karma. So let's get it a second one.
-        update.comment(self.db, 'testing', author='ham', karma=1)
+        with mock.patch('bodhi.server.models.handle_update'):
+            update.comment(self.db, 'testing', author='enemy', karma=-1)
+            update.comment(self.db, 'testing', author='bro', karma=1)
+            # Despite meeting the stable_karma, the function should still not mark this as meeting
+            # testing requirements because critpath packages have a higher requirement for minimum
+            # karma. So let's get it a second one.
+            update.comment(self.db, 'testing', author='ham', karma=1)
 
         self.assertEqual(update.meets_testing_requirements, True)
 
@@ -2296,6 +2339,7 @@ class TestUpdateMeetsTestingRequirements(BaseTestCase):
         self.assertEqual(update.meets_testing_requirements, False)
 
 
+@mock.patch("bodhi.server.models.handle_update", mock.Mock())
 class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
     klass = model.Update
@@ -2321,7 +2365,7 @@ class TestUpdate(ModelTest):
             release=release,
             user=model.User(name='lmacken'))
 
-    def get_update(self, name='TurboGears-1.0.8-3.fc11'):
+    def get_update(self, name='TurboGears-1.0.8-3.fc11', override_args=None):
         """Return an Update instance for testing."""
         attrs = self.attrs.copy()
         pkg = self.db.query(model.RpmPackage).filter_by(name='TurboGears').one()
@@ -2329,6 +2373,7 @@ class TestUpdate(ModelTest):
         attrs.update(dict(
             builds=[model.RpmBuild(nvr=name, package=pkg, release=rel)],
             release=rel))
+        attrs.update(override_args or {})
         return self.klass(**attrs)
 
     def test___json___with_no_builds(self):
@@ -3231,9 +3276,10 @@ class TestUpdate(ModelTest):
         bug.title = 'foo\xe9bar'
         from bodhi.server.util import bug_link
         link = bug_link(None, bug)
+
         self.assertEqual(
-            link, ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a>"
-                   " foo\xe9bar"))
+            link, ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'"
+                   " class='notblue'>BZ#1</a> foo\xe9bar"))
 
     def test_set_request_pending_stable(self):
         """Ensure that we can submit an update to stable if it is pending and has enough karma."""
@@ -3328,6 +3374,7 @@ class TestUpdate(ModelTest):
         expected_message = update_schemas.UpdateRequestStableV1.from_dict(
             {'update': self.obj, 'agent': req.user.name})
 
+        self.db.info['messages'] = []
         with mock_sends(expected_message):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             # set_request alters the update a bit, so we need to adjust the expected message to
@@ -3363,6 +3410,7 @@ class TestUpdate(ModelTest):
         expected_message = update_schemas.UpdateRequestStableV1.from_dict(
             {'update': self.obj, 'agent': req.user.name})
 
+        self.db.info['messages'] = []
         with mock_sends(expected_message):
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
             # set_request alters the update a bit, so we need to adjust the expected message to
@@ -3737,6 +3785,7 @@ class TestUpdate(ModelTest):
         expected_message = errata_schemas.ErrataPublishV1.from_dict({
             'subject': subject, 'body': body, 'update': self.obj})
 
+        self.db.info['messages'] = []
         with mock_sends(expected_message):
             self.obj.send_update_notice()
             self.db.commit()
@@ -4143,7 +4192,8 @@ class TestUpdate(ModelTest):
         expected_comment = "This update's test gating status has been changed to 'waiting'."
         self.assertEqual(update.comments[-1].text, expected_comment)
 
-    def test_comment_on_test_gating_status_change(self):
+    @mock.patch('bodhi.server.models.mail')
+    def test_comment_on_test_gating_status_change(self, mail):
         """Assert that Bodhi will leave comment only when test_gating_status changes."""
         # Let's make sure that update has no comments.
         self.assertEqual(len(self.obj.comments), 0)
@@ -4160,6 +4210,59 @@ class TestUpdate(ModelTest):
 
         # We should have still only one comment about test_gating_status change.
         self.assertEqual(len(self.obj.comments), 1)
+
+        # Check that no email were sent:
+        self.assertEqual(mail.send.call_count, 0)
+
+    @mock.patch('bodhi.server.models.mail')
+    def test_comment_on_test_gating_status_change_email(self, mail):
+        """Assert that Bodhi will leave comment only when test_gating_status changes."""
+        # Let's make sure that update has no comments.
+        self.assertEqual(len(self.obj.comments), 0)
+
+        # Check that no email were sent:
+        self.assertEqual(mail.send.call_count, 0)
+
+        self.obj.test_gating_status = TestGatingStatus.failed
+
+        # Check that one email was sent:
+        self.assertEqual(mail.send.call_count, 1)
+
+        # Check for the comment about test_gating_status change
+        expected_comment = "This update's test gating status has been changed to 'failed'."
+        self.assertEqual(self.obj.comments[0].text, expected_comment)
+        self.assertEqual(len(self.obj.comments), 1)
+
+        # Let's set test_gating_status to 'waiting' once again.
+        self.obj.test_gating_status = TestGatingStatus.waiting
+
+        # Check that still only one email was sent:
+        self.assertEqual(mail.send.call_count, 1)
+
+        # We should have two comments, one for each test_gating_status change
+        self.assertEqual(len(self.obj.comments), 2)
+
+    def test_set_status_testing(self):
+        """Test that setting an update's status to testing sends a message."""
+        self.db.info['messages'] = []
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.obj.status = UpdateStatus.testing
+            msg = self.db.info['messages'][0]
+            self.db.commit()
+        assert msg.body["update"]["status"] == "testing"
+
+    def test_create_with_status_testing(self):
+        """Test that creating an update with the status set to testing sends a message."""
+        self.db.info['messages'] = []
+        with mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.get_update(name="TurboGears-1.0.8-4.fc11", override_args={
+                "status": UpdateStatus.testing,
+                "user": self.db.query(model.User).filter_by(name='lmacken').one()
+            })
+            assert len(self.db.info['messages']) == 1
+            msg = self.db.info['messages'][0]
+            self.db.commit()
+        assert msg.body["update"]["status"] == "testing"
 
 
 class TestUser(ModelTest):

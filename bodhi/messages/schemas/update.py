@@ -568,3 +568,39 @@ class UpdateRequirementsMetStableV1(UpdateMessage):
             A summary for this message.
         """
         return f'{self.update.alias} has met stable testing requirements'
+
+
+class UpdateReadyForTestingV1(UpdateMessage):
+    """Sent when an update is ready to be tested."""
+
+    body_schema = {
+        'id': f'{SCHEMA_URL}/v1/bodhi.update.status.testing#',
+        '$schema': 'http://json-schema.org/draft-04/schema#',
+        'description': 'Schema for message sent when an update is ready for testing',
+        'type': 'object',
+        'properties': {
+            'update': UpdateV1.schema(),
+        },
+        'required': ['update'],
+        'definitions': {
+            'build': BuildV1.schema(),
+        }
+    }
+
+    topic = "bodhi.update.status.testing"
+
+    @property
+    def summary(self) -> str:
+        """
+        Return a short, human-readable representation of this message.
+
+        This should provide a short summary of the message, much like the subject line
+        of an email.
+
+        Returns:
+            A summary for this message.
+        """
+        return (
+            f"{self.update.user.name}'s "
+            f"{truncate(' '.join([b.nvr for b in self.update.builds]))} "
+            f"bodhi update is ready for {self.update.status}")

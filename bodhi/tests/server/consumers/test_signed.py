@@ -23,6 +23,7 @@ import unittest
 from fedora_messaging.api import Message
 
 from bodhi.server.consumers import signed
+from bodhi.server.models import UpdateStatus
 
 
 class TestSignedHandlerConsume(unittest.TestCase):
@@ -43,6 +44,20 @@ class TestSignedHandlerConsume(unittest.TestCase):
                 'release': '1.fc26'
             },
         )
+        self.sample_side_tag_message = Message(
+            topic='',
+            body={
+                'build_id': 442562,
+                'name': 'colord',
+                'tag_id': 214,
+                'instance': 's390',
+                'tag': 'f30-side-tag-testing',
+                'user': 'sharkcz',
+                'version': '1.3.4',
+                'owner': 'sharkcz',
+                'release': '1.fc26'
+            },
+        )
         self.handler = signed.SignedHandler()
 
     @mock.patch('bodhi.server.consumers.signed.Build')
@@ -50,6 +65,9 @@ class TestSignedHandlerConsume(unittest.TestCase):
         """Assert that messages marking the build as signed updates the database"""
         build = mock_build_model.get.return_value
         build.signed = False
+        update = mock.MagicMock()
+        update.from_tag = None
+        build.update = update
         build.release.pending_testing_tag = self.sample_message.body["tag"]
 
         self.handler(self.sample_message)
@@ -62,6 +80,9 @@ class TestSignedHandlerConsume(unittest.TestCase):
         """
         build = mock_build_model.get.return_value
         build.signed = False
+        update = mock.MagicMock()
+        update.from_tag = None
+        build.update = update
         build.release.pending_testing_tag = "some tag that isn't pending testing"
 
         self.handler(self.sample_message)
@@ -74,6 +95,9 @@ class TestSignedHandlerConsume(unittest.TestCase):
         """
         build = mock_build_model.get.return_value
         build.signed = False
+        update = mock.MagicMock()
+        update.from_tag = None
+        build.update = update
         build.release = None
 
         self.handler(self.sample_message)
@@ -95,8 +119,72 @@ class TestSignedHandlerConsume(unittest.TestCase):
         build = mock_build_model.get.return_value
         build.release.pending_testing_tag = self.sample_message.body["tag"]
         build.signed = True
+        update = mock.MagicMock()
+        update.from_tag = None
+        build.update = update
 
         self.handler(self.sample_message)
         mock_log.info.assert_called_with(
             "Build was already marked as signed (maybe a duplicate message)")
         self.assertEqual(mock_log.info.call_count, 2)
+
+    @mock.patch('bodhi.server.consumers.signed.log')
+    @mock.patch('bodhi.server.consumers.signed.Build')
+    def test_consume_from_tag_wrong_tag(self, mock_build_model, mock_log):
+        """
+        Assert that messages about builds from side tag updates are skipped
+        when tag is not correct.
+        """
+        build = mock_build_model.get.return_value
+        build.signed = False
+        build.release = mock.MagicMock()
+        update = mock.MagicMock()
+        update.from_tag = "f30-side-tag-unknown"
+        build.update = update
+
+        self.handler(self.sample_side_tag_message)
+        mock_log.info.assert_called_with(
+            "Tag is not testing side tag, skipping")
+        self.assertEqual(mock_log.info.call_count, 2)
+
+    @mock.patch('bodhi.server.consumers.signed.Build')
+    def test_consume_from_tag_not_signed(self, mock_build_model):
+        """
+        Assert that update created from tag is not changed to status testing till
+        every build is signed when message is received.
+        """
+        build = mock_build_model.get.return_value
+        build.signed = False
+        build.release = mock.MagicMock()
+        build.release.get_testing_side_tag.return_value = "f30-side-tag-testing"
+        update = mock.MagicMock()
+        update.from_tag = "f30-side-tag"
+        update.signed.return_value = False
+        update.status = UpdateStatus.pending
+        build.update = update
+
+        self.handler(self.sample_side_tag_message)
+        self.assertEqual(build.signed, True)
+        self.assertEqual(update.status, UpdateStatus.pending)
+
+    @mock.patch('bodhi.server.consumers.signed.Build')
+    def test_consume_from_tag(self, mock_build_model):
+        """
+        Assert that update created from tag is handled correctly when message
+        is received.
+        Update status is changed to testing and corresponding message is sent.
+        """
+        build = mock_build_model.get.return_value
+        build.signed = False
+        build.release = mock.MagicMock()
+        build.release.get_testing_side_tag.return_value = "f30-side-tag-testing"
+        update = mock.MagicMock()
+        update.from_tag = "f30-side-tag"
+        update.signed.return_value = True
+        update.status = UpdateStatus.pending
+        build.update = update
+
+        self.handler(self.sample_side_tag_message)
+        self.assertEqual(build.signed, True)
+        self.assertEqual(build.update.request, None)
+        self.assertEqual(update.status, UpdateStatus.testing)

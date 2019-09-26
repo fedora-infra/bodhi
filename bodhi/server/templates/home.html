@@ -1,148 +1,120 @@
 <%inherit file="master.html"/>
+<%namespace name="util" module="bodhi.server.util"/>
 
-<script src="${request.static_url('bodhi:server/static/js/newsfeed.js')}"></script>
-<div class="container pt-4">
-  % for r in request.releases['pending'] + request.releases['current']:
-  <div class="row front-release">
-    <div class="col-md-12">
-      <h3>
-        <a class="notblue" href="${request.route_url('releases')}${r['name']}">
-  ${r['long_name']}
-        </a>
-        %if r['state'] == 'pending':
-          <span class="badge badge-secondary">prerelease</span>
-        %endif
-      </h3>
+
+% if not request.user:
+<div class="jumbotron jumbotron-fluid subheader">
+    <div class="container">
+      <div class="row">
+          <div class="col">
+          <p class="lead">welcome to the</p>
+          <h1 class="display-4">Fedora Updates System</h1>
+          <p class="lead">Create, test, and publish package updates for Fedora.</p>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="col text-right">
+            <div class="btn-group">
+                <a href="${request.route_url('releases')}" class="btn btn-outline-primary">Browse Releases</a>
+                <a href="${request.route_url('updates')}" class="btn btn-outline-primary">Browse Updates</a>
+                % if request.matched_route:
+                <a class="btn btn-primary" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">
+                % else:
+                <a class="btn btn-primary" href="${request.route_url('login')}">
+                % endif
+                Login</a>
+              </div>
+        </div>
+      </div>      
     </div>
-      <div class="col-md-4">
-        <div class="front-count">
-        <div class="front-count-total">
-          <a href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending">
-          ${release_updates_counts[r['name']]['pending_updates_total']}
-          </a>
-        </div>
-        <h4>updates pending</h4>
-          <a class="text-danger" title="Security updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=security">
-            <span class="fa fa-shield"></span> ${release_updates_counts[r['name']]['pending_security_total']}
-          </a>
-          <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=bugfix">
-            <span class="fa fa-bug"></span> ${release_updates_counts[r['name']]['pending_bugfix_total']}
-          </a>
-          <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=enhancement">
-            <span class="fa fa-bolt text-success"></span> ${release_updates_counts[r['name']]['pending_enhancement_total']}
-          </a>
-          <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=pending&amp;type=newpackage">
-            <span class="fa fa-archive"></span> ${release_updates_counts[r['name']]['pending_newpackage_total']}
-          </a>
-      </div>
-      </div>
-      <div class="col-md-4">
-        <div class="front-count">
-        <div class="front-count-total">
-          <a href="${request.route_url('updates')}?releases=${r['name']}&amp;status=testing">
-          ${release_updates_counts[r['name']]['testing_updates_total']}
-          </a>
-          </div>
-        <h4>updates in testing</h4>
-        <a class="text-danger" title="Security updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=testing&amp;type=security">
-          <span class="fa fa-shield"></span> ${release_updates_counts[r['name']]['testing_security_total']}
-        </a>
-        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=testing&amp;type=bugfix">
-          <span class="fa fa-bug"></span> ${release_updates_counts[r['name']]['testing_bugfix_total']}
-        </a>
-        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=testing&amp;type=enhancement">
-          <span class="fa fa-bolt"></span> ${release_updates_counts[r['name']]['testing_enhancement_total']}
-        </a>
-        <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=testing&amp;type=newpackage">
-          <span class="fa fa-archive"></span> ${release_updates_counts[r['name']]['testing_newpackage_total']}
-        </a>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="front-count">
-        <div class="front-count-total">
-          <a href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable">
-          ${release_updates_counts[r['name']]['stable_updates_total']}
-          </a>
-        </div>
-        <h4>updates in stable</h4>
-        <a class="text-danger" title="Security updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=security">
-        <span class="fa fa-shield"></span> ${release_updates_counts[r['name']]['stable_security_total']}
-        </a>
-        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=bugfix">
-        <span class="fa fa-bug"></span> ${release_updates_counts[r['name']]['stable_bugfix_total']}
-        </a>
-        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=enhancement">
-        <span class="fa fa-bolt"></span> ${release_updates_counts[r['name']]['stable_enhancement_total']}
-        </a>
-        <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="${request.route_url('updates')}?releases=${r['name']}&amp;status=stable&amp;type=newpackage">
-        <span class="fa fa-archive"></span> ${release_updates_counts[r['name']]['stable_newpackage_total']}
-        </a>
-      </div>
-      </div>
   </div>
-  % endfor
-
-  <div class="row">
-    <div class="col-md-12">
-          <div class="card mb-3">
-            <div class="card-header">
-              <span><strong>This week's top testers</strong></span>
+% else:
+<div class="subheader">
+    <div class="container">
+        <div class="row py-4">
+            <div class="col-12">
+                <h5 class="font-weight-bold d-flex align-items-center">My Active Updates<a class="btn btn-outline-primary btn-sm ml-auto py-0" href="${request.route_url('new_update')}"><i class="fa fa-plus pr-2"></i>New Update</a></h5>
+                    <div class="list-group">
+                        %if not active_updates:
+                        <div class="list-group-item py-4 text-center text-muted font-weight-bold">
+                          <p>You have no updates in pending or testing</p>
+                          <p><a href="${request.route_url('updates')}?user=${request.user.name}" class="font-size-09">view all your updates</a></p>
+                        </div>
+                        % else:
+                            % for update in active_updates:
+                            ${self.fragments.update(update, display_user=False, display_karma=True, display_commentcount=True)}
+                            % endfor
+                        % endif
+                    </div>
             </div>
+        </div>
+        <div class="row py-4">
+            <div class="col-12">
+                <h5 class="font-weight-bold d-flex align-items-center">My Active Overrides<a class="btn btn-outline-primary btn-sm ml-auto py-0" href="${request.route_url('new_override')}"><i class="fa fa-plus pr-2"></i>New Override</a></h5>
+                    <div class="list-group">
+                      %if not active_overrides:
+                      <div class="list-group-item py-4 text-center text-muted font-weight-bold">
+                          <p>You have no active buildroot overrides</p>
+                          <p><a href="${request.route_url('overrides')}?user=${request.user.name}" class="font-size-09">view all your overrides</a></p>
+                        
+                      </div>
+                      % else:
+                        % for override in active_overrides:
+                          ${self.fragments.override(override, display_user=False)}
+                        % endfor
+                      % endif
+                    </div>
+            </div>  
+        </div>
+    </div>
+  </div>
+% endif
+<div class="container py-4">
+  <div class="row text-center">
+    <div class="col-4">
+        <div class="display-4"><a href="${request.route_url('updates')}?status=testing&critpath=True"><i class="fa fa-fw fa-fire text-danger"></i> ${critpath_testing_count}</a></div>
+        <div>critical path updates in testing</div>
+    </div>
+    <div class="col-4">
+        <div class="display-4"><a href="${request.route_url('updates')}?type=security&status=testing"><i class="fa fa-fw fa-shield text-danger"></i> ${security_testing_count}</a></div>
+        <div>security updates in testing</div>
+    </div>
+    <div class="col-4">
+        <div class="display-4"><a href="${request.route_url('updates')}?status=testing"><i class="fa fa-fw fa-flask text-muted"></i> ${all_testing_count}</a></div>
+        <div>total updates in testing</div>
+    </div>
+  </div>
+<hr class="my-4"/>
+  <div class="row py-4">
+    <div class="col-6">
+        <h5 class="font-weight-bold">Active Testers</h5>
             <div class="list-group list-group-flush">
                 % for tester, count in top_testers:
                 <div class="list-group-item">
-                    <strong>#${str(loop.index + 1)}</strong>
                     <a href="${request.route_url('user', name=tester['name'])}">
-                      <img class="img-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
+                      <img class="rounded-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
                       ${tester['name']}
                     </a>
-                  <div class="badge badge-secondary float-right">${str(count)}</div>
+                  <div class="float-right">${str(count)} comments</div>
                 </div>
                 % endfor
             </div>
-      </div>
     </div>
+    <div class="col-6">
+          <h5 class="font-weight-bold">Active Packagers</h5>
+          <div class="list-group">
+              % for tester, count in top_packagers:
+              <div class="list-group-item">
+                  <a href="${request.route_url('user', name=tester['name'])}">
+                    <img class="rounded-circle" src="${self.util.avatar(tester['name'], size=24)}"/>
+                    ${tester['name']}
+                  </a>
+                <div class="float-right">${str(count)} updates</div>
+              </div>
+              % endfor
+          </div>
+  </div>
   </div>
 
-      % if critpath_updates:
-      <div class="row">
-        <div class="col-md-12">
-          <div class="card mb-3">
-            <div class="card-header clearfix">
-              <span><strong><a href="${request.route_url('updates')}?status=testing&critpath=True" title="View All">Latest Critical Path Updates in Need of Testing</a></strong></span>
-              <span class="float-right">
-                <a class="btn btn-sm btn-secondary" href="${request.route_url('updates_rss')}?status=testing" title="RSS Feed">
-                  <span class="fa fa-rss"></span>
-                </a>
-              </span>
-            </div>
-            <div class="card-body p-0">
-              ${self.tables.updates(critpath_updates)}
-            </div>
-          </div>
-        </div>
-      </div>
-      % endif
-
-      % if security_updates:
-      <div class="row">
-        <div class="col-md-12">
-          <div class="card mb-3">
-            <div class="card-header clearfix">
-              <span><strong><a href="${request.route_url('updates')}?type=security&status=testing">Latest Security Updates in Need of Testing</a></strong></span>
-              <span class="float-right">
-                <a class="btn btn-sm btn-secondary" href="${request.route_url('updates_rss')}?type=security&status=testing" title="RSS Feed">
-                  <span class="fa fa-rss"></span>
-                </a>
-              </span>
-            </div>
-            <div class="card-body p-0">
-              ${self.tables.updates(security_updates)}
-            </div>
-          </div>
-        </div>
-      </div>
-      %endif
   </div>
 </div>

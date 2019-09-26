@@ -224,7 +224,7 @@ class TestRememberMe(base.BaseTestCase):
         info = {
             'identity_url': 'http://lmacken.id.fedoraproject.org',
             'groups': ['releng'],
-            'sreg': {'email': 'lmacken@fp.o'},
+            'sreg': {'email': 'lmacken@fp.o', 'nickname': 'lmacken'},
         }
         req.registry.settings = self.app_settings
         # Ensure the user doesn't exist yet

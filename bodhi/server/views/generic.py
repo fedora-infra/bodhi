@@ -21,7 +21,7 @@ import datetime
 
 from pyramid.settings import asbool
 from pyramid.view import view_config, notfound_view_config
-from pyramid.exceptions import HTTPForbidden
+from pyramid.exceptions import HTTPForbidden, HTTPBadRequest
 import cornice.errors
 import sqlalchemy as sa
 
@@ -61,9 +61,40 @@ def get_top_testers():
         .all()
 
 
-def get_latest_updates(critpath, security):
+def get_top_packagers():
     """
-    Return a query of the 5 most recent updates that are in Testing status.
+    Return a query of the 5 users that have submitted the most updates in the last 7 days.
+
+    Returns:
+        sqlalchemy.orm.query.Query: A SQLAlchemy query that contains the
+                                  5 users that have submitted the most updates
+                                  in the last 7 days, and their total number of
+                                  updates in bodhi.
+    """
+    blacklist = config.get('stats_blacklist')
+    days = config.get('top_testers_timeframe')
+    start_time = datetime.datetime.utcnow() - datetime.timedelta(days=days)
+
+    query = models.Session().query(
+        models.User,
+        sa.func.count(models.User.updates).label('count_1')
+    ).join(models.Update)
+    query = query\
+        .order_by(sa.text('count_1 desc'))\
+        .filter(models.Update.date_submitted > start_time)
+
+    for user in blacklist:
+        query = query.filter(models.User.name != str(user))
+
+    return query\
+        .group_by(models.User)\
+        .limit(5)\
+        .all()
+
+
+def get_testing_counts(critpath, security):
+    """
+    Return a count of updates in Testing status.
 
     critpath and security are optional filters for security or critical path updates.
 
@@ -71,8 +102,7 @@ def get_latest_updates(critpath, security):
         critpath (boolean): If True, filter results to only return updates in the Critical Path
         security (boolean): If True, filter results to only return Security updates
     Returns:
-        sqlalchemy.orm.query.Query: A SQLAlchemy query that contains the
-                                  5 most recent updates that are in Testing status
+        int: the number of updates in the testing status
     """
     query = models.Update.query
 
@@ -87,122 +117,104 @@ def get_latest_updates(critpath, security):
         models.Update.status == models.UpdateStatus.testing)
 
     query = query.order_by(models.Update.date_submitted.desc())
-    return query.limit(5).all()
-
-
-def _get_status_counts(basequery, status):
-    """
-    Return a dictionary with the counts of objects found in the basequery.
-
-    The return data is specified by total count, newpackage count, bugfix count, enhancement count,
-    and security count. The dictionary keys will be named with the
-    template {status}_{type}_total. For example, if status is
-    models.UpdateStatus.stable, a dictionary with the following keys would be
-    returned:
-        stable_updates_total
-        stable_newpackage_total
-        stable_bugfix_total
-        stable_enhancement_total
-        stable_security_total
-
-    Args:
-        basequery (sqlalchemy.orm.query.Query):
-            The basequery of updates we want to count and further filter on.
-        status (bodhi.server.models.UpdateStatus):
-            The update status we want to filter by in basequery
-    Return:
-        dict: A dictionary describing the counts of the updates, as described above.
-    """
-    basequery = basequery.filter(models.Update.status == status)
-    return {
-        '{}_updates_total'.format(status.description): basequery.count(),
-        '{}_newpackage_total'.format(status.description):
-            basequery.filter(models.Update.type == models.UpdateType.newpackage).count(),
-        '{}_bugfix_total'.format(status.description):
-            basequery.filter(models.Update.type == models.UpdateType.bugfix).count(),
-        '{}_enhancement_total'.format(status.description):
-            basequery.filter(models.Update.type == models.UpdateType.enhancement).count(),
-        '{}_security_total'.format(status.description):
-            basequery.filter(models.Update.type == models.UpdateType.security).count(),
-    }
-
-
-def get_update_counts(releaseid):
-    """
-    Return counts for the various states and types of updates in the given release.
-
-    This function returns a dictionary that tabulates the counts of the various
-    types of Bodhi updates at the various states they can appear in. The
-    dictionary has the following keys, with pretty self-explanatory names:
-
-        pending_updates_total
-        pending_newpackage_total
-        pending_bugfix_total
-        pending_enhancement_total
-        pending_security_total
-        testing_updates_total
-        testing_newpackage_total
-        testing_bugfix_total
-        testing_enhancement_total
-        testing_security_total
-        stable_updates_total
-        stable_newpackage_total
-        stable_bugfix_total
-        stable_enhancement_total
-        stable_security_total
-
-    Args:
-        request (pyramid.request.Request): The current request
-        releaseid (str): The id of the Release object you would like the counts performed on
-    Returns:
-        dict: A dictionary expressing the counts, as described above.
-    """
-    release = models.Release.get(releaseid)
-    basequery = models.Update.query.filter(models.Update.release == release)
-    counts = {}
-    counts.update(_get_status_counts(basequery, models.UpdateStatus.pending))
-    counts.update(_get_status_counts(basequery, models.UpdateStatus.testing))
-    counts.update(_get_status_counts(basequery, models.UpdateStatus.stable))
-
-    return counts
+    return query.count()
 
 
 def _generate_home_page_stats():
     """
     Generate and return a dictionary of stats for the home() function to use.
 
-    This function returns a dictionary with the following 4 keys:
+    This function returns a dictionary with the following 5 keys:
 
-        release_updates_counts: a dict of counts of various states and types of updates as
-                                generated by get_update_counts()
         top_testers:            a list of 5 tuples, the 5 top testers in the last 7 days.
                                 The first item of each tuple contains a dict of the items
                                 in the User model for that user. The second item of the tuple
                                 contains the number of comments the user has left in Bodhi.
-        critpath_updates:       a list of 5 dicts, the 5 most recent critical path updates.
-                                Each dict contains key-value pairs for all the items in the
-                                Update model.
-        security_updates:       a list of 5 dicts, the 5 most recent security updates.
-                                Each dict contains key-value pairs for all the items in the
-                                Update model.
+        top_packagers:           a list of 5 tuples, the 5 top packagers in the last 7 days.
+                                The first item of each tuple contains a dict of the items
+                                in the User model for that user. The second item of the tuple
+                                contains the number of updates the user has filed in Bodhi.
+        critpath_testing_count: the number of critical path updates in testin.
+        security_testing_count: the number of security updates in testing
+        all_testing_count:      the number of all updates in testing
 
     Returns:
         dict: A Dictionary expressing the values described above
     """
     top_testers = get_top_testers()
-    critpath_updates = get_latest_updates(True, False)
-    security_updates = get_latest_updates(False, True)
-    release_updates_counts = {}
-    releases = models.Release.all_releases()
-    for release in releases['current'] + releases['pending']:
-        release_updates_counts[release["name"]] = get_update_counts(release["name"])
+    top_packagers = get_top_packagers()
 
     return {
-        "release_updates_counts": release_updates_counts,
         "top_testers": [(obj.__json__(), n) for obj, n in top_testers],
-        "critpath_updates": [obj.__json__() for obj in critpath_updates],
-        "security_updates": [obj.__json__() for obj in security_updates],
+        "top_packagers": [(obj.__json__(), n) for obj, n in top_packagers],
+        "critpath_testing_count": get_testing_counts(True, False),
+        "security_testing_count": get_testing_counts(False, True),
+        "all_testing_count": get_testing_counts(False, False),
     }
+
+
+def _get_sidetags(koji, user=None, contains_builds=False):
+    """
+    Return a list of koji sidetags.
+
+    Args:
+        koji: the koji client instance from request.koji
+        user: a string of the user's FAS name
+        contains_builds: a boolean. if true, only return sidetags with builds
+    Returns:
+        dict: A list of the sidetags information.
+    """
+    sidetags = koji.listSideTags(user=user)
+
+    koji.multicall = True
+    for tag in sidetags:
+        koji.getTag(tag['name'])
+    sidetags_info = koji.multiCall()
+
+    koji.multicall = True
+    for tag in sidetags_info:
+        koji.listTagged(tag[0]['name'], latest=True)
+    builds = koji.multiCall()
+
+    result = []
+    for i, tag in enumerate(sidetags_info):
+        if (contains_builds and builds[i][0]) or not contains_builds:
+            result.append({
+                'id': tag[0]['id'],
+                'name': tag[0]['name'],
+                'sidetag_user': tag[0]['extra']['sidetag_user'],
+                'builds': builds[i][0]
+            })
+
+    return result
+
+
+def _get_active_updates(request):
+    query = models.Update.query
+
+    update_status = [models.UpdateStatus.pending, models.UpdateStatus.testing]
+    query = query.filter(sa.sql.or_(*[models.Update.status == s for s in update_status]))
+
+    user = models.User.get(request.user.name)
+
+    query = query.filter(models.Update.user == user)
+
+    query = query.order_by(models.Update.date_submitted.desc())
+
+    return query.all()
+
+
+def _get_active_overrides(request):
+    query = models.BuildrootOverride.query
+
+    query = query.filter(models.BuildrootOverride.expired_date.is_(None))
+    user = models.User.get(request.user.name)
+
+    query = query.filter(models.BuildrootOverride.submitter == user)
+
+    query = query.order_by(models.BuildrootOverride.submission_date.desc())
+
+    return query.all()
 
 
 @view_config(route_name='home', renderer='home.html')
@@ -218,7 +230,11 @@ def home(request):
         dict: A Dictionary expressing the values described in the docblock for
             _generate_home_page_stats().
     """
-    return _generate_home_page_stats()
+    data = _generate_home_page_stats()
+    if request.user:
+        data['active_updates'] = _get_active_updates(request)
+        data['active_overrides'] = _get_active_overrides(request)
+    return data
 
 
 @view_config(route_name='new_update', renderer='new_update.html')
@@ -245,6 +261,7 @@ def new_update(request):
         severities=sorted(list(models.UpdateSeverity.values()),
                           key=bodhi.server.util.sort_severity),
         suggestions=suggestions,
+        sidetags=_get_sidetags(request.koji, user=user, contains_builds=True)
     )
 
 
@@ -261,13 +278,15 @@ def latest_candidates(request):
         request (pyramid.request.Request): The current request. The package name is specified in the
             request's "package" parameter.
     Returns:
-        list: A list of dictionaries of the found builds. Each dictionary has two keys: "nvr" maps
-            to the build's nvr field, and "id" maps to the build's id.
+        list: A list of dictionaries of the found builds. Each dictionary has 5 keys: "nvr" maps
+            to the build's nvr field, "id" maps to the build's id, "tag_name" is the tag of the
+            build, owner_name is the person who built the package in koji, and 'release_name' is
+            the bodhi release name of the package.
     """
     koji = request.koji
     db = request.db
 
-    def work(pkg, testing):
+    def work(testing, pkg=None, prefix=None):
         result = []
         koji.multicall = True
 
@@ -278,8 +297,13 @@ def latest_candidates(request):
                               models.ReleaseState.frozen,
                               models.ReleaseState.current)))
 
-        kwargs = dict(package=pkg, latest=True)
+        kwargs = dict(package=pkg, prefix=prefix, latest=True)
+        tag_release = dict()
         for release in releases:
+            tag_release[release.candidate_tag] = release.long_name
+            tag_release[release.testing_tag] = release.long_name
+            tag_release[release.pending_testing_tag] = release.long_name
+            tag_release[release.pending_signing_tag] = release.long_name
             koji.listTagged(release.candidate_tag, **kwargs)
             if testing:
                 koji.listTagged(release.testing_tag, **kwargs)
@@ -287,27 +311,37 @@ def latest_candidates(request):
                 koji.listTagged(release.pending_signing_tag, **kwargs)
 
         response = koji.multiCall() or []  # Protect against None
-
         for taglist in response:
-            for build in taglist[0]:
-                item = {
-                    'nvr': build['nvr'],
-                    'id': build['id'],
-                }
-                # Prune duplicates
-                # https://github.com/fedora-infra/bodhi/issues/450
-                if item not in result:
-                    result.append(item)
+            # if the call to koji results in errors, it returns them
+            # in the reponse as dicts. Here we detect these, and log
+            # the errors
+            if isinstance(taglist, dict):
+                log.error(taglist)
+            else:
+                for build in taglist[0]:
+                    log.debug(build)
+                    item = {
+                        'nvr': build['nvr'],
+                        'id': build['id'],
+                        'package_name': build['package_name'],
+                        'owner_name': build['owner_name'],
+                        'release_name': tag_release[build['tag_name']]
+                    }
+                    # Prune duplicates
+                    # https://github.com/fedora-infra/bodhi/issues/450
+                    if item not in result:
+                        result.append(item)
         return result
 
     pkg = request.params.get('package')
+    prefix = request.params.get('prefix')
     testing = asbool(request.params.get('testing'))
     log.debug('latest_candidate(%r, %r)' % (pkg, testing))
 
-    if not pkg:
-        return []
-
-    result = work(pkg, testing)
+    if pkg:
+        result = work(testing, pkg=pkg)
+    else:
+        result = work(testing, prefix=prefix)
 
     log.debug(result)
     return result
@@ -335,6 +369,45 @@ def latest_builds(request):
             except Exception:  # Things like EPEL don't have pending tags
                 pass
     return builds
+
+
+@view_config(route_name='get_sidetags', renderer='json')
+def get_sidetags(request):
+    """
+    Return a list of koji sidetags based on query arguments.
+
+    Args:
+        request (pyramid.request.Request): The current request. The request's "user" parameter is
+            used to pass the username being queried.
+    Returns:
+        dict: A list of the sidetags information.
+    """
+    koji = request.koji
+    # 'user': a FAS username, used to only return sidetags from that user
+    user = request.params.get('user')
+    # 'contains_builds': a boolean to only return sidetags with that contain builds
+    contains_builds = asbool(request.params.get('contains_builds'))
+
+    return _get_sidetags(koji, user=user, contains_builds=contains_builds)
+
+
+@view_config(route_name='latest_builds_in_tag', renderer='json')
+def latest_builds_in_tag(request):
+    """
+    Return a list of the latest builds for a given tag.
+
+    Args:
+        request (pyramid.request.Request): The current request. The request's "tag" parameter is
+            used to pass the koji tagname being queried.
+    Returns:
+        dict: A dictionary of the release dist tag to the latest build.
+    """
+    koji = request.koji
+    tag = request.params.get('tag')
+    if not tag:
+        raise HTTPBadRequest("tag parameter is required")
+    else:
+        return koji.listTagged(tag, latest=True)
 
 
 @view_config(route_name='new_override', renderer='override.html')

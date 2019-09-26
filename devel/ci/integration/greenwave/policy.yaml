@@ -18,7 +18,6 @@ rules:
   - !PassingTestCaseRule {test_case_name: compose.desktop_terminal, scenario: "fedora.KDE-live-iso.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.desktop_terminal, scenario: "fedora.Workstation-live-iso.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.install_anaconda_text, scenario: "fedora.universal.x86_64.64bit"}
-  - !PassingTestCaseRule {test_case_name: compose.install_arm_image_deployment_upload, scenario: "fedora.Minimal-raw_xz-raw.xz.arm.ARM"}
   - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Everything-boot-iso.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Everything-boot-iso.x86_64.uefi"}
   - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.KDE-live-iso.x86_64.uefi"}
@@ -40,13 +39,10 @@ rules:
   - !PassingTestCaseRule {test_case_name: compose.install_multi, scenario: "fedora.universal.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.install_multi, scenario: "fedora.universal.x86_64.uefi"}
   - !PassingTestCaseRule {test_case_name: compose.install_no_user, scenario: "fedora.KDE-live-iso.x86_64.64bit"}
-  - !PassingTestCaseRule {test_case_name: compose.install_no_user, scenario: "fedora.Workstation-live-iso.x86_64.64bit"}
-  - !PassingTestCaseRule {test_case_name: compose.install_repository_http_graphical, scenario: "fedora.universal.i386.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.install_repository_http_graphical, scenario: "fedora.universal.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.install_repository_http_variation, scenario: "fedora.universal.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.install_sata, scenario: "fedora.universal.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.install_sata, scenario: "fedora.universal.x86_64.uefi"}
-  - !PassingTestCaseRule {test_case_name: compose.install_scsi_updates_img, scenario: "fedora.universal.i386.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.install_scsi_updates_img, scenario: "fedora.universal.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.realmd_join_sssd, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.server_cockpit_default, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
@@ -59,33 +55,29 @@ rules:
 --- !Policy
 id: "taskotron_release_critical_tasks_for_testing"
 product_versions:
+  - fedora-32
+  - fedora-31
   - fedora-30
   - fedora-29
-  - fedora-28
-  - fedora-27
-  - fedora-26
 decision_context: bodhi_update_push_testing
 blacklist: []
 subject_type: koji_build
-relevance_value: koji_build
 rules:
-  - !PassingTestCaseRule {test_case_name: dist.rpmdeplint}
   - !RemoteRule {}
+
 --- !Policy
 id: "taskotron_release_critical_tasks_for_stable"
 product_versions:
+  - fedora-32
+  - fedora-31
   - fedora-30
   - fedora-29
-  - fedora-28
-  - fedora-27
-  - fedora-26
 decision_context: bodhi_update_push_stable
 blacklist: []
 subject_type: koji_build
-relevance_value: koji_build
 rules:
-  - !PassingTestCaseRule {test_case_name: dist.rpmdeplint}
   - !RemoteRule {}
+
 --- !Policy
 id: "no_requirements_testing"
 product_versions:
@@ -95,16 +87,14 @@ product_versions:
   - fedora-29-modular
   - fedora-29-containers
   - fedora-29-flatpaks
-  - fedora-28-modular
-  - fedora-28-containers
-  - fedora-28-flatpaks
+  - fedora-epel-8
   - fedora-epel-7
   - fedora-epel-6
 decision_context: bodhi_update_push_testing
 blacklist: []
 subject_type: koji_build
-relevance_value: koji_build
 rules: []
+
 --- !Policy
 id: "no_requirements_for_stable"
 product_versions:
@@ -114,13 +104,33 @@ product_versions:
   - fedora-29-modular
   - fedora-29-containers
   - fedora-29-flatpaks
-  - fedora-28-modular
-  - fedora-28-containers
-  - fedora-28-flatpaks
+  - fedora-epel-8
   - fedora-epel-7
   - fedora-epel-6
 decision_context: bodhi_update_push_stable
 blacklist: []
 subject_type: koji_build
-relevance_value: koji_build
 rules: []
+
+--- !Policy
+# openQA policies
+id: "openqa_release_critical_tasks_for_testing"
+product_versions:
+  - fedora-30
+  - fedora-29
+decision_context: bodhi_update_push_testing
+blacklist: []
+subject_type: bodhi_update
+rules:
+  - !RemoteRule {}
+
+--- !Policy
+id: "openqa_release_critical_tasks_for_stable"
+product_versions:
+  - fedora-30
+  - fedora-29
+decision_context: bodhi_update_push_stable
+blacklist: []
+subject_type: bodhi_update
+rules:
+  - !RemoteRule {}

@@ -757,6 +757,63 @@ class TestNew(unittest.TestCase):
         self.assertEqual(send_request.mock_calls, calls)
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_from_tag_flag(self, send_request):
+        """
+        Assert correct behavior with the --from-tag flag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'fake_tag',
+             '--bugs', '1234567', '--from-tag', '--url',
+             'http://localhost:6543', '--notes', 'No description.'])
+
+        self.assertEqual(result.exit_code, 0)
+        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
+                                                                          'localhost:6543')
+        self.assertTrue(compare_output(result.output, expected_output + '\n'))
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': None, 'csrf_token': 'a_csrf_token',
+                    'staging': False, 'autokarma': True, 'autotime': False, 'stable_days': None,
+                    'suggest': None, 'notes': 'No description.', 'request': None,
+                    'bugs': '1234567', 'requirements': None, 'unstable_karma': None, 'file': None,
+                    'notes_file': None, 'type': 'bugfix', 'severity': None, 'display_name': None,
+                    'from_tag': 'fake_tag'
+                }
+            ),
+            mock.call(
+                bindings_client,
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    def test_from_tag_flag_multiple_tags(self):
+        """
+        Assert correct behavior with the --from-tag and multiple tags.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.new,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'fake tag',
+             '--bugs', '1234567', '--from-tag', '--url',
+             'http://localhost:6543', '--notes', 'No description.'])
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(result.output, 'ERROR: Can\'t specify more than one tag.\n')
+
     def test_new_update_without_notes(self):
         """
         Assert providing neither --notes-file nor --notes parameters to new update request
@@ -783,7 +840,7 @@ class TestNew(unittest.TestCase):
              '--notes', 'bla bla bla', '--type', 'security'])
 
         self.assertEqual(result.exit_code, 2)
-        self.assertEqual(result.output, ('Usage: new [OPTIONS] BUILDS\n\nError: Invalid '
+        self.assertEqual(result.output, ('Usage: new [OPTIONS] BUILDS_OR_TAG\n\nError: Invalid '
                          'value for severity: must specify severity for a security update\n'))
 
 
@@ -993,7 +1050,14 @@ class TestQuery(unittest.TestCase):
             )
         ]
         self.assertEqual(send_request.mock_calls, calls)
-        mock_open.assert_called_with(fedora.client.openidbaseclient.b_SESSION_FILE, 'rb')
+        # Before F31 the file was opened in binary mode, and then it changed.
+        # Only check the path.
+        self.assertNotEqual(mock_open.call_count, 0)
+        first_args = [args[0][0] for args in mock_open.call_args_list]
+        self.assertIn(
+            fedora.client.openidbaseclient.b_SESSION_FILE,
+            first_args
+        )
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1128,7 +1192,14 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
             )
         ]
         self.assertEqual(send_request.mock_calls, calls)
-        mock_open.assert_called_with(fedora.client.openidbaseclient.b_SESSION_FILE, 'rb')
+        # Before F31 the file was opened in binary mode, and then it changed.
+        # Only check the path.
+        self.assertNotEqual(mock_open.call_count, 0)
+        first_args = [args[0][0] for args in mock_open.call_args_list]
+        self.assertIn(
+            fedora.client.openidbaseclient.b_SESSION_FILE,
+            first_args
+        )
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1823,6 +1894,133 @@ class TestEdit(unittest.TestCase):
         ]
         self.assertEqual(send_request.mock_calls, calls)
         self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query', autospec=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH, autospec=True)
+    def test_from_tag_flag(self, send_request, query):
+        """
+        Assert correct behavior with the --from-tag flag.
+        """
+        data = client_test_data.EXAMPLE_QUERY_MUNCH.copy()
+        data.updates[0]['from_tag'] = 'fake_tag'
+        query.return_value = data
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--from-tag',
+                          '--notes', 'Updated package.',
+                          '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 0)
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid='FEDORA-2017-c95b33872d')
+        bindings_client = send_request.mock_calls[0][1][0]
+        calls = [
+            mock.call(
+                bindings_client, 'updates/', auth=True, verb='POST',
+                data={
+                    'close_bugs': False, 'stable_karma': 3, 'csrf_token': 'a_csrf_token',
+                    'autokarma': False, 'edited': 'FEDORA-2017-c95b33872d',
+                    'suggest': 'unspecified', 'notes': 'Updated package.',
+                    'notes_file': None, 'request': None, 'unstable_karma': -3,
+                    'bugs': '1420605', 'requirements': '', 'type': 'newpackage',
+                    'severity': u'low', 'display_name': None, 'autotime': False,
+                    'stable_days': None, 'from_tag': 'fake_tag',
+                    'staging': False,
+                }
+            ),
+            mock.call(
+                bindings_client,
+                'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
+                verb='GET'
+            )
+        ]
+        self.assertEqual(send_request.mock_calls, calls)
+        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    def test_from_tag_flag_no_tag(self, query):
+        """
+        Assert --from-tag bails out if the update wasn't created from a tag.
+        """
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--from-tag',
+                          '--notes', 'Updated package.',
+                          '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(result.output, "ERROR: This update was not created from a tag."
+                                        " Please remove --from_tag and try again.\n")
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid='FEDORA-2017-c95b33872d')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query', autospec=True)
+    def test_from_tag_addbuilds(self, query):
+        """
+        Assert --from-tag can't be used with --addbuilds.
+        """
+        data = client_test_data.EXAMPLE_QUERY_MUNCH.copy()
+        data.updates[0]['from_tag'] = 'fake_tag'
+        query.return_value = data
+
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--from-tag',
+                          '--addbuilds', 'tar-1.29-4.fc25,nedit-5.7-1.fc25',
+                          '--notes', 'Updated package.',
+                          '--url', 'http://localhost:6543'])
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(result.output, "ERROR: The --from-tag option can't be used together with"
+                                        " --addbuilds or --removebuilds.\n")
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid='FEDORA-2017-c95b33872d')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query', autospec=True)
+    def test_from_tag_removebuilds(self, query):
+        """
+        Assert --from-tag can't be used with --removebuilds.
+        """
+        data = client_test_data.EXAMPLE_QUERY_MUNCH.copy()
+        data.updates[0]['from_tag'] = 'fake_tag'
+        query.return_value = data
+
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--from-tag',
+                          '--removebuilds', 'nodejs-grunt-wrap-0.3.0-2.fc25',
+                          '--notes', 'Updated package.',
+                          '--url', 'http://localhost:6543'])
+
+        print(result.output)
+
+        self.assertEqual(result.exit_code, 1)
+        self.assertEqual(result.output, "ERROR: The --from-tag option can't be used together with"
+                                        " --addbuilds or --removebuilds.\n")
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid='FEDORA-2017-c95b33872d')
 
     def test_notes_and_notes_file(self):
         """
@@ -2743,7 +2941,7 @@ class TestWaive(unittest.TestCase):
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(
             result.output,
-            'One or more error occured while retrieving the unsatisfied requirements:\n'
+            'One or more errors occurred while retrieving the unsatisfied requirements:\n'
             '  - Could not contact greenwave, error code was 500\n')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
@@ -2837,7 +3035,7 @@ class TestWaive(unittest.TestCase):
         self.assertEqual(result.exit_code, 1)
         self.assertEqual(
             result.output,
-            'ERROR: Comment are mandatory when waiving unsatisfied requirements\n')
+            'ERROR: A comment is mandatory when waiving unsatisfied requirements\n')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))

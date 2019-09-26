@@ -1,0 +1,313 @@
+# PRODUCT INFO
+skip_phases = ["buildinstall", "productimg", "extra_files"]
+release_name = '[[ release.id_prefix.title() ]]'
+release_short = '[[ release.id_prefix.title() ]]'
+release_version = '[[ release.version_int ]]'
+release_type = 'updates[% if request.name == 'testing' %]-testing[% endif %]'
+release_is_layered = False
+old_composes_per_release_type = True
+
+# GENERAL SETTINGS
+comps_file = {
+    'scm': 'git',
+    'repo': 'https://pagure.io/fedora-comps.git',
+    'branch': 'master', # defaults to cvs/HEAD or git/master
+    'file': 'comps-[[ release.branch ]].xml',
+    'command': 'make',
+}
+variants_file='variants.xml'
+sigkeys = [
+[% if release.version_int == 25 %]
+    'fdb19c98',
+[% elif release.version_int == 26 %]
+    '64dab85d',
+[% elif release.version_int == 27 %]
+    'f5282ee4',
+[% elif release.version_int == 28 %]
+    '9db62fb1',
+[% elif release.version_int == 29 %]
+    '429476b4',
+[% elif release.version_int == 30 %]
+    'cfc659b9',
+[% elif release.version_int == 6 %]
+    '0608b895',
+[% elif release.version_int == 7 %]
+    '352C64E5',
+[% endif %]
+{% if env == "staging" %}
+    None
+{% endif %}
+]
+hashed_directories = True
+comps_filter_environments = False
+
+# RUNROOT settings
+runroot = True
+runroot_channel = 'compose'
+runroot_tag = 'f[[ release.version_int ]]-build'
+
+# PKGSET
+pkgset_source = 'koji' # koji, repos
+pkgset_koji_tag = '[[ id ]]'
+pkgset_koji_inherit = False
+filter_system_release_packages = False
+
+# GATHER
+gather_method = 'deps'
+gather_backend = 'dnf'
+check_deps = False
+greedy_method = 'build'
+repoclosure_backend = 'dnf'
+
+# CREATEREPO
+createrepo_c = True
+createrepo_checksum = 'sha256'
+createrepo_deltas = [
+    ('^Everything$', {'*': True})
+]
+createrepo_database = True
+[% if release.version_int >= 30 %]
+createrepo_extra_args = ['--zck', '--zck-dict-dir=/usr/share/fedora-repo-zdicts/f[[ release.version_int ]]']
+[% endif %]
+
+# CHECKSUMS
+media_checksums = ['sha256']
+media_checksum_one_file = True
+media_checksum_base_filename = 'Fedora-%(variant)s-%(version)s-%(date)s.%(respin)s-%(arch)s'
+#jigdo
+create_jigdo = False
+
+additional_packages = [
+    ('^Everything$', {
+        '*': [
+            '*',
+        ],
+    }),
+]
+multilib = [
+    ('^Everything$', {
+        'x86_64': ['devel', 'runtime'],
+         's390x': ['devel', 'runtime']
+    })
+]
+filter_packages = []
+# format: {arch|*: [packages]}
+multilib_blacklist = {
+    '*': ['kernel*', 'kernel-PAE*', 'kernel*debug*',
+        'dmraid-devel', 'kdeutils-devel', 'mkinitrd-devel',
+        'java-1.5.0-gcj-devel', 'java-1.7.0-icedtea-devel',
+        'php-devel', 'java-1.6.0-openjdk-devel',
+        'java-1.7.0-openjdk-devel', 'java-1.8.0-openjdk-devel',
+        'httpd-devel', 'tomcat-native', 'php*', 'httpd',
+        'krb5-server', 'krb5-server-ldap', 'mod_*', 'ghc-*'
+    ],
+}
+# format: {arch|*: [packages]}
+multilib_whitelist = {
+    '*': ['libgnat', 'wine*', 'lmms-vst', 'nspluginwrapper',
+        'libflashsupport', 'valgrind', 'perl-libs', 'redhat-lsb',
+        'yaboot', 'syslinux-extlinux-nonlinux', 'syslinux-nonlinux',
+        'syslinux-tftpboot', 'nosync', '*-static', 'apitrace-libs',
+        'fakeroot-libs', 'postgresql-odbc', 'mysql-connector-odbc',
+        'fakechroot-libs','mesa-vdpau-drivers', 'p11-kit-trust',
+        'mariadb-connector-odbc', 'compiler-rt',
+        'nvidia-query-resource-opengl-lib',
+        'ibus-libs', 'ibus-gtk2', 'ibus-gtk3'
+    ],
+}
+createiso_skip = [
+        ('^Everything$', {
+            '*': True,
+            'src': True
+        }),
+    ]
+
+{% if env != "staging" %}
+[% if release.id_prefix == 'FEDORA' %]
+ostree = {
+    "^Everything$": [
+        # Atomic Host
+        # Atomic Host will be avilable till F29 EOL
+        # See https://github.com/coreos/fedora-coreos-tracker/issues/145
+        [% if release.version_int <= 29 %]
+        {
+            "version": "!VERSION_FROM_VERSION_DATE_RESPIN",
+            "force_new_commit": True
+            "treefile": "fedora-atomic-host.json",
+            "config_url": "https://pagure.io/fedora-atomic.git",
+            "config_branch": "f[[ release.version ]]",
+            "repo": [
+                "Everything",
+                "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/[[ release.version_int ]]/latest-Fedora-[[ release.version_int ]]/compose/Everything/$basearch/os/",
+                [% if request.name == 'testing' %]
+                    # In the case of testing, also inject the last stable updates
+                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/updates/f[[ release.version_int ]]-updates/compose/Everything/$basearch/os/"
+                [% endif %]
+            ]
+            "ostree_repo": "/mnt/koji/compose/ostree/repo",
+            [% if request.name == 'stable' %]
+                "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/updates/atomic-host",
+            [% else %]
+                "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/testing/atomic-host",
+            [% endif %]
+            "tag_ref": False,
+            "arches": ["x86_64", "ppc64le", "aarch64" ],
+            "failable": ["ppc64le", "aarch64"],
+        },
+        [% endif %]
+        # Fedora Silverblue
+        {
+            "version": "!VERSION_FROM_VERSION_DATE_RESPIN",
+            [% if release.version_int >= 29 %]
+                "treefile": "fedora-silverblue.yaml",
+            [% else %]
+                "treefile": "fedora-atomic-workstation-updates-[[ request.name ]].json",
+            [% endif %]
+            "config_url": "https://pagure.io/workstation-ostree-config.git",
+            "config_branch": "f[[ release.version ]]",
+            "repo": [
+                "Everything",
+                [% if request.name == 'testing' %]
+                    # In the case of testing, also inject the last stable updates
+                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/updates/f[[ release.version_int ]]-updates/compose/Everything/$basearch/os/",
+                [% endif %]
+                # For f30 the compose location is going to be under /compose/branched/
+                [% if release.version_int == 30 %]
+                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/branched/latest-Fedora-[[ release.version_int ]]/compose/Everything/$basearch/os/"
+                [% else %]
+                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/[[ release.version_int ]]/latest-Fedora-[[ release.version_int ]]/compose/Everything/$basearch/os/"
+                [% endif %]
+            ]
+            "ostree_repo": "/mnt/koji/compose/ostree/repo",
+            # For f29+ we are changing the ref to silverblue. For f28/f27 let the files
+            # still specify the workstation ref.
+            [% if release.version_int >= 29 %]
+                [% if request.name == 'stable' %]
+                    "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/updates/silverblue",
+                [% else %]
+                    "ostree_ref": "fedora/[[ release.version_int ]]/${basearch}/testing/silverblue",
+                [% endif %]
+            [% endif %]
+            "tag_ref": False,
+            "arches": ["x86_64"],
+            "failable": ["x86_64"]
+        },
+    ]
+}
+[% endif %]
+
+[% if release.id_prefix == 'FEDORA' and release.version_int == 29 %]
+global_ksurl = 'git+https://pagure.io/fedora-kickstarts.git?#origin/f[[ release.version_int ]]'
+global_release = '!RELEASE_FROM_LABEL_DATE_TYPE_RESPIN'
+image_name_format = '%(release_short)s-%(variant)s-%(disc_type)s-%(arch)s-%(version)s-%(date)s%(type_suffix)s.%(respin)s.iso'
+image_volid_formats = [
+    '%(release_short)s-%(variant)s-%(disc_type)s-%(arch)s-%(version)s'
+    ]
+volume_id_substitutions = {
+    'AtomicHost': 'AH',
+    'Everything': 'E',
+}
+
+# Other ostree artifacts
+image_build = {
+    '^AtomicHost$': [
+        {
+            'image-build': {
+                'format': [('qcow2', 'qcow2'), ('raw-xz', 'raw.xz')],
+                'name': 'Fedora-AtomicHost',
+                [% if request.name == 'stable' %]
+                    # Use a different version string for the updates vs updates-testing
+                    # runs so that NVRs don't conflict
+                    'version': '!VERSION_FROM_VERSION'
+                [% endif %]
+                'release': '!RELEASE_FROM_DATE_RESPIN'
+                [% if request.name == 'stable' %]
+                    # Use updates ref to build updates images and testing ref to build
+                    # updates-testing images.
+                    # https://pagure.io/fedora-kickstarts/c/899bc45aa1d432ca67372ed112de16c0ea89251c?branch=f29
+                    'kickstart': 'fedora-atomic-updates.ks',
+                [% else %]
+                    'kickstart': 'fedora-atomic-testing.ks',
+                [% endif %]
+                'distro': 'Fedora-22',
+                'disk_size': 6,
+                'target': 'f[[ release.version_int ]]',
+                'arches': ['x86_64', 'aarch64', 'ppc64le'],
+                'install_tree_from': 'https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/[[ release.version_int ]]/latest-Fedora-[[ release.version_int ]]/compose/Everything/$arch/os/',
+                'subvariant': 'AtomicHost',
+                'failable': ['*'],
+            }
+        },
+        {
+            'image-build': {
+                'format': [('vagrant-libvirt','vagrant-libvirt.box'), ('vagrant-virtualbox','vagrant-virtualbox.box')],
+                'name': 'Fedora-AtomicHost-Vagrant',
+                [% if request.name == 'stable' %]
+                    # Use a different version string for the updates vs updates-testing
+                    # runs so that NVRs don't conflict
+                    'version': '!VERSION_FROM_VERSION'
+                [% endif %]
+                'release': '!RELEASE_FROM_DATE_RESPIN'
+                [% if request.name == 'stable' %]
+                    # Use updates ref to build updates images and testing ref to build
+                    # updates-testing images.
+                    # https://pagure.io/fedora-kickstarts/c/899bc45aa1d432ca67372ed112de16c0ea89251c?branch=f29
+                    'kickstart': 'fedora-atomic-vagrant-updates.ks',
+                [% else %]
+                    'kickstart': 'fedora-atomic-vagrant-testing.ks',
+                [% endif %]
+                'distro': 'Fedora-22',
+                'disk_size': 40,
+                'target': 'f[[ release.version_int ]]',
+                'arches': ['x86_64'],
+                'install_tree_from': 'https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/[[ release.version_int ]]/latest-Fedora-[[ release.version_int ]]/compose/Everything/$arch/os/',
+                'subvariant': 'AtomicHost',
+                'failable': ['*'],
+            },
+            'factory-parameters': {
+                'vagrant_sync_directory': '/home/vagrant/sync',
+            }
+        }
+    ]
+}
+
+ostree_installer = [
+    ('^AtomicHost$', {
+        [% for arch in ['x86_64', 'aarch64', 'ppc64le'] %]
+            '[[ arch ]]': {
+                "repo": [
+                    "Everything",
+                    "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/[[ release.version_int ]]/latest-Fedora-[[ release.version_int ]]/compose/Everything/[[arch]]/os/",
+                    [% if request.name == 'testing' %]
+                        # In the case of testing, also inject the last stable updates
+                        "https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/updates/f[[ release.version_int ]]-updates/compose/Everything/[[arch]]/os/"
+                    [% endif %]
+                ],
+            'release': None,
+            'rootfs_size': '4',
+            'add_template': ['ostree-based-installer/lorax-configure-repo.tmpl',
+                             'ostree-based-installer/lorax-embed-repo.tmpl'],
+            'add_template_var': [
+                'ostree_install_repo=https://kojipkgs.fedoraproject.org/compose/ostree/repo/',
+                'ostree_update_repo=https://ostree.fedoraproject.org',
+                'ostree_osname=fedora-atomic',
+                'ostree_oskey=fedora-[[ release.version_int ]]-primary',
+                'ostree_contenturl=mirrorlist=https://ostree.fedoraproject.org/mirrorlist',
+                'ostree_install_ref=fedora/[[ release.version_int ]]/[[ arch ]]/[% if request.name == "testing" %]testing[% else %]updates[% endif %]/atomic-host',
+                'ostree_update_ref=fedora/[[ release.version_int ]]/[[ arch ]]/atomic-host',
+            ],
+            'template_repo': 'https://pagure.io/fedora-lorax-templates.git',
+            'template_branch': 'f[[ release.version_int ]]'
+            'failable': ['*'],
+        },
+        [% endfor %]
+    })
+]
+[% endif %]
+{% endif %}
+
+translate_paths = [
+   ('/mnt/koji/compose/', 'https://kojipkgs{{ env_suffix }}.fedoraproject.org/compose/'),
+]
+koji_profile = 'bodhi_koji'
+link_type = 'hardlink-or-copy'

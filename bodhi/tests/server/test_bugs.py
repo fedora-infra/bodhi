@@ -317,16 +317,6 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A nice message.')
         exception.assert_called_once_with('Unable to add comment to bug #1411188')
 
-    def test_get_url(self):
-        """
-        Assert correct behavior from the get_url() method.
-        """
-        bz = bugs.Bugzilla()
-        patch_config = {'bz_baseurl': 'https://example.com/bz'}
-
-        with mock.patch.dict('bodhi.server.bugs.config', patch_config):
-            self.assertEqual(bz.get_url('42'), 'https://example.com/bz/show_bug.cgi?id=42')
-
     def test_getbug(self):
         """
         Assert correct behavior on the getbug() method.

@@ -268,6 +268,8 @@ class BodhiClient(OpenIdBaseClient):
                 update have been confirmed by testers.
             require_testcases (bool): A boolean to require that this update passes
                 all test cases before reaching stable.
+            from_tag (str): The name of a Koji tag from which to pull builds
+                instead of providing them manually in `builds`.
         Returns:
             The Bodhi server's response to the request.
         """
@@ -621,7 +623,7 @@ class BodhiClient(OpenIdBaseClient):
                 'builds': section,
                 'bugs': config.get(section, 'bugs', raw=True),
                 'close_bugs': config.getboolean(section, 'close_bugs'),
-                'display_name': config.get(section, 'display_name', raw=True),
+                'display_name': config.get(section, 'display_name', raw=True, fallback=None),
                 'type': config.get(section, 'type', raw=True),
                 'type_': config.get(section, 'type', raw=True),
                 'request': config.get(section, 'request', raw=True),
@@ -774,7 +776,12 @@ class BodhiClient(OpenIdBaseClient):
                 or update['date_submitted'].split()[0]
             days_in_status = _days_since(update['date_pushed']) if update['date_pushed'] \
                 else _days_since(update['date_submitted'])
-            val += (f"{security}{update['builds'][0]['nvr']:40} {update['content_type']:9}  "
+            if update['builds']:
+                title = update['builds'][0]['nvr']
+            else:
+                title = update['title'] or update['alias']
+            content_type = update['content_type'] or 'unspecified'
+            val += (f"{security}{title:40} {content_type:9}  "
                     f"{update['status']:8}  {date:>10} ({days_in_status})")
             for build in update['builds'][1:]:
                 val += f"\n  {build['nvr']}"

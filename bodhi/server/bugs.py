@@ -102,17 +102,6 @@ class Bugzilla(object):
             self._connect()
         return self._bz
 
-    def get_url(self, bug_id: typing.Union[int, str]) -> str:
-        """
-        Generate and return a URL to the given bug.
-
-        Args:
-            bug_id: The id of the bug you want a URL for.
-        Returns:
-            The requested URL.
-        """
-        return f"{config['bz_baseurl']}/show_bug.cgi?id={bug_id}"
-
     def getbug(self, bug_id: int) -> 'bugzilla.bug.Bug':
         """
         Retrieve a bug from Bugzilla.

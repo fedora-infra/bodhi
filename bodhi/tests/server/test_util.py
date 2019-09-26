@@ -24,6 +24,8 @@ import subprocess
 import tempfile
 import unittest
 
+import bleach
+import pkg_resources
 import pytest
 
 from bodhi.server import util, models
@@ -102,8 +104,8 @@ class TestBugLink(base.BaseTestCase):
 
         self.assertEqual(
             link,
-            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
-             "#1234567</a> Lucky bug number"))
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
+             "class='notblue'>BZ#1234567</a> Lucky bug number"))
 
     def test_short_false_with_title_sanitizes_safe_tags(self):
         """
@@ -116,10 +118,10 @@ class TestBugLink(base.BaseTestCase):
 
         link = util.bug_link(None, bug)
 
-        self.assertTrue(
-            link.startswith(
-                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
-                 "#1234567</a> Check &lt;b&gt;this&lt;/b&gt; out")))
+        self.assertEqual(
+            link,
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
+             "class='notblue'>BZ#1234567</a> Check &lt;b&gt;this&lt;/b&gt; out"))
 
     def test_short_false_with_title_sanitizes_unsafe_tags(self):
         """
@@ -131,11 +133,22 @@ class TestBugLink(base.BaseTestCase):
         bug.title = '<disk> <driver name="..."> should be optional'
 
         link = util.bug_link(None, bug)
-
-        self.assertTrue(
-            link.startswith(
-                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091'>"
-                 "#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should be optional")))
+        # bleach v3 fixed a bug that closed out tags when sanitizing. so we check for
+        # either possible results here.
+        # https://github.com/mozilla/bleach/issues/392
+        bleach_v = pkg_resources.parse_version(bleach.__version__)
+        if bleach_v >= pkg_resources.parse_version('3.0.0'):
+            self.assertEqual(
+                link,
+                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091' "
+                 "class='notblue'>BZ#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should "
+                 "be optional"))
+        else:
+            self.assertEqual(
+                link,
+                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091' "
+                 "class='notblue'>BZ#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should "
+                 "be optional&lt;/driver&gt;&lt;/disk&gt;"))
 
     def test_short_false_without_title(self):
         """Test a call to bug_link() with short=False on a Bug that has no title."""
@@ -147,8 +160,8 @@ class TestBugLink(base.BaseTestCase):
 
         self.assertEqual(
             link,
-            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
-             "#1234567</a> <img class='spinner' src='static/img/spinner.gif'>"))
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
+             "class='notblue'>BZ#1234567</a> <i class='fa fa-spinner fa-spin fa-fw'></i>"))
 
     def test_short_true(self):
         """Test a call to bug_link() with short=True."""
@@ -160,8 +173,8 @@ class TestBugLink(base.BaseTestCase):
 
         self.assertEqual(
             link,
-            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
-             "#1234567</a>"))
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
+             "class='notblue'>BZ#1234567</a>"))
 
 
 @mock.patch('bodhi.server.util.time.sleep')
@@ -209,15 +222,6 @@ class TestCallAPI(unittest.TestCase):
         self.assertEqual(get.mock_calls,
                          [mock.call('url', timeout=60), mock.call('url', timeout=60)])
         sleep.assert_called_once_with(1)
-
-
-class TestKarma2HTML(unittest.TestCase):
-    """Test the karma2html() function."""
-
-    def test_karma_danger(self):
-        """If karma is less than -2, the danger class should be used."""
-        self.assertEqual(util.karma2html(mock.MagicMock(), -3),
-                         "<span class='badge badge-danger'>-3</span>")
 
 
 class TestMemoized(unittest.TestCase):
@@ -426,15 +430,14 @@ class TestPagesList(unittest.TestCase):
 
     def test_page_in_middle(self):
         """Test for when the current page is in the middle of the pages."""
-        val = util.pages_list(mock.MagicMock(), 6, 20)
-
-        self.assertEqual(val, range(2, 11))
+        val = util.pages_list(mock.MagicMock(), 15, 30)
+        self.assertEqual(val, [1, "..."] + list(range(11, 20)) + ['...', 30])
 
     def test_page_near_end(self):
         """Test for when the current page is near the end of the pages."""
         val = util.pages_list(mock.MagicMock(), 6, 7)
 
-        self.assertEqual(val, range(1, 8))
+        self.assertEqual(val, list(range(1, 8)))
 
 
 class TestSanityCheckRepodata(unittest.TestCase):
@@ -619,31 +622,15 @@ class TestType2Icon(unittest.TestCase):
         """Test type2icon() with a kind that starts with a consonant."""
         self.assertEqual(
             util.type2icon(None, 'security'),
-            ("<span class='badge badge-danger text-white' data-toggle='tooltip' "
-             "title='This is a security update'><i class='fa fa-fw fa-shield'></i></span>"))
+            ("<span data-toggle='tooltip' title='This is a security update'>"
+             "<i class='fa fa-fw fa-shield'></i></span>"))
 
     def test_vowel(self):
         """Test type2icon() with a kind that starts with a vowel."""
         self.assertEqual(
             util.type2icon(None, 'enhancement'),
-            ("<span class='badge badge-success text-white' data-toggle='tooltip' "
-             "title='This is an enhancement update'><i class='fa fa-fw fa-bolt'></i></span>"))
-
-
-class TestUpdate2HTML(base.BaseTestCase):
-    """Test the update2html() function."""
-
-    def test_long_title(self):
-        """If the update's title is too long, it should be trimmed."""
-        context = {'request': mock.MagicMock()}
-        context['request'].registry.settings = {'max_update_length_for_ui': 10}
-        context['request'].route_url.return_value = 'https://example.com/'
-        update = models.Update.query.first()
-
-        html = util.update2html(context, update)
-
-        # The update's title gets trimmed to 10 characters and 3 dots.
-        self.assertEqual(html, '<a href="https://example.com/">bodhi-2.0-...</a>')
+            ("<span data-toggle='tooltip' title='This is an enhancement update'>"
+             "<i class='fa fa-fw fa-bolt'></i></span>"))
 
 
 class TestUtils(base.BaseTestCase):
@@ -1553,3 +1540,37 @@ class TestTransactionalSessionMaker(base.BaseTestCase):
         Session.return_value.commit.assert_called_once_with()
         Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
+
+
+class TestPyfileToModule(unittest.TestCase):
+    """Test the pyfile_to_module() function."""
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp('bodhi')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_basic_call(self):
+        filepath = os.path.join(self.tempdir, "testfile.py")
+        with open(filepath, "w") as fh:
+            fh.write("FOO = 'bar'\n")
+        result = util.pyfile_to_module(filepath, "testfile")
+        self.assertEqual(getattr(result, "FOO"), "bar")
+        self.assertEqual(result.__file__, filepath)
+        self.assertEqual(result.__name__, "testfile")
+
+    def test_invalid_path(self):
+        filepath = os.path.join(self.tempdir, "does-not-exist.py")
+        with self.assertRaises(IOError) as cm:
+            util.pyfile_to_module(filepath, "testfile")
+        self.assertEqual(
+            cm.exception.strerror, 'Unable to load file (No such file or directory)')
+
+    def test_invalid_path_silent(self):
+        filepath = os.path.join(self.tempdir, "does-not-exist.py")
+        try:
+            result = util.pyfile_to_module(filepath, "testfile", silent=True)
+        except IOError as e:
+            self.fail("pyfile_to_module raised an exception in silent mode: {}".format(e))
+        self.assertFalse(result)

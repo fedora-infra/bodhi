@@ -24,22 +24,25 @@ import logging
 from unittest.mock import call, patch
 
 from fedora_messaging import api, testing as fml_testing
+import pytest
 
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.config import config
 from bodhi.server import models
 from bodhi.server.scripts import approve_testing
-from bodhi.tests.server.base import BaseTestCase
+from bodhi.tests.server.base import BasePyTestCase
 
 
 # Don't muck around with global log level.
 @patch('bodhi.server.scripts.approve_testing.logging.basicConfig',
        new=lambda *p, **k: None)
-class TestMain(BaseTestCase):
+class TestMain(BasePyTestCase):
     """
     This class contains tests for the main() function.
     """
-    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self):
+
+    @patch('bodhi.server.models.mail')
+    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self, mail):
         """
         Ensure that an update that meets the required time in testing gets only one comment from
         Bodhi to that effect, even on subsequent runs of main().
@@ -50,6 +53,9 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         with fml_testing.mock_sends():
             self.db.commit()
@@ -71,8 +77,9 @@ class TestMain(BaseTestCase):
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
-        self.assertEqual(comment_q.count(), 1)
-        self.assertEqual(comment_q[0].text, config.get('testing_approval_msg'))
+        assert comment_q.count() == 1
+        assert comment_q[0].text == config.get('testing_approval_msg')
+        assert mail.send.call_count == 1
 
     # Set the release's mandatory days in testing to 0 to set up the condition for this test.
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
@@ -86,6 +93,9 @@ class TestMain(BaseTestCase):
         update.autotime = False
         update.request = None
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         # Let's delete all the comments to make our assertion at the end of this simpler.
         for c in update.comments:
@@ -99,8 +109,8 @@ class TestMain(BaseTestCase):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name='bodhi').count(), 0)
-        self.assertEqual(self.db.query(models.Comment).count(), 0)
+        assert self.db.query(models.User).filter_by(name='bodhi').count() == 0
+        assert self.db.query(models.Comment).count() == 0
 
     def test_autokarma_update_not_meeting_testing_requirements(self):
         """
@@ -111,6 +121,8 @@ class TestMain(BaseTestCase):
         update.autokarma = True
         update.request = None
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         # 6 days isn't enough time to meet the testing requirements.
         update.date_testing = datetime.utcnow() - timedelta(days=6)
         # Let's delete all the comments to make our assertion at the end of this simpler.
@@ -125,19 +137,21 @@ class TestMain(BaseTestCase):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name='bodhi').count(), 0)
-        self.assertEqual(self.db.query(models.Comment).count(), 0)
+        assert self.db.query(models.User).filter_by(name='bodhi').count() == 0
+        assert self.db.query(models.Comment).count() == 0
 
     @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
     @patch('bodhi.server.scripts.approve_testing.Session.remove')
     @patch('bodhi.server.scripts.approve_testing.sys.exit')
     @patch('sys.stdout', new_callable=StringIO)
-    def test_exception_handler(self, stdout, exit, remove, comment):
+    @pytest.mark.parametrize('composed_by_bodhi', (True, False))
+    def test_exception_handler(self, stdout, exit, remove, comment, composed_by_bodhi):
         """The Exception handler prints the Exception, rolls back and closes the db, and exits."""
         update = self.db.query(models.Update).all()[0]
         update.date_testing = datetime.utcnow() - timedelta(days=15)
         update.request = None
         update.status = models.UpdateStatus.testing
+        update.release.composed_by_bodhi = composed_by_bodhi
         self.db.flush()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -146,23 +160,27 @@ class TestMain(BaseTestCase):
                     with patch.object(self.db, 'rollback'):
                         approve_testing.main(['nosetests', 'some_config.ini'])
 
-                        self.assertEqual(self.db.commit.call_count, 0)
+                        assert self.db.commit.call_count == 0
                         self.db.rollback.assert_called_once_with()
 
         exit.assert_called_once_with(1)
         comment.assert_called_once_with(
             self.db,
             ('This update can be pushed to stable now if the maintainer wishes'),
-            author='bodhi')
-        self.assertEqual(stdout.getvalue(),
-                         f'{update.alias} now meets testing requirements\nThe DB died lol\n')
+            author='bodhi',
+            email_notification=composed_by_bodhi,
+        )
+        assert stdout.getvalue() == f'{update.alias} now meets testing requirements' \
+            '\nThe DB died lol\n'
         remove.assert_called_once_with()
 
     @patch('bodhi.server.models.Update.comment', side_effect=[None, IOError('The DB died lol')])
     @patch('bodhi.server.scripts.approve_testing.Session.remove')
     @patch('bodhi.server.scripts.approve_testing.sys.exit')
     @patch('sys.stdout', new_callable=StringIO)
-    def test_exception_handler_on_the_second_update(self, stdout, exit, remove, comment):
+    @pytest.mark.parametrize('composed_by_bodhi', (True, False))
+    def test_exception_handler_on_the_second_update(
+            self, stdout, exit, remove, comment, composed_by_bodhi):
         """
         Ensure, that when the Exception is raised, all previous transactions are commited,
         the Exception handler prints the Exception, rolls back and closes the db, and exits.
@@ -171,6 +189,7 @@ class TestMain(BaseTestCase):
         update.autotime = False
         update.date_testing = datetime.utcnow() - timedelta(days=15)
         update.request = None
+        update.release.composed_by_bodhi = composed_by_bodhi
         update.status = models.UpdateStatus.testing
 
         update2 = self.create_update(['bodhi2-2.0-1.fc17'])
@@ -186,18 +205,20 @@ class TestMain(BaseTestCase):
                     with patch.object(self.db, 'rollback'):
                         approve_testing.main(['nosetests', 'some_config.ini'])
 
-                        self.assertEqual(self.db.commit.call_count, 1)
+                        assert self.db.commit.call_count == 1
                         self.db.rollback.assert_called_once_with()
 
         exit.assert_called_once_with(1)
         comment_expected_call = call(
             self.db,
             ('This update can be pushed to stable now if the maintainer wishes'),
-            author='bodhi',)
-        self.assertEqual(comment.call_args_list, [comment_expected_call, comment_expected_call])
-        self.assertEqual(stdout.getvalue(),
-                         (f'{update2.alias} now meets testing requirements\n'
-                          f'{update.alias} now meets testing requirements\nThe DB died lol\n'))
+            author='bodhi',
+            email_notification=composed_by_bodhi,
+        )
+        assert comment.call_args_list == [comment_expected_call, comment_expected_call]
+        assert stdout.getvalue() == \
+            (f'{update2.alias} now meets testing requirements\n'
+             f'{update.alias} now meets testing requirements\nThe DB died lol\n')
         remove.assert_called_once_with()
 
     def test_non_autokarma_critpath_update_meeting_karma_requirements_gets_one_comment(self):
@@ -222,6 +243,9 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, 'testing', author='hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
@@ -237,8 +261,8 @@ class TestMain(BaseTestCase):
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
-        self.assertEqual(comment_q.count(), 1)
-        self.assertEqual(comment_q[0].text, config.get('testing_approval_msg'))
+        assert comment_q.count() == 1
+        assert comment_q[0].text == config.get('testing_approval_msg')
 
     def test_non_autokarma_critpath_update_not_meeting_time_requirements_gets_no_comment(self):
         """
@@ -268,15 +292,15 @@ class TestMain(BaseTestCase):
 
         # The update should have one +1, which is as much as the stable karma but not as much as the
         # required +2 to go stable.
-        self.assertEqual(update._composite_karma, (1, 0))
+        assert update._composite_karma == (1, 0)
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name='bodhi').count(), 0)
+        assert self.db.query(models.User).filter_by(name='bodhi').count() == 0
         # There are two comments, but none from the non-existing bodhi user.
-        self.assertEqual(self.db.query(models.Comment).count(), 2)
+        assert self.db.query(models.Comment).count() == 2
         usernames = [
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
-        self.assertEqual(usernames, ['guest', 'anonymous'])
+        assert usernames == ['guest', 'anonymous']
 
     def test_non_autokarma_update_meeting_karma_requirements_gets_one_comment(self):
         """
@@ -294,6 +318,9 @@ class TestMain(BaseTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, 'testing', author='hunter2', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
@@ -309,8 +336,8 @@ class TestMain(BaseTestCase):
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
-        self.assertEqual(comment_q.count(), 1)
-        self.assertEqual(comment_q[0].text, config.get('testing_approval_msg'))
+        assert comment_q.count() == 1
+        assert comment_q[0].text == config.get('testing_approval_msg')
 
     def test_non_autokarma_critpath_update_meeting_time_requirements_gets_one_comment(self):
         """
@@ -329,8 +356,9 @@ class TestMain(BaseTestCase):
         update.critpath = True
         update.status = models.UpdateStatus.testing
         update.date_testing = datetime.utcnow() - timedelta(days=14)
-        with fml_testing.mock_sends():
-            self.db.commit()
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
@@ -343,15 +371,15 @@ class TestMain(BaseTestCase):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         update = self.db.query(models.Update).all()[0]
-        self.assertEqual(update.critpath, True)
-        self.assertEqual(update.mandatory_days_in_testing, 14)
+        assert update.critpath == True
+        assert update.mandatory_days_in_testing == 14
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
-        self.assertEqual(comment_q.count(), 1)
-        self.assertEqual(comment_q[0].text, config.get('testing_approval_msg'))
-        self.assertEqual(update.release.mandatory_days_in_testing, 7)
-        self.assertEqual(update.mandatory_days_in_testing, 14)
+        assert comment_q.count() == 1
+        assert comment_q[0].text == config.get('testing_approval_msg')
+        assert update.release.mandatory_days_in_testing == 7
+        assert update.mandatory_days_in_testing == 14
 
     def test_non_autokarma_update_with_unmet_karma_requirement(self):
         """
@@ -369,15 +397,15 @@ class TestMain(BaseTestCase):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The update should have one positive karma and no negative karmas
-        self.assertEqual(update._composite_karma, (1, 0))
+        assert update._composite_karma == (1, 0)
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name='bodhi').count(), 0)
+        assert self.db.query(models.User).filter_by(name='bodhi').count() == 0
         # There are two comments, but none from the non-existing bodhi user.
-        self.assertEqual(self.db.query(models.Comment).count(), 2)
+        assert self.db.query(models.Comment).count() == 2
         usernames = [
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
-        self.assertEqual(usernames, ['guest', 'anonymous'])
+        assert usernames == ['guest', 'anonymous']
 
     def test_non_autokarma_update_with_unmet_karma_requirement_after_time_met(self):
         """
@@ -394,6 +422,8 @@ class TestMain(BaseTestCase):
         update.status = models.UpdateStatus.testing
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
@@ -401,11 +431,11 @@ class TestMain(BaseTestCase):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The update should have one positive karma and no negative karmas
-        self.assertEqual(update._composite_karma, (1, 0))
+        assert update._composite_karma == (1, 0)
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
-        self.assertEqual(comment_q.count(), 1)
-        self.assertEqual(comment_q[0].text, config.get('testing_approval_msg'))
+        assert comment_q.count() == 1
+        assert comment_q[0].text == config.get('testing_approval_msg')
 
     # Set the release's mandatory days in testing to 0 to set up the condition for this test.
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
@@ -426,15 +456,15 @@ class TestMain(BaseTestCase):
                 approve_testing.main(['nosetests', 'some_config.ini'])
 
         # The update should have one positive karma and no negative karmas
-        self.assertEqual(update._composite_karma, (1, 0))
+        assert update._composite_karma == (1, 0)
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
-        self.assertEqual(self.db.query(models.User).filter_by(name='bodhi').count(), 0)
+        assert self.db.query(models.User).filter_by(name='bodhi').count() == 0
         # There are two comments, but none from the non-existing bodhi user.
-        self.assertEqual(self.db.query(models.Comment).count(), 2)
+        assert self.db.query(models.Comment).count() == 2
         usernames = [
             c.user.name
             for c in self.db.query(models.Comment).order_by(models.Comment.timestamp).all()]
-        self.assertEqual(usernames, ['guest', 'anonymous'])
+        assert usernames == ['guest', 'anonymous']
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 14)])
     def test_subsequent_comments_after_initial_push_comment(self):
@@ -451,6 +481,8 @@ class TestMain(BaseTestCase):
         update.date_testing = datetime.utcnow() - timedelta(days=14)
         update.autotime = False
         self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
@@ -463,10 +495,10 @@ class TestMain(BaseTestCase):
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         # There are 3 comments: testing_approval_msg, build change, testing_approval_msg
-        self.assertEqual(cmnts.count(), 3)
-        self.assertEqual(cmnts[0].text, config.get('testing_approval_msg'))
-        self.assertEqual(cmnts[1].text, 'Removed build')
-        self.assertEqual(cmnts[2].text, config.get('testing_approval_msg'))
+        assert cmnts.count() == 3
+        assert cmnts[0].text == config.get('testing_approval_msg')
+        assert cmnts[1].text == 'Removed build'
+        assert cmnts[2].text == config.get('testing_approval_msg')
 
     @patch('sys.exit')
     @patch('sys.stdout', new_callable=StringIO)
@@ -478,9 +510,8 @@ class TestMain(BaseTestCase):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
                 approve_testing.main(['nosetests', 'some_config.ini', 'testnoses'])
 
-        self.assertEqual(
-            stdout.getvalue(),
-            'usage: nosetests <config_uri>\n(example: "nosetests development.ini")\n')
+        assert stdout.getvalue() == \
+            'usage: nosetests <config_uri>\n(example: "nosetests development.ini")\n'
         exit.assert_called_once_with(1)
 
     def test_autotime_update_meeting_test_requirements_gets_pushed(self):
@@ -495,6 +526,8 @@ class TestMain(BaseTestCase):
         update.stable_days = 7
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -502,7 +535,7 @@ class TestMain(BaseTestCase):
                 with fml_testing.mock_sends(api.Message, api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, models.UpdateRequest.stable)
+        assert update.request == models.UpdateRequest.stable
 
     def test_autotime_update_does_not_meet_stable_days_doesnt_get_pushed(self):
         """
@@ -517,6 +550,8 @@ class TestMain(BaseTestCase):
         update.stable_days = 10
         update.date_testing = datetime.utcnow() - timedelta(days=7)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -524,7 +559,7 @@ class TestMain(BaseTestCase):
                 with fml_testing.mock_sends(api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, None)
+        assert update.request is None
 
     def test_autotime_update_meeting_stable_days_get_pushed(self):
         """
@@ -538,6 +573,8 @@ class TestMain(BaseTestCase):
         update.stable_days = 10
         update.date_testing = datetime.utcnow() - timedelta(days=10)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -545,7 +582,7 @@ class TestMain(BaseTestCase):
                 with fml_testing.mock_sends(api.Message, api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, models.UpdateRequest.stable)
+        assert update.request == models.UpdateRequest.stable
 
     def test_no_autotime_update_meeting_stable_days_and_test_requirement(self):
         """
@@ -560,6 +597,8 @@ class TestMain(BaseTestCase):
         update.stable_days = 10
         update.date_testing = datetime.utcnow() - timedelta(days=10)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -567,7 +606,7 @@ class TestMain(BaseTestCase):
                 with fml_testing.mock_sends(api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, None)
+        assert update.request is None
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 2)])
     def test_autotime_update_does_not_meet_test_requirements(self):
@@ -583,13 +622,15 @@ class TestMain(BaseTestCase):
         update.stable_karma = 10
         update.date_testing = datetime.utcnow() - timedelta(days=1)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
                 approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, None)
+        assert update.request is None
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     def test_autotime_update_does_no_mandatory_days_in_testing(self):
@@ -604,6 +645,8 @@ class TestMain(BaseTestCase):
         update.stable_karma = 10
         update.date_testing = datetime.utcnow()
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -611,7 +654,7 @@ class TestMain(BaseTestCase):
                 with fml_testing.mock_sends(api.Message, api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, models.UpdateRequest.stable)
+        assert update.request == models.UpdateRequest.stable
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     def test_autotime_update_zero_day_in_testing_meeting_test_requirements_gets_pushed(self):
@@ -627,6 +670,8 @@ class TestMain(BaseTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
@@ -634,18 +679,23 @@ class TestMain(BaseTestCase):
                 with fml_testing.mock_sends(api.Message, api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, models.UpdateRequest.stable)
-        self.assertEqual(update.status, models.UpdateStatus.testing)
-        self.assertEqual(update.date_stable, None)
+        assert update.request == models.UpdateRequest.stable
+        assert update.status == models.UpdateStatus.testing
+        assert update.date_stable is None
 
+    @pytest.mark.parametrize('from_side_tag', (None, 'f17-build-side-1234'))
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch('bodhi.server.models.Update.add_tag')
     @patch('bodhi.server.models.Update.remove_tag')
+    @patch('bodhi.server.models.mail')
     def test_autotime_update_zero_day_in_testing_no_gated_gets_pushed_to_rawhide(
-            self, remove_tag, add_tag):
+            self, mail, remove_tag, add_tag, from_side_tag):
         """
         Ensure that an autotime update with 0 mandatory_days_in_testing that meets
         the test requirements gets pushed to stable in rawhide.
+
+        Test for normal updates and such from a side tags, where it and its
+        auxiliary tags need to be removed.
         """
         update = self.db.query(models.Update).all()[0]
         update.autokarma = False
@@ -656,27 +706,41 @@ class TestMain(BaseTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        update.from_tag = from_side_tag
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message, api.Message):
+                with fml_testing.mock_sends(api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, None)
-        self.assertNotEqual(update.date_stable, None)
-        self.assertEqual(update.status, models.UpdateStatus.stable)
-        # First pass, it adds f17=updatest-pending, then since we're pushing
-        # to stable directly, it adds f17-updates (the stable tag) then
-        # removes f17-updates-testing-pending and f17-updates-pending
-        self.assertEqual(
-            remove_tag.call_args_list,
-            [call('f17-updates-testing-pending'), call('f17-updates-pending')]
-        )
-        self.assertEqual(
-            add_tag.call_args_list,
-            [call('f17-updates-pending'), call('f17-updates')]
-        )
+        assert update.request is None
+        assert update.date_stable is not None
+        assert update.status == models.UpdateStatus.stable
+        assert update.pushed
+        assert update.date_pushed is not None
+
+        if not from_side_tag:
+            # First pass, it adds f17=updates-pending, then since we're pushing
+            # to stable directly, it adds f17-updates (the stable tag) then
+            # removes f17-updates-testing-pending and f17-updates-pending
+            assert remove_tag.call_args_list == \
+                [call('f17-updates-testing-pending'), call('f17-updates-pending')]
+
+            assert add_tag.call_args_list == \
+                [call('f17-updates')]
+        else:
+            assert remove_tag.call_args_list == \
+                [call(f'{from_side_tag}-pending-signing'), call(f'{from_side_tag}-testing'),
+                 call(from_side_tag)]
+
+            assert add_tag.call_args_list == \
+                [call('f17-updates')]
+
+        assert mail.send.call_count == 1
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch.dict(config, [('test_gating.required', True)])
@@ -694,13 +758,15 @@ class TestMain(BaseTestCase):
         update.test_gating_status = models.TestGatingStatus.failed
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
                 approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, None)
+        assert update.request is None
 
     def test_autotime_update_negative_karma_does_not_get_pushed(self):
         """
@@ -714,6 +780,9 @@ class TestMain(BaseTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, u'Failed to work', author=u'luke', karma=-1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
@@ -722,7 +791,7 @@ class TestMain(BaseTestCase):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
                 approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, None)
+        assert update.request is None
 
     def test_autotime_update_no_autokarma_met_karma_requirements_get_comments(self):
         """
@@ -737,6 +806,9 @@ class TestMain(BaseTestCase):
         update.stable_days = 10
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, u'Works great', author=u'luke', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
@@ -746,12 +818,12 @@ class TestMain(BaseTestCase):
                 with fml_testing.mock_sends(api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, None)
+        assert update.request is None
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
-        self.assertEqual(cmnts.count(), 1)
-        self.assertEqual(cmnts[0].text, config.get('testing_approval_msg'))
+        assert cmnts.count() == 1
+        assert cmnts[0].text == config.get('testing_approval_msg')
 
     def test_autotime_update_no_autokarma_met_karma_and_time_requirements_get_pushed(self):
         """
@@ -766,6 +838,9 @@ class TestMain(BaseTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, u'Works great', author=u'luke', karma=1)
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
@@ -775,13 +850,13 @@ class TestMain(BaseTestCase):
                 with fml_testing.mock_sends(api.Message, api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, models.UpdateRequest.stable)
+        assert update.request == models.UpdateRequest.stable
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
-        self.assertEqual(cmnts.count(), 2)
-        self.assertEqual(cmnts[0].text, config.get('testing_approval_msg'))
-        self.assertEqual(cmnts[1].text, 'This update has been submitted for stable by bodhi. ')
+        assert cmnts.count() == 2
+        assert cmnts[0].text == config.get('testing_approval_msg')
+        assert cmnts[1].text == 'This update has been submitted for stable by bodhi. '
 
     def test_autotime_update_with_autokarma_met_karma_and_time_requirements_get_pushed(self):
         """
@@ -796,6 +871,9 @@ class TestMain(BaseTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+
         update.comment(self.db, u'Works great', author=u'luke', karma=1)
         with fml_testing.mock_sends(api.Message, api.Message, api.Message):
             self.db.commit()
@@ -804,12 +882,73 @@ class TestMain(BaseTestCase):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
                 approve_testing.main(['nosetests', 'some_config.ini'])
 
-        self.assertEqual(update.request, models.UpdateRequest.stable)
+        assert update.request == models.UpdateRequest.stable
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
-        self.assertEqual(cmnts.count(), 1)
-        self.assertEqual(cmnts[0].text, 'This update has been submitted for stable by bodhi. ')
+        assert cmnts.count() == 1
+        assert cmnts[0].text == 'This update has been submitted for stable by bodhi. '
+
+    def test_autotime_update_no_autokarma_negative_karma_not_pushed(self):
+        """
+        Ensure that an autotime update which negative karma does not get pushed.
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.autokarma = False
+        update.autotime = True
+        update.request = None
+        update.stable_karma = 1
+        update.stable_days = 0
+        update.date_testing = datetime.utcnow() - timedelta(days=8)
+        update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+        update.comment(self.db, u'Broken', author=u'luke', karma=-1)
+        with fml_testing.mock_sends(api.Message):
+            self.db.commit()
+
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
+
+        assert update.request is None
+        assert update.autotime == False
+
+    @patch("bodhi.server.buildsys.DevBuildsys.getLatestBuilds", return_value=[{
+        'creation_time': '2007-08-25 19:38:29.422344'}])
+    def test_update_conflicting_build_not_pushed(self, build_creation_time):
+        """
+        Ensure that an update that have conflicting builds will not get pushed.
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.autokarma = False
+        update.autotime = True
+        update.request = None
+        update.stable_karma = 1
+        update.stable_days = 7
+        update.date_testing = datetime.utcnow() - timedelta(days=8)
+        update.status = models.UpdateStatus.testing
+        update.release.composed_by_bodhi = False
+
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
+
+        assert update.status == models.UpdateStatus.testing
+
+        bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
+        cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
+        assert cmnts.count() == 2
+        assert cmnts[0].text == config.get('testing_approval_msg')
+        assert cmnts[1].text == "This update cannot be pushed to stable. "\
+            "These builds bodhi-2.0-1.fc17 have a more recent build in koji's "\
+            f"{update.release.stable_tag} tag."
 
     @patch('sys.exit')
     def test_log_level_is_left_alone(self, exit):
@@ -837,5 +976,5 @@ class TestMain(BaseTestCase):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
                 approve_testing.main(['nosetests', 'some_config.ini', 'testnoses'])
 
-        self.assertIs(logging.root.level, sentinel)
+        assert logging.root.level is sentinel
         logging.root.level = saved_log_level

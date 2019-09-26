@@ -17,15 +17,19 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from unittest import mock
 import os
+from datetime import datetime
 
 import webtest
+from fedora_messaging import api, testing as fml_testing
 
 from bodhi import server
 from bodhi.server.config import config
 from bodhi.server.models import (
-    Build, PackageManager, Release, ReleaseState, Update, UpdateStatus, UpdateRequest)
+    Build, PackageManager, Release, ReleaseState, UpdateType,
+    User, Update, UpdateStatus, UpdateRequest)
 from bodhi.server.util import get_absolute_path
 from bodhi.tests.server import base, create_update
+from bodhi.server.views import generic
 
 
 class TestReleasesService(base.BaseTestCase):
@@ -480,34 +484,114 @@ class TestReleasesService(base.BaseTestCase):
         self.assertIn('f17-updates-testing', res)
         # Since the updates are the same type and from the same month, we should see a count of 2 in
         # the graph data.
-        graph_data = 'data : [\n                2,\n              ]'
+        graph_data = 'data : [\n            2,\n          ]'
+        print(res)
         self.assertTrue(graph_data in res)
 
     def test_get_non_existent_release_html(self):
         self.app.get('/releases/x', headers={'Accept': 'text/html'}, status=404)
 
-    def test_get_releases_html(self):
-        res = self.app.get('/releases/', headers={'Accept': 'text/html'})
-        self.assertEqual(res.content_type, 'text/html')
-        self.assertIn('Fedora 22', res)
 
-    def test_query_releases_html_two_releases_same_state(self):
-        """Test query_releases_html() with two releases in the same state."""
-        attrs = {
-            "name": "F42", "long_name": "Fedora 42", "version": "42",
-            "id_prefix": "FEDORA", "branch": "f42", "dist_tag": "f42",
-            "stable_tag": "f42-updates",
-            "testing_tag": "f42-updates-testing",
-            "candidate_tag": "f42-updates-candidate",
-            "pending_stable_tag": "f42-updates-pending",
-            "pending_signing_tag": "f42-updates-testing-signing",
-            "pending_testing_tag": "f42-updates-testing-pending",
-            "override_tag": "f42-override",
-            "csrf_token": self.get_csrf_token()}
-        self.app.post("/releases/", attrs, status=200)
+class TestReleasesHTML(base.BaseTestCase):
+    def setUp(self, *args, **kwargs):
+        super(TestReleasesHTML, self).setUp(*args, **kwargs)
 
-        res = self.app.get('/releases/', headers={'Accept': 'text/html'})
+        def _add_updates(updateslist, user, release, packagesuffix):
+            """Private method that adds updates to the database for testing
 
-        self.assertEqual(res.content_type, 'text/html')
-        self.assertIn('Fedora 22', res)
-        self.assertIn('Fedora 42', res)
+            """
+            count = 0
+            for i in updateslist:
+                for j in i[1]:
+                    for k in range(0, j[1]):
+                        update = Update(
+                            user=user,
+                            status=i[0],
+                            type=j[0],
+                            notes='Useful details!',
+                            release=release,
+                            date_submitted=datetime(1984, 11, 2),
+                            requirements='rpmlint',
+                            stable_karma=3,
+                            unstable_karma=-3,
+                        )
+                        self.db.add(update)
+                        self.db.commit()
+                        count = count + 1
+
+        user2 = User(name='dudemcpants')
+        self.db.flush()
+        self.db.add(user2)
+
+        release = Release(
+            name='F18', long_name='Fedora 18',
+            id_prefix='FEDORA', version='18',
+            dist_tag='f18', stable_tag='f18-updates',
+            testing_tag='f18-updates-testing',
+            candidate_tag='f18-updates-candidate',
+            pending_signing_tag='f18-updates-testing-signing',
+            pending_testing_tag='f18-updates-testing-pending',
+            pending_stable_tag='f18-updates-pending',
+            override_tag='f18-override',
+            branch='f18', state=ReleaseState.pending)
+        self.db.add(release)
+
+        currentrelease = self.db.query(Release).filter_by(name='F17').one()
+        addedupdates = [[UpdateStatus.pending,
+                         [[UpdateType.security, 5],
+                          [UpdateType.bugfix, 4],
+                          [UpdateType.enhancement, 3],
+                          [UpdateType.newpackage, 2]]],
+                        [UpdateStatus.testing,
+                         [[UpdateType.security, 15],
+                          [UpdateType.bugfix, 14],
+                          [UpdateType.enhancement, 13],
+                          [UpdateType.newpackage, 12]]],
+                        [UpdateStatus.stable,
+                         [[UpdateType.security, 25],
+                          [UpdateType.bugfix, 24],
+                          [UpdateType.enhancement, 23],
+                          [UpdateType.newpackage, 22]]]]
+
+        with fml_testing.mock_sends(*[api.Message] * 54):
+            _add_updates(addedupdates, user2, currentrelease, "fc17")
+
+        pendingrelease = self.db.query(Release).filter_by(name='F18').one()
+        addedupdates2 = [[UpdateStatus.pending,
+                         [[UpdateType.security, 2],
+                          [UpdateType.bugfix, 2],
+                          [UpdateType.enhancement, 2],
+                          [UpdateType.newpackage, 2]]],
+                         [UpdateStatus.testing,
+                          [[UpdateType.security, 3],
+                           [UpdateType.bugfix, 3],
+                           [UpdateType.enhancement, 3],
+                           [UpdateType.newpackage, 3]]],
+                         [UpdateStatus.stable,
+                          [[UpdateType.security, 4],
+                           [UpdateType.bugfix, 4],
+                           [UpdateType.enhancement, 4],
+                           [UpdateType.newpackage, 4]]]]
+        with fml_testing.mock_sends(*[api.Message] * 12):
+            _add_updates(addedupdates2, user2, pendingrelease, "fc18")
+        self.db.flush()
+        # Clear the caches
+        Release._tag_cache = None
+        generic._generate_home_page_stats.invalidate()
+
+    def test_release_counts(self):
+        """Test the release page update counts"""
+        res = self.app.get('/releases/', headers={'Accept': 'text/html'}, status=200)
+        # Assert that pending updates counts in a current release are displayed properly
+        # Note the bug update count here is one more than what we generate above
+        # because there is already a single update in the test data.
+        self.assertIn('?releases=F17&amp;status=pending">15', res)
+
+        # Assert that testing updates counts in a current release are displayed properly
+        self.assertIn('?releases=F17&amp;status=testing">54', res)
+
+        # Assert that testing updates counts in a pending release are displayed properly
+        self.assertIn('?releases=F18&amp;status=testing">12', res)
+
+        # Assert that stable updates counts in a pending release are displayed properly
+        self.assertIn('?releases=F18&amp;status=stable">16', res)

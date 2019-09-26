@@ -2,6 +2,7 @@ alembic
 arrow
 backoff
 bleach
+celery
 click
 colander
 cornice>=3.1.0

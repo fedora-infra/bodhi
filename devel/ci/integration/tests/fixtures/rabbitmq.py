@@ -32,6 +32,7 @@ def rabbitmq_container(
     Args:
         docker_backend: The Docker backend (fixture).
         docker_network: The Docker network ID (fixture).
+
     Yields:
         The RabbitMQ container.
     """
@@ -41,7 +42,7 @@ def rabbitmq_container(
     container = image.run_via_api()
     container.start()
     docker_backend.d.connect_container_to_network(
-        container.get_id(), docker_network["Id"], aliases=["rabbitmq"]
+        container.get_id(), docker_network["Id"], aliases=["rabbitmq", "rabbitmq.ci"]
     )
     # we need to wait for the broker to start listening
     container.wait_for_port(5672, timeout=30)

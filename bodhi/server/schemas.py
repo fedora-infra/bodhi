@@ -31,6 +31,7 @@ from bodhi.server.models import (
     UpdateStatus,
     UpdateSuggestion,
     UpdateType,
+    TestGatingStatus,
 )
 from bodhi.server.validators import validate_csrf_token
 
@@ -96,6 +97,13 @@ class Updates(colander.SequenceSchema):
     """A SequenceSchema to validate a list of Update objects."""
 
     update = colander.SchemaNode(colander.String())
+
+
+class Status(colander.SequenceSchema):
+    """A SequenceSchema to validate a list of Update status objects."""
+
+    status = colander.SchemaNode(colander.String(),
+                                 validator=colander.OneOf(list(UpdateStatus.values())))
 
 
 class Tests(colander.SequenceSchema):
@@ -396,6 +404,7 @@ class SaveReleaseSchema(CSRFProtectedSchema, colander.MappingSchema):
     )
     override_tag = colander.SchemaNode(
         colander.String(),
+        missing="",
     )
     state = colander.SchemaNode(
         colander.String(),
@@ -575,11 +584,11 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         validator=colander.OneOf(list(UpdateSeverity.values())),
     )
 
-    status = colander.SchemaNode(
-        colander.String(),
+    status = Status(
+        colander.Sequence(accept_scalar=True),
         location="querystring",
         missing=None,
-        validator=colander.OneOf(list(UpdateStatus.values())),
+        preparer=[util.splitter],
     )
 
     submitted_since = colander.SchemaNode(
@@ -627,6 +636,13 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         location="querystring",
         missing=None,
         preparer=[util.splitter],
+    )
+
+    gating = colander.SchemaNode(
+        colander.String(),
+        location="querystring",
+        missing=None,
+        validator=colander.OneOf(list(TestGatingStatus.values())),
     )
 
 

@@ -34,6 +34,7 @@ from sqlalchemy import (and_, Boolean, Column, DateTime, event, ForeignKey,
                         Integer, or_, Table, Unicode, UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
+from sqlalchemy.orm.base import NEVER_SET
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
@@ -45,6 +46,7 @@ from bodhi.messages.schemas import (buildroot_override as override_schemas,
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
+from bodhi.server.tasks import handle_update
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
@@ -220,7 +222,11 @@ class DeclEnumType(SchemaType, TypeDecorator):
         self.enum = enum
         self.impl = Enum(
             *enum.values(),
-            name="ck%s" % re.sub('([A-Z])', lambda m: "_" + m.group(1).lower(), enum.__name__))
+            name="ck%s" % re.sub('([A-Z])', lambda m: "_" + m.group(1).lower(), enum.__name__),
+            # Required for SQLAlchemy >= 1.3.8
+            # https://docs.sqlalchemy.org/en/14/changelog/changelog_13.html#change-ac119f6307026142f7a0ccbf81065f25
+            sort_key_function=lambda e: str(e),
+        )
 
     def _set_table(self, table, column):
         """
@@ -976,6 +982,34 @@ class Release(Base):
         """
         return config.get(f'{self.setting_prefix}.status', None)
 
+    def get_testing_side_tag(self, from_tag: str) -> str:
+        """
+        Return the testing side tag for this ``Release``.
+
+        Args:
+            from_tag: Name of side tag from which ``Update`` was created.
+
+        Returns:
+            Testing side tag used in koji.
+        """
+        side_tag_postfix = config.get(
+            f'{self.setting_prefix}.koji-testing-side-tag', "-testing")
+        return from_tag + side_tag_postfix
+
+    def get_pending_signing_side_tag(self, from_tag: str) -> str:
+        """
+        Return the testing side tag for this ``Release``.
+
+        Args:
+            from_tag: Name of side tag from which ``Update`` was created.
+
+        Returns:
+            Testing side tag used in koji.
+        """
+        side_tag_postfix = config.get(
+            f'{self.setting_prefix}.koji-pending-signing-side-tag', "-pending-signing")
+        return from_tag + side_tag_postfix
+
 
 class TestCase(Base):
     """
@@ -1406,6 +1440,28 @@ class Build(Base):
             koji = buildsys.get_session()
         return [tag['name'] for tag in koji.listTags(self.nvr)]
 
+    def get_owner_name(self):
+        """
+        Return the koji username of the user who built the build.
+
+        Returns:
+            str: The username of the user.
+        """
+        return self._get_kojiinfo()['owner_name']
+
+    def get_build_id(self):
+        """
+        Return the koji build id of the build.
+
+        Returns:
+            str: The username of the user.
+        """
+        return self._get_kojiinfo()['id']
+
+    def get_creation_time(self) -> datetime:
+        """Return the creation time of the build."""
+        return datetime.fromisoformat(self._get_kojiinfo()['creation_time'])
+
     def unpush(self, koji):
         """
         Move this build back to the candidate tag and remove any pending tags.
@@ -1430,6 +1486,21 @@ class Build(Base):
                     'Moving %s from %s to %s' % (
                         self.nvr, tag, release.candidate_tag))
                 koji.moveBuild(tag, release.candidate_tag, self.nvr)
+
+    def is_latest(self) -> bool:
+        """Check if this is the latest build available in the stable tag."""
+        koji_session = buildsys.get_session()
+        # Get the latest builds in koji in a tag for a package
+        koji_builds = koji_session.getLatestBuilds(
+            self.update.release.stable_tag,
+            package=self.package.name
+        )
+
+        for koji_build in koji_builds:
+            build_creation_time = datetime.fromisoformat(koji_build['creation_time'])
+            if self.get_creation_time() < build_creation_time:
+                return False
+        return True
 
 
 class ContainerBuild(Build):
@@ -1775,6 +1846,9 @@ class Update(Base):
         super(Update, self).__init__(*args, **kwargs)
 
         log.debug('Set alias for %s to %s' % (self.get_title(), alias))
+
+        if self.status == UpdateStatus.testing:
+            self._ready_for_testing(self, self.status, None, None)
 
     @property
     def side_tag_locked(self):
@@ -2126,7 +2200,7 @@ class Update(Base):
             data['builds'], data['release'].name)
 
         # Create the Bug entities, but don't talk to rhbz yet.  We do that
-        # offline in the UpdatesHandler message consumer now.
+        # offline in the UpdatesHandler task worker now.
         bugs = []
         if data['bugs']:
             for bug_num in data['bugs']:
@@ -2291,7 +2365,12 @@ class Update(Base):
 
             # Add the pending_signing_tag to all new builds
             for build in new_builds:
-                if up.release.pending_signing_tag:
+                if up.from_tag:
+                    # this is a sidetag based update. use the sidetag pending signing tag
+                    side_tag_pending_signing = up.release.get_pending_signing_side_tag(up.from_tag)
+                    koji.tagBuild(side_tag_pending_signing, build)
+                elif up.release.pending_signing_tag:
+                    # Add the release's pending_signing_tag to all new builds
                     koji.tagBuild(up.release.pending_signing_tag, build)
                 else:
                     # EL6 doesn't have these, and that's okay...
@@ -2315,6 +2394,12 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
+        handle_update.delay(
+            api_version=1, action='edit',
+            update=up.__json__(request=request),
+            agent=request.user.name,
+            new_bugs=new_bugs
+        )
         notifications.publish(update_schemas.UpdateEditV1.from_dict(
             message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
 
@@ -2329,10 +2414,12 @@ class Update(Base):
         signed, or if the associated :class:`Release` does not have a ``pending_signing_tag``
         defined. Otherwise, it will return ``False``.
 
+        If the update is created ``from_tag`` always check if every build is signed.
+
         Returns:
             bool: ``True`` if the update is signed, ``False`` otherwise.
         """
-        if not self.release.pending_signing_tag:
+        if not self.release.pending_signing_tag and not self.from_tag:
             return True
         return all([build.signed for build in self.builds])
 
@@ -2752,6 +2839,12 @@ class Update(Base):
             )
         self.comment(db, comment_text, author=u'bodhi')
 
+        if action == UpdateRequest.testing:
+            handle_update.delay(
+                api_version=1, action="testing",
+                update=self.__json__(),
+                agent=username
+            )
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -2855,6 +2948,19 @@ class Update(Base):
             koji.untagBuild(tag, build.nvr, force=True)
         if return_multicall:
             return koji.multiCall()
+
+    def find_conflicting_builds(self) -> list:
+        """
+        Find if there are any builds conflicting with the stable tag in the update.
+
+        Returns a list of conflicting builds, empty is none found.
+        """
+        conflicting_builds = []
+        for build in self.builds:
+            if not build.is_latest():
+                conflicting_builds.append(build.nvr)
+
+        return conflicting_builds
 
     def modify_bugs(self):
         """
@@ -3053,7 +3159,8 @@ class Update(Base):
         return
 
     def comment(self, session, text, karma=0, author=None, karma_critpath=0,
-                bug_feedback=None, testcase_feedback=None, check_karma=True):
+                bug_feedback=None, testcase_feedback=None, check_karma=True,
+                email_notification=True):
         """Add a comment to this update.
 
         If the karma reaches the 'stable_karma' value, then request that this update be marked
@@ -3165,7 +3272,8 @@ class Update(Base):
                 people.add(comment.user.email)
             else:
                 people.add(comment.user.name)
-        mail.send(people, 'comment', self, sender=None, agent=author)
+        if email_notification:
+            mail.send(people, 'comment', self, sender=None, agent=author)
         return comment, caveats
 
     def unpush(self, db):
@@ -3397,10 +3505,11 @@ class Update(Base):
         if self.status not in (UpdateStatus.testing, UpdateStatus.pending):
             return
         # If an update receives negative karma disable autopush
-        if self.autokarma and self._composite_karma[1] != 0 and self.status is \
+        if (self.autokarma or self.autotime) and self._composite_karma[1] != 0 and self.status is \
                 UpdateStatus.testing and self.request is not UpdateRequest.stable:
             log.info("Disabling Auto Push since the update has received negative karma")
             self.autokarma = False
+            self.autotime = False
             text = config.get('disable_automatic_push_to_stable')
             self.comment(db, text, author='bodhi')
         elif self.stable_karma and self.karma >= self.stable_karma:
@@ -3693,25 +3802,75 @@ class Update(Base):
         """
         Place comment on the update when ``test_gating_status`` changes.
 
+        Only notify the users by email if the new status is in ``failed`` or
+        ``greenwave_failed``.
+
         Args:
-            target (Update): The compose that has had a change to its state attribute.
+            target (InstanceState): The state of the instance that has had a
+                change to its test_gating_status attribute.
             value (EnumSymbol): The new value of the test_gating_status.
             old (EnumSymbol): The old value of the test_gating_status
             initiator (sqlalchemy.orm.attributes.Event): The event object that is initiating this
                 transition.
         """
+        instance = target.object
+
         if value != old:
-            target.comment(
-                Session(),
+            notify = value in [
+                TestGatingStatus.greenwave_failed,
+                TestGatingStatus.failed,
+            ]
+            instance.comment(
+                target.session,
                 f"This update's test gating status has been changed to '{value}'.",
                 author="bodhi",
+                email_notification=notify,
             )
+
+    @staticmethod
+    def _ready_for_testing(target, value, old, initiator):
+        """
+        Signal that the update has been moved to testing.
+
+        This happens in the following cases:
+        - for stable releases: the update lands in the testing repository
+        - for rawhide: all packages in an update have been built by koji
+
+        Args:
+            target (Update): The update that has had a change to its status attribute.
+            value (EnumSymbol): The new value of Update.status.
+            old (EnumSymbol): The old value of the Update.status
+            initiator (sqlalchemy.orm.attributes.Event): The event object that is initiating this
+                transition.
+        """
+        if value != UpdateStatus.testing or value == old:
+            return
+        if old == NEVER_SET:
+            # This is the object initialization phase. This instance is not ready, don't create
+            # the message now. This method will be called again at the end of __init__
+            return
+        message = update_schemas.UpdateReadyForTestingV1.from_dict(
+            message={'update': target, 'agent': 'bodhi'}
+        )
+        # This method is called before the new attribute value is actually set,
+        # so the message needs to be updated.
+        message.body["update"]["status"] = str(value)
+        notifications.publish(message)
 
 
 event.listen(
     Update.test_gating_status,
     'set',
     Update.comment_on_test_gating_status_change,
+    active_history=True,
+    raw=True,
+)
+
+
+event.listen(
+    Update.status,
+    'set',
+    Update._ready_for_testing,
     active_history=True,
 )
 
@@ -4132,7 +4291,7 @@ class Bug(Base):
         """
         Grab details from rhbz to populate our bug fields.
 
-        This is typically called "offline" in the UpdatesHandler consumer.
+        This is typically called "offline" in the UpdatesHandler task.
 
         Args:
             bug: The Bug to retrieve details from Bugzilla about. If

@@ -1,4 +1,3 @@
-// Defines a cabbage object that controls animation.
 function Form(idx, url){
     this.idx = idx;
     this.url = url;
@@ -31,12 +30,10 @@ Form.prototype.start = function() {
     // both knock their content, and hide them
     $(this.idx + " button").attr("disabled", "disable");
     this.toggle_spinning_icons();
-    cabbage.spin();
 }
 
 Form.prototype.finish = function() {
     $(this.idx + " button").attr("disabled", null);
-    cabbage.finish();
     this.toggle_spinning_icons();
 }
 
@@ -113,9 +110,18 @@ Form.prototype.data = function() {
             }
         } else {
             var value = $(this).val();
-            if (value != "") {
+            if (value && value != "") {
                 data[this.name].push(value);
             }
+        }
+    });
+
+    $(this.idx + " select").each(function() {
+        var value = $(this).val();
+        if (value) {
+            data[this.name] = value;
+        } else {
+            value = [];
         }
     });
 
