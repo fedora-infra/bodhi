@@ -3014,6 +3014,12 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first(),
                          None)
 
+        # check that the added build was tagged in koji
+        koji_session = buildsys.get_session()
+        self.assertIn(('f17-build-side-7777-pending-signing',
+                       'bodhi-2.0.0-3.fc17'),
+                      koji_session.__added__)
+
     @mock.patch(**mock_valid_requirements)
     def test_edit_testing_update_with_new_builds(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
