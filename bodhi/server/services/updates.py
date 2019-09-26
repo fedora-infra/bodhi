@@ -36,6 +36,7 @@ from bodhi.server.models import (
     ReleaseState,
     Build,
     Package,
+    Release,
 )
 import bodhi.server.schemas
 import bodhi.server.services.errors
@@ -401,7 +402,7 @@ def query_updates(request):
     pages = int(math.ceil(total / float(rows_per_page)))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-    return dict(
+    return_values = dict(
         updates=query.all(),
         page=page,
         pages=pages,
@@ -412,6 +413,18 @@ def query_updates(request):
         display_request=data.get('display_request', True),
         package=package,
     )
+    # we need some extra information for the searching / filterings interface
+    # when rendering the html, so we add this here.
+    if request.accept.accept_html():
+        return_values.update(
+            types=reversed(list(bodhi.server.models.UpdateType.values())),
+            severities=sorted(
+                list(bodhi.server.models.UpdateSeverity.values()),
+                key=bodhi.server.util.sort_severity),
+            statuses=list(bodhi.server.models.UpdateStatus.values()),
+            releases=Release.all_releases(),
+        )
+    return return_values
 
 
 @updates.post(schema=bodhi.server.schemas.SaveUpdateSchema,
