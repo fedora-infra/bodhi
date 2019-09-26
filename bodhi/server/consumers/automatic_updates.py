@@ -156,6 +156,7 @@ class AutomaticUpdateHandler:
                 type=UpdateType.unspecified,
                 stable_karma=3,
                 unstable_karma=-3,
+                autokarma=False,
                 user=user,
                 status=UpdateStatus.testing,
             )

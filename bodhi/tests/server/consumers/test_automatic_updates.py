@@ -85,6 +85,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         assert update is not None
         assert update.type == UpdateType.unspecified
         assert update.status == UpdateStatus.testing
+        assert update.autokarma == False
         assert update.test_gating_status is None
 
         expected_username = base.buildsys.DevBuildsys._build_data['owner_name']
