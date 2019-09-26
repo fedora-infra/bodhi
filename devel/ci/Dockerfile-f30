@@ -15,6 +15,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-backoff \
     python3-bleach \
     python3-bugzilla \
+    python3-celery \
     python3-click \
     python3-colander \
     python3-cornice \

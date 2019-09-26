@@ -27,7 +27,7 @@ def waiverdb_container(docker_backend, docker_network, db_container, rabbitmq_co
 
     Args:
         docker_backend (conu.DockerBackend): The Docker backend (fixture).
-        docker_network (str): The Docker network ID (fixture).
+        docker_network (dict): The Docker network ID (fixture).
         db_container(conu.DockerContainer): The PostgreSQL container (fixture).
         rabbitmq_container (conu.DockerContainer): The RabbitMQ container
             (fixture).
@@ -43,7 +43,7 @@ def waiverdb_container(docker_backend, docker_network, db_container, rabbitmq_co
     container = image.run_via_api()
     container.start()
     docker_backend.d.connect_container_to_network(
-        container.get_id(), docker_network["Id"], aliases=["waiverdb"],
+        container.get_id(), docker_network["Id"], aliases=["waiverdb", "waiverdb.ci"],
     )
     # Add sample data in the database
     container.execute(["waiverdb", "db", "upgrade"])

@@ -26,314 +26,256 @@ $(document).ready(function() {
 
     var messenger = Messenger({theme: 'flat'});
 
-    // These next couple blocks of code wire up the auto-complete search for
-    // packages in the update form.  Two technologies are at play here.  The
-    // first is 'bloodhound' which is a suggestion engine.  Its suggestions are
-    // then fed to 'typeahead.js' which is responsible for presenting and
-    // acting on the suggestions.
-    //
-    // For the search here, we query the fedora-packages webapp.
-    var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
-    var prefix = '/xapian/query/search_packages/%7B%22filters%22:%7B%22search%22:%22'
-    var suffix = '%22%7D,%22rows_per_page%22:10,%22start_row%22:0%7D'
-
-    var packages = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        remote: {
-            wildcard: '%QUERY',
-            url: base + prefix + '%QUERY' + suffix,
-            transform: function (response) {
-                return $.map(response.rows, function(row) {
-                    return {'name': $('<p>' + row.name + '</p>').text()}
-                });
-            },
-            rateLimitWait: 600,
+    // function to load the list of bug options for the bug chooser.
+    function loadBugs(packagename) {
+        // generate products list for the URL from settings.bz_products (defined globally in master.html)
+        var products_string = "";
+        for (var p in settings.bz_products){
+            products_string = products_string+'&product='+encodeURIComponent(settings.bz_products[p]);
         }
-    });
-    packages.initialize();
+        return function(callback){
+            $.ajax({
+                url: settings.bz_server_rest+'bug?bug_status=__open__&component='+packagename+products_string+'&include_fields=summary,status,id,product,component,version',
+                type: 'GET',
+                dataType: 'jsonp',
+                error: function() {
+                    callback();
+                },
+                success: function(res) {
+                    callback(res.bugs);
+                }
+            });
+        }
+    }
 
-    $('#packages-search .typeahead').typeahead({
-        hint: true,
-        highlight: true,
-        minLength: 1,
-    },
-    {
-        name: 'packages',
-        displayKey: 'name',
-        source: packages.ttAdapter(),
-        templates: {
-            empty: [
-                '<div class="empty-message">',
-                'unable to find any packages that match the current query',
-                '</div>'
-            ].join('\n'),
+    var $bugs_search_selectize = $('#bugs-search').selectize( {
+        create: function(input, callback){
+            $("#bugs-card .selectize-control").addClass("loading")
+            $.ajax({
+                url: settings.bz_server_rest+'bug?id=' + encodeURIComponent(input),
+                type: 'GET',
+                dataType: 'jsonp',
+                error: function() {
+                    callback();
+                },
+                success: function(data) {
+                    if (data.bugs.length != 1) {
+                        messenger.post({
+                            message: 'Cannot find data for bug #' + input + '. Either the bug is private or doesn\'t exist.',
+                            type: 'error',
+                        });
+                        $("#bugs-card .selectize-control").removeClass("loading")
+                        callback();
+                    } else {
+                        // Check Bug product
+                        var product = data.bugs[0].product;
+                        if (settings.bz_products.indexOf(product) == -1) {
+                            messenger.post({
+                                message: 'Bug #' + data.bugs[0].id + ' doesn\'t seem to refer to a product that Bodhi manages updates for.\nAre you sure you want to reference it in this update? Bodhi will not be able to operate on this bug!',
+                                type: 'error',
+                            });
+                        }
+                        // Alert user if bug is already closed
+                        if (data.bugs[0].status == "CLOSED") {
+                            messenger.post({
+                                message: 'Bug #' + data.bugs[0].id + ' is already in CLOSED state.\nAre you sure you want to reference it in this update?',
+                                type: 'error',
+                            });
+                        }
+                        callback({'id': data.bugs[0].id, 'summary': data.bugs[0].summary})
+                    }
+                    $("#bugs-card .selectize-control").removeClass("loading")
+                }
+            });
+        },
+        valueField: 'id',
+        labelField: 'id',
+        searchField: ['id', 'summary', 'component'],
+        createFilter: "^[0-9]+$",
+        plugins: ['remove_button','restore_on_backspace'],
+        onInitialize: function(){
+            // make sure the placeholder shows when items already exist when page loads
+            $('#bugs-search-selectized').attr("placeholder", "search and add bugs");
+        },
+        onBlur: function(){
+            $('#bugs-search-selectized').attr("placeholder", $bugs_search_selectize.settings.placeholder);
+        },
+        onFocus: function(){
+            $('#bugs-search-selectized').attr("placeholder", "");
+        },
+        render: {
+            item: function(item, escape) {
+                return '<div class="w-100 border-bottom m-0 py-1 pl-3">' +
+                '   <span class="font-weight-bold" title="bug description">BZ#' + escape(item.id) + '</span>' +
+                '   <span class="name" title="bug description">' + escape(item.summary) + '</span>' +
+                '</div>';
+            },
+            option: function(item, escape) {
+                return '<div class="w-100 border-bottom m-0 py-1 pl-3">' +
+                '<div>' +
+                '   <span class="font-weight-bold" title="bug description">BZ#' + escape(item.id) + '</span>' +
+                '   <span class="name" title="bug description">' + escape(item.summary) + '</span>' +
+                '</div>'+
+                '<div>' +
+                '   <span class="badge badge-light border">' + escape(item.component[0]) + '</span>' +
+                '   <span class="badge badge-light border">' + escape(item.product) + ' '+escape(item.version[0])+'</span>' +
+                '</div>'+
+                '</div>';
+            },
         },
     });
+    $bugs_search_selectize = $bugs_search_selectize[0].selectize;
 
-    // Do not submit form when pressing enter while typing packages
-    // Instead select the first typeahead suggestion if only one result is given
-    $('#packages-search .typeahead').keydown(function(event) {
-        if(event.keyCode == 13) {
-            event.preventDefault();
-            if ($(".tt-selectable").length == 1) {
-                $(".tt-selectable").first().click();
-            }
-        }
-    });
+    if (!existing_sidetag_update){
+        var buildssearchterm = "";
+        var $builds_search_selectize = $('#builds-search').selectize({
+            valueField: 'nvr',
+            labelField: 'nvr',
+            searchField: ['nvr', 'tag_name', 'owner_name'],
+            preload: true,
+            plugins: ['remove_button','restore_on_backspace'],
+            render: {
+                option: function(item, escape) {
+                    return '<div class="w-100 border-bottom px-1">' +
+                    '   <h6 class="font-weight-bold mb-0">' + escape(item.nvr) + '</h6>' +
+                    '   <span class="badge badge-light border"><i class="fa fa-tag"></i> '+escape(item.release_name)+'</span> '+
+                    '   <span class="badge badge-light border"><i class="fa fa-user"></i> '+escape(item.owner_name)+'</span> '+
+                    '</div>';
+                },
+                item: function(item, escape) {
+                    return '<div class="w-100 border-bottom m-0 py-1 pl-3">' +
+                        '   <span class="name">' + escape(item.nvr) + '</span>' +
+                        '   <span class="badge badge-light border float-right">' + escape(item.release_name) + '</span>' +
+                        '</div>';
+                },
+            },
+            onItemAdd: function(value, item){
+                $builds_search_selectize.setTextboxValue(buildssearchterm)
+                $builds_search_selectize.refreshOptions(true)
+                $builds_search_selectize.updatePlaceholder()
 
-    // Callback to remove a checkbox when it is unchecked.
-    // https://github.com/fedora-infra/bodhi/issues/260
-    var remove_unchecked = function() {
-        if (!$(this).is(":checked")) {
-            $(this).parent().parent().remove();
-        }
-    };
+                // when adding a new build, pull the bugs into the bugs chooser options
+                $bugs_search_selectize.load(loadBugs(this.options[value].package_name))
+            },
+            onType: function(searchterm){
+                buildssearchterm = searchterm;
+            },
+            onBlur: function(){
+                // make sure the placeholder reappears when focus is lost
+                $('#builds-search-selectized').attr("placeholder", $builds_search_selectize.settings.placeholder);
+            },
+            onInitialize: function(){
+                // make sure the placeholder shows when items already exist when page loads
+                $('#builds-search-selectized').attr("placeholder", "search and add builds");
 
-    // A utility for adding another candidate build to the checkbox list of
-    // candidate builds this update could include.
-    // The code here is a little long because we need to additionally wire up
-    // code to fire when one of those checkboxes is clicked.  (It adds
-    // changelog entries to the update notes).
-    var add_build_checkbox = function(nvr, idx, checked, manual) {
-        if (nvr == '' || nvr == null || nvr === undefined) return;
-        // Prevent duplicated manual entries
-        if (manual) {
-            var current_buildlist = [];
-            $("#candidate-checkboxes input").each(function(){
-                current_buildlist.push($(this).val());
-            });
-            if ($.inArray(nvr, current_buildlist) != -1) {
-                messenger.post({
-                    message: 'Build ' + nvr + ' already in list!',
-                    type: 'info',
-                });
-                return;
-            }
-        }
-        $("#candidate-checkboxes").prepend(
-            [
-                '<div class="checkbox">',
-                '<label>',
-                '<input name="builds" data-build-nvr="' + nvr + '"' +
-                    (idx ? ' data-build-id="' + idx + '" ' : ' ') +
-                    'type="checkbox" value="' + nvr + '"' + (checked ? ' checked' : '') + (manual ? ' class="manual"' : '')  + '>',
-                nvr,
-                '</label>',
-                '</div>',
-        ].join('\n'));
-        $("#candidate-checkboxes input:first-of-type").click(remove_unchecked);
+                // preload bugs from builds that exist when the page loads (i.e. when editing an existing update)
+                    for (var b in this.options) {
+                        if (this.options.hasOwnProperty(b)) {
+                            $bugs_search_selectize.load(loadBugs(this.options[b].package_name))
+                        }
+        
+                    }
 
-        $("#candidate-checkboxes .checkbox:first-child input").click(function() {
-            var self = $(this);
-            if (! self.is(':checked')) { return; }
-            if (self.attr('data-build-id') == null) { return; }
-
-            var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
-            var prefix = '/koji/query/query_changelogs/%7B%22filters%22:%7B%22build_id%22:%22';
-            var suffix = '%22,%22version%22:%22%22%7D,%22rows_per_page%22:8,%22start_row%22:0%7D';
-
-            $.ajax({
-                url: base + prefix + self.attr('data-build-id') + suffix,
-                success: function(data) {
-                    data = JSON.parse(data);
-                    if (data.rows.length == 0) {console.log('error');}
-                    $("#notes").val( [
-                            $("#notes").val(), "",
-                            self.attr('data-build-nvr'), "",
-                            data.rows[0].text, "",
-                    ].join('\n'));
-                    update_markdown_preview($("#notes").val());
-                }
-            })
-        });
-    }
-
-    // A utility for adding another bug to the checkbox list of potential bugs
-    // this update could fix.
-    var add_bug_checkbox = function(idx, description, checked, manual) {
-        if (idx == '' || idx == null || idx === undefined) return;
-        // Prevent duplicated manual entries
-        if (manual) {
-            var current_buglist = [];
-            $("#bugs-checkboxes input").each(function(){
-                current_buglist.push(parseInt($(this).val()));
-            });
-            if ($.inArray(parseInt(idx), current_buglist) != -1) {
-                messenger.post({
-                    message: 'Bug #' + idx + ' already in list!',
-                    type: 'info',
-                });
-                return;
-            }
-        }
-        $("#bugs-checkboxes").prepend(
-            [
-                '<div>',
-                '<label class="c-input c-checkbox">',
-                '<input name="bugs" type="checkbox" value="' + idx + '"' + (checked ? ' checked' : '') + (manual ? ' class="manual"' : '') + '>',
-                '<span class="c-indicator"></span><a href="https://bugzilla.redhat.com/show_bug.cgi?id=' + idx + '">',
-                '#' + idx + '</a> ' + description,
-                '</label>',
-                '</div>',
-        ].join('\n'));
-        $("#bugs-checkboxes input:first-of-type").click(remove_unchecked);
-    }
-
-    // This wires up the action that happens when the user selects something
-    // from the "add a package" typeahead search box.  When they do that, we
-    // fire off two async js calls to get bugs and builds.  Those are then
-    // added to their respective checkbox lists once they are retrieved.
-    $('#packages-search input.typeahead').on('typeahead:selected', function (e, datum) {
-        // Get a list of currently checked items
-        var checked_bugs = [];
-        $("#bugs-checkboxes input:checkbox:checked").each(function(){
-            var bug = {id: parseInt($(this).val()), title: $(this).parent().text().replace(/^#\d+\s/m, '')};
-            checked_bugs.push(bug);
-        });
-        var checked_candidates = [];
-        $("#candidate-checkboxes input:checkbox:checked").each(function(){
-            var buildid = $(this).attr('data-build-id')
-            if (buildid !== '') {
-                checked_candidates.push([$(this).val(), parseInt(buildid)]);
-            } else {
-                checked_candidates.push([$(this).val(), false]);
-            }
-        });
-        // Empty lists
-        document.getElementById("candidate-checkboxes").innerHTML = "<img class='spinner' src='static/img/spinner.gif'>";
-        document.getElementById("bugs-checkboxes").innerHTML = "<img class='spinner' src='static/img/spinner.gif'>";
-        // Get the candidate builds
-        $.ajax({
-            url: 'latest_candidates',
-            timeout: 10000,
-            data: $.param({package: datum.name}),
-            success: function(builds) {
-                if (builds.length == 0) {
-                    return messenger.post({
-                        message: 'No candidate builds found for ' + datum.name,
-                        type: 'info',
-                    });
-                }
-                $.each(builds, function(i, build) {
-                    // Insert the checkbox only if this ID is not already listed
-                    if ($.inArray(build.id, checked_candidates) == -1) {
-                        add_build_checkbox(build.nvr, build.id, false, false);
+            },
+            onFocus: function(){
+                // make sure the placeholder disappears when focused
+                $('#builds-search-selectized').attr("placeholder", "");
+            },
+            load: function(query, callback) {
+                $.ajax({
+                    url: '/latest_candidates?prefix=' + encodeURIComponent(query),
+                    type: 'GET',
+                    error: function() {
+                        callback();
+                    },
+                    success: function(res) {
+                        callback(res);
                     }
                 });
-            },
-            error: function(jqXHR, textStatus) {
-                if (textStatus == 'timeout') {
-                    messenger.post({
-                        message: 'Reached timeout while retrieving builds list for ' + datum.name,
-                        type: 'error',
-                    });
-                }
-                else {
-                    messenger.post({
-                        message: 'Unable to retrieve builds list for ' + datum.name,
-                        type: 'error',
-                    });
-                }
-            },
-            complete: function() {
-                $("#candidate-checkboxes .spinner").remove();
-                // Re-add previously checked builds
-                $.each(checked_candidates, function(i, build) {
-                    add_build_checkbox(build[0], build[1], true, false);
-                });
-            },
+            }
         });
-        var base = 'https://apps.fedoraproject.org/packages/fcomm_connector';
-        var prefix = '/bugzilla/query/query_bugs/%7B%22filters%22:%7B%22package%22:%22';
-        var suffix = '%22,%22version%22:%22%22%7D,%22rows_per_page%22:8,%22start_row%22:0%7D';
+
+        $builds_search_selectize = $builds_search_selectize[0].selectize;
+    }
+
+    $('#updatetypes').selectize();
+    $('#severity').selectize();
+    $('#suggest').selectize();
+    $('#requirements').selectize({
+        plugins: ['remove_button','restore_on_backspace'],
+        delimiter: ' ',
+        persist: false,
+        create: function(input) {
+            return {
+                value: input,
+                text: input
+            }
+        }
+    });
+
+
+    // this is the dropdown that shows on the new update form, allowing the user to 
+    // choose a sidetag. we don't show this on the edit page.
+    $(".sidetag-item").click(function(){
+        // get data about the sidetag clicked from the data- attrs
+        var sidetagid = $(this).attr('data-sidetagid');
+        var sidetagname = $(this).attr('data-sidetagname');
+
+        // change the label of the dropdown button to the sidetag name
+        $("#dropdownMenuButtonSidetags .buttonlabel").html(sidetagname)
+
+        //hide the builds adder for regular candidate-tag type updates
+        $("#builds-card .selectize-control").hide();
+
+        //remove any previously added sidetag buildlists
+        $('#sidetag-buildlist').remove();
+
+        $("#builds-card .card-body").append("<div class='list-group list-group-flush' id='sidetag-buildlist'></div>")
+        
+        //add the spinner while we load the builds for the chosen sidetag
+        $("#builds-card .card-body #sidetag-buildlist").append("<div class='w-100 text-center spinner py-3'><i class='fa fa-spinner fa-2x fa-spin fa-fw'></i></div>");
+
         $.ajax({
-            url: base + prefix + datum.name + suffix,
-            timeout: 10000,
-            success: function(data) {
-                data = JSON.parse(data);
-                if (data.rows.length == 0) {
-                    return messenger.post({
-                        message: 'No bugs found for ' + datum.name,
-                        type: 'info',
-                    });
-                }
-                $.each(data.rows, function(i, bug) {
-                    // Insert the checkbox only if this ID is not already listed
-                    var listed = false;
-                    $.each(checked_bugs, function(i, checked_bug) {
-                        if (bug.id == checked_bug.id) {
-                            listed = true;
-                            return false;
-                        }
-                    });
-                    if (listed == false) {add_bug_checkbox(bug.id, bug.description, false, false);}
+            url: '/latest_builds_in_tag?tag=' + encodeURIComponent(sidetagname),
+            type: 'GET',
+            error: function(res) {
+                console.log(res)
+            },
+            success: function(res) {
+                $("#builds-card .card-body #sidetag-buildlist").empty()
+                $.each(res, function(idx, build) {
+                    $('#sidetag-buildlist').append("<div class='list-group-item'>"+build.nvr+"</div>");
+                    $bugs_search_selectize.load(loadBugs(build.package_name))
                 });
-                // TODO -- tack on 'And 200 more bugs..'
+                $('select[name="builds"]').attr('disabled', 'disabled')
+                //set the from_tag to be the tagname
+                $('input[name="from_tag"]').val(sidetagname)
+            }
+        });
+    })
+
+    $("#sidetag-update").click(function(){
+        //add the spinner while we load the builds for the chosen sidetag
+        $("#builds-card .card-body #sidetag-buildlist").append("<div class='w-100 text-center spinner py-3'><i class='fa fa-spinner fa-2x fa-spin fa-fw'></i></div>");
+
+        $.ajax({
+            url: '/latest_builds_in_tag?tag=' + encodeURIComponent($('input[name="from_tag"]').val()),
+            type: 'GET',
+            error: function(res) {
+                console.log(res)
             },
-            error: function(jqXHR, textStatus) {
-                if (textStatus == 'timeout') {
-                    messenger.post({
-                        message: 'Reached timeout while retrieving bugs list for ' + datum.name,
-                        type: 'error',
-                    });
-                }
-                else {
-                    messenger.post({
-                        message: 'Unable to retrieve bugs list for ' + datum.name,
-                        type: 'error',
-                    });
-                }
-            },
-            complete: function() {
-                $("#bugs-checkboxes .spinner").remove();
-                // Re-add previously checked bugs
-                $.each(checked_bugs, function(i, bug) {
-                    add_bug_checkbox(bug.id, bug.title, true, false);
+            success: function(res) {
+                $("#builds-card .card-body #sidetag-buildlist").empty()
+                $.each(res, function(idx, build) {
+                    $('#sidetag-buildlist').append("<div class='list-group-item'>"+build.nvr+"</div>");
+                    $bugs_search_selectize.load(loadBugs(build.package_name))
                 });
-            },
+                $('select[name="builds"]').attr('disabled', 'disabled')
+                $('select[name="builds"]').empty()
+            }
         });
-    });
+    })
 
-    // Rig it up so that if the user types in a custom value to the 'builds'
-    // field or the 'bugs' field, those things get added to the list of
-    // possibilities.
-    var add_bugs = function() {
-        var value = $("#bugs-adder input").val().trim();
-        $.each(value.split(","), function(i, intermediary) {
-            $.each(intermediary.trim().split(" "), function(j, item) {
-                item = item.trim()
-                if (item[0] == '#') { item = item.substring(1); }
-                add_bug_checkbox(item, '', true, true);
-            });
-        });
-        $("#bugs-adder input").val('');  // Clear the field
-        return false;
-    }
-    var add_builds = function() {
-        var value = $("#builds-adder input").val().trim();
-        $.each(value.split(","), function(i, intermediary) {
-            $.each(intermediary.trim().split(" "), function(j, item) {
-                add_build_checkbox(item.trim(), false, true, true);
-            });
-        });
-        $("#builds-adder input").val('');  // Clear the field
-        return false;
-    }
-
-    // If you press "enter", make it count
-    $("#bugs-adder input").keypress(function (e) {
-        if (e.which == 13) { return add_bugs(); }
-    });
-    $("#builds-adder input").keypress(function (e) {
-        if (e.which == 13) { return add_builds(); }
-    });
-    // If you "tab" away from the input, make it count.
-    $("#bugs-adder input").focusout(function(e) { return add_bugs(); });
-    $("#builds-adder input").focusout(function(e) { return add_builds(); });
-    // Or, if you click the "+" button, make it count
-    $("#bugs-adder button").click(function(e) { return add_bugs(); });
-    $("#builds-adder button").click(function(e) { return add_builds(); });
 
     // Wire up the submit button
     $("#submit").click(function (e) {
@@ -343,8 +285,6 @@ $(document).ready(function() {
 
     // Lastly show the main form
     $("#new-update-form").removeClass('hidden');
-    // and set focus to the packages input
-    $("#packages-search input.typeahead").focus();
 
     update_markdown_preview($("#notes").val());
 

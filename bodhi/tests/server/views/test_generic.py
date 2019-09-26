@@ -16,17 +16,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-from datetime import datetime
 from unittest import mock
 import copy
-import re
 
 import webtest
 
 from bodhi.server import main, util
-from bodhi.server.models import (
-    User, Update, Release, ReleaseState, UpdateStatus, UpdateType)
-from bodhi.server.views import generic
+from bodhi.server.models import (Update, UpdateStatus)
 from bodhi.tests.server import base
 
 
@@ -75,12 +71,14 @@ class TestGenericViews(base.BaseTestCase):
         update = Update.query.first()
         update.critpath = True
         update.status = UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.commit()
 
         res = self.app.get('/', headers={'Accept': 'text/html'})
 
-        self.assertRegex(str(res), ('status=testing&critpath=True.*'
-                         'Latest Critical Path Updates in Need of Testing'))
+        self.assertRegex(str(res), ('status=testing&critpath=True'))
+        self.assertRegex(str(res), ('critical path updates in testing'))
 
     def test_markdown(self):
         res = self.app.get('/markdown', {'text': 'wat'}, status=200)
@@ -336,21 +334,81 @@ class TestGenericViews(base.BaseTestCase):
     def test_candidate(self):
         res = self.app.get('/latest_candidates')
         body = res.json_body
-        self.assertEqual(body, [])
+        self.assertEqual(len(body), 1)
 
         res = self.app.get('/latest_candidates', {'package': 'TurboGears'})
         body = res.json_body
         self.assertEqual(len(body), 1)
         self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
         self.assertEqual(body[0]['id'], 16059)
+        self.assertEqual(body[0]['owner_name'], 'lmacken')
+        self.assertEqual(body[0]['package_name'], 'TurboGears')
+        self.assertEqual(body[0]['release_name'], 'Fedora 17')
 
         res = self.app.get('/latest_candidates', {'package': 'TurboGears', 'testing': True})
         body = res.json_body
         self.assertEqual(len(body), 2)
         self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
         self.assertEqual(body[0]['id'], 16059)
+        self.assertEqual(body[0]['owner_name'], 'lmacken')
+        self.assertEqual(body[0]['package_name'], 'TurboGears')
+        self.assertEqual(body[0]['release_name'], 'Fedora 17')
         self.assertEqual(body[1]['nvr'], 'TurboGears-1.0.2.2-4.fc17')
         self.assertEqual(body[1]['id'], 16060)
+        self.assertEqual(body[1]['owner_name'], 'lmacken')
+        self.assertEqual(body[1]['package_name'], 'TurboGears')
+        self.assertEqual(body[1]['release_name'], 'Fedora 17')
+
+    @mock.patch('bodhi.server.views.generic.log.error')
+    @mock.patch("bodhi.server.buildsys.DevBuildsys.multiCall")
+    def test_candidate_koji_error(self, mock_listTagged, log_error):
+        # if the koji multicall returns errors, it returns a dict in
+        # the main list containing the traceback from koji. e.g. if a
+        # tag that is defined in bodhi doesnt exist on koji. This test
+        # checks that we log this to the bodhi error log.
+
+        error = {'faultcode': 1000, 'traceback': ['Traceback']}
+        mock_listTagged.return_value = [error]
+        self.app.get('/latest_candidates', {'package': 'TurboGears'})
+        # mock_listTagged.assert_called_once()
+        # self.assertEquals(res.json_body, "")
+        # log_error.assert_called()
+        log_error.assert_called_with(error)
+
+    def test_get_sidetags(self):
+        """Test the get_sidetags endpoint."""
+
+        # test without any parameters
+        res = self.app.get('/get_sidetags')
+        body = res.json_body
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]['id'], 7777)
+        self.assertEqual(body[0]['name'], 'f17-build-side-7777')
+        self.assertEqual(len(body[0]['builds']), 1)
+        self.assertEqual(body[0]['builds'][0]['name'], 'gnome-backgrounds')
+
+        # test with a user parameter.
+        # the actual user filtering is done on the koji side, so results
+        # are the same
+        res = self.app.get('/get_sidetags', {'user': 'dudemcpants'})
+        body = res.json_body
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]['id'], 7777)
+        self.assertEqual(body[0]['name'], 'f17-build-side-7777')
+        self.assertEqual(len(body[0]['builds']), 1)
+        self.assertEqual(body[0]['builds'][0]['name'], 'gnome-backgrounds')
+
+    def test_latest_builds_in_tag(self):
+        """Test the latest_builds_in_tag endpoint."""
+
+        # test we get a badrequest error if no tag given
+        self.app.get('/latest_builds_in_tag', status=400)
+
+        # test normal behaviour
+        res = self.app.get('/latest_builds_in_tag', {'tag': 'f17-build-side-7777'})
+        body = res.json_body
+        self.assertEqual(len(body), 1)
+        self.assertEqual(body[0]['name'], 'gnome-backgrounds')
 
     def test_version(self):
         res = self.app.get('/api_version')
@@ -385,10 +443,8 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/updates/new', headers=headers)
         self.assertIn('Creating a new update requires JavaScript', res)
         # Make sure that unspecified comes first, as it should be the default.
-        regex = r''
-        for value in ('unspecified', 'reboot', 'logout'):
-            regex = regex + r'name="suggest" value="{}".*'.format(value)
-        self.assertTrue(re.search(regex, res.body.decode('utf8').replace('\n', ' ')))
+        regex = '<select id="suggest" name="suggest">\\n.*<option value="unspecified"'
+        self.assertRegex(str(res), regex)
 
         # Test that the unlogged in user cannot see the New Update form
         anonymous_settings = copy.copy(self.app_settings)
@@ -405,249 +461,6 @@ class TestGenericViews(base.BaseTestCase):
         """Test the API Version JSON call"""
         res = self.app.get('/api_version')
         self.assertIn(str(util.version()), res)
-
-
-class TestFrontpageView(base.BaseTestCase):
-    def setUp(self, *args, **kwargs):
-        super(TestFrontpageView, self).setUp(*args, **kwargs)
-
-        def _add_updates(updateslist, user, release, packagesuffix):
-            """Private method that adds updates to the database for testing
-
-            """
-            count = 0
-            for i in updateslist:
-                for j in i[1]:
-                    for k in range(0, j[1]):
-                        update = Update(
-                            user=user,
-                            status=i[0],
-                            type=j[0],
-                            notes='Useful details!',
-                            release=release,
-                            date_submitted=datetime(1984, 11, 2),
-                            requirements='rpmlint',
-                            stable_karma=3,
-                            unstable_karma=-3,
-                        )
-                        self.db.add(update)
-                        self.db.flush()
-                        count = count + 1
-
-        user2 = User(name='dudemcpants')
-        self.db.flush()
-        self.db.add(user2)
-
-        release = Release(
-            name='F18', long_name='Fedora 18',
-            id_prefix='FEDORA', version='18',
-            dist_tag='f18', stable_tag='f18-updates',
-            testing_tag='f18-updates-testing',
-            candidate_tag='f18-updates-candidate',
-            pending_signing_tag='f18-updates-testing-signing',
-            pending_testing_tag='f18-updates-testing-pending',
-            pending_stable_tag='f18-updates-pending',
-            override_tag='f18-override',
-            branch='f18', state=ReleaseState.pending)
-        self.db.add(release)
-
-        currentrelease = self.db.query(Release).filter_by(name='F17').one()
-        addedupdates = [[UpdateStatus.pending,
-                         [[UpdateType.security, 5],
-                          [UpdateType.bugfix, 4],
-                          [UpdateType.enhancement, 3],
-                          [UpdateType.newpackage, 2]]],
-                        [UpdateStatus.testing,
-                         [[UpdateType.security, 15],
-                          [UpdateType.bugfix, 14],
-                          [UpdateType.enhancement, 13],
-                          [UpdateType.newpackage, 12]]],
-                        [UpdateStatus.stable,
-                         [[UpdateType.security, 25],
-                          [UpdateType.bugfix, 24],
-                          [UpdateType.enhancement, 23],
-                          [UpdateType.newpackage, 22]]]]
-        _add_updates(addedupdates, user2, currentrelease, "fc17")
-
-        pendingrelease = self.db.query(Release).filter_by(name='F18').one()
-        addedupdates2 = [[UpdateStatus.pending,
-                         [[UpdateType.security, 2],
-                          [UpdateType.bugfix, 2],
-                          [UpdateType.enhancement, 2],
-                          [UpdateType.newpackage, 2]]],
-                         [UpdateStatus.testing,
-                          [[UpdateType.security, 3],
-                           [UpdateType.bugfix, 3],
-                           [UpdateType.enhancement, 3],
-                           [UpdateType.newpackage, 3]]],
-                         [UpdateStatus.stable,
-                          [[UpdateType.security, 4],
-                           [UpdateType.bugfix, 4],
-                           [UpdateType.enhancement, 4],
-                           [UpdateType.newpackage, 4]]]]
-        _add_updates(addedupdates2, user2, pendingrelease, "fc18")
-        self.db.flush()
-        # Clear the caches
-        Release._tag_cache = None
-        generic._generate_home_page_stats.invalidate()
-
-    def test_home_counts(self):
-        """Test the frontpage update counts"""
-        res = self.app.get('/', status=200)
-
-        # Assert that pending updates counts in a current release are displayed properly
-        # Note the bug update count here is one more than what we generate above
-        # because there is already a single update in the test data.
-        self.assertIn("""<div class="front-count-total">
-          <a href="http://localhost/updates/?releases=F17&amp;status=pending">
-          15
-          </a>
-        </div>
-        <h4>updates pending</h4>
-          <a class="text-danger" title="Security updates" data-toggle="tooltip" href=\
-"http://localhost/updates/?releases=F17&amp;status=pending&amp;type=security">
-            <span class="fa fa-shield"></span> 5
-          </a>
-          <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href=\
-"http://localhost/updates/?releases=F17&amp;status=pending&amp;type=bugfix">
-            <span class="fa fa-bug"></span> 5
-          </a>
-          <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href=\
-"http://localhost/updates/?releases=F17&amp;status=pending&amp;type=enhancement">
-            <span class="fa fa-bolt text-success"></span> 3
-          </a>
-          <a class="text-primary" title="New Package updates" data-toggle="tooltip" href=\
-"http://localhost/updates/?releases=F17&amp;status=pending&amp;type=newpackage">
-            <span class="fa fa-archive"></span> 2
-          </a>""", res)
-
-        # Assert that testing updates counts in a current release are displayed properly
-        self.assertIn("""<div class="front-count-total">
-          <a href="http://localhost/updates/?releases=F17&amp;status=testing">
-          54
-          </a>
-          </div>
-        <h4>updates in testing</h4>
-        <a class="text-danger" title="Security updates" data-toggle="tooltip" \
-href="http://localhost/updates/?releases=F17&amp;status=testing&amp;type=security">
-          <span class="fa fa-shield"></span> 15
-        </a>
-        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" \
-href="http://localhost/updates/?releases=F17&amp;status=testing&amp;type=bugfix">
-          <span class="fa fa-bug"></span> 14
-        </a>
-        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" \
-href="http://localhost/updates/?releases=F17&amp;status=testing&amp;type=enhancement">
-          <span class="fa fa-bolt"></span> 13
-        </a>
-        <a class="text-primary" title="New Package updates" data-toggle="tooltip" \
-href="http://localhost/updates/?releases=F17&amp;status=testing&amp;type=newpackage">
-          <span class="fa fa-archive"></span> 12
-        </a>""", res)
-
-        # Assert that stable updates counts in a current release are displayed properly
-        self.assertIn("""<div class="front-count-total">
-          <a href="http://localhost/updates/?releases=F17&amp;status=stable">
-          94
-          </a>
-        </div>
-        <h4>updates in stable</h4>
-        <a class="text-danger" title="Security updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F17&amp;status=stable&amp;type=security">
-        <span class="fa fa-shield"></span> 25
-        </a>
-        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F17&amp;status=stable&amp;type=bugfix">
-        <span class="fa fa-bug"></span> 24
-        </a>
-        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F17&amp;status=stable&amp;type=enhancement">
-        <span class="fa fa-bolt"></span> 23
-        </a>
-        <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F17&amp;status=stable&amp;type=newpackage">
-        <span class="fa fa-archive"></span> 22
-        </a>""", res)
-
-        # Assert that pending updates counts in a pending release are displayed properly
-        self.assertIn("""<div class="front-count-total">
-          <a href="http://localhost/updates/?releases=F18&amp;status=pending">
-          8
-          </a>
-        </div>
-        <h4>updates pending</h4>
-          <a class="text-danger" title="Security updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F18&amp;status=pending&amp;type=security">
-            <span class="fa fa-shield"></span> 2
-          </a>
-          <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F18&amp;status=pending&amp;type=bugfix">
-            <span class="fa fa-bug"></span> 2
-          </a>
-          <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F18&amp;status=pending&amp;type=enhancement">
-            <span class="fa fa-bolt text-success"></span> 2
-          </a>
-          <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F18&amp;status=pending&amp;type=newpackage">
-            <span class="fa fa-archive"></span> 2
-          </a>""", res)
-
-        # Assert that testing updates counts in a pending release are displayed properly
-        self.assertIn("""<div class="front-count-total">
-          <a href="http://localhost/updates/?releases=F18&amp;status=testing">
-          12
-          </a>
-          </div>
-        <h4>updates in testing</h4>
-        <a class="text-danger" title="Security updates" data-toggle="tooltip" \
-href="http://localhost/updates/?releases=F18&amp;status=testing&amp;type=security">
-          <span class="fa fa-shield"></span> 3
-        </a>
-        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" \
-href="http://localhost/updates/?releases=F18&amp;status=testing&amp;type=bugfix">
-          <span class="fa fa-bug"></span> 3
-        </a>
-        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" \
-href="http://localhost/updates/?releases=F18&amp;status=testing&amp;type=enhancement">
-          <span class="fa fa-bolt"></span> 3
-        </a>
-        <a class="text-primary" title="New Package updates" data-toggle="tooltip" \
-href="http://localhost/updates/?releases=F18&amp;status=testing&amp;type=newpackage">
-          <span class="fa fa-archive"></span> 3
-        </a>""", res)
-
-        # Assert that stable updates counts in a pending release are displayed properly
-        self.assertIn("""<div class="front-count-total">
-          <a href="http://localhost/updates/?releases=F18&amp;status=stable">
-          16
-          </a>
-        </div>
-        <h4>updates in stable</h4>
-        <a class="text-danger" title="Security updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F18&amp;status=stable&amp;type=security">
-        <span class="fa fa-shield"></span> 4
-        </a>
-        <a class="text-warning" title="Bugfix updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F18&amp;status=stable&amp;type=bugfix">
-        <span class="fa fa-bug"></span> 4
-        </a>
-        <a class="text-success" title="Enhancement updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F18&amp;status=stable&amp;type=enhancement">
-        <span class="fa fa-bolt"></span> 4
-        </a>
-        <a class="text-primary" title="New Package updates" data-toggle="tooltip" href="\
-http://localhost/updates/?releases=F18&amp;status=stable&amp;type=newpackage">
-        <span class="fa fa-archive"></span> 4
-        </a>""", res)
-
-        # Assert that the title for a pending release has the "prerelease" label
-        self.assertIn("""      <h3>
-        <a class="notblue" href="http://localhost/releases/F18">
-  Fedora 18
-        </a>
-          <span class="badge badge-secondary">prerelease</span>
-      </h3>""", res)
 
 
 class TestNotfoundView(base.BaseTestCase):

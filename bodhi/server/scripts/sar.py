@@ -76,7 +76,7 @@ def get_user_data(username, human_readable):
         user = models.User.query.filter_by(name=username).one()
     except sqlalchemy.orm.exc.NoResultFound:
         if human_readable:
-            click.echo("User not found.")
+            click.echo("User not found.", err=True)
         sys.exit(0)
 
     sar_data[user.name] = {}

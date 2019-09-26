@@ -614,6 +614,8 @@ class TestCommentsService(base.BaseTestCase):
         up.request = None
         self.assertEqual(len(up.comments), 0)  # Before
         self.assertEqual(up.karma, 0)          # Before
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.flush()
 
         comment = self.make_comment(up2, karma=1)
@@ -635,6 +637,8 @@ class TestCommentsService(base.BaseTestCase):
         up.unstable_karma = -1
         self.assertEqual(len(up.comments), 0)  # Before
         self.assertEqual(up.karma, 0)          # Before
+        # Clear pending messages
+        self.db.info['messages'] = []
         self.db.flush()
 
         comment = self.make_comment(up2, karma=-1)

@@ -237,6 +237,39 @@ class TestMain(BaseTestCase):
             [call(release.name), call('Removing f17-updates-testing from bodhi-2.0-1.fc17')])
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
+    @patch('bodhi.server.models.buildsys.get_session')
+    @patch('bodhi.server.scripts.untag_branched.get_appsettings', return_value={'some': 'settings'})
+    @patch('bodhi.server.scripts.untag_branched.initialize_db')
+    @patch('bodhi.server.scripts.untag_branched.logging.getLogger')
+    @patch('bodhi.server.scripts.untag_branched.setup_logging')
+    def test_testing_tag_present_update_too_new(self, setup_logging, getLogger, initialize_db,
+                                                get_appsettings, get_session):
+        """The testing tag should stay if update is too new."""
+        log = getLogger.return_value
+        koji = get_session.return_value
+        release = models.Release.query.first()
+        release.state = models.ReleaseState.pending
+        update = models.Update.query.filter_by(release=release).first()
+        update.date_stable = datetime.utcnow()
+        update.status = models.UpdateStatus.stable
+        # The testing tag is present and should stay.
+        koji.listTags.return_value = [{'name': 'f17-updates-testing'}, {'name': 'f17'}]
+        self.db.flush()
+
+        untag_branched.main(['untag_branched', 'some_config_path'])
+
+        setup_logging.assert_called_once_with()
+        initialize_db.assert_called_once_with({'some': 'settings'})
+        get_appsettings.assert_called_once_with('some_config_path')
+        # Nothing should have been untagged
+        self.assertEqual(koji.untagBuild.call_count, 0)
+        # No errors should have been logged
+        self.assertEqual(log.error.call_count, 0)
+        # The Release name should have been logged
+        log.info.assert_called_once_with(release.name)
+        # There should have been no attempts to list the tags
+        self.assertEqual(koji.listTags.call_count, 0)
+
     @patch('sys.exit')
     @patch('sys.stdout', new_callable=StringIO)
     def test_usage(self, stdout, exit):

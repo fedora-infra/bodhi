@@ -7,6 +7,9 @@ LABEL \
 
 # For integration testing we're using the infrastructure repo
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
+# work around https://bugzilla.redhat.com/show_bug.cgi?id=1699396
+RUN rpm --import "$(awk -F= '{if ($0 ~ "gpgkey *=") {print $2;}}' < /etc/yum.repos.d/infra-tags.repo)"
+
 RUN dnf upgrade -y
 
 # Install Bodhi deps (that were not needed by the unittests container)
@@ -16,11 +19,13 @@ RUN dnf install -y \
     python3-koji \
     /usr/bin/koji \
     python3-mod_wsgi \
+    python3-pip \
     python3-dnf \
     skopeo
 
 # Mimic RPM's handling of Python3-specific binaries
 RUN ln -s alembic /usr/local/bin/alembic-3
+RUN ln -s celery /usr/local/bin/celery-3
 
 # Create bodhi user
 RUN groupadd -r bodhi && \
@@ -31,13 +36,21 @@ RUN python3 setup.py build && pip3 install .
 
 # Configuration
 RUN mkdir -p /etc/bodhi
-COPY production.ini /etc/bodhi/production.ini
+COPY devel/ci/integration/bodhi/production.ini /etc/bodhi/production.ini
+COPY devel/ci/integration/bodhi/celeryconfig.py /etc/bodhi/celeryconfig.py
 
 COPY devel/ci/integration/bodhi/start.sh /etc/bodhi/start.sh
 COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml
 COPY devel/ci/integration/bodhi/httpd.conf /etc/bodhi/httpd.conf
 COPY apache/bodhi.wsgi /etc/bodhi/bodhi.wsgi
 RUN sed -i -e 's,/var/www,/httpdir,g' /etc/bodhi/bodhi.wsgi
+COPY devel/ci/integration/bodhi/fedora-messaging.toml /etc/fedora-messaging/config.toml
+# Composes
+COPY devel/ci/integration/bodhi/pungi-call-dump.sh /etc/bodhi/pungi-call-dump.sh
+COPY devel/ci/integration/bodhi/pungi.rpm.conf.j2 /etc/bodhi/pungi.rpm.conf.j2
+COPY devel/ci/integration/bodhi/pungi.module.conf.j2 /etc/bodhi/pungi.module.conf.j2
+COPY devel/ci/integration/bodhi/variants.rpm.xml.j2 /etc/bodhi/variants.rpm.xml.j2
+COPY devel/ci/integration/bodhi/variants.module.xml.j2 /etc/bodhi/variants.module.xml.j2
 
 RUN \
 # Set up krb5
@@ -47,6 +60,10 @@ RUN \
 
 # Apache
 RUN mkdir -p /httpdir && chown bodhi:bodhi /httpdir
+# Celery results
+RUN mkdir -p /srv/celery-results && chown -R bodhi:bodhi /srv/celery-results
+# Composes
+RUN mkdir -p /srv/composes/final /srv/composes/stage && chown -R bodhi:bodhi /srv/composes
 
 EXPOSE 8080
 USER bodhi

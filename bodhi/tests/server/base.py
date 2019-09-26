@@ -144,7 +144,7 @@ class BaseTestCaseMixin:
     def _setup_method(self):
         """Set up Bodhi for testing."""
         # Ensure "cached" objects are cleared before each test.
-        models.Release._all_releases = None
+        models.Release.clear_all_releases_cache()
         models.Release._tag_cache = None
 
         if engine is None:
@@ -293,7 +293,7 @@ class BaseTestCaseMixin:
             package_manager=models.PackageManager.unspecified,
             testing_repository=None)
         self.db.add(release)
-        models.Release._all_releases = None
+        models.Release.clear_all_releases_cache()
         models.Release._tag_cache = None
         self.db.flush()
         return release

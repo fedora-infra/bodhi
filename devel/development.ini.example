@@ -58,7 +58,19 @@ openid.url = https://id.stg.fedoraproject.org/
 openid_template = {username}.id.stg.fedoraproject.org
 # The cache warming is annoying during development because it takes so long. Let's disable it by default.
 warm_cache_on_start = false
+# Celery configuration file
+celery_config = %(here)s/celeryconfig.py
+# Composes
+compose_dir = /srv/composes/final
+compose_stage_dir = /srv/composes/stage
+pungi.basepath = %(here)s/devel/ci/integration/bodhi/
+pungi.conf.rpm = pungi.rpm.conf.j2
+pungi.conf.module = pungi.module.conf.j2
 
+test_gating.required = True
+# WaiverDB and Greenwave in vagrant are provided via docker local services
+waiverdb_api_url = http://bodhi_user:pass@localhost:6544/api/v1.0
+greenwave_api_url = http://localhost:6545/api/v1.0
 
 [server:main]
 use = egg:waitress#main
@@ -70,7 +82,7 @@ m = bodhi.server.models
 s = bodhi.server.Session
 
 [loggers]
-keys = root, bodhi, sqlalchemy, fedora_messaging
+keys = root, bodhi, sqlalchemy, fedora_messaging, celery, celery_worker_job
 
 [handlers]
 keys = console
@@ -96,6 +108,17 @@ qualname = fedora_messaging
 level = WARN
 handlers =
 qualname = sqlalchemy.engine
+
+[logger_celery]
+level = INFO
+handlers =
+qualname = celery
+
+[logger_celery_worker_job]
+level = ERROR
+handlers =
+qualname = celery.worker.job
+propagate = 1
 
 [handler_console]
 class = StreamHandler

@@ -1,4 +1,4 @@
-# Copyright © 2013-2017 Red Hat, Inc. and others.
+# Copyright © 2013-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """A collection of authentication and authorization functions and classes."""
+import typing
 
 from cornice.errors import Errors
 from pyramid.security import (Allow, ALL_PERMISSIONS, DENY_ALL)
@@ -26,6 +27,10 @@ from pyramid.threadlocal import get_current_registry
 from . import log
 from .models import User, Group
 
+if typing.TYPE_CHECKING:  # pragma: no cover
+    import pyramid.request.Request  # noqa: 401
+    import mako.runtime.Context  # noqa: 401
+
 
 #
 # Pyramid ACL factories
@@ -33,13 +38,13 @@ from .models import User, Group
 class ACLFactory(object):
     """Define an ACL factory base class to share the __init__()."""
 
-    def __init__(self, request, context=None):
+    def __init__(self, request: 'pyramid.request.Request', context: None = None):
         """
         Initialize the Factory.
 
         Args:
-            request (pyramid.request.Request): The current request.
-            context (object): The request's context (unused).
+            request: The current request.
+            context: The request's context (unused).
         """
         self.request = request
 
@@ -47,12 +52,12 @@ class ACLFactory(object):
 class AdminACLFactory(ACLFactory):
     """Define the ACLs for the admin only views below."""
 
-    def __acl__(self):
+    def __acl__(self) -> list:
         """
         Generate our admin-only ACL.
 
         Returns:
-            list: A list of ACLs that allow all permissions for the admin_groups defined in
+            A list of ACLs that allow all permissions for the admin_groups defined in
                 settings.
         """
         return [(Allow, 'group:' + group, ALL_PERMISSIONS) for group in
@@ -63,12 +68,12 @@ class AdminACLFactory(ACLFactory):
 class PackagerACLFactory(ACLFactory):
     """Define an ACL factory for packagers."""
 
-    def __acl__(self):
+    def __acl__(self) -> list:
         """
         Generate an ACL for update submission.
 
         Returns:
-            list: A list of ACLs that allow all permissions for the mandatory_packager_groups
+            A list of ACLs that allow all permissions for the mandatory_packager_groups
                 defined in settings.
         """
         groups = self.request.registry.settings['mandatory_packager_groups']
@@ -81,14 +86,14 @@ class PackagerACLFactory(ACLFactory):
 # OpenID views
 #
 
-def login(request):
+def login(request: 'pyramid.request.Request') -> HTTPFound:
     """
     Redirect the user to the OpenID provider to perform a login.
 
     Args:
-        request (pyramid.request.Request): The current request.
+        request: The current request.
     Returns:
-        pyramid.httpexceptions.HTTPFound: A 302 redirect to the OpenID provider.
+        A 302 redirect to the OpenID provider.
     """
     login_url = request.route_url('login')
     referrer = request.url
@@ -101,21 +106,22 @@ def login(request):
                                                 _query=dict(openid=oid_url)))
 
 
-def logout(request):
+def logout(request: 'pyramid.request.Request') -> HTTPFound:
     """
     Log out the user.
 
     Args:
-        request (pyramid.request.Request): The current request, which is used to remove the user's
+        request: The current request, which is used to remove the user's
             authentication cookies.
     Returns:
-        pyramid.httpexceptions.HTTPFound: A 302 redirect to the home page.
+        A 302 redirect to the home page.
     """
     headers = forget(request)
     return HTTPFound(location=request.route_url('home'), headers=headers)
 
 
-def remember_me(context, request, info, *args, **kw):
+def remember_me(context: 'mako.runtime.Context', request: 'pyramid.request.Request',
+                info: dict, *args, **kw) -> HTTPFound:
     """
     Remember information about a newly logged in user given by the OpenID provider.
 
@@ -123,15 +129,15 @@ def remember_me(context, request, info, *args, **kw):
     login.
 
     Args:
-        context (mako.runtime.Context): The current template rendering context. Unused.
-        request (pyramid.request.Request): The current request.
-        info (dict): The information passed to Bodhi from the OpenID provider about the
+        context: The current template rendering context. Unused.
+        request: The current request.
+        info: The information passed to Bodhi from the OpenID provider about the
             authenticated user. This includes things like the user's username, e-mail address and
             groups.
-        args (list): A list of additional positional parameters. Unused.
-        kw (dict): A dictionary of additional keyword parameters. Unused.
+        args: A list of additional positional parameters. Unused.
+        kw: A dictionary of additional keyword parameters. Unused.
     Returns:
-        pyramid.httpexceptions.HTTPFound: A 302 redirect to the URL the user was visiting before
+        A 302 redirect to the URL the user was visiting before
             they clicked login, or home if they have not used a valid OpenID provider.
     """
     log.debug('remember_me(%s)' % locals())
@@ -143,7 +149,7 @@ def remember_me(context, request, info, *args, **kw):
                               request.registry.settings['openid.provider'])
         return HTTPFound(location=request.route_url('home'))
 
-    username = str(info['identity_url'].split('http://')[1].split('.')[0])
+    username = info['sreg']['nickname']
     email = info['sreg']['email']
     log.debug('remember_me: groups = %s' % info['groups'])
     log.info('%s successfully logged in' % username)
@@ -214,12 +220,12 @@ class CorsOrigins(object):
         ['bodhi.fedoraproject.org']
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         """
         Initialize the CorsOrigins object.
 
         Args:
-            name (str): The name of the setting for the CORS config.
+            name: The name of the setting for the CORS config.
         """
         self.name = name
         self.origins = None
@@ -230,49 +236,49 @@ class CorsOrigins(object):
             settings = get_current_registry().settings
             self.origins = settings.get(self.name, 'localhost').split(',')
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Return the number of items in the CORS list.
 
         Returns:
-            int: The number of items in the CORS list.
+            The number of items in the CORS list.
         """
         if self.origins is None:
             self.initialize()
         return len(self.origins)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: object) -> object:
         """
         Define the [] operator.
 
         Args:
-            key (object): The key of the object being accessed.
+            key: The key of the object being accessed.
         Returns:
-            object: The value referenced by the key.
+            The value referenced by the key.
         """
         if self.origins is None:
             self.initialize()
         return self.origins[key]
 
-    def __iter__(self):
+    def __iter__(self) -> typing.Iterator:
         """
         Iterate the CORS config.
 
         Returns:
-            iterator: An iterator over the list of items.
+            An iterator over the list of items.
         """
         if self.origins is None:
             self.initialize()
         return iter(self.origins)
 
-    def __contains__(self, item):
+    def __contains__(self, item: object) -> bool:
         """
         Define the 'in' operator.
 
         Args:
-            item (object): The item to look for in the list.
+            item: The item to look for in the list.
         Returns:
-            bool: True if item is in the CORS config, False if not.
+            True if item is in the CORS config, False if not.
         """
         if self.origins is None:
             self.initialize()
@@ -292,12 +298,12 @@ class ProtectedRequest(object):
     object behaves just like a normal request object.
     """
 
-    def __init__(self, real_request):
+    def __init__(self, real_request: 'pyramid.request.Request'):
         """
         Initialize the object to look a lot like the real_request, but hiding the errors.
 
         Args:
-            real_request (pyramid.request.Request): The request we are trying to mimic, while hiding
+            real_request: The request we are trying to mimic, while hiding
                 its errors.
         """
         # Hide errors added to this from the real request

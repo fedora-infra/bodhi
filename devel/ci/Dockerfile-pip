@@ -35,7 +35,7 @@ RUN pip-3 install \
     flake8 \
     flake8-import-order \
     responses \
-    pydocstyle \
+    "pydocstyle<4.0" \
     pytest \
     pytest-cov \
     "sphinx<2.1" \

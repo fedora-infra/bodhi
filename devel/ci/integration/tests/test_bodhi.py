@@ -49,18 +49,17 @@ compose_state_mapping = {
 
 def test_get_root(bodhi_container, db_container):
     """Test ``/`` path"""
-    # Fetch releases from DB
+    # Fetch number of critpath updates in testing from DB
     query = (
-        "SELECT long_name "
-        "FROM releases "
-        "WHERE state = 'pending' OR state = 'current'"
-    )
+        "SELECT * "
+        "FROM updates "
+        "WHERE status = 'testing' AND critpath")
     db_ip = db_container.get_IPv4s()[0]
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
     with conn:
         with conn.cursor() as curs:
             curs.execute(query)
-            expected_releases = [r[0] for r in curs]
+            critpath_count = len(curs.fetchall())
     conn.close()
 
     # GET on /
@@ -70,9 +69,8 @@ def test_get_root(bodhi_container, db_container):
 
     try:
         assert http_response.ok
-        assert "Fedora Update System" in http_response.text
-        for release_long_name in expected_releases:
-            assert release_long_name in http_response.text
+        assert "Fedora Updates System" in http_response.text
+        assert str(critpath_count) in http_response.text
     except AssertionError:
         print(http_response)
         print(http_response.text)
@@ -243,7 +241,15 @@ def test_get_updates_view(bodhi_container, db_container):
                 curs.execute(query_builds, (update_id, ))
                 builds_nvrs = [row[0] for row in curs]
                 builds_nvrs.sort()
-                expected_updates_titles.append(" ".join(builds_nvrs))
+                if len(builds_nvrs) > 2:
+                    title = ", ".join(builds_nvrs[:2])
+                    title += ", &amp; "
+                    title += str(len(builds_nvrs) - 2)
+                    title += " more"
+                    expected_updates_titles.append(title)
+                else:
+                    expected_updates_titles.append(" and ".join(builds_nvrs))
+
     conn.close()
 
     # GET on /updates
@@ -254,9 +260,6 @@ def test_get_updates_view(bodhi_container, db_container):
     try:
         assert http_response.ok
         for update_titile in expected_updates_titles:
-            max_length = 70
-            if len(update_titile) > max_length:
-                update_titile = update_titile[:max_length] + "..."
             assert update_titile in http_response.text
     except AssertionError:
         print(http_response)
@@ -321,17 +324,20 @@ def test_get_update_view(bodhi_container, db_container):
         assert update_info['alias'] in http_response.text
         assert update_info['status'] in http_response.text
         assert update_info['type'] in http_response.text
-        assert update_info['severity'] in http_response.text
+        if update_info['severity'] and update_info['severity'] != 'unspecified':
+            assert update_info['severity'] in http_response.text
         assert update_info['username'] in http_response.text
         assert content_type_mapping[update_info['content_type']] in http_response.text
-        assert f"stable threshold: {update_info['stable_karma']}" in http_response.text
-        assert f"unstable threshold: {update_info['unstable_karma']}" in http_response.text
+        assert (f"The update will be marked as unstable"
+                f" when karma reaches {update_info['unstable_karma']}") in http_response.text
         if update_info['request']:
             assert update_info['request'] in http_response.text
         if update_info['autokarma']:
-            assert "Enabled" in http_response.text
+            assert "Stable by Karma" in http_response.text
+            assert (f"The update will be automatically pushed to stable"
+                    f" when karma reaches {update_info['stable_karma']}") in http_response.text
         else:
-            assert "Disabled" in http_response.text
+            assert "Stable by Karma" not in http_response.text
         if update_info['locked']:
             assert "Locked" in http_response.text
         if update_info['suggest'] == "reboot":
@@ -375,8 +381,7 @@ def test_get_user_view(bodhi_container, db_container):
         assert http_response.ok
         assert f"{username}'s latest updates" in http_response.text
         assert f"{username}'s latest buildroot overrides" in http_response.text
-        assert "Feedback received on updates" in http_response.text
-        assert "Feedback sent on updates" in http_response.text
+        assert f"{username}'s latest comments & feedback" in http_response.text
     except AssertionError:
         print(http_response)
         print(http_response.text)
@@ -607,6 +612,7 @@ def test_get_builds_json(bodhi_container, db_container):
         "  epoch "
         "FROM builds "
         "WHERE update_id = %s"
+        "ORDER BY nvr ASC"
     )
     db_ip = db_container.get_IPv4s()[0]
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
@@ -695,7 +701,8 @@ def test_get_compose_json(bodhi_container, db_container):
         "SELECT "
         "  id, "
         "  alias, "
-        "  type "
+        "  type, "
+        "  display_name "
         "FROM updates "
         "WHERE release_id = %s AND locked = TRUE AND request = %s "
         "ORDER BY date_submitted "
@@ -729,7 +736,10 @@ def test_get_compose_json(bodhi_container, db_container):
             updates = []
             rows = curs.fetchall()
             for row in rows:
-                updates.append({'id': row[0], 'alias': row[1], 'type': row[2], 'builds': []})
+                updates.append({
+                    'id': row[0], 'alias': row[1], 'type': row[2], 'display_name': row[3],
+                    'builds': []
+                })
             for update in updates:
                 curs.execute(query_builds, (update['id'], ))
                 for row in curs.fetchall():
@@ -763,7 +773,10 @@ def test_get_compose_json(bodhi_container, db_container):
             update_builds += suffix
         else:
             update_builds = " and ".join([b['nvr'] for b in update['builds']])
-        compose['update_summary'].append({'alias': update['alias'], 'title': update_builds})
+        compose['update_summary'].append({
+            'alias': update['alias'],
+            'title': update['display_name'] or update_builds
+        })
 
     try:
         assert http_response.ok
@@ -850,7 +863,8 @@ def test_get_compose_view(bodhi_container, db_container):
     query_updates = (
         "SELECT "
         "  id, "
-        "  type "
+        "  type, "
+        "  display_name "
         "FROM updates "
         "WHERE release_id = %s AND locked = TRUE AND request = %s "
         "ORDER BY date_submitted "
@@ -883,7 +897,9 @@ def test_get_compose_view(bodhi_container, db_container):
             updates = []
             rows = curs.fetchall()
             for row in rows:
-                updates.append({'id': row[0], 'type': row[1], 'builds': []})
+                updates.append({
+                    'id': row[0], 'type': row[1], 'display_name': row[2], 'builds': []
+                })
             for update in updates:
                 curs.execute(query_builds, (update['id'], ))
                 for row in curs.fetchall():
@@ -915,12 +931,12 @@ def test_get_compose_view(bodhi_container, db_container):
     for update in updates:
         if len(update['builds']) > 2:
             builds_left = len(update['builds']) - 2
-            suffix = f", and {builds_left} more"
+            suffix = f", &amp; {builds_left} more"
             update_builds = ", ".join([b['nvr'] for b in update['builds'][:2]])
             update_builds += suffix
         else:
             update_builds = " and ".join([b['nvr'] for b in update['builds']])
-        compose['updates'].append({'title': update_builds})
+        compose['updates'].append({'title': update["display_name"] or update_builds})
 
     try:
         assert http_response.ok

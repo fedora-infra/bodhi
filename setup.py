@@ -38,7 +38,7 @@ def get_requirements(requirements_file='requirements.txt'):
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-VERSION = '4.1.0'
+VERSION = '4.1.1'
 # Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
 CLASSIFIERS = [
     'Development Status :: 5 - Production/Stable',
@@ -154,7 +154,6 @@ setup(
                 "bodhi.messages.schemas.buildroot_override:BuildrootOverrideUntagV1"
             ),
             "bodhi.errata.publish.v1=bodhi.messages.schemas.errata:ErrataPublishV1",
-            "bodhi.composer.start.v1=bodhi.messages.schemas.composer:ComposerStartV1",
             "bodhi.compose.complete.v1=bodhi.messages.schemas.compose:ComposeCompleteV1",
             "bodhi.compose.composing.v1=bodhi.messages.schemas.compose:ComposeComposingV1",
             "bodhi.compose.start.v1=bodhi.messages.schemas.compose:ComposeStartV1",
@@ -169,6 +168,10 @@ setup(
             (
                 "bodhi.update.complete.testing.v1="
                 "bodhi.messages.schemas.update:UpdateCompleteTestingV1"
+            ),
+            (
+                "bodhi.update.status.testing.v1="
+                "bodhi.messages.schemas.update:UpdateReadyForTestingV1"
             ),
             "bodhi.update.edit.v1=bodhi.messages.schemas.update:UpdateEditV1",
             "bodhi.update.eject.v1=bodhi.messages.schemas.update:UpdateEjectV1",

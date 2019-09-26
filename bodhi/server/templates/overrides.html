@@ -6,26 +6,47 @@ def inherit(context):
 %>
 <%inherit file="${inherit(context)}"/>
 
-<%namespace name="tables" file="tables.html"/>
+<%namespace name="fragments" file="fragments.html"/>
 
 <link rel="alternate" type="application/atom+xml" title="New Buildroot Overrides" href="${request.route_url('overrides_rss') + '?' + request.query_string}"/>
 
 % if chrome:
+<div class="subheader py-3">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h2>Overrides</h2>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container pt-4">
 <div class="row">
   <div class="col-md-12">
-    <h3>Overrides <small>page #${page} of ${pages} pages
-      % if page == 1:
-      <a href="${request.route_url('overrides_rss') + '?' + request.query_string}">
-        <span class="fa fa-rss"></span>
-      </a>
-      % endif
-      </small>
-    </h3>
-    ${self.pager.render(page, pages)}
-% endif
-    ${tables.overrides(overrides, display_user)}
+%endif
+      <div class="list-group">
+        %if chrome:
+          <div class="list-group-item bg-light d-flex font-weight-bold">
+            ${total} Overrides
+            % if page == 1:
+            <a class="ml-1" href="${request.route_url('overrides_rss') + '?' + request.query_string}">
+              <span class="fa fa-rss"></span>
+            </a>
+            % endif
+          </div>
+        % endif
+  % for override in overrides:
+    ${fragments.override(override, display_user)}
+  %endfor
+
 % if chrome:
-    ${self.pager.render(page, pages)}
+<div class="list-group-item bg-light">
+    %if pages > 1:
+      ${self.pager.render(page, pages)}
+    %endif
   </div>
+    </div>
+  </div>
+</div>
 </div>
 % endif

@@ -21,7 +21,7 @@ from fedora_messaging.api import Message
 from fedora_messaging.exceptions import Nack
 
 from bodhi.server import config
-from bodhi.server.consumers import composer, Consumer, signed, updates
+from bodhi.server.consumers import Consumer, HandlerInfo, signed
 from bodhi.tests.server import base
 
 
@@ -36,69 +36,45 @@ class TestConsumer(base.BaseTestCase):
     @mock.patch('bodhi.server.consumers.buildsys.setup_buildsystem')
     @mock.patch('bodhi.server.consumers.initialize_db')
     @mock.patch('bodhi.server.consumers.log.info')
-    def test__init___with_composer(self, info, initialize_db, setup_buildsystem, set_bugtracker):
-        """Test the __init__() method when the composer is installed."""
+    def test__init___(self, info, initialize_db, setup_buildsystem, set_bugtracker):
+        """Test the __init__() method."""
         consumer = Consumer()
 
-        self.assertTrue(isinstance(consumer.composer_handler, composer.ComposerHandler))
-        self.assertTrue(isinstance(consumer.signed_handler, signed.SignedHandler))
-        self.assertTrue(isinstance(consumer.updates_handler, updates.UpdatesHandler))
+        self.assertTrue(any(x.name == 'Signed' and isinstance(x.handler, signed.SignedHandler)
+                            for x in consumer.handler_infos))
         info.assert_called_once_with('Initializing Bodhi')
         initialize_db.assert_called_once_with(config.config)
         setup_buildsystem.assert_called_once_with(config.config)
         set_bugtracker.assert_called_once_with()
 
-    @mock.patch('bodhi.server.consumers.bugs.set_bugtracker')
-    @mock.patch('bodhi.server.consumers.buildsys.setup_buildsystem')
-    @mock.patch('bodhi.server.consumers.ComposerHandler', None)
-    @mock.patch('bodhi.server.consumers.initialize_db')
-    @mock.patch('bodhi.server.consumers.log.info')
-    def test__init___without_composer(self, info, initialize_db, setup_buildsystem, set_bugtracker):
-        """Test the __init__() method when the composer is not installed."""
+    @mock.patch('bodhi.server.consumers.log.exception')
+    def test_messaging_callback_exception(self, error):
+        """Test catching an exception when processing messages."""
+        msg = Message(
+            topic="org.fedoraproject.prod.buildsys.tag",
+            body={}
+        )
+
         consumer = Consumer()
 
-        self.assertIsNone(consumer.composer_handler)
-        self.assertTrue(isinstance(consumer.signed_handler, signed.SignedHandler))
-        self.assertTrue(isinstance(consumer.updates_handler, updates.UpdatesHandler))
-        self.assertEqual(
-            info.mock_calls,
-            [mock.call('Initializing Bodhi'),
-             mock.call('The composer is not installed - Bodhi will ignore composer.start '
-                       'messages.')])
-        initialize_db.assert_called_once_with(config.config)
-        setup_buildsystem.assert_called_once_with(config.config)
-        set_bugtracker.assert_called_once_with()
+        with mock.patch.object(
+            consumer, 'handler_infos',
+            [HandlerInfo('.buildsys.tag', 'Automatic Update', mock.Mock())],
+        ) as handler_infos:
+            with self.assertRaises(Nack) as exc:
+                handler_infos[0].handler.side_effect = Exception("Something bad happened")
+                consumer(msg)
 
-    @mock.patch('bodhi.server.consumers.ComposerHandler')
-    def test_messaging_callback_composer_installed(self, Handler):
-        """Test receiving a composer.start message when the composer is installed."""
-        msg = Message(
-            topic="org.fedoraproject.prod.bodhi.composer.start",
-            body={}
-        )
-        handler = mock.Mock()
-        Handler.side_effect = lambda: handler
+            logmsg = (f"Something bad happened: Unable to handle message in "
+                      f"{consumer.handler_infos[-1].name} handler: {msg}")
+            error.assert_called_with(logmsg)
 
-        Consumer()(msg)
+            excmsg = (f"Unable to (fully) handle message.\nAffected handlers:\n"
+                      + "".join(f"\t{hi.name}: Something bad happened\n"
+                                for hi in consumer.handler_infos)
+                      + "Message:\n{msg}")
 
-        handler.assert_called_once_with(msg)
-
-    @mock.patch('bodhi.server.consumers.ComposerHandler', None)
-    @mock.patch('bodhi.server.consumers.log.exception')
-    def test_messaging_callback_composer_not_installed(self, error):
-        """Test receiving a composer.start message when the composer is not installed."""
-        msg = Message(
-            topic="org.fedoraproject.prod.bodhi.composer.start",
-            body={}
-        )
-
-        with self.assertRaises(Nack) as exc:
-            Consumer()(msg)
-
-        msg = ('Unable to process composer.start message topics because the Composer is not '
-               f'installed: Unable to handle message: {msg}')
-        error.assert_called_once_with(msg)
-        self.assertEqual(str(exc.exception), msg)
+            self.assertEqual(str(exc.exception), excmsg)
 
     @mock.patch('bodhi.server.consumers.AutomaticUpdateHandler')
     @mock.patch('bodhi.server.consumers.SignedHandler')
@@ -120,32 +96,6 @@ class TestConsumer(base.BaseTestCase):
 
         signed_handler.assert_called_once_with(msg)
         automatic_update_handler.assert_called_once_with(msg)
-
-    @mock.patch('bodhi.server.consumers.UpdatesHandler')
-    def test_messaging_callback_updates_testing(self, Handler):
-        msg = Message(
-            topic="org.fedoraproject.prod.bodhi.update.request.testing",
-            body={}
-        )
-        handler = mock.Mock()
-        Handler.side_effect = lambda: handler
-
-        Consumer()(msg)
-
-        handler.assert_called_once_with(msg)
-
-    @mock.patch('bodhi.server.consumers.UpdatesHandler')
-    def test_messaging_callback_updates_edit(self, Handler):
-        msg = Message(
-            topic="org.fedoraproject.prod.bodhi.update.edit",
-            body={}
-        )
-        handler = mock.Mock()
-        Handler.side_effect = lambda: handler
-
-        Consumer()(msg)
-
-        handler.assert_called_once_with(msg)
 
     @mock.patch('bodhi.server.consumers.GreenwaveHandler')
     def test_messaging_callback_greenwave(self, Handler):

@@ -17,14 +17,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 from xml.etree import ElementTree
 from unittest import mock
+import gzip
 import os
 import shutil
 import subprocess
 import tempfile
 import unittest
 
+import bleach
+import pkg_resources
+import pytest
+
 from bodhi.server import util, models
 from bodhi.server.config import config
+from bodhi.server.exceptions import RepodataException
 from bodhi.server.models import ComposeState, TestGatingStatus, Update
 from bodhi.tests.server import base
 
@@ -61,7 +67,8 @@ class TestAvatar(unittest.TestCase):
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
         self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'cool url')
-        libravatar_url.assert_called_once_with(openid='http://bowlofeggs.id.fedoraproject.org/',
+        openid_user_host = config['openid_template'].format(username='bowlofeggs')
+        libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
                                                https=False, size=50, default='retro')
 
     @mock.patch.dict(
@@ -80,7 +87,8 @@ class TestAvatar(unittest.TestCase):
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
         self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'cool url')
-        libravatar_url.assert_called_once_with(openid='http://bowlofeggs.id.fedoraproject.org/',
+        openid_user_host = config['openid_template'].format(username='bowlofeggs')
+        libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
                                                https=True, size=50, default='retro')
 
 
@@ -96,8 +104,8 @@ class TestBugLink(base.BaseTestCase):
 
         self.assertEqual(
             link,
-            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
-             "#1234567</a> Lucky bug number"))
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
+             "class='notblue'>BZ#1234567</a> Lucky bug number"))
 
     def test_short_false_with_title_sanitizes_safe_tags(self):
         """
@@ -110,10 +118,10 @@ class TestBugLink(base.BaseTestCase):
 
         link = util.bug_link(None, bug)
 
-        self.assertTrue(
-            link.startswith(
-                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
-                 "#1234567</a> Check &lt;b&gt;this&lt;/b&gt; out")))
+        self.assertEqual(
+            link,
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
+             "class='notblue'>BZ#1234567</a> Check &lt;b&gt;this&lt;/b&gt; out"))
 
     def test_short_false_with_title_sanitizes_unsafe_tags(self):
         """
@@ -125,11 +133,22 @@ class TestBugLink(base.BaseTestCase):
         bug.title = '<disk> <driver name="..."> should be optional'
 
         link = util.bug_link(None, bug)
-
-        self.assertTrue(
-            link.startswith(
-                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091'>"
-                 "#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should be optional")))
+        # bleach v3 fixed a bug that closed out tags when sanitizing. so we check for
+        # either possible results here.
+        # https://github.com/mozilla/bleach/issues/392
+        bleach_v = pkg_resources.parse_version(bleach.__version__)
+        if bleach_v >= pkg_resources.parse_version('3.0.0'):
+            self.assertEqual(
+                link,
+                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091' "
+                 "class='notblue'>BZ#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should "
+                 "be optional"))
+        else:
+            self.assertEqual(
+                link,
+                ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091' "
+                 "class='notblue'>BZ#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should "
+                 "be optional&lt;/driver&gt;&lt;/disk&gt;"))
 
     def test_short_false_without_title(self):
         """Test a call to bug_link() with short=False on a Bug that has no title."""
@@ -141,8 +160,8 @@ class TestBugLink(base.BaseTestCase):
 
         self.assertEqual(
             link,
-            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
-             "#1234567</a> <img class='spinner' src='static/img/spinner.gif'>"))
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
+             "class='notblue'>BZ#1234567</a> <i class='fa fa-spinner fa-spin fa-fw'></i>"))
 
     def test_short_true(self):
         """Test a call to bug_link() with short=True."""
@@ -154,8 +173,8 @@ class TestBugLink(base.BaseTestCase):
 
         self.assertEqual(
             link,
-            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567'>"
-             "#1234567</a>"))
+            ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
+             "class='notblue'>BZ#1234567</a>"))
 
 
 @mock.patch('bodhi.server.util.time.sleep')
@@ -203,15 +222,6 @@ class TestCallAPI(unittest.TestCase):
         self.assertEqual(get.mock_calls,
                          [mock.call('url', timeout=60), mock.call('url', timeout=60)])
         sleep.assert_called_once_with(1)
-
-
-class TestKarma2HTML(unittest.TestCase):
-    """Test the karma2html() function."""
-
-    def test_karma_danger(self):
-        """If karma is less than -2, the danger class should be used."""
-        self.assertEqual(util.karma2html(mock.MagicMock(), -3),
-                         "<span class='badge badge-danger'>-3</span>")
 
 
 class TestMemoized(unittest.TestCase):
@@ -420,15 +430,14 @@ class TestPagesList(unittest.TestCase):
 
     def test_page_in_middle(self):
         """Test for when the current page is in the middle of the pages."""
-        val = util.pages_list(mock.MagicMock(), 6, 20)
-
-        self.assertEqual(val, range(2, 11))
+        val = util.pages_list(mock.MagicMock(), 15, 30)
+        self.assertEqual(val, [1, "..."] + list(range(11, 20)) + ['...', 30])
 
     def test_page_near_end(self):
         """Test for when the current page is near the end of the pages."""
         val = util.pages_list(mock.MagicMock(), 6, 7)
 
-        self.assertEqual(val, range(1, 8))
+        self.assertEqual(val, list(range(1, 8)))
 
 
 class TestSanityCheckRepodata(unittest.TestCase):
@@ -447,40 +456,56 @@ class TestSanityCheckRepodata(unittest.TestCase):
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='yum')
 
-    @mock.patch('subprocess.check_output', return_value='Some output')
-    def test_correct_module_repo(self, *args):
-        """No Exception should be raised if the repo is a normal module repo."""
+    def test_invalid_repo_type(self):
+        """A ValueError should be raised with invalid repo type."""
+        with self.assertRaises(ValueError) as excinfo:
+            util.sanity_check_repodata("so", "wrong")
+
+        self.assertEqual(str(excinfo.exception),
+                         'repo_type must be one of module, source, or yum.')
+
+    @mock.patch('bodhi.server.util.librepo')
+    def test_librepo_exception(self, librepo):
+        """Verify that LibrepoExceptions are re-wrapped."""
+        class MockException(Exception):
+            pass
+        librepo.LibrepoException = MockException
+        librepo.Handle.return_value.perform.side_effect = MockException(-1, 'msg', 'general_msg')
+
+        with self.assertRaises(RepodataException) as excinfo:
+            util.sanity_check_repodata('/tmp/', 'yum')
+
+        self.assertEqual(str(excinfo.exception), 'msg')
+
+    def _mkmetadatadir_w_modules(self):
         base.mkmetadatadir(self.tempdir)
         # We need to add a modules tag to repomd.
         repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
         repomd_tree = ElementTree.parse(repomd_path)
         ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
         root = repomd_tree.getroot()
-        ElementTree.SubElement(root, 'data', type='modules')
+        modules_elem = ElementTree.SubElement(root, 'data', type='modules')
+        # ensure librepo finds something
+        ElementTree.SubElement(modules_elem, 'location', href='repodata/modules.yaml.gz')
+        with gzip.open(os.path.join(self.tempdir, 'repodata', 'modules.yaml.gz'), 'w'):
+            pass
         for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
             # module repos don't have drpms or comps.
             if data.attrib['type'] in ('group', 'prestodelta'):
                 root.remove(data)
         repomd_tree.write(repomd_path, encoding='UTF-8', xml_declaration=True)
 
+    @mock.patch('subprocess.check_output', return_value='Some output')
+    def test_correct_module_repo(self, *args):
+        """No Exception should be raised if the repo is a normal module repo."""
+        self._mkmetadatadir_w_modules()
         # No exception should be raised here.
         util.sanity_check_repodata(self.tempdir, repo_type='module')
 
     @mock.patch('subprocess.check_output', return_value='')
     def test_module_repo_no_dnf_output(self, *args):
         """No Exception should be raised if the repo is a normal module repo."""
-        base.mkmetadatadir(self.tempdir)
-        # We need to add a modules tag to repomd.
-        repomd_path = os.path.join(self.tempdir, 'repodata', 'repomd.xml')
-        repomd_tree = ElementTree.parse(repomd_path)
-        ElementTree.register_namespace('', 'http://linux.duke.edu/metadata/repo')
-        root = repomd_tree.getroot()
-        ElementTree.SubElement(root, 'data', type='modules')
-        for data in root.findall('{http://linux.duke.edu/metadata/repo}data'):
-            # module repos don't have drpms or comps.
-            if data.attrib['type'] in ('group', 'prestodelta'):
-                root.remove(data)
-        repomd_tree.write(repomd_path, encoding='UTF-8', xml_declaration=True)
+        self._mkmetadatadir_w_modules()
 
         with self.assertRaises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='module')
@@ -560,6 +585,36 @@ class TestSanityCheckRepodata(unittest.TestCase):
         util.sanity_check_repodata(self.tempdir, repo_type='source')
 
 
+class TestTestcaseLink:
+    """Test the testcase_link() function."""
+
+    base_url = 'http://example.com/'
+    displayed_name = 'test case name'
+
+    def setup_method(self, method):
+        self.test = mock.Mock()
+        self.test.name = 'QA:Testcase ' + self.displayed_name
+
+    @property
+    def expected_url(self):
+        return self.base_url + self.test.name
+
+    @pytest.mark.parametrize('short', (False, True))
+    def test_fn(self, short):
+        """Test the function."""
+        with mock.patch.dict('bodhi.server.util.config',
+                             values={'test_case_base_url': self.base_url},
+                             clear=True):
+            retval = util.testcase_link(None, self.test, short=short)
+
+        if short:
+            assert not retval.startswith('Test Case ')
+        else:
+            assert retval.startswith('Test Case ')
+        assert f"href='{self.expected_url}'" in retval
+        assert f">{self.displayed_name}<" in retval
+
+
 class TestType2Icon(unittest.TestCase):
     """Test the type2icon() function."""
 
@@ -567,31 +622,15 @@ class TestType2Icon(unittest.TestCase):
         """Test type2icon() with a kind that starts with a consonant."""
         self.assertEqual(
             util.type2icon(None, 'security'),
-            ("<span class='badge badge-danger text-white' data-toggle='tooltip' "
-             "title='This is a security update'><i class='fa fa-fw fa-shield'></i></span>"))
+            ("<span data-toggle='tooltip' title='This is a security update'>"
+             "<i class='fa fa-fw fa-shield'></i></span>"))
 
     def test_vowel(self):
         """Test type2icon() with a kind that starts with a vowel."""
         self.assertEqual(
             util.type2icon(None, 'enhancement'),
-            ("<span class='badge badge-success text-white' data-toggle='tooltip' "
-             "title='This is an enhancement update'><i class='fa fa-fw fa-bolt'></i></span>"))
-
-
-class TestUpdate2HTML(base.BaseTestCase):
-    """Test the update2html() function."""
-
-    def test_long_title(self):
-        """If the update's title is too long, it should be trimmed."""
-        context = {'request': mock.MagicMock()}
-        context['request'].registry.settings = {'max_update_length_for_ui': 10}
-        context['request'].route_url.return_value = 'https://example.com/'
-        update = models.Update.query.first()
-
-        html = util.update2html(context, update)
-
-        # The update's title gets trimmed to 10 characters and 3 dots.
-        self.assertEqual(html, '<a href="https://example.com/">bodhi-2.0-...</a>')
+            ("<span data-toggle='tooltip' title='This is an enhancement update'>"
+             "<i class='fa fa-fw fa-bolt'></i></span>"))
 
 
 class TestUtils(base.BaseTestCase):
@@ -1261,6 +1300,27 @@ class TestCMDFunctions(base.BaseTestCase):
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
     @mock.patch('subprocess.Popen')
+    def test_no_err_out_zero_return_code(self, mock_popen, mock_error, mock_debug):
+        """
+        Verify behavior without any output and a zero exit code.
+        """
+        mock_popen.return_value = mock.Mock()
+        mock_popen_obj = mock_popen.return_value
+        mock_popen_obj.communicate.return_value = (None, None)
+        mock_popen_obj.returncode = 0
+
+        assert util.cmd(['/bin/true'], '"home/imgs/catpix"') == (None, None, 0)
+
+        mock_popen.assert_called_once_with(
+            ['/bin/true'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            shell=False)
+
+        mock_error.assert_not_called()
+        mock_debug.assert_called_once_with('Running /bin/true')
+
+    @mock.patch('bodhi.server.log.debug')
+    @mock.patch('bodhi.server.log.error')
+    @mock.patch('subprocess.Popen')
     def test_err_nonzero_return_code(self, mock_popen, mock_error, mock_debug):
         """
         Ensures proper behavior when there is err output and the exit code isn't 0.
@@ -1352,6 +1412,62 @@ class TestCMDFunctions(base.BaseTestCase):
         self.assertEqual(util._get_build_repository(build), 'myrepo')
         session.return_value.getBuild.assert_called_with('cockpit-167-5')
 
+    def test_build_evr(self):
+        """Test the test_build_evr() function."""
+        build = {'epoch': None, 'version': '1', 'release': '2.fc30'}
+
+        self.assertEqual(util.build_evr(build), ('0', '1', '2.fc30'))
+
+        build['epoch'] = 2
+        self.assertEqual(util.build_evr(build), ('2', '1', '2.fc30'))
+
+
+@mock.patch('bodhi.server.util.cmd', autospec=True)
+@mock.patch('bodhi.server.util.config', new_callable=lambda: {
+    'container.source_registry': 'src',
+    'container.destination_registry': 'dest',
+    'skopeo.cmd': 'skopeo',
+})
+@mock.patch('bodhi.server.util._container_image_url', new=lambda sr, r, st: f'{sr}:{r}:{st}')
+@mock.patch('bodhi.server.util._get_build_repository', new=lambda b: 'testrepo')
+class TestCopyContainer:
+    """Test the copy_container() function."""
+
+    def setup_method(self, method):
+        self.build = mock.Mock()
+        self.build.nvr_version = '1'
+        self.build.nvr_release = '1'
+
+    def test_default(self, config, cmd):
+        """Test the default code path."""
+        util.copy_container(self.build)
+
+        cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'dest:testrepo:1-1'],
+                                    raise_on_error=True)
+
+    def test_with_destination_registry(self, config, cmd):
+        """Test with specified destination_registry."""
+        util.copy_container(self.build, destination_registry='boo')
+
+        cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'boo:testrepo:1-1'],
+                                    raise_on_error=True)
+
+    def test_with_destination_tag(self, config, cmd):
+        """Test with specified destination_tag."""
+        util.copy_container(self.build, destination_tag='2-2')
+
+        cmd.assert_called_once_with(['skopeo', 'copy', 'src:testrepo:1-1', 'dest:testrepo:2-2'],
+                                    raise_on_error=True)
+
+    def test_with_extra_copy_flags(self, config, cmd):
+        """Test with extra copy flags configured."""
+        config['skopeo.extra_copy_flags'] = '--quiet,--remove-signatures'
+        util.copy_container(self.build)
+
+        cmd.assert_called_once_with(['skopeo', 'copy', '--quiet', '--remove-signatures',
+                                     'src:testrepo:1-1', 'dest:testrepo:1-1'],
+                                    raise_on_error=True)
+
 
 class TestTransactionalSessionMaker(base.BaseTestCase):
     """This class contains tests on the TransactionalSessionMaker class."""
@@ -1424,3 +1540,37 @@ class TestTransactionalSessionMaker(base.BaseTestCase):
         Session.return_value.commit.assert_called_once_with()
         Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
+
+
+class TestPyfileToModule(unittest.TestCase):
+    """Test the pyfile_to_module() function."""
+
+    def setUp(self):
+        self.tempdir = tempfile.mkdtemp('bodhi')
+
+    def tearDown(self):
+        shutil.rmtree(self.tempdir)
+
+    def test_basic_call(self):
+        filepath = os.path.join(self.tempdir, "testfile.py")
+        with open(filepath, "w") as fh:
+            fh.write("FOO = 'bar'\n")
+        result = util.pyfile_to_module(filepath, "testfile")
+        self.assertEqual(getattr(result, "FOO"), "bar")
+        self.assertEqual(result.__file__, filepath)
+        self.assertEqual(result.__name__, "testfile")
+
+    def test_invalid_path(self):
+        filepath = os.path.join(self.tempdir, "does-not-exist.py")
+        with self.assertRaises(IOError) as cm:
+            util.pyfile_to_module(filepath, "testfile")
+        self.assertEqual(
+            cm.exception.strerror, 'Unable to load file (No such file or directory)')
+
+    def test_invalid_path_silent(self):
+        filepath = os.path.join(self.tempdir, "does-not-exist.py")
+        try:
+            result = util.pyfile_to_module(filepath, "testfile", silent=True)
+        except IOError as e:
+            self.fail("pyfile_to_module raised an exception in silent mode: {}".format(e))
+        self.assertFalse(result)

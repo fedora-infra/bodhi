@@ -40,7 +40,7 @@ CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 LABEL_TEMPLATE = '{:>8}-{:<34}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 RELEASES = ('f29', 'f30', 'rawhide', 'pip')
-INTEGRATION_APPS = ("resultsdb", "waiverdb", "greenwave", "rabbitmq")
+INTEGRATION_APPS = ("resultsdb", "waiverdb", "greenwave", "rabbitmq", "ipsilon")
 
 
 def _set_concurrency(ctx, param, value):
@@ -838,10 +838,7 @@ class MyPyJob(Job):
         """
         super(MyPyJob, self).__init__(*args, **kwargs)
 
-        self._command = [
-            '/usr/local/bin/mypy', '--follow-imports', 'silent', 'bodhi/client/bindings.py',
-            'bodhi/messages', 'bodhi/server/bugs.py', 'bodhi/server/buildsys.py',
-            'devel/ci/bodhi-ci']
+        self._command = ['/usr/local/bin/mypy']
         self._convert_command_for_container()
 
 
@@ -1229,8 +1226,8 @@ def _process_results(loop, done, pending):
         pending (set): A set of asyncio.Tasks that represent unfinished tasks. These will be
             canceled.
     Returns:
-        dict: A dictionary with three keys:
-            'output': The output that should be printed.
+        dict: A dictionary with two keys:
+            'error_output': The error output that should be printed.
             'returncode': The exit code that bodhi-ci should exit with.
     """
     returncode = 0
@@ -1255,7 +1252,7 @@ def _process_results(loop, done, pending):
             if not returncode:
                 returncode = result.returncode
 
-    return {'output': error_output, 'returncode': returncode}
+    return {'error_output': error_output, 'returncode': returncode}
 
 
 def _run_jobs(jobs: typing.List[Job]):
@@ -1271,7 +1268,7 @@ def _run_jobs(jobs: typing.List[Job]):
         jobs: A list of Jobs to run.
     """
     if not jobs:
-        click.echo("No jobs!")
+        click.echo("No jobs!", err=True)
         sys.exit(3)
 
     loop = asyncio.get_event_loop()
@@ -1295,8 +1292,8 @@ def _run_jobs(jobs: typing.List[Job]):
         _stop_all_jobs(loop)
 
     # Now it's time to print any error output we collected, then exit or return.
-    click.echo(results['output'])
     if results['returncode']:
+        click.echo(results['error_output'], err=True)
         sys.exit(results['returncode'])
 
 

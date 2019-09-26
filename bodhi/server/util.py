@@ -20,6 +20,7 @@
 from collections import defaultdict, OrderedDict
 from contextlib import contextmanager
 from urllib.parse import urlencode
+import errno
 import functools
 import hashlib
 import json
@@ -29,6 +30,7 @@ import socket
 import subprocess
 import tempfile
 import time
+import types
 import typing
 
 from pyramid.i18n import TranslationStringFactory
@@ -312,7 +314,7 @@ def sanity_check_repodata(myurl, repo_type):
 
         if repo_type in ('yum', 'source'):
             tests.append((['list', 'available'], 'testrepo'))
-        elif repo_type == 'module':
+        else:  # repo_type == 'module', verified above
             tests.append((['module', 'list'], '.*'))
 
         for test in tests:
@@ -567,60 +569,6 @@ def composestate2html(context, state):
     return "<span class='badge badge-%s'>%s</span>" % (cls, state.description)
 
 
-def status2html(context, status):
-    """
-    Render the given UpdateStatus as a span containing text.
-
-    Args:
-        context (mako.runtime.Context): Unused.
-        severity (bodhi.server.models.UpdateStatus): The UpdateStatus to render as a span
-            tag.
-    Returns:
-        str: An HTML span tag representing the UpdateStatus.
-    """
-    status = str(status)
-    cls = {
-        'pending': 'primary',
-        'testing': 'warning',
-        'stable': 'success',
-        'unpushed': 'danger',
-        'obsolete': 'default',
-    }[status]
-    status_desc = {
-        'pending': 'The update has not yet been pushed to the testing or stable repositories.',
-        'testing': 'The package is in the testing repository for people to test.',
-        'stable': 'The package has been released to the stable repository.',
-        'unpushed': 'The update has been removed from testing.',
-        'obsolete': 'The package has been obsoleted by a different update.',
-    }[status]
-
-    return "<span data-toggle='tooltip' title='%s'>" % (status_desc) \
-        + "<span class='badge badge-%s text-white'>%s</span>" % (cls, status) \
-        + "</span>"
-
-
-def state2class(context, state):
-    """
-    Classify the given ReleaseState value.
-
-    Args:
-        context (mako.runtime.Context): Unused.
-        state (bodhi.server.models.ReleaseState): The ReleaseState value you wish to classify.
-    Returns:
-        str: A string representing the classification of the given ReleaseState. Can return
-            'danger', 'warning', 'success', or 'default active'.
-    """
-    state = str(state)
-    cls = {
-        'disabled': 'default active',
-        'pending': 'warning',
-        'frozen': 'info',
-        'current': 'success',
-        'archived': 'danger'
-    }
-    return cls[state] if state in cls.keys() else 'default'
-
-
 def type2color(context, t):
     """
     Return a color to render the given UpdateType with.
@@ -642,99 +590,6 @@ def type2color(context, t):
     return cls[t] if t in cls.keys() else cls['default']
 
 
-def state2html(context, state):
-    """
-    Render the given ReleaseState as an HTML span tag.
-
-    Args:
-        context (mako.runtime.Context): The current template rendering context.
-        state (bodhi.server.models.ReleaseState): The ReleaseState you wish to render as HTML.
-    Returns:
-        str: An HTML rendering of the given ReleaseState.
-    """
-    state_class = state2class(context, state)
-    return "<span class='badge badge-%s'>%s</span>" % (state_class, state)
-
-
-def karma2class(context, karma, default='default'):
-    """
-    Classify the given karma value if possible, or return the default value.
-
-    Args:
-        context (mako.runtime.Context): Unused.
-        karma (int): The karma value you wish to classify.
-        default (str): The default value if karma is not within the range -2 <= karma <= 2.
-    Returns:
-        str: A string representing the classification of the given karma. Can return
-            'danger', 'info', 'success', or the default value.
-    """
-    if karma and karma >= -2 and karma <= 2:
-        return {
-            -2: 'danger',
-            -1: 'danger',
-            0: 'info',
-            1: 'success',
-            2: 'success',
-        }.get(karma)
-    return default
-
-
-def karma2html(context, karma):
-    """
-    Render the given karma as a span labeled for rendering, or as a list of td tags of the same.
-
-    Args:
-        context (mako.runtime.Context): The current template rendering context.
-        karma (int or tuple): The karma value or values you wish to render a span tag or td tags
-            for.
-    Returns:
-        str: An HTML span tag or a list of td tags representing the karma or karma tuple.
-    """
-    # Recurse if we are handle multiple karma values
-    if isinstance(karma, tuple):
-        return '</td><td>'.join([karma2html(context, item) for item in karma])
-
-    cls = karma2class(context, karma, None)
-
-    if not cls:
-        if karma < -2:
-            cls = 'danger'
-        elif karma == 0:
-            cls = 'primary'
-        else:
-            cls = 'success'
-
-    if karma > 0:
-        karma = "+%i" % karma
-    else:
-        karma = "%i" % karma
-
-    return "<span class='badge badge-%s'>%s</span>" % (cls, karma)
-
-
-def type2html(context, kind):
-    """
-    Render the given UpdateType as a span containing text.
-
-    Args:
-        context (mako.runtime.Context): Unused.
-        kind (bodhi.server.models.UpdateType): The UpdateType to render as a span
-            tag.
-    Returns:
-        str: An HTML span tag representing the UpdateType.
-    """
-    kind = str(kind)
-    cls = {
-        'security': 'danger',
-        'bugfix': 'warning',
-        'newpackage': 'primary',
-        'enhancement': 'success',
-        'unspecified': 'default',
-    }.get(kind)
-
-    return "<span class='badge badge-%s text-white'>%s</span>" % (cls, kind)
-
-
 def type2icon(context, kind):
     """
     Render the given UpdateType as a span containing an icon.
@@ -747,12 +602,6 @@ def type2icon(context, kind):
         str: An HTML span tag representing the UpdateType.
     """
     kind = str(kind)
-    cls = {
-        'security': 'danger',
-        'bugfix': 'warning',
-        'newpackage': 'primary',
-        'enhancement': 'success',
-    }.get(kind)
 
     if kind[0].lower() in 'aeiou':
         kind_article = 'an'
@@ -764,76 +613,12 @@ def type2icon(context, kind):
         'bugfix': 'fa-bug',
         'newpackage': 'fa-archive',
         'enhancement': 'fa-bolt',
+        'unspecified': 'fa-circle-o',
     }.get(kind)
 
-    span = ("<span class='badge badge-%s text-white' data-toggle='tooltip' "
+    span = ("<span data-toggle='tooltip' "
             "title='This is %s %s update'><i class='fa fa-fw %s'></i></span>")
-    return span % (cls, kind_article, kind, fontawesome)
-
-
-def severity2html(context, severity):
-    """
-    Render the given UpdateSeverity as an HTML span tag.
-
-    Args:
-        context (mako.runtime.Context): Unused.
-        severity (bodhi.server.models.UpdateSeverity): The UpdateSeverity to render as a span
-            tag.
-    Returns:
-        str: An HTML span tag representing the UpdateSeverity.
-    """
-    severity = str(severity)
-    cls = {
-        'urgent': 'danger',
-        'high': 'warning',
-        'medium': 'primary',
-        'low': 'success',
-        'unspecified': 'default',
-    }.get(severity)
-
-    return "<span class='badge badge-%s'>%s</span>" % (cls, severity)
-
-
-def request2html(context, request):
-    """
-    Render the given UpdateRequest as an HTML span tag.
-
-    Args:
-        context (mako.runtime.Context): Unused.
-        request (bodhi.server.models.UpdateRequest): The UpdateRequest to render as a span tag.
-    Returns:
-        str: An HTML span tag representing the UpdateRequest.
-    """
-    request = str(request)
-    cls = {
-        'unpush': 'danger',
-        'obsolete': 'default',
-        'testing': 'warning',
-        'stable': 'success',
-    }.get(request)
-
-    return "<span class='badge badge-%s'>%s</span>" % (cls, request)
-
-
-def update2html(context: 'mako.runtime.Context', update: typing.Mapping[str, str]) -> str:
-    """
-    Return an HTML anchor tag for the given update.
-
-    Args:
-        context: The current template rendering context.
-        update: The Update that you wish to receive an HTML anchor tag for.
-    Returns:
-        An HTML anchor tag linking the Update.
-    """
-    request = context.get('request')
-
-    url = request.route_url('update', id=update['alias'])
-    settings = request.registry.settings
-    max_length = settings.get('max_update_length_for_ui')
-    title = update['title']
-    if len(title) > max_length:
-        title = title[:max_length] + "..."
-    return link(url, title)
+    return span % (kind_article, kind, fontawesome)
 
 
 def pages_list(context, page, pages):
@@ -864,7 +649,13 @@ def pages_list(context, page, pages):
         max_page = min(pages, page + margin)
         min_page = max(max_page - (num_pages - 1), 1)
 
-    return range(min_page, max_page + 1)
+    therange = list(range(min_page, max_page + 1))
+    if max_page != pages:
+        therange = therange + ["...", pages]
+    if min_page != 1:
+        therange = [1, "..."] + therange
+
+    return therange
 
 
 def page_url(context, page):
@@ -896,8 +687,8 @@ def bug_link(context, bug, short=False):
         str: The requested link.
     """
     url = "https://bugzilla.redhat.com/show_bug.cgi?id=" + str(bug.bug_id)
-    display = "#%i" % bug.bug_id
-    link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
+    display = "BZ#%i" % bug.bug_id
+    link = "<a target='_blank' href='%s' class='notblue'>%s</a>" % (url, display)
     if not short:
         if bug.title:
             # We're good, but we do need to clean the bug title in case it contains malicious
@@ -905,7 +696,7 @@ def bug_link(context, bug, short=False):
             link = link + " " + bleach.clean(bug.title, tags=[], attributes=[])
         else:
             # Otherwise, the backend is async grabbing the title from rhbz, so
-            link = link + " <img class='spinner' src='static/img/spinner.gif'>"
+            link = link + " <i class='fa fa-spinner fa-spin fa-fw'></i>"
 
     return link
 
@@ -924,7 +715,7 @@ def testcase_link(context, test, short=False):
     """
     url = config.get('test_case_base_url') + test.name
     display = test.name.replace('QA:Testcase ', '')
-    link = "<a target='_blank' href='%s'>%s</a>" % (url, display)
+    link = "<a target='_blank' href='%s' class='notblue'>%s</a>" % (url, display)
     if not short:
         link = "Test Case " + link
     return link
@@ -1048,12 +839,12 @@ def tokenize(string):
         str: The individual tokens found in the comma or space separated string.
     """
     for substring in string.split(','):
-        substring = substring.strip()
-        if substring:
-            for token in substring.split():
-                token = token.strip()
-                if token:
-                    yield token
+        for token in substring.split():
+            # Using str.split() ensures that tokens don't contain white space
+            # and aren't empty. Not specifying a separator "... means split
+            # according to any whitespace, and discard empty strings from the
+            # result."
+            yield token
 
 
 def taskotron_results(settings, entity='results/latest', max_queries=10, **kwargs):
@@ -1490,3 +1281,32 @@ def get_absolute_path(location):
     module, final = location.split(':')
     base = os.path.dirname(__import__(module).__file__)
     return base + "/" + final
+
+
+def pyfile_to_module(
+        filename: str, modname: str, silent: bool = False) -> typing.Union[types.ModuleType, bool]:
+    """Create a Python module from a Python file.
+
+    This function behaves as if the file was imported as module. Copied from Flask's
+    ``flask.config.Config.from_pyfile`` method.
+
+    Args:
+        filename: the filename to load.  This can either be an
+                  absolute filename or a filename relative to the
+                  current working directory.
+        modname: the name of the module that will be produced.
+        silent: set to ``True`` if you want silent failure for missing
+                files.
+    """
+    filename = os.path.join(os.getcwd(), filename)
+    d = types.ModuleType(modname)
+    d.__file__ = filename
+    try:
+        with open(filename) as config_file:
+            exec(compile(config_file.read(), filename, 'exec'), d.__dict__)
+    except IOError as e:
+        if silent and e.errno in (errno.ENOENT, errno.EISDIR):
+            return False
+        e.strerror = 'Unable to load file (%s)' % e.strerror
+        raise
+    return d

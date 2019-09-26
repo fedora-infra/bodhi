@@ -103,7 +103,7 @@ def rss(info):
                 'title': operator.itemgetter('alias'),
                 'link': linker('update', 'id', 'alias'),
                 'description': operator.itemgetter('notes'),
-                'pubdate': lambda obj: utc.localize(obj['date_submitted']),
+                'pubDate': lambda obj: utc.localize(obj['date_submitted']),
             },
             'users': {
                 'title': operator.itemgetter('name'),
@@ -114,13 +114,13 @@ def rss(info):
                 'title': operator.itemgetter('rss_title'),
                 'link': linker('comment', 'id', 'id'),
                 'description': operator.itemgetter('text'),
-                'pubdate': lambda obj: utc.localize(obj['timestamp']),
+                'pubDate': lambda obj: utc.localize(obj['timestamp']),
             },
             'overrides': {
                 'title': operator.itemgetter('nvr'),
                 'link': linker('override', 'nvr', 'nvr'),
                 'description': operator.itemgetter('notes'),
-                'pubdate': lambda obj: utc.localize(obj['submission_date']),
+                'pubDate': lambda obj: utc.localize(obj['submission_date']),
             },
         }
 

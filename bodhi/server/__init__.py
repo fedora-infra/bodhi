@@ -28,6 +28,7 @@ from pyramid.config import Configurator
 from pyramid.renderers import JSONP
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
+import pkg_resources
 
 from bodhi.server import bugs, buildsys
 from bodhi.server.config import config as bodhi_config
@@ -126,6 +127,21 @@ def get_buildinfo(request):
         collections.defaultdict: A cache populated by the validators and used by the views.
     """
     return defaultdict(dict)
+
+
+def get_from_tag_inherited(request):
+    """
+    Return a list, defaulting to empty.
+
+    A per-request cache populated by the validators and shared with the views
+    to store the list of inherited tags of a sidetag.
+
+    Args:
+        request (pyramid.request.Request): The current web request. Unused.
+    Returns:
+        list: A cache populated by the validators and used by the views.
+    """
+    return list()
 
 
 def get_releases(request):
@@ -250,11 +266,13 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_request_method(get_koji, 'koji', reify=True)
     config.add_request_method(get_cacheregion, 'cache', reify=True)
     config.add_request_method(get_buildinfo, 'buildinfo', reify=True)
+    config.add_request_method(get_from_tag_inherited, 'from_tag_inherited', reify=True)
     config.add_request_method(get_releases, 'releases', reify=True)
 
     # Templating
     config.add_mako_renderer('.html', settings_prefix='mako.')
-    config.add_static_view('static', 'bodhi:server/static')
+    config.add_static_view(f'static/v{pkg_resources.get_distribution("bodhi").version}',
+                           'bodhi:server/static')
 
     from bodhi.server.renderers import rss
     config.add_renderer('rss', rss)
@@ -289,6 +307,8 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_route('search_packages', '/search/packages')
     config.add_route('latest_candidates', '/latest_candidates')
     config.add_route('latest_builds', '/latest_builds')
+    config.add_route('get_sidetags', '/get_sidetags')
+    config.add_route('latest_builds_in_tag', '/latest_builds_in_tag')
 
     # pyramid.openid
     config.add_route('login', '/login')

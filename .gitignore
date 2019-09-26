@@ -21,6 +21,7 @@ build
 cover/
 coverage.xml
 devel/ansible/playbook.retry
+devel/docker/settings/policies/*
 development.ini
 dist
 docs/_build
@@ -33,3 +34,4 @@ htmlcov/
 composer/
 nosetests.xml
 virtenv
+.vscode

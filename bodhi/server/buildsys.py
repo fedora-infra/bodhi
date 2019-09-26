@@ -17,12 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define tools for interacting with the build system and a fake build system for development."""
 
-from threading import Lock
 import logging
 import time
 import typing
 import os
 from functools import wraps
+from threading import Lock
 
 import backoff
 import koji
@@ -126,6 +126,7 @@ class DevBuildsys:
         cls.__added__ = []
         cls.__tagged__ = {}
         cls.__rpms__ = []
+        cls.__tags__ = []
 
     def multiCall(self):
         """Emulate Koji's multiCall."""
@@ -184,6 +185,14 @@ class DevBuildsys:
         # needed to test against non-existent builds
         if 'youdontknowme' in build:
             return None
+
+        if 'gnome-backgrounds-3.0-1.fc17' in build:
+            return {'name': 'gnome-backgrounds',
+                    'nvr': 'gnome-backgrounds-3.0-1.fc17',
+                    'package_name': 'gnome-backgrounds',
+                    'release': '1.fc17',
+                    'tag_name': 'f17-build-side-7777',
+                    'version': '3.0'}
 
         theid = 16058
         if other and not testing:
@@ -382,6 +391,8 @@ class DevBuildsys:
     def listTagged(self, tag: str, *args, **kw) -> typing.List[typing.Any]:
         """List updates tagged with teh given tag."""
         latest = kw.get('latest', False)
+        if tag == 'f17-build-side-7777':
+            return [self.getBuild(build="gnome-backgrounds-3.0-1.fc17")]
         builds = []
 
         all_builds = [self.getBuild(),
@@ -415,6 +426,7 @@ class DevBuildsys:
         """
         return [self.getBuild()]
 
+    @multicall_enabled
     def getTag(self, taginfo, **kw):
         """
         Retrieve the given tag from koji.
@@ -444,11 +456,44 @@ class DevBuildsys:
             else:
                 return None
 
+        # hardcode a side-tag response
+        if taginfo == 'f17-build-side-7777':
+            return {'maven_support': False, 'locked': False, 'name': 'f17-build-side-7777',
+                    'extra': {'sidetag_user': 'dudemcpants', 'sidetag': True},
+                    'perm': None, 'perm_id': None, 'arches': None, 'maven_include_all': False,
+                    'id': 7777}
+
         return {'maven_support': False, 'locked': False, 'name': taginfo,
                 'perm': None, 'id': 246, 'arches': None,
                 'maven_include_all': False, 'perm_id': None}
 
-    def addTag(self, tag: str, **opts):
+    def getFullInheritance(self, taginfo, **kw):
+        """
+        Return a tag inheritance.
+
+        Args:
+            taginfo (int or str): The tag. does not impact the output
+        Returns:
+            list: A list of dicts of tag information
+        """
+        return [{'intransitive': False, 'name': 'f17-build', 'pkg_filter': '', 'priority': 0,
+                 'parent_id': 6448, 'maxdepth': None, 'noconfig': False, 'child_id': 7715,
+                 'nextdepth': None, 'filter': [], 'currdepth': 1},
+                {'intransitive': False, 'name': 'f17-override', 'pkg_filter': '', 'priority': 0,
+                 'parent_id': 6447, 'maxdepth': None, 'noconfig': False, 'child_id': 6448,
+                 'nextdepth': None, 'filter': [], 'currdepth': 2},
+                {'intransitive': False, 'name': 'f17-updates', 'pkg_filter': '', 'priority': 0,
+                 'parent_id': 6441, 'maxdepth': None, 'noconfig': False, 'child_id': 6447,
+                 'nextdepth': None, 'filter': [], 'currdepth': 3},
+                {'intransitive': False, 'name': 'f17', 'pkg_filter': '', 'priority': 0,
+                 'parent_id': 6438, 'maxdepth': None, 'noconfig': False, 'child_id': 6441,
+                 'nextdepth': None, 'filter': [], 'currdepth': 4}]
+
+    def listSideTags(self, **kw):
+        """Return a list of side tags."""
+        return [{'id': 7777, 'name': 'f17-build-side-7777'}]
+
+    def createTag(self, tag: str, **opts):
         """Emulate tag adding."""
         if 'parent' not in opts:
             raise ValueError('No parent in tag options')
@@ -464,9 +509,19 @@ class DevBuildsys:
         opts['perm_id'] = 1
         self.__tags__.append((tag, opts))
 
-    def deleteTag(self, tagid):
+    def deleteTag(self, tagid: typing.Union[str, int]):
         """Emulate tag deletion."""
-        del self.__tags__[tagid]
+        if isinstance(tagid, str):
+            for tid, tinfo in self.__tags__:
+                if tagid == tid:
+                    self.__tags__.remove((tid, tinfo))
+                    return
+        else:
+            del self.__tags__[tagid]
+
+    def removeSideTag(self, sidetag):
+        """Emulate side tag and build target deletion."""
+        pass
 
     def getRPMHeaders(self, rpmID: str,
                       headers: typing.Any) -> typing.Union[typing.Mapping[str, str], None]:

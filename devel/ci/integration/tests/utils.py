@@ -16,11 +16,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+import json
 import os
 import shutil
 import tempfile
+import time
 from contextlib import contextmanager
 
+import conu
 from fedora_messaging import message
 
 
@@ -52,6 +55,32 @@ def make_db_and_user(db_container, name, use_dump=False):
         db_container.copy_to(db_dump, "/tmp/database.dump")
         db_container.execute(["/usr/bin/psql", "-q", "-U", name, "-f", "/tmp/database.dump"])
         db_container.execute(["rm", "/tmp/database.dump"])
+
+
+def wait_for_file(
+        container: conu.DockerContainer, path: str, dir_not_empty: bool = False,
+        timeout: int = 120):
+    """Check that a file is in a container.
+
+    Args:
+        container: The container where the file is.
+        path: The file path in the container.
+        timeout: How long to wait before throwing an exception.
+    """
+    while timeout > 0:
+        try:
+            output = container.execute(["ls", path])
+            output = "".join(line.decode("utf-8") for line in output)
+        except conu.exceptions.ConuException:
+            pass
+        else:
+            if not dir_not_empty or len(output.strip()) != 0:
+                # The directory must have a file in it.
+                break
+        time.sleep(1)
+        timeout = timeout - 1
+    if timeout == 0:
+        raise conu.exceptions.ConuException(f"Timeout reached waiting for {path}")
 
 
 @contextmanager
@@ -134,3 +163,25 @@ def get_sent_messages(rabbitmq_container):
             serialized_messages = fh.read().replace("\n", ",")
     serialized_messages = "[%s]" % serialized_messages[:-1]
     return message.loads(serialized_messages)
+
+
+def get_task_results(container):
+    """Read a file in a container.
+
+    Args:
+        container (conu.DockerContainer): The container where the file is.
+        binary (bool): Whether the file should be opened in binary mode.
+
+    Returns:
+        file: The opened file object.
+    """
+    result_path = "/srv/celery-results"
+    results = []
+    with tempfile.TemporaryDirectory() as tempdir:
+        container.copy_from(result_path, tempdir)
+        for root, dirs, files in os.walk(tempdir):
+            for filename in files:
+                with open(os.path.join(root, filename)) as fh:
+                    result = json.load(fh)
+                results.append(result)
+    return results

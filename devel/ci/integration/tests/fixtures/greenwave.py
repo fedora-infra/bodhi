@@ -40,7 +40,7 @@ def greenwave_container(docker_backend, docker_network, rabbitmq_container):
     container = image.run_via_api()
     container.start()
     docker_backend.d.connect_container_to_network(
-        container.get_id(), docker_network["Id"], aliases=["greenwave"],
+        container.get_id(), docker_network["Id"], aliases=["greenwave", "greenwave.ci"],
     )
     try:
         # we need to wait for the webserver to start serving

@@ -268,6 +268,8 @@ class BodhiClient(OpenIdBaseClient):
                 update have been confirmed by testers.
             require_testcases (bool): A boolean to require that this update passes
                 all test cases before reaching stable.
+            from_tag (str): The name of a Koji tag from which to pull builds
+                instead of providing them manually in `builds`.
         Returns:
             The Bodhi server's response to the request.
         """
@@ -513,17 +515,16 @@ class BodhiClient(OpenIdBaseClient):
         List buildroot overrides.
 
         Args:
-            user (str): A username whose buildroot overrides you want returned.
-            packages (str): Comma separated package names to filter buildroot overrides by.
-            expired (bool): If True, only return expired overrides. If False, only return active
+            user: A username whose buildroot overrides you want returned.
+            packages: Comma separated package names to filter buildroot overrides by.
+            expired: If True, only return expired overrides. If False, only return active
                 overrides.
-            releases (str): Comma separated Release shortnames to filter buildroot overrides
-                by.
-            builds (str): Comma separated build NVRs to filter overrides by.
-            rows_per_page (int): Limit the results to a certain number of rows per page.
-                (default:None)
-            page (int): Return a specific page of results.
-                (default:None)
+            releases: Comma separated Release shortnames to filter buildroot overrides by.
+            builds: Comma separated build NVRs to filter overrides by.
+            rows_per_page: Limit the results to a certain number of rows per page.
+            page: Return a specific page of results.
+        Returns:
+            A dictionary-like representation of the Overrides.
         """
         params: typing.MutableMapping[str, typing.Union[int, str, None]] = {}
         if user:
@@ -593,7 +594,7 @@ class BodhiClient(OpenIdBaseClient):
                 'csrf', verb='GET', auth=True)['csrf_token']
         return self.csrf_token
 
-    def parse_file(self, input_file: str) -> typing.Iterable[dict]:
+    def parse_file(self, input_file: str) -> typing.List[typing.Dict[str, typing.Any]]:
         """
         Parse an update template file.
 
@@ -622,7 +623,7 @@ class BodhiClient(OpenIdBaseClient):
                 'builds': section,
                 'bugs': config.get(section, 'bugs', raw=True),
                 'close_bugs': config.getboolean(section, 'close_bugs'),
-                'display_name': config.get(section, 'display_name', raw=True),
+                'display_name': config.get(section, 'display_name', raw=True, fallback=None),
                 'type': config.get(section, 'type', raw=True),
                 'type_': config.get(section, 'type', raw=True),
                 'request': config.get(section, 'request', raw=True),
@@ -764,7 +765,7 @@ class BodhiClient(OpenIdBaseClient):
             minimal: If True, return a minimal one-line representation of the update.
                 Otherwise, return a more verbose representation. Defaults to False.
         Returns:
-            str: A human readable string describing the given update.
+            A human readable string describing the given update.
         """
         if isinstance(update, str):
             return update
@@ -775,7 +776,12 @@ class BodhiClient(OpenIdBaseClient):
                 or update['date_submitted'].split()[0]
             days_in_status = _days_since(update['date_pushed']) if update['date_pushed'] \
                 else _days_since(update['date_submitted'])
-            val += (f"{security}{update['builds'][0]['nvr']:40} {update['content_type']:9}  "
+            if update['builds']:
+                title = update['builds'][0]['nvr']
+            else:
+                title = update['title'] or update['alias']
+            content_type = update['content_type'] or 'unspecified'
+            val += (f"{security}{title:40} {content_type:9}  "
                     f"{update['status']:8}  {date:>10} ({days_in_status})")
             for build in update['builds'][1:]:
                 val += f"\n  {build['nvr']}"

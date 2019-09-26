@@ -133,8 +133,8 @@ def cache_tags(request, build):
         request.errors.add('body', 'builds',
                            'Invalid koji build: %s' % build)
     # This might end up setting tags to None. That is expected, and indicates it failed.
-    request.buildinfo[build]['tags'] = tags
-    return tags
+    request.buildinfo[build]['tags'] = tags + request.from_tag_inherited
+    return tags + request.from_tag_inherited
 
 
 def cache_release(request, build):
@@ -204,6 +204,16 @@ def validate_build_nvrs(request, **kwargs):
     for build in request.validated.get('builds') or []:  # cope with builds being None
         try:
             cache_nvrs(request, build)
+            if request.validated.get('from_tag'):
+                n, v, r = request.buildinfo[build]['nvr']
+                release = request.db.query(Release).filter(or_(Release.name == r,
+                                                               Release.name == r.upper(),
+                                                               Release.version == r)).first()
+                if release and release.composed_by_bodhi:
+                    request.errors.add(
+                        'body', 'builds',
+                        f"Can't create update from tag for release"
+                        f" '{release.name}' composed by Bodhi.")
         except ValueError:
             request.validated['builds'] = []
             request.errors.add('body', 'builds', 'Build does not exist: %s' % build)
@@ -313,6 +323,10 @@ def validate_build_tags(request, **kwargs):
         release = update.release
     else:
         valid_tags = tag_types['candidate']
+
+    from_tag = request.validated.get('from_tag')
+    if from_tag:
+        valid_tags.append(from_tag)
 
     for build in request.validated.get('builds') or []:
         valid = False
@@ -535,34 +549,23 @@ def validate_build_uniqueness(request, **kwargs):
     builds = request.validated.get('builds', [])
     if not builds:  # validate_build_nvrs failed
         return
-    for build1 in builds:
-        rel1 = cache_release(request, build1)
-        if not rel1:
+    seen_build = set()
+    seen_packages = set()
+    for build in builds:
+        rel = cache_release(request, build)
+        if not rel:
             return
-        seen_build = 0
-        for build2 in builds:
-            rel2 = cache_release(request, build2)
-            if not rel2:
-                return
-            if build1 == build2:
-                seen_build += 1
-                if seen_build > 1:
-                    request.errors.add('body', 'builds', 'Duplicate builds: '
-                                       '{}'.format(build1))
-                    return
-                # For some bizarre reason, neither coverage nor pdb think this line executes, even
-                # though it most certainly does during the unit tests. bowlofeggs verified by
-                # hand that the loop continues here and does not go to the lines below.
-                continue  # pragma: no cover
+        if build in seen_build:
+            request.errors.add('body', 'builds', f'Duplicate builds: {build}')
+            return
+        seen_build.add(build)
 
-            pkg1 = Package.get_or_create(request.buildinfo[build1])
-            pkg2 = Package.get_or_create(request.buildinfo[build2])
-
-            if pkg1.name == pkg2.name and rel1 == rel2:
-                request.errors.add(
-                    'body', 'builds', "Multiple {} builds specified: {} & {}".format(
-                        pkg1.name, build1, build2))
-                return
+        pkg = Package.get_or_create(request.buildinfo[build])
+        if (pkg, rel) in seen_packages:
+            request.errors.add(
+                'body', 'builds', f'Multiple {pkg.name} builds specified in {rel.name}')
+            return
+        seen_packages.add((pkg, rel))
 
 
 @postschema_validator
@@ -581,12 +584,18 @@ def validate_enums(request, **kwargs):
                         ("type", UpdateType),
                         ("content_type", ContentType),
                         ("state", ReleaseState),
-                        ("package_manager", PackageManager)):
+                        ("package_manager", PackageManager),
+                        ("gating", TestGatingStatus)):
         value = request.validated.get(param)
         if value is None:
             continue
 
-        request.validated[param] = enum.from_string(value)
+        if isinstance(value, str):
+            request.validated[param] = enum.from_string(value)
+        else:
+            for index, item in enumerate(value):
+                value[index] = enum.from_string(item)
+            request.validated[param] = value
 
 
 @postschema_validator
@@ -1101,6 +1110,11 @@ def _validate_override_build(request, nvr, db):
 
             build.release = release
 
+        if not build.release.override_tag:
+            request.errors.add("body", "nvr", "Cannot create a buildroot override because the"
+                               " release associated with the build does not support it.")
+            return
+
         for tag in build.get_tags():
             if tag in (build.release.candidate_tag, build.release.testing_tag):
                 # The build is tagged as a candidate or testing
@@ -1277,11 +1291,29 @@ def validate_from_tag(request: pyramid.request.Request, **kwargs: dict):
     koji_tag = request.validated.get('from_tag')
 
     if koji_tag:
+        # check if any existing updates use this side tag
+        update = request.db.query(Update).filter_by(from_tag=koji_tag).first()
+        if update:
+            if request.validated.get('edited') == update.alias:
+                # existing update found, but it is the one we are editing, so keep going
+                pass
+            else:
+                request.errors.add('body', 'from_tag', "Update already exists using this side tag")
+                # don't run any more validators
+                request.validated = []
+                return
+
         koji_client = buildsys.get_session()
+        taginfo = koji_client.getTag(koji_tag)
+
+        # add all the inherited tags of a sidetag to from_tag_inherited
+        if taginfo and taginfo['extra']['sidetag']:
+            for tag in koji_client.getFullInheritance(koji_tag):
+                request.from_tag_inherited.append(tag['name'])
 
         if request.validated.get('builds'):
             # Builds were specified explicitly, verify that the tag exists in Koji.
-            if not koji_client.getTag(koji_tag):
+            if not taginfo:
                 request.errors.add('body', 'from_tag', "The supplied from_tag doesn't exist.")
                 return
 

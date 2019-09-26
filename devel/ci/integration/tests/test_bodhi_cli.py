@@ -27,7 +27,7 @@ import requests
 import psycopg2
 import pytest
 
-from .utils import replace_file
+from .utils import replace_file, read_file
 
 
 def _run_cli(bodhi_container, args, **kwargs):
@@ -42,6 +42,11 @@ def _run_cli(bodhi_container, args, **kwargs):
         Munch: Execution result as an object with an ``exit_code`` property
             (``int``) and an ``output`` property (``str``).
     """
+    if "exec_create_kwargs" not in kwargs:
+        kwargs["exec_create_kwargs"] = {}
+    if "environment" not in kwargs["exec_create_kwargs"]:
+        kwargs["exec_create_kwargs"]["environment"] = {}
+    kwargs["exec_create_kwargs"]["environment"]["PYTHONWARNINGS"] = "ignore"
     try:
         output = bodhi_container.execute(
             ["bodhi"] + args + ["--url", "http://localhost:8080"],
@@ -87,7 +92,7 @@ def test_composes_info(bodhi_container, db_container):
     """
     # Fetch updates for compse from the DB
     query_updates = """SELECT
-    u.alias, u.id, u.type
+    u.alias, u.id, u.type, u.display_name
     FROM updates u
     JOIN releases r ON r.id = u.release_id
     WHERE r.name = %s AND u.locked = TRUE AND u.request = %s
@@ -113,7 +118,10 @@ def test_composes_info(bodhi_container, db_container):
                 compose[column.name] = value
             curs.execute(query_updates, (compose['release'], compose['request'], ))
             for row in curs.fetchall():
-                updates.append({'alias': row[0], 'id': row[1], 'type': row[2], 'builds': []})
+                updates.append({
+                    'alias': row[0], 'id': row[1], 'type': row[2], 'display_name': row[3],
+                    'builds': []
+                })
             for update in updates:
                 curs.execute(query_builds, (update['id'], ))
                 for row in curs.fetchall():
@@ -144,12 +152,14 @@ Content Type: {content_type}
      Updated: {compose['state_date'].strftime("%Y-%m-%d %H:%M:%S")}
 """
     # If the compose doesn't have a error_message, the CLI does not render the Error: line.
-    if compose['error_message'] is not None:
+    if compose['error_message']:
         expected_output += f"       Error: {compose['error_message']}\n"
 
     expected_output += "\nUpdates:\n\n"
     for update in updates:
-        if len(update['builds']) > 2:
+        if update["display_name"]:
+            update_builds = update["display_name"]
+        elif len(update['builds']) > 2:
             builds_left = len(update['builds']) - 2
             suffix = f", and {builds_left} more"
             update_builds = ", ".join([u['nvr'] for u in update['builds'][:2]])
@@ -473,3 +483,64 @@ def test_updates_download(bodhi_container, db_container):
         assert "Downloading packages from {}".format(update['alias']) in result.output
     for build_id in builds:
         assert re.search(f"TESTING CALL /usr/bin/koji download-build.*{build_id}", result.output)
+
+
+def test_updates_request(bodhi_container, ipsilon_container, db_container):
+    def find_update():
+        base_query = [
+            "SELECT alias",
+            "FROM updates u",
+            "JOIN releases r ON u.release_id = r.id",
+            "WHERE r.state != 'archived' AND u.locked = FALSE",
+            "ORDER BY u.date_submitted DESC LIMIT 1"
+        ]
+        db_ip = db_container.get_IPv4s()[0]
+        conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+        with conn:
+            with conn.cursor() as curs:
+                # First try to find an update that we can use.
+                query = base_query[:]
+                query.insert(4, "AND u.status != 'testing' AND u.request != 'testing'")
+                curs.execute(" ".join(query))
+                result = curs.fetchone()
+                if result is None:
+                    # Well, let's hack one into something we can use.
+                    query = base_query[:]
+                    query.insert(4, "AND u.status != 'testing'")
+                    curs.execute(" ".join(query))
+                    result = curs.fetchone()
+                    assert result is not None
+                    update_alias = result[0]
+                    curs.execute(
+                        "UPDATE updates SET request = 'stable' WHERE alias = %s",
+                        (update_alias,)
+                    )
+                else:
+                    update_alias = result[0]
+        conn.close()
+        return update_alias
+
+    update_alias = find_update()
+    cmd = [
+        "bodhi",
+        "updates",
+        "request",
+        "--url",
+        "http://localhost:8080",
+        "--openid-api",
+        "http://id.dev.fedoraproject.org/api/v1/",
+        "--user",
+        "guest",
+        "--password",
+        "ipsilon",
+        update_alias,
+        "testing",
+    ]
+    try:
+        output = bodhi_container.execute(cmd)
+    except ConuException as e:
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        assert False, str(e)
+    output = "".join(line.decode("utf-8") for line in output)
+    assert "This update has been submitted for testing by guest." in output

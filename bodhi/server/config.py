@@ -19,6 +19,7 @@
 from datetime import datetime
 import os
 import logging
+import typing
 
 from pyramid import settings
 from pyramid.paster import get_appsettings
@@ -27,7 +28,7 @@ from pyramid.paster import get_appsettings
 log = logging.getLogger('bodhi')
 
 
-def get_configfile():
+def get_configfile() -> typing.Optional[str]:
     """
     Return a path to a config file, if found.
 
@@ -36,7 +37,7 @@ def get_configfile():
     exists. Otherwise, it returns None.
 
     Returns:
-        str or None: The path of a config file, or None if no config file is found.
+        The path of a config file, or None if no config file is found.
     """
     configfile = None
     setupdir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..')
@@ -50,7 +51,9 @@ def get_configfile():
     return configfile
 
 
-def _generate_list_validator(splitter=' ', validator=str):
+def _generate_list_validator(
+        splitter: str = ' ', validator: typing.Callable[[typing.Any], typing.Any] = str) \
+        -> typing.Callable[[typing.Union[str, typing.List]], typing.Any]:
     """Return a function that takes a value and interprets it to be a list with the given splitter.
 
     This function generates a function that can take a string and interpret it as a list by
@@ -58,12 +61,12 @@ def _generate_list_validator(splitter=' ', validator=str):
     with the given validator.
 
     Args:
-        splitter (str): A string to use to split the input into a list.
-        validator (function):  A function to apply to each element of the list to validate it.
+        splitter: A string to use to split the input into a list.
+        validator:  A function to apply to each element of the list to validate it.
     Returns:
-        function: A validator function that accepts an argument to be validated.
+        A validator function that accepts an argument to be validated.
     """
-    def _validate_list(value):
+    def _validate_list(value: typing.Union[str, typing.List]) -> typing.List:
         """Validate that the value is a list or can be split into a list, and validate its elements.
 
         This function will validate that the given value is a list, or it will use the splitter to
@@ -71,9 +74,9 @@ def _generate_list_validator(splitter=' ', validator=str):
         list.
 
         Args:
-            value (str or list): The list to be validated.
+            value: The list to be validated.
         Returns:
-            str: The interpreted list.
+            The interpreted list.
         Raises:
             ValueError: If validator fails on any of the list's elements.
         """
@@ -91,16 +94,16 @@ def _generate_list_validator(splitter=' ', validator=str):
     return _validate_list
 
 
-def _validate_bool(value):
+def _validate_bool(value: typing.Union[str, bool]) -> bool:
     """Return a bool version of value.
 
     This function will ensure that value is a bool, or that it is a string that can be interpreted
     as a bool. It will return a bool. If it cannot do that, it will raise ValueError.
 
     Args:
-        value (str or bool): The value to be validated as a bool.
+        value: The value to be validated as a bool.
     Returns:
-        bool: The boolean interpretation of value.
+        The boolean interpretation of value.
     Raises:
         ValueError: If value cannot be interpreted as a boolean.
     """
@@ -122,18 +125,19 @@ def _validate_bool(value):
     return value
 
 
-def _validate_none_or(validator):
+def _validate_none_or(validator: typing.Callable[[typing.Any], typing.Any]) \
+        -> typing.Callable[[typing.Any], typing.Any]:
     """Return a function that will ensure a value is None or passes validator.
 
     This function returns a function that will take a single argument, value, and will ensure
     that value is None or that it passes the given validator.
 
     Args:
-        validator (function): A function to apply when value is not None.
+        validator: A function to apply when value is not None.
     Returns:
-        function: A validator function that accepts an argument to be validated.
+        A validator function that accepts an argument to be validated.
     """
-    def _validate(value):
+    def _validate(value: typing.Any) -> typing.Any:
         if value is None:
             return value
 
@@ -142,48 +146,48 @@ def _validate_none_or(validator):
     return _validate
 
 
-def validate_path(value):
+def validate_path(value: str) -> str:
     """Ensure that value is an existing path on the local filesystem and return it.
 
     Use os.path.exists to ensure that value is an existing path. Return the value if it is, else
     raise ValueError.
 
     Args:
-        value (str): The path to be validated.
+        value: The path to be validated.
     Returns:
-        str: The path.
+        The path.
     Raises:
         ValueError: If os.path.exists returns False.
     """
-    if not os.path.exists(value):
-        raise ValueError('"{}" does not exist.'.format(value))
+    if value is None or not os.path.exists(value):
+        raise ValueError(f'{value!r} does not exist.')
 
     return str(value)
 
 
-def _validate_rstripped_str(value):
+def _validate_rstripped_str(value: str) -> str:
     """
     Ensure that value is a str that is rstripped of the / character.
 
     Args:
-        value (str): The value to be validated and rstripped.
+        value: The value to be validated and rstripped.
     Returns:
-        str: The rstripped value.
+        The rstripped value.
     """
     value = str(value)
     return value.rstrip('/')
 
 
-def _validate_secret(value):
+def _validate_secret(value: str) -> str:
     """Ensure that the value is not CHANGEME and convert it to a string.
 
     This function is used to ensure that secret values in the config have been set by the user to
     something other than the default of CHANGEME.
 
     Args:
-        value (str): The value to be validated.
+        value: The value to be validated.
     Returns:
-        str: The value.
+        The value.
     Raises:
         ValueError: If value is "CHANGEME".
     """
@@ -193,13 +197,13 @@ def _validate_secret(value):
     return str(value)
 
 
-def _validate_tls_url(value):
+def _validate_tls_url(value: str) -> str:
     """Ensure that the value is a string that starts with https://.
 
     Args:
-        value (str): The value to be validated.
+        value: The value to be validated.
     Returns:
-        str: The value.
+        The value.
     Raises:
         ValueError: If value is not a string starting with https://.
     """
@@ -243,6 +247,10 @@ class BodhiConfig(dict):
         'authtkt.timeout': {
             'value': 86400,
             'validator': int},
+        'automatic_updates_blacklist': {
+            # List of users to not create automatic updates from
+            'value': ['releng'],
+            'validator': _generate_list_validator()},
         'badge_ids': {
             'value': [],
             'validator': _generate_list_validator('|')},
@@ -271,14 +279,20 @@ class BodhiConfig(dict):
             'value': 'dev',
             'validator': str},
         'bz_products': {
-            'value': [],
+            'value': ['Fedora', 'Fedora EPEL', 'Fedora Modules'],
             'validator': _generate_list_validator(',')},
         'bz_server': {
             'value': 'https://bugzilla.redhat.com/xmlrpc.cgi',
             'validator': str},
+        'bz_server_rest': {
+            'value': 'https://bugzilla.redhat.com/rest/',
+            'validator': str},
         'cache_dir': {
             'value': None,
             'validator': _validate_none_or(validate_path)},
+        'celery_config': {
+            'value': '/etc/bodhi/celeryconfig.py',
+            'validator': str},
         'clean_old_composes': {
             'value': True,
             'validator': _validate_bool},
@@ -335,12 +349,6 @@ class BodhiConfig(dict):
         'exclude_mail': {
             'value': ['autoqa', 'taskotron'],
             'validator': _generate_list_validator()},
-        'fedmenu.data_url': {
-            'value': 'https://apps.fedoraproject.org/js/data.js',
-            'validator': str},
-        'fedmenu.url': {
-            'value': 'https://apps.fedoraproject.org/fedmenu',
-            'validator': str},
         'file_url': {
             'value': 'https://download.fedoraproject.org/pub/fedora/linux/updates',
             'validator': str},
@@ -358,6 +366,9 @@ class BodhiConfig(dict):
         'greenwave_api_url': {
             'value': 'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0',
             'validator': _validate_rstripped_str},
+        'greenwave_batch_size': {
+            'value': 8,
+            'validator': int},
         'waiverdb_api_url': {
             'value': 'https://waiverdb-web-waiverdb.app.os.fedoraproject.org/api/v1.0',
             'validator': _validate_rstripped_str},
@@ -431,7 +442,7 @@ class BodhiConfig(dict):
             'value': 'https://id.fedoraproject.org/openid/',
             'validator': str},
         'openid.sreg_required': {
-            'value': 'email',
+            'value': 'email nickname',
             'validator': str},
         'openid.success_callback': {
             'value': 'bodhi.server.security:remember_me',
@@ -550,36 +561,36 @@ class BodhiConfig(dict):
             'validator': str},
     }
 
-    def __getitem__(self, *args, **kw):
+    def __getitem__(self, key: typing.Hashable) -> typing.Any:
         """Ensure the config is loaded, and then call the superclass __getitem__."""
         if not self.loaded:
             self.load_config()
-        return super(BodhiConfig, self).__getitem__(*args, **kw)
+        return super(BodhiConfig, self).__getitem__(key)
 
-    def get(self, *args, **kw):
+    def get(self, *args, **kw) -> typing.Any:
         """Ensure the config is loaded, and then call the superclass get."""
         if not self.loaded:
             self.load_config()
         return super(BodhiConfig, self).get(*args, **kw)
 
-    def pop(self, *args, **kw):
+    def pop(self, *args, **kw) -> typing.Any:
         """Ensure the config is loaded, and then call the superclass pop."""
         if not self.loaded:
             self.load_config()
         return super(BodhiConfig, self).pop(*args, **kw)
 
-    def copy(self, *args, **kw):
+    def copy(self) -> typing.Any:
         """Ensure the config is loaded, and then call the superclass copy."""
         if not self.loaded:
             self.load_config()
-        return super(BodhiConfig, self).copy(*args, **kw)
+        return super(BodhiConfig, self).copy()
 
-    def load_config(self, settings=None):
+    def load_config(self, settings: typing.Mapping = None):
         """
         Load the configuration either from the config file, or from the given settings.
 
         args:
-            settings (dict): If given, the settings are pulled from this dictionary. Otherwise, the
+            settings: If given, the settings are pulled from this dictionary. Otherwise, the
                 config file is used.
         """
         self._load_defaults()
