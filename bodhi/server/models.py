@@ -2365,7 +2365,12 @@ class Update(Base):
 
             # Add the pending_signing_tag to all new builds
             for build in new_builds:
-                if up.release.pending_signing_tag:
+                if up.from_tag:
+                    # this is a sidetag based update. use the sidetag pending signing tag
+                    side_tag_pending_signing = up.release.get_pending_signing_side_tag(up.from_tag)
+                    koji.tagBuild(side_tag_pending_signing, build)
+                elif up.release.pending_signing_tag:
+                    # Add the release's pending_signing_tag to all new builds
                     koji.tagBuild(up.release.pending_signing_tag, build)
                 else:
                     # EL6 doesn't have these, and that's okay...
