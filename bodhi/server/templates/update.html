@@ -256,16 +256,6 @@ if can_edit:
                         <div class="col font-size-09"><strong>Karma:</strong> Is the update generally functional?</div>
                       </div>
                     </div>
-                    % if update.critpath:
-                    <div class="list-group-item py-1">
-                      <div class="row">
-                        <div class="col-auto min-width-35"><input type="radio" name="karma_critpath" value="-1"></div>
-                        <div class="col-auto min-width-35"><input type="radio" name="karma_critpath" value="0" checked></div>
-                        <div class="col-auto min-width-35"><input type="radio" name="karma_critpath" value="1"></div>
-                        <div class="col font-size-09"><strong>Critical Path:</strong> Does the system's basic functionality continue to work after this update?</div>
-                      </div>
-                    </div>
-                    % endif
                     % if update.bugs:
                     <div class="list-group-item bg-light py-1">
                       <div class="row">
