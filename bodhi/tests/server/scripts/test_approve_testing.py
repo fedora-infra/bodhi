@@ -683,15 +683,19 @@ class TestMain(BasePyTestCase):
         assert update.status == models.UpdateStatus.testing
         assert update.date_stable is None
 
+    @pytest.mark.parametrize('from_side_tag', (None, 'f17-build-side-1234'))
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch('bodhi.server.models.Update.add_tag')
     @patch('bodhi.server.models.Update.remove_tag')
     @patch('bodhi.server.models.mail')
     def test_autotime_update_zero_day_in_testing_no_gated_gets_pushed_to_rawhide(
-            self, mail, remove_tag, add_tag):
+            self, mail, remove_tag, add_tag, from_side_tag):
         """
         Ensure that an autotime update with 0 mandatory_days_in_testing that meets
         the test requirements gets pushed to stable in rawhide.
+
+        Test for normal updates and such from a side tags, where it and its
+        auxiliary tags need to be removed.
         """
         update = self.db.query(models.Update).all()[0]
         update.autokarma = False
@@ -702,13 +706,15 @@ class TestMain(BasePyTestCase):
         update.stable_days = 0
         update.date_testing = datetime.utcnow() - timedelta(days=0)
         update.status = models.UpdateStatus.testing
+        update.from_tag = from_side_tag
         # Clear pending messages
         self.db.info['messages'] = []
+
         self.db.commit()
 
         with patch('bodhi.server.scripts.approve_testing.initialize_db'):
             with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message, api.Message):
+                with fml_testing.mock_sends(api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
         assert update.request is None
@@ -716,14 +722,24 @@ class TestMain(BasePyTestCase):
         assert update.status == models.UpdateStatus.stable
         assert update.pushed
         assert update.date_pushed is not None
-        # First pass, it adds f17=updatest-pending, then since we're pushing
-        # to stable directly, it adds f17-updates (the stable tag) then
-        # removes f17-updates-testing-pending and f17-updates-pending
-        assert remove_tag.call_args_list == \
-            [call('f17-updates-testing-pending'), call('f17-updates-pending')]
 
-        assert add_tag.call_args_list == \
-            [call('f17-updates-pending'), call('f17-updates')]
+        if not from_side_tag:
+            # First pass, it adds f17=updates-pending, then since we're pushing
+            # to stable directly, it adds f17-updates (the stable tag) then
+            # removes f17-updates-testing-pending and f17-updates-pending
+            assert remove_tag.call_args_list == \
+                [call('f17-updates-testing-pending'), call('f17-updates-pending')]
+
+            assert add_tag.call_args_list == \
+                [call('f17-updates')]
+        else:
+            assert remove_tag.call_args_list == \
+                [call(f'{from_side_tag}-pending-signing'), call(f'{from_side_tag}-testing'),
+                 call(from_side_tag)]
+
+            assert add_tag.call_args_list == \
+                [call('f17-updates')]
+
         assert mail.send.call_count == 1
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
@@ -898,6 +914,41 @@ class TestMain(BasePyTestCase):
 
         assert update.request is None
         assert update.autotime == False
+
+    @patch("bodhi.server.buildsys.DevBuildsys.getLatestBuilds", return_value=[{
+        'creation_time': '2007-08-25 19:38:29.422344'}])
+    def test_update_conflicting_build_not_pushed(self, build_creation_time):
+        """
+        Ensure that an update that have conflicting builds will not get pushed.
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.autokarma = False
+        update.autotime = True
+        update.request = None
+        update.stable_karma = 1
+        update.stable_days = 7
+        update.date_testing = datetime.utcnow() - timedelta(days=8)
+        update.status = models.UpdateStatus.testing
+        update.release.composed_by_bodhi = False
+
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
+            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
+                with fml_testing.mock_sends(api.Message):
+                    approve_testing.main(['nosetests', 'some_config.ini'])
+
+        assert update.status == models.UpdateStatus.testing
+
+        bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
+        cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
+        assert cmnts.count() == 2
+        assert cmnts[0].text == config.get('testing_approval_msg')
+        assert cmnts[1].text == "This update cannot be pushed to stable. "\
+            "These builds bodhi-2.0-1.fc17 have a more recent build in koji's "\
+            f"{update.release.stable_tag} tag."
 
     @patch('sys.exit')
     def test_log_level_is_left_alone(self, exit):

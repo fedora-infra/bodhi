@@ -982,6 +982,34 @@ class Release(Base):
         """
         return config.get(f'{self.setting_prefix}.status', None)
 
+    def get_testing_side_tag(self, from_tag: str) -> str:
+        """
+        Return the testing side tag for this ``Release``.
+
+        Args:
+            from_tag: Name of side tag from which ``Update`` was created.
+
+        Returns:
+            Testing side tag used in koji.
+        """
+        side_tag_postfix = config.get(
+            f'{self.setting_prefix}.koji-testing-side-tag', "-testing")
+        return from_tag + side_tag_postfix
+
+    def get_pending_signing_side_tag(self, from_tag: str) -> str:
+        """
+        Return the testing side tag for this ``Release``.
+
+        Args:
+            from_tag: Name of side tag from which ``Update`` was created.
+
+        Returns:
+            Testing side tag used in koji.
+        """
+        side_tag_postfix = config.get(
+            f'{self.setting_prefix}.koji-pending-signing-side-tag', "-pending-signing")
+        return from_tag + side_tag_postfix
+
 
 class TestCase(Base):
     """
@@ -1430,6 +1458,10 @@ class Build(Base):
         """
         return self._get_kojiinfo()['id']
 
+    def get_creation_time(self) -> datetime:
+        """Return the creation time of the build."""
+        return datetime.fromisoformat(self._get_kojiinfo()['creation_time'])
+
     def unpush(self, koji):
         """
         Move this build back to the candidate tag and remove any pending tags.
@@ -1454,6 +1486,21 @@ class Build(Base):
                     'Moving %s from %s to %s' % (
                         self.nvr, tag, release.candidate_tag))
                 koji.moveBuild(tag, release.candidate_tag, self.nvr)
+
+    def is_latest(self) -> bool:
+        """Check if this is the latest build available in the stable tag."""
+        koji_session = buildsys.get_session()
+        # Get the latest builds in koji in a tag for a package
+        koji_builds = koji_session.getLatestBuilds(
+            self.update.release.stable_tag,
+            package=self.package.name
+        )
+
+        for koji_build in koji_builds:
+            build_creation_time = datetime.fromisoformat(koji_build['creation_time'])
+            if self.get_creation_time() < build_creation_time:
+                return False
+        return True
 
 
 class ContainerBuild(Build):
@@ -2318,7 +2365,12 @@ class Update(Base):
 
             # Add the pending_signing_tag to all new builds
             for build in new_builds:
-                if up.release.pending_signing_tag:
+                if up.from_tag:
+                    # this is a sidetag based update. use the sidetag pending signing tag
+                    side_tag_pending_signing = up.release.get_pending_signing_side_tag(up.from_tag)
+                    koji.tagBuild(side_tag_pending_signing, build)
+                elif up.release.pending_signing_tag:
+                    # Add the release's pending_signing_tag to all new builds
                     koji.tagBuild(up.release.pending_signing_tag, build)
                 else:
                     # EL6 doesn't have these, and that's okay...
@@ -2362,10 +2414,12 @@ class Update(Base):
         signed, or if the associated :class:`Release` does not have a ``pending_signing_tag``
         defined. Otherwise, it will return ``False``.
 
+        If the update is created ``from_tag`` always check if every build is signed.
+
         Returns:
             bool: ``True`` if the update is signed, ``False`` otherwise.
         """
-        if not self.release.pending_signing_tag:
+        if not self.release.pending_signing_tag and not self.from_tag:
             return True
         return all([build.signed for build in self.builds])
 
@@ -2894,6 +2948,19 @@ class Update(Base):
             koji.untagBuild(tag, build.nvr, force=True)
         if return_multicall:
             return koji.multiCall()
+
+    def find_conflicting_builds(self) -> list:
+        """
+        Find if there are any builds conflicting with the stable tag in the update.
+
+        Returns a list of conflicting builds, empty is none found.
+        """
+        conflicting_builds = []
+        for build in self.builds:
+            if not build.is_latest():
+                conflicting_builds.append(build.nvr)
+
+        return conflicting_builds
 
     def modify_bugs(self):
         """
@@ -3739,19 +3806,22 @@ class Update(Base):
         ``greenwave_failed``.
 
         Args:
-            target (Update): The compose that has had a change to its state attribute.
+            target (InstanceState): The state of the instance that has had a
+                change to its test_gating_status attribute.
             value (EnumSymbol): The new value of the test_gating_status.
             old (EnumSymbol): The old value of the test_gating_status
             initiator (sqlalchemy.orm.attributes.Event): The event object that is initiating this
                 transition.
         """
+        instance = target.object
+
         if value != old:
             notify = value in [
                 TestGatingStatus.greenwave_failed,
                 TestGatingStatus.failed,
             ]
-            target.comment(
-                Session(),
+            instance.comment(
+                target.session,
                 f"This update's test gating status has been changed to '{value}'.",
                 author="bodhi",
                 email_notification=notify,
@@ -3793,6 +3863,7 @@ event.listen(
     'set',
     Update.comment_on_test_gating_status_change,
     active_history=True,
+    raw=True,
 )
 
 

@@ -17,12 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Define tools for interacting with the build system and a fake build system for development."""
 
-from threading import Lock
 import logging
 import time
 import typing
 import os
 from functools import wraps
+from threading import Lock
 
 import backoff
 import koji
@@ -126,6 +126,7 @@ class DevBuildsys:
         cls.__added__ = []
         cls.__tagged__ = {}
         cls.__rpms__ = []
+        cls.__tags__ = []
 
     def multiCall(self):
         """Emulate Koji's multiCall."""
@@ -425,6 +426,7 @@ class DevBuildsys:
         """
         return [self.getBuild()]
 
+    @multicall_enabled
     def getTag(self, taginfo, **kw):
         """
         Retrieve the given tag from koji.
@@ -487,7 +489,11 @@ class DevBuildsys:
                  'parent_id': 6438, 'maxdepth': None, 'noconfig': False, 'child_id': 6441,
                  'nextdepth': None, 'filter': [], 'currdepth': 4}]
 
-    def addTag(self, tag: str, **opts):
+    def listSideTags(self, **kw):
+        """Return a list of side tags."""
+        return [{'id': 7777, 'name': 'f17-build-side-7777'}]
+
+    def createTag(self, tag: str, **opts):
         """Emulate tag adding."""
         if 'parent' not in opts:
             raise ValueError('No parent in tag options')
@@ -503,9 +509,19 @@ class DevBuildsys:
         opts['perm_id'] = 1
         self.__tags__.append((tag, opts))
 
-    def deleteTag(self, tagid):
+    def deleteTag(self, tagid: typing.Union[str, int]):
         """Emulate tag deletion."""
-        del self.__tags__[tagid]
+        if isinstance(tagid, str):
+            for tid, tinfo in self.__tags__:
+                if tagid == tid:
+                    self.__tags__.remove((tid, tinfo))
+                    return
+        else:
+            del self.__tags__[tagid]
+
+    def removeSideTag(self, sidetag):
+        """Emulate side tag and build target deletion."""
+        pass
 
     def getRPMHeaders(self, rpmID: str,
                       headers: typing.Any) -> typing.Union[typing.Mapping[str, str], None]:

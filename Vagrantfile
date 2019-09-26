@@ -7,8 +7,37 @@
 # cp devel/Vagrantfile.example Vagrantfile
 # vagrant up
 
-require 'etc'
+# There is also an option when provisioning to setup bodhi
+# to use the fedora stg infratucture for koji and src.stg (for package acls)
+# To use this, use the command:
+#
+# vagrant --use-staging up
+# 
+# vagrant will prompt you for for fas username for auth to koji. Additionally
+# after the box is finished, you will need to aquire a kerberos ticket periodically
+# with `kinit <fasusername>@STG.FEDORAPROJECT.ORG` for bodhi to be able to auth with
+# the stg koji.
 
+require 'etc'
+require 'getoptlong'
+
+opts = GetoptLong.new(
+  [ '--use-staging', GetoptLong::OPTIONAL_ARGUMENT ]
+)
+use_staging_infra = false
+
+opts.each do |opt, arg|
+  case opt
+    when '--use-staging'
+        use_staging_infra=true
+  end
+end
+
+if use_staging_infra
+    print "Enter your FAS username for krb auth to staging: "
+    fasusername = STDIN.gets.chomp
+    print "\n"
+end
 
 VAGRANTFILE_API_VERSION = "2"
 
@@ -59,6 +88,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
  # bootstrap and run with ansible
  config.vm.provision "ansible" do |ansible|
      ansible.playbook = "devel/ansible/playbook.yml"
+
+     # if vagrant is given a fas username, assume the user is using the stg infrastructure
+     if fasusername
+        ansible.extra_vars = {
+        staging_fas: fasusername,
+        use_staging_infra: true
+        }
+     end
  end
 
 

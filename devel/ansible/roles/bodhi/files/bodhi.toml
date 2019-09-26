@@ -19,6 +19,7 @@ exchange = "amq.topic"
 routing_keys = [
     "org.fedoraproject.*.buildsys.tag",
     "org.fedoraproject.*.greenwave.decision.update",
+    "org.centos.*.ci.koji-build.test.running",
 ]
 
 [tls]

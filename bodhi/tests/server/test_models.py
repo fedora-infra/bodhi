@@ -753,6 +753,36 @@ class TestRelease(ModelTest):
         model.Release.clear_all_releases_cache()
         self.assertIsNone(model.Release._all_releases)
 
+    @mock.patch.dict(config, {'f11.koji-pending-signing-side-tag': '-pending-signing-test'})
+    def test_get_pending_signing_side_tag_found(self):
+        """
+        Assert that correct side tag is returned.
+        """
+        self.assertEqual(
+            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-pending-signing-test")
+
+    def test_get_pending_signing_side_tag_not_found(self):
+        """
+        Assert that default side tag is returned.
+        """
+        self.assertEqual(
+            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-pending-signing")
+
+    @mock.patch.dict(config, {'f11.koji-testing-side-tag': '-testing-test'})
+    def test_get_testing_side_tag_found(self):
+        """
+        Assert that correct side tag is returned.
+        """
+        self.assertEqual(
+            self.obj.get_testing_side_tag("side-tag"), "side-tag-testing-test")
+
+    def test_get_testing_side_tag_not_found(self):
+        """
+        Assert that default side tag is returned.
+        """
+        self.assertEqual(
+            self.obj.get_testing_side_tag("side-tag"), "side-tag-testing")
+
 
 class TestReleaseCritpathMinKarma(BaseTestCase):
     """Tests for the Release.critpath_min_karma property."""
@@ -1872,6 +1902,15 @@ class TestUpdateSigned(BaseTestCase):
         update.release.pending_signing_tag = ''
 
         self.assertTrue(update.signed)
+
+    def test_from_tag_update(self):
+        """If the update's release doesn't have a pending_signing_tag, it should return True."""
+        update = model.Update.query.first()
+        update.builds[0].signed = False
+        update.from_tag = 'f30-side-tag'
+        update.release.pending_signing_tag = ''
+
+        self.assertFalse(update.signed)
 
 
 class TestUpdateTestGatingPassed(BaseTestCase):
@@ -3237,9 +3276,10 @@ class TestUpdate(ModelTest):
         bug.title = 'foo\xe9bar'
         from bodhi.server.util import bug_link
         link = bug_link(None, bug)
+
         self.assertEqual(
-            link, ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'>#1</a>"
-                   " foo\xe9bar"))
+            link, ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'"
+                   " class='notblue'>BZ#1</a> foo\xe9bar"))
 
     def test_set_request_pending_stable(self):
         """Ensure that we can submit an update to stable if it is pending and has enough karma."""

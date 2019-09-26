@@ -1,20 +1,55 @@
 <%inherit file="master.html"/>
-<div class="container pt-2">
-  <div class="row">
-    <div class="col-md-12">
-      % for state in releases:
-      <h3>${state}</h3>
 
-      <ul>
-        % for r in releases[state]:
-        <li>
-          <a href="${request.route_url('releases')}${r['name']}">
-            ${r['long_name']}
-          </a>
-        </li>
-        % endfor
-      </ul>
-      % endfor
+<%def name="counts_box(r, status)">
+<div class="col-1 align-self-right text-center">
+  <a href="${request.route_url('updates')}?releases=${r['name']}&amp;status=${status}">${release_updates_counts[r['name']][status+'_updates_total']}</a>
+</div>
+</%def>
+
+<%def name="release_list(release_status, stable_only=False)">
+<ul class="list-group my-3">
+    <li class="list-group-item bg-light">
+        <div class="row">
+            <div class="col font-weight-bold">
+                ${release_status.capitalize()} Releases <span class="badge badge-primary badge-pill">${len(request.releases[release_status])}</span>
+            </div>
+            % if not stable_only:
+            <div class="col-1 align-self-right font-weight-bold text-muted text-center">Pending</div>
+            <div class="col-1 align-self-right font-weight-bold text-muted text-center">Testing</div>
+            % endif
+            <div class="col-1 align-self-right font-weight-bold text-muted text-center">Stable</div>
+
+          </div>
+      
+    </li>
+    % for r in request.releases[release_status]:
+    <li class="list-group-item">
+        <div class="row">
+          <div class="col font-weight-bold">
+            <a href="${request.route_url('releases')}${r['name']}">${r['long_name']}</a>
+          </div>
+          % if not stable_only:
+          ${counts_box(r, "pending")}
+          ${counts_box(r, "testing")}
+          % endif
+          ${counts_box(r, "stable")}
+        </div>
+    </li>
+    % endfor
+  </ul>
+</%def>
+
+<div class="subheader py-3">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <h2>Releases</h2>
+        </div>
+      </div>
     </div>
   </div>
+<div class="container pt-2">
+    ${release_list('current', stable_only=False)}
+    ${release_list('pending', stable_only=False)}
+    ${release_list('archived', stable_only=True)}
 </div>

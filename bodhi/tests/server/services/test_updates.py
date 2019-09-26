@@ -29,7 +29,7 @@ import requests
 from webtest import TestApp
 
 from bodhi.messages.schemas import base as base_schemas, update as update_schemas
-from bodhi.server import main
+from bodhi.server import main, buildsys
 from bodhi.server.config import config
 from bodhi.server.models import (
     Build, BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
@@ -85,6 +85,16 @@ class TestNewUpdate(BaseTestCase):
     """
     This class contains tests for the new_update() function.
     """
+
+    @classmethod
+    def mock_getTag(cls, tag, *kwargs):
+        if tag == 'f17-build-side-7777':
+            return {'maven_support': False, 'locked': False, 'name': 'f17-build-side-7777',
+                    'extra': {'sidetag_user': 'dudemcpants', 'sidetag': True},
+                    'perm': None, 'perm_id': None, 'arches': None, 'maven_include_all': False,
+                    'id': 7777}
+        return None
+
     @mock.patch(**mock_valid_requirements)
     def test_empty_build_name(self, *args):
         res = self.app.post_json('/updates/', self.get_update(['']), status=400)
@@ -285,8 +295,14 @@ class TestNewUpdate(BaseTestCase):
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
 
+        # We need release that is not composed by bodhi
+        release = Release.query.one()
+        release.composed_by_bodhi = False
+        self.db.commit()
+
         update = self.get_update(builds=None, from_tag='f17-build-side-7777')
-        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1), mock.patch(
+                'bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
             r = self.app.post_json('/updates/', update)
 
         up = r.json_body
@@ -313,6 +329,43 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['karma'], 0)
         self.assertEqual(up['requirements'], 'rpmlint')
         self.assertEqual(up['from_tag'], 'f17-build-side-7777')
+
+        koji_session = buildsys.get_session()
+        expected_pending_signing = ('f17-build-side-7777-pending-signing',
+                                    {'parent': 'f17-build-side-7777',
+                                     'locked': False,
+                                     'maven_support': False,
+                                     'name': 'f17-build-side-7777-pending-signing',
+                                     'perm': 'admin',
+                                     'arches': None,
+                                     'maven_include_all': False,
+                                     'perm_id': 1})
+        expected_testing = ('f17-build-side-7777-testing',
+                            {'parent': 'f17-build-side-7777',
+                             'locked': False,
+                             'maven_support': False,
+                             'name': 'f17-build-side-7777-testing',
+                             'perm': 'admin',
+                             'arches': None,
+                             'maven_include_all': False,
+                             'perm_id': 1})
+
+        self.assertIn(expected_pending_signing, koji_session.__tags__)
+        self.assertIn(expected_testing, koji_session.__tags__)
+        self.assertIn(('f17-build-side-7777-pending-signing',
+                       'gnome-backgrounds-3.0-1.fc17'),
+                      koji_session.__added__)
+
+        koji_session.clear()
+
+        # now try to create another update with the same side tag
+        update = self.get_update(builds=None, from_tag='f17-build-side-7777')
+        with fml_testing.mock_sends(), mock.patch(
+                'bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
+            r = self.app.post_json('/updates/', update, status=400)
+
+        self.assertEqual(r.json_body['errors'][0]['description'],
+                         "Update already exists using this side tag")
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_url(self, *args):
@@ -1124,8 +1177,9 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get(f'/updates/{alias}', status=200, headers={'Accept': 'text/html'})
 
         self.assertTrue(
-            ('<strong>Content Type</strong>\n                </div>\n                <div>\n'
-             '                  RPM') in res.text)
+            ('<div class="col font-weight-bold text-muted">Content Type</div>') in res.text)
+        self.assertTrue(
+            ('RPM') in res.text)
 
     def test_content_type_none(self):
         """Assert that the content type being None doesn't blow up the update template."""
@@ -2969,6 +3023,12 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first(),
                          None)
 
+        # check that the added build was tagged in koji
+        koji_session = buildsys.get_session()
+        self.assertIn(('f17-build-side-7777-pending-signing',
+                       'bodhi-2.0.0-3.fc17'),
+                      koji_session.__added__)
+
     @mock.patch(**mock_valid_requirements)
     def test_edit_testing_update_with_new_builds(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
@@ -3421,7 +3481,7 @@ class TestUpdatesService(BaseTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn('Enabled', resp)
+        self.assertIn('Stable by Karma', resp)
 
     @mock.patch(**mock_valid_requirements)
     def test_disabled_button_for_autopush(self, *args):
@@ -3435,7 +3495,7 @@ class TestUpdatesService(BaseTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn('Disabled', resp)
+        self.assertNotIn('Stable by Karma', resp)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)
@@ -4792,7 +4852,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
         self.assertNotIn('Push to Stable', resp)
-        self.assertNotIn('Edit', resp)
+        self.assertNotIn('<span class="fa fa-fw fa-pencil-square-o"></span> Edit', resp)
 
     @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
     def test_push_to_stable_button_not_present_when_test_gating_status_failed(self):
@@ -4998,7 +5058,7 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Push to Stable', resp)
         self.assertIn('Edit', resp)
 
-    def assertSeverityHTML(self, severity, text):
+    def assertSeverityHTML(self, severity, text=[]):
         """
         Assert that the "Update Severity" label appears correctly given specific 'severity'.
         """
@@ -5022,7 +5082,8 @@ class TestUpdatesService(BaseTestCase):
         # Checks correct class label and text for update severity in the html page for this update
         self.assertIn('text/html', resp.headers['Content-Type'])
         self.assertIn(nvr, resp)
-        self.assertIn(text, resp)
+        for s in text:
+            self.assertIn(s, resp)
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_urgent(self, *args):
@@ -5030,7 +5091,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is urgent.
         """
         self.assertSeverityHTML(UpdateSeverity.urgent,
-                                '<span class=\'badge badge-danger\'>urgent</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'urgent'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_high(self, *args):
@@ -5038,7 +5099,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is high.
         """
         self.assertSeverityHTML(UpdateSeverity.high,
-                                '<span class=\'badge badge-warning\'>high</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'high'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_medium(self, *args):
@@ -5046,7 +5107,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is medium.
         """
         self.assertSeverityHTML(UpdateSeverity.medium,
-                                '<span class=\'badge badge-primary\'>medium</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'medium'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_present_correctly_when_severity_is_low(self, *args):
@@ -5054,15 +5115,7 @@ class TestUpdatesService(BaseTestCase):
         Assert that the "Update Severity" label appears correctly when the severity is low.
         """
         self.assertSeverityHTML(UpdateSeverity.low,
-                                '<span class=\'badge badge-success\'>low</span>')
-
-    @mock.patch(**mock_valid_requirements)
-    def test_update_severity_label_present_correctly_when_severity_is_unspecified(self, *args):
-        """
-        Assert that the "Update Severity" label appears correctly when the severity is unspecified.
-        """
-        self.assertSeverityHTML(UpdateSeverity.unspecified,
-                                '<span class=\'badge badge-default\'>unspecified</span>')
+                                ['<div class="col font-weight-bold text-muted">Severity', 'low'])
 
     @mock.patch(**mock_valid_requirements)
     def test_update_severity_label_absent_when_severity_is_None(self, *args):

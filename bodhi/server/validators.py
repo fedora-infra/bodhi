@@ -204,6 +204,16 @@ def validate_build_nvrs(request, **kwargs):
     for build in request.validated.get('builds') or []:  # cope with builds being None
         try:
             cache_nvrs(request, build)
+            if request.validated.get('from_tag'):
+                n, v, r = request.buildinfo[build]['nvr']
+                release = request.db.query(Release).filter(or_(Release.name == r,
+                                                               Release.name == r.upper(),
+                                                               Release.version == r)).first()
+                if release and release.composed_by_bodhi:
+                    request.errors.add(
+                        'body', 'builds',
+                        f"Can't create update from tag for release"
+                        f" '{release.name}' composed by Bodhi.")
         except ValueError:
             request.validated['builds'] = []
             request.errors.add('body', 'builds', 'Build does not exist: %s' % build)
@@ -1281,6 +1291,18 @@ def validate_from_tag(request: pyramid.request.Request, **kwargs: dict):
     koji_tag = request.validated.get('from_tag')
 
     if koji_tag:
+        # check if any existing updates use this side tag
+        update = request.db.query(Update).filter_by(from_tag=koji_tag).first()
+        if update:
+            if request.validated.get('edited') == update.alias:
+                # existing update found, but it is the one we are editing, so keep going
+                pass
+            else:
+                request.errors.add('body', 'from_tag', "Update already exists using this side tag")
+                # don't run any more validators
+                request.validated = []
+                return
+
         koji_client = buildsys.get_session()
         taginfo = koji_client.getTag(koji_tag)
 

@@ -144,6 +144,10 @@
   args:
       creates: /home/vagrant/bodhi/development.ini
 
+- name: Change development.ini to make bodhi use the staging infrastructure
+  import_tasks: configure_stg.yml
+  when: (staging_fas is defined) and use_staging_infra
+
 - name: Creates /etc/bodhi directory
   file:
     path: /etc/bodhi
