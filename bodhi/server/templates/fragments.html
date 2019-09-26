@@ -85,7 +85,7 @@ ${statusmap[status]}\
             ${comment.user.name}
           </a>
           % if comment.text:
-            % if comment.karma or comment.karma_critpath or comment.bug_feedback or any([True for feedback in comment.unique_testcase_feedback if feedback.karma]):
+            % if comment.karma or comment.bug_feedback or any([True for feedback in comment.unique_testcase_feedback if feedback.karma]):
               commented &amp; provided feedback
             % else:
               commented
@@ -104,12 +104,6 @@ ${statusmap[status]}\
             </a>
           </div>
           <div class="col-auto">
-        % if comment.karma_critpath:
-        <span class="font-size-09 font-weight-bold">${karma(comment.karma_critpath, optional_text="critpath")}</span>
-        % endif
-        %if comment.karma and comment.karma_critpath:
-        <span class="px-2 font-size-09">|</span>
-        %endif
         % if comment.karma:
         <span class="font-size-09 font-weight-bold"> ${karma(comment.karma, optional_text="karma")}</span>
         % endif

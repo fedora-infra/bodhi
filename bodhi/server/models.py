@@ -4141,6 +4141,7 @@ class Comment(Base):
     Attributes:
         karma (int): The karma associated with this comment. Defaults to 0.
         karma_critpath (int): The critpath karma associated with this comment. Defaults to 0.
+            **DEPRECATED** no longer used in the UI
         text (str): The text of the comment.
         timestamp (datetime.datetime): The time the comment was created. Defaults to
             the return value of datetime.utcnow().
