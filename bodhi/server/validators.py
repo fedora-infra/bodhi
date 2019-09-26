@@ -1291,6 +1291,18 @@ def validate_from_tag(request: pyramid.request.Request, **kwargs: dict):
     koji_tag = request.validated.get('from_tag')
 
     if koji_tag:
+        # check if any existing updates use this side tag
+        update = request.db.query(Update).filter_by(from_tag=koji_tag).first()
+        if update:
+            if request.validated.get('edited') == update.alias:
+                # existing update found, but it is the one we are editing, so keep going
+                pass
+            else:
+                request.errors.add('body', 'from_tag', "Update already exists using this side tag")
+                # don't run any more validators
+                request.validated = []
+                return
+
         koji_client = buildsys.get_session()
         taginfo = koji_client.getTag(koji_tag)
 
