@@ -801,7 +801,7 @@ def test_get_composes_view(bodhi_container, db_container):
     # Fetch release for compose from the DB
     query_releases = (
         "SELECT "
-        "  name "
+        "  long_name "
         "FROM releases "
         "WHERE id = %s "
     )

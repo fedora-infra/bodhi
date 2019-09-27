@@ -230,7 +230,7 @@ ${parent.css()}
   </div>
 </div>
 % endif
-
+% if chrome:
 <%block name="javascript">
 ${parent.javascript()}
 <script src="${request.static_url('bodhi:server/static/vendor/selectize/selectize-0.12.3.min.js')}"></script>
@@ -299,3 +299,4 @@ ${parent.javascript()}
 
 </script>
 </%block>
+%endif

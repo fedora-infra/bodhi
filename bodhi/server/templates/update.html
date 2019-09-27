@@ -169,19 +169,19 @@ if can_edit:
           % endif
 
           % if not 'unspecified' in update.suggest:
-          <div class="alert alert-info">
+          <p class="mt-3">
             % if 'logout' in update.suggest:
-            <h4>Logout Required</h4>
+            <h5 class="font-weight-bold"><i class="fa fa-exclamation-circle text-muted"></i> Logout Required</h5>
             After installing this update it is required that you logout of
             your current user session and log back in to ensure the changes
             supplied by this update are applied properly.
             % elif 'reboot' in update.suggest:
-            <h4>Reboot Required</h4>
+            <h5 class="font-weight-bold"><i class="fa fa-exclamation-circle text-muted"></i> Reboot Required</h5>
             After installing this update it is required that you reboot your
             system to ensure the changes supplied by this update are applied
             properly.
             % endif
-          </div>
+          </p>
           % endif
 
           % if install_command:

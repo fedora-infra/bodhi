@@ -542,33 +542,6 @@ def markup(context, text):
     return bleach.clean(markdown_text, tags=markdown_tags, attributes=markdown_attrs)
 
 
-def composestate2html(context, state):
-    """
-    Render the given ComposeState as a span containing text.
-
-    Args:
-        context (mako.runtime.Context): Unused.
-        state (bodhi.server.models.ComposeState): The ComposeState to render as a span
-            tag.
-    Returns:
-        str: An HTML span tag representing the ComposeState.
-    """
-    cls = {
-        'requested': 'primary',
-        'pending': 'primary',
-        'initializing': 'warning',
-        'updateinfo': 'warning',
-        'punging': 'warning',
-        'notifying': 'warning',
-        'cleaning': 'warning',
-        'syncing_repo': 'warning',
-        'signing_repo': 'warning',
-        'success': 'success',
-        'failed': 'danger',
-    }[state.value]
-    return "<span class='badge badge-%s'>%s</span>" % (cls, state.description)
-
-
 def type2color(context, t):
     """
     Return a color to render the given UpdateType with.

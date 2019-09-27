@@ -1,16 +1,20 @@
 <%inherit file="master.html"/>
-<div class="container pt-2">
-  % if release.state.value == 'frozen':
-    <div class="row">
-      <div class="alert alert-warning">
-        <p>Release is frozen</p>
+<div class="subheader">
+    <div class="container py-4">
+      <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <h3 class="font-weight-bold m-0"><a href="${request.route_url('releases')}">Releases</a>
+              <span class="text-muted">/</span> 
+              ${release['long_name']}
+            </h3>
+        </div>
       </div>
     </div>
-  % endif
+  </div>
+<div class="container pt-2">
   <div class="row">
     <div class="col-md-5">
-      <h2 class="float-left">${release['long_name']}</h2>
-      <div style="clear: both;">
+      <div>
         <canvas id="releasechart" style="clear: both;" width="451"></canvas>
       </div>
       <table class="table">

@@ -31,7 +31,7 @@ import pytest
 from bodhi.server import util, models
 from bodhi.server.config import config
 from bodhi.server.exceptions import RepodataException
-from bodhi.server.models import ComposeState, TestGatingStatus, Update
+from bodhi.server.models import TestGatingStatus, Update
 from bodhi.tests.server import base
 
 
@@ -305,66 +305,6 @@ class TestNoAutoflush(unittest.TestCase):
 
         # autoflush should again be True since that was the starting condition.
         self.assertTrue(session.autoflush)
-
-
-class TestComposeState2HTML(unittest.TestCase):
-    """Assert correct behavior from the composestate2html() function."""
-    def test_requested(self):
-        """Assert correct return value with the requested state."""
-        self.assertEqual(util.composestate2html(None, ComposeState.requested),
-                         "<span class='badge badge-primary'>Requested</span>")
-
-    def test_pending(self):
-        """Assert correct return value with the pending state."""
-        self.assertEqual(util.composestate2html(None, ComposeState.pending),
-                         "<span class='badge badge-primary'>Pending</span>")
-
-    def test_initializing(self):
-        """Assert correct return value with the initializing state."""
-        self.assertEqual(util.composestate2html(None, ComposeState.initializing),
-                         "<span class='badge badge-warning'>Initializing</span>")
-
-    def test_updateinfo(self):
-        """Assert correct return value with the updateinfo state."""
-        self.assertEqual(util.composestate2html(None, ComposeState.updateinfo),
-                         "<span class='badge badge-warning'>Generating updateinfo.xml</span>")
-
-    def test_punging(self):
-        """Assert correct return value with the punging state."""
-        self.assertEqual(util.composestate2html(None, ComposeState.punging),
-                         "<span class='badge badge-warning'>Waiting for Pungi to finish</span>")
-
-    def test_notifying(self):
-        """Assert correct return value with the notifying state."""
-        self.assertEqual(util.composestate2html(None, ComposeState.notifying),
-                         "<span class='badge badge-warning'>Sending notifications</span>")
-
-    def test_success(self):
-        """Assert correct return value with the success state."""
-        self.assertEqual(util.composestate2html(None, ComposeState.success),
-                         "<span class='badge badge-success'>Success</span>")
-
-    def test_failed(self):
-        """Assert correct return value with the failed state."""
-        self.assertEqual(util.composestate2html(None, ComposeState.failed),
-                         "<span class='badge badge-danger'>Failed</span>")
-
-    def test_cleaning(self):
-        """Assert correct return value with the cleaning state."""
-        self.assertEqual(util.composestate2html(None, ComposeState.cleaning),
-                         "<span class='badge badge-warning'>Cleaning old composes</span>")
-
-    def test_syncing_repo(self):
-        """Assert correct return value with the syncing_repo state."""
-        self.assertEqual(
-            util.composestate2html(None, ComposeState.syncing_repo),
-            "<span class='badge badge-warning'>Wait for the repo to hit the master mirror</span>",
-        )
-
-    def test_signing_repo(self):
-        """Assert correct return value with the signing_repo state."""
-        self.assertEqual(util.composestate2html(None, ComposeState.signing_repo),
-                         "<span class='badge badge-warning'>Signing repo</span>")
 
 
 class TestCanWaiveTestResults(base.BaseTestCase):
