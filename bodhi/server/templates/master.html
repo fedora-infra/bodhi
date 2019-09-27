@@ -169,19 +169,17 @@
           file issues</a>
           if you have any problems. Read the <a href="https://bodhi.fedoraproject.org/docs" class="text-white-50">documentation</a>.
         </p>
-        % if request.registry.settings.get('legal_link') or request.registry.settings.get('privacy_link'):
         <p class="text-light text-center">
+            <span>&bull;</span> <a href="${request.route_url('collection_composes')}" class="text-white-50">Composes</a>
+            <span>&bull;</span> <a href="${request.route_url('metrics')}" class="text-white-50">Metrics</a>
             % if request.registry.settings.get('legal_link'):
-            <a href="${request.registry.settings.get('legal_link')}" class="text-white-50">Legal</a>
-            % endif
-            % if request.registry.settings.get('legal_link') and request.registry.settings.get('privacy_link'):
-            |
+            <span>&bull;</span> <a href="${request.registry.settings.get('legal_link')}" class="text-white-50">Legal</a>
             % endif
             % if request.registry.settings.get('privacy_link'):
-            <a href="${request.registry.settings.get('privacy_link')}" class="text-white-50">Privacy policy</a>
+            <span>&bull;</span> <a href="${request.registry.settings.get('privacy_link')}" class="text-white-50">Privacy policy</a>
             % endif
+            <span>&bull;</span>
         </p>
-        % endif
       </div>
     </div>
 

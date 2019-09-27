@@ -66,7 +66,7 @@ class TestComposeCollectionGet(base.BaseTestCase):
         response = self.app.get('/composes/', status=200, headers={'Accept': 'text/html'})
 
         # The Composes header should still appear in the page
-        self.assertTrue('<h1>Composes</h1>' in response)
+        self.assertTrue('no active composes' in response)
 
     def test_no_composes_json(self):
         """Assert correct behavior for json interface when there are no composes."""
@@ -84,7 +84,7 @@ class TestComposeCollectionGet(base.BaseTestCase):
         response = self.app.get('/composes/', status=200, headers={'Accept': 'text/html'})
 
         # The Composes header should still appear in the page
-        self.assertTrue('<h1>Composes</h1>' in response)
+        self.assertTrue('<h3 class="font-weight-bold m-0">Composes</h3>' in response)
         self.assertTrue(
             '/composes/{}/{}'.format(compose.release.name, compose.request.value) in response)
         self.assertTrue(compose.state.description in response)

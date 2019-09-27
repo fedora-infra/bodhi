@@ -48,6 +48,24 @@ statusmap = {'pending': 'info',
 ${statusmap[status]}\
 </%def>
 
+<%def name="compose_status_context(status)">\
+<%
+statusmap = {
+  'requested': 'primary',
+  'pending': 'primary',
+  'initializing': 'warning',
+  'updateinfo': 'warning',
+  'punging': 'warning',
+  'notifying': 'warning',
+  'cleaning': 'warning',
+  'syncing_repo': 'warning',
+  'signing_repo': 'warning',
+  'success': 'success',
+  'failed': 'danger'}
+%>\
+${statusmap[status]}\
+</%def>
+
 <%def name="status_text(update)">
   <span class="font-weight-bold">${update.status.value}</span>
   % if update.request:
