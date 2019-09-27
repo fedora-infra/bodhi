@@ -3854,7 +3854,7 @@ class Update(Base):
             # the message now. This method will be called again at the end of __init__
             return
         message = update_schemas.UpdateReadyForTestingV1.from_dict(
-            message={'update': target, 'agent': 'bodhi'}
+            message={'update': target, 'agent': 'bodhi', 're-trigger': False}
         )
         # This method is called before the new attribute value is actually set,
         # so the message needs to be updated.
