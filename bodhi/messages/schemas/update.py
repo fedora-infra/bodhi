@@ -584,6 +584,10 @@ class UpdateReadyForTestingV1(UpdateMessage):
         'required': ['update'],
         'definitions': {
             'build': BuildV1.schema(),
+        },
+        're-trigger': {
+            'type': 'bool',
+            'description': 'This flag is True if the message is sent to re-trigger tests'
         }
     }
 

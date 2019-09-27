@@ -33,6 +33,7 @@ from bodhi.server.models import (
     Bug,
     ContentType,
     UpdateRequest,
+    UpdateStatus,
     ReleaseState,
     Build,
     Package,
@@ -59,6 +60,8 @@ from bodhi.server.validators import (
     validate_severity,
     validate_from_tag,
 )
+from bodhi.messages.schemas import update as update_schemas
+import bodhi.server.notifications as notifications
 
 
 update = Service(name='update', path='/updates/{id}',
@@ -100,6 +103,14 @@ update_get_test_results = Service(
     path='/updates/{id}/get-test-results',
     description='Get test results for a specified update',
     cors_origins=bodhi.server.security.cors_origins_ro,
+)
+
+update_trigger_tests = Service(
+    name='update_trigger_tests',
+    path='/updates/{id}/trigger-tests',
+    description='Trigger tests for a specific update',
+    factory=security.PackagerACLFactory,
+    cors_origins=bodhi.server.security.cors_origins_rw
 )
 
 
@@ -677,3 +688,32 @@ def get_test_results(request):
         request.errors.status = 500
 
     return dict(decision=decision)
+
+
+@update_trigger_tests.post(schema=bodhi.server.schemas.TriggerTestsSchema,
+                           validators=(colander_body_validator,
+                                       validate_update_id,
+                                       validate_acls),
+                           permission='edit', renderer='json',
+                           error_handler=bodhi.server.services.errors.json_handler)
+def trigger_tests(request):
+    """
+    Trigger tests for update.
+
+    Args:
+        request (pyramid.request): The current request.
+    Returns:
+        dict: A dictionary mapping the key "update" to the update.
+    """
+    update = request.validated['update']
+
+    if update.status != UpdateStatus.testing:
+        log.error("Can't trigger tests for update: Update is not in testing status")
+        request.errors.add('body', 'request', 'Update is not in testing status')
+    else:
+        message = update_schemas.UpdateReadyForTestingV1.from_dict(
+            message={'update': update, 'agent': 'bodhi', 're-trigger': True}
+        )
+        notifications.publish(message)
+
+    return dict(update=update)
