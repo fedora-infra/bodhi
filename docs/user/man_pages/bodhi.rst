@@ -493,6 +493,9 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Display debugging information.
 
+``bodhi updates trigger-tests [options] <update>``
+
+    Trigger tests for an update. This update must be in testing state.
 
 Releases
 =========
