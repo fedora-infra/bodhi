@@ -823,3 +823,9 @@ class GetTestResultsSchema(CSRFProtectedSchema, colander.MappingSchema):
         colander.Sequence(accept_scalar=True),
         missing=None,
     )
+
+
+class TriggerTestsSchema(CSRFProtectedSchema, colander.MappingSchema):
+    """An API schema for bodhi.server.services.updates.trigger_tests()."""
+
+    pass
