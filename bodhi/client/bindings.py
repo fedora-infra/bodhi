@@ -333,6 +333,27 @@ class BodhiClient(OpenIdBaseClient):
                 raise
 
     @errorhandled
+    def trigger_tests(self, update: str) -> 'munch.Munch':
+        """
+        Trigger tests for update.
+
+        Args:
+            update: The alias of the update to run tests for.
+        Returns:
+            The response from the post to trigger_tests/.
+        """
+        try:
+            return self.send_request(
+                f'updates/{update}/trigger-tests', verb='POST', auth=True,
+                data={'update': update, 'csrf_token': self.csrf()})
+        except fedora.client.ServerError as exc:
+            if exc.code == 404:
+                # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
+                raise UpdateNotFound(update)
+            else:
+                raise
+
+    @errorhandled
     def query(self, **kwargs) -> 'munch.Munch':
         """
         Query bodhi for a list of updates.

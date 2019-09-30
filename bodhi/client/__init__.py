@@ -924,6 +924,36 @@ def waive(update: str, show: bool, test: typing.Iterable[str], comment: str, url
         print_resp(resp, client)
 
 
+@updates.command(name="trigger-tests")
+@click.argument('update')
+@openid_option
+@staging_option
+@url_option
+@debug_option
+@handle_errors
+def trigger_tests(update: str, url: str, openid_api: str, **kwargs):
+    # User Docs that show in the --help
+    """
+    Trigger tests for existing update in testing status.
+
+    UPDATE: The alias of the update (e.g. FEDORA-2017-f8e0ef2850)
+    """
+    # Developer Docs
+    """
+    The update argument must be an update id..
+
+    Args:
+        update: The update we want to trigger tests for.
+        url: The URL of a Bodhi server to create the update on. Ignored if staging is True.
+        openid_api: The URL for an OpenID API to use to authenticate to Bodhi.
+        kwargs: Other keyword arguments passed to us by click.
+    """
+    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'], openid_api=openid_api)
+
+    resp = client.trigger_tests(update)
+    print_resp(resp, client)
+
+
 @cli.group()
 def overrides():
     # Docs that show in the --help
