@@ -1679,6 +1679,10 @@ class Update(Base):
     """
     This model represents an update.
 
+    The update contains not just one package, but a collection of packages. Each
+    package can be referenced only once in one Update. Packages are referenced
+    through their Build objects using field `builds` below.
+
     Attributes:
         autokarma (bool): A boolean that indicates whether or not the update will
             be automatically pushed when the stable_karma threshold is reached.
@@ -3850,7 +3854,7 @@ class Update(Base):
             # the message now. This method will be called again at the end of __init__
             return
         message = update_schemas.UpdateReadyForTestingV1.from_dict(
-            message={'update': target, 'agent': 'bodhi'}
+            message={'update': target, 'agent': 'bodhi', 're-trigger': False}
         )
         # This method is called before the new attribute value is actually set,
         # so the message needs to be updated.
@@ -4146,6 +4150,7 @@ class Comment(Base):
     Attributes:
         karma (int): The karma associated with this comment. Defaults to 0.
         karma_critpath (int): The critpath karma associated with this comment. Defaults to 0.
+            **DEPRECATED** no longer used in the UI
         text (str): The text of the comment.
         timestamp (datetime.datetime): The time the comment was created. Defaults to
             the return value of datetime.utcnow().

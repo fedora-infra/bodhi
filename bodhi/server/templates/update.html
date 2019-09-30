@@ -205,9 +205,13 @@ if can_edit:
               % endfor
             </div>
           </div>
-
-
-          % if request.user:
+          <hr/>
+          % if request.user and update.status.value == "stable" and update.pushed == True:
+          <div class="alert alert-secondary bg-light mt-5 text-center text-muted">
+            <h5 class="mb-0 mt-2 font-weight-bold">Comments and Feedback are Closed</h5>
+            <p><small>this update has been pushed to stable</small></p>
+          </div>
+          % elif request.user:
           <form id="new_comment" role="form"
           action="javascript:form.submit();">
           <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
@@ -256,16 +260,6 @@ if can_edit:
                         <div class="col font-size-09"><strong>Karma:</strong> Is the update generally functional?</div>
                       </div>
                     </div>
-                    % if update.critpath:
-                    <div class="list-group-item py-1">
-                      <div class="row">
-                        <div class="col-auto min-width-35"><input type="radio" name="karma_critpath" value="-1"></div>
-                        <div class="col-auto min-width-35"><input type="radio" name="karma_critpath" value="0" checked></div>
-                        <div class="col-auto min-width-35"><input type="radio" name="karma_critpath" value="1"></div>
-                        <div class="col font-size-09"><strong>Critical Path:</strong> Does the system's basic functionality continue to work after this update?</div>
-                      </div>
-                    </div>
-                    % endif
                     % if update.bugs:
                     <div class="list-group-item bg-light py-1">
                       <div class="row">
@@ -323,15 +317,15 @@ if can_edit:
             </div>
           </form>
           % else:
-          <div class="col-md-12">
-              <p>
-              % if request.matched_route:
-                Please <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
-              % else:
-                Please <a href="${request.route_url('login')}">login</a> to add feedback.
-              % endif
-              </p>
-            </div>
+          <div class="alert alert-secondary bg-light mt-5 text-center text-muted">
+            <p>
+            % if request.matched_route:
+              Please <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
+            % else:
+              Please <a href="${request.route_url('login')}">login</a> to add feedback.
+            % endif
+            </p>
+          </div>
           %endif
 
 

@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """This module contains tests for bodhi.server.services.updates."""
 from datetime import datetime, timedelta
+from html import escape
 from unittest import mock
 from urllib import parse as urlparse
 import copy
@@ -1850,6 +1851,21 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('FEDORA-2019-a3bbe1a8f2', res)
         self.assertIn('Released updates', res)
         self.assertIn('All updates', res)
+
+    def test_list_updates_rss_formatting(self):
+        """Test the formatting of update description in rss feed."""
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update_details = f'<h1>FEDORA-{datetime.utcnow().year}-a3bbe1a8f2</h1>\n' \
+                         f'<h2>Packages in this update:</h2>\n' \
+                         f'<ul>\n<li>bodhi-2.0-1.fc17</li>\n</ul>\n' \
+                         f'<h2>Update description:</h2>\n' \
+                         f'<p>Useful details!</p>'
+        res = self.app.get('/rss/updates/',
+                           headers={'Accept': 'application/atom+xml'})
+        self.assertIn('application/rss+xml', res.headers['Content-Type'])
+        self.assertIn(f'<title>{update.title}</title>', res)
+        self.assertIn(f'<link>http://localhost/{update.get_url()}</link>', res)
+        self.assertIn(escape(update_details), res)
 
     def test_list_updates_rss_with_single_filter(self):
         res = self.app.get('/rss/updates/', {'severity': 'low'},
@@ -6307,3 +6323,45 @@ class TestGetTestResults(BaseTestCase):
                 'status': 'error'
             }
         )
+
+
+class TestTriggerTests(BaseTestCase):
+    """
+    This class contains tests for the trigger_tests() function.
+    """
+    def test_update_status_not_testing(self, *args):
+        """
+        Ensure that we get an error if trigger tests for update that is not
+        in testing state.
+        """
+        nvr = 'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Build).filter_by(nvr=nvr).one().update
+        up.status = UpdateStatus.pending
+
+        post_data = dict(
+            csrf_token=self.get_csrf_token()
+        )
+        res = self.app.post_json(f'/updates/{up.alias}/trigger-tests', post_data, status=400)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(res.json_body['status'], 'error')
+        self.assertEqual(res.json_body['errors'][0]['description'],
+                         "Update is not in testing status")
+
+    def test_update_status_testing(self, *args):
+        """
+        Ensure that we publish message when update is in testing state.
+        """
+        nvr = 'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Build).filter_by(nvr=nvr).one().update
+        up.status = UpdateStatus.testing
+
+        post_data = dict(
+            csrf_token=self.get_csrf_token()
+        )
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV1):
+            res = self.app.post_json(f'/updates/{up.alias}/trigger-tests', post_data, status=200)
+
+        self.assertEqual(res.status_code, 200)

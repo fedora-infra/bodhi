@@ -300,6 +300,10 @@ padding-bottom: 2em;
     box-shadow: 0 0 5px 0px #eee;
 }
 
+.custom-select{
+    -webkit-appearance: none;
+}
+
 /*CSS rules for the builds adder on the add/edit update form*/
 
 #builds-card .selectize-input,

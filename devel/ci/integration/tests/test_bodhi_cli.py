@@ -253,9 +253,11 @@ def test_releases_list(bodhi_container, db_container):
     query_pending_releases = "SELECT name FROM releases WHERE state = 'pending'"
     query_archived_releases = "SELECT name FROM releases WHERE state = 'archived'"
     query_current_releases = "SELECT name FROM releases WHERE state = 'current'"
+    query_frozen_releases = "SELECT name FROM releases WHERE state = 'frozen'"
     pending_releases = []
     archived_releases = []
     current_releases = []
+    frozen_releases = []
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
     with conn:
         with conn.cursor() as curs:
@@ -268,6 +270,9 @@ def test_releases_list(bodhi_container, db_container):
             curs.execute(query_current_releases)
             for record in curs:
                 current_releases.append(record[0])
+            curs.execute(query_frozen_releases)
+            for record in curs:
+                frozen_releases.append(record[0])
     conn.close()
 
     # Run the command
@@ -289,6 +294,11 @@ def test_releases_list(bodhi_container, db_container):
         for name in current_releases:
             expected_current_output += f"\n  Name:                {name}"
         assert expected_current_output in result.output
+    if len(frozen_releases):
+        expected_frozen_output = "frozen:"
+        for name in frozen_releases:
+            expected_frozen_output += f"\n  Name:                {name}"
+        assert expected_frozen_output in result.output
 
 
 def test_overrides_query(bodhi_container, db_container):

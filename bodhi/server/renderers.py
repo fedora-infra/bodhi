@@ -23,6 +23,8 @@ from pytz import utc
 from feedgen.feed import FeedGenerator
 from pyramid.exceptions import HTTPBadRequest
 
+from bodhi.server.util import markup
+
 
 log = logging.getLogger(__name__)
 
@@ -98,11 +100,44 @@ def rss(info):
                 return dict(href=request.route_url(route, **{param: obj[key]}))
             return link_dict
 
+        def describe_update(alias, notes, builds):
+            """
+            Wrap calls to operator.itemgetter to retrieve notes and builds list.
+
+            Methods are used to fill feed entry values, so we must use a wrapper
+            to get an HTML formatted description from the `notes` and the `builds`
+            properties of the update.
+
+            For example:
+            getter = describe_update(operator.itemgetter('notes'),operator.itemgetter('builds'))
+            description_value = getter(update_data)
+
+            Args:
+                alias (operator.itemgetter): A callable object which returns update alias
+                    as string.
+                notes (operator.itemgetter): A callable object which returns update notes
+                    as string.
+                builds (operator.itemgetter): A callable object which returns a list of builds
+                    associated to the update.
+            Returns:
+                function: A function which accepts a dict representing an update as parameter.
+            """
+            def describe(*args, **kwargs):
+                text = f'# {alias(*args, **kwargs)}\n'
+                text += f'## Packages in this update:\n'
+                for p in builds(*args, **kwargs):
+                    text += f'* {p.nvr}\n'
+                text += f'## Update description:\n{notes(*args, **kwargs)}'
+                return markup(None, text)
+            return describe
+
         getters = {
             'updates': {
-                'title': operator.itemgetter('alias'),
+                'title': operator.itemgetter('title'),
                 'link': linker('update', 'id', 'alias'),
-                'description': operator.itemgetter('notes'),
+                'description': describe_update(operator.itemgetter('alias'),
+                                               operator.itemgetter('notes'),
+                                               operator.itemgetter('builds')),
                 'pubDate': lambda obj: utc.localize(obj['date_submitted']),
             },
             'users': {
