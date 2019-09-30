@@ -954,11 +954,24 @@ EXAMPLE_PENDING_RELEASE_MUNCH = Munch({
     'package_manager': 'unspecified', 'testing_repository': None
 })
 
+EXAMPLE_FROZEN_RELEASE_MUNCH = Munch({
+    'composes': [], 'dist_tag': 'f30', 'name': 'F30',
+    'testing_tag': 'f30-updates-testing', 'pending_stable_tag': 'f30-updates-pending',
+    'mail_template': 'fedora_errata_template', 'long_name': 'Fedora 30',
+    'state': 'frozen', 'version': '30', 'id_prefix': 'FEDORA', 'branch': 'f30',
+    'pending_signing_tag': 'f30-signing-pending',
+    'pending_testing_tag': 'f30-updates-testing-pending',
+    'candidate_tag': 'f30-updates-candidate', 'stable_tag': 'f30-updates',
+    'override_tag': 'f30-override', 'composed_by_bodhi': True,
+    'package_manager': 'unspecified', 'testing_repository': None
+})
+
 EXAMPLE_RELEASE_MUNCH_NO_ARCHIVED = Munch({
     'rows_per_page': 20, 'total': 3, 'pages': 1,
     'releases': [
         EXAMPLE_CURRENT_RELEASE_MUNCH,
         EXAMPLE_PENDING_RELEASE_MUNCH,
+        EXAMPLE_FROZEN_RELEASE_MUNCH,
     ]
 })
 
@@ -981,6 +994,10 @@ EXPECTED_ARCHIVED_RELEASES_LIST_OUTPUT = """archived:
 
 EXPECTED_CURRENT_RELEASES_LIST_OUTPUT = """current:
   Name:                F28
+"""
+
+EXPECTED_FROZEN_RELEASES_LIST_OUTPUT = """frozen:
+  Name:                F30
 """
 
 

@@ -917,6 +917,23 @@ def _conditionally_get_update(request):
 
 
 @postschema_validator
+def validate_comments_open(request, **kwargs):
+    """
+    Ensure that a comment cannot be added to a stable, pushed update.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    update = _conditionally_get_update(request)
+
+    if update.status == UpdateStatus.stable and update.pushed:
+        request.errors.add("body", "comment",
+                           "Comments are Closed on this update. It has been "
+                           "pushed to stable")
+
+
+@postschema_validator
 def validate_bug_feedback(request, **kwargs):
     """
     Ensure that bug feedback references bugs associated with the given update.

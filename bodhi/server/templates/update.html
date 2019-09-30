@@ -205,9 +205,13 @@ if can_edit:
               % endfor
             </div>
           </div>
-
-
-          % if request.user:
+          <hr/>
+          % if request.user and update.status.value == "stable" and update.pushed == True:
+          <div class="alert alert-secondary bg-light mt-5 text-center text-muted">
+            <h5 class="mb-0 mt-2 font-weight-bold">Comments and Feedback are Closed</h5>
+            <p><small>this update has been pushed to stable</small></p>
+          </div>
+          % elif request.user:
           <form id="new_comment" role="form"
           action="javascript:form.submit();">
           <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
@@ -313,15 +317,15 @@ if can_edit:
             </div>
           </form>
           % else:
-          <div class="col-md-12">
-              <p>
-              % if request.matched_route:
-                Please <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
-              % else:
-                Please <a href="${request.route_url('login')}">login</a> to add feedback.
-              % endif
-              </p>
-            </div>
+          <div class="alert alert-secondary bg-light mt-5 text-center text-muted">
+            <p>
+            % if request.matched_route:
+              Please <a href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">login</a> to add feedback.
+            % else:
+              Please <a href="${request.route_url('login')}">login</a> to add feedback.
+            % endif
+            </p>
+          </div>
           %endif
 
 

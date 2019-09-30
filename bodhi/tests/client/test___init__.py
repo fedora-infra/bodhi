@@ -2621,9 +2621,10 @@ class TestListReleases(unittest.TestCase):
 
         result = runner.invoke(client.list_releases, ['--url', 'http://localhost:6543'])
 
-        expected_output = '{}\n{}'.format(
+        expected_output = '{}\n{}\n{}'.format(
             client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT,
             client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT,
+            client_test_data.EXPECTED_FROZEN_RELEASES_LIST_OUTPUT,
         )
 
         self.assertEqual(result.exit_code, 0)
@@ -2651,9 +2652,10 @@ class TestListReleases(unittest.TestCase):
             client.list_releases, ['--url', 'http://localhost:6543', '--rows', 4, '--page', 1]
         )
 
-        expected_output = '{}\n{}'.format(
+        expected_output = '{}\n{}\n{}'.format(
             client_test_data.EXPECTED_PENDING_RELEASES_LIST_OUTPUT,
             client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT,
+            client_test_data.EXPECTED_FROZEN_RELEASES_LIST_OUTPUT,
         )
 
         self.assertEqual(result.exit_code, 0)

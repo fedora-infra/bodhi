@@ -33,6 +33,7 @@ from bodhi.server.validators import (
     validate_update_owner,
     validate_ignore_user,
     validate_comment_id,
+    validate_comments_open,
     validate_username,
     validate_bug_feedback,
     validate_testcase_feedback,
@@ -193,6 +194,7 @@ def query_comments(request):
                    validate_update,
                    validate_bug_feedback,
                    validate_testcase_feedback,
+                   validate_comments_open,
                ))
 def new_comment(request):
     """
