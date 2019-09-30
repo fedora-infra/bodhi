@@ -26,6 +26,13 @@ Once submitted to Bodhi, updates move through the following states:
 
 :ref:`unpushed`: The update has been removed from testing.
 
+.. note:: | In the case of Fedora rawhide, the states described here are a little bit changed
+           as rawhide has only two states (testing, stable).
+          | For rawhide, ``Testing`` means that the update is being tested by the automatic test
+           systems (ie: CI (continuous integration) tests are running), and ``Stable`` means
+           that the builds of the update are available in the buildroot.
+          | **Unlike** stable branches, it does not mean that the builds of the update are
+           available for anyone to download on the master mirror.
 
 .. _pending:
 

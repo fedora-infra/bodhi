@@ -12,6 +12,7 @@ def inherit(context):
 % if chrome:
 <%block name="css">
 ${parent.css()}
+<link href="${request.static_url('bodhi:server/static/vendor/selectize/selectize.bootstrap3-0.12.3.css') }" rel="stylesheet" />
 <link rel="alternate" type="application/atom+xml" title="New Updates" href="${request.route_url('updates_rss') + '?' + request.query_string}"/>
 </%block>
 <div class="subheader py-3">
@@ -36,6 +37,181 @@ ${parent.css()}
                 <span class="fa fa-rss"></span>
               </a>
               % endif
+              <%
+              visibleParams = ['search', 'type', "severity","user","status",'releases']
+              allValidParams = ["approved_since",
+                                "approved_before",
+                                "bugs",
+                                "critpath",
+                                "like",
+                                "locked",
+                                "modified_since",
+                                "modified_before",
+                                "packages",
+                                "package",
+                                "builds",
+                                "pushed",
+                                "pushed_since",
+                                "pushed_before",
+                                "releases",
+                                "release",
+                                "request",
+                                "severity",
+                                "status",
+                                "submitted_since",
+                                "submitted_before",
+                                "suggest",
+                                "type",
+                                "content_type",
+                                "gating",
+                                "user",
+                                "updateid",
+                                "alias"]
+              searchterm=''
+              parameters = request.params.dict_of_lists()
+              if 'search' in parameters:
+                searchterm = parameters['search'][0]
+              %>
+              <div class="ml-auto">
+              <form id="filters-form">
+                <div class="dropdown">
+            <div class="input-group input-group-sm" data-toggle="dropdown">
+              <div class="input-group-prepend ml-auto">
+                  <div class="btn btn-sm btn-outline-secondary border" id="updates-filterslist">
+                    
+                    % for param, values in request.params.dict_of_lists().items():
+                      % for i, value in enumerate(values):
+                        % if param in allValidParams:
+                          % if i > 0:
+                          or
+                          %else:
+                          <strong>${param}: </strong>
+                          %endif
+                          ${value}
+                        % endif
+                      % endfor
+                    % endfor
+                  </div>
+
+              </div>
+              <input name="search" type="text" autocomplete='off' class="form-control" id="updates-search" aria-describedby="basic-addon3" value="${searchterm}" placeholder="search">
+            </div>
+            <div class="dropdown-menu dropdown-menu-right p-3" style="min-width:400px; max-width: 400px" aria-labelledby="dropdownMenuButton" id="filters-dropdown">
+                % for param, values in parameters.items():
+                  % for i, value in enumerate(values):
+                    % if (param in allValidParams) and (param not in visibleParams):
+                      <input type="hidden" name="${param}" value="${value}">
+                    % endif
+                  % endfor
+              % endfor
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="type" class="col-auto align-self-center pl-1 pr-0 m-0">Status:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="updatestatus" name="status" multiple="multiple">
+                          <option value=""></option>
+                          % for value in statuses:
+                          <option value="${value}"
+                          % if 'status' in parameters and value in parameters['status']:
+                          selected="selected"
+                          % endif
+                          >${value}</option>
+                          % endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updatestatus"></i>
+                  </div>
+              </div>
+
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="releases" class="col-auto align-self-center pl-1 pr-0 m-0">Releases:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="updatereleases" name="releases" multiple="multiple">
+                          <option value=""></option>
+                          % for rstatus in ['current', 'pending', "archived"]:
+                            <optgroup label="${rstatus}">
+                            % for value in releases[rstatus]:
+                            <option value="${value['name']}"
+                            % if 'releases' in parameters and value['name'] in parameters['releases']:
+                            selected="selected"
+                            % endif
+                            >${value['long_name']}</option>
+                            % endfor
+                            </optgroup>
+                          %endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updatereleases"></i>
+                  </div>
+              </div>
+              
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="type" class="col-auto align-self-center pl-1 pr-0 m-0">Type:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="updatetypes" name="type" class="custom-select">
+                          <option value=""></option>
+                          % for value in types:
+                          <option value="${value}"
+                          % if 'type' in parameters and parameters['type'][0] == value:
+                          selected="selected"
+                          % endif
+                          >${value}</option>
+                          % endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updatetypes"></i>
+                  </div>
+              </div>
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="severity" class="col-auto align-self-center pl-1 pr-0 m-0">Severity:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="updateseverity" name="severity" class="custom-select">
+                          <option value=""></option>
+                          % for value in severities:
+                          <option value="${value}"
+                          % if 'severity' in parameters and parameters['severity'][0] == value:
+                          selected="selected"
+                          % endif
+                          >${value}</option>
+                          % endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updateseverity"></i>
+                  </div>
+              </div>
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="user" class="col-auto align-self-center pl-1 pr-0 m-0">User:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <input type="text" id="updateuser" name="user" class="form-control"
+                      % if 'user' in parameters:
+                          value="${parameters['user'][0]}"
+                      % endif>
+                    </input>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updateuser"></i>
+                  </div>
+              </div>
+
+              <input type="submit" class="btn btn-block btn-primary" value="Apply Filters" />
+
+              <a href="${request.route_url('updates')}" class="btn btn-link btn-block">Clear Filters</a>
+              </div>
+          </div>  
+              </form></div>
             </div>
             % endif
             % for update in updates:
@@ -54,3 +230,72 @@ ${parent.css()}
   </div>
 </div>
 % endif
+
+<%block name="javascript">
+${parent.javascript()}
+<script src="${request.static_url('bodhi:server/static/vendor/selectize/selectize-0.12.3.min.js')}"></script>
+<script>
+  var parameters = ${str(request.params.dict_of_lists())|n}
+  console.log(parameters)
+  $(document).ready(function() {
+ 
+  var $status_selectize = $('#updatestatus').selectize();
+  var status_selectize_control = $status_selectize[0].selectize;
+
+  var $releases_selectize = $('#updatereleases').selectize();
+  var releases_selectize_control = $releases_selectize[0].selectize;
+
+  $("#filters-dropdown select").on('click', function(event){
+        event.stopPropagation();
+  })
+
+  $('#updates-search, #updates-filterslist, #filters-dropdown').on('click', function(event){
+    if ($("#filters-dropdown").hasClass("show")){
+      event.stopPropagation();
+    }
+  })
+
+  $('.clear-button').on('click', function(event){
+    event.stopPropagation();
+    if ($(this).attr("data-clear") == 'updatereleases'){
+      releases_selectize_control.clear();
+    } else if ($(this).attr("data-clear") == 'updatestatus'){
+      status_selectize_control.clear();
+    } else {
+      $("select#"+$(this).attr("data-clear")+" option:selected").removeAttr("selected")
+      $("input#"+$(this).attr("data-clear")).val("");
+    }
+  })
+
+  $("#updates-search").on('keypress',function(e) {
+    if(e.which == 13) {
+        $("#filters-form").submit();
+    }
+    });
+    $( "#filters-form" ).submit(function( event ) {
+        if ($('select[name="type"]').val() == ''){
+          $('select[name="type"]').prop("disabled", true);
+        }
+
+        if ($('select[name="releases"]').val() == ''){
+          $('select[name="releases"]').prop("disabled", true);
+        }
+
+        if ($('select[name="severity"]').val() == ''){
+          $('select[name="severity"]').prop("disabled", true);
+        }
+
+        if ($('select[name="status"]').val() == ''){
+          $('select[name="status"]').prop("disabled", true);
+        }
+
+        if ($('input[name="user"]').val() == ''){
+          $('input[name="user"]').prop("disabled", true);
+        }
+  });
+
+  });
+
+
+</script>
+</%block>
