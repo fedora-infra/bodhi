@@ -5352,6 +5352,14 @@ class TestUpdatesService(BaseTestCase):
             ("Cannot submit bodhi ('0', '1.0', '1.fc17') to stable since it is older than "
              "('0', '2.0', '1.fc17')"))
 
+        # see if we get the error message rpm.labelcompare succeeds
+        with mock.patch('rpm.labelCompare') as rpm_label_compare:
+            rpm_label_compare.return_value = 0
+            resp = self.app.post_json(
+                f'/updates/{update.alias}/request',
+                {'request': 'stable', 'csrf_token': self.get_csrf_token()},
+                status=200)
+
     @mock.patch(**mock_valid_requirements)
     def test_edit_testing_update_with_build_from_different_update(self, *args):
         """
