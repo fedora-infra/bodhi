@@ -428,7 +428,7 @@ def query_updates(request):
     # when rendering the html, so we add this here.
     if request.accept.accept_html():
         return_values.update(
-            types=reversed(list(bodhi.server.models.UpdateType.values())),
+            types=list(bodhi.server.models.UpdateType.values()),
             severities=sorted(
                 list(bodhi.server.models.UpdateSeverity.values()),
                 key=bodhi.server.util.sort_severity),
