@@ -99,7 +99,7 @@ ${statusmap[status]}\
           <div class="col font-size-09">
           % if comment.user:
           <a href="${request.route_url('user', name=comment.user.name)}" class="font-weight-bold notblue">
-            <img src="${util.avatar(comment.user.name, size=16)}"/>
+            <img src="${util.avatar(comment.user.name, size=16)}" alt="User Icon"/>
             ${comment.user.name}
           </a>
           % if comment.text:
@@ -182,7 +182,7 @@ ${statusmap[status]}\
                   ${util.type2icon(update['type'])|n}
                   <div class="media-body ml-2">
                       <div class="font-weight-bold">
-                        <a href="${request.route_url('update', id=update['alias'])}"">
+                        <a href="${request.route_url('update', id=update['alias'])}">
                         ${update.beautify_title(amp=True,nvr=True) | n}
                         </a>
                       </div>
