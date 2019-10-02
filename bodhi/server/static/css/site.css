@@ -158,7 +158,18 @@ form#search, form#search input, .twitter-typeahead {
 .tt-suggestion p {
   margin: 0;
 }
+.searchbar{
+    background:#fff;
+    border:1px solid #666;
+}
 
+#searchbox{
+    height:50px;
+    background:rgba(0,0,0,0);
+    border:0;
+    color:#444;
+    line-height:50px;
+}
 ul.updateslist {
     list-style: none;
 }
@@ -390,4 +401,15 @@ padding-bottom: 2em;
 
 #builds-card  .selectize-dropdown .create{
     display: none;
+}
+.masthead{
+    border-bottom: 1px solid #ccc;
+    box-shadow: 0 0 10px 2px #ddd;
+    z-index: 999;
+    position: relative;
+}
+
+.bodycontent {
+    min-height: 65vh;
+    z-index: 1;
 }

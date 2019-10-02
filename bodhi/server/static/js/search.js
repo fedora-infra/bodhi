@@ -65,7 +65,7 @@ $(document).ready(function() {
     }
 
     $('#bloodhound .typeahead').typeahead({
-        hint: true,
+        hint: false,
         highlight: true,
         minLength: 2,
     },

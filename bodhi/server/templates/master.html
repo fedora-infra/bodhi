@@ -45,16 +45,16 @@
             <div class="col-12">
               <form id="search" role="search">
                 <div id="bloodhound" class="form-group mb-0">
-                  <input class="typeahead form-control" name="term" type="text" placeholder="Search..." style="height:50px;background:rgba(0,0,0,0);border:0;color:white;line-height:50px;">
+                  <input class="typeahead form-control" id="searchbox" name="term" autocomplete="off" type="text" placeholder="Search...">
                 </div>
               </form>
             </div>
           </div>
         </div>
       </div>
-      <div class="masthead">
-      <div class="container">
-        <div class="row">
+      <div class="masthead py-2">
+      <div class="container px-0">
+        <div class="row no-gutters">
           <div class="col-sm-6">
             <a href="${request.route_url('home')}">
               <img src="${request.static_url('bodhi:server/static/img/bodhi-logo.png')}" alt="Fedora Update System" height="40">
@@ -64,7 +64,7 @@
             <div class="row">
               <nav class="navbar navbar-light navbar-expand pt-0 pb-0 ml-auto">
                   <div class="container">
-                    <ul class="nav navbar-nav nav-pill">
+                    <ul class="nav navbar-nav nav-pill align-items-center">
                         % if request.matched_route and request.matched_route.name in ('releases', 'release'):
                         <li class="nav-item active font-weight-bold">
                         % else:
@@ -84,18 +84,18 @@
                             Updates
                           </a>
                         </li>
-
+                        <li class="nav-item">
+                            <a class="nav-link" href="javascript:void(0);" id="search-toggle">
+                              <span class="fa fa-search"></span>
+                            </a>
+                          </li>
                         % if request.user:
-                        % if request.matched_route and request.matched_route.name == 'user' and request.user and user and request.user.name == user['name']:
-                        <li class="nav-item dropdown active">
-                        % else:
                         <li class="nav-item dropdown">
-                        % endif
                           <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                             <span class="glyphicon glyphicon-user"></span>
                             <img src="${self.util.avatar(request.user.name, size=24)}" alt="User Icon"/>
                           </a>
-                          <div class="dropdown-menu">
+                          <div class="dropdown-menu dropdown-menu-right">
                               <a class="dropdown-item" href="${request.route_url('home')}">
                                   Dashboard
                               </a>
@@ -121,23 +121,14 @@
                         % endif
 
                         % if not request.user:
-                        <li class="nav-item">
+                        <li class="nav-item ml-3">
                           % if request.matched_route:
-                          <a class="nav-link" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">
-                            <span class="glyphicon glyphicon-log-in"></span>
-                            Login</a>
+                          <a class="btn btn-primary" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">Login</a>
                           % else:
-                          <a class="nav-link" href="${request.route_url('login')}">
-                            <span class="glyphicon glyphicon-log-in"></span>
-                            Login</a>
+                          <a class="btn btn-primary" href="${request.route_url('login')}">Login</a>
                           % endif
                         </li>
                         % endif
-                        <li class="nav-item">
-                          <a class="nav-link" href="javascript:void(0);" id="search-toggle">
-                            <span class="fa fa-search"></span>
-                          </a>
-                        </li>
                     </ul>
                   </div>
                 </nav>
