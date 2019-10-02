@@ -135,7 +135,11 @@ ${parent.css()}
                   </div>
                   <div class="col-8 pl-1">
                       <select id="updatereleases" name="releases" multiple="multiple">
+<<<<<<< HEAD
                           <option value="">&nbsp;</option>
+=======
+                          <option value=""><&nbsp;/option>
+>>>>>>> e9fc7f8b0... fix html validation errors and warnings
                           % for rstatus in ['current', 'pending', "archived"]:
                             <optgroup label="${rstatus}">
                             % for value in releases[rstatus]:
