@@ -57,7 +57,7 @@
         <div class="row">
           <div class="col-sm-6">
             <a href="${request.route_url('home')}">
-              <img src="${request.static_url('bodhi:server/static/img/bodhi-logo.png')}" alt="Fedora Update System" id="kojiLogo" height="40px">
+              <img src="${request.static_url('bodhi:server/static/img/bodhi-logo.png')}" alt="Fedora Update System" height="40">
             </a>
           </div>
           <div class="col-sm-6">
@@ -93,7 +93,7 @@
                         % endif
                           <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                             <span class="glyphicon glyphicon-user"></span>
-                            <img src="${self.util.avatar(request.user.name, size=24)}"/>
+                            <img src="${self.util.avatar(request.user.name, size=24)}" alt="User Icon"/>
                           </a>
                           <div class="dropdown-menu">
                               <a class="dropdown-item" href="${request.route_url('home')}">
@@ -200,7 +200,7 @@
       </div>
     </div>
 
-    <script type="text/javascript">
+    <script>
       var settings = {
           bz_products: ["${ '","'.join(config['bz_products']) | n }"],
           bz_server_rest: "${config['bz_server_rest']}"

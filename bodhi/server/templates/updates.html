@@ -15,15 +15,19 @@ ${parent.css()}
 <link href="${request.static_url('bodhi:server/static/vendor/selectize/selectize.bootstrap3-0.12.3.css') }" rel="stylesheet" />
 <link rel="alternate" type="application/atom+xml" title="New Updates" href="${request.route_url('updates_rss') + '?' + request.query_string}"/>
 </%block>
-<div class="subheader py-3">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        <h2>Updates</h2>
+<div class="subheader">
+    <div class="container py-4">
+      <div class="row">
+        <div class="col">
+            <h3 class="font-weight-bold m-0 d-flex align-items-center">Updates
+                % if request.user:
+                <a class="btn btm-sm font-weight-bold btn-outline-primary ml-auto" href="${request.route_url('new_update')}"><i class="fa fa-plus pr-2"></i>New Update</a>
+                % endif
+            </h3>
+        </div>
       </div>
     </div>
   </div>
-</div>
 <div class="container pt-4">
   <div class="row">
     <div class="col-md-12">
@@ -94,9 +98,9 @@ ${parent.css()}
                   </div>
 
               </div>
-              <input name="search" type="text" autocomplete='off' class="form-control" id="updates-search" aria-describedby="basic-addon3" value="${searchterm}" placeholder="search">
+              <input name="search" type="text" autocomplete='off' class="form-control" id="updates-search" value="${searchterm}" placeholder="search">
             </div>
-            <div class="dropdown-menu dropdown-menu-right p-3" style="min-width:400px; max-width: 400px" aria-labelledby="dropdownMenuButton" id="filters-dropdown">
+            <div class="dropdown-menu dropdown-menu-right p-3" style="min-width:400px; max-width: 400px" id="filters-dropdown">
                 % for param, values in parameters.items():
                   % for i, value in enumerate(values):
                     % if (param in allValidParams) and (param not in visibleParams):
@@ -106,11 +110,11 @@ ${parent.css()}
               % endfor
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="type" class="col-auto align-self-center pl-1 pr-0 m-0">Status:</label>
+                  <label for="updatestatus" class="col-auto align-self-center pl-1 pr-0 m-0">Status:</label>
                   </div>
                   <div class="col-8 pl-1">
                       <select id="updatestatus" name="status" multiple="multiple">
-                          <option value=""></option>
+                          <option value="">&nbsp;</option>
                           % for value in statuses:
                           <option value="${value}"
                           % if 'status' in parameters and value in parameters['status']:
@@ -127,11 +131,11 @@ ${parent.css()}
 
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="releases" class="col-auto align-self-center pl-1 pr-0 m-0">Releases:</label>
+                  <label for="updatereleases" class="col-auto align-self-center pl-1 pr-0 m-0">Releases:</label>
                   </div>
                   <div class="col-8 pl-1">
                       <select id="updatereleases" name="releases" multiple="multiple">
-                          <option value=""></option>
+                          <option value=""><&nbsp;/option>
                           % for rstatus in ['current', 'pending', "archived"]:
                             <optgroup label="${rstatus}">
                             % for value in releases[rstatus]:
@@ -152,11 +156,11 @@ ${parent.css()}
               
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="type" class="col-auto align-self-center pl-1 pr-0 m-0">Type:</label>
+                  <label for="updatetypes" class="col-auto align-self-center pl-1 pr-0 m-0">Type:</label>
                   </div>
                   <div class="col-8 pl-1">
                       <select id="updatetypes" name="type" class="custom-select">
-                          <option value=""></option>
+                          <option value="">&nbsp;</option>
                           % for value in types:
                           <option value="${value}"
                           % if 'type' in parameters and parameters['type'][0] == value:
@@ -172,11 +176,11 @@ ${parent.css()}
               </div>
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="severity" class="col-auto align-self-center pl-1 pr-0 m-0">Severity:</label>
+                  <label for="updateseverity" class="col-auto align-self-center pl-1 pr-0 m-0">Severity:</label>
                   </div>
                   <div class="col-8 pl-1">
                       <select id="updateseverity" name="severity" class="custom-select">
-                          <option value=""></option>
+                          <option value="">&nbsp;</option>
                           % for value in severities:
                           <option value="${value}"
                           % if 'severity' in parameters and parameters['severity'][0] == value:
@@ -192,14 +196,10 @@ ${parent.css()}
               </div>
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
-                  <label for="user" class="col-auto align-self-center pl-1 pr-0 m-0">User:</label>
+                  <label for="updateuser" class="col-auto align-self-center pl-1 pr-0 m-0">User:</label>
                   </div>
                   <div class="col-8 pl-1">
-                      <input type="text" id="updateuser" name="user" class="form-control"
-                      % if 'user' in parameters:
-                          value="${parameters['user'][0]}"
-                      % endif>
-                    </input>
+                      <input type="text" id="updateuser" name="user" class="form-control" ${"value="+parameters['user'][0] if 'user' in parameters else ""}/>
                   </div>
                   <div class="col-1 pl-0 pr-1 pt-1">
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updateuser"></i>
