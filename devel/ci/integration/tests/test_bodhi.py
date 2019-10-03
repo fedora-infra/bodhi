@@ -491,13 +491,13 @@ def test_get_override_view(bodhi_container, db_container):
 
     try:
         assert http_response.ok
-        assert "Buildroot Override for " in http_response.text
+        assert "Candidate Build" in http_response.text
         assert nvr in http_response.text
-        assert "Submitted by" in http_response.text
+        assert "Submitter" in http_response.text
         assert username in http_response.text
         assert "Notes" in http_response.text
         if expired_date is not None:
-            assert "Expired" in http_response.text
+            assert "expired" in http_response.text
     except AssertionError:
         print(http_response)
         print(http_response.text)
