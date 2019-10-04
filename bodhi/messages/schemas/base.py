@@ -173,6 +173,32 @@ class BuildV1(typing.NamedTuple):
         }
 
 
+class ReleaseV1(typing.NamedTuple):
+    """
+    A model for referencing a Release.
+
+    Attributes:
+        name: The name of the release.
+    """
+
+    name: str
+
+    @staticmethod
+    def schema() -> dict:
+        """Return a schema snippet for a Build."""
+        return {
+            'type': 'object',
+            'description': 'A release',
+            'properties': {
+                'name': {
+                    'type': 'string',
+                    'description': 'The name of the release e.g. F32'
+                },
+            },
+            'required': ['name']
+        }
+
+
 class UpdateV1(typing.NamedTuple):
     """
     A model for referencing an Update object.
@@ -187,6 +213,7 @@ class UpdateV1(typing.NamedTuple):
     user: 'UserV1'
     status: str
     request: typing.Union[None, str]
+    release: 'ReleaseV1'
 
     @property
     def packages(self) -> typing.Iterable[str]:
@@ -209,6 +236,7 @@ class UpdateV1(typing.NamedTuple):
                     'description': 'A list of builds included in this update',
                     'items': {'$ref': '#/definitions/build'}
                 },
+                'release': ReleaseV1.schema(),
                 'request': {
                     'type': ['null', 'string'],
                     'description': 'The request of the update, if any',
@@ -222,7 +250,7 @@ class UpdateV1(typing.NamedTuple):
                 },
                 'user': UserV1.schema(),
             },
-            'required': ['alias', 'builds', 'request', 'status', 'user']
+            'required': ['alias', 'builds', 'release', 'request', 'status', 'user']
         }
 
 
