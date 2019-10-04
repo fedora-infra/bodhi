@@ -23,7 +23,7 @@ messages.
 
 import typing
 
-from .base import BodhiMessage, BuildV1, SCHEMA_URL, UpdateV1, UserV1
+from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
 
 
 class ErrataPublishV1(BodhiMessage):
@@ -109,5 +109,5 @@ class ErrataPublishV1(BodhiMessage):
                 self.body['update']['alias'],
                 [BuildV1(b['nvr']) for b in self.body['update']['builds']],
                 UserV1(self.body['update']['user']['name']), self.body['update']['status'],
-                self.body['update']['request'])
+                self.body['update']['request'], ReleaseV1(self.body['update']['release']['name']))
         return self._update
