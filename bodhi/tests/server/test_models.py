@@ -613,7 +613,7 @@ class TestCompose(BasePyTestCase):
         update = compose.updates[0]
 
         assert compose.update_summary == (
-            [{'alias': update.alias, 'title': update.beautify_title(nvr=True)}])
+            [{'alias': update.alias, 'title': update.get_title(nvr=True, beautify=True)}])
 
     def test___json___composer_flag(self):
         """The composer flag should reduce the number of serialized fields."""
@@ -2934,32 +2934,33 @@ class TestUpdate(ModelTest):
     def test_title(self):
         assert self.obj.title == 'TurboGears-1.0.8-3.fc11'
 
-    def test_beautify_title_display_name(self):
-        """If the user has set a display_name on the update, beautify_title() should use that."""
+    def test_get_title_display_name(self):
+        """If the user has set a display_name on the update, get_title() should use that."""
         update = self.get_update()
         update.display_name = 'some human made title'
 
-        assert update.beautify_title() == 'some human made title'
+        assert update.get_title(beautify=True) == 'some human made title'
 
-    def test_beautify_title(self):
+    def test_get_title_with_beautify(self):
         update = self.get_update()
         rpm_build = update.builds[0]
-        assert update.beautify_title() == 'TurboGears'
-        assert update.beautify_title(nvr=True) == 'TurboGears-1.0.8-3.fc11'
+        assert update.get_title(beautify=True) == 'TurboGears'
+        assert update.get_title(nvr=True, beautify=True) == 'TurboGears-1.0.8-3.fc11'
 
         update.builds.append(rpm_build)
-        assert update.beautify_title() == 'TurboGears and TurboGears'
-        assert update.beautify_title(nvr=True) == (
+        assert update.get_title(beautify=True) == 'TurboGears and TurboGears'
+        assert update.get_title(nvr=True, beautify=True) == (
             'TurboGears-1.0.8-3.fc11 and TurboGears-1.0.8-3.fc11')
 
         update.builds.append(rpm_build)
-        assert update.beautify_title(), 'TurboGears, TurboGears == and 1 more'
-        assert update.beautify_title(nvr=True) == (
+        assert update.get_title(beautify=True), 'TurboGears, TurboGears == and 1 more'
+        assert update.get_title(nvr=True, beautify=True) == (
             'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, and 1 more')
 
         p = html.parser.HTMLParser()
-        assert p.unescape(update.beautify_title(amp=True)) == 'TurboGears, TurboGears, & 1 more'
-        assert p.unescape(update.beautify_title(amp=True, nvr=True)) == (
+        assert p.unescape(update.get_title(amp=True, beautify=True)) == (
+            'TurboGears, TurboGears, & 1 more')
+        assert p.unescape(update.get_title(amp=True, nvr=True, beautify=True)) == (
             'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, & 1 more')
 
     def test_pkg_str(self):
