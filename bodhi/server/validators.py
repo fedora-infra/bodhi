@@ -1323,10 +1323,18 @@ def validate_from_tag(request: pyramid.request.Request, **kwargs: dict):
         koji_client = buildsys.get_session()
         taginfo = koji_client.getTag(koji_tag)
 
+        if not taginfo:
+            request.errors.add('body', 'from_tag', "The supplied from_tag doesn't exist.")
+            return
+
+        # prevent user from creating an update if tag is not a side tag
+        if not taginfo.get('extra', {}).get('sidetag'):
+            request.errors.add('body', 'from_tag', "The supplied tag is not a side tag.")
+            return
+
         # add all the inherited tags of a sidetag to from_tag_inherited
-        if taginfo and taginfo['extra']['sidetag']:
-            for tag in koji_client.getFullInheritance(koji_tag):
-                request.from_tag_inherited.append(tag['name'])
+        for tag in koji_client.getFullInheritance(koji_tag):
+            request.from_tag_inherited.append(tag['name'])
 
         if request.validated.get('builds'):
             # Builds were specified explicitly, verify that the tag exists in Koji.
