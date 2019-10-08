@@ -88,7 +88,7 @@
   <div class="row py-4">
     <div class="col-6">
         <h5 class="font-weight-bold">Active Testers</h5>
-            <div class="list-group list-group-flush">
+            <div class="list-group">
                 % for tester, count in top_testers:
                 <div class="list-group-item">
                     <a href="${request.route_url('user', name=tester['name'])}">
