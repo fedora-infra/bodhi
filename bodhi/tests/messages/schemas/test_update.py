@@ -17,7 +17,7 @@
 
 import unittest
 
-from bodhi.messages.schemas.base import BuildV1, UpdateV1, UserV1
+from bodhi.messages.schemas.base import BuildV1, ReleaseV1, UpdateV1, UserV1
 from bodhi.messages.schemas.update import (
     UpdateCommentV1,
     UpdateCompleteStableV1,
@@ -57,7 +57,7 @@ class UpdateMessageTests(unittest.TestCase):
             "packages": ["xstream"],
             'repo': 'test_repo',
             'update': UpdateV1('FEDORA-2019-2b055f8870', [BuildV1('xstream-1.4.11.1-2.fc30')],
-                               UserV1('mbooth'), 'testing', None)
+                               UserV1('mbooth'), 'testing', None, ReleaseV1('F30'))
         }
         msg = UpdateEjectV1(
             body={
@@ -69,6 +69,7 @@ class UpdateMessageTests(unittest.TestCase):
                         "epoch": 0, "ci_url": None, "type": "rpm"}],
                     "locked": True,
                     "title": "xstream-1.4.11.1-2.fc30",
+                    "release": {"name": "F30"},
                     'request': None,
                     "status": "testing",
                     'user': {'name': 'mbooth'}
@@ -105,7 +106,7 @@ class UpdateMessageTests(unittest.TestCase):
                 'FEDORA-2019-d64d0caab3',
                 [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29'),
                  BuildV1('texworks-0.6.3-1.fc29')],
-                UserV1('eclipseo'), 'stable', None)
+                UserV1('eclipseo'), 'stable', None, ReleaseV1('F29'))
         }
         msg = UpdateCompleteStableV1(
             body={
@@ -114,6 +115,7 @@ class UpdateMessageTests(unittest.TestCase):
                     "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
                                {'nvr': 'texworks-0.6.3-1.fc29'}],
                     "title": "fedmsg-0.2.7-2.el6",
+                    'release': {"name": "F29"},
                     'request': None,
                     "status": "stable",
                     "user": {"name": "eclipseo"}
@@ -143,7 +145,7 @@ class UpdateMessageTests(unittest.TestCase):
                 'FEDORA-2019-d64d0caab3',
                 [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29'),
                  BuildV1('texworks-0.6.3-1.fc29')],
-                UserV1('eclipseo'), 'testing', None)
+                UserV1('eclipseo'), 'testing', None, ReleaseV1('F29'))
         }
         msg = UpdateCompleteTestingV1(
             body={
@@ -152,6 +154,7 @@ class UpdateMessageTests(unittest.TestCase):
                     "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
                                {'nvr': 'texworks-0.6.3-1.fc29'}],
                     "title": "fedmsg-0.2.7-2.el6",
+                    'release': {"name": "F29"},
                     'request': None,
                     "status": "testing",
                     "user": {"name": "eclipseo"}
@@ -181,7 +184,7 @@ class UpdateMessageTests(unittest.TestCase):
                 'FEDORA-2019-d64d0caab3',
                 [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29'),
                  BuildV1('texworks-0.6.3-1.fc29')],
-                UserV1('eclipseo'), 'testing', None)
+                UserV1('eclipseo'), 'testing', None, ReleaseV1('F29'))
         }
         msg = UpdateReadyForTestingV1(
             body={
@@ -190,6 +193,7 @@ class UpdateMessageTests(unittest.TestCase):
                     "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
                                {'nvr': 'texworks-0.6.3-1.fc29'}],
                     "title": "fedmsg-0.2.7-2.el6",
+                    'release': {"name": "F29"},
                     'request': None,
                     "status": "testing",
                     "user": {"name": "eclipseo"}
@@ -216,7 +220,7 @@ class UpdateMessageTests(unittest.TestCase):
                 'FEDORA-2019-f1ca3c00e5',
                 [BuildV1('gnome-settings-daemon-3.6.1-1.fc18'),
                  BuildV1('control-center-3.6.1-1.fc18')],
-                UserV1('hadess'), 'pending', 'testing')
+                UserV1('hadess'), 'pending', 'testing', ReleaseV1('F18'))
         }
         msg = UpdateRequestTestingV1(
             body={
@@ -328,7 +332,7 @@ class UpdateMessageTests(unittest.TestCase):
             "packages": ["python-operator-courier"],
             'update': UpdateV1(
                 'FEDORA-2019-8da6360454', [BuildV1('python-operator-courier-1.2.0-1.fc28')],
-                UserV1('ralph'), 'unpushed', None)
+                UserV1('ralph'), 'unpushed', None, ReleaseV1('F28'))
         }
         msg = UpdateRequestUnpushV1(
             body={
@@ -336,6 +340,7 @@ class UpdateMessageTests(unittest.TestCase):
                 'update': {
                     "alias": "FEDORA-2019-8da6360454",
                     "builds": [{'nvr': 'python-operator-courier-1.2.0-1.fc28'}],
+                    "release": {"name": "F28"},
                     'request': None,
                     "status": "unpushed",
                     "user": {"name": "ralph"}
@@ -359,7 +364,7 @@ class UpdateMessageTests(unittest.TestCase):
             "packages": ["golang-github-SAP-go-hdb"],
             'update': UpdateV1(
                 'FEDORA-2019-d64d0caab3', [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29')],
-                UserV1('eclipseo'), 'testing', None)
+                UserV1('eclipseo'), 'testing', None, ReleaseV1('F29'))
         }
         msg = UpdateRequestObsoleteV1(
             body={
@@ -368,6 +373,7 @@ class UpdateMessageTests(unittest.TestCase):
                     "alias": "FEDORA-2019-d64d0caab3",
                     "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"}],
                     "title": "golang-github-SAP-go-hdb-0.14.1-1.fc29",
+                    'release': {"name": "F29"},
                     'request': None,
                     "status": "testing",
                     "user": {"name": "eclipseo"}
@@ -391,7 +397,7 @@ class UpdateMessageTests(unittest.TestCase):
             "packages": ["golang-github-SAP-go-hdb"],
             'update': UpdateV1(
                 'FEDORA-2019-d64d0caab3', [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29')],
-                UserV1('eclipseo'), 'testing', 'stable')
+                UserV1('eclipseo'), 'testing', 'stable', ReleaseV1('F29'))
         }
         msg = UpdateRequestStableV1(
             body={
@@ -399,6 +405,7 @@ class UpdateMessageTests(unittest.TestCase):
                 'update': {
                     "alias": "FEDORA-2019-d64d0caab3",
                     "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"}],
+                    "release": {"name": "F29"},
                     'request': 'stable',
                     "status": "testing",
                     "user": {"name": "eclipseo"}
@@ -422,7 +429,7 @@ class UpdateMessageTests(unittest.TestCase):
             "packages": ["golang-github-SAP-go-hdb"],
             'update': UpdateV1(
                 'FEDORA-2019-d64d0caab3', [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29')],
-                UserV1('eclipseo'), 'testing', None)
+                UserV1('eclipseo'), 'testing', None, ReleaseV1('F29'))
         }
         msg = UpdateRequestRevokeV1(
             body={
@@ -430,6 +437,7 @@ class UpdateMessageTests(unittest.TestCase):
                 'update': {
                     "alias": "FEDORA-2019-d64d0caab3",
                     "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"}],
+                    "release": {"name": "F29"},
                     'request': None,
                     "status": "testing",
                     "user": {"name": "eclipseo"}
@@ -454,7 +462,7 @@ class UpdateMessageTests(unittest.TestCase):
             'update': UpdateV1(
                 'FEDORA-2019-f1ca3c00e5',
                 [BuildV1('golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29')],
-                UserV1('eclipseo'), 'pending', 'testing')
+                UserV1('eclipseo'), 'pending', 'testing', ReleaseV1('F29'))
         }
         msg = UpdateRequestTestingV1(
             body={
@@ -464,6 +472,7 @@ class UpdateMessageTests(unittest.TestCase):
                     "builds": [{
                         "nvr": "golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29"
                     }],
+                    "release": {"name": "F29"},
                     'request': 'testing',
                     "status": "pending",
                     "user": {"name": "eclipseo"}
@@ -484,7 +493,7 @@ class UpdateMessageTests(unittest.TestCase):
             'update': UpdateV1(
                 'FEDORA-2019-f1ca3c00e5',
                 [BuildV1('golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29')],
-                UserV1('eclipseo'), 'pending', 'testing')
+                UserV1('eclipseo'), 'pending', 'testing', ReleaseV1('F29'))
         }
         msg = UpdateRequirementsMetStableV1(
             body={
@@ -493,6 +502,7 @@ class UpdateMessageTests(unittest.TestCase):
                     "builds": [{
                         "nvr": "golang-github-Masterminds-semver-2.0.0-0.1.20190319git3c92f33.fc29"
                     }],
+                    "release": {"name": "F29"},
                     'request': 'testing',
                     "status": "pending",
                     "user": {"name": "eclipseo"}
@@ -524,7 +534,7 @@ class UpdateMessageTests(unittest.TestCase):
             'update': UpdateV1(
                 'FEDORA-EPEL-2019-f2d195dada',
                 [BuildV1("abrt-addon-python3-2.1.11-50.el7"), BuildV1("asciinema-1.4.0-2.el7")],
-                UserV1('tdawson'), 'pending', 'testing'),
+                UserV1('tdawson'), 'pending', 'testing', ReleaseV1('F29')),
             'agent': 'ralph',
         }
         msg = UpdateCommentV1(
@@ -540,6 +550,7 @@ class UpdateMessageTests(unittest.TestCase):
                         'builds': [{'nvr': 'abrt-addon-python3-2.1.11-50.el7'},
                                    {'nvr': 'asciinema-1.4.0-2.el7'}],
                         'status': 'pending',
+                        "release": {"name": "F29"},
                         'request': 'testing',
                         'user': {"name": "tdawson"}},
                     'user': {'name': 'ralph'}
@@ -563,7 +574,7 @@ class UpdateMessageTests(unittest.TestCase):
             "usernames": ["ralph"],
             "packages": ["tzdata"],
             'update': UpdateV1('FEDORA-2019-7dbbb74a13', [BuildV1('tzdata-2014i-1.fc19')],
-                               UserV1('ralph'), 'pending', 'testing')
+                               UserV1('ralph'), 'pending', 'testing', ReleaseV1('F19'))
         }
         msg = UpdateEditV1(
             body={
@@ -654,7 +665,7 @@ class UpdateMessageTests(unittest.TestCase):
             "usernames": ['ralph'],
             "packages": ["tzdata"],
             'update': UpdateV1('FEDORA-EPEL-2015-0238', [BuildV1('tzdata-2014i-1.fc19')],
-                               UserV1('ralph'), 'pending', 'testing'),
+                               UserV1('ralph'), 'pending', 'testing', ReleaseV1('F19')),
             'status': 'stable'
         }
         msg = UpdateKarmaThresholdV1(

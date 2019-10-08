@@ -17,7 +17,7 @@
 
 import unittest
 
-from bodhi.messages.schemas.errata import BuildV1, ErrataPublishV1, UpdateV1, UserV1
+from bodhi.messages.schemas.errata import BuildV1, ErrataPublishV1, ReleaseV1, UpdateV1, UserV1
 from bodhi.tests.messages.utils import check_message
 
 
@@ -40,7 +40,8 @@ class ErrataMessageTests(unittest.TestCase):
             'agent': 'test_submitter',
             'update': UpdateV1(
                 "FEDORA-2019-4cc36fafbb",
-                [BuildV1('tzdata-2014i-1.fc19')], UserV1('test_submitter'), 'pending', 'testing'),
+                [BuildV1('tzdata-2014i-1.fc19')], UserV1('test_submitter'),
+                'pending', 'testing', ReleaseV1('F19')),
         }
         msg = ErrataPublishV1(
             body={
