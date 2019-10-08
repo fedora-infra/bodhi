@@ -1101,9 +1101,7 @@ $(document).ready(function(){
       url: this.url + "../comments/" + data.comment.id,
       dataType: "html",
       success: function(html) {
-        $("#comments").append(html);
-        $(".list-group-item").removeClass("list-group-item-success");
-        $(".list-group-item").removeClass("list-group-item-danger");
+        window.location.reload(true);
       },
       error: function(html) {
         // TODO -- handle this
