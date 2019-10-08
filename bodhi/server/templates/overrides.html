@@ -8,18 +8,25 @@ def inherit(context):
 
 <%namespace name="fragments" file="fragments.html"/>
 
+<%block name="css">
+${parent.css()}
 <link rel="alternate" type="application/atom+xml" title="New Buildroot Overrides" href="${request.route_url('overrides_rss') + '?' + request.query_string}"/>
+</%block>
 
 % if chrome:
-<div class="subheader py-3">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        <h2>Overrides</h2>
+<div class="subheader">
+    <div class="container py-4">
+      <div class="row">
+        <div class="col">
+            <h3 class="font-weight-bold m-0 d-flex align-items-center">Overrides
+                % if request.user:
+                <a class="btn btm-sm font-weight-bold btn-outline-primary ml-auto" href="${request.route_url('new_override')}"><i class="fa fa-plus pr-2"></i>New Override</a>
+                % endif
+            </h3>
+        </div>
       </div>
     </div>
   </div>
-</div>
 <div class="container pt-4">
 <div class="row">
   <div class="col-md-12">
