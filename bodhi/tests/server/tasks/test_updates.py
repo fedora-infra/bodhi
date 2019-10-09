@@ -23,7 +23,9 @@ import unittest
 from urllib.error import URLError
 
 import sqlalchemy
+from fedora_messaging import testing as fml_testing
 
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import config, exceptions, models, util
 from bodhi.server.tasks import handle_update, updates
 from bodhi.tests.server import base
@@ -303,6 +305,91 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         self.assertEqual(work_on_bugs.call_count, 0)
         self.assertEqual(fetch_test_cases.call_count, 0)
         sleep.assert_called_once_with(1)
+
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
+    @mock.patch.dict(config.config, [('test_gating.required', True)])
+    def test_rawhide_update_edit_move_to_testing(self, work_on_bugs, fetch_test_cases, sleep):
+        """
+        Assert that a pending rawhide update that was edited gets moved to testing
+        if all the builds in the update are signed.
+        """
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.status = models.UpdateStatus.pending
+        update.release.composed_by_bodhi = False
+        update.builds[0].signed = True
+
+        h = updates.UpdatesHandler()
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV1):
+            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+                greenwave_response = {
+                    'policies_satisfied': False,
+                    'summary': 'what have you done‽',
+                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'unsatisfied_requirements': [
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                         'type': 'test-result-missing', 'scenario': None},
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': update.alias, 'type': 'bodhi_update'},
+                         'type': 'test-result-missing', 'scenario': None}]}
+                mock_greenwave.return_value = greenwave_response
+                h.run(api_version=1,
+                      data={
+                          'action': 'edit',
+                          'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                                     'user': {'name': 'bodhi'}, 'status': str(update.status),
+                                     'request': str(update.request)}, 'new_bugs': []})
+
+        self.assertEqual(update.status, models.UpdateStatus.testing)
+        self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
+
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
+    def test_rawhide_update_edit_stays_pending(self, work_on_bugs, fetch_test_cases, sleep):
+        """
+        Assert that a pending rawhide update that was edited does not get moved to testing
+        if not all the builds in the update are signed.
+        """
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.status = models.UpdateStatus.pending
+        update.release.composed_by_bodhi = False
+        update.builds[0].signed = False
+
+        h = updates.UpdatesHandler()
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        h.run(api_version=1,
+              data={
+                  'action': 'edit',
+                  'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                             'user': {'name': 'bodhi'}, 'status': str(update.status),
+                             'request': str(update.request)}, 'new_bugs': []})
+
+        self.assertEqual(update.status, models.UpdateStatus.pending)
+
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
+    def test_not_rawhide_update_signed_stays_pending(self, work_on_bugs, fetch_test_cases, sleep):
+        """
+        Assert that a non rawhide pending update that was edited does not get moved to testing
+        if all the builds in the update are signed.
+        """
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.status = models.UpdateStatus.pending
+        update.release.composed_by_bodhi = True
+        update.builds[0].signed = True
+
+        h = updates.UpdatesHandler()
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        h.run(api_version=1,
+              data={
+                  'action': 'edit',
+                  'update': {'alias': update.alias, 'builds': [{'nvr': 'bodhi-2.0-1.fc17'}],
+                             'user': {'name': 'bodhi'}, 'status': str(update.status),
+                             'request': str(update.request)}, 'new_bugs': []})
+
+        self.assertEqual(update.status, models.UpdateStatus.pending)
 
 
 class TestUpdatesHandlerInit(unittest.TestCase):

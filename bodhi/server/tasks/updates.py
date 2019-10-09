@@ -36,10 +36,12 @@ gets received here and triggers us to do all that network-laden heavy lifting.
 import logging
 import time
 
+from sqlalchemy import func
+
 from bodhi.server import util, bugs as bug_module
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException
-from bodhi.server.models import Bug, Update, UpdateType
+from bodhi.server.models import Bug, Update, UpdateType, UpdateStatus
 
 
 log = logging.getLogger('bodhi')
@@ -95,6 +97,19 @@ class UpdatesHandler:
 
             bugs = []
             if action == "edit":
+                # If editing a Pending update, all of whose builds are signed, for a release
+                # which isn't composed by Bodhi (i.e. Rawhide), move it directly to Testing.
+                if not update.release.composed_by_bodhi \
+                        and update.status == UpdateStatus.pending \
+                        and update.signed:
+                    log.info("Every build in the update is signed, set status to testing")
+
+                    update.status = UpdateStatus.testing
+                    update.date_testing = func.current_timestamp()
+                    update.request = None
+
+                    log.info(f"Update status of {update.display_name} has been set to testing")
+
                 for idx in data['new_bugs']:
                     bug = Bug.get(idx)
 
