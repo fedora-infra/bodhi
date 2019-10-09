@@ -18,6 +18,7 @@
 """Test suite for bodhi.server.models"""
 from datetime import datetime, timedelta
 from unittest import mock
+import hashlib
 import html.parser
 import json
 import pickle
@@ -1718,6 +1719,58 @@ class TestUpdateEdit(BaseTestCase):
 
         with self.assertRaises(model.LockedUpdateException):
             model.Update.edit(request, data)
+
+
+@mock.patch("bodhi.server.models.handle_update", mock.Mock())
+class TestUpdateVersionHash(BaseTestCase):
+    """Tests for the Update.version_hash property."""
+
+    def test_version_hash(self):
+        update = model.Update.query.first()
+
+        # check with what we expect the hash to be
+        initial_expected_hash = "19504edccbed061be0b47741238859a94d973138"
+        self.assertEqual(update.version_hash, initial_expected_hash)
+
+        # calculate the hash, and check it again
+        initial_expected_builds = "bodhi-2.0-1.fc17"
+        self.assertEqual(len(update.builds), 1)
+        builds = " ".join(sorted([x.nvr for x in update.builds]))
+        self.assertEqual(builds, initial_expected_builds)
+        initial_calculated_hash = hashlib.sha1(str(builds).encode('utf-8')).hexdigest()
+        self.assertEqual(update.version_hash, initial_calculated_hash)
+
+        # add another build
+        package = model.RpmPackage(name='python-rpdb')
+        self.db.add(package)
+        build = model.RpmBuild(nvr='python-rpdb-1.3.1.fc17', package=package)
+        self.db.add(build)
+        update = model.Update.query.first()
+        data = {
+            'edited': update.alias, 'builds': [update.builds[0].nvr, build.nvr], 'bugs': []}
+        request = mock.MagicMock()
+        request.buildinfo = {
+            build.nvr: {
+                'nvr': build._get_n_v_r(), 'info': buildsys.get_session().getBuild(build.nvr)}}
+        request.db = self.db
+        request.user.name = 'tester'
+        self.db.flush()
+        model.Update.edit(request, data)
+
+        # now, with two builds, check the hash has changed
+        updated_expected_hash = "8560c9b2929d8104aa595ff44f6fc1e10f787b63"
+        self.assertNotEqual(initial_expected_hash, updated_expected_hash)
+
+        # check the updated is what we expect the hash to be
+        self.assertEqual(update.version_hash, updated_expected_hash)
+
+        # calculate the updated hash, and check it again
+        updated_expected_builds = "bodhi-2.0-1.fc17 python-rpdb-1.3.1.fc17"
+        self.assertEqual(len(update.builds), 2)
+        builds = " ".join(sorted([x.nvr for x in update.builds]))
+        self.assertEqual(builds, updated_expected_builds)
+        updated_calculated_hash = hashlib.sha1(str(builds).encode('utf-8')).hexdigest()
+        self.assertEqual(update.version_hash, updated_calculated_hash)
 
 
 class TestUpdateGetBugKarma(BaseTestCase):
@@ -4251,6 +4304,8 @@ class TestUpdate(ModelTest):
             self.db.commit()
         assert msg.body["update"]["status"] == "testing"
         assert msg.body["update"]["release"]["name"] == "F11"
+        version_hash = "1202d60656e76b6882b1e9dcaeca8d8563c10797"
+        assert msg.body["update"]["version_hash"] == version_hash
 
     def test_create_with_status_testing(self):
         """Test that creating an update with the status set to testing sends a message."""
@@ -4265,6 +4320,8 @@ class TestUpdate(ModelTest):
             self.db.commit()
         assert msg.body["update"]["status"] == "testing"
         assert msg.body["update"]["release"]["name"] == "F11"
+        version_hash = "2432c3a8561de717e916cf551f855af422447615"
+        assert msg.body["update"]["version_hash"] == version_hash
 
 
 class TestUser(ModelTest):
