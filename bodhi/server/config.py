@@ -326,9 +326,6 @@ class BodhiConfig(dict):
         'critpath.type': {
             'value': None,
             'validator': _validate_none_or(str)},
-        'datagrepper_url': {
-            'value': 'https://apps.fedoraproject.org/datagrepper',
-            'validator': str},
         'default_email_domain': {
             'value': 'fedoraproject.org',
             'validator': str},
