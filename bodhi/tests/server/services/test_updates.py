@@ -1754,6 +1754,8 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'application/json'})
 
         self.assertEqual(res.json_body['update']['title'], 'bodhi-2.0-1.fc17')
+        version_hash = "19504edccbed061be0b47741238859a94d973138"
+        self.assertEqual(res.json_body['update']['version_hash'], version_hash)
         self.assertIn('application/json', res.headers['Content-Type'])
 
     def test_get_single_update_jsonp(self):
