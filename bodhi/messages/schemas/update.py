@@ -23,7 +23,7 @@ messages.
 
 import typing
 
-from .base import BodhiMessage, BuildV1, SCHEMA_URL, UpdateV1, UserV1
+from .base import BodhiMessage, BuildV1, ReleaseV1, SCHEMA_URL, UpdateV1, UserV1
 from ..utils import truncate
 
 
@@ -48,7 +48,7 @@ class UpdateMessage(BodhiMessage):
             self._update_obj = UpdateV1(
                 self._update['alias'], [BuildV1(b['nvr']) for b in self._update['builds']],
                 UserV1(self._update['user']['name']), self._update['status'],
-                self._update['request'])
+                self._update['request'], ReleaseV1(self._update['release']['name']))
         return self._update_obj
 
     @property

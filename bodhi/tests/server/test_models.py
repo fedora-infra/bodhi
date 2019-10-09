@@ -4250,6 +4250,7 @@ class TestUpdate(ModelTest):
             msg = self.db.info['messages'][0]
             self.db.commit()
         assert msg.body["update"]["status"] == "testing"
+        assert msg.body["update"]["release"]["name"] == "F11"
 
     def test_create_with_status_testing(self):
         """Test that creating an update with the status set to testing sends a message."""
@@ -4263,6 +4264,7 @@ class TestUpdate(ModelTest):
             msg = self.db.info['messages'][0]
             self.db.commit()
         assert msg.body["update"]["status"] == "testing"
+        assert msg.body["update"]["release"]["name"] == "F11"
 
 
 class TestUser(ModelTest):

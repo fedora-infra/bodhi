@@ -456,26 +456,6 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/api_version')
         self.assertIn('version', res.json_body)
 
-    def test_new_override_form(self):
-        """Test the New Override form page"""
-
-        headers = {'Accept': 'text/html'}
-
-        # Test that the New Override form shows when logged in
-        res = self.app.get('/overrides/new', headers=headers)
-        self.assertIn('<span>New Buildroot Override Form Requires JavaScript</span>', res)
-
-        # Test that the unlogged in user cannot see the New Override form
-        anonymous_settings = copy.copy(self.app_settings)
-        anonymous_settings.update({
-            'authtkt.secret': 'whatever',
-            'authtkt.secure': True,
-        })
-        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
-        res = app.get('/overrides/new', status=403, headers=headers)
-        self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
-        self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
-
     def test_new_update_form(self):
         """Test the new update Form page"""
 
