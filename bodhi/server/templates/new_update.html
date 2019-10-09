@@ -357,16 +357,17 @@ ${update.notes}
             % if update:
             <input type="hidden" name="edited" value="${update.alias}">
             % endif
-
-            <button id="submit" class="btn btn-success">
-              % if update:
-              <span class="indicator fa fa-edit" data-spinclass="indicator fa fa-spinner fa-spin"></span>
-              Save
-              % else:
-              <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
-              Submit
-              % endif
-            </button>
+            <div class="d-flex flex-row flex-row-reverse pt-3">
+              <button id="submit" class="btn btn-primary">
+                % if update:
+                <span class="indicator fa fa-edit" data-spinclass="indicator fa fa-spinner fa-spin"></span>
+                Save
+                % else:
+                <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
+                Submit
+                % endif
+              </button>
+            </div>
 
   </div>
 </div></div></div>
