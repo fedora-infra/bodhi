@@ -24,7 +24,7 @@ import typing
 
 from bodhi.server import log
 from bodhi.server.config import config
-from bodhi.server.util import get_rpm_header, get_absolute_path
+from bodhi.server.util import get_rpm_header, get_absolute_path, generate_changelog
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from bodhi.server.models import Update  # noqa: 401
@@ -332,26 +332,12 @@ def get_template(update: 'Update', use_template: str = 'fedora_errata_template')
                 i += 1
             info['references'] += line
 
-        # Find the most recent update for this package, other than this one
-        try:
-            lastpkg = build.get_latest()
-        except AttributeError:
-            # Not all build types have the get_latest() method, such as ModuleBuilds.
-            lastpkg = None
-
-        # Grab the RPM header of the previous update, and generate a ChangeLog
+        # generate a ChangeLog
         info['changelog'] = ""
-        if lastpkg:
-            oldh = get_rpm_header(lastpkg)
-            oldtime = oldh['changelogtime']
-            text = oldh['changelogtext']
-            del oldh
-            if not text:
-                oldtime = 0
-            elif isinstance(oldtime, list):
-                oldtime = oldtime[0]
+        changelog = generate_changelog(build)
+        if changelog is not None:
             info['changelog'] = "ChangeLog:\n\n%s%s" % \
-                (build.get_changelog(oldtime), line)
+                (changelog, line)
 
         templates.append((info['subject'], use_template % info))
 

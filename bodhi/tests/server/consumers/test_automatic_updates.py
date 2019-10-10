@@ -92,6 +92,37 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         assert not any(r.levelno >= logging.WARNING for r in caplog.records)
 
+    @pytest.mark.parametrize('changelog', (True, None, ""))
+    @mock.patch('bodhi.server.consumers.automatic_updates.generate_changelog')
+    def test_changelog(self, mock_generate_changelog, changelog):
+        """Assert that update notes contain the changelog if it exists."""
+        if changelog:
+            # fill the changelog here rather than in the decorator
+            changelog = ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2\n'
+                         '- Added a free money feature.\n* Tue Jun 11 2013 Randy <bowlofeggs@fpo>'
+                         ' - 2.0.1-2\n- Make users ☺\n')
+
+        mock_generate_changelog.return_value = changelog
+
+        # process the message
+        self.handler(self.sample_message)
+
+        # check if the update exists...
+        update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+
+        if changelog:
+            assert update.notes == f"""Automatic update for colord-1.3.4-1.fc26.
+
+##### **Changelog**
+
+```
+{changelog}
+```"""
+        else:  # no changelog
+            assert update.notes == "Automatic update for colord-1.3.4-1.fc26."
+
     def test_consume_with_orphan_build(self, caplog):
         """
         Assert existing builds without an update can be handled.
