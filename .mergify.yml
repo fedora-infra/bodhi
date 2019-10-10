@@ -98,3 +98,11 @@ pull_request_rules:
   - label!=WIP
   - label=4.1-backports
   name: backport 4.1
+- actions:
+    backport:
+      branches:
+      - '5.0'
+  conditions:
+  - label!=WIP
+  - label=5.0-backports
+  name: backport 5.0
