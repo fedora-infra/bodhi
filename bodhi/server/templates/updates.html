@@ -135,7 +135,7 @@ ${parent.css()}
                   </div>
                   <div class="col-8 pl-1">
                       <select id="updatereleases" name="releases" multiple="multiple">
-                          <option value=""><&nbsp;/option>
+                          <option value="">&nbsp;</option>
                           % for rstatus in ['current', 'pending', "archived"]:
                             <optgroup label="${rstatus}">
                             % for value in releases[rstatus]:

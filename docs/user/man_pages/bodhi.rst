@@ -618,6 +618,10 @@ The ``releases`` command allows users to manage update releases.
 
         The Koji tag to use for buildroot overrides (e.g., f29-override).
 
+    ``--package-manager [unspecified|dnf|yum]``
+
+        The package manager used by this release. If not specified it defaults to 'unspecified'.
+
     ``--password TEXT``
 
         The password to use when authenticating to Bodhi.
@@ -637,6 +641,10 @@ The ``releases`` command allows users to manage update releases.
     ``--state [disabled|pending|frozen|current|archived]``
 
         The state of the release.
+
+    ``--testing-repository TEXT``
+
+        The name of the testing repository used to test updates. Not required.
 
     ``--testing-tag TEXT``
 
