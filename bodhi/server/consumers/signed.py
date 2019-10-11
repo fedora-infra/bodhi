@@ -79,7 +79,7 @@ class SignedHandler(object):
 
         log.info("%s tagged into %s" % (build_nvr, tag))
 
-        with self.db_factory():
+        with self.db_factory() as dbsession:
             build = Build.get(build_nvr)
             if not build:
                 log.info("Build was not submitted, skipping")
@@ -108,6 +108,7 @@ class SignedHandler(object):
             # written out. Mark it as such.
             log.info("Build has been signed, marking")
             build.signed = True
+            dbsession.flush()
             log.info("Build %s has been marked as signed" % build_nvr)
 
             # If every build in update is signed change status to testing
