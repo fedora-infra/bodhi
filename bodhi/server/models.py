@@ -1758,7 +1758,7 @@ class Update(Base):
 
     __tablename__ = 'updates'
     __exclude_columns__ = ('id', 'user_id', 'release_id')
-    __include_extras__ = ('meets_testing_requirements', 'url', 'title')
+    __include_extras__ = ('meets_testing_requirements', 'url', 'title', 'version_hash')
     __get_by__ = ('alias',)
 
     autokarma = Column(Boolean, default=True, nullable=False)
@@ -1853,6 +1853,18 @@ class Update(Base):
 
         if self.status == UpdateStatus.testing:
             self._ready_for_testing(self, self.status, None, None)
+
+    @property
+    def version_hash(self):
+        """
+        Return a SHA1 hash of the Builds NVRs.
+
+        Returns:
+            str: a SHA1 hash of the builds NVRs.
+        """
+        nvrs = [x.nvr for x in self.builds]
+        builds = " ".join(sorted(nvrs))
+        return hashlib.sha1(str(builds).encode('utf-8')).hexdigest()
 
     @property
     def side_tag_locked(self):

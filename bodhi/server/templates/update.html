@@ -43,7 +43,7 @@ if can_edit:
 <div class="container">
 <div class="row">
   <div class="col-md-12">
-    <h3>
+    <div class="h3">
       <div class="row">
         <div class="col">
             <div class="media">
@@ -57,21 +57,21 @@ if can_edit:
             </div>
                 <div class="media-body ml-0">
                     <div class="font-weight-bold">
-                      <a href="${request.route_url('update', id=update['alias'])}"">
+                      <a href="${request.route_url('update', id=update['alias'])}">
                       ${update.beautify_title(amp=True,nvr=True) | n}
                       </a>
                     </div>
-                    <h5 class="mt-1">
+                    <div class="h5 mt-1">
                         ${update.alias} created by <a href="${request.route_url('user', name=update['user']['name'])}"> ${update['user']['name']}</a>
                         <span title="${update['date_submitted']} UTC"> ${self.util.age(update['date_submitted'], True)}</span> ago 
                         for <a href="${request.route_url('release', name=update['release']['name'])}">${update['release']['long_name']}
-                        </a></small>
-                      </h5>
+                        </a>
+                      </div>
                 </div>
             </div>
 
         </div>
-        <div class="col-xs-auto">
+        <div class="col-x-auto">
             % if can_edit and (not update.locked and update.status.value != 'stable'):
               <a id='edit' href="javascript:void(0)" class="btn btn-outline-primary border-0 btn-sm"><span class="fa fa-fw fa-pencil-square-o"></span> Edit</a>
             % elif can_edit and update.locked and update.date_locked:
@@ -81,7 +81,7 @@ if can_edit:
             </a>
             % endif
             % if actions:
-              <span class="dropdown" id="updatebuttons">
+              <div class="dropdown d-inline" id="updatebuttons">
                 <button class="btn btn-${self.fragments.status_context(update.status.value)} dropdown-toggle btn-sm" type="button" id="statusActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     ${self.fragments.status_text(update)}
                 </button>
@@ -99,7 +99,7 @@ if can_edit:
                     <a class="dropdown-item" id="stable" href="javascript:void(0)">Push to Stable</a>
                   %endif
                 </div>
-              </span>
+              </div>
             % else:
               <span class="btn btn-sm btn-${self.fragments.status_context(update.status.value)}">
                   ${self.fragments.status_text(update)}
@@ -107,7 +107,7 @@ if can_edit:
             % endif
         </div>
       </div>
-    </h3>
+    </div>
   </div>
 </div>
 <ul class="nav nav-tabs pt-2" role="tablist">
@@ -212,7 +212,7 @@ if can_edit:
             <p><small>this update has been pushed to stable</small></p>
           </div>
           % elif request.user:
-          <form id="new_comment" role="form"
+          <form id="new_comment"
           action="javascript:form.submit();">
           <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
           <input type="hidden" name="update" value="${update.alias}"/>
@@ -327,18 +327,12 @@ if can_edit:
             </p>
           </div>
           %endif
-
-
-
-
-
-
         </div>
         <div class="col-3 font-size-09">
-          <div>
-              <h5 class="d-flex align-items-center font-weight-bold border-bottom">
+            <div class="mt-3">
+              <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
                   <div class="py-2 text-uppercase font-size-09">Metadata</div>
-              </h5>
+              </div>
               
               % if update.type:
               <div class="pb-1">
@@ -393,10 +387,9 @@ if can_edit:
               </div>
               % endif
             </div>
-          
               % if request.registry.settings.get('test_gating.required'):
               <div class="mt-3">
-                  <h5 class="d-flex align-items-center font-weight-bold border-bottom">
+                  <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">
                           % if request.registry.settings.get('test_gating.url'):
                           <a class="notblue" href="${request.registry.settings.get('test_gating.url')}" title="More information about test gating">
@@ -406,7 +399,7 @@ if can_edit:
                           Test Gating
                         % endif
                       </div>
-                  </h5>
+                    </div>
               <div class="pb-1">
                 <div>
                   % if can_edit and self.util.can_waive_test_results(update):
@@ -419,16 +412,10 @@ if can_edit:
               </div>
               </div>
               % endif
-
-
-
-
-
-
               <div class="mt-3">
-                  <h5 class="d-flex align-items-center font-weight-bold border-bottom">
+                  <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Builds</div> <span class="badge badge-secondary badge-pill ml-auto">${len(update.builds)}</span>
-                  </h5>
+                  </div>
 
               % for build in update.builds:
               <%
@@ -444,18 +431,10 @@ if can_edit:
               % endfor
 
               </div>
-
-
-
-
-
-
-
-
               <div class="mt-3">
-                  <h5 class="d-flex align-items-center font-weight-bold border-bottom">
+                  <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Settings</div>
-                  </h5>
+                  </div>
 
 
               % if update.unstable_karma:
@@ -497,24 +476,18 @@ if can_edit:
               </div>
               % endif
               </div>
-
               <div class="mt-3">
-                  <h5 class="d-flex align-items-center font-weight-bold border-bottom">
+                  <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Dates</div>
-                  </h5>
-                <div>
-                  <table class="table table-sm">
-                      <div class="pb-1">
-                          <div class="row">
-                            <div class="col font-weight-bold text-muted">submitted</div>
-                            <div class="col-xs-auto font-weight-bold">
-                                  <span class="text-muted font-weight-bold" data-toggle='tooltip' title='${(update.date_submitted).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
-                                      ${self.util.age(update.date_submitted)}
-                                  </span>
-                            </div>
-                          </div>
+                  </div>
+                    <div class="row">
+                      <div class="col font-weight-bold text-muted">submitted</div>
+                      <div class="col-xs-auto font-weight-bold">
+                            <span class="text-muted font-weight-bold" data-toggle='tooltip' title='${(update.date_submitted).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>
+                                ${self.util.age(update.date_submitted)}
+                            </span>
                       </div>
-                      <div class="pb-1">
+                    </div>
 
                     % if update.date_testing:
                     <div class="row">
@@ -525,7 +498,6 @@ if can_edit:
                           </span>
                         </div>
                       </div>
-                    </div>
                     % endif
 
                     % if update.date_stable:
@@ -537,7 +509,6 @@ if can_edit:
                           </span>
                         </div>
                       </div>
-                    </div>
                     % endif
 
                     % if update.days_to_stable and update.status.value == 'testing':
@@ -549,29 +520,30 @@ if can_edit:
                           </span>
                         </div>
                       </div>
-                    </div>
                     % endif
 
                     % if update.date_modified:
-                    <tr>
-                      <td>modified</td>
-                      <td class="text-muted">
-                        <span data-toggle='tooltip' title='${(update.date_modified).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>${self.util.age(update.date_modified)}</span>
-                      </td>
-                    </tr>
+                    <div class="row">
+                      <div class="col font-weight-bold text-muted">modified</div>
+                        <div class="col-xs-auto font-weight-bold">
+                          <span data-toggle='tooltip' title='${(update.date_modified).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted font-weight-bold">
+                              ${self.util.age(update.date_modified)}
+                          </span>
+                        </div>
+                      </div>
                     % endif
 
                     % if update.date_approved:
-                    <tr>
-                      <td>approved</td>
-                      <td class="text-muted">
-                        <span data-toggle='tooltip' title='${(update.date_approved).strftime("%Y-%m-%d %H:%M:%S")} (UTC)'>${self.util.age(update.date_approved)}</span>
-                      </td>
-                    </tr>
+                    <div class="row">
+                      <div class="col font-weight-bold text-muted">approved</div>
+                        <div class="col-xs-auto font-weight-bold">
+                          <span data-toggle='tooltip' title='${(update.date_approved).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted font-weight-bold">
+                              ${self.util.age(update.date_approved)}
+                          </span>
+                        </div>
+                      </div>
                     % endif
-                  </table>
-                </div>
-          </div>
+              </div>
         </div>
       </div>
     </div>
@@ -664,13 +636,8 @@ if can_edit:
     </table>
   </div>
     % endif
-
   </div>
-
-
-<div class="row">
-
-</div>
+</div> <!-- end container -->
 
 % if self.util.can_waive_test_results(update):
 <div class="modal fade" id="waive_test_results" tabindex="-1" role="dialog" aria-labelledby="waiveModalLabel" aria-hidden="true">
@@ -702,11 +669,9 @@ if can_edit:
       </div>
     </div>
     </form>
-  </div>
 </div>
 % endif
 
-</div> <!-- end container -->
 
 <%block name="javascript">
 ${parent.javascript()}
@@ -714,7 +679,7 @@ ${parent.javascript()}
 <script src="${request.static_url('bodhi:server/static/vendor/messenger/js/messenger-theme-flat.js')}"></script>
 <script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
 <script src="${request.static_url('bodhi:server/static/vendor/moment/moment.min.js')}"></script>
-<script type="text/javascript">
+<script>
   $(document).ready(function() {
     // Some handy lookups that map taskotron states to bootstrap CSS classes.
     var classes = {
@@ -1041,7 +1006,7 @@ ${parent.javascript()}
   });
 </script>
 
-<script type="text/javascript">
+<script>
 $(document).ready(function() {
     var messenger = Messenger({theme: 'flat'});
     var update_id = '${update.alias}';
@@ -1124,7 +1089,7 @@ $(document).ready(function() {
 });
 </script>
 
-<script type="text/javascript">
+<script>
 var form;
 $(document).ready(function(){
   CommentsForm = function() {};
@@ -1136,9 +1101,7 @@ $(document).ready(function(){
       url: this.url + "../comments/" + data.comment.id,
       dataType: "html",
       success: function(html) {
-        $("#comments").append(html);
-        $(".list-group-item").removeClass("list-group-item-success");
-        $(".list-group-item").removeClass("list-group-item-danger");
+        window.location.reload(true);
       },
       error: function(html) {
         // TODO -- handle this
@@ -1206,7 +1169,7 @@ $(document).ready(function(){
 });
 </script>
 
-<script type="text/javascript">
+<script>
 $(document).ready(function(){
     var button = document.getElementById('copybutton')
 

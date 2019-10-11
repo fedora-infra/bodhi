@@ -14,7 +14,7 @@
 <%block name="javascript">
 ${parent.javascript()}
 <script src="${request.static_url('bodhi:server/static/vendor/chartjs/Chart-0.2.0.min.js')}"></script>
-<script type="text/javascript">
+<script>
   $(document).ready(function(){
       $("<div id='tooltip'></div>").css({
         position: "absolute",

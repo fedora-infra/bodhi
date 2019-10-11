@@ -3136,3 +3136,42 @@ class TestWaive(unittest.TestCase):
             )
         ]
         self.assertEqual(send_request.mock_calls, calls)
+
+
+class TestTriggerTests(unittest.TestCase):
+    """
+    Test the trigger_tests() function.
+    """
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    def test_trigger_success(self, send_request):
+        """
+        Assert we properly trigger tests for updated.
+        """
+        send_request.return_value = munch.Munch({
+            'decision': munch.Munch({
+                'summary': 'Tests triggered',
+            }),
+
+        })
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.trigger_tests,
+            ['FEDORA-2017-c95b33872d',
+             '--url', 'http://localhost:6543']
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn("Tests triggered", result.output)
+
+        bindings_client = send_request.mock_calls[0][1][0]
+        send_request.assert_called_once_with(
+            bindings_client,
+            'updates/FEDORA-2017-c95b33872d/trigger-tests',
+            auth=True,
+            data={'csrf_token': 'a_csrf_token',
+                  'update': 'FEDORA-2017-c95b33872d'},
+            verb='POST')
