@@ -119,19 +119,6 @@ def build_evr(build):
     return tuple(map(str, (build['epoch'], build['version'], build['release'])))
 
 
-def link(href, text):
-    """
-    Return an HTML anchor tag for the given href using the given text.
-
-    Args:
-        href (str): The URL to link.
-        text (str): The text to render for the link.
-    Returns:
-        str: The requested anchor tag.
-    """
-    return '<a href="%s">%s</a>' % (href, text)
-
-
 class memoized(object):
     """Decorator that permanently caches a function's return value each time it is called.
 

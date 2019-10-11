@@ -1937,3 +1937,85 @@ class TestBodhiClient_waive(unittest.TestCase):
             data={'comment': 'Expected failure', 'csrf_token': 'a_csrf_token',
                   'tests': None, 'update': 'bodhi-2.2.4-1.el7'})
         __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
+
+
+class TestBodhiClient_trigger_tests(unittest.TestCase):
+    """
+    This class contains tests for BodhiClient.trigger_tests().
+    """
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
+    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
+                       create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                side_effect=fedora.client.ServerError(
+                    url='http://example.com/tests/updates/bodhi-2.2.4-99.el7/waive-test-results',
+                    status=404, msg='update not found'))
+    def test_404_error(self, send_request, __init__):
+        """
+        Test for the case when the server returns a 404 error code.
+        """
+        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
+
+        with self.assertRaises(bindings.UpdateNotFound) as exc:
+            client.trigger_tests('bodhi-2.2.4-1.el7')
+
+            self.assertEqual(exc.update, 'bodhi-2.2.4-1.el7')
+
+        send_request.assert_called_once_with(
+            'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,
+            data={'csrf_token': 'a_csrf_token',
+                  'update': 'bodhi-2.2.4-1.el7'})
+        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
+    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
+                       create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request',
+                return_value=client_test_data.EXAMPLE_UPDATE_MUNCH)
+    def test_successful_trigger(self, send_request, __init__):
+        """
+        Test with a successful request.
+        """
+        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
+
+        response = client.trigger_tests(
+            'bodhi-2.2.4-1.el7')
+
+        self.assertEqual(response, client_test_data.EXAMPLE_UPDATE_MUNCH)
+        send_request.assert_called_once_with(
+            'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,
+            data={'csrf_token': 'a_csrf_token',
+                  'update': 'bodhi-2.2.4-1.el7'})
+        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
+    @mock.patch.object(bindings.BodhiClient, 'base_url', 'http://example.com/tests/',
+                       create=True)
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request')
+    def test_other_ServerError(self, send_request, __init__):
+        """
+        Test for the case when a non-404 ServerError is raised.
+        """
+        server_error = fedora.client.ServerError(
+            url='http://example.com/tests/updates/bodhi-2.2.4-99.el7/trigger-tests',
+            status=500, msg='Internal server error')
+        send_request.side_effect = server_error
+        client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
+
+        with self.assertRaises(fedora.client.ServerError) as exc:
+            client.trigger_tests('bodhi-2.2.4-1.el7')
+
+            self.assertTrue(exc is server_error)
+
+        send_request.assert_called_once_with(
+            'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,
+            data={'csrf_token': 'a_csrf_token',
+                  'update': 'bodhi-2.2.4-1.el7'})
+        __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)

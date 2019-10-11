@@ -608,6 +608,22 @@ class TestValidateTestcaseFeedback(BaseTestCase):
               'description': 'Invalid update'}])
         self.assertEqual(request.errors.status, exceptions.HTTPNotFound.code)
 
+    @mock.patch('bodhi.server.models.Update.get')
+    def test_update_found_but_not_update_object(self, mock_update_get):
+        """It should 404 if the update not none, but is not an Update"""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {'testcase_feedback': [{'testcase_name': 'invalid'}],
+                             'update': 'FEDORA-2020-abcdef1231'}
+        mock_update_get.return_value = models.Update.query.first()
+        validators.validate_testcase_feedback(request)
+
+        self.assertEqual(
+            request.errors,
+            [{'location': 'querystring', 'name': 'testcase_feedback',
+              'description': 'Invalid testcase names specified: invalid'}])
+        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+
 
 class TestValidateBuildsOrFromTagExist(BasePyTestCase):
     """Test the validate_builds_or_from_tag_exist() function."""
@@ -722,6 +738,49 @@ class TestValidateBuildNvrs(BasePyTestCase):
                  f"Can't create update from tag for release"
                  f" '{self.release.name}' composed by Bodhi."}
         ]
+
+
+class TestValidateBuildTags(BasePyTestCase):
+    """Test the validate_build_tags() function."""
+
+    def setup_method(self, method):
+        """Sets up the environment for each test method call."""
+        super().setup_method(method)
+
+        self.request = mock.Mock()
+        self.request.db = self.db
+        self.request.errors = Errors()
+
+        self.release = models.Release.query.one()
+
+    @mock.patch('bodhi.server.validators.cache_tags')
+    def test_build_tag_when_cache_tags_fails(self, mock_cache_tags):
+        """Assert that the validator fails if getting tags from koji fails"""
+        self.request.validated = {'builds': ['foo-1-1.f17']}
+        self.request.buildinfo = {'foo-1-1.f17': {
+            'nvr': ('foo', '1-1', 'f17'),
+        }}
+        self.request.koji = buildsys.get_session()
+        mock_cache_tags.return_value = None
+        result = validators.validate_build_tags(self.request)
+        assert result is None
+
+    @mock.patch('bodhi.server.validators.cache_tags')
+    def test_build_tag_when_cache_tags_fails_cache_release(self, mock_cache_tags):
+        """Assert that the cache_release returns None if getting tags
+        with cache_tags from koji fails"""
+        self.request.validated = {'builds': ['foo-1-1.f17']}
+        self.request.buildinfo = {'foo-1-1.f17': {
+            'nvr': ('foo', '1-1', 'f17'), 'tags': ['tag'],
+        }}
+        self.request.from_tag_inherited = []
+        self.request.koji = buildsys.get_session()
+
+        mock_cache_tags.side_effect = [['tag'], None]
+
+        result = validators.validate_build_tags(self.request)
+        print(result)
+        assert result is None
 
 
 class TestValidateFromTag(BasePyTestCase):

@@ -715,8 +715,8 @@ class TestOverridesWebViews(base.BaseTestCase):
 
         resp = app.get('/overrides/bodhi-2.0-1.fc17',
                        status=200, headers={'Accept': 'text/html'})
-        self.assertNotIn('<span>New Buildroot Override Form Requires JavaScript</span>', resp)
-        self.assertIn('<h2>Buildroot Override for <code>bodhi-2.0-1.fc17</code></h2>', resp)
+        self.assertNotIn('<h3>New Buildroot Override Form Requires JavaScript</h3>', resp)
+        self.assertIn('<code>bodhi-2.0-1.fc17</code>', resp)
 
     def test_override_view_loggedin(self):
         """
@@ -725,8 +725,8 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         resp = self.app.get('/overrides/bodhi-2.0-1.fc17',
                             status=200, headers={'Accept': 'text/html'})
-        self.assertIn('<span>New Buildroot Override Form Requires JavaScript</span>', resp)
-        self.assertIn('<h2>Buildroot Override for <code>bodhi-2.0-1.fc17</code></h2>', resp)
+        self.assertIn('<h3>New Buildroot Override Form Requires JavaScript</h3>', resp)
+        self.assertIn('<code>bodhi-2.0-1.fc17</code>', resp)
 
     def test_override_new_not_loggedin(self):
         """
@@ -749,7 +749,7 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         resp = self.app.get('/overrides/new',
                             status=200, headers={'Accept': 'text/html'})
-        self.assertIn('<h2 class="float-left mt-3">New Override</h2>', resp)
+        self.assertIn('Create New Override', resp)
 
     def test_overrides_list(self):
         """
@@ -758,7 +758,7 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         resp = self.app.get('/overrides/',
                             status=200, headers={'Accept': 'text/html'})
-        self.assertIn('<h2>Overrides', resp)
+        self.assertIn('<h3 class="font-weight-bold m-0 d-flex align-items-center">Overrides', resp)
         self.assertIn('<a href="http://localhost/overrides/bodhi-2.0-1.fc17">', resp)
 
     @mock.patch('bodhi.server.util.arrow.get')
@@ -766,7 +766,7 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         Test that a User can see the expired date of the override
         """
-        get.return_value.humanize.return_value = '82 seconds ago bro'
+        get.return_value.humanize.return_value = '82 seconds bro'
         expiration_date = datetime.utcnow() + timedelta(days=1)
         data = {'nvr': 'bodhi-2.0-1.fc17', 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
@@ -779,6 +779,6 @@ class TestOverridesWebViews(base.BaseTestCase):
                             status=200, headers={'Accept': 'text/html'})
 
         self.assertRegex(
-            str(resp), ('Expired\\n.*<span class="text-muted" '
-                        'data-toggle="tooltip" title=".*"> 82 seconds ago bro </span>'))
+            str(resp), ("<span class='col-xs-auto pr-2 ml-auto text-danger'><small>"
+                        "expired <strong>82 seconds bro ago</strong></small></span>"))
         self.assertTrue(abs((get.mock_calls[0][1][0] - expiration_date).seconds) < 64)

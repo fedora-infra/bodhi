@@ -7,22 +7,19 @@ ${parent.css()}
 <link href="${request.static_url('bodhi:server/static/vendor/selectize/selectize.bootstrap3-0.12.3.css') }" rel="stylesheet" />
 </%block>
 
-<div class="subheader pt-3">
-    <div class="container">
+<div class="subheader">
+    <div class="container py-4">
       <div class="row">
-        <div class="col-md-12">
-          % if not update:
-            <h2 class="float-left">New Update</span>
-          % else:
-            <h2 class="float-left">Edit
-              ${update.alias}
-            </h2>
-          % endif
+        <div class="col">
+            <h3 class="font-weight-bold m-0"><a href="${request.route_url('updates')}">Updates</a>
+                <span class="text-muted"> / </span> 
+                Create New Update
+            </h3>
         </div>
       </div>
     </div>
   </div>
-<div class="container">
+<div class="container pt-4">
   <div id='js-warning' class="col-md-10 col-md-offset-1 mt-3">
     <div class="alert alert-warning">
         <h3>
@@ -360,16 +357,17 @@ ${update.notes}
             % if update:
             <input type="hidden" name="edited" value="${update.alias}">
             % endif
-
-            <button id="submit" class="btn btn-success">
-              % if update:
-              <span class="indicator fa fa-edit" data-spinclass="indicator fa fa-spinner fa-spin"></span>
-              Save
-              % else:
-              <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
-              Submit
-              % endif
-            </button>
+            <div class="d-flex flex-row flex-row-reverse pt-3">
+              <button id="submit" class="btn btn-primary">
+                % if update:
+                <span class="indicator fa fa-edit" data-spinclass="indicator fa fa-spinner fa-spin"></span>
+                Save
+                % else:
+                <span class="indicator fa fa-save" data-spinclass="indicator fa fa-spinner fa-spin"></span>
+                Submit
+                % endif
+              </button>
+            </div>
 
   </div>
 </div></div></div>

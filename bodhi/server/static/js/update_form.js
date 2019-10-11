@@ -131,6 +131,19 @@ $(document).ready(function() {
         var $builds_search_selectize = $('#builds-search').selectize({
             valueField: 'nvr',
             labelField: 'nvr',
+            create: function(input, callback){
+                if (input in $builds_search_selectize.options){
+                    callback($builds_search_selectize.options[input])
+                } else {
+                    messenger.post({
+                        message: input+' is not tagged in koji as a candidate build',
+                        type: 'error',
+                    });
+                    callback();
+                }
+                console.log();
+                callback()
+            },
             searchField: ['nvr', 'tag_name', 'owner_name'],
             preload: true,
             plugins: ['remove_button','restore_on_backspace'],
@@ -166,7 +179,7 @@ $(document).ready(function() {
             },
             onInitialize: function(){
                 // make sure the placeholder shows when items already exist when page loads
-                $('#builds-search-selectized').attr("placeholder", "search and add builds");
+                $('#builds-search-selectized').attr("placeholder", "loading candidate builds...");
 
                 // preload bugs from builds that exist when the page loads (i.e. when editing an existing update)
                     for (var b in this.options) {
@@ -182,13 +195,23 @@ $(document).ready(function() {
                 $('#builds-search-selectized').attr("placeholder", "");
             },
             load: function(query, callback) {
+                if (query == ""){
+                    console.log("query -"+query+"-");
+                    $builds_search_selectize.disable()
+                }
                 $.ajax({
                     url: '/latest_candidates?prefix=' + encodeURIComponent(query),
                     type: 'GET',
                     error: function() {
+                        messenger.post({
+                            message: 'Error encountered getting candidate builds from koji',
+                            type: 'error',
+                        });
                         callback();
                     },
                     success: function(res) {
+                        $('#builds-search-selectized').attr("placeholder", "search and add builds");
+                        $builds_search_selectize.enable()
                         callback(res);
                     }
                 });
