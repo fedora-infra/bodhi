@@ -23,7 +23,7 @@ from fedora_messaging.api import Message
 
 from bodhi.server.config import config
 from bodhi.server.consumers import signed
-from bodhi.server.models import UpdateStatus, TestGatingStatus
+from bodhi.server.models import Build, Update, UpdateStatus, TestGatingStatus
 from bodhi.tests.server import base
 
 
@@ -37,28 +37,28 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
             topic='',
             body={
                 'build_id': 442562,
-                'name': 'colord',
+                'name': 'bodhi',
                 'tag_id': 214,
                 'instance': 's390',
                 'tag': 'f26-updates-testing-pending',
                 'user': 'sharkcz',
-                'version': '1.3.4',
+                'version': '2.0',
                 'owner': 'sharkcz',
-                'release': '1.fc26'
+                'release': '1.fc17'
             },
         )
         self.sample_side_tag_message = Message(
             topic='',
             body={
                 'build_id': 442562,
-                'name': 'colord',
+                'name': 'bodhi',
                 'tag_id': 214,
                 'instance': 's390',
                 'tag': 'f30-side-tag-testing',
                 'user': 'sharkcz',
-                'version': '1.3.4',
+                'version': '2.0',
                 'owner': 'sharkcz',
-                'release': '1.fc26'
+                'release': '1.fc17'
             },
         )
         self.handler = signed.SignedHandler()
@@ -170,28 +170,30 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         assert build.signed is True
         assert update.status == UpdateStatus.pending
 
-    @mock.patch('bodhi.server.consumers.signed.Build')
     @mock.patch.dict(config, [('test_gating.required', True)])
-    def test_consume_from_tag(self, mock_build_model):
+    def test_consume_from_tag(self):
         """
         Assert that update created from tag is handled correctly when message
         is received.
         Update status is changed to testing and corresponding message is sent.
         """
-        build = mock_build_model.get.return_value
-        build.signed = False
-        build.release = mock.MagicMock()
-        build.release.get_testing_side_tag.return_value = "f30-side-tag-testing"
-        update = mock.MagicMock()
+        self.handler.db_factory = base.TransactionalSessionMaker(self.Session)
+        update = self.db.query(Update).filter(Build.nvr == 'bodhi-2.0-1.fc17').one()
         update.from_tag = "f30-side-tag"
-        update.signed.return_value = True
         update.status = UpdateStatus.pending
         update.release.composed_by_bodhi = False
-        update.test_gating_status = None
-        build.update = update
+        update.builds[0].signed = False
 
-        self.handler(self.sample_side_tag_message)
-        assert build.signed is True
-        assert build.update.request is None
+        self.db.commit()
+        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            greenwave_response = {
+                'policies_satisfied': True,
+                'summary': "all tests have passed"
+            }
+            mock_greenwave.return_value = greenwave_response
+            self.handler(self.sample_side_tag_message)
+
+        assert update.builds[0].signed is True
+        assert update.builds[0].update.request is None
         assert update.status == UpdateStatus.testing
-        assert update.test_gating_status == TestGatingStatus.waiting
+        assert update.test_gating_status == TestGatingStatus.passed
