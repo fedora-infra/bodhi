@@ -1754,6 +1754,8 @@ class TestUpdatesService(BaseTestCase):
         res = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'application/json'})
 
         self.assertEqual(res.json_body['update']['title'], 'bodhi-2.0-1.fc17')
+        version_hash = "19504edccbed061be0b47741238859a94d973138"
+        self.assertEqual(res.json_body['update']['version_hash'], version_hash)
         self.assertIn('application/json', res.headers['Content-Type'])
 
     def test_get_single_update_jsonp(self):
@@ -5351,6 +5353,14 @@ class TestUpdatesService(BaseTestCase):
             resp.json['errors'][0]['description'],
             ("Cannot submit bodhi ('0', '1.0', '1.fc17') to stable since it is older than "
              "('0', '2.0', '1.fc17')"))
+
+        # see if we get the error message rpm.labelcompare succeeds
+        with mock.patch('rpm.labelCompare') as rpm_label_compare:
+            rpm_label_compare.return_value = 0
+            resp = self.app.post_json(
+                f'/updates/{update.alias}/request',
+                {'request': 'stable', 'csrf_token': self.get_csrf_token()},
+                status=200)
 
     @mock.patch(**mock_valid_requirements)
     def test_edit_testing_update_with_build_from_different_update(self, *args):

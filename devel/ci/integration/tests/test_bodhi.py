@@ -221,7 +221,7 @@ def test_get_updates_view(bodhi_container, db_container):
     # Fetch updates from DB
     expected_updates_titles = []
     query_updates = (
-        "SELECT id "
+        "SELECT updates.id as id, updates.display_name as display_name "
         "FROM updates "
         "ORDER BY date_submitted DESC LIMIT 20"
     )
@@ -236,12 +236,16 @@ def test_get_updates_view(bodhi_container, db_container):
     with conn:
         with conn.cursor() as curs:
             curs.execute(query_updates)
-            expected_updates = [row[0] for row in curs]
-            for update_id in expected_updates:
-                curs.execute(query_builds, (update_id, ))
+            expected_updates = [[row[0], row[1]] for row in curs]
+            for update in expected_updates:
+                curs.execute(query_builds, (update[0], ))
                 builds_nvrs = [row[0] for row in curs]
                 builds_nvrs.sort()
-                if len(builds_nvrs) > 2:
+                if update[1]:
+                    # if the update has the optional display_name, this is what
+                    # we show in the updates list page. So check for that.
+                    expected_updates_titles.append(update[1])
+                elif len(builds_nvrs) > 2:
                     title = ", ".join(builds_nvrs[:2])
                     title += ", &amp; "
                     title += str(len(builds_nvrs) - 2)
@@ -487,13 +491,13 @@ def test_get_override_view(bodhi_container, db_container):
 
     try:
         assert http_response.ok
-        assert "Buildroot Override for " in http_response.text
+        assert "Candidate Build" in http_response.text
         assert nvr in http_response.text
-        assert "Submitted by" in http_response.text
+        assert "Submitter" in http_response.text
         assert username in http_response.text
         assert "Notes" in http_response.text
         if expired_date is not None:
-            assert "Expired" in http_response.text
+            assert "expired" in http_response.text
     except AssertionError:
         print(http_response)
         print(http_response.text)

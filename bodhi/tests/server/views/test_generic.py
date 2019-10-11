@@ -66,6 +66,19 @@ class TestGenericViews(base.BaseTestCase):
         res = self.app.get('/', status=200)
         self.assertIn('Log out', res)
         self.assertIn('Fedora Update System', res)
+        self.assertIn('My Active Updates', res)
+
+        # Test the unlogged in user view
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
+        res = app.get('/', status=200)
+        self.assertIn('Create, test, and publish package updates for Fedora.', res)
+        self.assertNotIn('Log out', res)
+        self.assertNotIn('My Active Updates', res)
 
     def test_critical_update_link_home(self):
         update = Update.query.first()
@@ -359,6 +372,25 @@ class TestGenericViews(base.BaseTestCase):
         self.assertEqual(body[1]['package_name'], 'TurboGears')
         self.assertEqual(body[1]['release_name'], 'Fedora 17')
 
+        # check that we prune duplicate builds coming from koji
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.multiCall', create=True) as multicall:
+            multicall.return_value = [[[{'owner_name': 'lmacken', 'id': 16059,
+                                         'nvr': 'TurboGears-1.0.2.2-3.fc17',
+                                         'package_name': 'TurboGears',
+                                         'tag_name': 'f17-updates-candidate'},
+                                        {'owner_name': 'lmacken', 'id': 16059,
+                                         'nvr': 'TurboGears-1.0.2.2-3.fc17',
+                                         'package_name': 'TurboGears',
+                                         'tag_name': 'f17-updates-candidate'}]]]
+            res = self.app.get('/latest_candidates', {'package': 'TurboGears'})
+            body = res.json_body
+            self.assertEqual(len(body), 1)
+            self.assertEqual(body[0]['nvr'], 'TurboGears-1.0.2.2-3.fc17')
+            self.assertEqual(body[0]['id'], 16059)
+            self.assertEqual(body[0]['owner_name'], 'lmacken')
+            self.assertEqual(body[0]['package_name'], 'TurboGears')
+            self.assertEqual(body[0]['release_name'], 'Fedora 17')
+
     @mock.patch('bodhi.server.views.generic.log.error')
     @mock.patch("bodhi.server.buildsys.DevBuildsys.multiCall")
     def test_candidate_koji_error(self, mock_listTagged, log_error):
@@ -398,6 +430,16 @@ class TestGenericViews(base.BaseTestCase):
         self.assertEqual(len(body[0]['builds']), 1)
         self.assertEqual(body[0]['builds'][0]['name'], 'gnome-backgrounds')
 
+        # test that the contains_builds flag works
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.multiCall', create=True) as multicall:
+            multicall.side_effect = [
+                [[{'id': 1234, 'name': 'side-pants', 'extra': {'sidetag_user': 'mcpants'}}]],
+                [[[]]]]
+            res = self.app.get('/get_sidetags', {'user': 'dudemcpants', 'contains_builds': True})
+
+        body = res.json_body
+        self.assertEqual(len(body), 0)
+
     def test_latest_builds_in_tag(self):
         """Test the latest_builds_in_tag endpoint."""
 
@@ -413,26 +455,6 @@ class TestGenericViews(base.BaseTestCase):
     def test_version(self):
         res = self.app.get('/api_version')
         self.assertIn('version', res.json_body)
-
-    def test_new_override_form(self):
-        """Test the New Override form page"""
-
-        headers = {'Accept': 'text/html'}
-
-        # Test that the New Override form shows when logged in
-        res = self.app.get('/overrides/new', headers=headers)
-        self.assertIn('<span>New Buildroot Override Form Requires JavaScript</span>', res)
-
-        # Test that the unlogged in user cannot see the New Override form
-        anonymous_settings = copy.copy(self.app_settings)
-        anonymous_settings.update({
-            'authtkt.secret': 'whatever',
-            'authtkt.secure': True,
-        })
-        app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
-        res = app.get('/overrides/new', status=403, headers=headers)
-        self.assertIn('<h1>403 <small>Forbidden</small></h1>', res)
-        self.assertIn('<p class="lead">Access was denied to this resource.</p>', res)
 
     def test_new_update_form(self):
         """Test the new update Form page"""

@@ -6,10 +6,10 @@
     <div class="float-left">
       % if request.user and user['name'] == request.user.name:
         <a href="https://www.libravatar.org/openid/login/?openid_identifier=${request.user.openid}">
-          <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" width="128px" height="128px"/>
+          <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" width="128px" height="128px" alt="User Icon"/>
         </a>
       % else:
-        <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}"/>
+        <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" alt="User Icon"/>
       % endif
     </div>
     <div class="float-left" style="margin-left: 15px">
