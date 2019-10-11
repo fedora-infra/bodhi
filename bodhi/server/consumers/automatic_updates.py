@@ -125,7 +125,7 @@ class AutomaticUpdateHandler:
                 pkg = Package.get_or_create(rbuildinfo)
 
                 log.debug("Creating build object, adding it to the DB.")
-                build = bcls(nvr=bnvr, package=pkg)
+                build = bcls(nvr=bnvr, package=pkg, release=rel)
                 dbsession.add(build)
 
             owner_name = kbuildinfo['owner_name']
