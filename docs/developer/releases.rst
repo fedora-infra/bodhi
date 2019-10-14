@@ -64,12 +64,14 @@ If you are making a new major or minor release:
 #. Push those changes to the upstream repository (via a PR or not)
 #. Create the branch protection rule in `GitHub's UI
    <https://github.com/fedora-infra/bodhi/settings/branches>`_ and tick the following boxes:
+
    * Require pull request reviews before merging
    * Require status checks to pass before merging
    * Require branches to be up to date before merging
    * ``DCO``
    * ``fXX-diff-cover``, ``fXXdocs``, ``fXX-integration``, and ``fXX-unit`` where ``XX`` is the
      Fedora version that this Bodhi release is going to run on.
+
 #. Create the new ``major.minor`` branch in the repository, and switch to that branch.
 #. Adjust ``diff-cover`` to use the new ``major.minor`` branch for comparison in
    ``devel/ci/bodhi-ci``. You can find the spot to edit by searching for the ``--compare-branch``
