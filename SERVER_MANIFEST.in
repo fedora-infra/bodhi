@@ -4,5 +4,4 @@ recursive-include apache *
 recursive-include alembic *.py *.mako *.rst
 recursive-include tools *
 include bodhi/server/locale/.placeholder
-include bodhi/server/static/bootstrap
 include COPYING
