@@ -225,9 +225,13 @@ def diff_cover(archive, archive_path, concurrency, container_runtime, no_build, 
 @no_build_option
 @releases_option
 @tty_option
-def docs(concurrency, container_runtime, failfast, init, no_build, release, tty):
+@archive_option
+@archive_path_option
+def docs(concurrency, container_runtime, failfast, init, no_build, release,
+         tty, archive, archive_path):
     """Build the docs."""
-    _run_jobs(_build_jobs_list('docs', concurrency, release))
+    _run_jobs(_build_jobs_list('docs', concurrency, release, archive=archive,
+                               archive_path=archive_path))
 
 
 @cli.command()
@@ -768,18 +772,24 @@ class DocsJob(Job):
     _command = [
         '/usr/bin/bash', '-c',
         ('/usr/bin/python3 setup.py develop && make -C docs clean && make -C docs html && make '
-         '-C docs man')]
+         '-C docs man && cp -rv docs/_build/* /results/')]
     _label = 'docs'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, archive, archive_path, *args, **kwargs):
         """
         Initialize the DocsJob.
 
         See the superclass's docblock for details about accepted parameters.
+
+        Args:
+            archive (bool): If True, set up the volume mount so we can retrieve the test results
+                from the container.
+            archive_path (str): A path on the host to share as a volume into the container for
+                its /results path.
         """
         super(DocsJob, self).__init__(*args, **kwargs)
 
-        self._convert_command_for_container()
+        self._convert_command_for_container(archive=archive, archive_path=archive_path)
 
 
 class Flake8Job(Job):
@@ -1159,7 +1169,9 @@ def _build_jobs_list(
                 build_job = BuildJob(release, buffer_output=buffer_output)
                 jobs.append(build_job)
         if command in ('all', 'docs'):
-            docs_job = DocsJob(release, depends_on=build_job, buffer_output=buffer_output)
+            docs_job = DocsJob(
+                archive=archive, archive_path=archive_path, release=release, depends_on=build_job,
+                buffer_output=buffer_output)
             jobs.append(docs_job)
         if command in ('all', 'flake8') and release == 'pip':
             flake8_job = Flake8Job(release, depends_on=build_job, buffer_output=buffer_output)
