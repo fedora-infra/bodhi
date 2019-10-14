@@ -1,5 +1,23 @@
 #!/usr/bin/env python3
 
+"""
+
+This script browses through git commit history (starting at latest tag), collects all authors of
+commits and creates fragment for `towncrier`_ tool.
+
+It's meant to be run during the release process, before generating the release notes.
+
+Example::
+
+    $ python get_authors.py
+
+.. _towncrier: https://github.com/hawkowl/towncrier/
+
+Authors:
+    Aurelien Bompard
+    Michal Konecny
+"""
+
 import os
 from subprocess import check_output
 

@@ -93,7 +93,15 @@ Release Notes
 -------------
 
 To add entries to the release notes, create a file in the ``news`` directory in the
-``source.type`` name format, where the extension ``type`` is one of:
+``source.type`` name format, where the ``source`` part of the filename is:
+
+* ``42`` when the change is described in issue ``42``
+* ``PR42`` when the change has been implemented in pull request ``42``, and
+  there is no associated issue
+* ``Cabcdef`` when the change has been implemented in changeset ``abcdef``, and
+  there is no associated issue or pull request.
+
+And where the extension ``type`` is one of:
 
 * ``bic``: for backwards incompatible changes
 * ``dependency``: for dependency changes
@@ -102,14 +110,6 @@ To add entries to the release notes, create a file in the ``news`` directory in 
 * ``dev``: for development improvements
 * ``docs``: for documentation improvements
 * ``other``: for other changes
-
-And where the ``source`` part of the filename is:
-
-* ``42`` when the change is described in issue ``42``
-* ``PR42`` when the change has been implemented in pull request ``42``, and
-  there is no associated issue
-* ``Cabcdef`` when the change has been implemented in changeset ``abcdef``, and
-  there is no associated issue or pull request.
 
 The content of the file will end up in the release notes. It should not end with a ``.``
 (full stop). A preview of the release notes can be generated with ``towncrier --draft``.
