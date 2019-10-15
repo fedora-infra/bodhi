@@ -79,24 +79,6 @@ def test_get_root(bodhi_container, db_container):
         raise
 
 
-def test_get_metrics(bodhi_container):
-    """Test ``/metrics`` path"""
-    # GET on /metrics
-    with bodhi_container.http_client(port="8080") as c:
-        headers = {'Accept': 'text/html'}
-        http_response = c.get("/metrics", headers=headers)
-
-    try:
-        assert http_response.ok
-        assert "Bodhi Metrics" in http_response.text
-    except AssertionError:
-        print(http_response)
-        print(http_response.text)
-        with read_file(bodhi_container, "/httpdir/errorlog") as log:
-            print(log.read())
-        raise
-
-
 def test_get_api_version(bodhi_container):
     """Test ``/api_version`` path"""
     # GET on /api_version
