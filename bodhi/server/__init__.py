@@ -300,9 +300,6 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_route('new_update', '/updates/new')
     config.add_route('new_override', '/overrides/new')
 
-    # Metrics
-    config.add_route('metrics', '/metrics')
-
     # Auto-completion search
     config.add_route('latest_candidates', '/latest_candidates')
     config.add_route('latest_builds', '/latest_builds')
