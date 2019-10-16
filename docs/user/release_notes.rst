@@ -2,6 +2,122 @@
 Release notes
 =============
 
+
+v5.0.0
+======
+
+This is a major release with many backwards incompatible changes.
+
+
+Backwards incompatible changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Celery is introduced to handle the long-running tasks (:issue:`2851`).
+* Fedmenu was removed from the UI (:issue:`2194`).
+* Remove deprecated ``search_packages`` path (:pr:`3411`).
+* Remove ``critpath_karma`` from the UI (:issue:`2194`).
+* Remove unused and incorrect ``server.bugs.Bugzilla.get_url()`` function.
+* Print errors to stderr in command line tools.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Celery is a new required dependency (:issue:`2851`).
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* Update fedora-bootstrap to latest 1.5.0.
+* Add ctype to the ComposeComplete (:issue:`3297`).
+* Add knowledge of branch freezes to the Release model (:issue:`1038`, :issue:`1563`).
+* API: Create/edit updates from Koji tags (:issue:`3009`).
+* Add javascript confirmation for unpushing updates.
+* Use versioned dir name for static files.
+* Improve the performance of validate_build_uniqueness.
+* Add option to create/edit updates side tags to CLI (:issue:`2325`).
+* Overhaul the new update form.
+* Mark updates not composed by bodhi as pushed when stable.
+* Allow multiple status params for update list views (:issue:`3429`).
+* Send a message when an update is ready to be tested (:issue:`3428`).
+* Create additional side tags on multi build tag (:issue:`3473`).
+* Create comment when CI tests starts, but don't send an email (:issue:`3403`).
+* Add support for creating sidetag updates to webui.
+* Create a Dashboard for logged in users.
+* Clean up Javascript, CSS and fonts.
+* Add a new config item, ``automatic_updates_blacklist``, which is a list of
+  users to not process auto updates from.
+* Document what the update states mean for rawhide.
+* Add a filtering/searching interface to the updates query view.
+* Add the list of packages in the update description to rss feed.
+* Transform markdown code to html for better readability of the rss feed.
+* Add frozen release state to bodhi releases list.
+* Add API call to retrigger update tests.
+* Tidy up the UI.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Handle connection problems when talking to Wiki (:issue:`3361`).
+* Make Bodhi able to clear models.Release._all_releases cache (:issue:`2177`).
+* Query Greenwave in batches to avoid timeouts.
+* Template, js and style fixes.
+* Allow to configure a release without an override tag (:issue:`3447`).
+* Determine a release for sidetag updates (:issue:`3480`).
+* Change update status to testing if every build is signed (:issue:`3475`).
+* Delete additional tags once an side tag update was pushed to stable (:issue:`3476`).
+* Turn off autokarma and autotime for automatic updates (:issue:`3424`).
+* Make ``display_name`` optional in template (:issue:`3470`).
+* Sign new builds to ``<sidetag>-pending-signing`` (:issue:`3485`).
+* Allow only 1 update per side tag (:issue:`3484`).
+* Disable comments on updates when update is pushed and stable (:issue:`2050`).
+* Unify rawhide simple build update with multi build update (:issue:`3513`).
+
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Rename bteststyle to blint.
+* Update developer documentation.
+* Run mypy directly in Vagrant (:issue:`3335`).
+* More type annotations.
+* Add WaiverDB and Greenwave to development environment (:issue:`3011`).
+* Provide authentication in the integration testing environment.
+* Make it easier to develop using VS Code.
+* Add option to vagrant provisioning to use stg infra.
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to Bodhi 5.0.0:
+
+* Anatoli Babenia
+* Aurélien Bompard
+* Clement Verna
+* Lukas Holecek
+* Mattia Verga
+* Michal Konečný
+* Nils Philippsen
+* Ondrej Nosek
+* Pierre-Yves Chibon
+* Randy Barlow
+* Rick Elrod
+* Robert Scheck
+* Ryan Lerch
+* Sebastian Wojciechowski
+
+
 v4.1.0
 ------
 
