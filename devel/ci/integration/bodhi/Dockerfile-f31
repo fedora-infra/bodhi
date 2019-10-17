@@ -13,8 +13,6 @@ RUN rpm --import "$(awk -F= '{if ($0 ~ "gpgkey *=") {print $2;}}' \
         < /etc/yum.repos.d/infra-tags.repo)" && \
     echo skip_if_unavailable=True >> /etc/yum.repos.d/infra-tags.repo
 
-RUN dnf upgrade -y
-
 # Install Bodhi deps (that were not needed by the unittests container)
 RUN dnf install -y \
     httpd \
