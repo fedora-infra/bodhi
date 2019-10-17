@@ -35,3 +35,4 @@ composer/
 nosetests.xml
 virtenv
 .vscode
+test_results
