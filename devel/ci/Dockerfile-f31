@@ -1,7 +1,6 @@
 FROM registry.fedoraproject.org/fedora:31
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
-RUN dnf upgrade -y
 RUN dnf install -y \
     createrepo_c \
     fedora-messaging \

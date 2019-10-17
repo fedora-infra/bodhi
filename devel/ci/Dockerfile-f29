@@ -1,9 +1,6 @@
 FROM registry.fedoraproject.org/fedora:29
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
-# The echo works around https://bugzilla.redhat.com/show_bug.cgi?id=1483553 and any other future dnf
-# upgrade bugs.
-RUN dnf upgrade -y || echo "We are not trying to test dnf upgrade, so ignoring dnf failure."
 RUN dnf install --disablerepo rawhide-modular -y \
     createrepo_c \
     fedora-messaging \

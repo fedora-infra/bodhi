@@ -50,29 +50,33 @@ How to make a release
 Preparation
 -----------
 
-#. If you are making a new major or minor release:
+If you are making a new major or minor release:
 
-   a. Create the new ``major.minor`` branch in the upstream Bodhi repository.
-   b. Prepare the ``.mergify.yml`` file for the new ``major.minor`` branch as described above.
-   c. Configure ``devel/ci/cico.pipeline`` to check out the ``major.minor`` branch so it is
-      available to ``diff-cover`` later. This is needed to get ``diff-cover`` to be able to compare
-      against the new ``major.minor`` branch. You can find the spot to do this by searching for
-      the mention of ``diff-cover`` in a comment. An example is available in
-      `this pull request <https://github.com/fedora-infra/bodhi/pull/2916>`_.
-   d. Similarly, we need to adjust ``diff-cover`` to use the new ``major.minor`` branch for
-      comparison in ``devel/ci/bodhi-ci``. You can find the spot to edit by searching for the
-      ``--compare-branch`` flag being passed to ``diff-cover``.
-
-#. Raise the version to the appropriate value in ``setup.py`` and ``docs/conf.py``.
-#. Use ``git log`` to find all commits that are new in this release and use the commit messages to
-   write release notes in ``docs/user/release_notes.rst``. You can filter ``git log`` to show commit
-   that differ between two git refs to help. For example, to see differences between ``3.12`` and
-   ``3.13``, you could use ``git log 3.12..3.13``. Be aware that any commits that were cherry picked
-   to ``3.12`` will show up in this example and we wouldn't want to mark those commits as being new
-   in ``3.13``.
+#. Prepare the ``.mergify.yml`` file for the new ``major.minor`` branch as described above.
+#. Raise the version to the appropriate value in ``bodhi/__init__.py``.
+#. Add missing authors to the release notes fragments by changing to the ``news`` directory and
+   running the ``get-authors.py`` script, but check for duplicates and errors
+#. Generate the release notes by running ``towncrier``. Be aware that any commits that were cherry
+   picked to a previous release branch will show up again, and we wouldn't want to mark those
+   commits as being new
 #. Add a note to all the associated issues and pull requests to let them know they will be included
    in this release.
+#. Push those changes to the upstream repository (via a PR or not)
+#. Create the branch protection rule in `GitHub's UI
+   <https://github.com/fedora-infra/bodhi/settings/branches>`_ and tick the following boxes:
 
+   * Require pull request reviews before merging
+   * Require status checks to pass before merging
+   * Require branches to be up to date before merging
+   * ``DCO``
+   * ``fXX-diff-cover``, ``fXXdocs``, ``fXX-integration``, and ``fXX-unit`` where ``XX`` is the
+     Fedora version that this Bodhi release is going to run on.
+
+#. Create the new ``major.minor`` branch in the repository, and switch to that branch.
+#. Adjust ``diff-cover`` to use the new ``major.minor`` branch for comparison in
+   ``devel/ci/bodhi-ci``. You can find the spot to edit by searching for the ``--compare-branch``
+   flag being passed to ``diff-cover``. This change should remain in that release branch only.
+#. Push that new branch to the upstream repository
 
 Build a beta
 ------------

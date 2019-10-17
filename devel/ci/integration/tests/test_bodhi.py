@@ -211,7 +211,8 @@ def test_get_updates_view(bodhi_container, db_container):
         "SELECT builds.nvr as nvr "
         "FROM builds "
         "JOIN updates ON builds.update_id = updates.id "
-        "WHERE update_id = %s"
+        "WHERE update_id = %s "
+        "ORDER BY nvr"
     )
     db_ip = db_container.get_IPv4s()[0]
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
@@ -222,7 +223,6 @@ def test_get_updates_view(bodhi_container, db_container):
             for update in expected_updates:
                 curs.execute(query_builds, (update[0], ))
                 builds_nvrs = [row[0] for row in curs]
-                builds_nvrs.sort()
                 if update[1]:
                     # if the update has the optional display_name, this is what
                     # we show in the updates list page. So check for that.
@@ -245,8 +245,8 @@ def test_get_updates_view(bodhi_container, db_container):
 
     try:
         assert http_response.ok
-        for update_titile in expected_updates_titles:
-            assert update_titile in http_response.text
+        for update_title in expected_updates_titles:
+            assert update_title in http_response.text
     except AssertionError:
         print(http_response)
         print(http_response.text)

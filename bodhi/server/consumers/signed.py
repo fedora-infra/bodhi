@@ -112,7 +112,7 @@ class SignedHandler(object):
             log.info("Build %s has been marked as signed" % build_nvr)
 
             # If every build in update is signed change status to testing
-            if not build.update.release.composed_by_bodhi and build.update.signed():
+            if not build.update.release.composed_by_bodhi and build.update.signed:
                 log.info("Every build in update is signed, set status to testing")
 
                 build.update.status = UpdateStatus.testing
