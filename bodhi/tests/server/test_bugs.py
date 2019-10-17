@@ -18,19 +18,19 @@
 """This test suite contains tests for bodhi.server.bugs."""
 
 from unittest import mock
-import unittest
 import xmlrpc.client
 
 from bodhi.server import bugs, models
+from bodhi.tests.server import base
 
 
-class TestBugzilla(unittest.TestCase):
+class TestBugzilla(base.BaseTestCase):
     """This test class contains tests for the Bugzilla class."""
     def test___init__(self):
         """Assert that the __init__ method sets up the Bugzilla object correctly."""
         bz = bugs.Bugzilla()
 
-        self.assertIsNone(bz._bz)
+        assert bz._bz is None
 
     @mock.patch('bodhi.server.bugs.bugzilla.Bugzilla.__init__', return_value=None)
     def test__connect_with_api_key(self, __init__):
@@ -96,7 +96,7 @@ class TestBugzilla(unittest.TestCase):
 
         __init__.assert_called_once_with(url='https://example.com/bz',
                                          cookiefile=None, tokenfile=None)
-        self.assertTrue(return_value is bz._bz)
+        assert return_value is bz._bz
 
     @mock.patch('bodhi.server.bugs.Bugzilla._connect')
     def test_bz_with__bz_set(self, _connect):
@@ -108,8 +108,8 @@ class TestBugzilla(unittest.TestCase):
 
         return_value = bz.bz
 
-        self.assertTrue(return_value is bz._bz)
-        self.assertEqual(_connect.call_count, 0)
+        assert return_value is bz._bz
+        assert _connect.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.error')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
@@ -146,7 +146,7 @@ class TestBugzilla(unittest.TestCase):
             'ERRATA',
             comment='Fixed. Closing bug and adding version to fixed_in field.',
             fixedin='bodhi-3.1.0-1.fc27')
-        self.assertEqual(info.call_count, 0)
+        assert info.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
@@ -166,7 +166,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.return_value.close.assert_called_once_with(
             'ERRATA',
             comment='Closing, but don\'t modify fixed_in field to not cross 255 chars limit.')
-        self.assertEqual(info.call_count, 0)
+        assert info.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
@@ -184,12 +184,12 @@ class TestBugzilla(unittest.TestCase):
 
         bz._bz.getbug.assert_called_once_with(12345)
         expected_fixedin = '{} bodhi-35.103.109-1.fc27'.format(fill_text)
-        self.assertEqual(len(expected_fixedin), 254)
+        assert len(expected_fixedin) == 254
         bz._bz.getbug.return_value.close.assert_called_once_with(
             'ERRATA',
             comment='Fixed. Closing bug and adding version to fixed_in field.',
             fixedin=expected_fixedin)
-        self.assertEqual(info.call_count, 0)
+        assert info.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.info')
     def test_close_private_bug(self, info):
@@ -220,7 +220,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz._bz.getbug.assert_called_once_with(12345)
         info.assert_called_once_with("Skipping set closed on 'not fedora!' bug #12345")
-        self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
+        assert bz._bz.getbug.return_value.setstatus.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_comment_fault(self, exception):
@@ -264,7 +264,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A nice message.')
         # No exceptions should have been logged
-        self.assertEqual(info.call_count, 0)
+        assert info.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.error')
     def test_comment_too_long(self, error):
@@ -276,7 +276,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz.comment(1411188, long_comment)
 
-        self.assertEqual(bz._bz.getbug.call_count, 0)
+        assert bz._bz.getbug.call_count == 0
         # An exception should have been logged
         error.assert_called_once_with(
             'Comment too long for bug #1411188:  {}'.format(long_comment))
@@ -326,7 +326,7 @@ class TestBugzilla(unittest.TestCase):
 
         return_value = bz.getbug(1411188)
 
-        self.assertTrue(return_value is bz._bz.getbug.return_value)
+        assert return_value is bz._bz.getbug.return_value
         bz._bz.getbug.assert_called_once_with(1411188)
 
     @mock.patch('bodhi.server.bugs.log.info')
@@ -400,7 +400,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz._bz.getbug.assert_called_once_with(1411188)
         info.assert_called_once_with("Skipping set modified on 'not fedora!' bug #1411188")
-        self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
+        assert bz._bz.getbug.return_value.setstatus.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_modified_exception(self, exception_log):
@@ -413,7 +413,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz._bz.getbug.assert_called_once_with(1411188)
         exception_log.assert_called_once_with("Unable to alter bug #1411188")
-        self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
+        assert bz._bz.getbug.return_value.setstatus.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_update_details_exception(self, mock_exceptionlog):
@@ -436,7 +436,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz.update_details(bug, bug_entity)
 
-        self.assertTrue(bug_entity.security)
+        assert bug_entity.security is True
 
     def test_update_details_parent_bug(self):
         """Assert that a parent bug gets marked as such."""
@@ -449,8 +449,8 @@ class TestBugzilla(unittest.TestCase):
 
         bz.update_details(bug, bug_entity)
 
-        self.assertIs(bug_entity.parent, True)
-        self.assertEqual(bug_entity.title, 'Fedora gets you, good job guys!')
+        assert bug_entity.parent is True
+        assert bug_entity.title == 'Fedora gets you, good job guys!'
 
     @mock.patch('bodhi.server.bugs.log.info')
     def test_update_details_private_bug(self, info):
@@ -466,7 +466,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz.update_details(None, bug)
 
-        self.assertEqual(bug.title, 'Private bug')
+        assert bug.title == 'Private bug'
         bz._bz.getbug.assert_called_once_with(1563797)
         info.assert_called_once_with(
             'Cannot retrieve private bug #%d.', 1563797)
@@ -482,7 +482,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz.update_details(0, bug)
 
-        self.assertEqual(bug.title, 'Invalid bug number')
+        assert bug.title == 'Invalid bug number'
         bz._bz.getbug.assert_called_once_with(123)
         error.assert_called_once_with(
             'Got fault from Bugzilla on #%d: fault code: %d, fault string: %s', 123, 42,
@@ -552,7 +552,7 @@ class TestBugzilla(unittest.TestCase):
 
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.setstatus.assert_called_once_with('ON_QA', comment='A message.')
-        self.assertEqual(info.call_count, 0)
+        assert info.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
@@ -571,7 +571,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
         bz._bz.getbug.return_value.setstatus.assert_not_called()
-        self.assertEqual(info.call_count, 0)
+        assert info.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
@@ -590,7 +590,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
         bz._bz.getbug.return_value.setstatus.assert_not_called()
-        self.assertEqual(info.call_count, 0)
+        assert info.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.info')
     @mock.patch.dict('bodhi.server.bugs.config', {'bz_products': 'aproduct'})
@@ -609,7 +609,7 @@ class TestBugzilla(unittest.TestCase):
         bz._bz.getbug.assert_called_once_with(1411188)
         bz._bz.getbug.return_value.addcomment.assert_called_once_with('A message.')
         bz._bz.getbug.return_value.setstatus.assert_not_called()
-        self.assertEqual(info.call_count, 0)
+        assert info.call_count == 0
 
     @mock.patch('bodhi.server.bugs.log.info')
     def test_on_qa_product_skipped(self, info):
@@ -622,10 +622,10 @@ class TestBugzilla(unittest.TestCase):
 
         bz._bz.getbug.assert_called_once_with(1411188)
         info.assert_called_once_with("Skipping set on_qa on 'not fedora!' bug #1411188")
-        self.assertEqual(bz._bz.getbug.return_value.setstatus.call_count, 0)
+        assert bz._bz.getbug.return_value.setstatus.call_count == 0
 
 
-class TestFakeBugTracker(unittest.TestCase):
+class TestFakeBugTracker(base.BaseTestCase):
     """This test class contains tests for the FakeBugTracker class."""
     def test_getbug(self):
         """Ensure correct return value of the getbug() method."""
@@ -633,8 +633,8 @@ class TestFakeBugTracker(unittest.TestCase):
 
         b = bt.getbug(1234)
 
-        self.assertTrue(isinstance(b, bugs.FakeBug))
-        self.assertEqual(b.bug_id, 1234)
+        assert isinstance(b, bugs.FakeBug)
+        assert b.bug_id == 1234
 
     @mock.patch('bodhi.server.bugs.log.debug')
     def test___noop__(self, debug):
@@ -646,7 +646,7 @@ class TestFakeBugTracker(unittest.TestCase):
         debug.assert_called_once_with('__noop__((1, 2))')
 
 
-class TestSetBugtracker(unittest.TestCase):
+class TestSetBugtracker(base.BaseTestCase):
     """
     Test the set_bugtracker() function.
     """
@@ -658,7 +658,7 @@ class TestSetBugtracker(unittest.TestCase):
         """
         bugs.set_bugtracker()
 
-        self.assertTrue(isinstance(bugs.bugtracker, bugs.Bugzilla))
+        assert isinstance(bugs.bugtracker, bugs.Bugzilla)
 
     @mock.patch('bodhi.server.bugs.bugtracker', None)
     @mock.patch.dict('bodhi.server.bugs.config', {'bugtracker': 'fake'})
@@ -668,4 +668,4 @@ class TestSetBugtracker(unittest.TestCase):
         """
         bugs.set_bugtracker()
 
-        self.assertTrue(isinstance(bugs.bugtracker, bugs.FakeBugTracker))
+        assert isinstance(bugs.bugtracker, bugs.FakeBugTracker)
