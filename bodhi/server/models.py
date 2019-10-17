@@ -4041,6 +4041,9 @@ class Compose(Base):
                 continue
             # ASSUMPTION: For now, updates can only be of a single type.
             ctype = None
+            if not update.builds:
+                log.info(f"No builds in {update.alias}. Skipping.")
+                continue
             for build in update.builds:
                 if ctype is None:
                     ctype = build.type
