@@ -582,6 +582,16 @@ class TestCompose(BaseTestCase):
         assert_compose_has_update(composes[1], update_4)
         assert_compose_has_update(composes[2], update_1)
 
+    def test_from_updates_no_builds(self):
+        """Assert that update without builds is not added to compose."""
+        update = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update.builds = []
+
+        composes = model.Compose.from_updates([update])
+
+        self.assertTrue(isinstance(composes, list))
+        self.assertEqual(len(composes), 0)
+
     def test_security_false(self):
         """Assert that security is False if none of the Updates are security updates."""
         compose = self._generate_compose(model.UpdateRequest.stable, False)
