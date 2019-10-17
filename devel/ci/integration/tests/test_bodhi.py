@@ -240,12 +240,12 @@ def test_get_updates_view(bodhi_container, db_container):
             for update in expected_updates:
                 curs.execute(query_builds, (update[0], ))
                 builds_nvrs = [row[0] for row in curs]
-                builds_nvrs.sort()
                 if update[1]:
                     # if the update has the optional display_name, this is what
                     # we show in the updates list page. So check for that.
                     expected_updates_titles.append(update[1])
                 elif len(builds_nvrs) > 2:
+                    builds_nvrs.sort()
                     title = ", ".join(builds_nvrs[:2])
                     title += ", &amp; "
                     title += str(len(builds_nvrs) - 2)
