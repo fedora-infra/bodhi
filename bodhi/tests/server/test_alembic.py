@@ -22,14 +22,13 @@
 
 import os
 import subprocess
-import unittest
 
 
 REPO_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 
-class TestAlembic(unittest.TestCase):
+class TestAlembic:
     """This test class contains tests pertaining to alembic."""
 
     def test_alembic_history(self):
@@ -54,5 +53,5 @@ class TestAlembic(unittest.TestCase):
 
         stdout = proc2.communicate()[0]
         stdout = stdout.strip().split(b'\n')
-        self.assertEqual(len(stdout), 1)
+        assert len(stdout) == 1
         proc1.communicate()
