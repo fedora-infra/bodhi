@@ -16,12 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-import unittest
-
 from bodhi.server import schemas
 
 
-class TestSchemas(unittest.TestCase):
+class TestSchemas:
 
     def test_schema_unflattening_for_comments(self):
         expected = {
@@ -42,4 +40,4 @@ class TestSchemas(unittest.TestCase):
         }
         schema = schemas.SaveCommentSchema()
         nested_structure = schema.unflatten(flat_structure)
-        self.assertEqual(nested_structure, expected)
+        assert nested_structure == expected
