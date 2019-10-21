@@ -18,18 +18,18 @@
 """Test the bodhi.server.security module."""
 
 from unittest import mock
-import unittest
 
 from cornice import errors
 from pyramid import testing
 from pyramid.security import Allow, ALL_PERMISSIONS, DENY_ALL
+import pytest
 from zope.interface import interfaces
 
 from bodhi.server import models, security
 from bodhi.tests.server import base
 
 
-class TestACLFactory(unittest.TestCase):
+class TestACLFactory:
     """Test the ACLFactory object."""
 
     def test___init__(self):
@@ -38,10 +38,10 @@ class TestACLFactory(unittest.TestCase):
 
         f = security.ACLFactory(r)
 
-        self.assertTrue(f.request is r)
+        assert f.request is r
 
 
-class TestAdminACLFactory(base.BaseTestCase):
+class TestAdminACLFactory(base.BasePyTestCase):
     """Test the AdminACLFactory object."""
 
     def test___acl__(self):
@@ -52,8 +52,7 @@ class TestAdminACLFactory(base.BaseTestCase):
 
         acls = f.__acl__()
 
-        self.assertEqual(
-            acls,
+        assert acls == (
             [(Allow, 'group:cool_gals', ALL_PERMISSIONS),
              (Allow, 'group:cool_guys', ALL_PERMISSIONS)] + [DENY_ALL])
 
@@ -65,7 +64,7 @@ class FakeRegistry(object):
 
 @mock.patch('bodhi.server.security.get_current_registry',
             mock.MagicMock(return_value=FakeRegistry()))
-class TestCorsOrigins(unittest.TestCase):
+class TestCorsOrigins:
     """Test the CorsOrigins class."""
 
     def test___contains___initialized(self):
@@ -75,13 +74,13 @@ class TestCorsOrigins(unittest.TestCase):
 
         with mock.patch('bodhi.server.security.get_current_registry', side_effect=Exception()):
             # This should not raise the Exception because initialize() won't get called again.
-            self.assertTrue('origin_2' in co)
+            assert 'origin_2' in co
 
     def test___contains___uninitialized(self):
         """Test __contains__() when the origins are uninitialized."""
         co = security.CorsOrigins('cors_origins_ro')
 
-        self.assertTrue('origin_1' in co)
+        assert 'origin_1' in co
 
     def test___getitem___initialized(self):
         """Test __getitem__() when the origins are initialized."""
@@ -90,20 +89,20 @@ class TestCorsOrigins(unittest.TestCase):
 
         with mock.patch('bodhi.server.security.get_current_registry', side_effect=Exception()):
             # This should not raise the Exception because initialize() won't get called again.
-            self.assertEqual(co[1], 'origin_2')
+            assert co[1] == 'origin_2'
 
     def test___getitem___uninitialized(self):
         """Test __getitem__() when the origins are uninitialized."""
         co = security.CorsOrigins('cors_origins_ro')
 
-        self.assertEqual(co[0], 'origin_1')
+        assert co[0] == 'origin_1'
 
     def test___init__(self):
         """Test correct behavior from __init__()."""
         co = security.CorsOrigins('cors_origins_ro')
 
-        self.assertEqual(co.name, 'cors_origins_ro')
-        self.assertIs(co.origins, None)
+        assert co.name == 'cors_origins_ro'
+        assert co.origins is None
 
     def test___iter___initialized(self):
         """Test __iter__() when the origins are initialized."""
@@ -112,13 +111,13 @@ class TestCorsOrigins(unittest.TestCase):
 
         with mock.patch('bodhi.server.security.get_current_registry', side_effect=Exception()):
             # This should not raise the Exception because initialize() won't get called again.
-            self.assertEqual(list(co), ['origin_1', 'origin_2'])
+            assert list(co) == ['origin_1', 'origin_2']
 
     def test___iter___uninitialized(self):
         """Test __iter__() when the origins are uninitialized."""
         co = security.CorsOrigins('cors_origins_ro')
 
-        self.assertEqual(list(co), ['origin_1', 'origin_2'])
+        assert list(co) == ['origin_1', 'origin_2']
 
     def test___len___initialized(self):
         """Test __len__() when the origins are initialized."""
@@ -127,19 +126,19 @@ class TestCorsOrigins(unittest.TestCase):
 
         with mock.patch('bodhi.server.security.get_current_registry', side_effect=Exception()):
             # This should not raise the Exception because initialize() won't get called again.
-            self.assertEqual(len(co), 2)
+            assert len(co) == 2
 
     def test___len___uninitialized(self):
         """Test __len__() when the origins are uninitialized."""
         co = security.CorsOrigins('cors_origins_ro')
 
-        self.assertEqual(len(co), 2)
+        assert len(co) == 2
 
     def test_initialize_setting_not_found(self):
         """initialize() should set origins to ['localhost'] if the setting doesn't exist."""
         co = security.CorsOrigins('not_found')
 
-        self.assertEqual(list(co), ['localhost'])
+        assert list(co) == ['localhost']
 
     def test_initialize_with_origins(self):
         """initialize() with origins already set should do nothing."""
@@ -155,26 +154,26 @@ class TestCorsOrigins(unittest.TestCase):
         co = security.CorsOrigins('cors_origins_ro')
         co.initialize()
 
-        self.assertEqual(co.origins, ['origin_1', 'origin_2'])
+        assert co.origins == ['origin_1', 'origin_2']
 
 
-class TestLogin(base.BaseTestCase):
+class TestLogin(base.BasePyTestCase):
     """Test the login() function."""
     def test_login(self):
         """Test the login redirect"""
         resp = self.app.get('/login', status=302)
-        self.assertIn('dologin.html', resp)
+        assert 'dologin.html' in resp
 
 
-class TestLogout(base.BaseTestCase):
+class TestLogout(base.BasePyTestCase):
     """Test the logout() function."""
     def test_logout(self):
         """Test the logout redirect"""
         resp = self.app.get('/logout', status=302)
-        self.assertEqual(resp.location, 'http://localhost/')
+        assert resp.location in 'http://localhost/'
 
 
-class TestPackagerACLFactory(base.BaseTestCase):
+class TestPackagerACLFactory(base.BasePyTestCase):
     """Test the PackagerACLFactory object."""
 
     def test___acl__(self):
@@ -185,13 +184,12 @@ class TestPackagerACLFactory(base.BaseTestCase):
 
         acls = f.__acl__()
 
-        self.assertEqual(
-            acls,
+        assert acls == (
             [(Allow, 'group:cool_gals', ALL_PERMISSIONS),
              (Allow, 'group:cool_guys', ALL_PERMISSIONS)] + [DENY_ALL])
 
 
-class TestProtectedRequest(unittest.TestCase):
+class TestProtectedRequest:
     """Test the ProtectedRequest class."""
     def test___init__(self):
         """Assert that __init__() properly shadows the given Request."""
@@ -206,14 +204,14 @@ class TestProtectedRequest(unittest.TestCase):
         pr = security.ProtectedRequest(request)
 
         for attr in ('db', 'registry', 'validated', 'buildinfo', 'user'):
-            self.assertEqual(getattr(pr, attr), getattr(request, attr))
+            assert getattr(pr, attr) == getattr(request, attr)
 
-        self.assertTrue(isinstance(pr.errors, errors.Errors))
-        self.assertTrue(pr.real_request is request)
-        self.assertFalse(hasattr(pr, 'dontcopy'))
+        assert isinstance(pr.errors, errors.Errors)
+        assert pr.real_request is request
+        assert not hasattr(pr, 'dontcopy')
 
 
-class TestRememberMe(base.BaseTestCase):
+class TestRememberMe(base.BasePyTestCase):
     """Test the remember_me() function."""
 
     def _generate_req_info(self, openid_endpoint):
@@ -228,8 +226,8 @@ class TestRememberMe(base.BaseTestCase):
         }
         req.registry.settings = self.app_settings
         # Ensure the user doesn't exist yet
-        self.assertIsNone(models.User.get('lmacken'))
-        self.assertIsNone(models.Group.get('releng'))
+        assert models.User.get('lmacken') is None
+        assert models.Group.get('releng') is None
 
         return req, info
 
@@ -237,11 +235,11 @@ class TestRememberMe(base.BaseTestCase):
         """Test the post-login hook with a bad openid endpoint"""
         req, info = self._generate_req_info('bad_endpoint')
 
-        with self.assertRaises(interfaces.ComponentLookupError):
+        with pytest.raises(interfaces.ComponentLookupError):
             security.remember_me(None, req, info)
 
         # The user should not exist
-        self.assertIsNone(models.User.get('lmacken'))
+        assert models.User.get('lmacken') is None
 
     def test_empty_groups_ignored(self):
         """Test a user that has an empty string group, which should be ignored."""
@@ -254,7 +252,7 @@ class TestRememberMe(base.BaseTestCase):
         security.remember_me(None, req, info)
 
         user = models.User.get('lmacken')
-        self.assertEqual([g.name for g in user.groups], ['releng', 'new_group'])
+        assert [g.name for g in user.groups] == ['releng', 'new_group']
 
     def test_new_email(self):
         """Assert that the user gets their e-mail address updated."""
@@ -267,7 +265,7 @@ class TestRememberMe(base.BaseTestCase):
         security.remember_me(None, req, info)
 
         user = models.User.get('lmacken')
-        self.assertEqual(user.email, '1337hax0r@example.com')
+        assert user.email == '1337hax0r@example.com'
 
     def test_new_user(self):
         """Test the post-login hook"""
@@ -277,10 +275,10 @@ class TestRememberMe(base.BaseTestCase):
 
         # The user should now exist, and be a member of the releng group
         user = models.User.get('lmacken')
-        self.assertEqual(user.name, 'lmacken')
-        self.assertEqual(user.email, 'lmacken@fp.o')
-        self.assertEqual(len(user.groups), 1)
-        self.assertEqual(user.groups[0].name, 'releng')
+        assert user.name == 'lmacken'
+        assert user.email == 'lmacken@fp.o'
+        assert len(user.groups) == 1
+        assert user.groups[0].name == 'releng'
 
     def test_user_groups_removed(self):
         """Test that a user that has been removed from a group gets marked as removed upon login."""
@@ -293,5 +291,5 @@ class TestRememberMe(base.BaseTestCase):
         security.remember_me(None, req, info)
 
         user = models.User.get('lmacken')
-        self.assertEqual(len(user.groups), 0)
-        self.assertEqual(len(models.Group.get('releng').users), 0)
+        assert len(user.groups) == 0
+        assert len(models.Group.get('releng').users) == 0
