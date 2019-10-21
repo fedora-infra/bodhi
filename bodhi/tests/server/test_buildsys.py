@@ -20,14 +20,14 @@
 from threading import Lock
 from unittest import mock
 import os
-import unittest
 
 import koji
+import pytest
 
 from bodhi.server import buildsys
 
 
-class TestTeardown(unittest.TestCase):
+class TestTeardown:
     """This test class contains tests for the teardown_buildsystem() function."""
 
     def test_raises_not_configured(self):
@@ -36,20 +36,20 @@ class TestTeardown(unittest.TestCase):
         that if not, we crash hard.
         """
         buildsys.teardown_buildsystem()
-        self.assertRaises(RuntimeError, buildsys.get_session)
+        pytest.raises(RuntimeError, buildsys.get_session)
 
 
-class TestSetup(unittest.TestCase):
+class TestSetup:
     """This test class contains tests for the setup_buildsystem() function."""
 
     def test_raises_unknown_buildsys(self):
         """
         Ensure that we crash if we try to configure an invalid buildsys.
         """
-        self.assertRaises(ValueError, buildsys.setup_buildsystem, {'buildsystem': 'invalid'})
+        pytest.raises(ValueError, buildsys.setup_buildsystem, {'buildsystem': 'invalid'})
 
 
-class TestGetKrbConf(unittest.TestCase):
+class TestGetKrbConf:
     """This class contains tests for the get_krb_conf() function."""
     def test_all_config_items_missing(self):
         """Assert behavior when all config items are missing."""
@@ -57,7 +57,7 @@ class TestGetKrbConf(unittest.TestCase):
 
         config = buildsys.get_krb_conf(config)
 
-        self.assertEqual(config, {})
+        assert config == {}
 
     def test_complete_config(self):
         """Assert behavior with a config that has all possible elements."""
@@ -66,8 +66,7 @@ class TestGetKrbConf(unittest.TestCase):
 
         config = buildsys.get_krb_conf(config)
 
-        self.assertEqual(config,
-                         {'ccache': 'a_ccache', 'keytab': 'a_keytab', 'principal': 'a_principal'})
+        assert config == {'ccache': 'a_ccache', 'keytab': 'a_keytab', 'principal': 'a_principal'}
 
     def test_krb_ccache(self):
         """Assert behavior when only krb_ccache is present."""
@@ -75,7 +74,7 @@ class TestGetKrbConf(unittest.TestCase):
 
         config = buildsys.get_krb_conf(config)
 
-        self.assertEqual(config, {'ccache': 'a_ccache'})
+        assert config == {'ccache': 'a_ccache'}
 
     def test_krb_ccache_uid(self):
         """Assert behavior for krb ccache uid replacement."""
@@ -83,7 +82,7 @@ class TestGetKrbConf(unittest.TestCase):
 
         config = buildsys.get_krb_conf(config)
 
-        self.assertEqual(config, {'ccache': 'a_ccache_%d' % os.geteuid()})
+        assert config == {'ccache': 'a_ccache_%d' % os.geteuid()}
 
     def test_krb_keytab(self):
         """Assert behavior when only krb_keytab is present."""
@@ -91,7 +90,7 @@ class TestGetKrbConf(unittest.TestCase):
 
         config = buildsys.get_krb_conf(config)
 
-        self.assertEqual(config, {'keytab': 'a_keytab'})
+        assert config == {'keytab': 'a_keytab'}
 
     def test_krb_principal(self):
         """Assert behavior when only krb_principal is present."""
@@ -99,10 +98,10 @@ class TestGetKrbConf(unittest.TestCase):
 
         config = buildsys.get_krb_conf(config)
 
-        self.assertEqual(config, {'principal': 'a_principal'})
+        assert config == {'principal': 'a_principal'}
 
 
-class TestKojiLogin(unittest.TestCase):
+class TestKojiLogin:
     """This class contains tests for the koji_login() function."""
 
     @mock.patch.object(buildsys, '_koji_hub', 'http://example.com/koji')
@@ -126,18 +125,17 @@ class TestKojiLogin(unittest.TestCase):
         client = buildsys.koji_login(config, authenticate=True)
 
         for key in default_koji_opts:
-            self.assertEqual(default_koji_opts[key], client.opts[key])
-        self.assertEqual(type(client), koji.ClientSession)
+            assert default_koji_opts[key] == client.opts[key]
+        assert type(client) == koji.ClientSession
         # Due to the use of backoff, we should have called krb_login three times.
-        self.assertEqual(
-            krb_login.mock_calls,
+        assert krb_login.mock_calls == (
             [mock.call(ccache='a_ccache', keytab='a_keytab', principal='a_principal')] * 3)
         # No error should have been logged
-        self.assertEqual(error.call_count, 0)
+        assert error.call_count == 0
         # Make sure sleep was called twice, but we don't want to assert what values were used
         # because that's up to backoff and we don't want different versions of backoff to make
         # different choices and cause this test to fail.
-        self.assertEqual(sleep.call_count, 2)
+        assert sleep.call_count == 2
 
     @mock.patch.object(buildsys, '_koji_hub', 'http://example.com/koji')
     @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
@@ -158,12 +156,12 @@ class TestKojiLogin(unittest.TestCase):
         client = buildsys.koji_login(config, authenticate=False)
 
         for key in default_koji_opts:
-            self.assertEqual(default_koji_opts[key], client.opts[key])
-        self.assertEqual(type(client), koji.ClientSession)
+            assert default_koji_opts[key] == client.opts[key]
+        assert type(client) == koji.ClientSession
         # Since authenticate was False, the login should not have happened.
-        self.assertEqual(krb_login.call_count, 0)
+        assert krb_login.call_count == 0
         # No error should have been logged
-        self.assertEqual(error.call_count, 0)
+        assert error.call_count == 0
 
     # krb_login returns a bool to indicate success or failure
     @mock.patch.object(buildsys, '_koji_hub', 'http://example.com/koji')
@@ -177,7 +175,7 @@ class TestKojiLogin(unittest.TestCase):
 
         client = buildsys.koji_login(config, authenticate=True)
 
-        self.assertEqual(type(client), koji.ClientSession)
+        assert type(client) == koji.ClientSession
         krb_login.assert_called_once_with(ccache='a_ccache', keytab='a_keytab',
                                           principal='a_principal')
         error.assert_called_once_with('Koji krb_login failed')
@@ -203,21 +201,21 @@ class TestKojiLogin(unittest.TestCase):
         client = buildsys.koji_login(config, authenticate=True)
 
         for key in default_koji_opts:
-            self.assertEqual(default_koji_opts[key], client.opts[key])
-        self.assertEqual(type(client), koji.ClientSession)
+            assert default_koji_opts[key] == client.opts[key]
+        assert type(client) == koji.ClientSession
         krb_login.assert_called_once_with(ccache='a_ccache', keytab='a_keytab',
                                           principal='a_principal')
         # No error should have been logged
-        self.assertEqual(error.call_count, 0)
+        assert error.call_count == 0
 
 
-class TestGetSession(unittest.TestCase):
+class TestGetSession:
     """Tests :func:`bodhi.server.buildsys.get_session` function"""
 
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
     def test_uninitialized_buildsystem(self):
         """Assert calls to get_session raise RuntimeError when uninitialized"""
-        self.assertRaises(RuntimeError, buildsys.get_session)
+        pytest.raises(RuntimeError, buildsys.get_session)
 
     @mock.patch('bodhi.server.buildsys._buildsystem')
     @mock.patch('bodhi.server.buildsys._buildsystem_login_lock', wraps=Lock())
@@ -229,7 +227,7 @@ class TestGetSession(unittest.TestCase):
         mock_buildsystem.assert_called_once_with()
 
 
-class TestSetupBuildsystem(unittest.TestCase):
+class TestSetupBuildsystem:
     """Tests :func:`bodhi.server.buildsys.setup_buildsystem` function"""
 
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
@@ -239,13 +237,13 @@ class TestSetupBuildsystem(unittest.TestCase):
         config = {
             'krb_ccache': 'a_ccache', 'krb_keytab': 'a_keytab', 'krb_principal': 'a_principal',
             'buildsystem': 'koji', 'koji_hub': 'https://example.com/koji'}
-        self.assertTrue(buildsys._buildsystem is None)
+        assert buildsys._buildsystem is None
 
         buildsys.setup_buildsystem(config, authenticate=False)
 
         # Instantiating the buildsystem should not cause a krb_login to happen.
         buildsys._buildsystem()
-        self.assertEqual(krb_login.call_count, 0)
+        assert krb_login.call_count == 0
 
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
     @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
@@ -254,7 +252,7 @@ class TestSetupBuildsystem(unittest.TestCase):
         config = {
             'krb_ccache': 'a_ccache', 'krb_keytab': 'a_keytab', 'krb_principal': 'a_principal',
             'buildsystem': 'koji', 'koji_hub': 'https://example.com/koji'}
-        self.assertTrue(buildsys._buildsystem is None)
+        assert buildsys._buildsystem is None
 
         buildsys.setup_buildsystem(config, authenticate=True)
 
@@ -268,36 +266,36 @@ class TestSetupBuildsystem(unittest.TestCase):
         """Assert nothing happens when the buildsystem is already initialized"""
         old_buildsystem = buildsys._buildsystem
         buildsys.setup_buildsystem({})
-        self.assertTrue(old_buildsystem is buildsys._buildsystem)
+        assert old_buildsystem is buildsys._buildsystem
 
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
     @mock.patch('bodhi.server.buildsys.koji_login')
     def test_koji_buildsystem(self, mock_koji_login):
         """Assert the buildsystem initializes correctly for koji"""
         config = {'buildsystem': 'koji', 'some': 'key'}
-        self.assertTrue(buildsys._buildsystem is None)
+        assert buildsys._buildsystem is None
         buildsys.setup_buildsystem(config)
-        self.assertFalse(buildsys._buildsystem is None)
+        assert buildsys._buildsystem is not None
         buildsys._buildsystem()
         mock_koji_login.assert_called_once_with(authenticate=True, config=config)
 
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
     def test_dev_buildsystem(self):
         """Assert the buildsystem initializes correctly for dev"""
-        self.assertTrue(buildsys._buildsystem is None)
+        assert buildsys._buildsystem is None
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
-        self.assertTrue(buildsys._buildsystem is buildsys.DevBuildsys)
+        assert buildsys._buildsystem is buildsys.DevBuildsys
 
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
     def test_nonsense_buildsystem(self):
         """Assert the buildsystem setup crashes with nonsense values"""
-        self.assertTrue(buildsys._buildsystem is None)
-        self.assertRaises(ValueError, buildsys.setup_buildsystem,
-                          {'buildsystem': 'Something unsupported'})
+        assert buildsys._buildsystem is None
+        pytest.raises(ValueError, buildsys.setup_buildsystem,
+                      {'buildsystem': 'Something unsupported'})
 
 
 @mock.patch('bodhi.server.buildsys.log.debug')
-class TestWaitForTasks(unittest.TestCase):
+class TestWaitForTasks:
     """Test the wait_for_tasks() function."""
 
     @mock.patch('bodhi.server.buildsys.time.sleep')
@@ -310,15 +308,14 @@ class TestWaitForTasks(unittest.TestCase):
 
         ret = buildsys.wait_for_tasks(tasks, session, sleep=0.01)
 
-        self.assertEqual(ret, [])
-        self.assertEqual(
-            debug.mock_calls,
+        assert ret == []
+        assert debug.mock_calls == (
             [mock.call('Waiting for 3 tasks to complete: [1, 2, 3]'),
              mock.call('3 tasks completed successfully, 0 tasks failed.')])
-        self.assertEqual(session.taskFinished.mock_calls,
-                         [mock.call(1), mock.call(2), mock.call(2), mock.call(2), mock.call(3)])
-        self.assertEqual(sleep.mock_calls, [mock.call(0.01), mock.call(0.01)])
-        self.assertEqual(session.getTaskInfo.mock_calls, [mock.call(1), mock.call(2), mock.call(3)])
+        assert session.taskFinished.mock_calls == (
+            [mock.call(1), mock.call(2), mock.call(2), mock.call(2), mock.call(3)])
+        assert sleep.mock_calls == [mock.call(0.01), mock.call(0.01)]
+        assert session.getTaskInfo.mock_calls == [mock.call(1), mock.call(2), mock.call(3)]
 
     def test_with_failed_task(self, debug):
         """Assert that we return a list of failed_tasks."""
@@ -332,14 +329,12 @@ class TestWaitForTasks(unittest.TestCase):
 
         ret = buildsys.wait_for_tasks(tasks, session, sleep=0.01)
 
-        self.assertEqual(ret, [2])
-        self.assertEqual(
-            debug.mock_calls,
+        assert ret == [2]
+        assert debug.mock_calls == (
             [mock.call('Waiting for 3 tasks to complete: [1, 2, 3]'),
              mock.call('2 tasks completed successfully, 1 tasks failed.')])
-        self.assertEqual(session.taskFinished.mock_calls,
-                         [mock.call(1), mock.call(2), mock.call(3)])
-        self.assertEqual(session.getTaskInfo.mock_calls, [mock.call(1), mock.call(2), mock.call(3)])
+        assert session.taskFinished.mock_calls == [mock.call(1), mock.call(2), mock.call(3)]
+        assert session.getTaskInfo.mock_calls == [mock.call(1), mock.call(2), mock.call(3)]
 
     def test_with_falsey_task(self, debug):
         """Assert that a Falsey entry in the list doesn't raise an Exception."""
@@ -352,15 +347,13 @@ class TestWaitForTasks(unittest.TestCase):
 
         ret = buildsys.wait_for_tasks(tasks, session, sleep=0.01)
 
-        self.assertEqual(ret, [])
-        self.assertEqual(
-            debug.mock_calls,
+        assert ret == []
+        assert debug.mock_calls == (
             [mock.call('Waiting for 3 tasks to complete: [1, False, 3]'),
              mock.call('Skipping task: False'),
              mock.call('3 tasks completed successfully, 0 tasks failed.')])
-        self.assertEqual(session.taskFinished.mock_calls,
-                         [mock.call(1), mock.call(3)])
-        self.assertEqual(session.getTaskInfo.mock_calls, [mock.call(1), mock.call(3)])
+        assert session.taskFinished.mock_calls == [mock.call(1), mock.call(3)]
+        assert session.getTaskInfo.mock_calls == [mock.call(1), mock.call(3)]
 
     def test_with_successful_tasks(self, debug):
         """A list of successful tasks should return []."""
@@ -374,14 +367,12 @@ class TestWaitForTasks(unittest.TestCase):
 
         ret = buildsys.wait_for_tasks(tasks, session, sleep=0.01)
 
-        self.assertEqual(ret, [])
-        self.assertEqual(
-            debug.mock_calls,
+        assert ret == []
+        assert debug.mock_calls == (
             [mock.call('Waiting for 3 tasks to complete: [1, 2, 3]'),
              mock.call('3 tasks completed successfully, 0 tasks failed.')])
-        self.assertEqual(session.taskFinished.mock_calls,
-                         [mock.call(1), mock.call(2), mock.call(3)])
-        self.assertEqual(session.getTaskInfo.mock_calls, [mock.call(1), mock.call(2), mock.call(3)])
+        assert session.taskFinished.mock_calls == [mock.call(1), mock.call(2), mock.call(3)]
+        assert session.getTaskInfo.mock_calls == [mock.call(1), mock.call(2), mock.call(3)]
 
     @mock.patch('bodhi.server.buildsys.get_session')
     def test_without_session(self, get_session, debug):
@@ -395,13 +386,12 @@ class TestWaitForTasks(unittest.TestCase):
 
         ret = buildsys.wait_for_tasks(tasks, sleep=0.01)
 
-        self.assertEqual(ret, [])
-        self.assertEqual(
-            debug.mock_calls,
+        assert ret == []
+        assert debug.mock_calls == (
             [mock.call('Waiting for 3 tasks to complete: [1, 2, 3]'),
              mock.call('3 tasks completed successfully, 0 tasks failed.')])
         get_session.assert_called_once_with()
-        self.assertEqual(get_session.return_value.taskFinished.mock_calls,
-                         [mock.call(1), mock.call(2), mock.call(3)])
-        self.assertEqual(get_session.return_value.getTaskInfo.mock_calls,
-                         [mock.call(1), mock.call(2), mock.call(3)])
+        assert get_session.return_value.taskFinished.mock_calls == (
+            [mock.call(1), mock.call(2), mock.call(3)])
+        assert get_session.return_value.getTaskInfo.mock_calls == (
+            [mock.call(1), mock.call(2), mock.call(3)])
