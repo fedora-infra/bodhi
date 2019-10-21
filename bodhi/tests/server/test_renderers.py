@@ -17,23 +17,21 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test bodhi.server.renderers."""
 
-import unittest
-
+import pytest
 from pyramid.exceptions import HTTPBadRequest
 from pyramid.testing import DummyRequest
 
 from bodhi.server import renderers
 
 
-class TestRSS(unittest.TestCase):
+class TestRSS:
     """Test the rss() function."""
 
     def test_invalid_no_request(self):
         """HTTPBadRequest should be raised if data can't be rendered and there's no request."""
-        with self.assertRaises(HTTPBadRequest) as exc:
+        with pytest.raises(HTTPBadRequest) as exc:
             renderers.rss(None)({}, {})
-
-        self.assertEqual(str(exc.exception), 'Invalid RSS feed request')
+            assert str(exc.exception) == 'Invalid RSS feed request'
 
     def test_invalid_request(self):
         """HTTPBadRequest should be raised if the data isn't a type we can render."""
@@ -41,5 +39,5 @@ class TestRSS(unittest.TestCase):
 
         text = renderers.rss(None)({}, {'request': request})
 
-        self.assertEqual(text, 'Invalid RSS feed request')
-        self.assertEqual(request.response.status_code, 400)
+        assert text == 'Invalid RSS feed request'
+        assert request.response.status_code == 400
