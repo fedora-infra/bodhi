@@ -30,8 +30,8 @@ from bodhi.tests.server import base
 class TestSignedHandlerConsume(base.BasePyTestCase):
     """Test class for the :func:`SignedHandler.consume` method."""
 
-    def setup_method(self, method):
-        super().setup_method(method)
+    def setup_method(self):
+        super().setup_method()
 
         self.sample_message = Message(
             topic='',

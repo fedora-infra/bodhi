@@ -87,7 +87,7 @@ def _configure_test_db(db_uri=DEFAULT_DB):
     return engine
 
 
-class BaseTestCaseMixin:
+class BasePyTestCase:
     """
     The base test class for Bodhi.
 
@@ -141,7 +141,7 @@ class BaseTestCaseMixin:
         'warm_cache_on_start': False
     }
 
-    def _setup_method(self):
+    def setup_method(self):
         """Set up Bodhi for testing."""
         # Ensure "cached" objects are cleared before each test.
         models.Release.clear_all_releases_cache()
@@ -237,7 +237,7 @@ class BaseTestCaseMixin:
 
         return update
 
-    def _teardown_method(self):
+    def teardown_method(self):
         """Roll back all the changes from the test and clean up the session."""
         self._request_sesh.stop()
         self.db.close()
@@ -299,36 +299,21 @@ class BaseTestCaseMixin:
         return release
 
 
-class BasePyTestCase(BaseTestCaseMixin):
-    """Wraps BaseTestCaseMixin for pytest users.
-
-    {}
-    """.format(BaseTestCaseMixin.__doc__)
-
-    def setup_method(self, method):
-        """Set up Bodhi for testing."""
-        return self._setup_method()
-
-    def teardown_method(self, method):
-        """Roll back all the changes from the test and clean up the session."""
-        return self._teardown_method()
-
-
-class BaseTestCase(unittest.TestCase, BaseTestCaseMixin):
-    """Wrap BaseTestCaseMixin for old-style unittest.TestCase users.
+class BaseTestCase(unittest.TestCase, BasePyTestCase):
+    """Wrap BasePyTestCase for old-style unittest.TestCase users.
 
     Don't derive new tests from this.
 
     {}
-    """.format(BaseTestCaseMixin.__doc__)
+    """.format(BasePyTestCase.__doc__)
 
     def setUp(self):
         """Dispatch to BasePyTestCase.setup_method()."""
-        return self._setup_method()
+        return self.setup_method()
 
     def tearDown(self):
         """Dispatch to BasePyTestCase.teardown_method()."""
-        return self._teardown_method()
+        return self.teardown_method()
 
 
 class DummyUser(object):

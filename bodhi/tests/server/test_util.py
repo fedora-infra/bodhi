@@ -531,7 +531,7 @@ class TestTestcaseLink:
     base_url = 'http://example.com/'
     displayed_name = 'test case name'
 
-    def setup_method(self, method):
+    def setup_method(self):
         self.test = mock.Mock()
         self.test.name = 'QA:Testcase ' + self.displayed_name
 
@@ -1373,7 +1373,7 @@ class TestCMDFunctions(base.BaseTestCase):
 class TestCopyContainer:
     """Test the copy_container() function."""
 
-    def setup_method(self, method):
+    def setup_method(self):
         self.build = mock.Mock()
         self.build.nvr_version = '1'
         self.build.nvr_release = '1'

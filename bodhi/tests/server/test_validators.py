@@ -628,9 +628,9 @@ class TestValidateTestcaseFeedback(BaseTestCase):
 class TestValidateBuildsOrFromTagExist(BasePyTestCase):
     """Test the validate_builds_or_from_tag_exist() function."""
 
-    def setup_method(self, method):
+    def setup_method(self):
         """Sets up the environment for each test method call."""
-        super().setup_method(method)
+        super().setup_method()
 
         self.request = mock.Mock()
         self.request.db = self.db
@@ -710,9 +710,9 @@ class TestValidateBuildsOrFromTagExist(BasePyTestCase):
 class TestValidateBuildNvrs(BasePyTestCase):
     """Test the validate_build_nvrs() function."""
 
-    def setup_method(self, method):
+    def setup_method(self):
         """Sets up the environment for each test method call."""
-        super().setup_method(method)
+        super().setup_method()
 
         self.request = mock.Mock()
         self.request.db = self.db
@@ -743,9 +743,9 @@ class TestValidateBuildNvrs(BasePyTestCase):
 class TestValidateBuildTags(BasePyTestCase):
     """Test the validate_build_tags() function."""
 
-    def setup_method(self, method):
+    def setup_method(self):
         """Sets up the environment for each test method call."""
-        super().setup_method(method)
+        super().setup_method()
 
         self.request = mock.Mock()
         self.request.db = self.db
@@ -810,9 +810,9 @@ class TestValidateFromTag(BasePyTestCase):
             return buildsys_cls()
         return mock_get_session
 
-    def setup_method(self, method):
+    def setup_method(self):
         """Sets up the environment for each test method call."""
-        super().setup_method(method)
+        super().setup_method()
 
         self.request = mock.Mock()
         self.request.db = self.db

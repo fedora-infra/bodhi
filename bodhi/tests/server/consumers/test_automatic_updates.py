@@ -36,9 +36,9 @@ from bodhi.tests.server import base
 class TestAutomaticUpdateHandler(base.BasePyTestCase):
     """Test the automatic update handler."""
 
-    def setup_method(self, method):
+    def setup_method(self):
         """Set up environment for each test."""
-        super().setup_method(method)
+        super().setup_method()
 
         self.release = self.db.query(Release).filter_by(name='F17').first()
         if self.release:

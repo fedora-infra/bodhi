@@ -34,9 +34,9 @@ from bodhi.tests.server import base
 class TestCIHandler(base.BasePyTestCase):
     """Test the automatic update handler."""
 
-    def setup_method(self, method):
+    def setup_method(self):
         """Set up environment for each test."""
-        super().setup_method(method)
+        super().setup_method()
 
         release = self.db.query(Release).filter_by(name='F17').first()
         package = self.db.query(Package).first()
