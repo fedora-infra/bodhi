@@ -96,12 +96,17 @@ url_option = click.option('--url', envvar='BODHI_URL', default=bindings.BASE_URL
                           help=('URL of a Bodhi server. Ignored if --staging is set. Can be set '
                                 'with BODHI_URL environment variable'),
                           callback=_warn_if_url_or_openid_and_staging_set)
-openid_option = click.option(
-    '--openid-api', envvar='BODHI_OPENID_API',
-    default=openidproxyclient.FEDORA_OPENID_API,
-    help=('URL of an OpenID API to use to authenticate to Bodhi. Ignored if --staging is set. Can '
-          'be set with BODHI_OPENID_API environment variable'),
-    callback=_warn_if_url_or_openid_and_staging_set)
+openid_options = [
+    click.option('--user'),
+    click.option('--password', hide_input=True),
+    click.option(
+        '--openid-api', envvar='BODHI_OPENID_API',
+        default=openidproxyclient.FEDORA_OPENID_API,
+        help=('URL of an OpenID API to use to authenticate to Bodhi. Ignored if --staging is set. '
+              'Can be set with BODHI_OPENID_API environment variable'),
+        callback=_warn_if_url_or_openid_and_staging_set)
+]
+
 staging_option = click.option('--staging', help='Use the staging bodhi instance',
                               is_flag=True, default=False,
                               callback=_warn_if_url_or_openid_and_staging_set)
@@ -111,8 +116,6 @@ debug_option = click.option('--debug', help='Display debugging information.',
 
 
 new_edit_options = [
-    click.option('--user'),
-    click.option('--password', hide_input=True),
     click.option('--severity', help='Update severity',
                  type=click.Choice(['unspecified', 'low', 'medium', 'high', 'urgent']),
                  is_eager=True),
@@ -147,11 +150,8 @@ save_edit_options = [
                  help='Number of days the override should exist.'),
     click.option('--notes', default="No explanation given...",
                  help='Notes on why this override is in place.'),
-    click.option('--user'),
-    click.option('--password', hide_input=True),
     click.option('--wait/--no-wait', is_flag=True, default=True,
                  help='Wait and ensure that the override is active'),
-    openid_option,
     staging_option,
     url_option,
     debug_option]
@@ -169,8 +169,6 @@ pagination_options = [
 
 # Common releases options
 release_options = [
-    click.option('--user'),
-    click.option('--password', hide_input=True),
     click.option('--name', help='Release name (eg: F20)'),
     click.option('--long-name', help='Long release name (eg: "Fedora 20")'),
     click.option('--id-prefix', help='Release prefix (eg: FEDORA)'),
@@ -204,7 +202,6 @@ release_options = [
         help=('Configure for this release, whether or not automatic updates are '
               'created for builds which are tagged into its Koji candidate tag.'),
         is_flag=True, default=False),
-    openid_option,
     staging_option,
     url_option,
     debug_option]
@@ -402,7 +399,7 @@ def require_severity_for_security_update(type: str, severity: str):
 @click.argument('builds_or_tag')
 @click.option('--file', help='A text file containing all the update details')
 @handle_errors
-@openid_option
+@add_options(openid_options)
 @url_option
 @debug_option
 def new(user: str, password: str, url: str, debug: bool, openid_api: str, **kwargs):
@@ -490,7 +487,7 @@ def _validate_edit_update(
 @click.option('--removebuilds', help='Remove Comma-separated list of build nvr')
 @add_options(new_edit_options)
 @click.argument('update', callback=_validate_edit_update)
-@openid_option
+@add_options(openid_options)
 @url_option
 @debug_option
 @handle_errors
@@ -649,9 +646,7 @@ def query(url: str, debug: bool, mine: bool = False, rows: typing.Optional[int] 
 @updates.command()
 @click.argument('update')
 @click.argument('state')
-@click.option('--user')
-@click.option('--password', hide_input=True)
-@openid_option
+@add_options(openid_options)
 @staging_option
 @url_option
 @debug_option
@@ -696,9 +691,7 @@ def request(update: str, state: str, user: str, password: str, url: str, openid_
 @click.argument('update')
 @click.argument('text')
 @click.option('--karma', default=0, type=click.INT, help='The karma for this comment (+1/0/-1)')
-@click.option('--user')
-@click.option('--password', hide_input=True)
-@openid_option
+@add_options(openid_options)
 @staging_option
 @url_option
 @debug_option
@@ -855,13 +848,13 @@ def _get_notes(**kwargs) -> str:
     '--test', multiple=True,
     help="Waive the specific test(s), to automatically waive all unsatisfied "
     "requirements, specify --test=all")
-@openid_option
+@add_options(openid_options)
 @staging_option
 @url_option
 @debug_option
 @handle_errors
 def waive(update: str, show: bool, test: typing.Iterable[str], comment: str, url: str,
-          openid_api: str, **kwargs):
+          user: str, password: str, openid_api: str, **kwargs):
     # User Docs that show in the --help
     """
     Show or waive unsatified requirements (ie: missing or failing tests) on an existing update.
@@ -883,7 +876,8 @@ def waive(update: str, show: bool, test: typing.Iterable[str], comment: str, url
         openid_api: The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs: Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'], openid_api=openid_api)
+    client = bindings.BodhiClient(base_url=url, username=user, password=password,
+                                  staging=kwargs['staging'], openid_api=openid_api)
 
     if show and test:
         click.echo(
@@ -926,12 +920,12 @@ def waive(update: str, show: bool, test: typing.Iterable[str], comment: str, url
 
 @updates.command(name="trigger-tests")
 @click.argument('update')
-@openid_option
+@add_options(openid_options)
 @staging_option
 @url_option
 @debug_option
 @handle_errors
-def trigger_tests(update: str, url: str, openid_api: str, **kwargs):
+def trigger_tests(update: str, url: str, user: str, password: str, openid_api: str, **kwargs):
     # User Docs that show in the --help
     """
     Trigger tests for existing update in testing status.
@@ -948,7 +942,8 @@ def trigger_tests(update: str, url: str, openid_api: str, **kwargs):
         openid_api: The URL for an OpenID API to use to authenticate to Bodhi.
         kwargs: Other keyword arguments passed to us by click.
     """
-    client = bindings.BodhiClient(base_url=url, staging=kwargs['staging'], openid_api=openid_api)
+    client = bindings.BodhiClient(base_url=url, username=user, password=password,
+                                  staging=kwargs['staging'], openid_api=openid_api)
 
     resp = client.trigger_tests(update)
     print_resp(resp, client)
@@ -1016,6 +1011,7 @@ def query_buildroot_overrides(
 
 @overrides.command('save')
 @add_options(save_edit_options)
+@add_options(openid_options)
 @handle_errors
 def save_buildroot_overrides(user: str, password: str, url: str, staging: bool, openid_api: str,
                              **kwargs):
@@ -1043,6 +1039,7 @@ def save_buildroot_overrides(user: str, password: str, url: str, staging: bool, 
 
 @overrides.command('edit')
 @add_options(save_edit_options)
+@add_options(openid_options)
 @click.option('--expire', help='Expire the override', is_flag=True, default=False)
 @handle_errors
 def edit_buildroot_overrides(user: str, password: str, url: str, staging: bool, openid_api: str,
@@ -1181,6 +1178,7 @@ def releases():
 @releases.command(name='create')
 @handle_errors
 @add_options(release_options)
+@add_options(openid_options)
 def create_release(user: str, password: str, url: str, debug: bool, composed_by_bodhi: bool,
                    openid_api: str, **kwargs):
     """Create a release."""
@@ -1195,6 +1193,7 @@ def create_release(user: str, password: str, url: str, debug: bool, composed_by_
 @releases.command(name='edit')
 @handle_errors
 @add_options(release_options)
+@add_options(openid_options)
 @click.option('--new-name', help='New release name (eg: F20)')
 def edit_release(user: str, password: str, url: str, debug: bool, composed_by_bodhi: bool,
                  openid_api: str, **kwargs):
