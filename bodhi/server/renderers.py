@@ -159,7 +159,7 @@ def rss(info):
             },
         }
 
-        for value in data[key]:
+        for value in reversed(data[key]):
             feed_item = feed.add_item()
             for name, getter in getters[key].items():
                 # Because we have to use methods to fill feed entry attributes,
