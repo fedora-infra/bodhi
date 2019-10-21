@@ -82,7 +82,7 @@ setup(
     install_requires=[],
     tests_require=[
         'flake8',
-        'pytest',
+        'pytest >= 3.0',
         'pytest-cov',
         'webtest',
         'conu >= 0.5.0',
