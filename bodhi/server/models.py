@@ -1454,7 +1454,7 @@ class Build(Base):
         Return the koji build id of the build.
 
         Returns:
-            str: The username of the user.
+            id: The task/build if of the build.
         """
         return self._get_kojiinfo()['id']
 
@@ -3843,6 +3843,52 @@ class Update(Base):
                 email_notification=notify,
             )
 
+    def _build_group_test_message(self):
+        """
+        Build the dictionary sent when an update is ready to be tested.
+
+        This is used in bodhi.server.models.Update._ready_for_testing and in
+        bodhi.server.services.updates.trigger_tests which are the two places
+        where we send notifications about an update being ready to be tested
+        by any CI system.
+
+        Args:
+            target (Update): The update that has had a change to its status attribute.
+        Returns:
+            dict: A dictionary corresponding to the message sent
+        """
+        contact = {
+            "name": "Bodhi",
+            "email": "admin@fp.o",
+            "team": "Fedora CI",
+            "docs": "https://docs.fedoraproject.org/en-US/ci/",
+        }
+        builds = []
+        for build in self.builds:
+            builds.append({
+                "type": "koji-build",
+                "id": build.get_build_id(),
+                "issuer": build.get_owner_name(),
+                "component": build.nvr_name,
+                "nvr": build.nvr,
+                "scratch": False,
+            })
+
+        artifact = {
+            "type": "rpm-build-group",
+            "id": f"{self.alias}-{self.version_hash}",
+            "repository": self.abs_url(),
+            "builds": builds,
+        }
+        return {
+            "contact": contact,
+            "artifact": artifact,
+            "generated_at": datetime.utcnow().isoformat() + 'Z',
+            "version": "0.2.2",
+            'agent': 'bodhi',
+            're-trigger': False,
+        }
+
     @staticmethod
     def _ready_for_testing(target, value, old, initiator):
         """
@@ -3865,12 +3911,10 @@ class Update(Base):
             # This is the object initialization phase. This instance is not ready, don't create
             # the message now. This method will be called again at the end of __init__
             return
+
         message = update_schemas.UpdateReadyForTestingV1.from_dict(
-            message={'update': target, 'agent': 'bodhi', 're-trigger': False}
+            message=target._build_group_test_message()
         )
-        # This method is called before the new attribute value is actually set,
-        # so the message needs to be updated.
-        message.body["update"]["status"] = str(value)
         notifications.publish(message)
 
 
