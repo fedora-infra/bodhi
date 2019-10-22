@@ -570,7 +570,7 @@ class UpdateRequirementsMetStableV1(UpdateMessage):
         return f'{self.update.alias} has met stable testing requirements'
 
 
-class UpdateReadyForTestingV1(UpdateMessage):
+class UpdateReadyForTestingV1(BodhiMessage):
     """Sent when an update is ready to be tested."""
 
     body_schema = {
@@ -579,19 +579,106 @@ class UpdateReadyForTestingV1(UpdateMessage):
         'description': 'Schema for message sent when an update is ready for testing',
         'type': 'object',
         'properties': {
-            'update': UpdateV1.schema(),
+            'contact': {
+                'description': 'Schema for message sent when an update is ready for testing',
+                'type': 'object',
+                'properties': {
+                    'name': {
+                        'type': 'string',
+                        'description': 'A human readable name of the team running the testing '
+                        'or gating',
+                    },
+                    'team': {
+                        'type': 'string',
+                        'description': 'A human readable name of the team running the testing '
+                        'or gating',
+                    },
+                    'docs': {
+                        'type': 'string',
+                        'description': ' Link to documentation with details about the system.',
+                    },
+                    'email': {
+                        'type': 'string',
+                        'description': 'Contact email address.',
+                    },
+                },
+                'required': ['name', 'team', 'docs', 'email'],
+            },
+            'artifact': {
+                'description': 'Details about the builds to test.',
+                'type': 'object',
+                'properties': {
+                    'id': {
+                        'description': 'The bodhi identifier for this update',
+                        'type': 'string'
+                    },
+                    'type': {
+                        'description': 'Artifact type, in this case "rpm-build-group".',
+                        'type': 'string',
+                    },
+                    'builds': {
+                        'type': 'array',
+                        'description': 'A list of builds included in this group',
+                        'items': {'$ref': '#/definitions/build'}
+                    },
+                    'repository': {
+                        'description': 'Url of the repository with packages from the side-tag.',
+                        'type': 'string',
+                        'format': 'uri',
+                    },
+                },
+                'required': ['id', 'type', 'builds', 'repository'],
+            },
+            'generated_at': {
+                'description': 'Time when the requested was generated, in UTC and ISO 8601 format',
+                'type': 'string',
+            },
+            'version': {
+                'description': 'Version of the specification',
+                'type': 'string',
+            },
+            'agent': {
+                'description': 'Name of the person asking to re-trigger the tests.',
+                'type': 'string',
+            },
         },
-        'required': ['update'],
+        'required': ['contact', 'artifact', 'generated_at', 'version', 'agent'],
         'definitions': {
-            'build': BuildV1.schema(),
-        },
-        're-trigger': {
-            'type': 'bool',
-            'description': 'This flag is True if the message is sent to re-trigger tests'
+            'build': {
+                'description': 'Details about a build to test.',
+                'type': 'object',
+                'properties': {
+                    'type': {
+                        'description': 'Artifact type, in this case "koji-build"',
+                        'type': 'string',
+                    },
+                    'id': {
+                        'description': 'Task ID of the koji build.',
+                        'type': 'integer',
+                    },
+                    'component': {
+                        'description': 'Name of the component tested.',
+                        'type': 'string',
+                    },
+                    'issuer': {
+                        'description': 'Build issuer of the artifact.',
+                        'type': 'string',
+                    },
+                    'scratch': {
+                        'description': 'Indication if the build is a scratch build.',
+                        'type': 'boolean',
+                    },
+                    'nvr': {
+                        'description': 'Name-version-release of the artifact.',
+                        'type': 'string',
+                    }
+                },
+                'required': ['type', 'id', 'issuer', 'component', 'nvr', 'scratch'],
+            }
         }
     }
 
-    topic = "bodhi.update.status.testing"
+    topic = "bodhi.update.status.testing.koji-build-group.build.complete"
 
     @property
     def summary(self) -> str:
@@ -605,6 +692,49 @@ class UpdateReadyForTestingV1(UpdateMessage):
             A summary for this message.
         """
         return (
-            f"{self.update.user.name}'s "
-            f"{truncate(' '.join([b.nvr for b in self.update.builds]))} "
-            f"bodhi update is ready for {self.update.status}")
+            f"{self.body['contact']['name']}'s "
+            f"{truncate(' '.join([b['nvr'] for b in self.body['artifact']['builds']]))} "
+            f"bodhi update is ready for testing")
+
+    @property
+    def url(self) -> str:
+        """
+        Return a URL to the action that caused this message to be emitted.
+
+        Returns:
+            A relevant URL.
+        """
+        return f"https://bodhi.fedoraproject.org/updates/{self.body['artifact']['id']}"
+
+    @property
+    def usernames(self) -> typing.List[str]:
+        """
+        List of users affected by the action that generated this message.
+
+        Returns:
+            A list of affected usernames.
+        """
+        usernames = set([b['issuer'] for b in self.body['artifact']['builds']])
+        if self.agent:
+            usernames.add(self.agent)
+        return sorted(usernames)
+
+    @property
+    def packages(self) -> typing.Iterable[str]:
+        """
+        List of names of packages affected by the action that generated this message.
+
+        Returns:
+            A list of affected package names.
+        """
+        packages = set([b['component'] for b in self.body['artifact']['builds']])
+        return sorted(packages)
+
+    @property
+    def agent(self) -> typing.Union[str, None]:
+        """Return the agent's username for this message.
+
+        Returns:
+            The agent's username, or None if the body has no agent key.
+        """
+        return self.body.get('agent', None)

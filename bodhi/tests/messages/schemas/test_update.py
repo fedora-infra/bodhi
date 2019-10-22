@@ -166,9 +166,9 @@ class UpdateMessageTests(unittest.TestCase):
 
     def test_ready_for_testing_v1(self):
         expected = {
-            "topic": "bodhi.update.status.testing",
+            "topic": "bodhi.update.status.testing.koji-build-group.build.complete",
             "summary": (
-                "eclipseo's golang-github-SAP-go-hdb-0.14.1-1.fc29 t… bodhi update "
+                "BaseOS CI's libselinux-2.8-6.fc29.x86_64 libsepol-2.… bodhi update "
                 "is ready for testing"
             ),
             "app_icon": "https://apps.fedoraproject.org/img/icons/bodhi.png",
@@ -178,27 +178,43 @@ class UpdateMessageTests(unittest.TestCase):
                 "20652954adacfd9f6e26536bbcf3b5fbc850dc61f8a2e67c5bfbc6e345032976"
                 "?s=64&d=retro"
             ),
-            "usernames": ["eclipseo", 'mohanboddu'],
-            "packages": ["golang-github-SAP-go-hdb", 'texworks'],
-            'update': UpdateV1(
-                'FEDORA-2019-d64d0caab3',
-                [BuildV1('golang-github-SAP-go-hdb-0.14.1-1.fc29'),
-                 BuildV1('texworks-0.6.3-1.fc29')],
-                UserV1('eclipseo'), 'testing', None, ReleaseV1('F29'))
+            "usernames": ["mohanboddu", "plautrba"],
+            "packages": ["libselinux", "libsepol"],
         }
         msg = UpdateReadyForTestingV1(
             body={
-                "update": {
-                    "alias": "FEDORA-2019-d64d0caab3",
-                    "builds": [{"nvr": "golang-github-SAP-go-hdb-0.14.1-1.fc29"},
-                               {'nvr': 'texworks-0.6.3-1.fc29'}],
-                    "title": "fedmsg-0.2.7-2.el6",
-                    'release': {"name": "F29"},
-                    'request': None,
-                    "status": "testing",
-                    "user": {"name": "eclipseo"}
+                "contact": {
+                    "name": "BaseOS CI",
+                    "team": "BaseOS",
+                    "url": "https://somewhere.com",
+                    "docs": "https://somewhere.com/user-documentation",
+                    "irc": "#baseosci",
+                    "email": "baseos-ci@somewhere.com"
                 },
-                'agent': 'mohanboddu'
+                "artifact": {
+                    "type": "rpm-build-group",
+                    "id": "FEDORA-2019-d64d0caab3",
+                    "repository": "https://bodhi.fp.o/updates/FEDORA-2019-d64d0caab3",
+                    "builds":
+                        [{
+                            "type": "koji-build",
+                            "id": 14546276,
+                            "issuer": "plautrba",
+                            "component": "libselinux",
+                            "nvr": "libselinux-2.8-6.fc29.x86_64",
+                            "scratch": False,
+                        }, {
+                            "type": "koji-build",
+                            "id": 14546277,
+                            "issuer": "plautrba",
+                            "component": "libsepol",
+                            "nvr": "libsepol-2.8-3.fc29.x86_64",
+                            "scratch": False,
+                        }]
+                },
+                "generated_at": "2019-10-22 13:08:10.222602",
+                "version": "0.2.2",
+                "agent": "mohanboddu",
             }
         )
         check_message(msg, expected)
