@@ -18,7 +18,6 @@
 """This module contains tests for bodhi.server.validators."""
 from unittest import mock
 import datetime
-import unittest
 
 from cornice.errors import Errors
 from fedora_messaging import api, testing as fml_testing
@@ -26,12 +25,12 @@ import koji
 from pyramid import exceptions
 import pytest
 
-from bodhi.tests.server.base import BasePyTestCase, BaseTestCase
+from bodhi.tests.server.base import BasePyTestCase
 from bodhi.server import buildsys, models, validators
 from bodhi.server.exceptions import BodhiException
 
 
-class TestValidateCSRFToken(BaseTestCase):
+class TestValidateCSRFToken(BasePyTestCase):
     """Test the validate_csrf_token() function."""
     def test_invalid_token(self):
         update = models.Update.query.one()
@@ -49,7 +48,7 @@ class TestValidateCSRFToken(BaseTestCase):
                   'time. Please reload the page and try to submit your data again. Make sure to '
                   'save your input somewhere before reloading. '),
                  'location': 'body', 'name': 'csrf_token'}]}
-        self.assertEqual(r.json, expected_response)
+        assert r.json == expected_response
 
     def test_valid_token(self):
         """No exception should be raised with a valid token."""
@@ -63,7 +62,7 @@ class TestValidateCSRFToken(BaseTestCase):
             self.app.post_json('/comments/', comment, status=200)
 
 
-class TestGetValidRequirements(unittest.TestCase):
+class TestGetValidRequirements:
     """Test the _get_valid_requirements() function."""
     @mock.patch('bodhi.server.util.requests.get')
     def test__get_valid_requirements(self, get):
@@ -76,7 +75,7 @@ class TestGetValidRequirements(unittest.TestCase):
         result = list(validators._get_valid_requirements(request=None,
                                                          requirements=['one', 'two']))
 
-        self.assertEqual(result, ['one', 'two'])
+        assert result == ['one', 'two']
 
     @mock.patch('bodhi.server.util.taskotron_results')
     def test_no_requirements(self, mock_taskotron_results):
@@ -85,14 +84,14 @@ class TestGetValidRequirements(unittest.TestCase):
                                                          requirements=[]))
 
         mock_taskotron_results.assert_not_called()
-        self.assertEqual(result, [])
+        assert result == []
 
 
 @mock.patch.dict(
     'bodhi.server.validators.config',
     {'pagure_url': 'http://domain.local', 'admin_packager_groups': ['provenpackager'],
      'mandatory_packager_groups': ['packager']})
-class TestValidateAcls(BaseTestCase):
+class TestValidateAcls(BasePyTestCase):
     """ Test the validate_acls() function.
     """
     def get_mock_request(self):
@@ -124,7 +123,7 @@ class TestValidateAcls(BaseTestCase):
 
         validators.validate_acls(request)
 
-        self.assertEqual(len(request.errors), 0)
+        assert not len(request.errors)
         gpcfp.assert_called_once_with()
 
     def test_unable_to_infer_content_type(self):
@@ -137,11 +136,11 @@ class TestValidateAcls(BaseTestCase):
                         side_effect=IOError('oh no')):
             validators.validate_acls(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'body', 'name': 'builds',
-              'description': "Unable to infer content_type.  'oh no'"}])
-        self.assertEqual(request.errors.status, 400)
+        assert request.errors == [
+            {'location': 'body', 'name': 'builds',
+             'description': "Unable to infer content_type.  'oh no'"}
+        ]
+        assert request.errors.status == 400
 
     def test_unable_to_infer_content_type_not_implemented(self):
         """Test error handler when Bodhi can't determine the content type due to NotImplemented."""
@@ -153,11 +152,11 @@ class TestValidateAcls(BaseTestCase):
                         side_effect=NotImplementedError('oh no')):
             validators.validate_acls(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'body', 'name': 'builds',
-              'description': "Unable to infer content_type.  'oh no'"}])
-        self.assertEqual(request.errors.status, 501)
+        assert request.errors == [
+            {'location': 'body', 'name': 'builds',
+             'description': "Unable to infer content_type.  'oh no'"}
+        ]
+        assert request.errors.status == 501
 
     # Mocking the get_pkg_committers_from_pagure function because it will
     # simplify the overall number of mocks. This function is tested on its own
@@ -170,7 +169,7 @@ class TestValidateAcls(BaseTestCase):
         """
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
-        self.assertEqual(len(mock_request.errors), 0)
+        assert not len(mock_request.errors)
         mock_gpcfp.assert_called_once()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
@@ -188,7 +187,7 @@ class TestValidateAcls(BaseTestCase):
         self.db.flush()
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
-        self.assertEqual(len(mock_request.errors), 0)
+        assert not len(mock_request.errors)
         mock_gpcfp.assert_not_called()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
@@ -210,7 +209,7 @@ class TestValidateAcls(BaseTestCase):
             'description': ('guest is not a member of "packager", which is a '
                             'mandatory packager group')
         }]
-        self.assertEqual(mock_request.errors, error)
+        assert mock_request.errors == error
         mock_gpcfp.assert_not_called()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
@@ -227,7 +226,7 @@ class TestValidateAcls(BaseTestCase):
             'name': 'builds',
             'description': 'guest does not have commit access to bodhi'
         }]
-        self.assertEqual(mock_request.errors, error)
+        assert mock_request.errors == error
         mock_gpcfp.assert_called_once()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
@@ -240,13 +239,13 @@ class TestValidateAcls(BaseTestCase):
         mock_request = self.get_mock_request()
         mock_gpcfp.side_effect = RuntimeError('some error')
         validators.validate_acls(mock_request)
-        self.assertEqual(len(mock_request.errors), 1)
+        assert len(mock_request.errors) == 1
         expected_error = [{
             'location': 'body',
             'name': 'builds',
             'description': 'some error'
         }]
-        self.assertEqual(mock_request.errors, expected_error)
+        assert mock_request.errors == expected_error
         mock_gpcfp.assert_called_once()
 
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
@@ -259,14 +258,14 @@ class TestValidateAcls(BaseTestCase):
         mock_request = self.get_mock_request()
         mock_gpcfp.side_effect = ValueError('some error')
         validators.validate_acls(mock_request)
-        self.assertEqual(len(mock_request.errors), 1)
+        assert len(mock_request.errors) == 1
         expected_error = [{
             'location': 'body',
             'name': 'builds',
             'description': ('Unable to access Pagure to check ACLs. Please '
                             'try again later.')
         }]
-        self.assertEqual(mock_request.errors, expected_error)
+        assert mock_request.errors == expected_error
         mock_gpcfp.assert_called_once()
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
@@ -275,7 +274,7 @@ class TestValidateAcls(BaseTestCase):
         """
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
-        self.assertEqual(len(mock_request.errors), 0)
+        assert not len(mock_request.errors)
 
     @mock.patch.dict('bodhi.server.validators.config',
                      {'acl_system': 'dummy', 'acl_dummy_committer': 'mattia'})
@@ -288,7 +287,7 @@ class TestValidateAcls(BaseTestCase):
         self.db.flush()
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
-        self.assertEqual(len(mock_request.errors), 0)
+        assert not len(mock_request.errors)
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'nonexistent'})
     def test_validate_acls_invalid_acl_system(self):
@@ -302,10 +301,10 @@ class TestValidateAcls(BaseTestCase):
             'name': 'builds',
             'description': 'guest does not have commit access to bodhi'
         }]
-        self.assertEqual(mock_request.errors, error)
+        assert mock_request.errors == error
 
 
-class TestValidateBugFeedback(BaseTestCase):
+class TestValidateBugFeedback(BasePyTestCase):
     """Test the validate_bug_feedback() function."""
 
     def test_invalid(self):
@@ -318,11 +317,11 @@ class TestValidateBugFeedback(BaseTestCase):
 
         validators.validate_bug_feedback(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'querystring', 'name': 'bug_feedback',
-              'description': 'Invalid bug ids specified: invalid'}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'querystring', 'name': 'bug_feedback',
+             'description': 'Invalid bug ids specified: invalid'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
     def test_no_feedbacks(self):
         """Nothing to do if no feedback."""
@@ -333,12 +332,10 @@ class TestValidateBugFeedback(BaseTestCase):
 
         validators.validate_bug_feedback(request)
 
-        self.assertEqual(
-            request.errors,
-            [])
+        assert request.errors == []
 
 
-class TestValidateCommentId(BaseTestCase):
+class TestValidateCommentId(BasePyTestCase):
     """Test the validate_comment_id() function."""
 
     def test_invalid(self):
@@ -349,14 +346,14 @@ class TestValidateCommentId(BaseTestCase):
 
         validators.validate_comment_id(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'url', 'name': 'id',
-              'description': 'Invalid comment id'}])
-        self.assertEqual(request.errors.status, exceptions.HTTPNotFound.code)
+        assert request.errors == [
+            {'location': 'url', 'name': 'id',
+             'description': 'Invalid comment id'}
+        ]
+        assert request.errors.status == exceptions.HTTPNotFound.code
 
 
-class TestValidateExpirationDate(BaseTestCase):
+class TestValidateExpirationDate(BasePyTestCase):
     """Test the validate_expiration_date() function."""
 
     def test_none(self):
@@ -367,7 +364,7 @@ class TestValidateExpirationDate(BaseTestCase):
 
         validators.validate_expiration_date(request)
 
-        self.assertEqual(len(request.errors), 0)
+        assert not len(request.errors)
 
     def test_past(self):
         """An expiration_date in the past should make it sad."""
@@ -378,14 +375,14 @@ class TestValidateExpirationDate(BaseTestCase):
 
         validators.validate_expiration_date(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'body', 'name': 'expiration_date',
-              'description': 'Expiration date in the past'}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'body', 'name': 'expiration_date',
+             'description': 'Expiration date in the past'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
 
-class TestValidateOverrideBuild(BaseTestCase):
+class TestValidateOverrideBuild(BasePyTestCase):
     """Test the validate_override_build() function."""
 
     def test_no_build_exception(self):
@@ -398,12 +395,12 @@ class TestValidateOverrideBuild(BaseTestCase):
 
         validators._validate_override_build(request, 'does not exist', self.db)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'body', 'name': 'nvr',
-              'description': ("Couldn't determine koji tags for does not exist, 'You forgot to pay "
-                              "your ISP.'")}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'body', 'name': 'nvr',
+             'description': ("Couldn't determine koji tags for does not exist, 'You forgot to pay "
+                             "your ISP.'")}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
     def test_indeterminate_release(self):
         """If a build does not have tags that identify a Release, the validator should complain."""
@@ -418,13 +415,13 @@ class TestValidateOverrideBuild(BaseTestCase):
 
         validators._validate_override_build(request, build.nvr, self.db)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'body', 'name': 'nvr',
-              'description': "Invalid build.  Couldn't determine release from koji tags."}])
+        assert request.errors == [
+            {'location': 'body', 'name': 'nvr',
+             'description': "Invalid build.  Couldn't determine release from koji tags."}
+        ]
         build = models.Build.query.filter_by(nvr=build.nvr).one()
-        self.assertIsNone(build.release)
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert build.release is None
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
     def test_no_release(self):
         """If a build does not have a Release, the validator should set one."""
@@ -440,9 +437,9 @@ class TestValidateOverrideBuild(BaseTestCase):
 
         validators._validate_override_build(request, build.nvr, self.db)
 
-        self.assertEqual(len(request.errors), 0)
+        assert not len(request.errors)
         build = models.Build.query.filter_by(nvr=build.nvr).one()
-        self.assertEqual(build.release.name, release.name)
+        assert build.release.name == release.name
 
     @mock.patch('bodhi.server.models.buildsys.get_session')
     def test_wrong_tag(self, get_session):
@@ -458,11 +455,11 @@ class TestValidateOverrideBuild(BaseTestCase):
 
         validators._validate_override_build(request, build.nvr, self.db)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'body', 'name': 'nvr',
-              'description': "Invalid build.  It must be tagged as either candidate or testing."}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'body', 'name': 'nvr',
+             'description': "Invalid build.  It must be tagged as either candidate or testing."}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
     def test_test_gating_status_is_failed(self):
         """If a build's test gating status is failed, the validator should complain."""
@@ -476,15 +473,15 @@ class TestValidateOverrideBuild(BaseTestCase):
 
         validators._validate_override_build(request, build.nvr, self.db)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'body', 'name': 'nvr',
-              'description': "Cannot create a buildroot override if build's "
-                             "test gating status is failed."}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'body', 'name': 'nvr',
+             'description': "Cannot create a buildroot override if build's "
+                            "test gating status is failed."}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
 
-class TestValidateOverrideBuilds(BaseTestCase):
+class TestValidateOverrideBuilds(BasePyTestCase):
     """Test the validate_override_builds() function."""
 
     def test_invalid_nvrs_given(self):
@@ -497,11 +494,11 @@ class TestValidateOverrideBuilds(BaseTestCase):
 
         validators.validate_override_builds(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'body', 'name': 'nvr',
-              'description': 'Invalid build'}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'body', 'name': 'nvr',
+             'description': 'Invalid build'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
     def test_no_nvrs_given(self):
         """If the request has no nvrs, it should add an error to the request."""
@@ -512,11 +509,11 @@ class TestValidateOverrideBuilds(BaseTestCase):
 
         validators.validate_override_builds(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'body', 'name': 'nvr',
-              'description': 'A comma-separated list of NVRs is required.'}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'body', 'name': 'nvr',
+             'description': 'A comma-separated list of NVRs is required.'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
     def test_release_with_no_override_tag(self):
         """If the request has a build associated to a release with no override tag,
@@ -535,15 +532,15 @@ class TestValidateOverrideBuilds(BaseTestCase):
 
         validators.validate_override_builds(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'body', 'name': 'nvr',
-              'description': 'Cannot create a buildroot override because the'
-                             ' release associated with the build does not support it.'}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'body', 'name': 'nvr',
+             'description': 'Cannot create a buildroot override because the'
+                            ' release associated with the build does not support it.'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
 
-class TestValidateRelease(BaseTestCase):
+class TestValidateRelease(BasePyTestCase):
     """Test the validate_release() function."""
 
     def test_invalid(self):
@@ -555,14 +552,14 @@ class TestValidateRelease(BaseTestCase):
 
         validators.validate_release(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'querystring', 'name': 'release',
-              'description': 'Invalid release specified: invalid'}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'querystring', 'name': 'release',
+             'description': 'Invalid release specified: invalid'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
 
-class TestValidateTestcaseFeedback(BaseTestCase):
+class TestValidateTestcaseFeedback(BasePyTestCase):
     """Test the validate_testcase_feedback() function."""
 
     def test_invalid(self):
@@ -575,11 +572,11 @@ class TestValidateTestcaseFeedback(BaseTestCase):
 
         validators.validate_testcase_feedback(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'querystring', 'name': 'testcase_feedback',
-              'description': 'Invalid testcase names specified: invalid'}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'querystring', 'name': 'testcase_feedback',
+             'description': 'Invalid testcase names specified: invalid'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
     def test_no_feedbacks(self):
         """Nothing to do if no feedback."""
@@ -590,9 +587,7 @@ class TestValidateTestcaseFeedback(BaseTestCase):
 
         validators.validate_testcase_feedback(request)
 
-        self.assertEqual(
-            request.errors,
-            [])
+        assert request.errors == []
 
     def test_update_not_found(self):
         """It should 404 if the update is not found."""
@@ -602,11 +597,10 @@ class TestValidateTestcaseFeedback(BaseTestCase):
 
         validators.validate_testcase_feedback(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'url', 'name': 'id',
-              'description': 'Invalid update'}])
-        self.assertEqual(request.errors.status, exceptions.HTTPNotFound.code)
+        assert request.errors == [
+            {'location': 'url', 'name': 'id', 'description': 'Invalid update'}
+        ]
+        assert request.errors.status == exceptions.HTTPNotFound.code
 
     @mock.patch('bodhi.server.models.Update.get')
     def test_update_found_but_not_update_object(self, mock_update_get):
@@ -618,11 +612,11 @@ class TestValidateTestcaseFeedback(BaseTestCase):
         mock_update_get.return_value = models.Update.query.first()
         validators.validate_testcase_feedback(request)
 
-        self.assertEqual(
-            request.errors,
-            [{'location': 'querystring', 'name': 'testcase_feedback',
-              'description': 'Invalid testcase names specified: invalid'}])
-        self.assertEqual(request.errors.status, exceptions.HTTPBadRequest.code)
+        assert request.errors == [
+            {'location': 'querystring', 'name': 'testcase_feedback',
+             'description': 'Invalid testcase names specified: invalid'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
 
 
 class TestValidateBuildsOrFromTagExist(BasePyTestCase):
