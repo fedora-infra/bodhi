@@ -713,7 +713,7 @@ def trigger_tests(request):
         request.errors.add('body', 'request', 'Update is not in testing status')
     else:
         message = update_schemas.UpdateReadyForTestingV1.from_dict(
-            message={'update': update, 'agent': 'bodhi', 're-trigger': True}
+            message=update._build_group_test_message()
         )
         notifications.publish(message)
 
