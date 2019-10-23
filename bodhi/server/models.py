@@ -993,7 +993,7 @@ class Release(Base):
             Testing side tag used in koji.
         """
         side_tag_postfix = config.get(
-            f'{self.setting_prefix}.koji-testing-side-tag', "-testing")
+            f'{self.setting_prefix}.koji-testing-side-tag', "-testing-pending")
         return from_tag + side_tag_postfix
 
     def get_pending_signing_side_tag(self, from_tag: str) -> str:
@@ -1007,7 +1007,7 @@ class Release(Base):
             Testing side tag used in koji.
         """
         side_tag_postfix = config.get(
-            f'{self.setting_prefix}.koji-pending-signing-side-tag', "-pending-signing")
+            f'{self.setting_prefix}.koji-signing-pending-side-tag', "-signing-pending")
         return from_tag + side_tag_postfix
 
 
