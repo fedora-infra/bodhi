@@ -332,20 +332,20 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['from_tag'], 'f17-build-side-7777')
 
         koji_session = buildsys.get_session()
-        expected_pending_signing = ('f17-build-side-7777-pending-signing',
+        expected_pending_signing = ('f17-build-side-7777-signing-pending',
                                     {'parent': 'f17-build-side-7777',
                                      'locked': False,
                                      'maven_support': False,
-                                     'name': 'f17-build-side-7777-pending-signing',
+                                     'name': 'f17-build-side-7777-signing-pending',
                                      'perm': 'admin',
                                      'arches': None,
                                      'maven_include_all': False,
                                      'perm_id': 1})
-        expected_testing = ('f17-build-side-7777-testing',
+        expected_testing = ('f17-build-side-7777-testing-pending',
                             {'parent': 'f17-build-side-7777',
                              'locked': False,
                              'maven_support': False,
-                             'name': 'f17-build-side-7777-testing',
+                             'name': 'f17-build-side-7777-testing-pending',
                              'perm': 'admin',
                              'arches': None,
                              'maven_include_all': False,
@@ -353,7 +353,7 @@ class TestNewUpdate(BaseTestCase):
 
         self.assertIn(expected_pending_signing, koji_session.__tags__)
         self.assertIn(expected_testing, koji_session.__tags__)
-        self.assertIn(('f17-build-side-7777-pending-signing',
+        self.assertIn(('f17-build-side-7777-signing-pending',
                        'gnome-backgrounds-3.0-1.fc17'),
                       koji_session.__added__)
 
@@ -3043,7 +3043,7 @@ class TestUpdatesService(BaseTestCase):
 
         # check that the added build was tagged in koji
         koji_session = buildsys.get_session()
-        self.assertIn(('f17-build-side-7777-pending-signing',
+        self.assertIn(('f17-build-side-7777-signing-pending',
                        'bodhi-2.0.0-3.fc17'),
                       koji_session.__added__)
 

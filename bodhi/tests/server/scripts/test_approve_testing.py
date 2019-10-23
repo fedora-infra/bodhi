@@ -734,7 +734,8 @@ class TestMain(BasePyTestCase):
                 [call('f17-updates')]
         else:
             assert remove_tag.call_args_list == \
-                [call(f'{from_side_tag}-pending-signing'), call(f'{from_side_tag}-testing'),
+                [call(f'{from_side_tag}-signing-pending'),
+                 call(f'{from_side_tag}-testing-pending'),
                  call(from_side_tag)]
 
             assert add_tag.call_args_list == \
