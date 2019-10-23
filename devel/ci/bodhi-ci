@@ -1084,7 +1084,7 @@ class IntegrationJob(Job):
         super(IntegrationJob, self).__init__(*args, **kwargs)
 
         self._command = [sys.executable, '-m', 'pytest', '-v', '--no-cov',
-                         'devel/ci/integration/tests/']
+                         'devel/ci/integration/tests/test_ci.py']
         bodhi_container_image = '{}-integration-bodhi/{}'.format(CONTAINER_NAME, self.release)
         self._popen_kwargs["env"] = os.environ.copy()
         self._popen_kwargs["env"]["BODHI_INTEGRATION_IMAGE"] = bodhi_container_image
