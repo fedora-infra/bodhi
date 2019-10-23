@@ -578,6 +578,7 @@ def new_update(request):
                         koji.createTag(side_tag_signing_pending, parent=from_tag)
                     if not koji.getTag(side_tag_testing_pending):
                         koji.createTag(side_tag_testing_pending, parent=from_tag)
+                        koji.editTag2(side_tag_testing_pending, perm="autosign")
 
                     to_tag = side_tag_signing_pending
                     # Move every new build to <from_tag>-signing-pending tag
