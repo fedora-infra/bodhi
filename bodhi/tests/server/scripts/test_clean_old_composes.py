@@ -23,7 +23,6 @@ from unittest.mock import patch
 import os
 import shutil
 import tempfile
-import unittest
 
 from click import testing
 
@@ -31,7 +30,7 @@ from bodhi.server import config
 from bodhi.server.scripts import clean_old_composes
 
 
-class TestCleanUp(unittest.TestCase):
+class TestCleanUp:
     """
     This class contains tests for the clean_up() function.
     """
@@ -69,7 +68,7 @@ class TestCleanUp(unittest.TestCase):
             with patch.dict(config.config, {'compose_dir': compose_dir}):
                 result = testing.CliRunner().invoke(clean_old_composes.clean_up, [])
 
-            self.assertEqual(result.exit_code, 0)
+            assert result.exit_code == 0
             # We expect these and only these directories to remain.
             expected_dirs = {
                 'dist-5E-epel-161012.1854', 'dist-5E-epel-161013.1711',
@@ -84,15 +83,15 @@ class TestCleanUp(unittest.TestCase):
                 'f23-updates.repocache', 'f23-updates-testing-blank'}
             actual_dirs = set([d for d in os.listdir(compose_dir)
                                if os.path.isdir(os.path.join(compose_dir, d))])
-            self.assertEqual(actual_dirs, expected_dirs)
+            assert actual_dirs == expected_dirs
             # The cool file should still be here
             actual_files = [f for f in os.listdir(compose_dir)
                             if os.path.isfile(os.path.join(compose_dir, f))]
-            self.assertEqual(actual_files, ['COOL_FILE.txt'])
+            assert actual_files == ['COOL_FILE.txt']
             # Make sure the printed output is correct
             expected_output = set(dirs) - expected_dirs
             expected_output = {os.path.join(compose_dir, d) for d in expected_output}
             expected_output = expected_output | {'Deleting the following directories:', ''}
-            self.assertEqual(set(result.output.split('\n')), expected_output)
+            assert set(result.output.split('\n')) == expected_output
         finally:
             shutil.rmtree(compose_dir)
