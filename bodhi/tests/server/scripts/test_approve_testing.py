@@ -931,6 +931,7 @@ class TestMain(BasePyTestCase):
         update.date_testing = datetime.utcnow() - timedelta(days=8)
         update.status = models.UpdateStatus.testing
         update.release.composed_by_bodhi = False
+        update.from_tag = 'f17-build-side-1234'
 
         # Clear pending messages
         self.db.info['messages'] = []
@@ -941,7 +942,7 @@ class TestMain(BasePyTestCase):
                 with fml_testing.mock_sends(api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        assert update.status == models.UpdateStatus.testing
+        assert update.status == models.UpdateStatus.pending
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
