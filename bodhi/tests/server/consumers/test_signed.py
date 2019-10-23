@@ -183,6 +183,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         update.status = UpdateStatus.pending
         update.release.composed_by_bodhi = False
         update.builds[0].signed = False
+        update.pushed = False
 
         self.db.commit()
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -196,4 +197,5 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         assert update.builds[0].signed is True
         assert update.builds[0].update.request is None
         assert update.status == UpdateStatus.testing
+        assert update.pushed is True
         assert update.test_gating_status == TestGatingStatus.passed

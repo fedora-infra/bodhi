@@ -21,7 +21,6 @@ import datetime
 import os
 import platform
 import tempfile
-import unittest
 import copy
 
 from click import testing
@@ -67,7 +66,7 @@ suggest_reboot=False
 '''
 
 
-class TestComment(unittest.TestCase):
+class TestComment:
     """
     Test the comment() function.
     """
@@ -87,17 +86,17 @@ class TestComment(unittest.TestCase):
              'bowlofeggs', '--password', 's3kr3t', '--url', 'http://localhost:6543', '--karma',
              '1'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_COMMENT_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_COMMENT_OUTPUT
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'comments/', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'text': 'After installing this I found $100.',
                   'update': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'karma': 1})
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
 
-class TestDownload(unittest.TestCase):
+class TestDownload:
     """
     Test the download() function.
     """
@@ -124,14 +123,13 @@ class TestDownload(unittest.TestCase):
             client.download,
             ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output,
-                         'Downloading packages from FEDORA-2017-c95b33872d\n')
+        assert result.exit_code == 0
+        assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'updates/', verb='GET',
             params={'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25'})
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
         call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
@@ -151,9 +149,8 @@ class TestDownload(unittest.TestCase):
             client.download,
             ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'x86_64'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output,
-                         'Downloading packages from FEDORA-2017-c95b33872d\n')
+        assert result.exit_code == 0
+        assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
         call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch=x86_64',
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
@@ -173,9 +170,8 @@ class TestDownload(unittest.TestCase):
             client.download,
             ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'all'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output,
-                         'Downloading packages from FEDORA-2017-c95b33872d\n')
+        assert result.exit_code == 0
+        assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
         call.assert_called_once_with([
             'koji', 'download-build', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
@@ -194,9 +190,8 @@ class TestDownload(unittest.TestCase):
             client.download,
             ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--arch', 'all', '--debuginfo'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output,
-                         'Downloading packages from FEDORA-2017-c95b33872d\n')
+        assert result.exit_code == 0
+        assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
         call.assert_called_once_with([
             'koji', 'download-build', '--debuginfo', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
@@ -216,9 +211,8 @@ class TestDownload(unittest.TestCase):
             ['--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25',
              '--arch', 'all'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output,
-                         'Downloading packages from FEDORA-2017-c95b33872d\n')
+        assert result.exit_code == 0
+        assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
         call.assert_any_call([
             'koji', 'download-build', 'nodejs-pants-0.3.0-2.fc25'])
         call.assert_any_call([
@@ -233,8 +227,7 @@ class TestDownload(unittest.TestCase):
 
         result = runner.invoke(client.download)
 
-        self.assertEqual(result.output,
-                         'ERROR: must specify at least one of --updateid or --builds\n')
+        assert result.output == 'ERROR: must specify at least one of --updateid or --builds\n'
         send_request.assert_not_called()
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -253,8 +246,8 @@ class TestDownload(unittest.TestCase):
             client.download,
             ['--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, 'WARNING: No builds found!\n')
+        assert result.exit_code == 0
+        assert result.output == 'WARNING: No builds found!\n'
         call.assert_not_called()
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -272,10 +265,9 @@ class TestDownload(unittest.TestCase):
             client.download,
             ['--builds', 'nodejs-pants-0.3.0-2.fc25,nodejs-grunt-wrap-0.3.0-2.fc25'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output,
-                         ('WARNING: Some builds not found!\nDownloading packages '
-                          'from FEDORA-2017-c95b33872d\n'))
+        assert result.exit_code == 0
+        assert result.output == ('WARNING: Some builds not found!\nDownloading packages '
+                                 'from FEDORA-2017-c95b33872d\n')
         call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
@@ -296,10 +288,9 @@ class TestDownload(unittest.TestCase):
             client.download,
             ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output,
-                         ('Downloading packages from FEDORA-2017-c95b33872d\n'
-                          'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n'))
+        assert result.exit_code == 0
+        assert result.output == ('Downloading packages from FEDORA-2017-c95b33872d\n'
+                                 'WARNING: download of nodejs-grunt-wrap-0.3.0-2.fc25 failed!\n')
         call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
@@ -319,20 +310,19 @@ class TestDownload(unittest.TestCase):
             client.download,
             ['--updateid', 'FEDORA-2017-c95b33872d', '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output,
-                         'Downloading packages from FEDORA-2017-c95b33872d\n')
+        assert result.exit_code == 0
+        assert result.output == 'Downloading packages from FEDORA-2017-c95b33872d\n'
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'updates/', verb='GET',
             params={'updateid': 'FEDORA-2017-c95b33872d'})
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
         call.assert_called_once_with([
             'koji', 'download-build', '--arch=noarch', '--arch={}'.format(platform.machine()),
             'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
 
-class TestComposeInfo(unittest.TestCase):
+class TestComposeInfo:
     """
     This class tests the info_compose() function.
     """
@@ -351,12 +341,12 @@ class TestComposeInfo(unittest.TestCase):
 
         result = runner.invoke(client.info_compose, ['EPEL-7', 'stable'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertTrue(compare_output(result.output, client_test_data.EXPECTED_COMPOSE_OUTPUT))
+        assert result.exit_code == 0
+        assert compare_output(result.output, client_test_data.EXPECTED_COMPOSE_OUTPUT)
         calls = [
             mock.call('composes/EPEL-7/stable', verb='GET')
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
         __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, staging=False)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.__init__', return_value=None)
@@ -375,12 +365,12 @@ class TestComposeInfo(unittest.TestCase):
 
         result = runner.invoke(client.info_compose, ['EPEL-7', 'stable'])
 
-        self.assertEqual(result.exit_code, 2)
-        self.assertTrue(compare_output(
+        assert result.exit_code == 2
+        assert compare_output(
             result.output,
             ('Usage: info [OPTIONS] RELEASE REQUEST\n\n'
              'Error: Invalid value for RELEASE/REQUEST: Compose with '
-             'request "stable" not found for release "EPEL-7"')))
+             'request "stable" not found for release "EPEL-7"'))
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
         __init__.assert_called_once_with(base_url=EXPECTED_DEFAULT_BASE_URL, staging=False)
 
@@ -399,19 +389,19 @@ class TestComposeInfo(unittest.TestCase):
             ['--url', 'http://localhost:6543', 'EPEL-7', 'stable']
         )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertTrue(compare_output(result.output, client_test_data.EXPECTED_COMPOSE_OUTPUT))
+        assert result.exit_code == 0
+        assert compare_output(result.output, client_test_data.EXPECTED_COMPOSE_OUTPUT)
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
                 bindings_client, 'composes/EPEL-7/stable', verb='GET',
             ),
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
 
-class TestListComposes(unittest.TestCase):
+class TestListComposes:
     """Test the list_composes() function."""
     @mock.patch.dict(client_test_data.EXAMPLE_COMPOSES_MUNCH,
                      {'composes': [client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0]]})
@@ -423,9 +413,9 @@ class TestListComposes(unittest.TestCase):
 
         result = runner.invoke(client.list_composes)
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn('*EPEL-7-stable  :   2 updates (requested)', result.output)
-        self.assertNotIn(' EPEL-7-testing :   1 updates (requested)', result.output)
+        assert result.exit_code == 0
+        assert '*EPEL-7-stable  :   2 updates (requested)' in result.output
+        assert ' EPEL-7-testing :   1 updates (requested)' not in result.output
         bodhi_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(bodhi_client, 'composes/', verb='GET')
 
@@ -437,9 +427,9 @@ class TestListComposes(unittest.TestCase):
 
         result = runner.invoke(client.list_composes)
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn('*EPEL-7-stable  :   2 updates (requested)', result.output)
-        self.assertIn(' EPEL-7-testing :   1 updates (requested)', result.output)
+        assert result.exit_code == 0
+        assert '*EPEL-7-stable  :   2 updates (requested)' in result.output
+        assert ' EPEL-7-testing :   1 updates (requested)' in result.output
         bodhi_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(bodhi_client, 'composes/', verb='GET')
 
@@ -451,21 +441,21 @@ class TestListComposes(unittest.TestCase):
 
         result = runner.invoke(client.list_composes, ['-v'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn('*EPEL-7-stable  :   2 updates (requested)', result.output)
-        self.assertIn('Content Type: rpm', result.output)
-        self.assertIn('Started: 2018-03-15 17:25:22', result.output)
-        self.assertIn('Updated: 2018-03-15 17:25:22', result.output)
-        self.assertIn('Updates:', result.output)
-        self.assertIn('FEDORA-EPEL-2018-50566f0a39: uwsgi-2.0.16-1.el7', result.output)
-        self.assertIn('FEDORA-EPEL-2018-328e2b8c27: qtpass-1.2.1-3.el7', result.output)
-        self.assertIn('FEDORA-EPEL-2018-32f78e466c: libmodulemd-1.1.0-1.el7', result.output)
-        self.assertIn(' EPEL-7-testing :   1 updates (requested)', result.output)
+        assert result.exit_code == 0
+        assert '*EPEL-7-stable  :   2 updates (requested)' in result.output
+        assert 'Content Type: rpm' in result.output
+        assert 'Started: 2018-03-15 17:25:22' in result.output
+        assert 'Updated: 2018-03-15 17:25:22' in result.output
+        assert 'Updates:' in result.output
+        assert 'FEDORA-EPEL-2018-50566f0a39: uwsgi-2.0.16-1.el7' in result.output
+        assert 'FEDORA-EPEL-2018-328e2b8c27: qtpass-1.2.1-3.el7' in result.output
+        assert 'FEDORA-EPEL-2018-32f78e466c: libmodulemd-1.1.0-1.el7' in result.output
+        assert ' EPEL-7-testing :   1 updates (requested)' in result.output
         bodhi_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(bodhi_client, 'composes/', verb='GET')
 
 
-class TestNew(unittest.TestCase):
+class TestNew:
     """
     Test the new() function.
     """
@@ -486,9 +476,9 @@ class TestNew(unittest.TestCase):
              'bodhi-2.2.4-1.el7', '--severity', 'urgent', '--notes', 'No description.',
              '--stable-days', 7])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('unspecified', 'urgent')
-        self.assertTrue(compare_output(result.output, expected_output))
+        assert compare_output(result.output, expected_output)
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -508,7 +498,7 @@ class TestNew(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
     @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'severity': 'urgent'})
     @mock.patch.dict(os.environ, {'BODHI_URL': 'http://example.com/tests/'})
@@ -526,10 +516,10 @@ class TestNew(unittest.TestCase):
              '--autokarma', 'bodhi-2.2.4-1.el7', '--severity', 'urgent', '--notes',
              'No description.'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = 'No `errors` nor `decision` in the data returned\n' \
             + client_test_data.EXPECTED_UPDATE_OUTPUT.replace('unspecified', 'urgent')
-        self.assertTrue(compare_output(result.output, expected_output))
+        assert compare_output(result.output, expected_output)
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -550,7 +540,7 @@ class TestNew(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -567,10 +557,10 @@ class TestNew(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
              '--url', 'http://localhost:6543', '--notes', 'No description.'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
                                                                           'localhost:6543')
-        self.assertTrue(compare_output(result.output, expected_output))
+        assert compare_output(result.output, expected_output)
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -590,8 +580,8 @@ class TestNew(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -611,8 +601,8 @@ class TestNew(unittest.TestCase):
                 ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
                  '--file', update_file.name, '--url', 'http://example.com/tests'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertTrue(compare_output(result.output, client_test_data.EXPECTED_UPDATE_OUTPUT))
+        assert result.exit_code == 0
+        assert compare_output(result.output, client_test_data.EXPECTED_UPDATE_OUTPUT)
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -632,7 +622,7 @@ class TestNew(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -650,8 +640,8 @@ class TestNew(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
              '--notes', 'No description.'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn("This is a BodhiClientException message", result.output)
+        assert result.exit_code == 0
+        assert "This is a BodhiClientException message" in result.output
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -669,9 +659,9 @@ class TestNew(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
              '--notes', 'No description.'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn("Traceback (most recent call last):", result.output)
-        self.assertIn("Exception: This is an Exception message", result.output)
+        assert result.exit_code == 0
+        assert "Traceback (most recent call last):" in result.output
+        assert "Exception: This is an Exception message" in result.output
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -689,10 +679,10 @@ class TestNew(unittest.TestCase):
              '--bugs', '1234567', '--close-bugs', '--url', 'http://localhost:6543', '--notes',
              'No description.'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
                                                                           'localhost:6543')
-        self.assertTrue(compare_output(result.output, expected_output + '\n'))
+        assert compare_output(result.output, expected_output + '\n')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -712,8 +702,8 @@ class TestNew(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -731,10 +721,10 @@ class TestNew(unittest.TestCase):
              '--bugs', '1234567', '--display-name', 'fake display name', '--url',
              'http://localhost:6543', '--notes', 'No description.'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
                                                                           'localhost:6543')
-        self.assertTrue(compare_output(result.output, expected_output + '\n'))
+        assert compare_output(result.output, expected_output + '\n')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -754,8 +744,8 @@ class TestNew(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -773,10 +763,10 @@ class TestNew(unittest.TestCase):
              '--bugs', '1234567', '--from-tag', '--url',
              'http://localhost:6543', '--notes', 'No description.'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
                                                                           'localhost:6543')
-        self.assertTrue(compare_output(result.output, expected_output + '\n'))
+        assert compare_output(result.output, expected_output + '\n')
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -796,8 +786,8 @@ class TestNew(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     def test_from_tag_flag_multiple_tags(self):
         """
@@ -811,8 +801,8 @@ class TestNew(unittest.TestCase):
              '--bugs', '1234567', '--from-tag', '--url',
              'http://localhost:6543', '--notes', 'No description.'])
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, 'ERROR: Can\'t specify more than one tag.\n')
+        assert result.exit_code == 1
+        assert result.output == 'ERROR: Can\'t specify more than one tag.\n'
 
     def test_new_update_without_notes(self):
         """
@@ -826,9 +816,9 @@ class TestNew(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', '--autokarma', 'bodhi-2.2.4-1.el7',
              '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, 'ERROR: must specify at least one of --file, --notes, or '
-                                        '--notes-file\n')
+        assert result.exit_code == 1
+        assert result.output == ('ERROR: must specify at least one of --file,'
+                                 ' --notes, or --notes-file\n')
 
     def test_new_security_update_with_unspecified_severity(self):
         """Assert not providing --severity to new security update request results in an error."""
@@ -839,12 +829,13 @@ class TestNew(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'bodhi-2.2.4-1.el7',
              '--notes', 'bla bla bla', '--type', 'security'])
 
-        self.assertEqual(result.exit_code, 2)
-        self.assertEqual(result.output, ('Usage: new [OPTIONS] BUILDS_OR_TAG\n\nError: Invalid '
-                         'value for severity: must specify severity for a security update\n'))
+        assert result.exit_code == 2
+        assert result.output == (
+            'Usage: new [OPTIONS] BUILDS_OR_TAG\n\nError: Invalid '
+            'value for severity: must specify severity for a security update\n')
 
 
-class TestPrintOverrideKojiHint(unittest.TestCase):
+class TestPrintOverrideKojiHint:
     """
     Test the _print_override_koji_hint() function.
     """
@@ -878,8 +869,8 @@ class TestPrintOverrideKojiHint(unittest.TestCase):
 
         client._print_override_koji_hint(override, c)
 
-        self.assertEqual(echo.call_count, 0)
-        self.assertEqual(c.send_request.call_count, 0)
+        assert echo.call_count == 0
+        assert c.send_request.call_count == 0
 
 
 real_open = open
@@ -892,7 +883,7 @@ def fake_open_no_session_cache(*args, **kwargs):
     return real_open(*args, **kwargs)
 
 
-class TestQuery(unittest.TestCase):
+class TestQuery:
     """
     Test the query() function.
     """
@@ -910,8 +901,8 @@ class TestQuery(unittest.TestCase):
             client.query,
             ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_QUERY_OUTPUT + '\n')
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_QUERY_OUTPUT + '\n'
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -934,7 +925,7 @@ class TestQuery(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -952,8 +943,8 @@ class TestQuery(unittest.TestCase):
             client.query,
             ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXAMPLE_QUERY_OUTPUT_MULTI)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXAMPLE_QUERY_OUTPUT_MULTI
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'updates/', verb='GET',
@@ -982,10 +973,10 @@ class TestQuery(unittest.TestCase):
             client.query,
             ['--builds', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = client_test_data.EXPECTED_QUERY_OUTPUT.replace('example.com/tests',
                                                                          'localhost:6543')
-        self.assertEqual(result.output, expected_output + '\n')
+        assert result.output == expected_output + '\n'
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -1008,8 +999,8 @@ class TestQuery(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1026,7 +1017,7 @@ class TestQuery(unittest.TestCase):
                 runner = testing.CliRunner()
                 res = runner.invoke(client.query, ['--mine'])
 
-        self.assertEqual(res.exit_code, 0)
+        assert res.exit_code == 0
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -1049,15 +1040,12 @@ class TestQuery(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
         # Before F31 the file was opened in binary mode, and then it changed.
         # Only check the path.
-        self.assertNotEqual(mock_open.call_count, 0)
+        assert mock_open.call_count
         first_args = [args[0][0] for args in mock_open.call_args_list]
-        self.assertIn(
-            fedora.client.openidbaseclient.b_SESSION_FILE,
-            first_args
-        )
+        assert fedora.client.openidbaseclient.b_SESSION_FILE in first_args
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1073,7 +1061,7 @@ class TestQuery(unittest.TestCase):
             client.query,
             ['--rows', 10])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -1096,7 +1084,7 @@ class TestQuery(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1112,7 +1100,7 @@ class TestQuery(unittest.TestCase):
             client.query,
             ['--page', 5])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -1135,10 +1123,10 @@ class TestQuery(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
 
-class TestQueryBuildrootOverrides(unittest.TestCase):
+class TestQueryBuildrootOverrides:
     """
     This class tests the query_buildroot_overrides() function.
     """
@@ -1156,13 +1144,13 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
             client.query_buildroot_overrides,
             ['--user', 'bowlofeggs', '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_QUERY_OVERRIDES_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_QUERY_OVERRIDES_OUTPUT
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'overrides/', verb='GET',
             params={'user': 'bowlofeggs'})
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1179,7 +1167,7 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
                 runner = testing.CliRunner()
                 res = runner.invoke(client.query_buildroot_overrides, ['--mine'])
 
-        self.assertEqual(res.exit_code, 0)
+        assert res.exit_code == 0
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -1191,15 +1179,12 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
         # Before F31 the file was opened in binary mode, and then it changed.
         # Only check the path.
-        self.assertNotEqual(mock_open.call_count, 0)
+        assert mock_open.call_count
         first_args = [args[0][0] for args in mock_open.call_args_list]
-        self.assertIn(
-            fedora.client.openidbaseclient.b_SESSION_FILE,
-            first_args
-        )
+        assert fedora.client.openidbaseclient.b_SESSION_FILE in first_args
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1219,20 +1204,19 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
         result = runner.invoke(client.query_buildroot_overrides,
                                ['--builds', 'bodhi-2.10.1-1.fc25'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(
-            result.output,
-            client_test_data.EXPECTED_OVERRIDES_OUTPUT + "1 overrides found (1 shown)\n")
+        assert result.exit_code == 0
+        assert result.output == (client_test_data.EXPECTED_OVERRIDES_OUTPUT
+                                 + "1 overrides found (1 shown)\n")
         bindings_client = send_request.mock_calls[0][1][0]
-        self.assertEqual(send_request.call_count, 2)
-        self.assertEqual(
-            send_request.mock_calls[0],
-            mock.call(bindings_client, 'overrides/', verb='GET',
-                      params={'builds': 'bodhi-2.10.1-1.fc25'}))
-        self.assertEqual(
-            send_request.mock_calls[1],
-            mock.call(bindings_client, 'releases/', verb='GET',
-                      params={'ids': [15]}))
+        assert send_request.call_count == 2
+        assert send_request.mock_calls[0] == mock.call(bindings_client,
+                                                       'overrides/',
+                                                       verb='GET',
+                                                       params={'builds': 'bodhi-2.10.1-1.fc25'})
+        assert send_request.mock_calls[1] == mock.call(bindings_client,
+                                                       'releases/',
+                                                       verb='GET',
+                                                       params={'ids': [15]})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1248,7 +1232,7 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
             client.query_buildroot_overrides,
             ['--rows', 10])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'overrides/', verb='GET',
@@ -1268,7 +1252,7 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
             client.query_buildroot_overrides,
             ['--page', 5])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'overrides/', verb='GET',
@@ -1276,7 +1260,7 @@ class TestQueryBuildrootOverrides(unittest.TestCase):
 
 
 @mock.patch.dict(os.environ, {'BODHI_OPENID_API': 'https://id.example.com/api/v1/'})
-class TestRequest(unittest.TestCase):
+class TestRequest:
     """
     This class tests the request() function.
     """
@@ -1296,8 +1280,8 @@ class TestRequest(unittest.TestCase):
         result = runner.invoke(client.request, ['bodhi-2.2.4-1.el7', 'revoke', '--user',
                                                 'some_user', '--password', 's3kr3t'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertTrue(compare_output(result.output, client_test_data.EXPECTED_UPDATE_OUTPUT))
+        assert result.exit_code == 0
+        assert compare_output(result.output, client_test_data.EXPECTED_UPDATE_OUTPUT)
         calls = [
             mock.call(
                 'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
@@ -1311,7 +1295,7 @@ class TestRequest(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
         __init__.assert_called_once_with(
             base_url=EXPECTED_DEFAULT_BASE_URL, username='some_user', password='s3kr3t',
             staging=False, openid_api='https://id.example.com/api/v1/')
@@ -1333,11 +1317,11 @@ class TestRequest(unittest.TestCase):
         result = runner.invoke(client.request, ['bodhi-2.2.4-99.el7', 'revoke', '--user',
                                                 'some_user', '--password', 's3kr3t'])
 
-        self.assertEqual(result.exit_code, 2)
-        self.assertTrue(compare_output(
+        assert result.exit_code == 2
+        assert compare_output(
             result.output,
             ('Usage: request [OPTIONS] UPDATE STATE\n\nError: Invalid value for UPDATE: Update not'
-             ' found: bodhi-2.2.4-99.el7\n')))
+             ' found: bodhi-2.2.4-99.el7\n'))
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-99.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
@@ -1361,10 +1345,10 @@ class TestRequest(unittest.TestCase):
             ['bodhi-2.2.4-99.el7', 'revoke', '--user', 'some_user', '--password', 's3kr3t', '--url',
              'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
                                                                           'localhost:6543')
-        self.assertTrue(compare_output(result.output, expected_output))
+        assert compare_output(result.output, expected_output)
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
             mock.call(
@@ -1380,11 +1364,11 @@ class TestRequest(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
 
-class TestSaveBuildrootOverrides(unittest.TestCase):
+class TestSaveBuildrootOverrides:
     """
     Test the save_buildroot_overrides() function.
     """
@@ -1410,30 +1394,29 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--url',
              'http://localhost:6543/', '--no-wait'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_OVERRIDES_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_OVERRIDES_OUTPUT
         bindings_client = send_request.mock_calls[0][1][0]
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = send_request.mock_calls[0][2]['data']['expiration_date']
-        self.assertTrue((datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5))
+        assert (datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5)
         # There should be two calls to send_request(). The first to save the override, and the
         # second to find out the release tags so the koji wait-repo hint can be printed.
-        self.assertEqual(send_request.call_count, 2)
-        self.assertEqual(
-            send_request.mock_calls[0],
-            mock.call(
-                bindings_client, 'overrides/', verb='POST', auth=True,
-                data={
-                    'expiration_date': expire_time,
-                    'notes': 'No explanation given...', 'nvr': 'js-tag-it-2.0-1.fc25',
-                    'csrf_token': 'a_csrf_token'}))
-        self.assertEqual(
-            send_request.mock_calls[1],
-            mock.call(
-                bindings_client, 'releases/', verb='GET',
-                params={'ids': [15]}))
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.call_count == 2
+        assert send_request.mock_calls[0] == mock.call(bindings_client,
+                                                       'overrides/',
+                                                       verb='POST',
+                                                       auth=True,
+                                                       data={'expiration_date': expire_time,
+                                                             'notes': 'No explanation given...',
+                                                             'nvr': 'js-tag-it-2.0-1.fc25',
+                                                             'csrf_token': 'a_csrf_token'})
+        assert send_request.mock_calls[1] == mock.call(bindings_client,
+                                                       'releases/',
+                                                       verb='GET',
+                                                       params={'ids': [15]})
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1455,11 +1438,11 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
             client.save_buildroot_overrides,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = (
             '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'.format(
                 client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
-        self.assertEqual(result.output, expected_output)
+        assert result.output == expected_output
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
             stderr=-1, stdout=-1)
@@ -1486,11 +1469,11 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
             client.save_buildroot_overrides,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--wait'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = (
             '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'.format(
                 client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
-        self.assertEqual(result.output, expected_output)
+        assert result.output == expected_output
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
             stderr=-1, stdout=-1)
@@ -1517,12 +1500,12 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
             client.save_buildroot_overrides,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--wait'])
 
-        self.assertEqual(result.exit_code, 42)
+        assert result.exit_code == 42
         expected_output = (
             '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'
             'WARNING: ensuring active override failed for js-tag-it-2.0-1.fc25\n')
         expected_output = expected_output.format(client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT)
-        self.assertEqual(result.output, expected_output)
+        assert result.output == expected_output
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
             stderr=-1, stdout=-1)
@@ -1567,27 +1550,27 @@ class TestSaveBuildrootOverrides(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', overrides_nvrs_str, '--url',
              'http://localhost:6543/', '--no-wait'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, expected_output)
+        assert result.exit_code == 0
+        assert result.output == expected_output
         bindings_client = send_request.mock_calls[0][1][0]
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = send_request.mock_calls[0][2]['data']['expiration_date']
-        self.assertTrue((datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5))
+        assert (datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5)
         # There should be one calls to send_request().
-        self.assertEqual(send_request.call_count, 1)
-        self.assertEqual(
-            send_request.mock_calls[0],
-            mock.call(
-                bindings_client, 'overrides/', verb='POST', auth=True,
-                data={
-                    'expiration_date': expire_time,
-                    'notes': 'No explanation given...', 'nvr': overrides_nvrs_str,
-                    'csrf_token': 'a_csrf_token'}))
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.call_count == 1
+        assert send_request.mock_calls[0] == mock.call(bindings_client,
+                                                       'overrides/',
+                                                       verb='POST',
+                                                       auth=True,
+                                                       data={'expiration_date': expire_time,
+                                                             'notes': 'No explanation given...',
+                                                             'nvr': overrides_nvrs_str,
+                                                             'csrf_token': 'a_csrf_token'})
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
 
-class TestWarnIfUrlOrOpenidAndStagingSet(unittest.TestCase):
+class TestWarnIfUrlOrOpenidAndStagingSet:
     """
     This class tests the _warn_if_url_and_staging_set() function.
     """
@@ -1604,8 +1587,8 @@ class TestWarnIfUrlOrOpenidAndStagingSet(unittest.TestCase):
         result = client._warn_if_url_or_openid_and_staging_set(
             ctx, param, 'http://localhost:6543')
 
-        self.assertEqual(result, 'http://localhost:6543')
-        self.assertEqual(echo.call_count, 0)
+        assert result == 'http://localhost:6543'
+        assert echo.call_count == 0
 
     @mock.patch('bodhi.client.click.echo')
     def test_staging_missing(self, echo):
@@ -1620,8 +1603,8 @@ class TestWarnIfUrlOrOpenidAndStagingSet(unittest.TestCase):
         result = client._warn_if_url_or_openid_and_staging_set(
             ctx, param, 'http://localhost:6543')
 
-        self.assertEqual(result, 'http://localhost:6543')
-        self.assertEqual(echo.call_count, 0)
+        assert result == 'http://localhost:6543'
+        assert echo.call_count == 0
 
     @mock.patch('bodhi.client.click.echo')
     def test_staging_true(self, echo):
@@ -1637,7 +1620,7 @@ class TestWarnIfUrlOrOpenidAndStagingSet(unittest.TestCase):
         result = client._warn_if_url_or_openid_and_staging_set(
             ctx, param, 'http://localhost:6543')
 
-        self.assertEqual(result, 'http://localhost:6543')
+        assert result == 'http://localhost:6543'
         echo.assert_called_once_with(
             '\nWarning: url and staging flags are both set. url will be ignored.\n', err=True)
 
@@ -1650,7 +1633,7 @@ class TestWarnIfUrlOrOpenidAndStagingSet(unittest.TestCase):
 
         result = client._warn_if_url_or_openid_and_staging_set(ctx, param, True)
 
-        self.assertEqual(result, True)
+        assert result
         echo.assert_called_once_with(
             '\nWarning: url and staging flags are both set. url will be ignored.\n', err=True)
 
@@ -1663,14 +1646,14 @@ class TestWarnIfUrlOrOpenidAndStagingSet(unittest.TestCase):
 
         result = client._warn_if_url_or_openid_and_staging_set(ctx, param, True)
 
-        self.assertEqual(result, True)
+        assert result
         echo.assert_called_once_with(
             '\nWarning: openid_api and staging flags are both set. openid_api will be ignored.\n',
             err=True
         )
 
 
-class TestEdit(unittest.TestCase):
+class TestEdit:
     """
     This class tests the edit() function.
     """
@@ -1689,7 +1672,7 @@ class TestEdit(unittest.TestCase):
             client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
                           '--password', 's3kr3t', '--bugs', '1234,5678'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid='FEDORA-2017-c95b33872d')
@@ -1710,7 +1693,7 @@ class TestEdit(unittest.TestCase):
                 bindings_client,
                 'updates/FEDORA-EPEL-2016-3081a94111/get-test-results',
                 verb='GET')]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1727,7 +1710,7 @@ class TestEdit(unittest.TestCase):
                           '--password', 's3kr3t', '--severity', 'low',
                           '--notes', 'Updated package.'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid='FEDORA-2017-c95b33872d')
@@ -1751,7 +1734,7 @@ class TestEdit(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1770,7 +1753,7 @@ class TestEdit(unittest.TestCase):
                           '--password', 's3kr3t', '--notes', 'this is an edited note',
                           '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid='FEDORA-2017-c95b33872d')
@@ -1795,8 +1778,8 @@ class TestEdit(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1819,7 +1802,7 @@ class TestEdit(unittest.TestCase):
                               '--password', 's3kr3t', '--notes-file', 'notefile.txt',
                               '--url', 'http://localhost:6543'])
 
-            self.assertEqual(result.exit_code, 0)
+            assert result.exit_code == 0
             bindings_client = query.mock_calls[0][1][0]
             query.assert_called_with(
                 bindings_client, updateid='FEDORA-2017-c95b33872d')
@@ -1844,8 +1827,8 @@ class TestEdit(unittest.TestCase):
                     verb='GET'
                 )
             ]
-            self.assertEqual(send_request.mock_calls, calls)
-            self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+            assert send_request.mock_calls == calls
+            assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1867,7 +1850,7 @@ class TestEdit(unittest.TestCase):
                           '--removebuilds', 'nodejs-grunt-wrap-0.3.0-2.fc25',
                           '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid=u'FEDORA-2017-c95b33872d')
@@ -1892,8 +1875,8 @@ class TestEdit(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1915,7 +1898,7 @@ class TestEdit(unittest.TestCase):
                           '--notes', 'Updated package.',
                           '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid='FEDORA-2017-c95b33872d')
@@ -1940,8 +1923,8 @@ class TestEdit(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -1959,9 +1942,9 @@ class TestEdit(unittest.TestCase):
                           '--notes', 'Updated package.',
                           '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, "ERROR: This update was not created from a tag."
-                                        " Please remove --from_tag and try again.\n")
+        assert result.exit_code == 1
+        assert result.output == ("ERROR: This update was not created from a tag."
+                                 " Please remove --from_tag and try again.\n")
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid='FEDORA-2017-c95b33872d')
@@ -1986,9 +1969,9 @@ class TestEdit(unittest.TestCase):
                           '--notes', 'Updated package.',
                           '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, "ERROR: The --from-tag option can't be used together with"
-                                        " --addbuilds or --removebuilds.\n")
+        assert result.exit_code == 1
+        assert result.output == ("ERROR: The --from-tag option can't be used together with"
+                                 " --addbuilds or --removebuilds.\n")
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid='FEDORA-2017-c95b33872d')
@@ -2015,9 +1998,9 @@ class TestEdit(unittest.TestCase):
 
         print(result.output)
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, "ERROR: The --from-tag option can't be used together with"
-                                        " --addbuilds or --removebuilds.\n")
+        assert result.exit_code == 1
+        assert result.output == ("ERROR: The --from-tag option can't be used together with"
+                                 " --addbuilds or --removebuilds.\n")
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid='FEDORA-2017-c95b33872d')
@@ -2037,8 +2020,8 @@ class TestEdit(unittest.TestCase):
                               '--password', 's3kr3t', '--notes', 'this is a notey note',
                               '--notes-file', 'notefile.txt', '--url', 'http://localhost:6543'])
 
-            self.assertEqual(result.exit_code, 1)
-            self.assertEqual(result.output, 'ERROR: Cannot specify --notes and --notes-file\n')
+            assert result.exit_code == 1
+            assert result.output == 'ERROR: Cannot specify --notes and --notes-file\n'
 
     def test_wrong_update_id_argument(self):
         """
@@ -2050,7 +2033,7 @@ class TestEdit(unittest.TestCase):
             client.edit, ['drupal7-i18n-1.17-1', '--user', 'bowlofeggs',
                           '--password', 's3kr3t', '--notes', 'this is an edited note',
                           '--url', 'http://localhost:6543'])
-        self.assertEqual(result.exit_code, 2)
+        assert result.exit_code == 2
         # Click 7.0 capitalizes UPDATE, and < 7 does not.
         if [int(n) for n in click.__version__.split('.')] < [7, 0]:
             label = 'update'
@@ -2061,7 +2044,7 @@ class TestEdit(unittest.TestCase):
                    'Please provide an Update ID\n'
         expected = expected.format(label)
 
-        self.assertEqual(result.output, expected)
+        assert result.output == expected
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2082,7 +2065,7 @@ class TestEdit(unittest.TestCase):
                           '--requirements', 'dist.depcheck dist.rpmdeplint', '--url',
                           'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid='FEDORA-2017-c95b33872d')
@@ -2107,8 +2090,8 @@ class TestEdit(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.mock_calls == calls
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2125,8 +2108,8 @@ class TestEdit(unittest.TestCase):
             client.edit, ['FEDORA-2017-cc8582d738', '--user', 'bowlofeggs',
                           '--password', 's3kr3t', '--notes', 'No description.'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn("This is a BodhiClientException message", result.output)
+        assert result.exit_code == 0
+        assert "This is a BodhiClientException message" in result.output
 
     @mock.patch.dict(client_test_data.EXAMPLE_QUERY_MUNCH['updates'][0], {'bugs': []})
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -2143,7 +2126,7 @@ class TestEdit(unittest.TestCase):
             client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
                           '--password', 's3kr3t'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid='FEDORA-2017-c95b33872d')
@@ -2167,7 +2150,7 @@ class TestEdit(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2182,12 +2165,13 @@ class TestEdit(unittest.TestCase):
                           '--password', 's3kr3t', '--notes', 'this is an edited note',
                           '--type', 'security', '--severity', 'unspecified'])
 
-        self.assertEqual(result.exit_code, 2)
-        self.assertEqual(result.output, ('Usage: edit [OPTIONS] UPDATE\n\nError: Invalid '
-                         'value for severity: must specify severity for a security update\n'))
+        assert result.exit_code == 2
+        assert result.output == ('Usage: edit [OPTIONS] UPDATE\n\nError: Invalid '
+                                 'value for severity: must specify severity for '
+                                 'a security update\n')
 
 
-class TestEditBuildrootOverrides(unittest.TestCase):
+class TestEditBuildrootOverrides:
     """
     Test the edit_buildroot_overrides() function.
     """
@@ -2207,20 +2191,20 @@ class TestEditBuildrootOverrides(unittest.TestCase):
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--url',
              'http://localhost:6543/', '--notes', 'This is an expired override', '--expire'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_EXPIRED_OVERRIDES_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_EXPIRED_OVERRIDES_OUTPUT
         bindings_client = send_request.mock_calls[0][1][0]
         # datetime is a C extension that can't be mocked, so let's just assert that the time is
         # about a week away.
         expire_time = send_request.mock_calls[0][2]['data']['expiration_date']
-        self.assertTrue((datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5))
+        assert (datetime.datetime.utcnow() - expire_time) < datetime.timedelta(seconds=5)
         send_request.assert_called_once_with(
             bindings_client, 'overrides/', verb='POST', auth=True,
             data={
                 'expiration_date': expire_time, 'notes': 'This is an expired override',
                 'nvr': 'js-tag-it-2.0-1.fc25', 'edited': 'js-tag-it-2.0-1.fc25',
                 'csrf_token': 'a_csrf_token', 'expired': True})
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2244,11 +2228,11 @@ class TestEditBuildrootOverrides(unittest.TestCase):
             client.edit_buildroot_overrides,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--wait'])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         expected_output = (
             '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'.format(
                 client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT))
-        self.assertEqual(result.output, expected_output)
+        assert result.output == expected_output
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
             stderr=-1, stdout=-1)
@@ -2275,18 +2259,18 @@ class TestEditBuildrootOverrides(unittest.TestCase):
             client.edit_buildroot_overrides,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25', '--wait'])
 
-        self.assertEqual(result.exit_code, 24)
+        assert result.exit_code == 24
         expected_output = (
             '{}\n\nRunning koji wait-repo f25-build --build=js-tag-it-2.0-1.fc25\n\n'
             'WARNING: ensuring active override failed for js-tag-it-2.0-1.fc25\n')
         expected_output = expected_output.format(client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT)
-        self.assertEqual(result.output, expected_output)
+        assert result.output == expected_output
         call.assert_called_once_with(
             ('koji', 'wait-repo', 'f25-build', '--build=js-tag-it-2.0-1.fc25'),
             stderr=-1, stdout=-1)
 
 
-class TestCreate(unittest.TestCase):
+class TestCreate:
     """
     Test the create() function.
     """
@@ -2305,8 +2289,8 @@ class TestCreate(unittest.TestCase):
             ['--name', 'F27', '--url', 'http://localhost:6543', '--user', 'bowlofeggs',
              '--password', 's3kr3t'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_RELEASE_OUTPUT
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'releases/', verb='POST', auth=True,
@@ -2317,7 +2301,7 @@ class TestCreate(unittest.TestCase):
                   'candidate_tag': None, 'mail_template': None, 'composed_by_bodhi': True,
                   'create_automatic_updates': False, 'package_manager': None,
                   'testing_repository': None})
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2335,11 +2319,11 @@ class TestCreate(unittest.TestCase):
             ['--name', 'F27', '--url', 'http://localhost:6543', '--user', 'bowlofeggs',
              '--password', 's3kr3t'])
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, "ERROR: an error was encountered... :(\n")
+        assert result.exit_code == 1
+        assert result.output == "ERROR: an error was encountered... :(\n"
 
 
-class TestEditRelease(unittest.TestCase):
+class TestEditRelease:
     """
     Test the edit_release() function.
     """
@@ -2358,28 +2342,28 @@ class TestEditRelease(unittest.TestCase):
             ['--name', 'F27', '--long-name', 'Fedora 27, the Greatest Fedora!', '--url',
              'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_RELEASE_OUTPUT
         bindings_client = send_request.mock_calls[0][1][0]
-        self.assertEqual(send_request.call_count, 2)
-        self.assertEqual(send_request.mock_calls[0],
-                         mock.call(bindings_client, 'releases/F27', verb='GET', auth=True))
-        self.assertEqual(
-            send_request.mock_calls[1],
-            mock.call(
-                bindings_client, 'releases/', verb='POST', auth=True,
-                data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
-                      'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
-                      'pending_stable_tag': 'f27-updates-pending',
-                      'pending_signing_tag': 'f27-signing-pending',
-                      'long_name': 'Fedora 27, the Greatest Fedora!', 'state': 'pending',
-                      'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
-                      'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
-                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True,
-                      'create_automatic_updates': False, 'package_manager': 'unspecified',
-                      'testing_repository': None}))
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert send_request.call_count == 2
+        assert send_request.mock_calls[0] == mock.call(bindings_client,
+                                                       'releases/F27',
+                                                       verb='GET',
+                                                       auth=True)
+        assert send_request.mock_calls[1] == mock.call(
+            bindings_client, 'releases/', verb='POST', auth=True,
+            data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
+                  'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
+                  'pending_stable_tag': 'f27-updates-pending',
+                  'pending_signing_tag': 'f27-signing-pending',
+                  'long_name': 'Fedora 27, the Greatest Fedora!', 'state': 'pending',
+                  'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
+                  'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
+                  'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
+                  'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True,
+                  'create_automatic_updates': False, 'package_manager': 'unspecified',
+                  'testing_repository': None})
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2396,27 +2380,27 @@ class TestEditRelease(unittest.TestCase):
             ['--name', 'F27', '--new-name', 'fedora27', '--url',
              'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_RELEASE_OUTPUT
         bindings_client = send_request.mock_calls[0][1][0]
-        self.assertEqual(send_request.call_count, 2)
-        self.assertEqual(send_request.mock_calls[0],
-                         mock.call(bindings_client, 'releases/F27', verb='GET', auth=True))
-        self.assertEqual(
-            send_request.mock_calls[1],
-            mock.call(
-                bindings_client, 'releases/', verb='POST', auth=True,
-                data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
-                      'name': 'fedora27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
-                      'pending_stable_tag': 'f27-updates-pending',
-                      'pending_signing_tag': 'f27-signing-pending',
-                      'long_name': 'Fedora 27', 'state': 'pending',
-                      'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
-                      'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
-                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True,
-                      'create_automatic_updates': False, 'package_manager': 'unspecified',
-                      'testing_repository': None}))
+        assert send_request.call_count == 2
+        assert send_request.mock_calls[0] == mock.call(bindings_client,
+                                                       'releases/F27',
+                                                       verb='GET',
+                                                       auth=True)
+        assert send_request.mock_calls[1] == mock.call(
+            bindings_client, 'releases/', verb='POST', auth=True,
+            data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
+                  'name': 'fedora27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
+                  'pending_stable_tag': 'f27-updates-pending',
+                  'pending_signing_tag': 'f27-signing-pending',
+                  'long_name': 'Fedora 27', 'state': 'pending',
+                  'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
+                  'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
+                  'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
+                  'mail_template': 'fedora_errata_template', 'composed_by_bodhi': True,
+                  'create_automatic_updates': False, 'package_manager': 'unspecified',
+                  'testing_repository': None})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2432,7 +2416,7 @@ class TestEditRelease(unittest.TestCase):
             ['--long-name', 'Fedora 27, the Greatest Fedora!', '--url',
              'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
-        self.assertEqual(result.output, ("ERROR: Please specify the name of the release to edit\n"))
+        assert result.output == "ERROR: Please specify the name of the release to edit\n"
         send_request.assert_not_called()
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
@@ -2451,8 +2435,8 @@ class TestEditRelease(unittest.TestCase):
             ['--name', 'F27', '--long-name', 'Fedora 27, the Greatest Fedora!', '--url',
              'http://localhost:6543', '--user', 'bowlofeggs', '--password', 's3kr3t'])
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, ("ERROR: an error was encountered... :(\n"))
+        assert result.exit_code == 1
+        assert result.output == "ERROR: an error was encountered... :(\n"
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2468,27 +2452,27 @@ class TestEditRelease(unittest.TestCase):
             client.edit_release,
             ['--name', 'F27', '--mail-template', 'edited_fedora_errata_template'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_RELEASE_OUTPUT
         bindings_client = send_request.mock_calls[0][1][0]
-        self.assertEqual(send_request.call_count, 2)
-        self.assertEqual(send_request.mock_calls[0],
-                         mock.call(bindings_client, 'releases/F27', verb='GET', auth=True))
-        self.assertEqual(
-            send_request.mock_calls[1],
-            mock.call(
-                bindings_client, 'releases/', verb='POST', auth=True,
-                data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
-                      'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
-                      'pending_stable_tag': 'f27-updates-pending',
-                      'pending_signing_tag': 'f27-signing-pending',
-                      'long_name': 'Fedora 27', 'state': 'pending',
-                      'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
-                      'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
-                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'edited_fedora_errata_template', 'composed_by_bodhi': True,
-                      'create_automatic_updates': False, 'package_manager': 'unspecified',
-                      'testing_repository': None}))
+        assert send_request.call_count == 2
+        assert send_request.mock_calls[0] == mock.call(bindings_client,
+                                                       'releases/F27',
+                                                       verb='GET',
+                                                       auth=True)
+        assert send_request.mock_calls[1] == mock.call(
+            bindings_client, 'releases/', verb='POST', auth=True,
+            data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
+                  'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
+                  'pending_stable_tag': 'f27-updates-pending',
+                  'pending_signing_tag': 'f27-signing-pending',
+                  'long_name': 'Fedora 27', 'state': 'pending',
+                  'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
+                  'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
+                  'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
+                  'mail_template': 'edited_fedora_errata_template', 'composed_by_bodhi': True,
+                  'create_automatic_updates': False, 'package_manager': 'unspecified',
+                  'testing_repository': None})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2504,27 +2488,27 @@ class TestEditRelease(unittest.TestCase):
             client.edit_release,
             ['--name', 'F27', '--not-composed-by-bodhi'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_RELEASE_OUTPUT
         bindings_client = send_request.mock_calls[0][1][0]
-        self.assertEqual(send_request.call_count, 2)
-        self.assertEqual(send_request.mock_calls[0],
-                         mock.call(bindings_client, 'releases/F27', verb='GET', auth=True))
-        self.assertEqual(
-            send_request.mock_calls[1],
-            mock.call(
-                bindings_client, 'releases/', verb='POST', auth=True,
-                data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
-                      'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
-                      'pending_stable_tag': 'f27-updates-pending',
-                      'pending_signing_tag': 'f27-signing-pending',
-                      'long_name': 'Fedora 27', 'state': 'pending',
-                      'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
-                      'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
-                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'fedora_errata_template',
-                      'composed_by_bodhi': False, 'package_manager': 'unspecified',
-                      'testing_repository': None, 'create_automatic_updates': False}))
+        assert send_request.call_count == 2
+        assert send_request.mock_calls[0] == mock.call(bindings_client,
+                                                       'releases/F27',
+                                                       verb='GET',
+                                                       auth=True)
+        assert send_request.mock_calls[1] == mock.call(
+            bindings_client, 'releases/', verb='POST', auth=True,
+            data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
+                  'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
+                  'pending_stable_tag': 'f27-updates-pending',
+                  'pending_signing_tag': 'f27-signing-pending',
+                  'long_name': 'Fedora 27', 'state': 'pending',
+                  'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
+                  'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
+                  'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
+                  'mail_template': 'fedora_errata_template',
+                  'composed_by_bodhi': False, 'package_manager': 'unspecified',
+                  'testing_repository': None, 'create_automatic_updates': False})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2540,30 +2524,30 @@ class TestEditRelease(unittest.TestCase):
             client.edit_release,
             ['--name', 'F27', '--create-automatic-updates'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, client_test_data.EXPECTED_RELEASE_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_RELEASE_OUTPUT
         bindings_client = send_request.mock_calls[0][1][0]
-        self.assertEqual(send_request.call_count, 2)
-        self.assertEqual(send_request.mock_calls[0],
-                         mock.call(bindings_client, 'releases/F27', verb='GET', auth=True))
-        self.assertEqual(
-            send_request.mock_calls[1],
-            mock.call(
-                bindings_client, 'releases/', verb='POST', auth=True,
-                data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
-                      'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
-                      'pending_stable_tag': 'f27-updates-pending',
-                      'pending_signing_tag': 'f27-signing-pending',
-                      'long_name': 'Fedora 27', 'state': 'pending',
-                      'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
-                      'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
-                      'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
-                      'mail_template': 'fedora_errata_template',
-                      'composed_by_bodhi': True, 'create_automatic_updates': True,
-                      'package_manager': 'unspecified', 'testing_repository': None}))
+        assert send_request.call_count == 2
+        assert send_request.mock_calls[0] == mock.call(bindings_client,
+                                                       'releases/F27',
+                                                       verb='GET',
+                                                       auth=True)
+        assert send_request.mock_calls[1] == mock.call(
+            bindings_client, 'releases/', verb='POST', auth=True,
+            data={'dist_tag': 'f27', 'csrf_token': 'a_csrf_token', 'staging': False,
+                  'name': 'F27', 'testing_tag': 'f27-updates-testing', 'edited': 'F27',
+                  'pending_stable_tag': 'f27-updates-pending',
+                  'pending_signing_tag': 'f27-signing-pending',
+                  'long_name': 'Fedora 27', 'state': 'pending',
+                  'version': '27', 'override_tag': 'f27-override', 'branch': 'f27',
+                  'id_prefix': 'FEDORA', 'pending_testing_tag': 'f27-updates-testing-pending',
+                  'stable_tag': 'f27-updates', 'candidate_tag': 'f27-updates-candidate',
+                  'mail_template': 'fedora_errata_template',
+                  'composed_by_bodhi': True, 'create_automatic_updates': True,
+                  'package_manager': 'unspecified', 'testing_repository': None})
 
 
-class TestInfo(unittest.TestCase):
+class TestInfo:
     """
     Test the info() function.
     """
@@ -2579,13 +2563,12 @@ class TestInfo(unittest.TestCase):
 
         result = runner.invoke(client.info_release, ['--url', 'http://localhost:6543', 'F27'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output,
-                         client_test_data.EXPECTED_RELEASE_OUTPUT.replace('Saved r', 'R'))
+        assert result.exit_code == 0
+        assert result.output == client_test_data.EXPECTED_RELEASE_OUTPUT.replace('Saved r', 'R')
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(bindings_client, 'releases/F27', verb='GET',
                                              auth=False)
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2600,11 +2583,11 @@ class TestInfo(unittest.TestCase):
 
         result = runner.invoke(client.info_release, ['--url', 'http://localhost:6543', 'F27'])
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, ("ERROR: an error was encountered... :(\n"))
+        assert result.exit_code == 1
+        assert result.output == "ERROR: an error was encountered... :(\n"
 
 
-class TestListReleases(unittest.TestCase):
+class TestListReleases:
     """
     Test the list_releases() function.
     """
@@ -2627,15 +2610,15 @@ class TestListReleases(unittest.TestCase):
             client_test_data.EXPECTED_FROZEN_RELEASES_LIST_OUTPUT,
         )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, expected_output)
+        assert result.exit_code == 0
+        assert result.output == expected_output
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'releases/', params={
                 'rows_per_page': None, 'page': None, 'exclude_archived': True
             }, verb='GET'
         )
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2658,15 +2641,15 @@ class TestListReleases(unittest.TestCase):
             client_test_data.EXPECTED_FROZEN_RELEASES_LIST_OUTPUT,
         )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, expected_output)
+        assert result.exit_code == 0
+        assert result.output == expected_output
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'releases/', params={
                 'rows_per_page': 4, 'page': 1, 'exclude_archived': True
             }, verb='GET'
         )
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2689,15 +2672,15 @@ class TestListReleases(unittest.TestCase):
             client_test_data.EXPECTED_CURRENT_RELEASES_LIST_OUTPUT,
         )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, expected_output)
+        assert result.exit_code == 0
+        assert result.output == expected_output
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'releases/', params={
                 'rows_per_page': None, 'page': None, 'exclude_archived': False
             }, verb='GET'
         )
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2712,18 +2695,18 @@ class TestListReleases(unittest.TestCase):
 
         result = runner.invoke(client.list_releases, ['--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 2)
-        self.assertEqual(result.output, ("an error was encountered... :(\n"))
+        assert result.exit_code == 2
+        assert result.output == "an error was encountered... :(\n"
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
             bindings_client, 'releases/', params={
                 'rows_per_page': None, 'page': None, 'exclude_archived': True
             }, verb='GET'
         )
-        self.assertEqual(bindings_client.base_url, 'http://localhost:6543/')
+        assert bindings_client.base_url == 'http://localhost:6543/'
 
 
-class TestPrintReleasesList(unittest.TestCase):
+class TestPrintReleasesList:
     """
     Test the print_releases_list() function
     """
@@ -2734,9 +2717,9 @@ class TestPrintReleasesList(unittest.TestCase):
 
         client.print_releases_list(releases)
 
-        self.assertEqual(echo.call_count, 2)
-        self.assertEqual(echo.mock_calls[0][1][0], 'pending:')
-        self.assertEqual(echo.mock_calls[1][1][0], '  Name:                test_name')
+        assert echo.call_count == 2
+        assert echo.mock_calls[0][1][0] == 'pending:'
+        assert echo.mock_calls[1][1][0] == '  Name:                test_name'
 
     @mock.patch('bodhi.client.click.echo')
     def test_only_archived_state(self, echo):
@@ -2745,9 +2728,9 @@ class TestPrintReleasesList(unittest.TestCase):
 
         client.print_releases_list(releases)
 
-        self.assertEqual(echo.call_count, 2)
-        self.assertEqual(echo.mock_calls[0][1][0], '\narchived:')
-        self.assertEqual(echo.mock_calls[1][1][0], '  Name:                test_name')
+        assert echo.call_count == 2
+        assert echo.mock_calls[0][1][0] == '\narchived:'
+        assert echo.mock_calls[1][1][0] == '  Name:                test_name'
 
     @mock.patch('bodhi.client.click.echo')
     def test_only_current_state(self, echo):
@@ -2756,12 +2739,12 @@ class TestPrintReleasesList(unittest.TestCase):
 
         client.print_releases_list(releases)
 
-        self.assertEqual(echo.call_count, 2)
-        self.assertEqual(echo.mock_calls[0][1][0], '\ncurrent:')
-        self.assertEqual(echo.mock_calls[1][1][0], '  Name:                test_name')
+        assert echo.call_count == 2
+        assert echo.mock_calls[0][1][0] == '\ncurrent:'
+        assert echo.mock_calls[1][1][0] == '  Name:                test_name'
 
 
-class TestHandleErrors(unittest.TestCase):
+class TestHandleErrors:
     """
     Test the handle_errors decorator
     """
@@ -2780,8 +2763,8 @@ class TestHandleErrors(unittest.TestCase):
             client.save_buildroot_overrides,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
 
-        self.assertEqual(result.exit_code, 2)
-        self.assertEqual("Pants Exception\n", result.output)
+        assert result.exit_code == 2
+        assert result.output == "Pants Exception\n"
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2797,12 +2780,11 @@ class TestHandleErrors(unittest.TestCase):
             client.save_buildroot_overrides,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual("Authentication failed: Check your FAS username & password\n",
-                         result.output)
+        assert result.exit_code == 1
+        assert result.output == "Authentication failed: Check your FAS username & password\n"
 
 
-class TestPrintResp(unittest.TestCase):
+class TestPrintResp:
     """
     Test the print_resp() method.
     """
@@ -2823,7 +2805,7 @@ class TestPrintResp(unittest.TestCase):
 
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace('example.com/tests',
                                                                           'localhost:6543')
-        self.assertTrue(compare_output(result.output, expected_output))
+        assert compare_output(result.output, expected_output)
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2837,7 +2819,7 @@ class TestPrintResp(unittest.TestCase):
 
         result = runner.invoke(client.query, ['--url', 'http://example.com/tests'])
 
-        self.assertTrue('updates found' not in result.output)
+        assert 'updates found' not in result.output
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2853,7 +2835,7 @@ class TestPrintResp(unittest.TestCase):
             client.query,
             [])
 
-        self.assertEqual(result.output, "{'pants': 'pants'}\n")
+        assert result.output == "{'pants': 'pants'}\n"
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -2869,10 +2851,10 @@ class TestPrintResp(unittest.TestCase):
             client.save_buildroot_overrides,
             ['--user', 'bowlofeggs', '--password', 's3kr3t', 'js-tag-it-2.0-1.fc25'])
 
-        self.assertIn("\nCaveats:\nthis is a caveat\n", result.output)
+        assert "\nCaveats:\nthis is a caveat\n" in result.output
 
 
-class TestWaive(unittest.TestCase):
+class TestWaive:
     """
     Test the waive() function.
     """
@@ -2891,9 +2873,8 @@ class TestWaive(unittest.TestCase):
             ]
         )
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(
-            result.output,
+        assert result.exit_code == 1
+        assert result.output == (
             'ERROR: You can not list the unsatisfied requirements and waive them at '
             'the same time, please use either --show or --test=... but not both.\n')
 
@@ -2909,10 +2890,8 @@ class TestWaive(unittest.TestCase):
             client.waive,
             ['--show', 'nodejs-grunt-wrap-0.3.0-2.fc25', '--url', 'http://localhost:6543'])
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(
-            result.output,
-            'Could not retrieve the unsatisfied requirements from bodhi.\n')
+        assert result.exit_code == 0
+        assert result.output == 'Could not retrieve the unsatisfied requirements from bodhi.\n'
         bindings_client = send_request.mock_calls[0][1][0]
 
         send_request.assert_called_once_with(
@@ -2940,9 +2919,8 @@ class TestWaive(unittest.TestCase):
             ['--show', 'FEDORA-2017-cc8582d738', '--url', 'http://localhost:6543']
         )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(
-            result.output,
+        assert result.exit_code == 0
+        assert result.output == (
             'One or more errors occurred while retrieving the unsatisfied requirements:\n'
             '  - Could not contact greenwave, error code was 500\n')
 
@@ -2988,9 +2966,8 @@ class TestWaive(unittest.TestCase):
             ['--show', 'FEDORA-2017-cc8582d738', '--url', 'http://localhost:6543']
         )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(
-            result.output,
+        assert result.exit_code == 0
+        assert result.output == (
             'CI status: Two missing tests\nMissing tests:\n'
             '  - dist.rpmdeplint\n'
             '  - fedora-atomic-ci\n')
@@ -3016,9 +2993,8 @@ class TestWaive(unittest.TestCase):
             ['--show', 'FEDORA-2017-cc8582d738', '--url', 'http://localhost:6543']
         )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(
-            result.output,
+        assert result.exit_code == 0
+        assert result.output == (
             'CI status: No tests required\n'
             'Missing tests: None\n')
 
@@ -3034,10 +3010,9 @@ class TestWaive(unittest.TestCase):
              '--url', 'http://localhost:6543']
         )
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(
-            result.output,
-            'ERROR: A comment is mandatory when waiving unsatisfied requirements\n')
+        assert result.exit_code == 1
+        assert result.output == ('ERROR: A comment is mandatory when waiving '
+                                 'unsatisfied requirements\n')
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -3064,9 +3039,9 @@ class TestWaive(unittest.TestCase):
              '--url', 'http://localhost:6543']
         )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn('Waiving all unsatisfied requirements\n', result.output)
-        self.assertIn('CI Status: All tests passed\n', result.output)
+        assert result.exit_code == 0
+        assert 'Waiving all unsatisfied requirements\n' in result.output
+        assert 'CI Status: All tests passed\n' in result.output
 
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
@@ -3084,7 +3059,7 @@ class TestWaive(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -3112,11 +3087,10 @@ class TestWaive(unittest.TestCase):
              '--url', 'http://localhost:6543']
         )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn(
-            'Waiving unsatisfied requirements: dist.rpmdeplint, fedora-atomic-ci\n',
-            result.output)
-        self.assertIn('CI Status: All tests passed\n', result.output)
+        assert result.exit_code == 0
+        assert ('Waiving unsatisfied requirements: dist.rpmdeplint, fedora-atomic-ci\n'
+                in result.output)
+        assert 'CI Status: All tests passed\n' in result.output
 
         bindings_client = send_request.mock_calls[0][1][0]
         calls = [
@@ -3135,10 +3109,10 @@ class TestWaive(unittest.TestCase):
                 verb='GET'
             )
         ]
-        self.assertEqual(send_request.mock_calls, calls)
+        assert send_request.mock_calls == calls
 
 
-class TestTriggerTests(unittest.TestCase):
+class TestTriggerTests:
     """
     Test the trigger_tests() function.
     """
@@ -3164,8 +3138,8 @@ class TestTriggerTests(unittest.TestCase):
              '--url', 'http://localhost:6543']
         )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertIn("Tests triggered", result.output)
+        assert result.exit_code == 0
+        assert "Tests triggered" in result.output
 
         bindings_client = send_request.mock_calls[0][1][0]
         send_request.assert_called_once_with(
