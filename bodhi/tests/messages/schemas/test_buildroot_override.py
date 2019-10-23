@@ -15,15 +15,13 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Unit tests for the buildroot_override message schemas."""
 
-import unittest
-
 from bodhi.messages.schemas import base
 from bodhi.messages.schemas.buildroot_override import (BuildrootOverrideTagV1,
                                                        BuildrootOverrideUntagV1)
 from bodhi.tests.messages.utils import check_message
 
 
-class BuildrootOverrideMessageTests(unittest.TestCase):
+class TestBuildrootOverrideMessage:
     """A set of unit tests for classes in :py:mod:`bodhi_messages.schemas.buildroot_override`"""
 
     def test_tag_v1(self):
