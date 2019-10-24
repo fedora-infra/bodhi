@@ -26,9 +26,9 @@ import os
 import shutil
 import tempfile
 import time
-import unittest
 from http.client import IncompleteRead
 
+import pytest
 from click import testing
 from fedora_messaging import api
 from fedora_messaging.testing import mock_sends
@@ -79,7 +79,7 @@ mock_absent_taskotron_results = {
 }
 
 
-class TestTask(unittest.TestCase):
+class TestTask:
     @mock.patch("bodhi.server.tasks.bugs")
     @mock.patch("bodhi.server.tasks.buildsys")
     @mock.patch("bodhi.server.tasks.initialize_db")
@@ -96,7 +96,7 @@ class TestTask(unittest.TestCase):
         handler.run.assert_called_with(api_version=42, data={"foo": "bar"})
 
 
-class TestCheckpoint(unittest.TestCase):
+class TestCheckpoint:
     """Test the checkpoint() decorator."""
     def test_with_return(self):
         """checkpoint() should raise a ValueError if the wrapped function returns anything."""
@@ -108,10 +108,10 @@ class TestCheckpoint(unittest.TestCase):
             def dont_wrap_me_bro(self):
                 return "I told you not to do this. Now look what happened."
 
-        with self.assertRaises(ValueError) as exc:
+        with pytest.raises(ValueError) as exc:
             TestClass().dont_wrap_me_bro()
 
-        self.assertEqual(str(exc.exception), 'checkpointed functions may not return stuff')
+            assert 'checkpointed functions may not return stuff' in str(exc.value)
 
 
 @mock.patch('bodhi.server.push.initialize_db', mock.MagicMock())
@@ -147,11 +147,11 @@ def _make_task(transactional_session_maker, extra_push_args=None):
      'pungi.conf.rpm': 'pungi.rpm.conf',
      'pungi.conf.module': 'pungi.module.conf',
      'pungi.cmd': '/usr/bin/true'})
-class TestComposer(base.BaseTestCase):
+class TestComposer(base.BasePyTestCase):
     """Test the Handler class."""
 
-    def setUp(self):
-        super(TestComposer, self).setUp()
+    def setup_method(self, method):
+        super(TestComposer, self).setup_method(method)
         self._new_compose_stage_dir = tempfile.mkdtemp()
 
         # Since the ComposerThread is a subclass of Thread and since it is already constructed
@@ -167,10 +167,9 @@ class TestComposer(base.BaseTestCase):
         test_config['compose_stage_dir'] = self._new_compose_stage_dir
         test_config['compose_dir'] = os.path.join(self._new_compose_stage_dir, 'compose')
 
-        mock_config = mock.patch.dict(
+        self.mock_config = mock.patch.dict(
             'bodhi.server.tasks.composer.config', test_config)
-        mock_config.start()
-        self.addCleanup(mock_config.stop)
+        self.mock_config.start()
 
         os.makedirs(os.path.join(self._new_compose_stage_dir, 'compose'))
 
@@ -189,18 +188,20 @@ class TestComposer(base.BaseTestCase):
         self.semmock = mock.MagicMock()
         self.handler.max_composes_sem = self.semmock
 
-    def tearDown(self):
+    def teardown_method(self, method):
         """Call assert_sems and remove temporary files."""
-        super(TestComposer, self).tearDown()
+        super(TestComposer, self).teardown_method(method)
 
         self.assert_sems(self.expected_sems)
 
         shutil.rmtree(self.tempdir)
         shutil.rmtree(self._new_compose_stage_dir)
 
+        self.mock_config.stop()
+
     def assert_sems(self, nr_expected):
-        self.assertEqual(self.semmock.acquire.call_count, nr_expected)
-        self.assertEqual(self.semmock.release.call_count, self.semmock.acquire.call_count)
+        assert self.semmock.acquire.call_count == nr_expected
+        assert self.semmock.release.call_count == self.semmock.acquire.call_count
 
     def set_stable_request(self, nvr: str):
         with self.db_factory() as session:
@@ -310,18 +311,20 @@ That was the actual one''' % compose_dir
 
         for s in ('pungi.cmd', 'compose_dir', 'compose_stage_dir'):
             with mock.patch.dict('bodhi.server.config.config', {s: '/does/really/not/exist'}):
-                with self.assertRaises(ValueError) as exc:
+                with pytest.raises(ValueError) as exc:
                     ComposerHandler(db_factory=self.db_factory, compose_dir=self.tempdir)
 
-            self.assertEqual(str(exc.exception),
-                             f"'/does/really/not/exist' does not exist. Check the {s} setting.")
+                assert (
+                    f"'/does/really/not/exist' does not exist. Check the {s} setting."
+                    in str(exc.value)
+                )
 
     @mock.patch('bodhi.server.tasks.composer.transactional_session_maker')
     def test___init___without_db_factory(self, transactional_session_maker):
         """__init__() should make its own db_factory if not given one."""
         m = ComposerHandler(compose_dir=self.tempdir)
 
-        self.assertEqual(m.db_factory, transactional_session_maker.return_value)
+        assert m.db_factory == transactional_session_maker.return_value
         transactional_session_maker.assert_called_once_with()
 
     def test__get_composes_api_2(self):
@@ -330,28 +333,27 @@ That was the actual one''' % compose_dir
         api_version = task.pop("api_version")
         composes = self.handler._get_composes(api_version, task)
 
-        self.assertEqual(len(composes), 1)
+        assert len(composes) == 1
         with self.db_factory() as db:
             compose = Compose.from_dict(db, composes[0])
-            self.assertEqual(
-                composes,
+            assert composes == \
                 [{'content_type': compose.content_type.value, 'release_id': compose.release.id,
-                  'request': compose.request.value, 'security': compose.security}])
-            self.assertEqual(compose.state, ComposeState.pending)
+                  'request': compose.request.value, 'security': compose.security}]
+            assert compose.state == ComposeState.pending
 
     def test__get_composes_api_3(self):
         """Test _get_composes() with API version 3, which is currently unsupported."""
         task = self._make_task()
         task.pop("api_version")
 
-        with self.assertRaises(ValueError) as exc:
+        with pytest.raises(ValueError) as exc:
             self.handler._get_composes(3, task)
 
-        self.assertEqual(str(exc.exception), 'Unable to process request: {}'.format(task))
+            assert f'Unable to process request: {task}' in str(exc.value)
         with self.db_factory() as db:
             compose = db.query(Compose).one()
             # The Compose's state should not have been altered.
-            self.assertEqual(compose.state, ComposeState.requested)
+            assert compose.state == ComposeState.requested
 
     @mock.patch('bodhi.server.tasks.composer.log.info')
     def test__get_composes_not_found(self, info):
@@ -367,7 +369,7 @@ That was the actual one''' % compose_dir
         task['composes'][0]['release_id'] = 65535
 
         composes = self.handler._get_composes(api_version, task)
-        self.assertEqual(composes, [])
+        assert composes == []
         info.assert_called_once_with(
             'Ignoring a compose task that references non-existing Composes')
 
@@ -376,9 +378,9 @@ That was the actual one''' % compose_dir
         task = self._make_task()
         api_version = task.pop("api_version")
         composes = self.handler._get_composes(api_version, task)
-        self.assertEqual(len(composes), 1)
+        assert len(composes) == 1
         composes = self.handler._get_composes(api_version, task)
-        self.assertEqual(len(composes), 0)
+        assert len(composes) == 0
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -412,10 +414,10 @@ That was the actual one''' % compose_dir
         with self.db_factory() as session:
             # Ensure that the update was locked
             up = session.query(Update).one()
-            self.assertTrue(up.locked)
+            assert up.locked
 
             # Ensure we can't set a request
-            with self.assertRaises(LockedUpdateException):
+            with pytest.raises(LockedUpdateException):
                 up.set_request(session, UpdateRequest.stable, 'bodhi')
 
     @mock.patch(**mock_taskotron_results)
@@ -458,15 +460,15 @@ That was the actual one''' % compose_dir
             self.handler.run(api_version, task)
 
         # Ensure our single update was moved
-        self.assertEqual(len(self.koji.__moved__), 1)
-        self.assertEqual(len(self.koji.__added__), 0)
-        self.assertEqual(self.koji.__moved__[0],
-                         ('f17-updates-candidate', 'f17-updates-testing', 'bodhi-2.0-1.fc17'))
+        assert len(self.koji.__moved__) == 1
+        assert len(self.koji.__added__) == 0
+        assert self.koji.__moved__[0] == \
+            ('f17-updates-candidate', 'f17-updates-testing', 'bodhi-2.0-1.fc17')
 
         # The override tag won't get removed until it goes to stable
-        self.assertEqual(self.koji.__untag__[0], (pending_signing_tag, nvr))
-        self.assertEqual(self.koji.__untag__[1], (pending_testing_tag, nvr))
-        self.assertEqual(len(self.koji.__untag__), 2)
+        assert self.koji.__untag__[0] == (pending_signing_tag, nvr)
+        assert self.koji.__untag__[1] == (pending_testing_tag, nvr)
+        assert len(self.koji.__untag__) == 2
 
         with self.db_factory() as session:
             # Set the update request to stable and the release to pending
@@ -495,19 +497,19 @@ That was the actual one''' % compose_dir
 
         # Ensure that stable updates to pending releases get their
         # tags added, not removed
-        self.assertEqual(len(self.koji.__moved__), 0)
-        self.assertEqual(len(self.koji.__added__), 1)
-        self.assertEqual(self.koji.__added__[0], ('f17', 'bodhi-2.0-1.fc17'))
-        self.assertEqual(self.koji.__untag__[0], (override_tag, 'bodhi-2.0-1.fc17'))
+        assert len(self.koji.__moved__) == 0
+        assert len(self.koji.__added__) == 1
+        assert self.koji.__added__[0] == ('f17', 'bodhi-2.0-1.fc17')
+        assert self.koji.__untag__[0] == (override_tag, 'bodhi-2.0-1.fc17')
 
         # Check that the override got expired
         with self.db_factory() as session:
             ovrd = session.query(BuildrootOverride).one()
-            self.assertIsNotNone(ovrd.expired_date)
+            assert ovrd.expired_date is not None
 
             # Check that the request_complete method got run
             up = session.query(Update).one()
-            self.assertIsNone(up.request)
+            assert up.request is None
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -556,14 +558,14 @@ That was the actual one''' % compose_dir
             self.handler.run(api_version, task)
 
         # Ensure our two updates were moved
-        self.assertEqual(len(self.koji.__moved__), 2)
-        self.assertEqual(len(self.koji.__added__), 0)
+        assert len(self.koji.__moved__) == 2
+        assert len(self.koji.__added__) == 0
 
         # Ensure the most recent version is tagged last in order to be the 'koji latest-pkg'
-        self.assertEqual(self.koji.__moved__[0],
-                         ('f17-updates-candidate', 'f17-updates-testing', 'bodhi-2.0-1.fc17'))
-        self.assertEqual(self.koji.__moved__[1],
-                         ('f17-updates-candidate', 'f17-updates-testing', 'bodhi-2.0-2.fc17'))
+        assert self.koji.__moved__[0] == \
+            ('f17-updates-candidate', 'f17-updates-testing', 'bodhi-2.0-1.fc17')
+        assert self.koji.__moved__[1] == \
+            ('f17-updates-candidate', 'f17-updates-testing', 'bodhi-2.0-2.fc17')
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -584,9 +586,9 @@ That was the actual one''' % compose_dir
         with mock_sends(*[base_schemas.BodhiMessage] * 4):
             t.run()
 
-        self.assertEqual(t.testing_digest['Fedora 17']['bodhi-2.0-1.fc17'], """\
+        assert t.testing_digest['Fedora 17']['bodhi-2.0-1.fc17'] == f"""\
 ================================================================================
- libseccomp-2.1.0-1.fc20 (FEDORA-%s-a3bbe1a8f2)
+ libseccomp-2.1.0-1.fc20 (FEDORA-{ time.strftime('%Y') }-a3bbe1a8f2)
  Enhanced seccomp library
 --------------------------------------------------------------------------------
 Update Information:
@@ -602,14 +604,14 @@ References:
         https://bugzilla.redhat.com/show_bug.cgi?id=12345
 --------------------------------------------------------------------------------
 
-""" % time.strftime('%Y'))
+"""
 
         mail.assert_called_with(config.get('bodhi_email'),
                                 config.get('fedora_test_announce_list'),
                                 mock.ANY)
-        self.assertEqual(len(mail.mock_calls), 2)
+        assert len(mail.mock_calls) == 2
         body = mail.mock_calls[1][1][2]
-        self.assertTrue(body.startswith(
+        assert body.startswith(
             ('From: updates@fedoraproject.org\r\nTo: %s\r\nX-Bodhi: fedoraproject.org\r\nSubject: '
              'Fedora 17 updates-testing report\r\n\r\nThe following builds have been pushed to '
              'Fedora 17 updates-testing\n\n    bodhi-2.0-1.fc17\n\nDetails about builds:\n\n\n====='
@@ -621,7 +623,7 @@ References:
              '---------------------------------------\nReferences:\n\n  [ 1 ] Bug #12345 - None'
              '\n        https://bugzilla.redhat.com/show_bug.cgi?id=12345\n----------'
              '----------------------------------------------------------------------\n\n') % (
-                config.get('fedora_test_announce_list'), time.strftime('%Y'))))
+                config.get('fedora_test_announce_list'), time.strftime('%Y')))
 
     @mock.patch('bodhi.server.tasks.composer.ComposerThread.save_state')
     def test_compose_invalid_dir(self, save_state):
@@ -634,7 +636,7 @@ References:
             t.db = session
             t.compose = Compose.from_dict(session, task['composes'][0])
             t.release = session.query(Release).filter_by(name='F17').one()
-            with self.assertRaises(Exception) as exc:
+            with pytest.raises(Exception) as exc:
                 fake_popen = mock.MagicMock()
                 fake_stdout = b'''Some output
 Some more output ...... This is not a Compose dir: ....
@@ -645,10 +647,10 @@ That was the actual one'''
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year
                 t._wait_for_pungi(fake_popen)
-            expected_error = ('Directory at /tmp/nonsensical_directory does not look like a '
-                              'compose')
-            expected_error = expected_error.format(datetime.datetime.utcnow().year)
-            self.assertEqual(str(exc.exception), expected_error)
+                expected_error = ('Directory at /tmp/nonsensical_directory does not look like a '
+                                  'compose')
+                expected_error = expected_error.format(datetime.datetime.utcnow().year)
+                assert expected_error in str(exc.value)
             t.db = None
 
     @mock.patch('bodhi.server.tasks.composer.ComposerThread.save_state')
@@ -662,7 +664,7 @@ That was the actual one'''
             t.db = session
             t.compose = Compose.from_dict(session, task['composes'][0])
             t.release = session.query(Release).filter_by(name='F17').one()
-            with self.assertRaises(Exception) as exc:
+            with pytest.raises(Exception) as exc:
                 fake_popen = mock.MagicMock()
                 fake_stdout = b'''Some output
     Some more output ...... This is not a Compose dir: ....
@@ -672,9 +674,9 @@ That was the actual one'''
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year
                 t._wait_for_pungi(fake_popen)
-            expected_error = ('Unable to find the path to the compose')
-            expected_error = expected_error.format(datetime.datetime.utcnow().year)
-            self.assertEqual(str(exc.exception), expected_error)
+                expected_error = ('Unable to find the path to the compose')
+                expected_error = expected_error.format(datetime.datetime.utcnow().year)
+                assert expected_error in str(exc.value)
             t.db = None
 
     @mock.patch('bodhi.server.tasks.composer.ComposerThread.save_state')
@@ -694,11 +696,11 @@ That was the actual one'''
             t.db = None
 
         # test without any arches
-        self.assertIn('completed_repo', t._checkpoints)
-        with self.assertRaises(FileNotFoundError) as exc:
+        assert 'completed_repo' in t._checkpoints
+        with pytest.raises(FileNotFoundError) as exc:
             t._sanity_check_repo()
-        self.assertIn('[Errno 2] No such file or directory', str(exc.exception))
-        self.assertNotIn('completed_repo', t._checkpoints)
+            assert '[Errno 2] No such file or directory' in str(exc.value)
+        assert 'completed_repo' not in t._checkpoints
         save_state.assert_called()
 
     @mock.patch('bodhi.server.tasks.composer.ComposerThread.save_state')
@@ -718,11 +720,11 @@ That was the actual one'''
             t.db = None
 
         # test without any arches
-        self.assertIn('completed_repo', t._checkpoints)
-        with self.assertRaises(Exception) as exc:
+        assert 'completed_repo' in t._checkpoints
+        with pytest.raises(Exception) as exc:
             t._sanity_check_repo()
-        self.assertEqual(str(exc.exception), "Empty compose found")
-        self.assertNotIn('completed_repo', t._checkpoints)
+            assert "Empty compose found" in str(exc.value)
+        assert 'completed_repo' not in t._checkpoints
         save_state.assert_called()
 
     @mock.patch('bodhi.server.tasks.composer.ComposerThread.save_state')
@@ -759,10 +761,10 @@ That was the actual one'''
                                'test.src.rpm'), 'w') as tf:
             tf.write('bar')
 
-        self.assertIn('completed_repo', t._checkpoints)
+        assert 'completed_repo' in t._checkpoints
         save_state.reset_mock()
         t._sanity_check_repo()
-        self.assertIn('completed_repo', t._checkpoints)
+        assert 'completed_repo' in t._checkpoints
         save_state.assert_not_called()
 
     @mock.patch('bodhi.server.tasks.composer.ComposerThread.save_state')
@@ -794,11 +796,11 @@ That was the actual one'''
                 f.write(repomd[:-10])
 
         save_state.assert_called_once_with(ComposeState.punging)
-        self.assertIn('completed_repo', t._checkpoints)
+        assert 'completed_repo' in t._checkpoints
         save_state.reset_mock()
-        with self.assertRaises(exceptions.RepodataException):
+        with pytest.raises(exceptions.RepodataException):
             t._sanity_check_repo()
-        self.assertNotIn('completed_repo', t._checkpoints)
+        assert 'completed_repo' not in t._checkpoints
         save_state.assert_called()
 
     @mock.patch('bodhi.server.tasks.composer.ComposerThread.save_state')
@@ -830,12 +832,12 @@ That was the actual one'''
         os.symlink('/dev/null', os.path.join(t.path, 'compose', 'Everything', 'source', 'tree',
                                              'Packages', 'a', 'test.src.rpm'))
 
-        self.assertIn('completed_repo', t._checkpoints)
+        assert 'completed_repo' in t._checkpoints
         save_state.reset_mock()
-        with self.assertRaises(Exception) as exc:
+        with pytest.raises(Exception) as exc:
             t._sanity_check_repo()
-        self.assertEqual(str(exc.exception), "Symlinks found")
-        self.assertNotIn('completed_repo', t._checkpoints)
+            assert "Symlinks found" in str(exc.value)
+        assert 'completed_repo' not in t._checkpoints
         save_state.assert_called()
 
     @mock.patch('bodhi.server.tasks.composer.ComposerThread.save_state')
@@ -862,12 +864,12 @@ That was the actual one'''
         base.mkmetadatadir(os.path.join(t.path, 'compose', 'Everything', 'source', 'tree'),
                            source=True)
 
-        self.assertIn('completed_repo', t._checkpoints)
+        assert 'completed_repo' in t._checkpoints
         save_state.reset_mock()
-        with self.assertRaises(OSError) as exc:
+        with pytest.raises(OSError) as exc:
             t._sanity_check_repo()
-        self.assertEqual(exc.exception.errno, errno.ENOENT)
-        self.assertNotIn('completed_repo', t._checkpoints)
+            assert exc.value.errno == errno.ENOENT
+        assert 'completed_repo' not in t._checkpoints
         save_state.assert_called()
 
     @mock.patch(**mock_taskotron_results)
@@ -1132,7 +1134,7 @@ That was the actual one'''
         t = PungiComposerThread(self.semmock, task['composes'][0], 'ralph',
                                 self.db_factory, self.tempdir)
 
-        with self.assertRaises(NotImplementedError):
+        with pytest.raises(NotImplementedError):
             t._copy_additional_pungi_files(None, None)
 
     @mock.patch(**mock_taskotron_results)
@@ -1161,12 +1163,12 @@ That was the actual one'''
             with mock_sends(*[base_schemas.BodhiMessage] * 3):
                 t.run()
 
-        self.assertFalse(t.success)
+        assert not t.success
         with self.db_factory() as db:
             compose = Compose.from_dict(db, task['composes'][0])
-            self.assertEqual(compose.state, ComposeState.failed)
-            self.assertEqual(compose.error_message, 'Pungi returned error, aborting!')
-        self.assertEqual(t._checkpoints, {'determine_and_perform_tag_actions': True})
+            assert compose.state == ComposeState.failed
+            assert compose.error_message == 'Pungi returned error, aborting!'
+        assert t._checkpoints == {'determine_and_perform_tag_actions': True}
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
@@ -1194,11 +1196,11 @@ That was the actual one'''
                     with mock_sends(*[base_schemas.BodhiMessage] * 3):
                         t.run()
 
-            self.assertFalse(t.success)
+            assert not t.success
             compose = Compose.from_dict(session, task['composes'][0])
-            self.assertEqual(compose.state, ComposeState.failed)
-            self.assertEqual(compose.error_message, 'Pungi exited with status 1')
-        self.assertEqual(t._checkpoints, {'determine_and_perform_tag_actions': True})
+            assert compose.state == ComposeState.failed
+            assert compose.error_message == 'Pungi exited with status 1'
+        assert t._checkpoints == {'determine_and_perform_tag_actions': True}
 
     @mock.patch.dict('bodhi.server.tasks.composer.config', {'clean_old_composes': False})
     @mock.patch(**mock_taskotron_results)
@@ -1264,24 +1266,22 @@ That was the actual one'''
             and not d.startswith("Fedora-17-updates")])
 
         # No dirs should have been removed since we had clean_old_composes set False.
-        self.assertEqual(actual_dirs, dirs)
+        assert actual_dirs == dirs
         # The cool file should still be here
         actual_files = [f for f in os.listdir(compose_dir)
                         if os.path.isfile(os.path.join(compose_dir, f))]
-        self.assertEqual(actual_files, ['COOL_FILE.txt'])
+        assert actual_files == ['COOL_FILE.txt']
 
-        self.assertEqual(
-            Popen.mock_calls,
+        assert Popen.mock_calls == \
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
                  '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
                  t.compose_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.compose_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
-                stdout=mock.ANY)])
+                stdout=mock.ANY)]
         d = datetime.datetime.utcnow()
-        self.assertEqual(
-            t._checkpoints,
+        assert t._checkpoints == \
             {'completed_repo': os.path.join(
                 compose_dir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
              'compose_done': True,
@@ -1289,8 +1289,8 @@ That was the actual one'''
              'modify_bugs': True,
              'send_stable_announcements': True,
              'send_testing_digest': True,
-             'status_comments': True})
-        self.assertTrue(os.path.exists(compose_dir))
+             'status_comments': True}
+        assert os.path.exists(compose_dir)
 
     @mock.patch.dict('bodhi.server.tasks.composer.config', {'clean_old_composes': True})
     @mock.patch(**mock_taskotron_results)
@@ -1368,24 +1368,22 @@ That was the actual one'''
             and not d.startswith("Fedora-17-updates")])
 
         # Assert that remove_old_composes removes the correct items and leaves the rest in place.
-        self.assertEqual(actual_dirs, expected_dirs)
+        assert actual_dirs == expected_dirs
         # The cool file should still be here
         actual_files = [f for f in os.listdir(compose_dir)
                         if os.path.isfile(os.path.join(compose_dir, f))]
-        self.assertEqual(actual_files, ['COOL_FILE.txt'])
+        assert actual_files == ['COOL_FILE.txt']
 
-        self.assertEqual(
-            Popen.mock_calls,
+        assert Popen.mock_calls == \
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
                  '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
                  t.compose_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.compose_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
-                stdout=mock.ANY)])
+                stdout=mock.ANY)]
         d = datetime.datetime.utcnow()
-        self.assertEqual(
-            t._checkpoints,
+        assert t._checkpoints == \
             {'completed_repo': os.path.join(
                 compose_dir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
              'compose_done': True,
@@ -1393,8 +1391,8 @@ That was the actual one'''
              'modify_bugs': True,
              'send_stable_announcements': True,
              'send_testing_digest': True,
-             'status_comments': True})
-        self.assertTrue(os.path.exists(compose_dir))
+             'status_comments': True}
+        assert os.path.exists(compose_dir)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
@@ -1429,18 +1427,16 @@ That was the actual one'''
                     with mock_sends(*expected_messages):
                         t.run()
 
-        self.assertEqual(
-            Popen.mock_calls,
+        assert Popen.mock_calls == \
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
                  '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
                  t.compose_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.compose_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
-                stdout=mock.ANY)])
+                stdout=mock.ANY)]
         d = datetime.datetime.utcnow()
-        self.assertEqual(
-            t._checkpoints,
+        assert t._checkpoints == \
             {'completed_repo': os.path.join(
                 compose_dir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
              'compose_done': True,
@@ -1448,8 +1444,8 @@ That was the actual one'''
              'modify_bugs': True,
              'send_stable_announcements': True,
              'send_testing_digest': True,
-             'status_comments': True})
-        self.assertTrue(os.path.exists(compose_dir))
+             'status_comments': True}
+        assert os.path.exists(compose_dir)
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
@@ -1513,11 +1509,11 @@ That was the actual one'''
                 with mock_sends(*expected_messages):
                     t.run()
 
-        self.assertEqual(list(t._module_defs), [{'context': '2',
-                                                 'version': '20172',
-                                                 'name': 'testmodule',
-                                                 'stream': 'master'}])
-        self.assertEqual(t._module_list, ['testmodule:master:20172'])
+        assert list(t._module_defs) == [{'context': '2',
+                                         'version': '20172',
+                                         'name': 'testmodule',
+                                         'stream': 'master'}]
+        assert t._module_list == ['testmodule:master:20172']
 
         EXPECTED_VARIANTS = '''Raw NSVs:
 testmodule:master:20172
@@ -1525,20 +1521,18 @@ testmodule:master:20172
 Calculated NSVCs:
 testmodule:master:20172:2
 '''
-        self.assertEqual(t._variants_file, EXPECTED_VARIANTS)
+        assert t._variants_file == EXPECTED_VARIANTS
 
-        self.assertEqual(
-            Popen.mock_calls,
+        assert Popen.mock_calls == \
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
                  '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
                  t.compose_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.compose_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
-                stdout=mock.ANY)])
+                stdout=mock.ANY)]
         d = datetime.datetime.utcnow()
-        self.assertEqual(
-            t._checkpoints,
+        assert t._checkpoints == \
             {'completed_repo': os.path.join(
                 self.tempdir,
                 'Fedora-27-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
@@ -1547,7 +1541,7 @@ testmodule:master:20172:2
              'modify_bugs': True,
              'send_stable_announcements': True,
              'send_testing_digest': True,
-             'status_comments': True})
+             'status_comments': True}
 
     def test_compose_module_koji_multicall_result_empty_list(self):
         release = self.create_release('27M')
@@ -1558,12 +1552,13 @@ testmodule:master:20172:2
                             package=package)
         t = ModuleComposerThread(self.semmock, {}, 'puiterwijk', log, self.db_factory,
                                  self.tempdir)
-        with self.assertRaises(Exception) as exc:
+        with pytest.raises(Exception) as exc:
             t._raise_on_get_build_multicall_error([], build)
 
-        self.assertEqual(
-            str(exc.exception),
-            'Empty list returned for getBuild("%s").' % (build.nvr))
+            assert (
+                f'Empty list returned for getBuild("{ build.nvr }").'
+                in str(exc.value)
+            )
 
     def test_compose_module_koji_multicall_result_dict(self):
         release = self.create_release('27M')
@@ -1574,12 +1569,13 @@ testmodule:master:20172:2
                             package=package)
         t = ModuleComposerThread(self.semmock, {}, 'puiterwijk', log, self.db_factory,
                                  self.tempdir)
-        with self.assertRaises(Exception) as exc:
+        with pytest.raises(Exception) as exc:
             t._raise_on_get_build_multicall_error({}, build)
 
-        self.assertEqual(
-            str(exc.exception),
-            'Unexpected data returned for getBuild("%s"): {}.' % (build.nvr))
+            assert (
+                f'Unexpected data returned for getBuild("{ build.nvr }"): {{}}.'
+                in str(exc.value)
+            )
 
     @mock.patch(**mock_failed_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
@@ -1610,18 +1606,16 @@ testmodule:master:20172:2
                 with mock_sends(*expected_messages):
                     t.run()
 
-        self.assertEqual(
-            Popen.mock_calls,
+        assert Popen.mock_calls == \
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
                  '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
                  t.compose_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.compose_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
-                stdout=mock.ANY)])
+                stdout=mock.ANY)]
         d = datetime.datetime.utcnow()
-        self.assertEqual(
-            t._checkpoints,
+        assert t._checkpoints == \
             {'completed_repo': os.path.join(
                 self.tempdir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
              'compose_done': True,
@@ -1629,7 +1623,7 @@ testmodule:master:20172:2
              'modify_bugs': True,
              'send_stable_announcements': True,
              'send_testing_digest': True,
-             'status_comments': True})
+             'status_comments': True}
 
     @mock.patch.dict(config, {'test_gating.required': True})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
@@ -1668,13 +1662,12 @@ testmodule:master:20172:2
                     t.run()
 
         u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        self.assertEqual(
-            u.comments[-1].text,
+        assert u.comments[-1].text == \
             (f"{u.alias} ejected from the push because 'Required tests did not pass on this "
-             "update'"))
+             "update'")
         # The request got sent back to None since it was ejected.
-        self.assertEqual(u.request, None)
-        self.assertEqual(u.status, UpdateStatus.pending)
+        assert u.request is None
+        assert u.status == UpdateStatus.pending
 
     @mock.patch.dict(config, {'test_gating.required': True})
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
@@ -1718,10 +1711,10 @@ testmodule:master:20172:2
                     expected_messages[1].body['override'] = u.builds[0].override.__json__()
 
         u = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        self.assertEqual(u.comments[-1].text, 'This update has been pushed to stable.')
+        assert u.comments[-1].text == 'This update has been pushed to stable.'
         # The update should be stable.
-        self.assertEqual(u.request, None)
-        self.assertEqual(u.status, UpdateStatus.stable)
+        assert u.request is None
+        assert u.status == UpdateStatus.stable
 
     @mock.patch(**mock_absent_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
@@ -1752,18 +1745,16 @@ testmodule:master:20172:2
                 with mock_sends(*expected_messages):
                     t.run()
 
-        self.assertEqual(
-            Popen.mock_calls,
+        assert Popen.mock_calls == \
             [mock.call(
                 [config['pungi.cmd'], '--config', '{}/pungi.conf'.format(t._pungi_conf_dir),
                  '--quiet', '--print-output-dir', '--target-dir', t.compose_dir, '--old-composes',
                  t.compose_dir, '--no-latest-link', '--label', t._label],
                 cwd=t.compose_dir, shell=False, stderr=-1,
                 stdin=mock.ANY,
-                stdout=mock.ANY)])
+                stdout=mock.ANY)]
         d = datetime.datetime.utcnow()
-        self.assertEqual(
-            t._checkpoints,
+        assert t._checkpoints == \
             {'completed_repo': os.path.join(
                 self.tempdir, 'Fedora-17-updates-{}{:02}{:02}.0'.format(d.year, d.month, d.day)),
              'compose_done': True,
@@ -1771,7 +1762,7 @@ testmodule:master:20172:2
              'modify_bugs': True,
              'send_stable_announcements': True,
              'send_testing_digest': True,
-             'status_comments': True})
+             'status_comments': True}
 
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
@@ -1846,7 +1837,7 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEqual(len(up.comments), 2)
+            assert len(up.comments) == 2
 
         with mock_sends(*[base_schemas.BodhiMessage] * 5):
             task = self._make_task()
@@ -1855,8 +1846,8 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEqual(len(up.comments), 3)
-            self.assertEqual(up.comments[-1]['text'], 'This update has been pushed to testing.')
+            assert len(up.comments) == 3
+            assert up.comments[-1]['text'] == 'This update has been pushed to testing.'
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -1873,7 +1864,7 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.request = UpdateRequest.stable
-            self.assertEqual(len(up.comments), 2)
+            assert len(up.comments) == 2
 
         with mock_sends(*[base_schemas.BodhiMessage] * 6):
             task = self._make_task()
@@ -1882,8 +1873,8 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEqual(len(up.comments), 3)
-            self.assertEqual(up.comments[-1]['text'], 'This update has been pushed to stable.')
+            assert len(up.comments) == 3
+            assert up.comments[-1]['text'] == 'This update has been pushed to stable.'
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -1909,8 +1900,8 @@ testmodule:master:20172:2
 
             updates = t.get_security_updates(release.long_name)
 
-            self.assertEqual(len(updates), 1)
-            self.assertEqual(updates[0].title, u.builds[0].nvr)
+            assert len(updates) == 1
+            assert updates[0].title == u.builds[0].nvr
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -1927,7 +1918,7 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             up = session.query(Update).one()
             up.request = UpdateRequest.stable
-            self.assertEqual(len(up.comments), 2)
+            assert len(up.comments) == 2
 
         with mock_sends(*[base_schemas.BodhiMessage] * 6):
             task = self._make_task()
@@ -1936,8 +1927,8 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEqual(up.locked, False)
-            self.assertEqual(up.status, UpdateStatus.stable)
+            assert up.locked == False
+            assert up.status == UpdateStatus.stable
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -1966,8 +1957,8 @@ testmodule:master:20172:2
         # Ensure that the update hasn't changed state
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEqual(up.request, UpdateRequest.testing)
-            self.assertEqual(up.status, UpdateStatus.pending)
+            assert up.request == UpdateRequest.testing
+            assert up.status == UpdateStatus.pending
 
         # Resume the push
         task = self._make_task()
@@ -1978,8 +1969,8 @@ testmodule:master:20172:2
 
         with self.db_factory() as session:
             up = session.query(Update).one()
-            self.assertEqual(up.status, UpdateStatus.testing)
-            self.assertEqual(up.request, None)
+            assert up.status == UpdateStatus.testing
+            assert up.request is None
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -2067,7 +2058,7 @@ testmodule:master:20172:2
                 up = session.query(Update).one()
                 up.request = UpdateRequest.testing
                 up.status = UpdateStatus.pending
-                self.assertEqual(up.stable_karma, 3)
+                assert up.stable_karma == 3
             with mock_sends(*[base_schemas.BodhiMessage] * 3):
                 task = self._make_task()
                 api_version = task.pop("api_version")
@@ -2078,21 +2069,21 @@ testmodule:master:20172:2
                 up = session.query(Update).one()
 
                 # Ensure the update is still locked and in testing
-                self.assertEqual(up.locked, True)
-                self.assertEqual(up.status, UpdateStatus.pending)
-                self.assertEqual(up.request, UpdateRequest.testing)
+                assert up.locked
+                assert up.status == UpdateStatus.pending
+                assert up.request == UpdateRequest.testing
 
                 # Have the update reach the stable karma threshold
-                self.assertEqual(up.karma, 1)
+                assert up.karma == 1
                 up.comment(session, "foo", 1, 'foo')
-                self.assertEqual(up.karma, 2)
-                self.assertEqual(up.request, UpdateRequest.testing)
+                assert up.karma == 2
+                assert up.request == UpdateRequest.testing
                 up.comment(session, "foo", 1, 'bar')
-                self.assertEqual(up.karma, 3)
-                self.assertEqual(up.request, UpdateRequest.testing)
+                assert up.karma == 3
+                assert up.request == UpdateRequest.testing
                 up.comment(session, "foo", 1, 'biz')
-                self.assertEqual(up.request, UpdateRequest.testing)
-                self.assertEqual(up.karma, 4)
+                assert up.request == UpdateRequest.testing
+                assert up.karma == 4
 
         # finish push and unlock updates
         task = self._make_task()
@@ -2105,11 +2096,11 @@ testmodule:master:20172:2
             with self.db_factory() as session:
                 up = session.query(Update).one()
                 up.comment(session, "foo", 1, 'baz')
-                self.assertEqual(up.karma, 5)
+                assert up.karma == 5
 
                 # Ensure the composer set the autokarma once the push is done
-                self.assertEqual(up.locked, False)
-                self.assertEqual(up.request, UpdateRequest.stable)
+                assert not up.locked
+                assert up.request == UpdateRequest.stable
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -2144,8 +2135,8 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             # Set the update request to stable and the release to pending
             up = session.query(Update).one()
-            self.assertIsNotNone(up.date_testing)
-            self.assertIsNone(up.date_stable)
+            assert up.date_testing is not None
+            assert up.date_stable is None
             up.request = UpdateRequest.stable
 
         self.koji.clear()
@@ -2165,8 +2156,8 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             # Check that the request_complete method got run
             up = session.query(Update).one()
-            self.assertIsNone(up.request)
-            self.assertIsNotNone(up.date_stable)
+            assert up.request is None
+            assert up.date_stable is not None
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -2209,13 +2200,13 @@ testmodule:master:20172:2
         with self.db_factory() as session:
             # Ensure that the older update got obsoleted
             up = session.query(Build).filter_by(nvr=oldbuild).one().update
-            self.assertEqual(up.status, UpdateStatus.obsolete)
-            self.assertEqual(up.request, None)
+            assert up.status == UpdateStatus.obsolete
+            assert up.request is None
 
             # The latest update should be in testing
             up = session.query(Build).filter_by(nvr=otherbuild).one().update
-            self.assertEqual(up.status, UpdateStatus.testing)
-            self.assertEqual(up.request, None)
+            assert up.status == UpdateStatus.testing
+            assert up.request is None
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
@@ -2246,23 +2237,23 @@ testmodule:master:20172:2
         exception_log.assert_called_once_with("Problem expiring override")
 
 
-class ComposerThreadBaseTestCase(base.BaseTestCase):
+class ComposerThreadBaseTestCase(base.BasePyTestCase):
     """Methods that are useful for testing ComposerThread subclasses."""
 
-    def setUp(self):
+    def setup_method(self, method):
         """
         Set up the test conditions.
         """
-        super(ComposerThreadBaseTestCase, self).setUp()
+        super(ComposerThreadBaseTestCase, self).setup_method(method)
         buildsys.setup_buildsystem({'buildsystem': 'dev'})
         self.tempdir = tempfile.mkdtemp()
         self.semmock = mock.MagicMock()
 
-    def tearDown(self):
+    def teardown_method(self, method):
         """
         Clean up after the tests.
         """
-        super(ComposerThreadBaseTestCase, self).tearDown()
+        super(ComposerThreadBaseTestCase, self).teardown_method(method)
         shutil.rmtree(self.tempdir)
         buildsys.teardown_buildsystem()
 
@@ -2274,8 +2265,8 @@ class ComposerThreadBaseTestCase(base.BaseTestCase):
             self.semmock.acquire.assert_called()
             self.semmock.release.assert_called()
 
-        self.assertEqual(self.semmock.acquire.call_count, nr_expected)
-        self.assertEqual(self.semmock.acquire.call_count, self.semmock.release.call_count)
+        assert self.semmock.acquire.call_count == nr_expected
+        assert self.semmock.acquire.call_count == self.semmock.release.call_count
 
     def _make_task(self, extra_push_args=None):
         """
@@ -2290,8 +2281,8 @@ class ComposerThreadBaseTestCase(base.BaseTestCase):
 class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
     """Test ContainerComposerThread._compose_update()."""
 
-    def setUp(self):
-        super(TestContainerComposerThread__compose_updates, self).setUp()
+    def setup_method(self, method):
+        super(TestContainerComposerThread__compose_updates, self).setup_method(method)
 
         user = self.db.query(User).first()
         release = self.create_release('28C')
@@ -2353,7 +2344,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                     shell=False, stderr=-1, stdout=-1, cwd=None)
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
-        self.assertEqual(Popen.mock_calls, expected_mock_calls)
+        assert Popen.mock_calls == expected_mock_calls
 
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
     def test_request_stable(self, Popen):
@@ -2382,7 +2373,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                     shell=False, stderr=-1, stdout=-1, cwd=None)
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
-        self.assertEqual(Popen.mock_calls, expected_mock_calls)
+        assert Popen.mock_calls == expected_mock_calls
 
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
     def test_skopeo_error_code(self, Popen):
@@ -2395,19 +2386,18 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                                     'bowlofeggs', self.Session, self.tempdir)
         t.compose = Compose.from_dict(self.db, task['composes'][0])
 
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             t._compose_updates()
 
-        # Popen should have been called once.
-        skopeo_cmd = [
-            config['skopeo.cmd'], 'copy',
-            'docker://{}/f28/testcontainer1:2.0.1-71.fc28container'.format(
-                config['container.source_registry']),
-            'docker://{}/f28/testcontainer1:2.0.1-71.fc28container'.format(
-                config['container.destination_registry'])]
-        Popen.assert_called_once_with(skopeo_cmd, shell=False, stderr=-1, stdout=-1, cwd=None)
-        self.assertEqual(str(exc.exception),
-                         '{} returned a non-0 exit code: 1'.format(' '.join(skopeo_cmd)))
+            # Popen should have been called once.
+            skopeo_cmd = [
+                config['skopeo.cmd'], 'copy',
+                'docker://{}/f28/testcontainer1:2.0.1-71.fc28container'.format(
+                    config['container.source_registry']),
+                'docker://{}/f28/testcontainer1:2.0.1-71.fc28container'.format(
+                    config['container.destination_registry'])]
+            Popen.assert_called_once_with(skopeo_cmd, shell=False, stderr=-1, stdout=-1, cwd=None)
+            assert f"{' '.join(skopeo_cmd)} returned a non-0 exit code: 1" in str(exc.value)
 
     @mock.patch.dict(config, {'skopeo.extra_copy_flags': '--dest-tls-verify=false'})
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
@@ -2436,7 +2426,7 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
                     shell=False, stderr=-1, stdout=-1, cwd=None)
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
-        self.assertEqual(Popen.mock_calls, expected_mock_calls)
+        assert Popen.mock_calls == expected_mock_calls
 
 
 class TestPungiComposerThread__compose_updates(ComposerThreadBaseTestCase):
@@ -2454,14 +2444,14 @@ class TestPungiComposerThread__compose_updates(ComposerThreadBaseTestCase):
 
         t._compose_updates()
 
-        self.assertTrue(os.path.exists(compose_dir))
+        assert os.path.exists(compose_dir)
 
 
 class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
     """Test FlatpakComposerThread._compose_update()."""
 
-    def setUp(self):
-        super(TestFlatpakComposerThread__compose_updates, self).setUp()
+    def setup_method(self, method):
+        super(TestFlatpakComposerThread__compose_updates, self).setup_method(method)
 
         user = self.db.query(User).first()
         release = self.create_release('28F')
@@ -2527,7 +2517,7 @@ class TestFlatpakComposerThread__compose_updates(ComposerThreadBaseTestCase):
                     shell=False, stderr=-1, stdout=-1, cwd=None)
                 expected_mock_calls.append(mock_call)
                 expected_mock_calls.append(mock.call().communicate())
-        self.assertEqual(Popen.mock_calls, expected_mock_calls)
+        assert Popen.mock_calls == expected_mock_calls
 
 
 class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase):
@@ -2551,10 +2541,8 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
 
         url = t._get_master_repomd_url('aarch64')
 
-        self.assertEqual(
-            url,
+        assert url == \
             'http://example.com/pub/fedora-secondary/updates/testing/17/aarch64/repodata.repomd.xml'
-        )
 
         self.assert_sems(0)
 
@@ -2574,12 +2562,14 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
                                 'bowlofeggs', self.Session, self.tempdir)
         t.compose = Compose.from_dict(self.db, task['composes'][0])
 
-        with self.assertRaises(ValueError) as exc:
+        with pytest.raises(ValueError) as exc:
             t._get_master_repomd_url('aarch64')
 
-        self.assertEqual(str(exc.exception),
-                         'Could not find any of fedora_17_testing_alt_master_repomd,'
-                         'fedora_testing_alt_master_repomd in the config file')
+            assert (
+                'Could not find any of fedora_17_testing_alt_master_repomd,'
+                'fedora_testing_alt_master_repomd in the config file'
+                in str(exc.value)
+            )
 
         self.assert_sems(0)
 
@@ -2603,10 +2593,8 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
 
         url = t._get_master_repomd_url('x86_64')
 
-        self.assertEqual(
-            url,
+        assert url == \
             'http://example.com/pub/fedora/linux/updates/testing/17/x86_64/repodata.repomd.xml'
-        )
 
         self.assert_sems(0)
 
@@ -2632,11 +2620,9 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
 
         url = t._get_master_repomd_url('x86_64')
 
-        self.assertEqual(
-            url,
-            'http://example.com/pub/fedora/linux/updates/testing/17/Everything/'
+        assert url == \
+            'http://example.com/pub/fedora/linux/updates/testing/17/Everything/'\
             'x86_64/repodata.repomd.xml'
-        )
 
         self.assert_sems(0)
 
@@ -2658,10 +2644,8 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
 
         url = t._get_master_repomd_url('aarch64')
 
-        self.assertEqual(
-            url,
+        assert url == \
             'http://example.com/pub/fedora/linux/updates/testing/17/aarch64/repodata.repomd.xml'
-        )
 
         self.assert_sems(0)
 
@@ -2684,7 +2668,7 @@ class TestComposerThread_perform_gating(ComposerThreadBaseTestCase):
 
         # Without the call to self.db.expire() at the end of perform_gating(), there would be 1
         # update here.
-        self.assertEqual(len(t.compose.updates), 0)
+        assert len(t.compose.updates) == 0
 
 
 class TestComposerThread__perform_tag_actions(ComposerThreadBaseTestCase):
@@ -2702,14 +2686,14 @@ class TestComposerThread__perform_tag_actions(ComposerThreadBaseTestCase):
         t.move_tags_async.append(
             ('f26-updates-candidate', 'f26-updates-testing', 'bodhi-2.3.2-1.fc26'))
 
-        with self.assertRaises(Exception) as exc:
+        with pytest.raises(Exception) as exc:
             t._perform_tag_actions()
 
-        self.assertEqual(str(exc.exception), "Failed to move builds: ['failed_task_1']")
+            assert "Failed to move builds: ['failed_task_1']" in str(exc.value)
         # Since the task didn't really fail (we just mocked that it did) the DevBuildsys should have
         # registered that the move occurred.
-        self.assertEqual(buildsys.DevBuildsys.__moved__,
-                         [('f26-updates-candidate', 'f26-updates-testing', 'bodhi-2.3.2-1.fc26')])
+        assert buildsys.DevBuildsys.__moved__ == \
+            [('f26-updates-candidate', 'f26-updates-testing', 'bodhi-2.3.2-1.fc26')]
 
         self.assert_sems(0)
 
@@ -2731,7 +2715,7 @@ class TestComposerThread_remove_pending_tags(ComposerThreadBaseTestCase):
 
         t.remove_pending_tags()
 
-        self.assertEqual(remove_tag.call_count, 2)
+        assert remove_tag.call_count == 2
         mocked_log.debug.assert_called_with("remove_pending_tags koji.multiCall result = %r", [])
 
 
@@ -2786,10 +2770,10 @@ class TestComposerThread__determine_tag_actions(ComposerThreadBaseTestCase):
         # Since the update should have been ejected, no tags should get added to add_tags or
         # move_tags.
         for attr in ('add_tags_sync', 'move_tags_sync', 'add_tags_async', 'move_tags_async'):
-            self.assertEqual(getattr(t, attr), [])
+            assert getattr(t, attr) == []
         # The update should have been removed from t.updates
         self.db.expire(t.compose, ['updates'])
-        self.assertEqual(len(t.compose.updates), 0)
+        assert len(t.compose.updates) == 0
         self.assert_sems(0)
 
 
@@ -2824,10 +2808,10 @@ class TestComposerThread_eject_from_compose(ComposerThreadBaseTestCase):
             expected_messages[0].body['update'] = self.db.query(Update).one().__json__()
             self.db.commit()
 
-        self.assertEqual(buildsys.DevBuildsys.__untag__,
-                         [('f17-updates-testing-pending', 'bodhi-2.0-1.fc17')])
+        assert buildsys.DevBuildsys.__untag__ == \
+            [('f17-updates-testing-pending', 'bodhi-2.0-1.fc17')]
         # The update should have been removed from t.updates
-        self.assertEqual(len(t.compose.updates), 0)
+        assert len(t.compose.updates) == 0
 
         self.assert_sems(0)
 
@@ -2846,7 +2830,7 @@ class TestComposerThread_load_state(ComposerThreadBaseTestCase):
 
         t.load_state()
 
-        self.assertEqual(t._checkpoints, {'other': 'checkpoint', 'completed_repo': '/path/to/it'})
+        assert t._checkpoints == {'other': 'checkpoint', 'completed_repo': '/path/to/it'}
 
         self.assert_sems(0)
 
@@ -2865,8 +2849,8 @@ class TestPungiComposerThread_load_state(ComposerThreadBaseTestCase):
 
         t.load_state()
 
-        self.assertEqual(t._checkpoints, {'other': 'checkpoint', 'completed_repo': '/path/to/it'})
-        self.assertEqual(t.path, '/path/to/it')
+        assert t._checkpoints == {'other': 'checkpoint', 'completed_repo': '/path/to/it'}
+        assert t.path == '/path/to/it'
 
         self.assert_sems(0)
 
@@ -2882,8 +2866,8 @@ class TestPungiComposerThread_load_state(ComposerThreadBaseTestCase):
 
         t.load_state()
 
-        self.assertEqual(t._checkpoints, {'other': 'checkpoint'})
-        self.assertEqual(t.path, None)
+        assert t._checkpoints == {'other': 'checkpoint'}
+        assert t.path is None
 
         self.assert_sems(0)
 
@@ -2900,7 +2884,7 @@ class TestComposerThread_remove_state(ComposerThreadBaseTestCase):
         t.remove_state()
 
         self.db.flush()
-        self.assertEqual(self.db.query(Compose).count(), 0)
+        assert self.db.query(Compose).count() == 0
 
         self.assert_sems(0)
 
@@ -2919,8 +2903,8 @@ class TestComposerThread_save_state(ComposerThreadBaseTestCase):
         t.save_state(ComposeState.notifying)
 
         compose = self.db.query(Compose).one()
-        self.assertEqual(compose.state, ComposeState.notifying)
-        self.assertEqual(json.loads(compose.checkpoints), {'cool': 'checkpoint'})
+        assert compose.state == ComposeState.notifying
+        assert json.loads(compose.checkpoints) == {'cool': 'checkpoint'}
         t.db.commit.assert_called_once_with()
 
     def test_without_state(self):
@@ -2935,8 +2919,8 @@ class TestComposerThread_save_state(ComposerThreadBaseTestCase):
         t.save_state()
 
         compose = self.db.query(Compose).one()
-        self.assertEqual(compose.state, ComposeState.requested)
-        self.assertEqual(json.loads(compose.checkpoints), {'cool': 'checkpoint'})
+        assert compose.state == ComposeState.requested
+        assert json.loads(compose.checkpoints) == {'cool': 'checkpoint'}
         t.db.commit.assert_called_once_with()
 
 
@@ -2972,7 +2956,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         with mock_sends(*expected_messages):
             t._wait_for_sync()
 
-        self.assertEqual(urlopen.call_count, 1)
+        assert urlopen.call_count == 1
         # Since os.listdir() isn't deterministic about the order of the items it returns, the test
         # won't be deterministic about which of these URLs get called. However, either one of them
         # would be correct so we will just assert that one of them is called.
@@ -2981,7 +2965,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
                       'repodata.repomd.xml'),
             mock.call('http://example.com/pub/fedora/linux/updates/testing/17/aarch64/'
                       'repodata.repomd.xml')]
-        self.assertTrue(urlopen.mock_calls[0] in expected_calls)
+        assert urlopen.mock_calls[0] in expected_calls
         save.assert_called_once_with(ComposeState.syncing_repo)
 
     @mock.patch.dict(
@@ -3007,11 +2991,11 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             os.makedirs(repodata)
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write('---\nyaml: rules')
-        with self.assertRaises(Exception) as exc:
+        with pytest.raises(Exception) as exc:
             with mock_sends(*[base_schemas.BodhiMessage] * 5):
                 t._wait_for_sync()
 
-        self.assertEqual(str(exc.exception), "Not found an arch to _wait_for_sync with")
+            assert "Not found an arch to _wait_for_sync with" in str(exc.value)
         save.assert_not_called()
 
     @mock.patch.dict(
@@ -3218,14 +3202,16 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             with open(os.path.join(repodata, 'repomd.xml'), 'w') as repomd:
                 repomd.write('---\nyaml: rules')
 
-        with self.assertRaises(ValueError) as exc:
+        with pytest.raises(ValueError) as exc:
             with mock_sends(compose_schemas.ComposeSyncWaitV1.from_dict(
                     {'repo': t.id, 'agent': 'bowlofeggs'})):
                 t._wait_for_sync()
 
-        self.assertEqual(str(exc.exception),
-                         'Could not find any of fedora_17_testing_master_repomd,'
-                         'fedora_testing_master_repomd in the config file')
+            assert (
+                'Could not find any of fedora_17_testing_master_repomd,'
+                'fedora_testing_master_repomd in the config file'
+                in str(exc.value)
+            )
         save.assert_called_once_with(ComposeState.syncing_repo)
 
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
@@ -3319,15 +3305,15 @@ class TestComposerThread__mark_status_changes(ComposerThreadBaseTestCase):
         t._mark_status_changes()
 
         update = Update.query.one()
-        self.assertEqual(update.status, UpdateStatus.stable)
+        assert update.status == UpdateStatus.stable
         # The request is removed by the _unlock_updates() method, which is called later than this
         # one.
-        self.assertEqual(update.request, UpdateRequest.stable)
+        assert update.request == UpdateRequest.stable
         now = datetime.datetime.utcnow()
-        self.assertTrue((now - update.date_stable) < datetime.timedelta(seconds=5))
-        self.assertIsNone(update.date_testing)
-        self.assertTrue((now - update.date_pushed) < datetime.timedelta(seconds=5))
-        self.assertTrue(update.pushed)
+        assert (now - update.date_stable) < datetime.timedelta(seconds=5)
+        assert update.date_testing is None
+        assert (now - update.date_pushed) < datetime.timedelta(seconds=5)
+        assert update.pushed
 
     def test_testing_update(self):
         """Assert that a testing update gets the right status."""
@@ -3341,15 +3327,15 @@ class TestComposerThread__mark_status_changes(ComposerThreadBaseTestCase):
         t._mark_status_changes()
 
         update = Update.query.one()
-        self.assertEqual(update.status, UpdateStatus.testing)
+        assert update.status == UpdateStatus.testing
         # The request is removed by the _unlock_updates() method, which is called later than this
         # one.
-        self.assertEqual(update.request, UpdateRequest.testing)
+        assert update.request == UpdateRequest.testing
         now = datetime.datetime.utcnow()
-        self.assertTrue((now - update.date_testing) < datetime.timedelta(seconds=5))
-        self.assertIsNone(update.date_stable)
-        self.assertTrue((now - update.date_pushed) < datetime.timedelta(seconds=5))
-        self.assertTrue(update.pushed)
+        assert (now - update.date_testing) < datetime.timedelta(seconds=5)
+        assert update.date_stable is None
+        assert (now - update.date_pushed) < datetime.timedelta(seconds=5)
+        assert update.pushed
 
 
 class TestComposerThread_send_notifications(ComposerThreadBaseTestCase):
@@ -3394,16 +3380,15 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
 
         SMTP.assert_called_once_with('smtp.example.com')
         sendmail = SMTP.return_value.sendmail
-        self.assertEqual(sendmail.call_count, 1)
+        assert sendmail.call_count == 1
         args = sendmail.mock_calls[0][1]
-        self.assertEqual(args[0], config['bodhi_email'])
-        self.assertEqual(args[1], [config['fedora_test_announce_list']])
-        self.assertTrue(
-            'The following Fedora 17 Critical Path updates have yet to be approved:\n Age URL\n'
-            in args[2].decode('utf-8'))
-        self.assertTrue(str(update.days_in_testing) in args[2].decode('utf-8'))
-        self.assertTrue(update.abs_url() in args[2].decode('utf-8'))
-        self.assertTrue(update.title in args[2].decode('utf-8'))
+        assert args[0] == config['bodhi_email']
+        assert args[1] == [config['fedora_test_announce_list']]
+        assert 'The following Fedora 17 Critical Path updates have yet to be approved:\n Age URL\n'\
+            in args[2].decode('utf-8')
+        assert str(update.days_in_testing) in args[2].decode('utf-8')
+        assert update.abs_url() in args[2].decode('utf-8')
+        assert update.title in args[2].decode('utf-8')
 
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
     def test_security_updates(self, SMTP):
@@ -3427,16 +3412,15 @@ class TestComposerThread_send_testing_digest(ComposerThreadBaseTestCase):
 
         SMTP.assert_called_once_with('smtp.example.com')
         sendmail = SMTP.return_value.sendmail
-        self.assertEqual(sendmail.call_count, 1)
+        assert sendmail.call_count == 1
         args = sendmail.mock_calls[0][1]
-        self.assertEqual(args[0], config['bodhi_email'])
-        self.assertEqual(args[1], [config['fedora_test_announce_list']])
-        self.assertTrue(
-            'The following Fedora 17 Security updates need testing:\n Age  URL\n'
-            in args[2].decode('utf-8'))
-        self.assertTrue(str(update.days_in_testing) in args[2].decode('utf-8'))
-        self.assertTrue(update.abs_url() in args[2].decode('utf-8'))
-        self.assertTrue(update.title in args[2].decode('utf-8'))
+        assert args[0] == config['bodhi_email']
+        assert args[1] == [config['fedora_test_announce_list']]
+        assert 'The following Fedora 17 Security updates need testing:\n Age  URL\n'\
+            in args[2].decode('utf-8')
+        assert str(update.days_in_testing) in args[2].decode('utf-8')
+        assert update.abs_url() in args[2].decode('utf-8')
+        assert update.title in args[2].decode('utf-8')
 
     @mock.patch('bodhi.server.tasks.composer.log.warning')
     def test_test_list_not_configured(self, warning):
@@ -3468,8 +3452,8 @@ class TestComposerThread__unlock_updates(ComposerThreadBaseTestCase):
         t._unlock_updates()
 
         update = Update.query.one()
-        self.assertIsNone(update.request)
-        self.assertFalse(update.locked)
+        assert update.request is None
+        assert not update.locked
 
 
 class TestPungiComposerThread__punge(ComposerThreadBaseTestCase):
@@ -3486,7 +3470,7 @@ class TestPungiComposerThread__punge(ComposerThreadBaseTestCase):
 
         mocked_log.info.assert_called_once_with('Skipping completed repo: %s', '/some/path')
         # Popen() should not have been called since we should have skipping running pungi.
-        self.assertEqual(Popen.call_count, 0)
+        assert Popen.call_count == 0
 
 
 class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
@@ -3509,11 +3493,10 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
         with mock.patch.dict(config, {'compose_stage_dir': stage_dir}):
             t._stage_repo()
 
-        self.assertTrue(os.path.islink(link))
-        self.assertEqual(os.readlink(link), t.path)
-        self.assertEqual(
-            mocked_log.info.mock_calls,
-            [mock.call('Creating symlink: %s => %s' % (link, t.path))])
+        assert os.path.islink(link)
+        assert os.readlink(link) == t.path
+        assert mocked_log.info.mock_calls == \
+            [mock.call(f'Creating symlink: { link } => { t.path }')]
 
     @mock.patch('bodhi.server.tasks.composer.log')
     def test_stage_dir_de(self, mocked_log):
@@ -3532,11 +3515,10 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
             t._stage_repo()
 
         link = os.path.join(stage_dir, t.id)
-        self.assertTrue(os.path.islink(link))
-        self.assertEqual(os.readlink(link), t.path)
-        self.assertEqual(
-            mocked_log.info.mock_calls,
-            [mock.call('Creating symlink: %s => %s' % (link, t.path))])
+        assert os.path.islink(link)
+        assert os.readlink(link) == t.path
+        assert mocked_log.info.mock_calls == \
+            [mock.call(f'Creating symlink: { link } => { t.path }')]
 
     @mock.patch('bodhi.server.tasks.composer.log')
     def test_stage_dir_dne(self, mocked_log):
@@ -3553,12 +3535,11 @@ class TestPungiComposerThread__stage_repo(ComposerThreadBaseTestCase):
             t._stage_repo()
 
         link = os.path.join(stage_dir, t.id)
-        self.assertTrue(os.path.islink(link))
-        self.assertEqual(os.readlink(link), t.path)
-        self.assertEqual(
-            mocked_log.info.mock_calls,
+        assert os.path.islink(link)
+        assert os.readlink(link) == t.path
+        assert mocked_log.info.mock_calls == \
             [mock.call('Creating compose_stage_dir %s', stage_dir),
-             mock.call('Creating symlink: %s => %s' % (link, t.path))])
+             mock.call(f'Creating symlink: { link } => { t.path }')]
 
 
 class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCase):
@@ -3578,9 +3559,8 @@ class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCas
                     'repo': t.id, 'path': t.path, 'agent': 'ralph'})):
                 t._wait_for_repo_signature()
 
-        self.assertEqual(
-            mocked_log.info.mock_calls,
-            [mock.call('Not waiting for a repo signature')])
+        assert mocked_log.info.mock_calls == \
+            [mock.call('Not waiting for a repo signature')]
 
     @mock.patch('os.path.exists', side_effect=[
         # First time, none of the signatures exist
@@ -3607,9 +3587,8 @@ class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCas
                     'repo': t.id, 'path': t.path, 'agent': 'ralph'})):
                 t._wait_for_repo_signature()
 
-        self.assertEqual(len(sleep.mock_calls), 2)
-        self.assertEqual(
-            mocked_log.info.mock_calls,
+        assert len(sleep.mock_calls) == 2
+        assert mocked_log.info.mock_calls == \
             [mock.call("Waiting for signatures in %s",
                        "/composepath/compose/Everything/x86_64/os/repodata/repomd.xml.asc, "
                        "/composepath/compose/Everything/aarch64/os/repodata/repomd.xml.asc, "
@@ -3620,9 +3599,8 @@ class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCas
                        "/composepath/compose/Everything/source/tree/repodata/repomd.xml.asc"),
              mock.call('Waiting on %s',
                        "/composepath/compose/Everything/aarch64/os/repodata/repomd.xml.asc"),
-             mock.call('All signatures were created')])
-        self.assertEqual(
-            exists.mock_calls,
+             mock.call('All signatures were created')]
+        assert exists.mock_calls == \
             [mock.call('/composepath/compose/Everything/x86_64/os/repodata/repomd.xml.asc'),
              mock.call('/composepath/compose/Everything/aarch64/os/repodata/repomd.xml.asc'),
              mock.call('/composepath/compose/Everything/source/tree/repodata/repomd.xml.asc'),
@@ -3631,7 +3609,7 @@ class TestPungiComposerThread__wait_for_repo_signature(ComposerThreadBaseTestCas
              mock.call('/composepath/compose/Everything/source/tree/repodata/repomd.xml.asc'),
              mock.call('/composepath/compose/Everything/x86_64/os/repodata/repomd.xml.asc'),
              mock.call('/composepath/compose/Everything/aarch64/os/repodata/repomd.xml.asc'),
-             mock.call('/composepath/compose/Everything/source/tree/repodata/repomd.xml.asc')])
+             mock.call('/composepath/compose/Everything/source/tree/repodata/repomd.xml.asc')]
         save.assert_called_once_with(ComposeState.signing_repo)
 
 
@@ -3650,8 +3628,7 @@ class TestPungiComposerThread__wait_for_pungi(ComposerThreadBaseTestCase):
 
         t._wait_for_pungi(None)
 
-        self.assertEqual(
-            mocked_log.info.mock_calls,
+        assert mocked_log.info.mock_calls == \
             [mock.call('Compose object updated.'),
-             mock.call('Not waiting for pungi process, as there was no pungi')])
-        self.assertEqual(t.compose.state, ComposeState.punging)
+             mock.call('Not waiting for pungi process, as there was no pungi')]
+        assert t.compose.state == ComposeState.punging
