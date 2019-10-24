@@ -16,28 +16,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-"""
-Check the enforced policies by Greenwave for each open update.
-
-Ideally, this should be done in a messaging consumer but we currently do not have
-any messages in the message bus yet.
-"""
+"""Check the enforced policies by Greenwave for each open update."""
 import logging
 
-import click
-
-from bodhi.server import config, initialize_db, models, Session
+from bodhi.server import models, Session
 
 
-logger = logging.getLogger('check-policies')
-logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
-@click.command()
-@click.version_option(message='%(version)s')
-def check():
+def main():
     """Check the enforced policies by Greenwave for each open update."""
-    initialize_db(config.config)
     session = Session()
 
     updates = models.Update.query.filter(
@@ -58,11 +47,7 @@ def check():
         try:
             update.update_test_gating_status()
             session.commit()
-        except Exception as e:
+        except Exception:
             # If there is a problem talking to Greenwave server, print the error.
-            click.echo(str(e), err=True)
+            log.exception(f"There was an error checking the policy for {update.alias}")
             session.rollback()
-
-
-if __name__ == '__main__':
-    check()

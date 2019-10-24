@@ -16,11 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
-This module contains tests for the bodhi.server.scripts.approve_testing module.
+This module contains tests for the bodhi.server.tasks.approve_testing module.
 """
 from datetime import datetime, timedelta
-from io import StringIO
-import logging
 from unittest.mock import call, patch
 
 from fedora_messaging import api, testing as fml_testing
@@ -29,13 +27,28 @@ import pytest
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.config import config
 from bodhi.server import models
-from bodhi.server.scripts import approve_testing
+from bodhi.server.tasks import approve_testing_task
+from bodhi.server.tasks.approve_testing import main as approve_testing_main
 from bodhi.tests.server.base import BasePyTestCase
 
 
-# Don't muck around with global log level.
-@patch('bodhi.server.scripts.approve_testing.logging.basicConfig',
-       new=lambda *p, **k: None)
+class TestTask(BasePyTestCase):
+    """Test the task in bodhi.server.tasks."""
+
+    @patch("bodhi.server.tasks.bugs")
+    @patch("bodhi.server.tasks.buildsys")
+    @patch("bodhi.server.tasks.initialize_db")
+    @patch("bodhi.server.tasks.config")
+    @patch("bodhi.server.tasks.approve_testing.main")
+    def test_task(self, main_function, config_mock, init_db_mock, buildsys, bugs):
+        approve_testing_task()
+        config_mock.load_config.assert_called_with()
+        init_db_mock.assert_called_with(config_mock)
+        buildsys.setup_buildsystem.assert_called_with(config_mock)
+        bugs.set_bugtracker.assert_called_with()
+        main_function.assert_called_with()
+
+
 class TestMain(BasePyTestCase):
     """
     This class contains tests for the main() function.
@@ -62,18 +75,15 @@ class TestMain(BasePyTestCase):
         expected_message = update_schemas.UpdateRequirementsMetStableV1.from_dict(
             {'update': update})
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(expected_message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
-                    # The approve testing script changes the update, so let's put the changed
-                    # update into our expected message body.
-                    expected_message.body['update'] = models.Update.query.first().__json__()
-
-                # Now we will run main() again, but this time we expect Bodhi not to add any
-                # further comments.
-                with fml_testing.mock_sends():
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(expected_message):
+            approve_testing_main()
+            # The approve testing script changes the update, so let's put the changed
+            # update into our expected message body.
+            expected_message.body['update'] = models.Update.query.first().__json__()
+        # Now we will run main() again, but this time we expect Bodhi not to add any
+        # further comments.
+        with fml_testing.mock_sends():
+            approve_testing_main()
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -103,10 +113,8 @@ class TestMain(BasePyTestCase):
         with fml_testing.mock_sends():
             self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends():
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends():
+            approve_testing_main()
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         assert self.db.query(models.User).filter_by(name='bodhi').count() == 0
@@ -131,21 +139,18 @@ class TestMain(BasePyTestCase):
         with fml_testing.mock_sends():
             self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends():
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends():
+            approve_testing_main()
 
         # The bodhi user shouldn't exist, since it shouldn't have made any comments
         assert self.db.query(models.User).filter_by(name='bodhi').count() == 0
         assert self.db.query(models.Comment).count() == 0
 
     @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
-    @patch('bodhi.server.scripts.approve_testing.Session.remove')
-    @patch('bodhi.server.scripts.approve_testing.sys.exit')
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch('bodhi.server.tasks.approve_testing.Session.remove')
+    @patch('bodhi.server.tasks.approve_testing.log')
     @pytest.mark.parametrize('composed_by_bodhi', (True, False))
-    def test_exception_handler(self, stdout, exit, remove, comment, composed_by_bodhi):
+    def test_exception_handler(self, log, remove, comment, composed_by_bodhi):
         """The Exception handler prints the Exception, rolls back and closes the db, and exits."""
         update = self.db.query(models.Update).all()[0]
         update.date_testing = datetime.utcnow() - timedelta(days=15)
@@ -154,33 +159,28 @@ class TestMain(BasePyTestCase):
         update.release.composed_by_bodhi = composed_by_bodhi
         self.db.flush()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with patch.object(self.db, 'commit'):
-                    with patch.object(self.db, 'rollback'):
-                        approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch.object(self.db, 'commit'):
+            with patch.object(self.db, 'rollback'):
+                approve_testing_main()
+                assert self.db.commit.call_count == 0
+                self.db.rollback.assert_called_once_with()
 
-                        assert self.db.commit.call_count == 0
-                        self.db.rollback.assert_called_once_with()
-
-        exit.assert_called_once_with(1)
         comment.assert_called_once_with(
             self.db,
             ('This update can be pushed to stable now if the maintainer wishes'),
             author='bodhi',
             email_notification=composed_by_bodhi,
         )
-        assert stdout.getvalue() == f'{update.alias} now meets testing requirements' \
-            '\nThe DB died lol\n'
+        log.info.assert_called_with(f'{update.alias} now meets testing requirements')
+        log.exception.assert_called_with("There was an error approving testing updates.")
         remove.assert_called_once_with()
 
     @patch('bodhi.server.models.Update.comment', side_effect=[None, IOError('The DB died lol')])
-    @patch('bodhi.server.scripts.approve_testing.Session.remove')
-    @patch('bodhi.server.scripts.approve_testing.sys.exit')
-    @patch('sys.stdout', new_callable=StringIO)
+    @patch('bodhi.server.tasks.approve_testing.Session.remove')
+    @patch('bodhi.server.tasks.approve_testing.log')
     @pytest.mark.parametrize('composed_by_bodhi', (True, False))
     def test_exception_handler_on_the_second_update(
-            self, stdout, exit, remove, comment, composed_by_bodhi):
+            self, log, remove, comment, composed_by_bodhi):
         """
         Ensure, that when the Exception is raised, all previous transactions are commited,
         the Exception handler prints the Exception, rolls back and closes the db, and exits.
@@ -199,16 +199,12 @@ class TestMain(BasePyTestCase):
         update2.status = models.UpdateStatus.testing
         self.db.flush()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with patch.object(self.db, 'commit'):
-                    with patch.object(self.db, 'rollback'):
-                        approve_testing.main(['nosetests', 'some_config.ini'])
+        with patch.object(self.db, 'commit'):
+            with patch.object(self.db, 'rollback'):
+                approve_testing_main()
+                assert self.db.commit.call_count == 1
+                self.db.rollback.assert_called_once_with()
 
-                        assert self.db.commit.call_count == 1
-                        self.db.rollback.assert_called_once_with()
-
-        exit.assert_called_once_with(1)
         comment_expected_call = call(
             self.db,
             ('This update can be pushed to stable now if the maintainer wishes'),
@@ -216,9 +212,9 @@ class TestMain(BasePyTestCase):
             email_notification=composed_by_bodhi,
         )
         assert comment.call_args_list == [comment_expected_call, comment_expected_call]
-        assert stdout.getvalue() == \
-            (f'{update2.alias} now meets testing requirements\n'
-             f'{update.alias} now meets testing requirements\nThe DB died lol\n')
+        log.info.assert_any_call(f'{update.alias} now meets testing requirements')
+        log.info.assert_any_call(f'{update2.alias} now meets testing requirements')
+        log.exception.assert_called_with("There was an error approving testing updates.")
         remove.assert_called_once_with()
 
     def test_non_autokarma_critpath_update_meeting_karma_requirements_gets_one_comment(self):
@@ -250,14 +246,12 @@ class TestMain(BasePyTestCase):
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
-
-                # Now we will run main() again, but this time we expect Bodhi not to add any
-                # further comments.
-                approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
+        # Now we will run main() again, but this time we expect Bodhi not to add any
+        # further comments.
+        with fml_testing.mock_sends():
+            approve_testing_main()
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -282,13 +276,10 @@ class TestMain(BasePyTestCase):
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
-
-                # Now we will run main() again, but this time we expect Bodhi not to add any
-                # further comments.
-                approve_testing.main(['nosetests', 'some_config.ini'])
+        approve_testing_main()
+        # Now we will run main() again, but this time we expect Bodhi not to add any
+        # further comments.
+        approve_testing_main()
 
         # The update should have one +1, which is as much as the stable karma but not as much as the
         # required +2 to go stable.
@@ -325,14 +316,12 @@ class TestMain(BasePyTestCase):
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
-
-                # Now we will run main() again, but this time we expect Bodhi not to add any
-                # further comments.
-                approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
+        # Now we will run main() again, but this time we expect Bodhi not to add any
+        # further comments.
+        with fml_testing.mock_sends():
+            approve_testing_main()
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -360,15 +349,12 @@ class TestMain(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
-
-                # Now we will run main() again, but this time we expect Bodhi not to add any
-                # further comments.
-                with fml_testing.mock_sends():
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
+        # Now we will run main() again, but this time we expect Bodhi not to add any
+        # further comments.
+        with fml_testing.mock_sends():
+            approve_testing_main()
 
         update = self.db.query(models.Update).all()[0]
         assert update.critpath == True
@@ -391,10 +377,8 @@ class TestMain(BasePyTestCase):
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends():
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends():
+            approve_testing_main()
 
         # The update should have one positive karma and no negative karmas
         assert update._composite_karma == (1, 0)
@@ -425,10 +409,8 @@ class TestMain(BasePyTestCase):
         # Clear pending messages
         self.db.info['messages'] = []
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
 
         # The update should have one positive karma and no negative karmas
         assert update._composite_karma == (1, 0)
@@ -451,9 +433,7 @@ class TestMain(BasePyTestCase):
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+        approve_testing_main()
 
         # The update should have one positive karma and no negative karmas
         assert update._composite_karma == (1, 0)
@@ -484,13 +464,11 @@ class TestMain(BasePyTestCase):
         # Clear pending messages
         self.db.info['messages'] = []
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
-                update.comment(self.db, "Removed build", 0, 'bodhi')
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
+        update.comment(self.db, "Removed build", 0, 'bodhi')
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
@@ -499,20 +477,6 @@ class TestMain(BasePyTestCase):
         assert cmnts[0].text == config.get('testing_approval_msg')
         assert cmnts[1].text == 'Removed build'
         assert cmnts[2].text == config.get('testing_approval_msg')
-
-    @patch('sys.exit')
-    @patch('sys.stdout', new_callable=StringIO)
-    def test_usage(self, stdout, exit):
-        """
-        Assert that the usage message is returned to the user if not exactly 2 arguments are given
-        """
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini', 'testnoses'])
-
-        assert stdout.getvalue() == \
-            'usage: nosetests <config_uri>\n(example: "nosetests development.ini")\n'
-        exit.assert_called_once_with(1)
 
     def test_autotime_update_meeting_test_requirements_gets_pushed(self):
         """
@@ -530,10 +494,8 @@ class TestMain(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message, api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message, api.Message):
+            approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
 
@@ -554,10 +516,8 @@ class TestMain(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
 
         assert update.request is None
 
@@ -577,10 +537,8 @@ class TestMain(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message, api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message, api.Message):
+            approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
 
@@ -601,10 +559,8 @@ class TestMain(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
 
         assert update.request is None
 
@@ -626,9 +582,7 @@ class TestMain(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+        approve_testing_main()
 
         assert update.request is None
 
@@ -649,10 +603,8 @@ class TestMain(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message, api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message, api.Message):
+            approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
 
@@ -674,10 +626,8 @@ class TestMain(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message, api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message, api.Message):
+            approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
         assert update.status == models.UpdateStatus.testing
@@ -709,13 +659,10 @@ class TestMain(BasePyTestCase):
         update.from_tag = from_side_tag
         # Clear pending messages
         self.db.info['messages'] = []
-
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
 
         assert update.request is None
         assert update.date_stable is not None
@@ -764,9 +711,7 @@ class TestMain(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+        approve_testing_main()
 
         assert update.request is None
 
@@ -789,9 +734,7 @@ class TestMain(BasePyTestCase):
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+        approve_testing_main()
 
         assert update.request is None
 
@@ -815,10 +758,8 @@ class TestMain(BasePyTestCase):
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
 
         assert update.request is None
 
@@ -847,10 +788,8 @@ class TestMain(BasePyTestCase):
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message, api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message, api.Message):
+            approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
 
@@ -880,9 +819,7 @@ class TestMain(BasePyTestCase):
         with fml_testing.mock_sends(api.Message, api.Message, api.Message):
             self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini'])
+        approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
 
@@ -909,10 +846,8 @@ class TestMain(BasePyTestCase):
         with fml_testing.mock_sends(api.Message):
             self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
 
         assert update.request is None
         assert update.autotime == False
@@ -942,10 +877,8 @@ class TestMain(BasePyTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                with fml_testing.mock_sends(api.Message):
-                    approve_testing.main(['nosetests', 'some_config.ini'])
+        with fml_testing.mock_sends(api.Message):
+            approve_testing_main()
 
         assert update.status == update_status
 
@@ -956,32 +889,3 @@ class TestMain(BasePyTestCase):
         assert cmnts[1].text == "This update cannot be pushed to stable. "\
             "These builds bodhi-2.0-1.fc17 have a more recent build in koji's "\
             f"{update.release.stable_tag} tag."
-
-    @patch('sys.exit')
-    def test_log_level_is_left_alone(self, exit):
-        """Ensure calling main() here leaves the global log level alone.
-
-        This is because having it changed can play havoc on other tests that
-        examine logging output."""
-
-        class SentinelInt(int):
-            """A child class of int which is suited as a sentinel value.
-
-            The important difference to int is that SentinelInt doesn't use
-            singleton objects for low values:
-
-                >>> 5 is 5
-                True
-                >>> SentinelInt(5) is SentinelInt(5)
-                False
-            """
-
-        saved_log_level = logging.root.level
-        sentinel = logging.root.level = SentinelInt(logging.WARNING)
-
-        with patch('bodhi.server.scripts.approve_testing.initialize_db'):
-            with patch('bodhi.server.scripts.approve_testing.get_appsettings', return_value=''):
-                approve_testing.main(['nosetests', 'some_config.ini', 'testnoses'])
-
-        assert logging.root.level is sentinel
-        logging.root.level = saved_log_level

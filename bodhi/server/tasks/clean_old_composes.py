@@ -16,29 +16,25 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Cleans up old composes that are left over in compose_dir."""
+
+import logging
 import collections
 import os
 import shutil
 
-import click
-
 from bodhi.server import config
 
 
-# How many of the newest compose dirs to keep during cleanup
-NUM_TO_KEEP = 10
+log = logging.getLogger(__name__)
 
 
-@click.command()
-@click.version_option(message='%(version)s')
-def clean_up():
-    """Delete any repo composes that are older than the newest 10 from each repo series."""
-    remove_old_composes()
+def main(num_to_keep: int):
+    """
+    Delete any repo composes that are older than the newest 10 from each repo series.
 
-
-# Helper function used in auto clean composes (composer.py)
-def remove_old_composes():
-    """Delete any repo composes that are older than the newest 10 from each repo series."""
+    Args:
+        num_to_keep: How many of the newest compose dirs to keep during cleanup
+    """
     compose_dir = config.config['compose_dir']
 
     # This data structure will map the beginning of a group of dirs for the same repo to a list of
@@ -61,12 +57,12 @@ def remove_old_composes():
     dirs_to_delete = []
 
     for dirs in pattern_matched_dirs.values():
-        if len(dirs) > NUM_TO_KEEP:
-            dirs_to_delete.extend(sorted(dirs, reverse=True)[NUM_TO_KEEP:])
+        if len(dirs) > num_to_keep:
+            dirs_to_delete.extend(sorted(dirs, reverse=True)[num_to_keep:])
 
     if dirs_to_delete:
-        print('Deleting the following directories:')
+        log.info('Deleting the following directories:')
         for d in dirs_to_delete:
             d = os.path.join(compose_dir, d)
-            print(d)
+            log.info(d)
             shutil.rmtree(d)

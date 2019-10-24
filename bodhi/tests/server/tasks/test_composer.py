@@ -1206,7 +1206,6 @@ That was the actual one'''
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
-    @mock.patch('bodhi.server.scripts.clean_old_composes.NUM_TO_KEEP', 2)
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     def test_clean_old_composes_false(self, *args):
         """Test work() with clean_old_composes set to False."""
@@ -1242,6 +1241,7 @@ That was the actual one'''
 
         t = RPMComposerThread(self.semmock, task['composes'][0],
                               'ralph', self.db_factory, compose_dir)
+        t.keep_old_composes = 2
         expected_messages = (
             compose_schemas.ComposeComposingV1,
             override_schemas.BuildrootOverrideUntagV1,
@@ -1296,7 +1296,6 @@ That was the actual one'''
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
-    @mock.patch('bodhi.server.scripts.clean_old_composes.NUM_TO_KEEP', 2)
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     def test_clean_old_composes_true(self, *args):
         """Test work() with clean_old_composes set to True."""
@@ -1332,6 +1331,7 @@ That was the actual one'''
 
         t = RPMComposerThread(self.semmock, task['composes'][0],
                               'ralph', self.db_factory, compose_dir)
+        t.keep_old_composes = 2
         expected_messages = (
             compose_schemas.ComposeComposingV1,
             override_schemas.BuildrootOverrideUntagV1,
@@ -1397,7 +1397,6 @@ That was the actual one'''
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._stage_repo')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_repo_signature')
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
-    @mock.patch('bodhi.server.scripts.clean_old_composes.NUM_TO_KEEP', 2)
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     def test_compose(self, *args):
         self.expected_sems = 1
@@ -1409,6 +1408,7 @@ That was the actual one'''
 
         t = RPMComposerThread(self.semmock, task['composes'][0],
                               'ralph', self.db_factory, compose_dir)
+        t.keep_old_composes = 2
         expected_messages = (
             compose_schemas.ComposeComposingV1,
             override_schemas.BuildrootOverrideUntagV1,

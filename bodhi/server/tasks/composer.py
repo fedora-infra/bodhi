@@ -49,7 +49,7 @@ from bodhi.server.exceptions import BodhiException
 from bodhi.server.metadata import UpdateInfoMetadata
 from bodhi.server.models import (Compose, ComposeState, Update, UpdateRequest, UpdateType, Release,
                                  UpdateStatus, ReleaseState, ContentType)
-from bodhi.server.scripts import clean_old_composes
+from bodhi.server.tasks.clean_old_composes import main as clean_old_composes
 from bodhi.server.util import (copy_container, sorted_updates, sanity_check_repodata,
                                transactional_session_maker)
 
@@ -277,6 +277,7 @@ class ComposerThread(threading.Thread):
     """The base class that defines common things for all composes."""
 
     ctype = None
+    keep_old_composes = 10
 
     def __init__(self, max_concur_sem, compose, agent, db_factory, compose_dir, resume=False):
         """
@@ -417,7 +418,7 @@ class ComposerThread(threading.Thread):
             if config['clean_old_composes']:
                 # Clean old composes
                 self.save_state(ComposeState.cleaning)
-                clean_old_composes.remove_old_composes()
+                clean_old_composes(self.keep_old_composes)
 
             self.save_state(ComposeState.success)
             self.success = True

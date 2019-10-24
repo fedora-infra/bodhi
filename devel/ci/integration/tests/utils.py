@@ -80,6 +80,10 @@ def wait_for_file(
         time.sleep(1)
         timeout = timeout - 1
     if timeout == 0:
+        for log in container.logs():
+            # Let's print out the logs from the container in the hopes that they will help us debug
+            # what happened.
+            print(log)
         raise conu.exceptions.ConuException(f"Timeout reached waiting for {path}")
 
 

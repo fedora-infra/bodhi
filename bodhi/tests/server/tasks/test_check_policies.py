@@ -15,25 +15,41 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""This module contains tests for the bodhi.server.scripts.check_policies module."""
+"""This module contains tests for the bodhi.server.tasks.check_policies module."""
 
 from unittest.mock import patch
 import datetime
 
-from click import testing
-
 from bodhi.server import models
-from bodhi.server.scripts import check_policies
+from bodhi.server.tasks import check_policies_task
+from bodhi.server.tasks.check_policies import main as check_policies_main
 from bodhi.tests.server.base import BasePyTestCase
 from bodhi.server.config import config
 
 
+class TestTask(BasePyTestCase):
+    """Test the task in bodhi.server.tasks."""
+
+    @patch("bodhi.server.tasks.bugs")
+    @patch("bodhi.server.tasks.buildsys")
+    @patch("bodhi.server.tasks.initialize_db")
+    @patch("bodhi.server.tasks.config")
+    @patch("bodhi.server.tasks.check_policies.main")
+    def test_task(self, main_function, config_mock, init_db_mock, buildsys, bugs):
+        check_policies_task()
+        config_mock.load_config.assert_called_with()
+        init_db_mock.assert_called_with(config_mock)
+        buildsys.setup_buildsystem.assert_called_with(config_mock)
+        bugs.set_bugtracker.assert_called_with()
+        main_function.assert_called_with()
+
+
 class TestCheckPolicies(BasePyTestCase):
     """This class contains tests for the check_policies() function."""
+
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_policies_satisfied(self):
         """Assert correct behavior when the policies enforced by Greenwave are satisfied"""
-        runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
         # Clear pending messages
@@ -47,8 +63,7 @@ class TestCheckPolicies(BasePyTestCase):
                 'unsatisfied_requirements': []
             }
             mock_greenwave.return_value = greenwave_response
-            result = runner.invoke(check_policies.check, [])
-            assert result.exit_code == 0
+            check_policies_main()
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             assert update.test_gating_status == models.TestGatingStatus.passed
 
@@ -67,7 +82,6 @@ class TestCheckPolicies(BasePyTestCase):
     def test_policies_pending_satisfied(self):
         """Assert that Updates whose status is pending are checked against
         greenwave with the ``bodhi_update_push_testing`` decision context. """
-        runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.pending
         self.db.commit()
@@ -79,8 +93,7 @@ class TestCheckPolicies(BasePyTestCase):
                 'unsatisfied_requirements': []
             }
             mock_greenwave.return_value = greenwave_response
-            result = runner.invoke(check_policies.check, [])
-            assert result.exit_code == 0
+            check_policies_main()
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             assert update.test_gating_status == models.TestGatingStatus.passed
 
@@ -98,7 +111,6 @@ class TestCheckPolicies(BasePyTestCase):
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_policies_unsatisfied(self):
         """Assert correct behavior when the policies enforced by Greenwave are unsatisfied"""
-        runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
         # Clear pending messages
@@ -117,8 +129,7 @@ class TestCheckPolicies(BasePyTestCase):
                      'item': {'item': update.alias, 'type': 'bodhi_update'},
                      'type': 'test-result-missing', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
-            result = runner.invoke(check_policies.check, [])
-            assert result.exit_code == 0
+            check_policies_main()
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             assert update.test_gating_status == models.TestGatingStatus.failed
             # Check for the comment
@@ -143,7 +154,6 @@ class TestCheckPolicies(BasePyTestCase):
 
         When test gating is disabled, each Update's test_gating_status will be None.
         """
-        runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
         # Clear pending messages
@@ -153,9 +163,8 @@ class TestCheckPolicies(BasePyTestCase):
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             mock_greenwave.return_value = RuntimeError('The error was blablabla')
 
-            result = runner.invoke(check_policies.check, [])
+            check_policies_main()
 
-        assert result.exit_code == 0
         update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
         # The test_gating_status should still be None.
         assert update.test_gating_status is None
@@ -173,7 +182,6 @@ class TestCheckPolicies(BasePyTestCase):
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_pushed_update(self):
         """Assert that check() operates on pushed updates."""
-        runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
         # Clear pending messages
@@ -188,9 +196,8 @@ class TestCheckPolicies(BasePyTestCase):
             }
             mock_greenwave.return_value = greenwave_response
 
-            result = runner.invoke(check_policies.check, [])
+            check_policies_main()
 
-        assert result.exit_code == 0
         update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
         assert update.test_gating_status == models.TestGatingStatus.failed
         expected_query = {
@@ -209,7 +216,6 @@ class TestCheckPolicies(BasePyTestCase):
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_unrestricted_policy(self):
         """Assert correct behavior when an unrestricted policy is applied"""
-        runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
         # Clear pending messages
@@ -222,8 +228,7 @@ class TestCheckPolicies(BasePyTestCase):
                 'applicable_policies': ['bodhi-unrestricted'],
             }
             mock_greenwave.return_value = greenwave_response
-            result = runner.invoke(check_policies.check, [])
-            assert result.exit_code == 0
+            check_policies_main()
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
             assert update.test_gating_status == models.TestGatingStatus.ignored
             # Check for the comment
@@ -251,7 +256,6 @@ class TestCheckPolicies(BasePyTestCase):
         rel.state = models.ReleaseState.archived
         self.db.commit()
 
-        runner = testing.CliRunner()
         update = self.db.query(models.Update).all()[0]
         update.status = models.UpdateStatus.testing
         # Clear pending messages
@@ -260,6 +264,6 @@ class TestCheckPolicies(BasePyTestCase):
         with patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             mock_greenwave.side_effect = Exception(
                 'Greenwave should not be accessed for archived releases.')
-            result = runner.invoke(check_policies.check, [])
-        assert result.exit_code == 0
+            check_policies_main()
+
         assert mock_greenwave.call_count == 0

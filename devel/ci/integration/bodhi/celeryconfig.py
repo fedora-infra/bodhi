@@ -18,9 +18,10 @@ imports = "bodhi.server.tasks"
 
 # Task routing
 task_routes = {
-    # Route the compose task to a specific queue that will only be run on hosts
-    # that have a Koji mount.
+    # Route the following tasks to a specific queue that will only be run on
+    # hosts that have a Koji mount.
     'compose': {'queue': 'has_koji_mount'},
+    'clean_old_composes': {'queue': 'has_koji_mount'},
 }
 
 # We want to store the tasks results to inspect them in tests.
