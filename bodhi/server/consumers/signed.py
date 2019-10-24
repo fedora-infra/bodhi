@@ -118,6 +118,7 @@ class SignedHandler(object):
                 build.update.status = UpdateStatus.testing
                 build.update.date_testing = func.current_timestamp()
                 build.update.request = None
+                build.update.pushed = True
 
                 if config.get("test_gating.required"):
                     log.debug('Test gating is required, marking the update as waiting on test '

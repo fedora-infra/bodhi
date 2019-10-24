@@ -582,6 +582,16 @@ class TestCompose(BaseTestCase):
         assert_compose_has_update(composes[1], update_4)
         assert_compose_has_update(composes[2], update_1)
 
+    def test_from_updates_no_builds(self):
+        """Assert that update without builds is not added to compose."""
+        update = self.create_update(['bodhi-{}-1.fc27'.format(uuid.uuid4())])
+        update.builds = []
+
+        composes = model.Compose.from_updates([update])
+
+        self.assertTrue(isinstance(composes, list))
+        self.assertEqual(len(composes), 0)
+
     def test_security_false(self):
         """Assert that security is False if none of the Updates are security updates."""
         compose = self._generate_compose(model.UpdateRequest.stable, False)
@@ -754,20 +764,20 @@ class TestRelease(ModelTest):
         model.Release.clear_all_releases_cache()
         self.assertIsNone(model.Release._all_releases)
 
-    @mock.patch.dict(config, {'f11.koji-pending-signing-side-tag': '-pending-signing-test'})
+    @mock.patch.dict(config, {'f11.koji-signing-pending-side-tag': '-signing-pending-test'})
     def test_get_pending_signing_side_tag_found(self):
         """
         Assert that correct side tag is returned.
         """
         self.assertEqual(
-            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-pending-signing-test")
+            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-signing-pending-test")
 
     def test_get_pending_signing_side_tag_not_found(self):
         """
         Assert that default side tag is returned.
         """
         self.assertEqual(
-            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-pending-signing")
+            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-signing-pending")
 
     @mock.patch.dict(config, {'f11.koji-testing-side-tag': '-testing-test'})
     def test_get_testing_side_tag_found(self):
@@ -782,7 +792,7 @@ class TestRelease(ModelTest):
         Assert that default side tag is returned.
         """
         self.assertEqual(
-            self.obj.get_testing_side_tag("side-tag"), "side-tag-testing")
+            self.obj.get_testing_side_tag("side-tag"), "side-tag-testing-pending")
 
 
 class TestReleaseCritpathMinKarma(BaseTestCase):
@@ -4044,7 +4054,7 @@ class TestUpdate(ModelTest):
         package = model.Package(name='testmodule',
                                 type=model.ContentType.module)
         self.db.add(package)
-        build = model.ModuleBuild(nvr='testmodule-master-2',
+        build = model.ModuleBuild(nvr='testmodule-master-2.fc18',
                                   release=release, signed=True,
                                   package=package)
         self.db.add(build)
@@ -4093,11 +4103,11 @@ class TestUpdate(ModelTest):
         package = model.Package(name='testmodule',
                                 type=model.ContentType.module)
         self.db.add(package)
-        build1 = model.ModuleBuild(nvr='testmodule-master-1',
+        build1 = model.ModuleBuild(nvr='testmodule-master-1.fc18',
                                    release=release, signed=True,
                                    package=package)
         self.db.add(build1)
-        build2 = model.ModuleBuild(nvr='testmodule-master-2',
+        build2 = model.ModuleBuild(nvr='testmodule-master-2.fc18',
                                    release=release, signed=True,
                                    package=package)
         self.db.add(build2)
@@ -4302,10 +4312,10 @@ class TestUpdate(ModelTest):
             self.obj.status = UpdateStatus.testing
             msg = self.db.info['messages'][0]
             self.db.commit()
-        assert msg.body["update"]["status"] == "testing"
-        assert msg.body["update"]["release"]["name"] == "F11"
-        version_hash = "1202d60656e76b6882b1e9dcaeca8d8563c10797"
-        assert msg.body["update"]["version_hash"] == version_hash
+        assert msg.body["artifact"]["builds"][0]["component"] == "TurboGears"
+        assert msg.body["artifact"]["id"].startswith("FEDORA-")
+        assert msg.body["artifact"]["type"] == "rpm-build-group"
+        assert msg.packages == ['TurboGears']
 
     def test_create_with_status_testing(self):
         """Test that creating an update with the status set to testing sends a message."""
@@ -4318,10 +4328,10 @@ class TestUpdate(ModelTest):
             assert len(self.db.info['messages']) == 1
             msg = self.db.info['messages'][0]
             self.db.commit()
-        assert msg.body["update"]["status"] == "testing"
-        assert msg.body["update"]["release"]["name"] == "F11"
-        version_hash = "2432c3a8561de717e916cf551f855af422447615"
-        assert msg.body["update"]["version_hash"] == version_hash
+        assert msg.body["artifact"]["builds"][0]["component"] == "TurboGears"
+        assert msg.body["artifact"]["id"].startswith("FEDORA-")
+        assert msg.body["artifact"]["type"] == "rpm-build-group"
+        assert msg.packages == ['TurboGears']
 
 
 class TestUser(ModelTest):

@@ -18,12 +18,11 @@
 """Tests for bodhi.server.webapp."""
 
 from unittest import mock
-import unittest
 
 from bodhi.server import webapp
 
 
-class TestCompleteDatabaseSession(unittest.TestCase):
+class TestCompleteDatabaseSession:
     """Test the _complete_database_session() function."""
 
     def test_cleanup_exception(self):
@@ -35,10 +34,10 @@ class TestCompleteDatabaseSession(unittest.TestCase):
             webapp._complete_database_session(request)
 
         # Since there was an Exception, the session should have been rolled back and closed.
-        self.assertEqual(Session_mock.return_value.rollback.mock_calls, [mock.call()])
-        self.assertEqual(Session_mock.return_value.commit.mock_calls, [])
-        self.assertEqual(Session_mock.return_value.close.mock_calls, [mock.call()])
-        self.assertEqual(Session_mock.remove.mock_calls, [mock.call()])
+        assert Session_mock.return_value.rollback.mock_calls == [mock.call()]
+        assert Session_mock.return_value.commit.mock_calls == []
+        assert Session_mock.return_value.close.mock_calls == [mock.call()]
+        assert Session_mock.remove.mock_calls == [mock.call()]
 
     def test_cleanup_no_exception(self):
         """Test cleanup() when there is not an Exception."""
@@ -49,13 +48,13 @@ class TestCompleteDatabaseSession(unittest.TestCase):
             webapp._complete_database_session(request)
 
         # Since there was no Exception, the session should have been committed and closed.
-        self.assertEqual(Session.return_value.rollback.mock_calls, [])
-        self.assertEqual(Session.return_value.commit.mock_calls, [mock.call()])
-        self.assertEqual(Session.return_value.close.mock_calls, [mock.call()])
-        self.assertEqual(Session.remove.mock_calls, [mock.call()])
+        assert Session.return_value.rollback.mock_calls == []
+        assert Session.return_value.commit.mock_calls == [mock.call()]
+        assert Session.return_value.close.mock_calls == [mock.call()]
+        assert Session.remove.mock_calls == [mock.call()]
 
 
-class TestPrepareRequest(unittest.TestCase):
+class TestPrepareRequest:
     """Test the _prepare_request() function."""
 
     def test_adds_db_cleanup_callback(self):

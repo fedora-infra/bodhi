@@ -26,7 +26,7 @@ import logging
 
 import fedora_messaging
 
-from bodhi.server.models import Build
+from bodhi.server.models import Build, TestGatingStatus
 from bodhi.server.util import transactional_session_maker
 
 log = logging.getLogger(__name__)
@@ -61,6 +61,12 @@ class GreenwaveHandler:
             log.debug("Not requesting a decision for a compose")
             return
 
+        subject_identifier = msg.get("subject_identifier")
+
+        if "policies_satisfied" not in msg:
+            log.debug("Couldn't find policies_satisfied in Greenwave message")
+            return
+
         with self.db_factory():
 
             build = Build.get(subject_identifier)
@@ -68,5 +74,28 @@ class GreenwaveHandler:
                 log.debug(f"Couldn't find build {subject_identifier} in DB")
                 return
 
-            log.info(f"Updating the test_gating_status for: {build.update.alias}")
-            build.update.update_test_gating_status()
+            update = build.update
+            log.info(f"Updating the test_gating_status for: {update.alias}")
+            if len(update.builds) > 1:
+                update.update_test_gating_status()
+            else:
+                update.test_gating_status = self._extract_gating_status(msg)
+
+    def _extract_gating_status(self, msg):
+        """
+        Extract gating information from the Greenwave message and return it.
+
+        Returns:
+            TestGatingStatus:
+                - TestGatingStatus.ignored if no tests are required
+                - TestGatingStatus.failed if policies are not satisfied
+                - TestGatingStatus.passed if policies are satisfied, and there
+                  are required tests
+        """
+        if not msg['policies_satisfied']:
+            return TestGatingStatus.failed
+        if msg['summary'] == 'no tests are required':
+            # If an unrestricted policy is applied and no tests are required
+            # on this update, let's set the test gating as ignored in Bodhi.
+            return TestGatingStatus.ignored
+        return TestGatingStatus.passed

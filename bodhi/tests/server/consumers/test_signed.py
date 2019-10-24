@@ -54,7 +54,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
                 'name': 'bodhi',
                 'tag_id': 214,
                 'instance': 's390',
-                'tag': 'f30-side-tag-testing',
+                'tag': 'f30-side-tag-testing-pending',
                 'user': 'sharkcz',
                 'version': '2.0',
                 'owner': 'sharkcz',
@@ -159,7 +159,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         build = mock_build_model.get.return_value
         build.signed = False
         build.release = mock.MagicMock()
-        build.release.get_testing_side_tag.return_value = "f30-side-tag-testing"
+        build.release.get_testing_side_tag.return_value = "f30-side-tag-testing-pending"
         update = mock.MagicMock()
         update.from_tag = "f30-side-tag"
         update.signed.return_value = False
@@ -183,6 +183,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         update.status = UpdateStatus.pending
         update.release.composed_by_bodhi = False
         update.builds[0].signed = False
+        update.pushed = False
 
         self.db.commit()
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
@@ -196,4 +197,5 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         assert update.builds[0].signed is True
         assert update.builds[0].update.request is None
         assert update.status == UpdateStatus.testing
+        assert update.pushed is True
         assert update.test_gating_status == TestGatingStatus.passed

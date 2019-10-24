@@ -509,6 +509,10 @@ class DevBuildsys:
         opts['perm_id'] = 1
         self.__tags__.append((tag, opts))
 
+    def editTag2(self, *args, **kw):
+        """Edit a tag."""
+        pass
+
     def deleteTag(self, tagid: typing.Union[str, int]):
         """Emulate tag deletion."""
         if isinstance(tagid, str):
