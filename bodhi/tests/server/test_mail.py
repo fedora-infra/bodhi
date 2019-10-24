@@ -20,14 +20,13 @@
 from unittest import mock
 import os
 import smtplib
-import unittest
 
 from bodhi.server import config, mail, models
 from bodhi.server.util import get_absolute_path
-from bodhi.tests.server import base
+from bodhi.tests.server.base import BasePyTestCase
 
 
-class TestGetTemplate(base.BaseTestCase):
+class TestGetTemplate(BasePyTestCase):
     """Test the get_template() function."""
 
     def test_changelog(self):
@@ -38,13 +37,13 @@ class TestGetTemplate(base.BaseTestCase):
 
         # Assemble the template for easier asserting.
         t = '\n'.join([l for l in t[0]])
-        self.assertTrue('ChangeLog:' in t)
-        self.assertTrue('* Sat Aug  3 2013 Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1' in t)
-        self.assertTrue('- Added some bowlofeggs charm.' in t)
+        assert 'ChangeLog:' in t
+        assert '* Sat Aug  3 2013 Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1' in t
+        assert '- Added some bowlofeggs charm.' in t
         # Only the new bits of the changelog should be included in the notice, so this should not
         # appear even though it is in the package's changelog.
-        self.assertFalse('* Tue Jul 10 2012 Paul Moore <pmoore@redhat.com> - 0.1.0-1' in t)
-        self.assertFalse('- Limit package to x86/x86_64 platforms (RHBZ #837888)' in t)
+        assert '* Tue Jul 10 2012 Paul Moore <pmoore@redhat.com> - 0.1.0-1' not in t
+        assert '- Limit package to x86/x86_64 platforms (RHBZ #837888)' not in t
 
     @mock.patch('bodhi.server.models.RpmBuild.get_latest')
     def test_changelog_single_entry(self, get_latest):
@@ -57,9 +56,9 @@ class TestGetTemplate(base.BaseTestCase):
 
         # Assemble the template for easier asserting.
         t = '\n'.join([l for l in t[0]])
-        self.assertTrue('ChangeLog:' in t)
-        self.assertTrue('* Sat Aug  3 2013 Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1' in t)
-        self.assertTrue('- Added some bowlofeggs charm.' in t)
+        assert 'ChangeLog:' in t
+        assert '* Sat Aug  3 2013 Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1' in t
+        assert '- Added some bowlofeggs charm.' in t
 
     @mock.patch('bodhi.server.models.RpmBuild.get_latest')
     def test_changelog_no_old_text(self, get_latest):
@@ -71,13 +70,13 @@ class TestGetTemplate(base.BaseTestCase):
 
         # Assemble the template for easier asserting.
         t = '\n'.join([l for l in t[0]])
-        self.assertTrue('ChangeLog:' in t)
-        self.assertTrue('* Sat Aug  3 2013 Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1' in t)
-        self.assertTrue('- Added some bowlofeggs charm.' in t)
+        assert 'ChangeLog:' in t
+        assert '* Sat Aug  3 2013 Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1' in t
+        assert '- Added some bowlofeggs charm.' in t
         # Since we faked the 1.9.1-1 release as having [] as changelogtext in Koji, the entire
         # package changelog should have been included. We'll just spot check it here.
-        self.assertTrue('* Tue Jul 10 2012 Paul Moore <pmoore@redhat.com> - 0.1.0-1' in t)
-        self.assertTrue('- Limit package to x86/x86_64 platforms (RHBZ #837888)' in t)
+        assert '* Tue Jul 10 2012 Paul Moore <pmoore@redhat.com> - 0.1.0-1' in t
+        assert '- Limit package to x86/x86_64 platforms (RHBZ #837888)' in t
 
     def test_encoding(self):
         """Ensure that the UnicodeDecode is properly handled."""
@@ -88,7 +87,7 @@ class TestGetTemplate(base.BaseTestCase):
 
         # Assemble the template for easier asserting.
         t = '\n'.join([l for l in t[0]])
-        self.assertIn('\xe7', t)
+        assert '\xe7' in t
 
     def test_module_build(self):
         """ModuleBuilds don't have get_latest(), so lets verify that this is OK."""
@@ -105,7 +104,7 @@ class TestGetTemplate(base.BaseTestCase):
         t = '\n'.join([l for l in t[0]])
         # No changelog should appear. We can just verify that there's a blank line where the
         # changelog would be.
-        self.assertTrue('----\n\nThis update can be installed' in t)
+        assert '----\n\nThis update can be installed' in t
 
     @mock.patch('bodhi.server.mail.log.debug')
     def test_skip_tracker_bug(self, debug):
@@ -121,12 +120,12 @@ class TestGetTemplate(base.BaseTestCase):
 
         # Assemble the template for easier asserting.
         t = '\n'.join([l for l in t[0]])
-        self.assertTrue('54321 - this should appear' in t)
-        self.assertFalse('this should not appear' in t)
-        self.assertEqual(debug.call_count, 1)
-        self.assertIn('Skipping tracker bug', debug.mock_calls[0][1][0])
-        self.assertIn('12345', debug.mock_calls[0][1][0])
-        self.assertIn('this should not appear', debug.mock_calls[0][1][0])
+        assert '54321 - this should appear' in t
+        assert 'this should not appear' not in t
+        assert debug.call_count == 1
+        assert 'Skipping tracker bug' in debug.mock_calls[0][1][0]
+        assert '12345' in debug.mock_calls[0][1][0]
+        assert 'this should not appear' in debug.mock_calls[0][1][0]
 
     def test_stable_update(self):
         """Stable updates should not include --enablerepo=updates-testing in the notice."""
@@ -137,10 +136,10 @@ class TestGetTemplate(base.BaseTestCase):
 
         # Assemble the template for easier asserting.
         t = '\n'.join([l for l in t[0]])
-        self.assertFalse('--enablerepo=updates-testing' in t)
-        self.assertFalse('Fedora Test Update Notification' in t)
+        assert '--enablerepo=updates-testing' not in t
+        assert 'Fedora Test Update Notification' not in t
         # The advisory flag should be included in the dnf instructions.
-        self.assertTrue('dnf upgrade --advisory {}'.format(u.alias) in t)
+        assert 'dnf upgrade --advisory {}'.format(u.alias) in t
 
     def test_testing_update(self):
         """Testing updates should include --enablerepo=updates-testing in the notice."""
@@ -151,11 +150,10 @@ class TestGetTemplate(base.BaseTestCase):
 
         # Assemble the template for easier asserting.
         t = '\n'.join([l for l in t[0]])
-        self.assertTrue('--enablerepo=updates-testing' in t)
-        self.assertTrue('Fedora Test Update Notification' in t)
+        assert '--enablerepo=updates-testing' in t
+        assert 'Fedora Test Update Notification' in t
         # The advisory flag should be included in the dnf instructions.
-        self.assertTrue(
-            'dnf --enablerepo=updates-testing upgrade --advisory {}'.format(u.alias) in t)
+        assert 'dnf --enablerepo=updates-testing upgrade --advisory {}'.format(u.alias) in t
 
     def test_read_template(self):
         """Ensure that email template is read correctly."""
@@ -171,7 +169,7 @@ class TestGetTemplate(base.BaseTestCase):
 --------------------------------------------------------------------------------
 %(notes)s%(changelog)s%(references)s
 """
-        self.assertEqual(resp, expected)
+        assert resp == expected
 
     @mock.patch('bodhi.server.mail.log.error')
     def test_read_template_path_error(self, error):
@@ -185,8 +183,8 @@ class TestGetTemplate(base.BaseTestCase):
         mail.read_template(name)
 
         # Assert error is logged correctly
-        self.assertEqual(error.call_count, 1)
-        self.assertEqual("Path does not exist: %s" % (template_path), error.mock_calls[0][1][0])
+        assert error.call_count == 1
+        assert "Path does not exist: %s" % (template_path) == error.mock_calls[0][1][0]
 
     @mock.patch('bodhi.server.mail.log.error')
     def test_read_template_io_error(self, error):
@@ -201,13 +199,12 @@ class TestGetTemplate(base.BaseTestCase):
             mail.read_template(name)
 
         # Assert error is logged correctly.
-        self.assertEqual(error.call_count, 2)
-        self.assertEqual("Unable to read template file: %s" % (template_path),
-                         error.mock_calls[0][1][0])
-        self.assertEqual("IO Error[None]: None", error.mock_calls[1][1][0])
+        assert error.call_count == 2
+        assert "Unable to read template file: %s" % (template_path) == error.mock_calls[0][1][0]
+        assert "IO Error[None]: None" == error.mock_calls[1][1][0]
 
 
-class TestSend(base.BaseTestCase):
+class TestSend(BasePyTestCase):
     """Test the send() function."""
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.fp.o'})
@@ -220,15 +217,15 @@ class TestSend(base.BaseTestCase):
         mail.send(['bowlofeggs@example.com'], 'new', update, agent='bodhi')
 
         SMTP.assert_called_once_with('smtp.fp.o')
-        self.assertEqual(sendmail.call_count, 1)
+        assert sendmail.call_count == 1
         sendmail = sendmail.mock_calls[0]
-        self.assertEqual(len(sendmail[1]), 3)
-        self.assertEqual(sendmail[1][0], 'updates@fedoraproject.org')
-        self.assertEqual(sendmail[1][1], ['bowlofeggs@example.com'])
+        assert len(sendmail[1]) == 3
+        assert sendmail[1][0] == 'updates@fedoraproject.org'
+        assert sendmail[1][1] == ['bowlofeggs@example.com']
         expected_body = 'Message-ID: <bodhi-update-{}-{}-{}@{}>'.format(
             update.id, update.user.name, update.release.name,
             config.config.get('message_id_email_domain'))
-        self.assertTrue(expected_body.encode('utf-8') in sendmail[1][2])
+        assert expected_body.encode('utf-8') in sendmail[1][2]
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.example.com'})
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
@@ -239,13 +236,12 @@ class TestSend(base.BaseTestCase):
         mail.send(['fake@news.com'], 'comment', update, agent='bowlofeggs')
 
         SMTP.assert_called_once_with('smtp.example.com')
-        sendmail = SMTP.return_value.sendmail
-        self.assertEqual(sendmail.call_count, 1)
-        self.assertEqual(sendmail.mock_calls[0][1][0], 'updates@fedoraproject.org')
-        self.assertEqual(sendmail.mock_calls[0][1][1], ['fake@news.com'])
-        self.assertTrue(b'X-Bodhi-Update-Title: bodhi-2.0-1.fc17' in sendmail.mock_calls[0][1][2])
-        self.assertTrue(
-            b'Subject: [Fedora Update] [comment] bodhi-2.0-1.fc17' in sendmail.mock_calls[0][1][2])
+        sm = SMTP.return_value.sendmail
+        assert sm.call_count == 1
+        assert sm.mock_calls[0][1][0] == 'updates@fedoraproject.org'
+        assert sm.mock_calls[0][1][1] == ['fake@news.com']
+        assert b'X-Bodhi-Update-Title: bodhi-2.0-1.fc17' in sm.mock_calls[0][1][2]
+        assert b'Subject: [Fedora Update] [comment] bodhi-2.0-1.fc17' in sm.mock_calls[0][1][2]
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.example.com'})
     @mock.patch('bodhi.server.mail.smtplib.SMTP', side_effect=Exception())
@@ -258,10 +254,10 @@ class TestSend(base.BaseTestCase):
 
         exception_log.assert_called_once_with('Unable to send mail')
         sendmail = SMTP.return_value.sendmail
-        self.assertEqual(sendmail.call_count, 0)
+        assert sendmail.call_count == 0
 
 
-class TestSendMail(unittest.TestCase):
+class TestSendMail:
     """Test the send_mail() function."""
 
     @mock.patch.dict('bodhi.server.mail.config',
@@ -272,7 +268,7 @@ class TestSendMail(unittest.TestCase):
         mail.send_mail('bowlofeggs@example.com', 'nsa@spies.biz', 'R013X', 'Want a c00l w@tch?')
 
         # The mail should not have been sent
-        self.assertEqual(_send_mail.call_count, 0)
+        assert _send_mail.call_count == 0
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.fp.o'})
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
@@ -299,7 +295,7 @@ class TestSendMail(unittest.TestCase):
         warning.assert_called_once_with(
             'Unable to send mail: bodhi_email not defined in the config')
         # The mail should not have been sent
-        self.assertEqual(_send_mail.call_count, 0)
+        assert _send_mail.call_count == 0
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.fp.o'})
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
@@ -316,7 +312,7 @@ class TestSendMail(unittest.TestCase):
              b'X-Bodhi: fedoraproject.org\r\nSubject: R013X\r\n\r\nWant a c00l w@tch?'))
 
 
-class TestSendReleng(unittest.TestCase):
+class TestSendReleng:
     """Test the send_releng() function."""
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.fp.o'})
@@ -337,7 +333,7 @@ class TestSendReleng(unittest.TestCase):
                     'utf-8'))
 
 
-class Test_SendMail(unittest.TestCase):
+class Test_SendMail:
     """Test the _send_mail() function."""
 
     @mock.patch.dict('bodhi.server.mail.config', {'smtp_server': 'smtp.fp.o'})
@@ -364,5 +360,5 @@ class Test_SendMail(unittest.TestCase):
         """If smtp_server is not configured, the function should log and return."""
         mail._send_mail('archer@spies.com', 'lana@spies.com', 'hi')
 
-        self.assertEqual(SMTP.call_count, 0)
+        assert SMTP.call_count == 0
         info.assert_called_once_with('Not sending email: No smtp_server defined')
