@@ -1,0 +1,5 @@
+Use Celery Beat instead of cron jobs. The corresponding CLIs have been adjusted
+to trigger the task. They will still block until the task is done, but it may
+not be running on the host that the CLI was called on. The affected CLIs are:
+``bodhi-clean-old-composes``, ``bodhi-expire-overrides``,
+``bodhi-approve-testing``, and ``bodhi-check-policies``

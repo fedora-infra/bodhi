@@ -6,10 +6,6 @@ Man pages
    :maxdepth: 2
 
    bodhi
-   bodhi-approve-testing
-   bodhi-check-policies
-   bodhi-clean-old-composes
-   bodhi-expire-overrides
    bodhi-push
    bodhi-sar
    bodhi-shell

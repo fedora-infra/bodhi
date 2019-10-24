@@ -955,7 +955,7 @@ Features
 ^^^^^^^^
 
 * A UI for waiving failed test results has been added to the update page (:commit:`7f7472b6`).
-* A man page was written for :doc:`man_pages/bodhi-untag-branched` (:commit:`2b83aeca`).
+* A man page was written for ``bodhi-untag-branched`` (:commit:`2b83aeca`).
 * ``bodhi-clean-old-mashes`` now prints directories before deleting them (:commit:`1cfa8a61`).
 
 
@@ -995,7 +995,7 @@ Features
 * There is now an API for waiving test results (:commit:`d52cc1a6`).
 * The :doc:`update_states` are now documented (:commit:`6f4a48a4`).
 * A :doc:`testing` doc was written (:commit:`f1f2d011`).
-* A man page for :doc:`man_pages/bodhi-expire-overrides` was written (:commit:`e4402a32`).
+* A man page for ``bodhi-expire-overrides`` was written (:commit:`e4402a32`).
 * A man page for ``bodhi-manage-releases`` was written (:commit:`84d01668`).
 * Update status and request fields are now indexed for more performant searching
   (:commit:`768ccb6c`).
@@ -1078,7 +1078,7 @@ Bugs
 * The CLI help text was corrected to remove spaces between the list of builds in the example for
   creating multi-build updates (:issue:`2071`).
 * Releases with no configured days in testing no longer crash Bodhi (:issue:`2076`).
-* :doc:`man_pages/bodhi-check-policies` now also operates on pushed updates (:issue:`2085`).
+* ``bodhi-check-policies`` now also operates on pushed updates (:issue:`2085`).
 * The client bindings' ``update_str()`` method was refactored and now does cleaner line wrapping
   (:commit:`3ef05fa9`).
 * Do not fail the compose if there is an error when writing the changelog (:commit:`88fc8405`).
@@ -1149,7 +1149,7 @@ Features
 * It is now possible to configure a maximum number of mash threads that Bodhi will run at once,
   which is handy if the new Pungi masher has been mean to your NAS. There is a new
   ``max_concurrent_mashes`` setting in production.ini, which defaults to ``2``.
-* There is now a man page for ``man_pages/bodhi-clean-old-mashes``.
+* There is now a man page for ``bodhi-clean-old-mashes``.
 * The documentation was reorganized by type of reader (:commit:`14e81a81`).
 * The documentation now uses the Alabaster theme (:commit:`f15351e2`).
 * The CLI now has a ``--arch`` flag that can be used when downloading updates to specify which

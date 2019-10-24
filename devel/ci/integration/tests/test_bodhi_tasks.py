@@ -113,6 +113,7 @@ def test_update_edit(
         "bodhi",
         "updates",
         "request",
+        "--debug",
         "--url",
         "http://localhost:8080",
         "--openid-api",

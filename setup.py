@@ -232,14 +232,14 @@ setup(
     main = bodhi.server:main
     [console_scripts]
     initialize_bodhi_db = bodhi.server.scripts.initializedb:main
-    bodhi-clean-old-composes = bodhi.server.scripts.clean_old_composes:clean_up
     bodhi-push = bodhi.server.push:push
-    bodhi-expire-overrides = bodhi.server.scripts.expire_overrides:main
     bodhi-untag-branched = bodhi.server.scripts.untag_branched:main
-    bodhi-approve-testing = bodhi.server.scripts.approve_testing:main
-    bodhi-check-policies = bodhi.server.scripts.check_policies:check
     bodhi-skopeo-lite = bodhi.server.scripts.skopeo_lite:main
     bodhi-sar = bodhi.server.scripts.sar:get_user_data
     bodhi-shell = bodhi.server.scripts.bshell:get_bodhi_shell
+    bodhi-clean-old-composes = bodhi.server.scripts.compat:clean_old_composes
+    bodhi-expire-overrides = bodhi.server.scripts.compat:expire_overrides
+    bodhi-approve-testing = bodhi.server.scripts.compat:approve_testing
+    bodhi-check-policies = bodhi.server.scripts.compat:check_policies
     """,
     paster_plugins=['pyramid'])

@@ -83,3 +83,39 @@ def handle_update(api_version: int, **kwargs):
     _do_init()
     handler = UpdatesHandler()
     handler.run(api_version=api_version, data=kwargs)
+
+
+@app.task(name="approve_testing")
+def approve_testing_task(**kwargs):
+    """Trigger the approve testing job. This is a periodic task."""
+    from .approve_testing import main
+    log.info("Received an approve testing order")
+    _do_init()
+    main()
+
+
+@app.task(name="check_policies")
+def check_policies_task(**kwargs):
+    """Trigger the check policies job. This is a periodic task."""
+    from .check_policies import main
+    log.info("Received a check policies order")
+    _do_init()
+    main()
+
+
+@app.task(name="clean_old_composes")
+def clean_old_composes_task(num_to_keep: int, **kwargs):
+    """Trigger the clean old composes job. This is a periodic task."""
+    from .clean_old_composes import main
+    log.info("Received a clean old composes order")
+    _do_init()
+    main(num_to_keep)
+
+
+@app.task(name="expire_overrides")
+def expire_overrides_task(**kwargs):
+    """Trigger the expire overrides job. This is a periodic task."""
+    from .expire_overrides import main
+    log.info("Received a expire overrides order")
+    _do_init()
+    main()
