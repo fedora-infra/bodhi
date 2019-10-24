@@ -754,20 +754,20 @@ class TestRelease(ModelTest):
         model.Release.clear_all_releases_cache()
         self.assertIsNone(model.Release._all_releases)
 
-    @mock.patch.dict(config, {'f11.koji-pending-signing-side-tag': '-pending-signing-test'})
+    @mock.patch.dict(config, {'f11.koji-signing-pending-side-tag': '-signing-pending-test'})
     def test_get_pending_signing_side_tag_found(self):
         """
         Assert that correct side tag is returned.
         """
         self.assertEqual(
-            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-pending-signing-test")
+            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-signing-pending-test")
 
     def test_get_pending_signing_side_tag_not_found(self):
         """
         Assert that default side tag is returned.
         """
         self.assertEqual(
-            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-pending-signing")
+            self.obj.get_pending_signing_side_tag("side-tag"), "side-tag-signing-pending")
 
     @mock.patch.dict(config, {'f11.koji-testing-side-tag': '-testing-test'})
     def test_get_testing_side_tag_found(self):
@@ -782,7 +782,7 @@ class TestRelease(ModelTest):
         Assert that default side tag is returned.
         """
         self.assertEqual(
-            self.obj.get_testing_side_tag("side-tag"), "side-tag-testing")
+            self.obj.get_testing_side_tag("side-tag"), "side-tag-testing-pending")
 
 
 class TestReleaseCritpathMinKarma(BaseTestCase):

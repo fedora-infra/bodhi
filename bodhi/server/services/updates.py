@@ -571,16 +571,17 @@ def new_update(request):
                 for update in updates:
                     # Validate that <koji_tag>-pending-signing and <koji-tag>-testing exists,
                     # if not create them
-                    side_tag_pending_signing = update.release.get_pending_signing_side_tag(
+                    side_tag_signing_pending = update.release.get_pending_signing_side_tag(
                         from_tag)
-                    side_tag_testing = update.release.get_testing_side_tag(from_tag)
-                    if not koji.getTag(side_tag_pending_signing):
-                        koji.createTag(side_tag_pending_signing, parent=from_tag)
-                    if not koji.getTag(side_tag_testing):
-                        koji.createTag(side_tag_testing, parent=from_tag)
+                    side_tag_testing_pending = update.release.get_testing_side_tag(from_tag)
+                    if not koji.getTag(side_tag_signing_pending):
+                        koji.createTag(side_tag_signing_pending, parent=from_tag)
+                    if not koji.getTag(side_tag_testing_pending):
+                        koji.createTag(side_tag_testing_pending, parent=from_tag)
+                        koji.editTag2(side_tag_testing_pending, perm="autosign")
 
-                    to_tag = side_tag_pending_signing
-                    # Move every new build to <from_tag>-pending-signing tag
+                    to_tag = side_tag_signing_pending
+                    # Move every new build to <from_tag>-signing-pending tag
                     update.add_tag(to_tag)
 
     except LockedUpdateException as e:
