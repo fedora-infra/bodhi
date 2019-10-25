@@ -110,7 +110,7 @@ class TestMain(BaseTestCase):
         update.date_stable = datetime.utcnow() - timedelta(days=2)
         update.status = models.UpdateStatus.stable
         # The pending_signing tag is present so it should be removed.
-        koji.listTags.return_value = [{'name': 'f17-updates-testing-signing'}, {'name': 'f17'}]
+        koji.listTags.return_value = [{'name': 'f17-updates-signing-pending'}, {'name': 'f17'}]
         self.db.flush()
 
         untag_branched.main(['untag_branched', 'some_config_path'])
@@ -119,7 +119,7 @@ class TestMain(BaseTestCase):
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged
-        koji.untagBuild.assert_called_once_with('f17-updates-testing-signing', 'bodhi-2.0-1.fc17')
+        koji.untagBuild.assert_called_once_with('f17-updates-signing-pending', 'bodhi-2.0-1.fc17')
         # An error should have been logged about the stable tag missing
         self.assertEqual(log.error.call_count, 0)
         # The Release name should have been logged and a message should have been logged about
@@ -127,7 +127,7 @@ class TestMain(BaseTestCase):
         self.assertEqual(
             log.info.mock_calls,
             [call(release.name),
-             call('Removing f17-updates-testing-signing from bodhi-2.0-1.fc17')])
+             call('Removing f17-updates-signing-pending from bodhi-2.0-1.fc17')])
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
     @patch('bodhi.server.models.buildsys.get_session')
@@ -183,7 +183,7 @@ class TestMain(BaseTestCase):
         update.status = models.UpdateStatus.stable
         # Since the stable tag is not present, none of these should be removed.
         koji.listTags.return_value = [
-            {'name': 'f17-updates-testing'}, {'name': 'f17-updates-testing-signing'},
+            {'name': 'f17-updates-testing'}, {'name': 'f17-updates-signing-pending'},
             {'name': 'f17-updates-testing-pending'}]
         self.db.flush()
 
@@ -197,7 +197,7 @@ class TestMain(BaseTestCase):
         # An error should have been logged about the stable tag missing
         log.error.assert_called_once_with(
             ("bodhi-2.0-1.fc17 not tagged as stable ['f17-updates-testing', "
-             "'f17-updates-testing-signing', 'f17-updates-testing-pending']"))
+             "'f17-updates-signing-pending', 'f17-updates-testing-pending']"))
         # The Release name should have been logged
         log.info.assert_called_once_with(release.name)
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
