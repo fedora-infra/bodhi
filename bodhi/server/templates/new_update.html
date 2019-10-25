@@ -93,7 +93,7 @@
               <input class="typeahead form-control noui" name="display_name" type="text"
                        placeholder="Update name"
 % if update:
-value=${update.display_name}
+value=${update.display_name | h}
 % endif
               >
             </form>
@@ -313,7 +313,7 @@ ${update.notes}
                   <dd> <input type="text" name="requirements"
                   placeholder="Required taskotron tasks"
                       % if update and update.requirements:
-                      value="${update.requirements}"
+                      value="${update.requirements | h}"
                       % endif
                     ></dd>
 

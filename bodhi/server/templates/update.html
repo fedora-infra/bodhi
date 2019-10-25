@@ -11,7 +11,7 @@
 <%block name="pagetitle">
   ${update.alias}
 &mdash;
-${update.type} update for ${update.beautify_title(amp=True) | n}
+${update.type} update for ${update.beautify_title(amp=True) | h}
 &mdash; Fedora Updates System
 </%block>
 
@@ -45,7 +45,7 @@ ${update.type} update for ${update.beautify_title(amp=True) | n}
     var builds = ${update.builds_json | n};
 
     // These are the required taskotron tests
-    var requirements = ${update.requirements_json | n};
+    var requirements = ${update.requirements_json | h};
     // These are the known waivers of failed testcases.
     var waivers = {};
     // show the Greenwave decision
@@ -610,7 +610,7 @@ $(document).ready(function(){
     <h4>
       ${update.type} update
       in ${update.release.long_name}
-      for ${update.beautify_title(amp=True) | n}
+      for ${update.beautify_title(amp=True) | h}
     </h4>
     <div>
       Status: ${self.util.status2html(update.status) | n}
