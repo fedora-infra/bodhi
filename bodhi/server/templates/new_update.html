@@ -50,7 +50,7 @@ ${parent.css()}
             <h6 class="font-weight-bold">Name</h6>
             <input class="typeahead form-control noui" name="display_name" type="text" placeholder="(optional) update name. leave blank and bodhi will use the package names."
 % if update:
-value=${update.display_name}
+value=${update.display_name | h}
 % endif
 >
           </div>
@@ -258,7 +258,7 @@ ${update.notes}
                       <input type="text" name="requirements" id="requirements" class="form-control" 
                   placeholder="Required taskotron tasks"
                       % if update and update.requirements:
-                      value="${update.requirements}"
+                      value="${update.requirements | h}"
                       % endif
                     >
                   </div>

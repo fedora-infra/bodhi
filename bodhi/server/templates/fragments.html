@@ -183,7 +183,7 @@ ${statusmap[status]}\
                   <div class="media-body ml-2">
                       <div class="font-weight-bold">
                         <a href="${request.route_url('update', id=update['alias'])}">
-                        ${update.beautify_title(amp=True,nvr=True) | n}
+                        ${update.beautify_title(amp=True,nvr=True) | h}
                         </a>
                       </div>
                       <div class="line-height-1">
