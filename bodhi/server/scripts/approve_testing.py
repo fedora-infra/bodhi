@@ -163,6 +163,7 @@ def main(argv=sys.argv):
                             # Single build update
                             update.remove_tag(update.release.pending_testing_tag)
                             update.remove_tag(update.release.pending_stable_tag)
+                            update.remove_tag(update.release.pending_signing_tag)
 
                 db.commit()
 

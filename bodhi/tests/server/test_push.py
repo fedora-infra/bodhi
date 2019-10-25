@@ -662,7 +662,7 @@ class TestPush(base.BaseTestCase):
                         return_value=base.TransactionalSessionMaker(self.Session)):
             # Note: this IS the signing-pending tag
             with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
-                            return_value=[{'name': 'f17-updates-testing-signing'}]):
+                            return_value=[{'name': 'f17-updates-signing-pending'}]):
                 with mock.patch('bodhi.server.push.compose_task') as compose_task:
                     result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
                     compose_task.delay.assert_not_called()
@@ -1090,7 +1090,7 @@ class TestPush(base.BaseTestCase):
                         return_value=base.TransactionalSessionMaker(self.Session)):
             # Note: this IS the signing-pending tag
             with mock.patch('bodhi.server.buildsys.DevBuildsys.listTags',
-                            return_value=[{'name': 'f17-updates-testing-signing'}]):
+                            return_value=[{'name': 'f17-updates-signing-pending'}]):
                 with mock.patch('bodhi.server.push.compose_task') as compose_task:
                     result = cli.invoke(push.push, ['--username', 'bowlofeggs'],
                                         input='y')
