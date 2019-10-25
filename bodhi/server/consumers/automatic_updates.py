@@ -158,6 +158,8 @@ class AutomaticUpdateHandler:
                 author="bodhi",
             )
 
+            update.add_tag(update.release.pending_signing_tag)
+
             log.debug("Adding new update to the database.")
             dbsession.add(update)
 
