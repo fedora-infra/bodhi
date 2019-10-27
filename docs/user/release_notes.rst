@@ -11,6 +11,8 @@ This is a bugfix release.
 Bug fixes
 ^^^^^^^^^
 
+* Deal with message handler exceptions individually (:issue:`3422`).
+* Prevent a crash in the client when the update is empty
 * Disable time base auto push to stable if we recieve negative karma (:issue:`3459`).
 * Ignore the compose decision in the greenwave consumer (:issue:`3425`).
 * Handle orphan builds in automatic updates consumer (:issue:`3447`).
