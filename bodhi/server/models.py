@@ -2256,8 +2256,9 @@ class Update(Base):
                                f"release value of {up.mandatory_days_in_testing} days"
             })
 
-        log.debug("Setting request for new update.")
-        up.set_request(db, req, request.user.name)
+        if not data.get("from_tag"):
+            log.debug("Setting request for new update.")
+            up.set_request(db, req, request.user.name)
 
         log.debug("Adding new update to the db.")
         db.add(up)
@@ -2402,7 +2403,7 @@ class Update(Base):
         del(data['bugs'])
 
         req = data.pop("request", None)
-        if req is not None:
+        if req is not None and not data.get("from_tag"):
             up.set_request(db, req, request.user.name)
 
         for key, value in data.items():
