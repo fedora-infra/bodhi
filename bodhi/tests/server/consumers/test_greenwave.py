@@ -24,6 +24,7 @@ from fedora_messaging.api import Message
 from bodhi.server import models
 from bodhi.server.consumers import greenwave
 from bodhi.server.config import config
+from bodhi.tests.server import create_update
 from bodhi.tests.server.base import BaseTestCase, TransactionalSessionMaker
 
 
@@ -34,19 +35,78 @@ class TestGreenwaveHandler(BaseTestCase):
         super().setUp()
         self.sample_message = Message(
             topic="org.fedoraproject.prod.greenwave.decision.update",
-            body={"subject_identifier": "bodhi-2.0-1.fc17", "subject_type": "koji_build"},
+            body={
+                "subject_identifier": "bodhi-2.0-1.fc17",
+                "subject_type": "koji_build",
+                'policies_satisfied': True,
+                'summary': "all tests have passed",
+            },
         )
         self.handler = greenwave.GreenwaveHandler()
+        self.handler.db_factory = TransactionalSessionMaker(self.Session)
+        self.single_build_update = self.db.query(models.Update).filter(
+            models.Build.nvr == 'bodhi-2.0-1.fc17').one()
+
+    def test_single_build(self):
+        """
+        Assert that a greenwave message updates the gating status of an update.
+        """
+        update = self.single_build_update
+
+        # before the greenwave consumer run the gating tests status is None
+        assert update.test_gating_status is None
+
+        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            self.handler(self.sample_message)
+            # Only one build, the info should come from the message and not the greenwave API
+            assert mock_greenwave.called is False
+
+        # After the consumer run the gating tests status was updated.
+        assert update.test_gating_status == models.TestGatingStatus.passed
+
+    def test_single_build_failed(self):
+        """
+        Assert that a greenwave message updates the gating status of an update when gating status is
+        failed.
+        """
+        update = self.single_build_update
+
+        self.sample_message.body["policies_satisfied"] = False
+        self.handler(self.sample_message)
+        assert update.test_gating_status == models.TestGatingStatus.failed
+
+    def test_single_build_ignored(self):
+        """
+        Assert that a greenwave message updates the gating status of an update when gating status is
+        ignored.
+        """
+        update = self.single_build_update
+
+        self.sample_message.body["policies_satisfied"] = True
+        self.sample_message.body["summary"] = "no tests are required"
+        self.handler(self.sample_message)
+        assert update.test_gating_status == models.TestGatingStatus.ignored
 
     @mock.patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
-    def test_update_test_gating_status(self):
+    def test_multiple_builds(self):
         """
         Assert that a greenwave message updates the gating tests status of an update.
         """
+        # Create an update with multiple builds
+        with mock.patch(target='uuid.uuid4', return_value='multiplebuilds'):
+            update = create_update(
+                self.db, ['MultipleBuild1-1.0-1.fc17', 'MultipleBuild2-1.0-1.fc17']
+            )
+            update.type = models.UpdateType.bugfix
+            update.severity = models.UpdateSeverity.medium
+        self.db.flush()
 
-        self.handler.db_factory = TransactionalSessionMaker(self.Session)
-        update = self.db.query(models.Update).filter(
-            models.Build.nvr == 'bodhi-2.0-1.fc17').one()
+        # Reference it in the incoming message
+        self.sample_message.body["subject_identifier"] = "MultipleBuild1-1.0-1.fc17"
+
+        # Put bogus info in the message to make sure it does not get used
+        self.sample_message.body["policies_satisfied"] = False
+        self.sample_message.body["summary"] = "this should not be used"
 
         # before the greenwave consumer run the gating tests status is None
         assert update.test_gating_status is None
@@ -65,23 +125,32 @@ class TestGreenwaveHandler(BaseTestCase):
     @mock.patch('bodhi.server.consumers.greenwave.log')
     def test_greenwave_bad_message(self, mock_log):
         """ Assert that the consumer ignores messages badly formed """
-
         bad_message = Message(topic="", body={})
         self.handler(bad_message)
         self.assertEqual(mock_log.debug.call_count, 1)
         mock_log.debug.assert_called_with("Ignoring message without body.")
 
     @mock.patch('bodhi.server.consumers.greenwave.log')
-    def test_greenwave_message_missing_info(self, mock_log):
+    def test_greenwave_message_missing_subject_identifier(self, mock_log):
         """
         Assert that the consumer raise an exception if we could not find the
         subject_identifier in the message
         """
-
-        bad_message = Message(topic="", body={"msg": {}})
+        bad_message = Message(topic="", body={"foo": "bar"})
         self.handler(bad_message)
         self.assertEqual(mock_log.debug.call_count, 1)
         mock_log.debug.assert_called_with("Couldn't find subject_identifier in Greenwave message")
+
+    @mock.patch('bodhi.server.consumers.greenwave.log')
+    def test_greenwave_message_missing_policies_satisfied(self, mock_log):
+        """
+        Assert that the consumer raise an exception if we could not find the
+        policies_satisfied in the message
+        """
+        bad_message = Message(topic="", body={"subject_identifier": "foobar"})
+        self.handler(bad_message)
+        self.assertEqual(mock_log.debug.call_count, 1)
+        mock_log.debug.assert_called_with("Couldn't find policies_satisfied in Greenwave message")
 
     @mock.patch('bodhi.server.consumers.greenwave.log')
     def test_greenwave_wrong_build_nvr(self, mock_log):
@@ -89,7 +158,6 @@ class TestGreenwaveHandler(BaseTestCase):
         Assert that the consumer raise an exception if we could not find the
         subject_identifier (build nvr) in the DB.
         """
-        self.handler.db_factory = TransactionalSessionMaker(self.Session)
         self.sample_message.body["subject_identifier"] = "notapackage-2.0-1.fc17"
         self.handler(self.sample_message)
         self.assertEqual(mock_log.debug.call_count, 1)
@@ -98,7 +166,6 @@ class TestGreenwaveHandler(BaseTestCase):
     @mock.patch('bodhi.server.consumers.greenwave.log')
     def test_greenwave_compose_subject_type(self, mock_log):
         """ Assert that the consumer ignores messages with subject_type equal to compose """
-
         self.sample_message.body["subject_type"] = "compose"
         self.handler(self.sample_message)
         self.assertEqual(mock_log.debug.call_count, 1)

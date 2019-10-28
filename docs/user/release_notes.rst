@@ -2,6 +2,7 @@
 Release notes
 =============
 
+.. towncrier release notes start
 
 v5.0.0
 ======
@@ -119,7 +120,7 @@ The following developers contributed to Bodhi 5.0.0:
 
 
 v4.1.0
-------
+======
 
 This is a feature release that adds single-package gating.
 
@@ -199,7 +200,7 @@ The following developers contributed to Bodhi 4.1.0:
 
 
 v4.0.2
-------
+======
 
 This is a bugfix release.
 
@@ -219,7 +220,7 @@ The following developers contributed to Bodhi 4.0.2:
 
 
 v4.0.1
-------
+======
 
 This is a bugfix release.
 

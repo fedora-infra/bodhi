@@ -19,10 +19,10 @@
 from datetime import datetime, timedelta
 from unittest import mock
 import copy
-import unittest
 
 import fedora.client
 import munch
+import pytest
 
 from bodhi.client import bindings
 from bodhi.tests import client as client_test_data
@@ -30,7 +30,7 @@ from bodhi.tests.utils import compare_output
 
 
 @mock.patch('fedora.client.openidproxyclient.FEDORA_OPENID_API', 'default')
-class TestBodhiClient___init__(unittest.TestCase):
+class TestBodhiClient___init__:
     """
     This class contains tests for the BodhiClient.__init__() method.
     """
@@ -40,8 +40,8 @@ class TestBodhiClient___init__(unittest.TestCase):
         """
         client = bindings.BodhiClient(base_url='http://localhost:6543')
 
-        self.assertEqual(client.base_url, 'http://localhost:6543/')
-        self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API, 'default')
+        assert client.base_url == 'http://localhost:6543/'
+        assert fedora.client.openidproxyclient.FEDORA_OPENID_API == 'default'
 
     def test_openid_api(self):
         """Test the openid_api parameter."""
@@ -49,14 +49,13 @@ class TestBodhiClient___init__(unittest.TestCase):
             base_url='http://example.com/bodhi/', username='some_user', password='s3kr3t',
             staging=False, timeout=60, openid_api='https://example.com/api/v1/')
 
-        self.assertEqual(client.base_url, 'http://example.com/bodhi/')
-        self.assertEqual(client.login_url, 'http://example.com/bodhi/login')
-        self.assertEqual(client.username, 'some_user')
-        self.assertEqual(client.timeout, 60)
-        self.assertEqual(client._password, 's3kr3t')
-        self.assertEqual(client.csrf_token, '')
-        self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API,
-                         'https://example.com/api/v1/')
+        assert client.base_url == 'http://example.com/bodhi/'
+        assert client.login_url == 'http://example.com/bodhi/login'
+        assert client.username == 'some_user'
+        assert client.timeout == 60
+        assert client._password == 's3kr3t'
+        assert client.csrf_token == ''
+        assert fedora.client.openidproxyclient.FEDORA_OPENID_API == 'https://example.com/api/v1/'
 
     def test_staging_false(self):
         """
@@ -65,13 +64,13 @@ class TestBodhiClient___init__(unittest.TestCase):
         client = bindings.BodhiClient(base_url='http://example.com/bodhi/', username='some_user',
                                       password='s3kr3t', staging=False, timeout=60)
 
-        self.assertEqual(client.base_url, 'http://example.com/bodhi/')
-        self.assertEqual(client.login_url, 'http://example.com/bodhi/login')
-        self.assertEqual(client.username, 'some_user')
-        self.assertEqual(client.timeout, 60)
-        self.assertEqual(client._password, 's3kr3t')
-        self.assertEqual(client.csrf_token, '')
-        self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API, 'default')
+        assert client.base_url == 'http://example.com/bodhi/'
+        assert client.login_url == 'http://example.com/bodhi/login'
+        assert client.username == 'some_user'
+        assert client.timeout == 60
+        assert client._password == 's3kr3t'
+        assert client.csrf_token == ''
+        assert fedora.client.openidproxyclient.FEDORA_OPENID_API == 'default'
 
     def test_staging_true(self):
         """
@@ -81,17 +80,17 @@ class TestBodhiClient___init__(unittest.TestCase):
             base_url='http://example.com/bodhi/', username='some_user', password='s3kr3t',
             staging=True, retries=5, openid_api='ignored')
 
-        self.assertEqual(client.base_url, bindings.STG_BASE_URL)
-        self.assertEqual(client.login_url, bindings.STG_BASE_URL + 'login')
-        self.assertEqual(client.username, 'some_user')
-        self.assertEqual(client.timeout, None)
-        self.assertEqual(client.retries, 5)
-        self.assertEqual(client._password, 's3kr3t')
-        self.assertEqual(client.csrf_token, '')
-        self.assertEqual(fedora.client.openidproxyclient.FEDORA_OPENID_API, bindings.STG_OPENID_API)
+        assert client.base_url == bindings.STG_BASE_URL
+        assert client.login_url == bindings.STG_BASE_URL + 'login'
+        assert client.username == 'some_user'
+        assert client.timeout is None
+        assert client.retries == 5
+        assert client._password == 's3kr3t'
+        assert client.csrf_token == ''
+        assert fedora.client.openidproxyclient.FEDORA_OPENID_API == bindings.STG_OPENID_API
 
 
-class TestBodhiClient_comment(unittest.TestCase):
+class TestBodhiClient_comment:
     """
     Test the BodhiClient.comment() method.
     """
@@ -105,14 +104,14 @@ class TestBodhiClient_comment(unittest.TestCase):
 
         response = client.comment('bodhi-2.4.0-1.fc25', 'It ate my cat!', karma=-1)
 
-        self.assertEqual(response, 'response')
+        assert response == 'response'
         client.send_request.assert_called_once_with(
             'comments/', verb='POST', auth=True,
             data={'update': 'bodhi-2.4.0-1.fc25', 'text': 'It ate my cat!', 'karma': -1,
                   'csrf_token': 'a token'})
 
 
-class TestBodhiClient_compose_str(unittest.TestCase):
+class TestBodhiClient_compose_str:
     """Test the BodhiClient.compose_str() method."""
 
     def test_error_message(self):
@@ -122,35 +121,35 @@ class TestBodhiClient_compose_str(unittest.TestCase):
             s = bindings.BodhiClient.compose_str(
                 client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=False)
 
-        self.assertIn('*EPEL-7-stable  :   2 updates (requested)', s)
-        self.assertIn('Content Type: rpm', s)
-        self.assertIn('Started: 2018-03-15 17:25:22', s)
-        self.assertIn('Updated: 2018-03-15 17:25:22', s)
-        self.assertIn('Updates:', s)
-        self.assertIn('FEDORA-EPEL-2018-50566f0a39: uwsgi-2.0.16-1.el7', s)
-        self.assertIn('FEDORA-EPEL-2018-328e2b8c27: qtpass-1.2.1-3.el7', s)
-        self.assertIn('Error: some error', s)
+        assert '*EPEL-7-stable  :   2 updates (requested)' in s
+        assert 'Content Type: rpm' in s
+        assert 'Started: 2018-03-15 17:25:22' in s
+        assert 'Updated: 2018-03-15 17:25:22' in s
+        assert 'Updates:' in s
+        assert 'FEDORA-EPEL-2018-50566f0a39: uwsgi-2.0.16-1.el7' in s
+        assert 'FEDORA-EPEL-2018-328e2b8c27: qtpass-1.2.1-3.el7' in s
+        assert 'Error: some error' in s
 
     def test_minimal_false(self):
         """Test with minimal False."""
         s = bindings.BodhiClient.compose_str(
             client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=False)
 
-        self.assertIn('*EPEL-7-stable  :   2 updates (requested)', s)
-        self.assertIn('Content Type: rpm', s)
-        self.assertIn('Started: 2018-03-15 17:25:22', s)
-        self.assertIn('Updated: 2018-03-15 17:25:22', s)
-        self.assertIn('Updates:', s)
-        self.assertIn('FEDORA-EPEL-2018-50566f0a39: uwsgi-2.0.16-1.el7', s)
-        self.assertIn('FEDORA-EPEL-2018-328e2b8c27: qtpass-1.2.1-3.el7', s)
-        self.assertNotIn('Error', s)
+        assert '*EPEL-7-stable  :   2 updates (requested)' in s
+        assert 'Content Type: rpm' in s
+        assert 'Started: 2018-03-15 17:25:22' in s
+        assert 'Updated: 2018-03-15 17:25:22' in s
+        assert 'Updates:' in s
+        assert 'FEDORA-EPEL-2018-50566f0a39: uwsgi-2.0.16-1.el7' in s
+        assert 'FEDORA-EPEL-2018-328e2b8c27: qtpass-1.2.1-3.el7' in s
+        assert 'Error' not in s
 
     def test_minimal_true(self):
         """Test with minimal True."""
         s = bindings.BodhiClient.compose_str(
             client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=True)
 
-        self.assertEqual(s, '*EPEL-7-stable  :   2 updates (requested) ')
+        assert s == '*EPEL-7-stable  :   2 updates (requested) '
 
     def test_non_security_update(self):
         """Non-security updates should not have a leading *."""
@@ -159,10 +158,10 @@ class TestBodhiClient_compose_str(unittest.TestCase):
             s = bindings.BodhiClient.compose_str(
                 client_test_data.EXAMPLE_COMPOSES_MUNCH['composes'][0], minimal=True)
 
-        self.assertEqual(s, ' EPEL-7-stable  :   2 updates (requested) ')
+        assert s == ' EPEL-7-stable  :   2 updates (requested) '
 
 
-class TestBodhiClient_init_username(unittest.TestCase):
+class TestBodhiClient_init_username:
     """Test the BodhiClient.init_username() method."""
     TEST_EMPTY_OBJECT_SESSION_CACHE = '{}'
     TEST_FAILED_SESSION_CACHE = '{"https://bodhi.fedoraproject.org/:bowlofeggs": []}'
@@ -186,10 +185,10 @@ class TestBodhiClient_init_username(unittest.TestCase):
         client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
-        self.assertEqual(mock_input.call_count, 1)
+        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
+        assert mock_input.call_count == 1
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(client.username, 'pongou')
+        assert client.username == 'pongou'
 
     @mock.patch('builtins.open', create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
@@ -208,10 +207,10 @@ class TestBodhiClient_init_username(unittest.TestCase):
         client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
-        self.assertEqual(mock_input.call_count, 1)
+        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
+        assert mock_input.call_count == 1
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(client.username, 'pongou')
+        assert client.username == 'pongou'
 
     @mock.patch('builtins.open', create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
@@ -230,10 +229,10 @@ class TestBodhiClient_init_username(unittest.TestCase):
         client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
-        self.assertEqual(mock_input.call_count, 1)
+        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
+        assert mock_input.call_count == 1
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(client.username, 'pongou')
+        assert client.username == 'pongou'
 
     @mock.patch('builtins.open', create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
@@ -251,10 +250,10 @@ class TestBodhiClient_init_username(unittest.TestCase):
         client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
-        self.assertEqual(mock_input.call_count, 0)
+        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
+        assert mock_input.call_count == 0
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(client.username, 'bowlofeggs')
+        assert client.username == 'bowlofeggs'
 
     @mock.patch('builtins.open', create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
@@ -281,10 +280,10 @@ class TestBodhiClient_init_username(unittest.TestCase):
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
         loads.assert_called_once_with(self.TEST_HOT_SESSION_CACHE)
-        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
-        self.assertEqual(mock_input.call_count, 0)
+        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
+        assert mock_input.call_count == 0
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(client.username, 'correct')
+        assert client.username == 'correct'
 
     @mock.patch('builtins.open', create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
@@ -301,10 +300,10 @@ class TestBodhiClient_init_username(unittest.TestCase):
         client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
-        self.assertEqual(mock_input.call_count, 1)
-        self.assertEqual(mock_open.call_count, 0)
-        self.assertEqual(client.username, 'pongou')
+        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
+        assert mock_input.call_count == 1
+        assert mock_open.call_count == 0
+        assert client.username == 'pongou'
 
     @mock.patch('builtins.open', create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
@@ -323,10 +322,10 @@ class TestBodhiClient_init_username(unittest.TestCase):
         client.init_username()
 
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
-        self.assertEqual(mock_input.call_count, 1)
+        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
+        assert mock_input.call_count == 1
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(client.username, 'pongou')
+        assert client.username == 'pongou'
 
     @mock.patch('builtins.open', create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
@@ -340,14 +339,14 @@ class TestBodhiClient_init_username(unittest.TestCase):
 
         client.init_username()
 
-        self.assertEqual(exists.call_count, 0)
-        self.assertEqual(_load_cookies.mock_calls, [mock.call()])
-        self.assertEqual(mock_input.call_count, 0)
-        self.assertEqual(mock_open.call_count, 0)
-        self.assertEqual(client.username, 'coolbeans')
+        assert exists.call_count == 0
+        assert _load_cookies.mock_calls == [mock.call()]
+        assert mock_input.call_count == 0
+        assert mock_open.call_count == 0
+        assert client.username == 'coolbeans'
 
 
-class TestBodhiClient_csrf(unittest.TestCase):
+class TestBodhiClient_csrf:
     """
     Test the BodhiClient.csrf() method.
     """
@@ -362,10 +361,10 @@ class TestBodhiClient_csrf(unittest.TestCase):
 
         csrf = client.csrf()
 
-        self.assertEqual(csrf, 'a token')
-        self.assertEqual(client.send_request.call_count, 0)
+        assert csrf == 'a token'
+        assert client.send_request.call_count == 0
         # No need to init the username since we already have a token.
-        self.assertEqual(init_username.call_count, 0)
+        assert init_username.call_count == 0
 
     @mock.patch('builtins.open', create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
@@ -386,17 +385,17 @@ class TestBodhiClient_csrf(unittest.TestCase):
 
         csrf = client.csrf()
 
-        self.assertEqual(csrf, 'a great token')
-        self.assertEqual(client.csrf_token, 'a great token')
+        assert csrf == 'a great token'
+        assert client.csrf_token == 'a great token'
         client.has_cookies.assert_called_once_with()
-        self.assertEqual(client.login.call_count, 0)
+        assert client.login.call_count == 0
         client.send_request.assert_called_once_with('csrf', verb='GET', auth=True)
         # Ensure that init_username() was called and did its thing.
         exists.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(_load_cookies.mock_calls, [mock.call(), mock.call()])
-        self.assertEqual(mock_input.call_count, 0)
+        assert _load_cookies.mock_calls == [mock.call(), mock.call()]
+        assert mock_input.call_count == 0
         mock_open.assert_called_once_with(fedora.client.openidbaseclient.b_SESSION_FILE)
-        self.assertEqual(client.username, 'bowlofeggs')
+        assert client.username == 'bowlofeggs'
 
     @mock.patch('builtins.open', create=True)
     @mock.patch('bodhi.client.bindings.input', create=True)
@@ -414,20 +413,20 @@ class TestBodhiClient_csrf(unittest.TestCase):
 
         csrf = client.csrf()
 
-        self.assertEqual(csrf, 'a great token')
-        self.assertEqual(client.csrf_token, 'a great token')
+        assert csrf == 'a great token'
+        assert client.csrf_token == 'a great token'
         client.has_cookies.assert_called_once_with()
         client.login.assert_called_once_with('pongou', 'illnevertell')
         client.send_request.assert_called_once_with('csrf', verb='GET', auth=True)
         # Ensure that init_username() didn't do anything since a username was given.
-        self.assertEqual(exists.call_count, 0)
-        self.assertEqual(_load_cookies.mock_calls, [mock.call()])
-        self.assertEqual(mock_input.call_count, 0)
-        self.assertEqual(mock_open.call_count, 0)
-        self.assertEqual(client.username, 'pongou')
+        assert exists.call_count == 0
+        assert _load_cookies.mock_calls == [mock.call()]
+        assert mock_input.call_count == 0
+        assert mock_open.call_count == 0
+        assert client.username == 'pongou'
 
 
-class TestBodhiClient_latest_builds(unittest.TestCase):
+class TestBodhiClient_latest_builds:
     """
     Test the BodhiClient.latest_builds() method.
     """
@@ -440,11 +439,11 @@ class TestBodhiClient_latest_builds(unittest.TestCase):
 
         latest_builds = client.latest_builds('bodhi')
 
-        self.assertEqual(latest_builds, 'bodhi-2.4.0-1.fc25')
+        assert latest_builds == 'bodhi-2.4.0-1.fc25'
         client.send_request.assert_called_once_with('latest_builds', params={'package': 'bodhi'})
 
 
-class TestBodhiClient_get_compose(unittest.TestCase):
+class TestBodhiClient_get_compose:
     """
     This class contains tests for BodhiClient.get_compose().
     """
@@ -463,11 +462,11 @@ class TestBodhiClient_get_compose(unittest.TestCase):
         """
         client = bindings.BodhiClient(staging=False)
 
-        with self.assertRaises(bindings.ComposeNotFound) as exc:
+        with pytest.raises(bindings.ComposeNotFound) as exc:
             client.get_compose('EPEL-7', 'stable')
 
-            self.assertEqual(exc.release, 'EPEL-7')
-            self.assertEqual(exc.request, 'stable')
+            assert exc.release == 'EPEL-7'
+            assert exc.request == 'stable'
 
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
         __init__.assert_called_once_with(staging=False)
@@ -487,7 +486,7 @@ class TestBodhiClient_get_compose(unittest.TestCase):
 
         response = client.get_compose('EPEL-7', 'stable')
 
-        self.assertEqual(response, client_test_data.EXAMPLE_COMPOSE_MUNCH)
+        assert response == client_test_data.EXAMPLE_COMPOSE_MUNCH
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
         __init__.assert_called_once_with(staging=False)
 
@@ -507,16 +506,16 @@ class TestBodhiClient_get_compose(unittest.TestCase):
         send_request.side_effect = server_error
         client = bindings.BodhiClient(staging=False)
 
-        with self.assertRaises(fedora.client.ServerError) as exc:
+        with pytest.raises(fedora.client.ServerError) as exc:
             client.get_compose('EPEL-7', 'stable')
 
-            self.assertTrue(exc is server_error)
+            assert exc is server_error
 
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
         __init__.assert_called_once_with(staging=False)
 
 
-class TestBodhiClient_list_composes(unittest.TestCase):
+class TestBodhiClient_list_composes:
     """Test the BodhiClient.list_composes() method."""
 
     def test_list_composes(self):
@@ -526,11 +525,11 @@ class TestBodhiClient_list_composes(unittest.TestCase):
 
         composes = client.list_composes()
 
-        self.assertEqual(composes, 'some_composes')
+        assert composes == 'some_composes'
         client.send_request.assert_called_once_with('composes/', verb='GET')
 
 
-class TestBodhiClient_list_overrides(unittest.TestCase):
+class TestBodhiClient_list_overrides:
     """
     Test the BodhiClient.list_overrides() method.
     """
@@ -543,7 +542,7 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
 
         response = client.list_overrides(user='bowlofeggs')
 
-        self.assertEqual(response, 'response')
+        assert response == 'response'
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'user': 'bowlofeggs'})
 
@@ -556,7 +555,7 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
 
         response = client.list_overrides()
 
-        self.assertEqual(response, 'response')
+        assert response == 'response'
         client.send_request.assert_called_once_with('overrides/', verb='GET', params={})
 
     def test_with_package(self):
@@ -568,7 +567,7 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
 
         response = client.list_overrides(packages='bodhi')
 
-        self.assertEqual(response, 'response')
+        assert response == 'response'
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'packages': 'bodhi'})
 
@@ -581,7 +580,7 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
 
         response = client.list_overrides(expired=True)
 
-        self.assertEqual(response, 'response')
+        assert response == 'response'
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'expired': True})
 
@@ -594,7 +593,7 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
 
         response = client.list_overrides(expired=False)
 
-        self.assertEqual(response, 'response')
+        assert response == 'response'
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'expired': False})
 
@@ -607,7 +606,7 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
 
         response = client.list_overrides(releases='F24')
 
-        self.assertEqual(response, 'response')
+        assert response == 'response'
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'releases': 'F24'})
 
@@ -620,7 +619,7 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
 
         response = client.list_overrides(builds='python-1.5.6-3.fc26')
 
-        self.assertEqual(response, 'response')
+        assert response == 'response'
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'builds': 'python-1.5.6-3.fc26'})
 
@@ -633,7 +632,7 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
 
         response = client.list_overrides(rows_per_page=10)
 
-        self.assertEqual(response, 'response')
+        assert response == 'response'
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'rows_per_page': 10})
 
@@ -646,12 +645,12 @@ class TestBodhiClient_list_overrides(unittest.TestCase):
 
         response = client.list_overrides(page=5)
 
-        self.assertEqual(response, 'response')
+        assert response == 'response'
         client.send_request.assert_called_once_with('overrides/', verb='GET',
                                                     params={'page': 5})
 
 
-class TestBodhiClient_override_str(unittest.TestCase):
+class TestBodhiClient_override_str:
     """
     Test the BodhiClient.override_str() method.
     """
@@ -665,8 +664,7 @@ class TestBodhiClient_override_str(unittest.TestCase):
 
         override = bindings.BodhiClient.override_str(override)
 
-        self.assertEqual(override,
-                         "bowlofeggs's python-pyramid-1.5.6-3.el7 override (expires 2017-02-24)")
+        assert override == "bowlofeggs's python-pyramid-1.5.6-3.el7 override (expires 2017-02-24)"
 
     def test_with_dict(self):
         """
@@ -679,7 +677,7 @@ class TestBodhiClient_override_str(unittest.TestCase):
 
         override = bindings.BodhiClient.override_str(override, minimal=False)
 
-        self.assertEqual(override, client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT.rstrip())
+        assert override == client_test_data.EXPECTED_OVERRIDE_STR_OUTPUT.rstrip()
 
     def test_with_str(self):
         """
@@ -687,10 +685,10 @@ class TestBodhiClient_override_str(unittest.TestCase):
         """
         override = bindings.BodhiClient.override_str('this is an override')
 
-        self.assertEqual(override, 'this is an override')
+        assert override == 'this is an override'
 
 
-class TestBodhiClient_password(unittest.TestCase):
+class TestBodhiClient_password:
     """
     This class contains tests for the BodhiClient.password property.
     """
@@ -701,7 +699,7 @@ class TestBodhiClient_password(unittest.TestCase):
         """
         client = bindings.BodhiClient()
 
-        self.assertEqual(client.password, 'typed password')
+        assert client.password == 'typed password'
 
         getpass.assert_called_once_with()
 
@@ -712,12 +710,11 @@ class TestBodhiClient_password(unittest.TestCase):
         """
         client = bindings.BodhiClient(password='arg password')
 
-        self.assertEqual(client.password, 'arg password')
+        assert client.password == 'arg password'
+        assert getpass.call_count == 0
 
-        self.assertEqual(getpass.call_count, 0)
 
-
-class TestBodhiClient_query(unittest.TestCase):
+class TestBodhiClient_query:
     """
     Test BodhiClient.query().
     """
@@ -730,7 +727,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(builds='bodhi-2.4.0-1.fc26', bugs='')
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'builds': 'bodhi-2.4.0-1.fc26', 'bugs': None})
 
@@ -743,7 +740,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(builds='bodhi-2.4.0-1.fc26', limit=50)
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'builds': 'bodhi-2.4.0-1.fc26', 'rows_per_page': 50})
 
@@ -756,7 +753,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(builds='bodhi-2.4.0-1.fc26', mine=False)
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'builds': 'bodhi-2.4.0-1.fc26', 'mine': False})
 
@@ -770,7 +767,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(builds='bodhi-2.4.0-1.fc26', mine=True)
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET',
             params={'builds': 'bodhi-2.4.0-1.fc26', 'mine': True, 'user': 'bowlofeggs'})
@@ -784,7 +781,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(package='bodhi-2.4.0-1.el7')
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'builds': 'bodhi-2.4.0-1.el7'})
 
@@ -797,7 +794,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(package='FEDORA-EPEL-2017-c3b112eb9e')
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'updateid': 'FEDORA-EPEL-2017-c3b112eb9e'})
 
@@ -810,7 +807,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(package='bodhi-2.4.0-1.fc26')
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'builds': 'bodhi-2.4.0-1.fc26'})
 
@@ -823,7 +820,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(package='FEDORA-2017-52506b30d4')
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'updateid': 'FEDORA-2017-52506b30d4'})
 
@@ -836,7 +833,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(package='bodhi')
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi'})
 
@@ -849,7 +846,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(packages='bodhi', release=['f27'])
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'releases': ['f27']})
 
@@ -862,7 +859,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(packages='bodhi', release='f26')
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'releases': ['f26']})
 
@@ -875,7 +872,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(packages='bodhi', type_='security')
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'type': 'security'})
 
@@ -888,7 +885,7 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(packages='bodhi', rows_per_page=10)
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'rows_per_page': 10})
 
@@ -901,12 +898,12 @@ class TestBodhiClient_query(unittest.TestCase):
 
         result = client.query(packages='bodhi', page=5)
 
-        self.assertEqual(result, 'return_value')
+        assert result == 'return_value'
         client.send_request.assert_called_once_with(
             'updates/', verb='GET', params={'packages': 'bodhi', 'page': 5})
 
 
-class TestBodhiClient_save(unittest.TestCase):
+class TestBodhiClient_save:
     """
     This class contains tests for BodhiClient.save().
     """
@@ -924,7 +921,7 @@ class TestBodhiClient_save(unittest.TestCase):
 
         response = client.save(**kwargs)
 
-        self.assertEqual(response, 'return_value')
+        assert response == 'return_value'
         kwargs['type'] = kwargs['type_']
         kwargs['csrf_token'] = 'a token'
         client.send_request.assert_called_once_with('updates/', verb='POST', auth=True, data=kwargs)
@@ -943,12 +940,12 @@ class TestBodhiClient_save(unittest.TestCase):
 
         response = client.save(**kwargs)
 
-        self.assertEqual(response, 'return_value')
+        assert response == 'return_value'
         kwargs['csrf_token'] = 'a token'
         client.send_request.assert_called_once_with('updates/', verb='POST', auth=True, data=kwargs)
 
 
-class TestBodhiClient_save_override(unittest.TestCase):
+class TestBodhiClient_save_override:
     """
     This class contains tests for BodhiClient.save_override().
     """
@@ -964,7 +961,7 @@ class TestBodhiClient_save_override(unittest.TestCase):
                                         duration=2,
                                         notes='This is needed to build bodhi-2.4.0.')
 
-        self.assertEqual(response, 'return_value')
+        assert response == 'return_value'
         actual_expiration = client.send_request.mock_calls[0][2]['data']['expiration_date']
         client.send_request.assert_called_once_with(
             'overrides/', verb='POST', auth=True,
@@ -975,7 +972,7 @@ class TestBodhiClient_save_override(unittest.TestCase):
         # date sent is within 5 minutes of the now variable. It would be surprising if it took more
         # than 5 minutes to start the function and execute its first instruction!
         expected_expiration = now + timedelta(days=2)
-        self.assertTrue((actual_expiration - expected_expiration) < timedelta(minutes=5))
+        assert (actual_expiration - expected_expiration) < timedelta(minutes=5)
 
     def test_save_override_edit(self):
         """
@@ -990,7 +987,7 @@ class TestBodhiClient_save_override(unittest.TestCase):
                                         notes='This is needed to build bodhi-2.4.0.',
                                         edit=True)
 
-        self.assertEqual(response, 'return_value')
+        assert response == 'return_value'
         actual_expiration = client.send_request.mock_calls[0][2]['data']['expiration_date']
         client.send_request.assert_called_once_with(
             'overrides/', verb='POST', auth=True,
@@ -1002,7 +999,7 @@ class TestBodhiClient_save_override(unittest.TestCase):
         # date sent is within 5 minutes of the now variable. It would be surprising if it took more
         # than 5 minutes to start the function and execute its first instruction!
         expected_expiration = now + timedelta(days=2)
-        self.assertTrue((actual_expiration - expected_expiration) < timedelta(minutes=5))
+        assert (actual_expiration - expected_expiration) < timedelta(minutes=5)
 
     def test_save_override_expired(self):
         """
@@ -1017,7 +1014,7 @@ class TestBodhiClient_save_override(unittest.TestCase):
                                         notes='This is needed to build bodhi-2.4.0.',
                                         expired=True)
 
-        self.assertEqual(response, 'return_value')
+        assert response == 'return_value'
         actual_expiration = client.send_request.mock_calls[0][2]['data']['expiration_date']
         client.send_request.assert_called_once_with(
             'overrides/', verb='POST', auth=True,
@@ -1029,10 +1026,10 @@ class TestBodhiClient_save_override(unittest.TestCase):
         # date sent is within 5 minutes of the now variable. It would be surprising if it took more
         # than 5 minutes to start the function and execute its first instruction!
         expected_expiration = now + timedelta(days=2)
-        self.assertTrue((actual_expiration - expected_expiration) < timedelta(minutes=5))
+        assert (actual_expiration - expected_expiration) < timedelta(minutes=5)
 
 
-class TestBodhiClient_request(unittest.TestCase):
+class TestBodhiClient_request:
     """
     This class contains tests for BodhiClient.request().
     """
@@ -1051,10 +1048,10 @@ class TestBodhiClient_request(unittest.TestCase):
         """
         client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
 
-        with self.assertRaises(bindings.UpdateNotFound) as exc:
+        with pytest.raises(bindings.UpdateNotFound) as exc:
             client.request('bodhi-2.2.4-1.el7', 'revoke')
 
-            self.assertEqual(exc.update, 'bodhi-2.2.4-1.el7')
+            assert exc.update == 'bodhi-2.2.4-1.el7'
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
@@ -1077,7 +1074,7 @@ class TestBodhiClient_request(unittest.TestCase):
 
         response = client.request('bodhi-2.2.4-1.el7', 'revoke')
 
-        self.assertEqual(response, client_test_data.EXAMPLE_UPDATE_MUNCH)
+        assert response == client_test_data.EXAMPLE_UPDATE_MUNCH
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token', 'request': 'revoke',
@@ -1100,10 +1097,10 @@ class TestBodhiClient_request(unittest.TestCase):
         send_request.side_effect = server_error
         client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
 
-        with self.assertRaises(fedora.client.ServerError) as exc:
+        with pytest.raises(fedora.client.ServerError) as exc:
             client.request('bodhi-2.2.4-1.el7', 'revoke')
 
-            self.assertTrue(exc is server_error)
+            assert exc is server_error
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
@@ -1112,7 +1109,7 @@ class TestBodhiClient_request(unittest.TestCase):
         __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
 
-class TestBodhiClient_update_str(unittest.TestCase):
+class TestBodhiClient_update_str:
     """This test contains tests for BodhiClient.update_str."""
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
@@ -1124,10 +1121,10 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertTrue(compare_output(
+        assert compare_output(
             text,
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-                '[-3, 3]', '[-3, 3]\n        Bugs: 1234 - it broke\n            : 1235 - halp')))
+                '[-3, 3]', '[-3, 3]\n        Bugs: 1234 - it broke\n            : 1235 - halp'))
 
     @mock.patch('bodhi.client.bindings.datetime.datetime')
     def test_minimal(self, mock_datetime):
@@ -1140,7 +1137,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         expected_output = (' bodhi-2.2.4-1.el7                        rpm        stable    '
                            '2016-10-21 (2)')
-        self.assertEqual(text, expected_output)
+        assert text == expected_output
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
@@ -1158,7 +1155,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         expected_output = (' bodhi-2.2.4-1.el7                        rpm        pending   '
                            '2016-10-05 (0)')
-        self.assertEqual(text, expected_output)
+        assert text == expected_output
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
@@ -1174,7 +1171,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         expected_output = ('*bodhi-2.2.4-1.el7                        rpm        stable    '
                            '2016-10-21 (2)')
-        self.assertEqual(text, expected_output)
+        assert text == expected_output
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
@@ -1191,7 +1188,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         expected_output = (' bodhi-2.2.4-1.el7                        rpm        stable    '
                            '2016-10-21 (2)\n  bodhi-pants-2.2.4-1.el7')
-        self.assertEqual(text, expected_output)
+        assert text == expected_output
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
@@ -1207,7 +1204,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         expected_output = (' update-title                             rpm        stable    '
                            '2016-10-21 (2)')
-        self.assertEqual(text, expected_output)
+        assert text == expected_output
 
     @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'title': None, 'builds': []})
     @mock.patch('bodhi.client.bindings.datetime.datetime')
@@ -1222,7 +1219,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
         expected_output = (' FEDORA-EPEL-2016-3081a94111              '
                            'rpm        stable    '
                            '2016-10-21 (2)')
-        self.assertEqual(text, expected_output)
+        assert text == expected_output
 
     @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'content_type': None})
     @mock.patch('bodhi.client.bindings.datetime.datetime')
@@ -1237,7 +1234,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
         expected_output = (' bodhi-2.2.4-1.el7                        '
                            'unspecified  stable    '
                            '2016-10-21 (2)')
-        self.assertEqual(text, expected_output)
+        assert text == expected_output
 
     @mock.patch.dict(client_test_data.EXAMPLE_UPDATE_MUNCH, {'request': 'stable'})
     def test_request_stable(self):
@@ -1247,10 +1244,10 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertTrue(compare_output(
+        assert compare_output(
             text,
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-                '[-3, 3]', '[-3, 3]\n     Request: stable')))
+                '[-3, 3]', '[-3, 3]\n     Request: stable'))
 
     def test_severity(self):
         """Test that severity is rendered."""
@@ -1259,7 +1256,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertTrue('Severity: unspecified' in text)
+        assert 'Severity: unspecified' in text
 
     def test_with_autokarma_set(self):
         """
@@ -1270,7 +1267,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertTrue(compare_output(text, client_test_data.EXPECTED_UPDATE_OUTPUT))
+        assert compare_output(text, client_test_data.EXPECTED_UPDATE_OUTPUT)
 
     def test_with_autokarma_unset(self):
         """
@@ -1286,7 +1283,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
             'Autokarma: True  [-3, 3]', 'Autokarma: False  [-3, 3]')
-        self.assertTrue(compare_output(text, expected_output))
+        assert compare_output(text, expected_output)
 
     def test_update_as_string(self):
         """Ensure we return a string if update is a string"""
@@ -1295,9 +1292,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str("this is a string")
 
-        self.assertEqual(
-            text,
-            "this is a string")
+        assert text == "this is a string"
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH.comments[0],
@@ -1309,11 +1304,11 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertTrue(compare_output(
+        assert compare_output(
             text,
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
                 'Comments: This update has been submitted for testing by bowlofeggs. ',
-                'Comments: This comment contains a unicode char ☺. ')))
+                'Comments: This comment contains a unicode char ☺. '))
 
     @mock.patch.dict(
         client_test_data.EXAMPLE_UPDATE_MUNCH,
@@ -1325,7 +1320,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertIn('Notes: This note contains a unicode char ☺', text)
+        assert 'Notes: This note contains a unicode char ☺' in text
 
     @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
     def test_ci_status_errors(self, get_test_status):
@@ -1337,7 +1332,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertIn('CI Status: bar\n', text)
+        assert 'CI Status: bar\n' in text
 
     @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
     def test_ci_status(self, get_test_status):
@@ -1350,7 +1345,7 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertIn('CI Status: no tests required\n', text)
+        assert 'CI Status: no tests required\n' in text
 
     @mock.patch('bodhi.client.bindings.BodhiClient.get_test_status')
     def test_waived_tests(self, get_test_status):
@@ -1370,12 +1365,12 @@ class TestBodhiClient_update_str(unittest.TestCase):
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertIn(
+        assert(
             '     Waivers: netvor - 2018-06-29 00:20:20\n'
             '              This is fine. See BZ#1566485\n'
             '              build: slop-7.4-1.fc28\n'
-            '              testcase: dist.rpmlint\n',
-            text,
+            '              testcase: dist.rpmlint\n'
+            in text
         )
 
     @mock.patch.dict(
@@ -1387,12 +1382,12 @@ class TestBodhiClient_update_str(unittest.TestCase):
         client.base_url = 'http://example.com/tests/'
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
 
-        self.assertIn('Notes: This note contains:\n', text)
-        self.assertIn('     : * multiline formatting\n', text)
-        self.assertIn('     : * bullet points\n', text)
+        assert 'Notes: This note contains:\n' in text
+        assert '     : * multiline formatting\n' in text
+        assert '     : * bullet points\n' in text
 
 
-class TestErrorhandled(unittest.TestCase):
+class TestErrorhandled:
     """
     This class tests the errorhandled decorator.
     """
@@ -1402,16 +1397,16 @@ class TestErrorhandled(unittest.TestCase):
         """
         @bindings.errorhandled
         def im_gonna_fail_but_ill_be_cool_about_it(x, y, z=None):
-            self.assertEqual(x, 1)
-            self.assertEqual(y, 2)
-            self.assertEqual(z, 3)
+            assert x == 1
+            assert y == 2
+            assert z == 3
 
             return {'errors': [{'description': 'insert'}, {'description': 'coin(s)'}]}
 
-        with self.assertRaises(bindings.BodhiClientException) as exc:
+        with pytest.raises(bindings.BodhiClientException) as exc:
             im_gonna_fail_but_ill_be_cool_about_it(1, y=2, z=3)
 
-        self.assertEqual(str(exc.exception), 'insert\ncoin(s)')
+        assert str(exc.value) == 'insert\ncoin(s)'
 
     def test_retry_on_auth_failure_failure(self):
         """
@@ -1432,15 +1427,15 @@ class TestErrorhandled(unittest.TestCase):
             a_fake_self.call_count = a_fake_self.call_count + 1
             raise fedora.client.AuthError('wrong password lol')
 
-        with self.assertRaises(fedora.client.AuthError) as exc:
+        with pytest.raises(fedora.client.AuthError) as exc:
             # Wrong password always fails, so the second call should allow the Exception to be
             # raised.
             wrong_password_lol(a_fake_self)
 
-        self.assertEqual(str(exc.exception), 'wrong password lol')
+        assert str(exc.value) == 'wrong password lol'
         a_fake_self._session.cookies.clear.assert_called_once_with()
-        self.assertTrue(a_fake_self.csrf_token is None)
-        self.assertEqual(a_fake_self.call_count, 2)
+        assert a_fake_self.csrf_token is None
+        assert a_fake_self.call_count == 2
 
     def test_retry_on_auth_failure_success(self):
         """
@@ -1470,8 +1465,8 @@ class TestErrorhandled(unittest.TestCase):
         wrong_password_lol(a_fake_self)
 
         a_fake_self._session.cookies.clear.assert_called_once_with()
-        self.assertTrue(a_fake_self.csrf_token is None)
-        self.assertEqual(a_fake_self.call_count, 2)
+        assert a_fake_self.csrf_token is None
+        assert a_fake_self.call_count == 2
 
     def test_retry_on_captcha_key_failure(self):
         """
@@ -1502,8 +1497,8 @@ class TestErrorhandled(unittest.TestCase):
         captcha_plz(a_fake_self)
 
         a_fake_self._session.cookies.clear.assert_called_once_with()
-        self.assertTrue(a_fake_self.csrf_token is None)
-        self.assertEqual(a_fake_self.call_count, 2)
+        assert a_fake_self.csrf_token is None
+        assert a_fake_self.call_count == 2
 
     def test_success(self):
         """
@@ -1511,13 +1506,13 @@ class TestErrorhandled(unittest.TestCase):
         """
         @bindings.errorhandled
         def im_gonna_be_cool(x, y, z=None):
-            self.assertEqual(x, 1)
-            self.assertEqual(y, 2)
-            self.assertEqual(z, 3)
+            assert x == 1
+            assert y == 2
+            assert z == 3
 
             return 'here you go'
 
-        self.assertEqual(im_gonna_be_cool(1, 2, 3), 'here you go')
+        assert im_gonna_be_cool(1, 2, 3) == 'here you go'
 
     def test_unexpected_error(self):
         """
@@ -1525,19 +1520,19 @@ class TestErrorhandled(unittest.TestCase):
         """
         @bindings.errorhandled
         def im_gonna_fail_and_i_wont_be_cool_about_it(x, y, z=None):
-            self.assertEqual(x, 1)
-            self.assertEqual(y, 2)
-            self.assertEqual(z, 3)
+            assert x == 1
+            assert y == 2
+            assert z == 3
 
             return {'errors': ['MEAN ERROR']}
 
-        with self.assertRaises(bindings.BodhiClientException) as exc:
+        with pytest.raises(bindings.BodhiClientException) as exc:
             im_gonna_fail_and_i_wont_be_cool_about_it(1, 2, z=3)
 
-        self.assertEqual(str(exc.exception), 'An unhandled error occurred in the BodhiClient')
+        assert str(exc.value) == 'An unhandled error occurred in the BodhiClient'
 
 
-class TestUpdateNotFound(unittest.TestCase):
+class TestUpdateNotFound:
     """
     This class tests the UpdateNotFound class.
     """
@@ -1547,8 +1542,8 @@ class TestUpdateNotFound(unittest.TestCase):
         """
         exc = bindings.UpdateNotFound('bodhi-2.2.4-1.el7')
 
-        self.assertEqual(exc.update, 'bodhi-2.2.4-1.el7')
-        self.assertEqual(type(exc.update), str)
+        assert exc.update == 'bodhi-2.2.4-1.el7'
+        assert type(exc.update) == str
 
     def test___str__(self):
         """
@@ -1556,12 +1551,12 @@ class TestUpdateNotFound(unittest.TestCase):
         """
         exc = bindings.UpdateNotFound('bodhi-2.2.4-1.el7')
 
-        self.assertEqual(str(exc.update), 'bodhi-2.2.4-1.el7')
-        self.assertEqual(type(str(exc.update)), str)
-        self.assertEqual(str(exc), 'Update not found: bodhi-2.2.4-1.el7')
+        assert str(exc.update) == 'bodhi-2.2.4-1.el7'
+        assert type(str(exc.update)) == str
+        assert str(exc) == 'Update not found: bodhi-2.2.4-1.el7'
 
 
-class TestBodhiClient_candidates(unittest.TestCase):
+class TestBodhiClient_candidates:
     """
     Test the BodhiClient.candidates() method.
     """
@@ -1583,15 +1578,16 @@ class TestBodhiClient_candidates(unittest.TestCase):
 
         results = client.candidates()
 
-        self.assertEqual(
-            results,
-            [{'release': '1.fc25', 'version': '2.9.0', 'name': 'bodhi', 'owner_name': 'bowlofeggs',
-              'nvr': 'bodhi-2.9.0-1.fc25'}])
+        assert results == [{'release': '1.fc25',
+                            'version': '2.9.0',
+                            'name': 'bodhi',
+                            'owner_name': 'bowlofeggs',
+                            'nvr': 'bodhi-2.9.0-1.fc25'}]
         get_koji_session.assert_called_once_with()
-        self.assertEqual(
-            get_koji_session.return_value.listTagged.mock_calls,
-            [mock.call('f25-updates-testing', latest=True),
-             mock.call('f26-updates-testing', latest=True)])
+        assert (
+            get_koji_session.return_value.listTagged.mock_calls
+            == [mock.call('f25-updates-testing', latest=True),
+                mock.call('f26-updates-testing', latest=True)])
         client.send_request.assert_called_once_with('releases/', params={}, verb='GET')
         exception.assert_called_once_with(
             "Unable to query candidate builds for %s", {'candidate_tag': 'f26-updates-testing'})
@@ -1614,21 +1610,26 @@ class TestBodhiClient_candidates(unittest.TestCase):
 
         results = client.candidates()
 
-        self.assertEqual(
-            results,
-            [{'release': '1.fc25', 'version': '2.9.0', 'name': 'bodhi', 'owner_name': 'bowlofeggs',
-              'nvr': 'bodhi-2.9.0-1.fc25'},
-             {'release': '1.fc26', 'version': '2.9.0', 'name': 'bodhi', 'owner_name': 'bowlofeggs',
-              'nvr': 'bodhi-2.9.0-1.fc26'}])
+        assert results == [{'release': '1.fc25',
+                            'version': '2.9.0',
+                            'name': 'bodhi',
+                            'owner_name': 'bowlofeggs',
+                            'nvr': 'bodhi-2.9.0-1.fc25'},
+                           {'release': '1.fc26',
+                            'version': '2.9.0',
+                            'name': 'bodhi',
+                            'owner_name': 'bowlofeggs',
+                            'nvr': 'bodhi-2.9.0-1.fc26'}
+                           ]
         get_koji_session.assert_called_once_with()
-        self.assertEqual(
-            get_koji_session.return_value.listTagged.mock_calls,
-            [mock.call('f25-updates-testing', latest=True),
-             mock.call('f26-updates-testing', latest=True)])
+        assert (
+            get_koji_session.return_value.listTagged.mock_calls
+            == [mock.call('f25-updates-testing', latest=True),
+                mock.call('f26-updates-testing', latest=True)])
         client.send_request.assert_called_once_with('releases/', params={}, verb='GET')
 
 
-class TestBodhiClient_get_releases(unittest.TestCase):
+class TestBodhiClient_get_releases:
     """
     Test the BodhiClient.get_releases() method.
     """
@@ -1642,16 +1643,14 @@ class TestBodhiClient_get_releases(unittest.TestCase):
 
         results = client.get_releases(some_param='some_value')
 
-        self.assertEqual(
-            results,
-            {'releases': [
-                {'candidate_tag': 'f25-updates-testing'},
-                {'candidate_tag': 'f26-updates-testing'}]})
+        assert results == {'releases': [{'candidate_tag': 'f25-updates-testing'},
+                                        {'candidate_tag': 'f26-updates-testing'}]
+                           }
         client.send_request.assert_called_once_with(
             'releases/', params={'some_param': 'some_value'}, verb='GET')
 
 
-class TestBodhiClient_parse_file(unittest.TestCase):
+class TestBodhiClient_parse_file:
     """
     Test the BodhiClient.parse_file() method.
     """
@@ -1667,10 +1666,10 @@ class TestBodhiClient_parse_file(unittest.TestCase):
         read.return_value = []
         client = bindings.BodhiClient()
 
-        with self.assertRaises(ValueError) as exc:
+        with pytest.raises(ValueError) as exc:
             client.parse_file("sad")
 
-        self.assertEqual(str(exc.exception), 'Invalid input file: sad')
+        assert str(exc.value) == 'Invalid input file: sad'
 
     @mock.patch('builtins.open', new_callable=mock.mock_open)
     @mock.patch('bodhi.client.bindings.BodhiClient._load_cookies')
@@ -1715,21 +1714,21 @@ class TestBodhiClient_parse_file(unittest.TestCase):
         client = bindings.BodhiClient()
         updates = client.parse_file("sad")
 
-        self.assertEqual(len(updates), 1)
-        self.assertEqual(len(updates[0]), 13)
-        self.assertEqual(updates[0]['close_bugs'], True)
-        self.assertEqual(updates[0]['display_name'], 'fake update name')
-        self.assertEqual(updates[0]['unstable_karma'], '-3')
-        self.assertEqual(updates[0]['severity'], 'unspecified')
-        self.assertEqual(updates[0]['stable_karma'], '3')
-        self.assertEqual(updates[0]['builds'], 'fedora-workstation-backgrounds-1.1-1.fc26')
-        self.assertEqual(updates[0]['autokarma'], 'True')
-        self.assertEqual(updates[0]['suggest'], 'unspecified')
-        self.assertEqual(updates[0]['notes'], 'Initial Release')
-        self.assertEqual(updates[0]['request'], 'testing')
-        self.assertEqual(updates[0]['bugs'], '123456,43212')
-        self.assertEqual(updates[0]['type_'], 'bugfix')
-        self.assertEqual(updates[0]['type'], 'bugfix')
+        assert len(updates) == 1
+        assert len(updates[0]) == 13
+        assert updates[0]['close_bugs'] == True
+        assert updates[0]['display_name'] == 'fake update name'
+        assert updates[0]['unstable_karma'] == '-3'
+        assert updates[0]['severity'] == 'unspecified'
+        assert updates[0]['stable_karma'] == '3'
+        assert updates[0]['builds'] == 'fedora-workstation-backgrounds-1.1-1.fc26'
+        assert updates[0]['autokarma'] == 'True'
+        assert updates[0]['suggest'] == 'unspecified'
+        assert updates[0]['notes'] == 'Initial Release'
+        assert updates[0]['request'] == 'testing'
+        assert updates[0]['bugs'] == '123456,43212'
+        assert updates[0]['type_'] == 'bugfix'
+        assert updates[0]['type'] == 'bugfix'
 
     def test_parsing_nonexistent_file(self):
         """
@@ -1737,14 +1736,13 @@ class TestBodhiClient_parse_file(unittest.TestCase):
         """
         client = bindings.BodhiClient()
 
-        with self.assertRaises(ValueError) as exc:
+        with pytest.raises(ValueError) as exc:
             client.parse_file("/tmp/bodhi-test-parsefile2")
 
-        self.assertEqual(str(exc.exception),
-                         'No such file or directory: /tmp/bodhi-test-parsefile2')
+        assert str(exc.value) == 'No such file or directory: /tmp/bodhi-test-parsefile2'
 
 
-class TestBodhiClient_testable(unittest.TestCase):
+class TestBodhiClient_testable:
     """
     Test the BodhiClient.testable() method.
     """
@@ -1768,7 +1766,7 @@ class TestBodhiClient_testable(unittest.TestCase):
 
         updates = client.testable()
 
-        self.assertEqual(list(updates), [{'nvr': 'bodhi-2.9.0-1.fc26'}])
+        assert list(updates) == [{'nvr': 'bodhi-2.9.0-1.fc26'}]
         fill_sack.assert_called_once_with(load_system_repo=True)
         fill_sack.return_value.query.assert_called_once_with()
         fill_sack.return_value.query.return_value.installed.assert_called_once_with()
@@ -1786,13 +1784,13 @@ class TestBodhiClient_testable(unittest.TestCase):
         """Ensure that testable raises a RuntimeError if dnf is None."""
         client = bindings.BodhiClient()
 
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             list(client.testable())
 
-        self.assertEqual(str(exc.exception), 'dnf is required by this method and is not installed.')
+        assert str(exc.value) == 'dnf is required by this method and is not installed.'
 
 
-class TestGetKojiSession(unittest.TestCase):
+class TestGetKojiSession:
     """
     This class tests the get_koji_session method.
     """
@@ -1833,7 +1831,7 @@ class TestGetKojiSession(unittest.TestCase):
         mock_open.assert_called_once_with("/etc/koji.conf")
 
 
-class TestBodhiClient_waive(unittest.TestCase):
+class TestBodhiClient_waive:
     """
     This class contains tests for BodhiClient.waive().
     """
@@ -1853,10 +1851,10 @@ class TestBodhiClient_waive(unittest.TestCase):
         """
         client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
 
-        with self.assertRaises(bindings.UpdateNotFound) as exc:
+        with pytest.raises(bindings.UpdateNotFound) as exc:
             client.waive('bodhi-2.2.4-1.el7', comment='Expected failure', tests=None)
 
-            self.assertEqual(exc.update, 'bodhi-2.2.4-1.el7')
+            assert exc.update == 'bodhi-2.2.4-1.el7'
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/waive-test-results', verb='POST', auth=True,
@@ -1882,7 +1880,7 @@ class TestBodhiClient_waive(unittest.TestCase):
             tests=('dist.rpmdeplint', 'fedora-atomic-ci')
         )
 
-        self.assertEqual(response, client_test_data.EXAMPLE_UPDATE_MUNCH)
+        assert response == client_test_data.EXAMPLE_UPDATE_MUNCH
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/waive-test-results', verb='POST', auth=True,
             data={'comment': 'Expected failure', 'csrf_token': 'a_csrf_token',
@@ -1904,7 +1902,7 @@ class TestBodhiClient_waive(unittest.TestCase):
 
         response = client.waive('bodhi-2.2.4-1.el7', comment='Expected failure', tests=None)
 
-        self.assertEqual(response, client_test_data.EXAMPLE_UPDATE_MUNCH)
+        assert response == client_test_data.EXAMPLE_UPDATE_MUNCH
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/waive-test-results', verb='POST', auth=True,
             data={'comment': 'Expected failure', 'csrf_token': 'a_csrf_token',
@@ -1927,10 +1925,10 @@ class TestBodhiClient_waive(unittest.TestCase):
         send_request.side_effect = server_error
         client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
 
-        with self.assertRaises(fedora.client.ServerError) as exc:
+        with pytest.raises(fedora.client.ServerError) as exc:
             client.waive('bodhi-2.2.4-1.el7', comment='Expected failure', tests=None)
 
-            self.assertTrue(exc is server_error)
+            assert exc is server_error
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/waive-test-results', verb='POST', auth=True,
@@ -1939,7 +1937,7 @@ class TestBodhiClient_waive(unittest.TestCase):
         __init__.assert_called_once_with(username='some_user', password='s3kr3t', staging=False)
 
 
-class TestBodhiClient_trigger_tests(unittest.TestCase):
+class TestBodhiClient_trigger_tests:
     """
     This class contains tests for BodhiClient.trigger_tests().
     """
@@ -1959,10 +1957,10 @@ class TestBodhiClient_trigger_tests(unittest.TestCase):
         """
         client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
 
-        with self.assertRaises(bindings.UpdateNotFound) as exc:
+        with pytest.raises(bindings.UpdateNotFound) as exc:
             client.trigger_tests('bodhi-2.2.4-1.el7')
 
-            self.assertEqual(exc.update, 'bodhi-2.2.4-1.el7')
+            assert exc.update == 'bodhi-2.2.4-1.el7'
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,
@@ -1986,7 +1984,7 @@ class TestBodhiClient_trigger_tests(unittest.TestCase):
         response = client.trigger_tests(
             'bodhi-2.2.4-1.el7')
 
-        self.assertEqual(response, client_test_data.EXAMPLE_UPDATE_MUNCH)
+        assert response == client_test_data.EXAMPLE_UPDATE_MUNCH
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,
             data={'csrf_token': 'a_csrf_token',
@@ -2009,10 +2007,10 @@ class TestBodhiClient_trigger_tests(unittest.TestCase):
         send_request.side_effect = server_error
         client = bindings.BodhiClient(username='some_user', password='s3kr3t', staging=False)
 
-        with self.assertRaises(fedora.client.ServerError) as exc:
+        with pytest.raises(fedora.client.ServerError) as exc:
             client.trigger_tests('bodhi-2.2.4-1.el7')
 
-            self.assertTrue(exc is server_error)
+            assert exc is server_error
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,

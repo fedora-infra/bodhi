@@ -19,9 +19,9 @@
 
 from unittest import mock
 import copy
-import unittest
 from urllib.error import URLError
 
+import pytest
 import sqlalchemy
 from fedora_messaging import testing as fml_testing
 
@@ -31,7 +31,7 @@ from bodhi.server.tasks import handle_update, updates
 from bodhi.tests.server import base
 
 
-class TestTask(unittest.TestCase):
+class TestTask:
     @mock.patch("bodhi.server.tasks.bugs")
     @mock.patch("bodhi.server.tasks.buildsys")
     @mock.patch("bodhi.server.tasks.initialize_db")
@@ -49,7 +49,7 @@ class TestTask(unittest.TestCase):
 
 
 @mock.patch('bodhi.server.tasks.updates.time.sleep')
-class TestUpdatesHandlerConsume(base.BaseTestCase):
+class TestUpdatesHandlerConsume(base.BasePyTestCase):
     """This test class contains tests for the UpdatesHandler.consume() method."""
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
@@ -70,20 +70,18 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                            'user': {'name': 'brodhi'}, 'status': 'pending', 'request': 'testing'},
                 'new_bugs': [12345, 123456]})
 
-        self.assertEqual(work_on_bugs.call_count, 1)
-        self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][0],
-                                   sqlalchemy.orm.session.Session))
-        self.assertEqual(work_on_bugs.mock_calls[0][1][1].title, 'bodhi-2.0-1.fc17')
-        self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][2]], [12345, 123456])
-        self.assertEqual(fetch_test_cases.call_count, 1)
-        self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][0],
-                                   sqlalchemy.orm.session.Session))
+        assert work_on_bugs.call_count == 1
+        assert isinstance(work_on_bugs.mock_calls[0][1][0], sqlalchemy.orm.session.Session)
+        assert work_on_bugs.mock_calls[0][1][1].title == 'bodhi-2.0-1.fc17'
+        assert [b.bug_id for b in work_on_bugs.mock_calls[0][1][2]] == [12345, 123456]
+        assert fetch_test_cases.call_count == 1
+        assert isinstance(fetch_test_cases.mock_calls[0][1][0], sqlalchemy.orm.session.Session)
         sleep.assert_called_once_with(1)
 
         # Nonexistent bug with id '123456' should now exist in DB as a bug attached to update
         bug = models.Bug.query.filter_by(bug_id=123456).one()
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        self.assertIn(bug, update.bugs)
+        assert bug in update.bugs
 
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
@@ -109,20 +107,18 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                            'request': str(update.request)},
                 'new_bugs': [12345, 123456]})
 
-        self.assertEqual(work_on_bugs.call_count, 1)
-        self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][0],
-                                   sqlalchemy.orm.session.Session))
-        self.assertEqual(work_on_bugs.mock_calls[0][1][1].title, 'bodhi-2.0-1.fc17')
-        self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][2]], [12345, 123456])
-        self.assertEqual(fetch_test_cases.call_count, 1)
-        self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][0],
-                                   sqlalchemy.orm.session.Session))
+        assert work_on_bugs.call_count == 1
+        assert isinstance(work_on_bugs.mock_calls[0][1][0], sqlalchemy.orm.session.Session)
+        assert work_on_bugs.mock_calls[0][1][1].title == 'bodhi-2.0-1.fc17'
+        assert [b.bug_id for b in work_on_bugs.mock_calls[0][1][2]] == [12345, 123456]
+        assert fetch_test_cases.call_count == 1
+        assert isinstance(fetch_test_cases.mock_calls[0][1][0], sqlalchemy.orm.session.Session)
         sleep.assert_called_once_with(1)
 
         # Bug with id '123456' should be attached to update
         bug = models.Bug.query.filter_by(bug_id=123456).one()
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        self.assertIn(bug, update.bugs)
+        assert bug in update.bugs
 
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
     # can ensure that we aren't raising Exceptions from them, while allowing us to only assert that
@@ -149,14 +145,12 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                            'request': str(update.request)},
                 'new_bugs': [12345]})
 
-        self.assertEqual(work_on_bugs.call_count, 1)
-        self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][1],
-                                   sqlalchemy.orm.session.Session))
-        self.assertEqual(work_on_bugs.mock_calls[0][1][2].title, 'bodhi-2.0-1.fc17')
-        self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][3]], [12345])
-        self.assertEqual(fetch_test_cases.call_count, 1)
-        self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][1],
-                                   sqlalchemy.orm.session.Session))
+        assert work_on_bugs.call_count == 1
+        assert isinstance(work_on_bugs.mock_calls[0][1][1], sqlalchemy.orm.session.Session)
+        assert work_on_bugs.mock_calls[0][1][2].title == 'bodhi-2.0-1.fc17'
+        assert [b.bug_id for b in work_on_bugs.mock_calls[0][1][3]] == [12345]
+        assert fetch_test_cases.call_count == 1
+        assert isinstance(fetch_test_cases.mock_calls[0][1][1], sqlalchemy.orm.session.Session)
         sleep.assert_called_once_with(1)
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
@@ -191,7 +185,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                     'new_bugs': []})
 
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        self.assertIsNone(update.test_gating_status)
+        assert update.test_gating_status is None
         sleep.assert_called_once_with(1)
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
@@ -226,7 +220,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                     'new_bugs': []})
 
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
-        self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
+        assert update.test_gating_status == models.TestGatingStatus.failed
         sleep.assert_called_once_with(1)
 
     # We're going to use side effects to mock but still call work_on_bugs and fetch_test_cases so we
@@ -251,15 +245,13 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                            'user': {'name': 'brodhi'}, 'status': str(update.status),
                            'request': str(update.request)}})
 
-        self.assertEqual(work_on_bugs.call_count, 1)
-        self.assertTrue(isinstance(work_on_bugs.mock_calls[0][1][1],
-                                   sqlalchemy.orm.session.Session))
-        self.assertEqual(work_on_bugs.mock_calls[0][1][2].title, 'bodhi-2.0-1.fc17')
+        assert work_on_bugs.call_count == 1
+        assert isinstance(work_on_bugs.mock_calls[0][1][1], sqlalchemy.orm.session.Session)
+        assert work_on_bugs.mock_calls[0][1][2].title == 'bodhi-2.0-1.fc17'
         # The update's bug list should have been used.
-        self.assertEqual([b.bug_id for b in work_on_bugs.mock_calls[0][1][3]], [12345])
-        self.assertEqual(fetch_test_cases.call_count, 1)
-        self.assertTrue(isinstance(fetch_test_cases.mock_calls[0][1][1],
-                                   sqlalchemy.orm.session.Session))
+        assert [b.bug_id for b in work_on_bugs.mock_calls[0][1][3]] == [12345]
+        assert fetch_test_cases.call_count == 1
+        assert isinstance(fetch_test_cases.mock_calls[0][1][1], sqlalchemy.orm.session.Session)
         sleep.assert_called_once_with(1)
 
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
@@ -272,7 +264,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
         # Use a bogus action to trigger the NotImplementedError.
-        self.assertRaises(
+        pytest.raises(
             NotImplementedError, h.run,
             api_version=1,
             data={
@@ -280,8 +272,8 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                 'update': {'alias': update.alias},
                 'new_bugs': [12345]})
 
-        self.assertEqual(work_on_bugs.call_count, 0)
-        self.assertEqual(fetch_test_cases.call_count, 0)
+        assert work_on_bugs.call_count == 0
+        assert fetch_test_cases.call_count == 0
         sleep.assert_called_once_with(1)
 
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
@@ -292,7 +284,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
         """
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
-        with self.assertRaises(exceptions.BodhiException) as exc:
+        with pytest.raises(exceptions.BodhiException) as exc:
             h.run(
                 api_version=1,
                 data={
@@ -301,9 +293,9 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                                'user': {'name': 'brodhi'}, 'status': 'pending',
                                'request': 'testing'}})
 
-        self.assertEqual(str(exc.exception), "Couldn't find alias 'does not exist' in DB")
-        self.assertEqual(work_on_bugs.call_count, 0)
-        self.assertEqual(fetch_test_cases.call_count, 0)
+        assert str(exc.value) == "Couldn't find alias 'does not exist' in DB"
+        assert work_on_bugs.call_count == 0
+        assert fetch_test_cases.call_count == 0
         sleep.assert_called_once_with(1)
 
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
@@ -342,8 +334,8 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                                      'user': {'name': 'bodhi'}, 'status': str(update.status),
                                      'request': str(update.request)}, 'new_bugs': []})
 
-        self.assertEqual(update.status, models.UpdateStatus.testing)
-        self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
+        assert update.status == models.UpdateStatus.testing
+        assert update.test_gating_status == models.TestGatingStatus.failed
 
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
@@ -366,7 +358,7 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                              'user': {'name': 'bodhi'}, 'status': str(update.status),
                              'request': str(update.request)}, 'new_bugs': []})
 
-        self.assertEqual(update.status, models.UpdateStatus.pending)
+        assert update.status == models.UpdateStatus.pending
 
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
     @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
@@ -389,10 +381,10 @@ class TestUpdatesHandlerConsume(base.BaseTestCase):
                              'user': {'name': 'bodhi'}, 'status': str(update.status),
                              'request': str(update.request)}, 'new_bugs': []})
 
-        self.assertEqual(update.status, models.UpdateStatus.pending)
+        assert update.status == models.UpdateStatus.pending
 
 
-class TestUpdatesHandlerInit(unittest.TestCase):
+class TestUpdatesHandlerInit:
     """This test class contains tests for the UpdatesHandler.__init__() method."""
     def test_handle_bugs_bodhi_email_falsey(self):
         """
@@ -401,7 +393,7 @@ class TestUpdatesHandlerInit(unittest.TestCase):
         with mock.patch.dict(updates.config, {'bodhi_email': ''}):
             h = updates.UpdatesHandler()
 
-        self.assertEqual(h.handle_bugs, False)
+        assert not h.handle_bugs
 
     def test_handle_bugs_bodhi_email_missing(self):
         """
@@ -413,7 +405,7 @@ class TestUpdatesHandlerInit(unittest.TestCase):
         with mock.patch.dict(updates.config, replacement_config, clear=True):
             h = updates.UpdatesHandler()
 
-        self.assertEqual(h.handle_bugs, False)
+        assert not h.handle_bugs
 
     def test_typical_config(self):
         """
@@ -422,11 +414,11 @@ class TestUpdatesHandlerInit(unittest.TestCase):
         with mock.patch.dict(updates.config, {'bodhi_email': 'bowlofeggs@fpo.org'}):
             h = updates.UpdatesHandler()
 
-        self.assertEqual(h.handle_bugs, True)
-        self.assertEqual(type(h.db_factory), util.TransactionalSessionMaker)
+        assert h.handle_bugs
+        assert type(h.db_factory) == util.TransactionalSessionMaker
 
 
-class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
+class TestUpdatesHandlerWorkOnBugs(base.BasePyTestCase):
     """This test class contains tests for the UpdatesHandler.work_on_bugs() method."""
 
     @mock.patch.dict(config.config, {'bodhi_email': None})
@@ -440,10 +432,9 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
         h.work_on_bugs(None, None, None)
 
         # We should see warnings about bodhi_email being undefined.
-        self.assertEqual(
-            warning.mock_calls,
-            [mock.call('No bodhi_email defined; not fetching bug details'),
-             mock.call('Not configured to handle bugs')])
+        assert warning.mock_calls == [
+            mock.call('No bodhi_email defined; not fetching bug details'),
+            mock.call('Not configured to handle bugs')]
 
     def test_security_bug_sets_update_to_security(self):
         """Assert that associating a security bug with an Update changes the Update to security."""
@@ -453,7 +444,7 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
             models.Build.nvr == 'bodhi-2.0-1.fc17').one()
         # The update should start out in a non-security state so we know that work_on_bugs() changed
         # it.
-        self.assertEqual(update.type, models.UpdateType.bugfix)
+        assert update.type == models.UpdateType.bugfix
         bug = models.Bug.query.first()
         # Set this bug to security, so that the update gets switched to security.
         bug.security = True
@@ -462,7 +453,7 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
 
         h.work_on_bugs(h.db_factory, update, bugs)
 
-        self.assertEqual(update.type, models.UpdateType.security)
+        assert update.type == models.UpdateType.security
 
     @mock.patch('bodhi.server.tasks.updates.log.warning')
     def test_work_on_bugs_exception(self, warning):
@@ -483,7 +474,7 @@ class TestUpdatesHandlerWorkOnBugs(base.BaseTestCase):
         warning.assert_called_once_with('Error occurred during updating single bug', exc_info=True)
 
 
-class TestUpdatesHandlerFetchTestCases(base.BaseTestCase):
+class TestUpdatesHandlerFetchTestCases(base.BasePyTestCase):
     """This test class contains tests for the UpdatesHandler.fetch_test_cases() method."""
 
     @mock.patch.dict(config.config, {'query_wiki_test_cases': True})

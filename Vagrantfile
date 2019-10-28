@@ -19,18 +19,13 @@
 # the stg koji.
 
 require 'etc'
-require 'getoptlong'
 
-opts = GetoptLong.new(
-  [ '--use-staging', GetoptLong::OPTIONAL_ARGUMENT ]
-)
 use_staging_infra = false
 
-opts.each do |opt, arg|
-  case opt
-    when '--use-staging'
-        use_staging_infra=true
-  end
+# Don't use GetoptLong/OptionParser as it conflicts with options for the main program.
+if ARGV.include?('--use-staging')
+  use_staging_infra = true
+  ARGV.delete('--use-staging')
 end
 
 if use_staging_infra

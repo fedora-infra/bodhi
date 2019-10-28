@@ -29,12 +29,12 @@ from bodhi.tests.server import base
 class TestExceptionView(base.BaseTestCase):
     """Test the exception_view() handler."""
     @mock.patch('bodhi.server.views.generic.log.exception')
-    @mock.patch('bodhi.server.views.metrics.compute_ticks_and_data',
+    @mock.patch('bodhi.server.views.generic._generate_home_page_stats',
                 mock.MagicMock(side_effect=RuntimeError("BOOM")))
     def test_status_500_html(self, exception):
         """Assert that a status 500 code causes the exception to get logged."""
         headers = {'Accept': 'text/html'}
-        res = self.app.get('/metrics', status=500, headers=headers)
+        res = self.app.get('/', status=500, headers=headers)
 
         self.assertEqual('text/html', res.content_type)
         self.assertIn('Server Error', res)
@@ -42,12 +42,12 @@ class TestExceptionView(base.BaseTestCase):
         exception.assert_called_once_with("Error caught.  Handling HTML response.")
 
     @mock.patch('bodhi.server.views.generic.log.exception')
-    @mock.patch('bodhi.server.views.metrics.compute_ticks_and_data',
+    @mock.patch('bodhi.server.views.generic._generate_home_page_stats',
                 mock.MagicMock(side_effect=RuntimeError("BOOM")))
     def test_status_500_json(self, exception):
         """Assert that a status 500 code causes the exception to get logged."""
         headers = {'Content-Type': 'application/json'}
-        res = self.app.get('/metrics', status=500, headers=headers)
+        res = self.app.get('/', status=500, headers=headers)
 
         self.assertEqual('application/json', res.content_type)
         self.assertEqual(
@@ -312,10 +312,6 @@ class TestGenericViews(base.BaseTestCase):
             '<p><a href="http://getfedora.org">getfedora.org</a></p>'
             "</div>"
         )
-
-    def test_metrics(self):
-        res = self.app.get('/metrics')
-        self.assertIn('$.plot', res)
 
     def test_latest_builds(self):
         res = self.app.get('/latest_builds')
