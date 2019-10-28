@@ -164,6 +164,7 @@ def main(argv=sys.argv):
                             update.remove_tag(update.release.pending_testing_tag)
                             update.remove_tag(update.release.pending_stable_tag)
                             update.remove_tag(update.release.pending_signing_tag)
+                            update.remove_tag(update.release.candidate_tag)
 
                 db.commit()
 

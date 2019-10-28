@@ -729,7 +729,7 @@ class TestMain(BasePyTestCase):
             # removes f17-updates-testing-pending and f17-updates-pending
             assert remove_tag.call_args_list == \
                 [call('f17-updates-testing-pending'), call('f17-updates-pending'),
-                 call('f17-updates-signing-pending')]
+                 call('f17-updates-signing-pending'), call('f17-updates-candidate')]
 
             assert add_tag.call_args_list == \
                 [call('f17-updates')]
