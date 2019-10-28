@@ -30,7 +30,7 @@ from bodhi.server import buildsys
 from bodhi.server.config import config
 from bodhi.server.models import Build, ContentType, Package, Release
 from bodhi.server.models import Update, UpdateStatus, UpdateType, User
-from bodhi.server.util import transactional_session_maker
+from bodhi.server.util import generate_changelog, transactional_session_maker
 
 log = logging.getLogger('bodhi')
 
@@ -139,10 +139,21 @@ class AutomaticUpdateHandler:
                 dbsession.add(user)
 
             log.debug(f"Creating new update for {bnvr}.")
+            changelog = generate_changelog(build)
+            if changelog:
+                notes = f"""Automatic update for {bnvr}.
+
+##### **Changelog**
+
+```
+{changelog}
+```"""
+            else:
+                notes = f"Automatic update for {bnvr}."
             update = Update(
                 release=rel,
                 builds=[build],
-                notes=f"Automatic update for {bnvr}.",
+                notes=notes,
                 type=UpdateType.unspecified,
                 stable_karma=3,
                 unstable_karma=-3,
@@ -157,6 +168,8 @@ class AutomaticUpdateHandler:
                 str("This update was automatically created"),
                 author="bodhi",
             )
+
+            update.add_tag(update.release.pending_signing_tag)
 
             log.debug("Adding new update to the database.")
             dbsession.add(update)
