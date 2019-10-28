@@ -1167,6 +1167,19 @@ class TestEditUpdateForm(BaseTestCase):
         self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
                                      ' class="form-control"\\n.*min="7" value="10"\\n.*>'))
 
+    def test_xss(self):
+        """
+        Make sure user input is sanitized.
+        """
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.display_name = "<script>thisIsBad()</script>"
+        update.requirements = "<script>thisIsBad()</script>"
+        self.db.commit()
+        resp = self.app.get(f'/updates/{update.alias}/edit',
+                            headers={'accept': 'text/html'})
+        self.assertNotIn("<script>thisIsBad()</script>", str(resp))
+        self.assertEqual(str(resp).count("&lt;script&gt;thisIsBad()&lt;/script&gt;"), 2)
+
 
 @mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestUpdatesService(BaseTestCase):
@@ -1809,6 +1822,17 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Privacy policy', resp)
         self.assertIn('https://privacyiscool.com', resp)
         self.assertIn('Comments are governed under', resp)
+
+    def test_xss(self):
+        """Assert that user input is sanitized."""
+        update = Update.query.one()
+        update.display_name = "<script>thisIsBad()</script>"
+        update.requirements = "<script>thisIsBad()</script>"
+        self.db.commit()
+
+        res = self.app.get(f'/updates/{update.alias}', status=200, headers={'Accept': 'text/html'})
+        self.assertNotIn("<script>thisIsBad()</script>", res.text)
+        self.assertEqual(res.text.count("&lt;script&gt;thisIsBad()&lt;/script&gt;"), 3)
 
     def test_list_updates(self):
         res = self.app.get('/updates/')

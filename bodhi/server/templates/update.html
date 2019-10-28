@@ -11,7 +11,7 @@
 <%block name="pagetitle">
   ${update.alias}
 &mdash;
-${update.type} update for ${update.beautify_title(amp=True) | n}
+${update.type} update for ${update.beautify_title(amp=True) | h}
 &mdash; Fedora Updates System
 </%block>
 
@@ -58,7 +58,7 @@ if can_edit:
                 <div class="media-body ml-0">
                     <div class="font-weight-bold">
                       <a href="${request.route_url('update', id=update['alias'])}">
-                      ${update.beautify_title(amp=True,nvr=True) | n}
+                      ${update.beautify_title(amp=True,nvr=True) | h}
                       </a>
                     </div>
                     <div class="h5 mt-1">
@@ -705,7 +705,7 @@ ${parent.javascript()}
     var builds = ${update.builds_json | n};
 
     // These are the required taskotron tests
-    var requirements = ${update.requirements_json | n};
+    var requirements = ${update.requirements_json | h};
     // These are the known waivers of failed testcases.
     var waivers = {};
     // show the Greenwave decision
