@@ -413,3 +413,7 @@ padding-bottom: 2em;
     min-height: 65vh;
     z-index: 1;
 }
+
+.caption-top {
+    caption-side: top;
+}
