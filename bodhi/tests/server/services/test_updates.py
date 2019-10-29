@@ -302,15 +302,14 @@ class TestNewUpdate(BaseTestCase):
         self.db.commit()
 
         update = self.get_update(builds=None, from_tag='f17-build-side-7777')
-        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1), mock.patch(
-                'bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
             r = self.app.post_json('/updates/', update)
 
         up = r.json_body
         self.assertEqual(up['title'], 'gnome-backgrounds-3.0-1.fc17')
         self.assertEqual(up['builds'][0]['nvr'], 'gnome-backgrounds-3.0-1.fc17')
         self.assertEqual(up['status'], 'pending')
-        self.assertEqual(up['request'], 'testing')
+        self.assertEqual(up['request'], None)
         self.assertEqual(up['user']['name'], 'guest')
         self.assertEqual(up['release']['name'], 'F17')
         self.assertEqual(up['type'], 'bugfix')
@@ -350,7 +349,6 @@ class TestNewUpdate(BaseTestCase):
                              'arches': None,
                              'maven_include_all': False,
                              'perm_id': 1})
-
         self.assertIn(expected_pending_signing, koji_session.__tags__)
         self.assertIn(expected_testing, koji_session.__tags__)
         self.assertIn(('f17-build-side-7777-signing-pending',
@@ -1167,6 +1165,19 @@ class TestEditUpdateForm(BaseTestCase):
         self.assertRegex(str(resp), ('<input type="number" name="stable_days" placeholder="auto"'
                                      ' class="form-control"\\n.*min="7" value="10"\\n.*>'))
 
+    def test_xss(self):
+        """
+        Make sure user input is sanitized.
+        """
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.display_name = "<script>thisIsBad()</script>"
+        update.requirements = "<script>thisIsBad()</script>"
+        self.db.commit()
+        resp = self.app.get(f'/updates/{update.alias}/edit',
+                            headers={'accept': 'text/html'})
+        self.assertNotIn("<script>thisIsBad()</script>", str(resp))
+        self.assertEqual(str(resp).count("&lt;script&gt;thisIsBad()&lt;/script&gt;"), 2)
+
 
 @mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestUpdatesService(BaseTestCase):
@@ -1809,6 +1820,17 @@ class TestUpdatesService(BaseTestCase):
         self.assertIn('Privacy policy', resp)
         self.assertIn('https://privacyiscool.com', resp)
         self.assertIn('Comments are governed under', resp)
+
+    def test_xss(self):
+        """Assert that user input is sanitized."""
+        update = Update.query.one()
+        update.display_name = "<script>thisIsBad()</script>"
+        update.requirements = "<script>thisIsBad()</script>"
+        self.db.commit()
+
+        res = self.app.get(f'/updates/{update.alias}', status=200, headers={'Accept': 'text/html'})
+        self.assertNotIn("<script>thisIsBad()</script>", res.text)
+        self.assertEqual(res.text.count("&lt;script&gt;thisIsBad()&lt;/script&gt;"), 3)
 
     def test_list_updates(self):
         res = self.app.get('/updates/')
@@ -2993,8 +3015,7 @@ class TestUpdatesService(BaseTestCase):
         self.db.delete(BuildrootOverride.query.one())
 
         update = self.get_update(from_tag='f17-build-side-7777')
-        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
-            r = self.app.post_json('/updates/', update)
+        r = self.app.post_json('/updates/', update)
 
         update['edited'] = r.json['alias']
         update['builds'] = 'bodhi-2.0.0-3.fc17'
@@ -3006,7 +3027,7 @@ class TestUpdatesService(BaseTestCase):
         up = r.json_body
         self.assertEqual(up['title'], 'bodhi-2.0.0-3.fc17')
         self.assertEqual(up['status'], 'pending')
-        self.assertEqual(up['request'], 'testing')
+        self.assertEqual(up['request'], None)
         self.assertEqual(up['user']['name'], 'guest')
         self.assertEqual(up['release']['name'], 'F17')
         self.assertEqual(up['type'], 'bugfix')

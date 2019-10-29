@@ -101,7 +101,7 @@ def populate(db):
         dist_tag='f17', stable_tag='f17-updates',
         testing_tag='f17-updates-testing',
         candidate_tag='f17-updates-candidate',
-        pending_signing_tag='f17-updates-testing-signing',
+        pending_signing_tag='f17-updates-signing-pending',
         pending_testing_tag='f17-updates-testing-pending',
         pending_stable_tag='f17-updates-pending',
         override_tag='f17-override',
