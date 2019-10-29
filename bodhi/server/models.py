@@ -3880,6 +3880,7 @@ class Update(Base):
             "id": f"{self.alias}-{self.version_hash}",
             "repository": self.abs_url(),
             "builds": builds,
+            "release": self.release.dist_tag,
         }
         return {
             "contact": contact,
