@@ -26,7 +26,7 @@ ${parent.css()}
 
 <%
 actions = {}
-if can_edit:
+if can_edit and update.release.composed_by_bodhi:
   if not update.locked:
     if not update.pushed:
       if update.request is None:
