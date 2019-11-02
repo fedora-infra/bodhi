@@ -2741,7 +2741,7 @@ class TestComposerThread_check_all_karma_thresholds(ComposerThreadBaseTestCase):
 class TestComposerThread__determine_tag_actions(ComposerThreadBaseTestCase):
     """Test ComposerThread._determine_tag_actions()."""
 
-    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch('bodhi.server.buildsys.get_session')
     def test_from_tag_not_found(self, get_session):
         """Updates should be ejected if the from tag cannot be determined."""
         tags = ['some', 'unknown', 'tags']

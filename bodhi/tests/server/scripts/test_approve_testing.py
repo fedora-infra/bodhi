@@ -41,8 +41,8 @@ class TestMain(BasePyTestCase):
     This class contains tests for the main() function.
     """
 
-    @patch('bodhi.server.models.mail')
-    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self, mail):
+    @patch('bodhi.server.mail.send')
+    def test_autokarma_update_meeting_time_requirements_gets_one_comment(self, send):
         """
         Ensure that an update that meets the required time in testing gets only one comment from
         Bodhi to that effect, even on subsequent runs of main().
@@ -79,7 +79,7 @@ class TestMain(BasePyTestCase):
         comment_q = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
         assert comment_q.count() == 1
         assert comment_q[0].text == config.get('testing_approval_msg')
-        assert mail.send.call_count == 1
+        assert send.call_count == 1
 
     # Set the release's mandatory days in testing to 0 to set up the condition for this test.
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
@@ -687,9 +687,9 @@ class TestMain(BasePyTestCase):
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch('bodhi.server.models.Update.add_tag')
     @patch('bodhi.server.models.Update.remove_tag')
-    @patch('bodhi.server.models.mail')
+    @patch('bodhi.server.mail.send')
     def test_autotime_update_zero_day_in_testing_no_gated_gets_pushed_to_rawhide(
-            self, mail, remove_tag, add_tag, from_side_tag):
+            self, send, remove_tag, add_tag, from_side_tag):
         """
         Ensure that an autotime update with 0 mandatory_days_in_testing that meets
         the test requirements gets pushed to stable in rawhide.
@@ -742,7 +742,7 @@ class TestMain(BasePyTestCase):
             assert add_tag.call_args_list == \
                 [call('f17-updates')]
 
-        assert mail.send.call_count == 1
+        assert send.call_count == 1
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch.dict(config, [('test_gating.required', True)])

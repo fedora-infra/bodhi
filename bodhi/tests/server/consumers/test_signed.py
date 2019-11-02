@@ -198,7 +198,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         update.pushed = False
 
         self.db.commit()
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch('bodhi.server.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': True,
                 'summary': "all tests have passed"

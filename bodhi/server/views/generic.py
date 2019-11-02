@@ -25,7 +25,7 @@ from pyramid.exceptions import HTTPForbidden, HTTPBadRequest
 import cornice.errors
 import sqlalchemy as sa
 
-from bodhi.server import log, models
+from bodhi.server import log, models, Session
 from bodhi.server.config import config
 import bodhi.server.util
 
@@ -44,7 +44,7 @@ def get_top_testers():
     days = config.get('top_testers_timeframe')
     start_time = datetime.datetime.utcnow() - datetime.timedelta(days=days)
 
-    query = models.Session().query(
+    query = Session().query(
         models.User,
         sa.func.count(models.User.comments).label('count_1')
     ).join(models.Comment)
@@ -75,7 +75,7 @@ def get_top_packagers():
     days = config.get('top_testers_timeframe')
     start_time = datetime.datetime.utcnow() - datetime.timedelta(days=days)
 
-    query = models.Session().query(
+    query = Session().query(
         models.User,
         sa.func.count(models.User.updates).label('count_1')
     ).join(models.Update)

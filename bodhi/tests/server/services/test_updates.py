@@ -90,7 +90,7 @@ def unused_mock_patch(_mockcls=mock.MagicMock, **kwargs):
     return mock.patch(target, new=mockobj)
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
+@mock.patch('bodhi.server.tasks.handle_update', mock.Mock())
 class TestNewUpdate(BasePyTestCase):
     """
     This class contains tests for the new_update() function.
@@ -963,7 +963,7 @@ class TestNewUpdate(BasePyTestCase):
         )
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
+@mock.patch('bodhi.server.tasks.handle_update', mock.Mock())
 class TestSetRequest(BasePyTestCase):
     """
     This class contains tests for the set_request() function.
@@ -1095,7 +1095,7 @@ class TestSetRequest(BasePyTestCase):
         log_exception.assert_called_once_with("Unhandled exception in set_request")
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
+@mock.patch('bodhi.server.tasks.handle_update', mock.Mock())
 class TestEditUpdateForm(BasePyTestCase):
 
     def test_edit_with_permission(self):
@@ -1202,7 +1202,7 @@ class TestEditUpdateForm(BasePyTestCase):
         assert str(resp).count("&lt;script&gt;thisIsBad()&lt;/script&gt;") == 2
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
+@mock.patch('bodhi.server.tasks.handle_update', mock.Mock())
 class TestUpdatesService(BasePyTestCase):
 
     def test_content_type(self):
@@ -4891,7 +4891,7 @@ class TestUpdatesService(BasePyTestCase):
         assert 'Push to Stable' not in resp
         assert '<span class="fa fa-fw fa-pencil-square-o"></span> Edit' not in resp
 
-    @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_push_to_stable_button_not_present_when_test_gating_status_failed(self):
         """The push to stable button should not appear if the test_gating_status is failed."""
         nvr = 'bodhi-2.0.0-2.fc17'
@@ -4918,7 +4918,7 @@ class TestUpdatesService(BasePyTestCase):
         assert 'Push to Stable' not in resp
         assert 'Edit' in resp
 
-    @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_push_to_stable_button_present_when_test_gating_status_passed(self):
         """The push to stable button should appear if the test_gating_status is passed."""
         nvr = 'bodhi-2.0.0-2.fc17'
@@ -5495,7 +5495,7 @@ class TestUpdatesService(BasePyTestCase):
         assert update.meets_testing_requirements is True
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
+@mock.patch('bodhi.server.tasks.handle_update', mock.Mock())
 class TestWaiveTestResults(BasePyTestCase):
     """
     This class contains tests for the waive_test_results() function.
@@ -6035,7 +6035,7 @@ class TestWaiveTestResults(BasePyTestCase):
         assert up.test_gating_status == TestGatingStatus.waiting
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
+@mock.patch('bodhi.server.tasks.handle_update', mock.Mock())
 class TestGetTestResults(BasePyTestCase):
     """
     This class contains tests for the get_test_results() function.

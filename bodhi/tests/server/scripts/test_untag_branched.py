@@ -32,7 +32,7 @@ from bodhi.tests.server.base import BasePyTestCase
 class TestMain(BasePyTestCase):
     """Test the main() function."""
 
-    @patch('bodhi.server.models.buildsys.get_session')
+    @patch('bodhi.server.buildsys.get_session')
     @patch('bodhi.server.scripts.untag_branched.get_appsettings', return_value={'some': 'settings'})
     @patch('bodhi.server.scripts.untag_branched.initialize_db')
     @patch('bodhi.server.scripts.untag_branched.logging.getLogger')
@@ -64,7 +64,7 @@ class TestMain(BasePyTestCase):
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
         exit.assert_called_once_with(1)
 
-    @patch('bodhi.server.models.buildsys.get_session')
+    @patch('bodhi.server.buildsys.get_session')
     @patch('bodhi.server.scripts.untag_branched.get_appsettings', return_value={'some': 'settings'})
     @patch('bodhi.server.scripts.untag_branched.initialize_db')
     @patch('bodhi.server.scripts.untag_branched.logging.getLogger')
@@ -96,7 +96,7 @@ class TestMain(BasePyTestCase):
         log.info.assert_called_once_with(release.name)
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
-    @patch('bodhi.server.models.buildsys.get_session')
+    @patch('bodhi.server.buildsys.get_session')
     @patch('bodhi.server.scripts.untag_branched.get_appsettings', return_value={'some': 'settings'})
     @patch('bodhi.server.scripts.untag_branched.initialize_db')
     @patch('bodhi.server.scripts.untag_branched.logging.getLogger')
@@ -131,7 +131,7 @@ class TestMain(BasePyTestCase):
              call('Removing f17-updates-signing-pending from bodhi-2.0-1.fc17')]
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
-    @patch('bodhi.server.models.buildsys.get_session')
+    @patch('bodhi.server.buildsys.get_session')
     @patch('bodhi.server.scripts.untag_branched.get_appsettings', return_value={'some': 'settings'})
     @patch('bodhi.server.scripts.untag_branched.initialize_db')
     @patch('bodhi.server.scripts.untag_branched.logging.getLogger')
@@ -166,7 +166,7 @@ class TestMain(BasePyTestCase):
              call('Removing f17-updates-testing-pending from bodhi-2.0-1.fc17')]
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
-    @patch('bodhi.server.models.buildsys.get_session')
+    @patch('bodhi.server.buildsys.get_session')
     @patch('bodhi.server.scripts.untag_branched.get_appsettings', return_value={'some': 'settings'})
     @patch('bodhi.server.scripts.untag_branched.initialize_db')
     @patch('bodhi.server.scripts.untag_branched.logging.getLogger')
@@ -202,7 +202,7 @@ class TestMain(BasePyTestCase):
         log.info.assert_called_once_with(release.name)
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
-    @patch('bodhi.server.models.buildsys.get_session')
+    @patch('bodhi.server.buildsys.get_session')
     @patch('bodhi.server.scripts.untag_branched.get_appsettings', return_value={'some': 'settings'})
     @patch('bodhi.server.scripts.untag_branched.initialize_db')
     @patch('bodhi.server.scripts.untag_branched.logging.getLogger')
@@ -236,7 +236,7 @@ class TestMain(BasePyTestCase):
             [call(release.name), call('Removing f17-updates-testing from bodhi-2.0-1.fc17')]
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
-    @patch('bodhi.server.models.buildsys.get_session')
+    @patch('bodhi.server.buildsys.get_session')
     @patch('bodhi.server.scripts.untag_branched.get_appsettings', return_value={'some': 'settings'})
     @patch('bodhi.server.scripts.untag_branched.initialize_db')
     @patch('bodhi.server.scripts.untag_branched.logging.getLogger')

@@ -215,8 +215,8 @@ class TestBodhiBase(BasePyTestCase):
 class TestBugAddComment(BasePyTestCase):
     """Test Bug.add_comment()."""
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
-    @mock.patch('bodhi.server.models.log.debug')
+    @mock.patch('bodhi.server.bugs.bugtracker.comment')
+    @mock.patch('bodhi.server.log.debug')
     def test_parent_security_bug(self, debug, comment):
         """The method should not comment on a parent security bug."""
         update = model.Update.query.first()
@@ -285,7 +285,7 @@ class TestBugDefaultMessage(BasePyTestCase):
 
         assert 'cool epel stuff {}'.format(config['base_address'] + update.get_url()) == message
 
-    @mock.patch('bodhi.server.models.log.warning')
+    @mock.patch('bodhi.server.log.warning')
     @mock.patch.dict(
         config,
         {'testing_bug_msg': 'cool fedora stuff {update_url}', 'base_address': 'b',
@@ -307,8 +307,8 @@ class TestBugDefaultMessage(BasePyTestCase):
 class TestBugModified(BasePyTestCase):
     """Test Bug.modified()."""
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.modified')
-    @mock.patch('bodhi.server.models.log.debug')
+    @mock.patch('bodhi.server.bugs.bugtracker.modified')
+    @mock.patch('bodhi.server.log.debug')
     def test_parent_security_bug(self, debug, modified):
         """The method should not act on a parent security bug."""
         update = model.Update.query.first()
@@ -325,8 +325,8 @@ class TestBugModified(BasePyTestCase):
 class TestBugTesting(BasePyTestCase):
     """Test Bug.testing()."""
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.on_qa')
-    @mock.patch('bodhi.server.models.log.debug')
+    @mock.patch('bodhi.server.bugs.bugtracker.on_qa')
+    @mock.patch('bodhi.server.log.debug')
     def test_parent_security_bug(self, debug, on_qa):
         """The method should not act on a parent security bug."""
         update = model.Update.query.first()
@@ -1285,14 +1285,14 @@ class TestRpmPackage(ModelTest):
         }
 
         # Now, our actual test.
-        with mock.patch('bodhi.server.models.MediaWiki', MockWiki(response)):
+        with mock.patch('bodhi.server.models.package.MediaWiki', MockWiki(response)):
             pkg = model.RpmPackage(name='gnome-shell')
             pkg.fetch_test_cases(self.db)
             assert pkg.test_cases[0].name == 'Fake test case'
             assert len(pkg.test_cases) == 1
 
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
+    @mock.patch('bodhi.server.models.package.MediaWiki')
     def test_wiki_test_cases_recursive(self, MediaWiki):
         """Test querying the wiki for test cases when recursion is necessary."""
         responses = [
@@ -1316,7 +1316,7 @@ class TestRpmPackage(ModelTest):
         assert {tc.package.name for tc in model.TestCase.query.all()} == {'gnome-shell'}
 
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
+    @mock.patch('bodhi.server.models.package.MediaWiki')
     def test_wiki_test_cases_exception(self, MediaWiki):
         """Test querying the wiki for test cases when connection to Wiki failed"""
         MediaWiki.return_value.call.side_effect = URLError("oh no!")
@@ -1556,7 +1556,7 @@ class TestRpmBuild(ModelTest):
         return dict(release=model.Release(**TestRelease.attrs),
                     package=model.RpmPackage(**TestRpmPackage.attrs))
 
-    @mock.patch('bodhi.server.models.log.exception')
+    @mock.patch('bodhi.server.log.exception')
     def test_get_changelog_bad_data(self, exception):
         """Ensure the get_changelog() logs an error when it is unable to form the log."""
         # The changelogname field doesn't have enough entries, which will cause an Exception.
@@ -1572,7 +1572,8 @@ class TestRpmBuild(ModelTest):
             'summary': 'Enhanced seccomp library'}
 
         with mock.patch(
-                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+                'bodhi.server.models.build.get_rpm_header',
+                return_value=rpm_header) as get_rpm_header:
             changelog = self.obj.get_changelog()
 
         # The free money note should still have made it.
@@ -1598,13 +1599,14 @@ class TestRpmBuild(ModelTest):
             'summary': 'Enhanced seccomp library'}
 
         with mock.patch(
-                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+                'bodhi.server.models.build.get_rpm_header',
+                return_value=rpm_header) as get_rpm_header:
             changelog = self.obj.get_changelog()
 
         assert changelog == ''
         get_rpm_header.assert_called_once_with(self.obj.nvr)
 
-    @mock.patch('bodhi.server.models.log.exception')
+    @mock.patch('bodhi.server.log.exception')
     def test_get_changelog_when_is_list(self, exception):
         """Test get_changelog() when the changelogtime is given as a list."""
         rpm_header = {
@@ -1620,7 +1622,8 @@ class TestRpmBuild(ModelTest):
             'summary': 'Enhanced seccomp library'}
 
         with mock.patch(
-                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+                'bodhi.server.models.build.get_rpm_header',
+                return_value=rpm_header) as get_rpm_header:
             changelog = self.obj.get_changelog()
 
         # The full changelog should be rendered.
@@ -1632,7 +1635,7 @@ class TestRpmBuild(ModelTest):
         assert exception.call_count == 0
         get_rpm_header.assert_called_once_with(self.obj.nvr)
 
-    @mock.patch('bodhi.server.models.log.exception')
+    @mock.patch('bodhi.server.log.exception')
     def test_get_changelog_when_not_list(self, exception):
         """Test get_changelog() when the changelogtime is not given as a list."""
         rpm_header = {
@@ -1647,7 +1650,8 @@ class TestRpmBuild(ModelTest):
             'summary': 'Enhanced seccomp library'}
 
         with mock.patch(
-                'bodhi.server.models.get_rpm_header', return_value=rpm_header) as get_rpm_header:
+                'bodhi.server.models.build.get_rpm_header',
+                return_value=rpm_header) as get_rpm_header:
             changelog = self.obj.get_changelog()
 
         # The full changelog should be rendered.
@@ -1683,7 +1687,7 @@ class TestUpdateInit(BasePyTestCase):
         assert str(exc.value) == 'You must specify a Release when creating an Update.'
 
 
-@mock.patch("bodhi.server.models.handle_update", mock.Mock())
+@mock.patch("bodhi.server.tasks.handle_update", mock.Mock())
 class TestUpdateEdit(BasePyTestCase):
     """Tests for the Update.edit() method."""
 
@@ -1697,10 +1701,10 @@ class TestUpdateEdit(BasePyTestCase):
         update.locked = True
         self.db.flush()
 
-        with pytest.raises(model.LockedUpdateException):
+        with pytest.raises(LockedUpdateException):
             model.Update.edit(request, data)
 
-    @mock.patch('bodhi.server.models.log.warning')
+    @mock.patch('bodhi.server.log.warning')
     def test_new_builds_log_when_release_has_no_signing_tag(self, warning):
         """If new builds are added from a release with no signing tag, it should log a warning."""
         package = model.RpmPackage(name='python-rpdb')
@@ -1736,11 +1740,11 @@ class TestUpdateEdit(BasePyTestCase):
         update.locked = True
         self.db.flush()
 
-        with pytest.raises(model.LockedUpdateException):
+        with pytest.raises(LockedUpdateException):
             model.Update.edit(request, data)
 
 
-@mock.patch("bodhi.server.models.handle_update", mock.Mock())
+@mock.patch("bodhi.server.tasks.handle_update", mock.Mock())
 class TestUpdateVersionHash(BasePyTestCase):
     """Tests for the Update.version_hash property."""
 
@@ -1993,7 +1997,7 @@ class TestUpdateTestGatingPassed(BasePyTestCase):
 class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
     """Test the Update.update_test_gating_status() method."""
 
-    @mock.patch('bodhi.server.models.log.error')
+    @mock.patch('bodhi.server.log.error')
     @mock.patch('bodhi.server.util.http_session.post')
     @mock.patch('bodhi.server.util.time.sleep')
     def test_500_response_from_greenwave(self, sleep, post, error):
@@ -2036,7 +2040,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
                 '"https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision". The '
                 'status code was "500".')) for i in range(2)])
 
-    @mock.patch('bodhi.server.models.log.error')
+    @mock.patch('bodhi.server.log.error')
     @mock.patch('bodhi.server.util.http_session.post')
     @mock.patch('bodhi.server.util.time.sleep')
     def test_timeout_from_greenwave(self, sleep, post, error):
@@ -2222,7 +2226,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update = model.Update.query.first()
         update.critpath = True
         update.stable_karma = 1
-        with mock.patch('bodhi.server.models.handle_update'):
+        with mock.patch('bodhi.server.tasks.handle_update'):
             update.comment(self.db, 'testing', author='enemy', karma=-1)
             update.comment(self.db, 'testing', author='bro', karma=1)
             # Despite meeting the stable_karma, the function should still not mark this as meeting
@@ -2402,7 +2406,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         assert not update.meets_testing_requirements
 
 
-@mock.patch("bodhi.server.models.handle_update", mock.Mock())
+@mock.patch("bodhi.server.tasks.handle_update", mock.Mock())
 class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
     klass = model.Update
@@ -2445,7 +2449,7 @@ class TestUpdate(ModelTest):
 
         assert self.obj.__json__()['content_type'] is None
 
-    @mock.patch('bodhi.server.models.log.warning')
+    @mock.patch('bodhi.server.log.warning')
     def test_add_tag_null(self, warning):
         """Test the add_tag() method with a falsey tag, such as None."""
         result = self.obj.add_tag(tag=None)
@@ -2541,7 +2545,7 @@ class TestUpdate(ModelTest):
 
     def test_greenwave_request_batches_single(self):
         """Ensure that the greenwave_request_batches property returns the correct value."""
-        with mock.patch.dict('bodhi.server.models.config', {'greenwave_batch_size': 2}):
+        with mock.patch.dict('bodhi.server.config.config', {'greenwave_batch_size': 2}):
             assert self.obj.greenwave_subject_batch_size == 2
             assert self.obj.greenwave_request_batches(verbose=False) == (
                 [
@@ -2559,7 +2563,7 @@ class TestUpdate(ModelTest):
 
     def test_greenwave_request_batches_multiple(self):
         """Ensure that the greenwave_request_batches property returns the correct value."""
-        with mock.patch.dict('bodhi.server.models.config', {'greenwave_batch_size': 1}):
+        with mock.patch.dict('bodhi.server.config.config', {'greenwave_batch_size': 1}):
             assert self.obj.greenwave_subject_batch_size == 1
             assert self.obj.greenwave_request_batches(verbose=True) == (
                 [
@@ -2623,7 +2627,7 @@ class TestUpdate(ModelTest):
 
         assert update.mandatory_days_in_testing == 7
 
-    @mock.patch.dict('bodhi.server.models.config', {'fedora.mandatory_days_in_testing': '0'})
+    @mock.patch.dict('bodhi.server.config.config', {'fedora.mandatory_days_in_testing': '0'})
     def test_mandatory_days_in_testing_false(self):
         """
         The Update.mandatory_days_in_testing method should be 0 if the
@@ -2633,7 +2637,7 @@ class TestUpdate(ModelTest):
 
         assert update.mandatory_days_in_testing == 0
 
-    @mock.patch.dict('bodhi.server.models.config', {}, clear=True)
+    @mock.patch.dict('bodhi.server.config.config', {}, clear=True)
     def test_mandatory_days_in_testing_release_not_configured(self):
         """mandatory_days_in_testing() should return 0 if there is no config for the release."""
         update = self.obj
@@ -2760,8 +2764,8 @@ class TestUpdate(ModelTest):
 
         assert self.obj.side_tag_locked
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.close')
-    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
+    @mock.patch('bodhi.server.bugs.bugtracker.close')
+    @mock.patch('bodhi.server.bugs.bugtracker.comment')
     def test_modify_bugs_stable_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to True."""
         update = self.get_update()
@@ -2786,8 +2790,8 @@ class TestUpdate(ModelTest):
             [c[2]['versions']['TurboGears'] == 'TurboGears-1.0.8-3.fc11'
                 for c in close.mock_calls]) == True
 
-    @mock.patch('bodhi.server.models.bugs.bugtracker.close')
-    @mock.patch('bodhi.server.models.bugs.bugtracker.comment')
+    @mock.patch('bodhi.server.bugs.bugtracker.close')
+    @mock.patch('bodhi.server.bugs.bugtracker.comment')
     def test_modify_bugs_stable_no_close(self, comment, close):
         """Test the modify_bugs() method with a stable status and with close_bugs set to False."""
         update = self.get_update()
@@ -2937,7 +2941,7 @@ class TestUpdate(ModelTest):
             ('dist-f11-updates-testing-pending', 'TurboGears-1.0.8-3.fc11'),
             ('dist-f11-updates-pending', 'TurboGears-1.0.8-3.fc11')]
 
-    @mock.patch('bodhi.server.models.log.debug')
+    @mock.patch('bodhi.server.log.debug')
     def test_unpush_stable(self, debug):
         """unpush() should raise a BodhiException on a stable update."""
         self.obj.status = UpdateStatus.stable
@@ -2949,7 +2953,7 @@ class TestUpdate(ModelTest):
         debug.assert_called_once_with('Unpushing %s', self.obj.alias)
         assert self.obj.untag.call_count == 0
 
-    @mock.patch('bodhi.server.models.log.debug')
+    @mock.patch('bodhi.server.log.debug')
     def test_unpush_unpushed(self, debug):
         """unpush() should do nothing on an unpushed update."""
         self.obj.status = UpdateStatus.unpushed
@@ -3220,7 +3224,7 @@ class TestUpdate(ModelTest):
 
         assert self.obj.status == UpdateStatus.obsolete
 
-    @mock.patch('bodhi.server.models.log.warning')
+    @mock.patch('bodhi.server.log.warning')
     def test_remove_tag_emptystring(self, warning):
         """Test remove_tag() with a tag of ''."""
         assert self.obj.remove_tag('') == []
@@ -3341,7 +3345,7 @@ class TestUpdate(ModelTest):
         assert self.obj.request == UpdateRequest.stable
         assert self.obj.status == UpdateStatus.pending
 
-    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch('bodhi.server.buildsys.get_session')
     def test_set_request_resubmit_candidate_tag_missing(self, get_session):
         """Ensure that set_request() adds the candidate tag back to a resubmitted build."""
         req = DummyRequest(user=DummyUser())
@@ -3703,7 +3707,7 @@ class TestUpdate(ModelTest):
         self.obj.comment(self.db, 'im a commenter', author='bowlofeggs')
 
         with mock.patch('bodhi.server.mail.smtplib.SMTP') as SMTP:
-            with mock.patch.dict('bodhi.server.models.config',
+            with mock.patch.dict('bodhi.server.config.config',
                                  {'bodhi_email': 'bodhi@fp.o', 'smtp_server': 'smtp.fp.o'}):
                 self.obj.comment(self.db, 'Here is a cool e-mail for you.', author='someoneelse')
 
@@ -3795,9 +3799,9 @@ class TestUpdate(ModelTest):
 
         get_template.assert_called_with(update, 'fedora_epel_errata_template')
 
-    @mock.patch('bodhi.server.models.log.error')
-    @mock.patch('bodhi.server.models.mail.send_mail')
-    @mock.patch.dict('bodhi.server.models.config', {'bodhi_email': None})
+    @mock.patch('bodhi.server.log.error')
+    @mock.patch('bodhi.server.mail.send_mail')
+    @mock.patch.dict('bodhi.server.config.config', {'bodhi_email': None})
     def test_send_update_notice_no_email_configured(self, send_mail, error):
         """Test send_update_notice() when no e-mail address is configured."""
         self.obj.send_update_notice()
@@ -3806,9 +3810,9 @@ class TestUpdate(ModelTest):
             'bodhi_email not defined in configuration!  Unable to send update notice')
         assert send_mail.call_count == 0
 
-    @mock.patch('bodhi.server.models.log.error')
-    @mock.patch('bodhi.server.models.mail.send_mail')
-    @mock.patch.dict('bodhi.server.models.config',
+    @mock.patch('bodhi.server.log.error')
+    @mock.patch('bodhi.server.mail.send_mail')
+    @mock.patch.dict('bodhi.server.config.config',
                      {'bodhi_email': 'bodhi@fp.o', 'fedora_test_announce_list': None})
     def test_send_update_notice_no_mailinglist_configured(self, send_mail, error):
         """Test send_update_notice() when no e-mail address is configured."""
@@ -3820,7 +3824,7 @@ class TestUpdate(ModelTest):
         assert send_mail.call_count == 0
 
     @mock.patch('bodhi.server.mail.smtplib.SMTP')
-    @mock.patch.dict('bodhi.server.models.config',
+    @mock.patch.dict('bodhi.server.config.config',
                      {'bodhi_email': 'bodhi@fp.o', 'smtp_server': 'smtp.fp.o'})
     def test_send_update_notice_status_testing(self, SMTP):
         """Assert the test_announce_list setting is used for the mailing list of testing updates."""
@@ -4226,8 +4230,8 @@ class TestUpdate(ModelTest):
         expected_comment = "This update's test gating status has been changed to 'waiting'."
         assert update.comments[-1].text == expected_comment
 
-    @mock.patch('bodhi.server.models.mail')
-    def test_comment_on_test_gating_status_change(self, mail):
+    @mock.patch('bodhi.server.mail.send')
+    def test_comment_on_test_gating_status_change(self, send):
         """Assert that Bodhi will leave comment only when test_gating_status changes."""
         # Let's make sure that update has no comments.
         assert len(self.obj.comments) == 0
@@ -4246,21 +4250,21 @@ class TestUpdate(ModelTest):
         assert len(self.obj.comments) == 1
 
         # Check that no email were sent:
-        assert mail.send.call_count == 0
+        assert send.call_count == 0
 
-    @mock.patch('bodhi.server.models.mail')
-    def test_comment_on_test_gating_status_change_email(self, mail):
+    @mock.patch('bodhi.server.mail.send')
+    def test_comment_on_test_gating_status_change_email(self, send):
         """Assert that Bodhi will leave comment only when test_gating_status changes."""
         # Let's make sure that update has no comments.
         assert len(self.obj.comments) == 0
 
         # Check that no email were sent:
-        assert mail.send.call_count == 0
+        assert send.call_count == 0
 
         self.obj.test_gating_status = TestGatingStatus.failed
 
         # Check that one email was sent:
-        assert mail.send.call_count == 1
+        assert send.call_count == 1
 
         # Check for the comment about test_gating_status change
         expected_comment = "This update's test gating status has been changed to 'failed'."
@@ -4271,7 +4275,7 @@ class TestUpdate(ModelTest):
         self.obj.test_gating_status = TestGatingStatus.waiting
 
         # Check that still only one email was sent:
-        assert mail.send.call_count == 1
+        assert send.call_count == 1
 
         # We should have two comments, one for each test_gating_status change
         assert len(self.obj.comments) == 2
@@ -4335,8 +4339,8 @@ class TestBuildrootOverride(ModelTest):
                 release=model.Release(**TestRelease.attrs)),
             submitter=model.User(name='lmacken'))
 
-    @mock.patch('bodhi.server.models.buildsys.get_session')
-    @mock.patch('bodhi.server.models.log.error')
+    @mock.patch('bodhi.server.buildsys.get_session')
+    @mock.patch('bodhi.server.log.error')
     def test_expire_exception(self, error, get_session):
         """Exceptions raised by koji untag_build() should be caught and logged by expire()."""
         get_session.return_value.untagBuild.side_effect = IOError('oh no!')

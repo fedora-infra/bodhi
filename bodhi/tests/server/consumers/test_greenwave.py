@@ -56,7 +56,7 @@ class TestGreenwaveHandler(BasePyTestCase):
         # before the greenwave consumer run the gating tests status is None
         assert update.test_gating_status is None
 
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch('bodhi.server.util.greenwave_api_post') as mock_greenwave:
             self.handler(self.sample_message)
             # Only one build, the info should come from the message and not the greenwave API
             assert mock_greenwave.called is False
@@ -111,7 +111,7 @@ class TestGreenwaveHandler(BasePyTestCase):
         # before the greenwave consumer run the gating tests status is None
         assert update.test_gating_status is None
 
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch('bodhi.server.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': True,
                 'summary': "all tests have passed"

@@ -231,7 +231,7 @@ class TestCIHandler(base.BasePyTestCase):
         assert "Received incomplete CI message. Missing: 'artifact.nvr', 'pipeline.id'." \
                in caplog.text
 
-    @mock.patch("bodhi.server.models.mail")
+    @mock.patch("bodhi.server.mail")
     def test_no_email_notifications(self, mock_mail, caplog):
         """
         Assert that we do not send emails when adding a comment to the update

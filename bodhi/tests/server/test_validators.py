@@ -441,7 +441,7 @@ class TestValidateOverrideBuild(BasePyTestCase):
         build = models.Build.query.filter_by(nvr=build.nvr).one()
         assert build.release.name == release.name
 
-    @mock.patch('bodhi.server.models.buildsys.get_session')
+    @mock.patch('bodhi.server.buildsys.get_session')
     def test_wrong_tag(self, get_session):
         """If a build does not have a candidate or testing tag, the validator should complain."""
         release = models.Release.query.first()

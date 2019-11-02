@@ -161,7 +161,7 @@ class TestUpdatesHandlerConsume(base.BasePyTestCase):
 
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch('bodhi.server.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': False,
                 'summary': 'what have you done‽',
@@ -196,7 +196,7 @@ class TestUpdatesHandlerConsume(base.BasePyTestCase):
 
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
-        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+        with mock.patch('bodhi.server.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': False,
                 'summary': 'what have you done‽',
@@ -314,7 +314,7 @@ class TestUpdatesHandlerConsume(base.BasePyTestCase):
         h = updates.UpdatesHandler()
         h.db_factory = base.TransactionalSessionMaker(self.Session)
         with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV1):
-            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            with mock.patch('bodhi.server.util.greenwave_api_post') as mock_greenwave:
                 greenwave_response = {
                     'policies_satisfied': False,
                     'summary': 'what have you done‽',
@@ -478,7 +478,7 @@ class TestUpdatesHandlerFetchTestCases(base.BasePyTestCase):
     """This test class contains tests for the UpdatesHandler.fetch_test_cases() method."""
 
     @mock.patch.dict(config.config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
+    @mock.patch('bodhi.server.models.package.MediaWiki')
     @mock.patch('bodhi.server.tasks.updates.log.warning')
     def test_fetch_test_cases_exception(self, warning, MediaWiki):
         """
