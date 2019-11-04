@@ -405,7 +405,6 @@ padding-bottom: 2em;
 .masthead{
     border-bottom: 1px solid #ccc;
     box-shadow: 0 0 10px 2px #ddd;
-    z-index: 999;
     position: relative;
 }
 
