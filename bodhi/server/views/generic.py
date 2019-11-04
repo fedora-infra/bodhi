@@ -286,7 +286,7 @@ def latest_candidates(request):
     koji = request.koji
     db = request.db
 
-    def work(testing, pkg=None, prefix=None):
+    def work(testing, hide_existing, pkg=None, prefix=None):
         result = []
         koji.multicall = True
 
@@ -329,19 +329,27 @@ def latest_candidates(request):
                     }
                     # Prune duplicates
                     # https://github.com/fedora-infra/bodhi/issues/450
+
                     if item not in result:
-                        result.append(item)
+                        if hide_existing:
+                            # show only builds that don't have updates already
+                            b = request.db.query(models.Build).filter_by(nvr=build['nvr']).first()
+                            if (b and b.update is None) or not b:
+                                result.append(item)
+                        else:
+                            result.append(item)
         return result
 
     pkg = request.params.get('package')
     prefix = request.params.get('prefix')
     testing = asbool(request.params.get('testing'))
-    log.debug('latest_candidate(%r, %r)' % (pkg, testing))
+    hide_existing = asbool(request.params.get('hide_existing'))
+    log.debug('latest_candidate(%r, %r, %r)' % (pkg, testing, hide_existing))
 
     if pkg:
-        result = work(testing, pkg=pkg)
+        result = work(testing, hide_existing, pkg=pkg)
     else:
-        result = work(testing, prefix=prefix)
+        result = work(testing, hide_existing, prefix=prefix)
 
     log.debug(result)
     return result
