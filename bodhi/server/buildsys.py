@@ -464,7 +464,7 @@ class DevBuildsys:
                     'id': 7777}
 
         return {'maven_support': False, 'locked': False, 'name': taginfo,
-                'perm': None, 'id': 246, 'arches': None,
+                'extra': {}, 'perm': None, 'id': 246, 'arches': None,
                 'maven_include_all': False, 'perm_id': None}
 
     def getFullInheritance(self, taginfo, **kw):

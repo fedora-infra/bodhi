@@ -26,7 +26,7 @@ ${parent.css()}
 
 <%
 actions = {}
-if can_edit:
+if can_edit and update.release.composed_by_bodhi:
   if not update.locked:
     if not update.pushed:
       if update.request is None:
@@ -74,7 +74,7 @@ if can_edit:
         <div class="col-x-auto">
             % if can_edit and (not update.locked and update.status.value != 'stable'):
               <a id='edit' href="javascript:void(0)" class="btn btn-outline-primary border-0 btn-sm"><span class="fa fa-fw fa-pencil-square-o"></span> Edit</a>
-            % elif can_edit and update.locked and update.date_locked:
+            % elif update.locked and update.date_locked:
             <a class="btn btn-link text-muted" href="${request.route_url('composes', release_name=update.compose.release.name, request=update.compose.request.value)}" data-toggle="tooltip" title="This update is currently locked since ${(update.date_locked).strftime('%Y-%m-%d %H:%M:%S')} (UTC) and cannot be modified.">
               <span class="fa fa-fw fa-lock text-muted"></span>
               <span class="sr-only">Locked</span>
