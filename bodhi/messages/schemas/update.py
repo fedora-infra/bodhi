@@ -626,8 +626,12 @@ class UpdateReadyForTestingV1(BodhiMessage):
                         'type': 'string',
                         'format': 'uri',
                     },
+                    'release': {
+                        'description': 'The release targetted by this side-tag/group of builds.',
+                        'type': 'string',
+                    },
                 },
-                'required': ['id', 'type', 'builds', 'repository'],
+                'required': ['id', 'type', 'builds', 'repository', 'release'],
             },
             'generated_at': {
                 'description': 'Time when the requested was generated, in UTC and ISO 8601 format',
