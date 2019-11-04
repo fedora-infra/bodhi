@@ -387,6 +387,23 @@ class TestGenericViews(base.BaseTestCase):
             self.assertEqual(body[0]['package_name'], 'TurboGears')
             self.assertEqual(body[0]['release_name'], 'Fedora 17')
 
+        # check that hide_existing does not return builds already in an update
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.multiCall', create=True) as multicall:
+            multicall.return_value = [[[{'owner_name': 'lmacken', 'id': 16,
+                                         'nvr': 'bodhi-2.0-1.fc17',
+                                         'package_name': 'bodhi',
+                                         'tag_name': 'f17-updates-candidate'},
+                                        {'owner_name': 'lmacken', 'id': 16059,
+                                         'nvr': 'TurboGears-1.0.2.2-3.fc17',
+                                         'package_name': 'TurboGears',
+                                         'tag_name': 'f17-updates-candidate'}]]]
+
+            res = self.app.get('/latest_candidates', {'hide_existing': 'true'})
+            body = res.json_body
+            # even though 2 builds are returned from koji, the bodhi one is
+            # already in an update, so we only expect one here
+            self.assertEqual(len(body), 1)
+
     @mock.patch('bodhi.server.views.generic.log.error')
     @mock.patch("bodhi.server.buildsys.DevBuildsys.multiCall")
     def test_candidate_koji_error(self, mock_listTagged, log_error):

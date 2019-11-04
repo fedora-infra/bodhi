@@ -210,7 +210,8 @@ class UpdateMessageTests(unittest.TestCase):
                             "component": "libsepol",
                             "nvr": "libsepol-2.8-3.fc29.x86_64",
                             "scratch": False,
-                        }]
+                        }],
+                    "release": "f29",
                 },
                 "generated_at": "2019-10-22 13:08:10.222602",
                 "version": "0.2.2",

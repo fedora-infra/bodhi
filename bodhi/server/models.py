@@ -2672,8 +2672,8 @@ class Update(Base):
 
             "package1, package, 2 and XXX more"
 
-        If the "amp" parameter is specified it will replace the and with and
-        &amp; html entity
+        If the "amp" parameter is specified it will replace the "and" with an
+        "&" entity.
 
         If the "nvr" parameter is specified it will include name, version and
         release information in package labels.
@@ -2688,7 +2688,7 @@ class Update(Base):
             title = ", ".join([build_label(build) for build in self.builds[:2]])
 
             if amp:
-                title += ", &amp; "
+                title += ", & "
             else:
                 title += ", and "
             title += str(len(self.builds) - 2)
@@ -3880,6 +3880,7 @@ class Update(Base):
             "id": f"{self.alias}-{self.version_hash}",
             "repository": self.abs_url(),
             "builds": builds,
+            "release": self.release.dist_tag,
         }
         return {
             "contact": contact,

@@ -26,7 +26,7 @@ ${parent.css()}
 
 <%
 actions = {}
-if can_edit:
+if can_edit and update.release.composed_by_bodhi:
   if not update.locked:
     if not update.pushed:
       if update.request is None:
@@ -74,7 +74,7 @@ if can_edit:
         <div class="col-x-auto">
             % if can_edit and (not update.locked and update.status.value != 'stable'):
               <a id='edit' href="javascript:void(0)" class="btn btn-outline-primary border-0 btn-sm"><span class="fa fa-fw fa-pencil-square-o"></span> Edit</a>
-            % elif can_edit and update.locked and update.date_locked:
+            % elif update.locked and update.date_locked:
             <a class="btn btn-link text-muted" href="${request.route_url('composes', release_name=update.compose.release.name, request=update.compose.request.value)}" data-toggle="tooltip" title="This update is currently locked since ${(update.date_locked).strftime('%Y-%m-%d %H:%M:%S')} (UTC) and cannot be modified.">
               <span class="fa fa-fw fa-lock text-muted"></span>
               <span class="sr-only">Locked</span>
@@ -414,7 +414,11 @@ if can_edit:
               % endif
               <div class="mt-3">
                   <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
-                      <div class="py-2 text-uppercase font-size-09">Builds</div> <span class="badge badge-secondary badge-pill ml-auto">${len(update.builds)}</span>
+                      <div class="py-2 text-uppercase font-size-09">Builds</div>
+                       <span class="badge badge-secondary badge-pill ml-1">${len(update.builds)}</span>
+                      % if request.user and update.from_tag:
+                      <span class="badge badge-light badge-pill ml-auto border" title="Builds from the Side Tag: ${update.from_tag}" data-toggle="tooltip"><i class="fa fa-tag pr-1"></i> ${update.from_tag}</span>
+                      % endif
                   </div>
 
               % for build in update.builds:
@@ -647,7 +651,6 @@ if can_edit:
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h3 class="modal-title" id="waiveModalLabel">Waive All Test Results</h3>
-        </button>
       </div>
       <div class="modal-body">
           <div class="row">
@@ -668,7 +671,8 @@ if can_edit:
         <button type="submit" class="btn btn-primary">Waive</button>
       </div>
     </div>
-    </form>
+  </div>
+  </form>
 </div>
 % endif
 
