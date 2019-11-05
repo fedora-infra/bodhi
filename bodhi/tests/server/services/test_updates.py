@@ -6393,6 +6393,9 @@ class TestTriggerTests(BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
 
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.db.commit()
+
         post_data = dict(
             csrf_token=self.get_csrf_token()
         )

@@ -19,8 +19,9 @@
 
 from unittest import mock
 
-from fedora_messaging.api import Message
+from fedora_messaging import api, testing as fml_testing
 
+from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.config import config
 from bodhi.server.consumers import signed
 from bodhi.server.models import Build, Update, UpdateStatus, TestGatingStatus
@@ -33,7 +34,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
     def setup_method(self, method):
         super().setup_method(method)
 
-        self.sample_message = Message(
+        self.sample_message = api.Message(
             topic='',
             body={
                 'build_id': 442562,
@@ -47,7 +48,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
                 'release': '1.fc17'
             },
         )
-        self.sample_side_tag_message = Message(
+        self.sample_side_tag_message = api.Message(
             topic='',
             body={
                 'build_id': 442562,
@@ -192,7 +193,8 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
                 'summary': "all tests have passed"
             }
             mock_greenwave.return_value = greenwave_response
-            self.handler(self.sample_side_tag_message)
+            with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV1):
+                self.handler(self.sample_side_tag_message)
 
         assert update.builds[0].signed is True
         assert update.builds[0].update.request is None
