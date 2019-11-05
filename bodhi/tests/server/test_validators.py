@@ -843,8 +843,8 @@ class TestValidateFromTag(BasePyTestCase):
 
         This makes the validator a no-op."""
         del self.request.validated['from_tag']
-
         validators.validate_from_tag(self.request)
+        assert not self.request.errors
 
     # Error conditions
 
@@ -901,3 +901,23 @@ class TestValidateFromTag(BasePyTestCase):
 
         # check type of wrapped exception
         assert isinstance(excinfo.value.__cause__, koji.GenericError)
+
+    def test_with_unknown_tag(self):
+        """Test to prevent users to create an update from a tag that doesn't exist"""
+        with mock.patch('bodhi.server.validators.buildsys.get_session',
+                        self.mock_get_session_for_class(self.UnknownTagDevBuildsys)):
+            validators.validate_from_tag(self.request)
+
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'from_tag',
+             'description': "The supplied from_tag doesn't exist."}
+        ]
+
+    def test_without_sidetag(self):
+        """A tag that is not a sidetag should add an error to the request"""
+        self.request.validated['from_tag'] = 'no-side-tag'
+        validators.validate_from_tag(self.request)
+        assert self.request.errors == [
+            {'location': 'body', 'name': 'from_tag',
+             'description': "The supplied tag is not a side tag."}
+        ]

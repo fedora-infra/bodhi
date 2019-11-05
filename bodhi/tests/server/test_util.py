@@ -555,6 +555,19 @@ class TestTestcaseLink:
         assert f">{self.displayed_name}<" in retval
 
 
+class TestType2Color(unittest.TestCase):
+    """Test the type2color() function."""
+
+    def test_colors(self):
+        """Test type2color() output."""
+        context = {'request': mock.MagicMock()}
+        self.assertEqual(util.type2color(context, 'bugfix'), 'rgba(150,180,205,0.5)')
+        self.assertEqual(util.type2color(context, 'security'), 'rgba(205,150,180,0.5)')
+        self.assertEqual(util.type2color(context, 'newpackage'), 'rgba(150,205,180,0.5)')
+        self.assertEqual(util.type2color(context, 'enhancement'), 'rgba(205,205,150,0.5)')
+        self.assertEqual(util.type2color(context, 'something_else'), 'rgba(200,200,200,0.5)')
+
+
 class TestType2Icon(unittest.TestCase):
     """Test the type2icon() function."""
 

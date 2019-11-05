@@ -2,6 +2,8 @@
 **/__pycache__
 *.egg-info
 .git
+build
+dist
 devel/ci/integration/dumps/*
 docs/_build
 docs/developer/docblocks
