@@ -21,10 +21,9 @@ from unittest import mock
 import xmlrpc.client
 
 from bodhi.server import bugs, models
-from bodhi.tests.server import base
 
 
-class TestBugzilla(base.BaseTestCase):
+class TestBugzilla:
     """This test class contains tests for the Bugzilla class."""
     def test___init__(self):
         """Assert that the __init__ method sets up the Bugzilla object correctly."""
@@ -295,13 +294,15 @@ class TestBugzilla(base.BaseTestCase):
         bz.comment(1411188, 'A nice message.')
 
         bz._bz.getbug.assert_called_once_with(1411188)
-        self.assertEqual([c[1] for c in bz._bz.getbug.return_value.addcomment.mock_calls],
-                         [('A nice message.',) for i in range(5)])
+        assert len(bz._bz.getbug.return_value.addcomment.mock_calls) == 5
+        assert all(c[1] == ('A nice message.',)
+                   for c in bz._bz.getbug.return_value.addcomment.mock_calls)
+
         # Five exceptions should have been logged
-        self.assertEqual(
-            [c[1] for c in error.mock_calls],
-            [(('\nA fault has occurred \nFault code: 42 \nFault string: Someone turned the '
-               'microwave on and now the WiFi is down.'),) for i in range(5)])
+        assert len(error.mock_calls) == 5
+        assert all(c[1] == ('\nA fault has occurred \nFault code: 42 \nFault string: '
+                            'Someone turned the microwave on and now the WiFi is down.',)
+                   for c in error.mock_calls)
 
     @mock.patch('bodhi.server.bugs.log.exception')
     def test_comment_unexpected_exception(self, exception):
@@ -625,7 +626,7 @@ class TestBugzilla(base.BaseTestCase):
         assert bz._bz.getbug.return_value.setstatus.call_count == 0
 
 
-class TestFakeBugTracker(base.BaseTestCase):
+class TestFakeBugTracker:
     """This test class contains tests for the FakeBugTracker class."""
     def test_getbug(self):
         """Ensure correct return value of the getbug() method."""
@@ -646,7 +647,7 @@ class TestFakeBugTracker(base.BaseTestCase):
         debug.assert_called_once_with('__noop__((1, 2))')
 
 
-class TestSetBugtracker(base.BaseTestCase):
+class TestSetBugtracker:
     """
     Test the set_bugtracker() function.
     """
