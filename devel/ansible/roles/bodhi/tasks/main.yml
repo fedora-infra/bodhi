@@ -66,6 +66,12 @@
       - zlib-devel
     state: present
 
+# Make pytest able to use --timeout
+- name: pip install pytest-timeout
+  pip:
+      name: pytest-timeout
+      executable: pip3
+
 - name: Initialize PostgreSQL
   command: postgresql-setup initdb
   args:

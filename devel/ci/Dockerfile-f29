@@ -33,6 +33,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-pyramid-mako \
     python3-pytest \
     python3-pytest-cov \
+    python3-pytest-timeout \
     python3-pyyaml \
     python3-responses \
     python3-simplemediawiki \

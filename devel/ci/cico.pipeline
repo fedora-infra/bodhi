@@ -46,7 +46,7 @@ def configure_node = {
     onmyduffynode 'yum install -y docker python36-click python36-pip python36-psycopg2 python36-requests rsync python36-cryptography python36-devel gcc'
     onmyduffynode 'systemctl start docker'
     // To run the integration testsuite
-    onmyduffynode 'python3.6 -m pip install \'pytest<4.0\' pytest-cov conu munch fedora-messaging'
+    onmyduffynode 'python3.6 -m pip install \'pytest<4.0\' pytest-cov conu munch fedora-messaging pytest-timeout'
 }
 
 
