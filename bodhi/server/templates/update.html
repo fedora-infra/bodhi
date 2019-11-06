@@ -11,7 +11,7 @@
 <%block name="pagetitle">
   ${update.alias}
 &mdash;
-${update.type} update for ${update.beautify_title(amp=True) | h}
+${update.type} update for ${update.get_title(amp=True,beautify=True) | h}
 &mdash; Fedora Updates System
 </%block>
 
@@ -58,7 +58,7 @@ if can_edit and update.release.composed_by_bodhi:
                 <div class="media-body ml-0">
                     <div class="font-weight-bold">
                       <a href="${request.route_url('update', id=update['alias'])}">
-                      ${update.beautify_title(amp=True,nvr=True) | h}
+                      ${update.get_title(amp=True,nvr=True,beautify=True) | h}
                       </a>
                     </div>
                     <div class="h5 mt-1">

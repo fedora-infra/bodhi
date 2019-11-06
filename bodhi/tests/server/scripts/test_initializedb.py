@@ -19,12 +19,13 @@
 
 from io import StringIO
 from unittest import mock
-import unittest
+
+import pytest
 
 from bodhi.server.scripts import initializedb
 
 
-class TestMain(unittest.TestCase):
+class TestMain:
     """Contains tests for the main() function."""
     @mock.patch.object(initializedb.Base, 'metadata', mock.MagicMock())
     @mock.patch('bodhi.server.scripts.initializedb.get_appsettings')
@@ -37,7 +38,7 @@ class TestMain(unittest.TestCase):
         setup_logging.assert_called_once_with()
         get_appsettings.assert_called_once_with('/etc/bodhi/production.ini')
         initialize_db.assert_called_once_with(get_appsettings.return_value)
-        self.assertEqual(initializedb.Base.metadata.bind, initialize_db.return_value)
+        assert initializedb.Base.metadata.bind == initialize_db.return_value
         initializedb.Base.metadata.create_all.assert_called_once_with(initialize_db.return_value)
 
     @mock.patch.object(initializedb.Base, 'metadata', mock.MagicMock())
@@ -49,21 +50,20 @@ class TestMain(unittest.TestCase):
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_wrong_args(self, stdout, exit, setup_logging, initialize_db, get_appsettings):
         """Assert that usage() gets called if the wrong number of args are supplied."""
-        self.assertRaises(
+        pytest.raises(
             RuntimeError, initializedb.main,
             argv=['initializedb', '/etc/bodhi/production.ini', 'this does not belong'])
 
-        self.assertEqual(
-            stdout.getvalue(),
-            'usage: initializedb <config_uri>\n(example: "initializedb development.ini")\n')
+        assert stdout.getvalue() == \
+            'usage: initializedb <config_uri>\n(example: "initializedb development.ini")\n'
         exit.assert_called_once_with(1)
         # None of the other stuff should have happened since we bailed out.
-        self.assertEqual(setup_logging.call_count, 0)
-        self.assertEqual(initialize_db.call_count, 0)
-        self.assertEqual(get_appsettings.call_count, 0)
+        assert setup_logging.call_count == 0
+        assert initialize_db.call_count == 0
+        assert get_appsettings.call_count == 0
 
 
-class TestUsage(unittest.TestCase):
+class TestUsage:
     """Contains tests for the usage() function."""
     @mock.patch('bodhi.server.scripts.initializedb.sys.exit')
     @mock.patch('sys.stdout', new_callable=StringIO)
@@ -71,7 +71,6 @@ class TestUsage(unittest.TestCase):
         """Assert correct behavior of the usage() function."""
         initializedb.usage(['initializedb'])
 
-        self.assertEqual(
-            stdout.getvalue(),
-            'usage: initializedb <config_uri>\n(example: "initializedb development.ini")\n')
+        assert stdout.getvalue() == \
+            'usage: initializedb <config_uri>\n(example: "initializedb development.ini")\n'
         exit.assert_called_once_with(1)
