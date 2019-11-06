@@ -200,7 +200,7 @@ $(document).ready(function() {
                     $builds_search_selectize.disable()
                 }
                 $.ajax({
-                    url: '/latest_candidates?hide_existing=true&prefix=' + encodeURIComponent(query),
+                    url: '/latest_candidates?hide_existing=false&prefix=' + encodeURIComponent(query),
                     type: 'GET',
                     error: function() {
                         messenger.post({
