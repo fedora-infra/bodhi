@@ -6,7 +6,7 @@ Welcome to Bodhi, Fedora's update gating system.
 
 Bodhi is designed to democratize the package update testing and release process for RPM based Linux
 distributions. It provides an interface for developers to propose updates to a distribution, and an
-interface for testers to leave feedback about updates through a +1/-1 karma system
+interface for testers to leave feedback about updates through a +1/-1 karma system.
 
 Bodhi’s main features are:
 
