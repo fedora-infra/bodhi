@@ -43,8 +43,10 @@ def ipsilon_container(
         container.get_id(), docker_network["Id"],
         aliases=["ipsilon", "ipsilon.ci", "id.dev.fedoraproject.org"]
     )
-    # we need to wait for the broker to start listening
+    # we need to wait for httpd to start listening
     container.wait_for_port(80, timeout=30)
+    # test_avail = container.http_request(path='/')
+    # print(test_avail)
     yield container
     container.kill()
     container.delete()

@@ -301,6 +301,7 @@ class BodhiClient(OpenIdBaseClient):
         except fedora.client.ServerError as exc:
             if exc.code == 404:
                 # The Bodhi server gave us a 404 on the resource, so let's raise an UpdateNotFound.
+                print(exc, exc.__dict__)
                 raise UpdateNotFound(update)
             else:
                 raise

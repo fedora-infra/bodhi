@@ -58,7 +58,7 @@ def test_update_edit(
 ):
     def find_update():
         base_query = [
-            "SELECT alias",
+            "SELECT alias, status, request",
             "FROM updates u",
             "JOIN releases r ON u.release_id = r.id",
             "WHERE r.state != 'archived' AND u.locked = FALSE",
@@ -73,7 +73,9 @@ def test_update_edit(
                 query.insert(4, "AND u.status != 'testing' AND u.request != 'testing'")
                 curs.execute(" ".join(query))
                 result = curs.fetchone()
+                print("result:", result)
                 if result is None:
+                    print("Create a suitable update")
                     # Well, let's hack one into something we can use.
                     query = base_query[:]
                     query.insert(4, "AND u.status != 'testing'")
@@ -85,6 +87,8 @@ def test_update_edit(
                         "UPDATE updates SET request = 'stable' WHERE alias = %s",
                         (update_alias,)
                     )
+                    conn.commit()
+                    print("Updated {}".format(update_alias))
                 else:
                     update_alias = result[0]
         conn.close()
@@ -112,6 +116,10 @@ def test_update_edit(
         bodhi_container.execute(cmd)
     except ConuException as e:
         with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        with read_file(bodhi_container, "/httpdir/accesslog") as log:
+            print(log.read())
+        with read_file(ipsilon_container, "/var/log/httpd/access_log") as log:
             print(log.read())
         assert False, str(e)
     wait_for_file(bodhi_container, "/srv/celery-results", dir_not_empty=True)

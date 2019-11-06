@@ -159,6 +159,7 @@ node('bodhi') {
 
         def failed = false
 
+        /*
         try {
             parallel(
                 f29: {test_release('f29')},
@@ -170,8 +171,10 @@ node('bodhi') {
         } catch(error) {
             failed = error
         }
+        */
 
-        def releases = ['f29', 'f30', 'f31', 'pip', 'rawhide']
+        //def releases = ['f29', 'f30', 'f31', 'pip', 'rawhide']
+        def releases = ['rawhide']
         for (release in releases) {
             try {
                 bodhi_ci(release, 'integration', 'integration', '--no-build --no-init')
