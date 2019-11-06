@@ -1,1 +1,0 @@
-Automatically created updates (e.g. Fedora Rawhide single package updates) now include a changelog entry in the update notes.
