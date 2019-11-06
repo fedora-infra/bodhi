@@ -27,7 +27,6 @@ This is a {major|feature|bugfix} release that adds [short summary].
                  {{ reference(value) }}
                  {%- if not loop.last %}, {% endif -%}
               {%- endfor %}).
-
 {% endfor %}
 {% elif category == "migration" %}
 This release contains database migrations. To apply them, run::
@@ -48,6 +47,7 @@ No significant changes.
 {% if sections[section]["author"] %}
 {{definitions['author']["name"]}}
 {{ underline * definitions['author']['name']|length }}
+
 The following developers contributed to this release of Bodhi:
 
 {% for text, values in sections[section]["author"].items() %}

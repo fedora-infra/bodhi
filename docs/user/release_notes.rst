@@ -4,6 +4,7 @@ Release notes
 
 .. towncrier release notes start
 
+
 v5.0.0
 ======
 
@@ -64,6 +65,13 @@ Features
 * Add frozen release state to bodhi releases list.
 * Add API call to retrigger update tests.
 * Tidy up the UI.
+* Add --user and --password to all actions of the bodhi CLI supporting
+  --openid-api (for example: waive and trigger) (:pr:`3550`).
+* Update ChartJS package and redesign Release page (:pr:`3671`).
+* Automatically created updates (e.g. Fedora Rawhide single package updates)
+  now include a changelog entry in the update notes. (:issue:`3192`).
+* Move multi build update that failed to merge in rawhide to pending.
+  (:issue:`3514`).
 
 
 Bug fixes
@@ -83,6 +91,9 @@ Bug fixes
 * Allow only 1 update per side tag (:issue:`3484`).
 * Disable comments on updates when update is pushed and stable (:issue:`2050`).
 * Unify rawhide simple build update with multi build update (:issue:`3513`).
+* Prevent crash when compose contains update without builds (:issue:`3471`).
+* Added build.update.pushed = True for the signed consumer so that it can be
+  unpushed. (:issue:`3625`).
 
 
 Development improvements
@@ -96,6 +107,14 @@ Development improvements
 * Provide authentication in the integration testing environment.
 * Make it easier to develop using VS Code.
 * Add option to vagrant provisioning to use stg infra.
+* Introduction of `Towncrier <https://github.com/hawkowl/towncrier/>`_ to
+  manage the release notes (:issue:`3562`).
+
+
+Other changes
+^^^^^^^^^^^^^
+
+* List items in RSS feed starting from the most recent (:pr:`3621`).
 
 
 Contributors
@@ -105,17 +124,24 @@ The following developers contributed to Bodhi 5.0.0:
 
 * Anatoli Babenia
 * Aurélien Bompard
+* Randy Barlow
 * Clement Verna
+* David Fan
+* dimitraz
 * Lukas Holecek
 * Mattia Verga
 * Michal Konečný
 * Nils Philippsen
 * Ondrej Nosek
 * Pierre-Yves Chibon
-* Randy Barlow
 * Rick Elrod
-* Robert Scheck
 * Ryan Lerch
+* Robert Scheck
+* Rob Shelly
+* Sam Robbins
+* Stephen Coady
+* siddharthvipul
+* subhamkrai
 * Sebastian Wojciechowski
 
 
