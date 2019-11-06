@@ -2573,7 +2573,8 @@ class Update(Base):
         """
         return self.get_title()
 
-    def get_title(self, delim=' ', limit=None, after_limit='…'):
+    def get_title(self, delim=' ', limit=None, after_limit='…',
+                  beautify=False, nvr=False, amp=False):
         """
         Return a title for the update based on the :class:`Builds <Build>` it is associated with.
 
@@ -2583,13 +2584,42 @@ class Update(Base):
                 number. If ``None`` (the default), no limit is used.
             after_limit (str): If a limit is set, use this string after the limit is reached.
                 Defaults to '…'.
+            beautify (bool): If provided, the returned string will be human
+                readable, i.e. 3 or more builds will take the form "package1,
+                package2 and XXX more".
+            nvr (bool): If specified, the title will include name, version and
+                release information in package labels.
+            amp (bool): If specified, it will replace the word 'and' with an
+                ampersand, '&'.
         Returns:
             str: A title for this update.
         """
-        all_nvrs = [x.nvr for x in self.builds]
-        nvrs = all_nvrs[:limit]
-        builds = delim.join(sorted(nvrs)) + (after_limit if limit and len(all_nvrs) > limit else "")
-        return builds
+        if beautify:
+            if self.display_name:
+                return self.display_name
+
+            def build_label(build):
+                return build.nvr if nvr else build.package.name
+
+            if len(self.builds) > 2:
+                title = ", ".join([build_label(build) for build in self.builds[:2]])
+
+                if amp:
+                    title += ", & "
+                else:
+                    title += ", and "
+                title += str(len(self.builds) - 2)
+                title += " more"
+
+                return title
+            else:
+                return " and ".join([build_label(build) for build in self.builds])
+        else:
+            all_nvrs = [x.nvr for x in self.builds]
+            nvrs = all_nvrs[:limit]
+            builds = delim.join(sorted(nvrs)) + \
+                (after_limit if limit and len(all_nvrs) > limit else "")
+            return builds
 
     def get_bugstring(self, show_titles=False):
         """
@@ -2661,41 +2691,6 @@ class Update(Base):
                     elif feedback.karma < 0:
                         bad += 1
         return bad * -1, good
-
-    def beautify_title(self, amp=False, nvr=False):
-        """
-        Return a human readable title for this update.
-
-        This is used mostly in subject of a update notification email and
-        displaying the title in html. If there are 3 or more builds per title
-        the title be:
-
-            "package1, package, 2 and XXX more"
-
-        If the "amp" parameter is specified it will replace the "and" with an
-        "&" entity.
-
-        If the "nvr" parameter is specified it will include name, version and
-        release information in package labels.
-        """
-        if self.display_name:
-            return self.display_name
-
-        def build_label(build):
-            return build.nvr if nvr else build.package.name
-
-        if len(self.builds) > 2:
-            title = ", ".join([build_label(build) for build in self.builds[:2]])
-
-            if amp:
-                title += ", & "
-            else:
-                title += ", and "
-            title += str(len(self.builds) - 2)
-            title += " more"
-            return title
-        else:
-            return " and ".join([build_label(build) for build in self.builds])
 
     def set_request(self, db, action, username):
         """
@@ -3880,6 +3875,7 @@ class Update(Base):
             "id": f"{self.alias}-{self.version_hash}",
             "repository": self.abs_url(),
             "builds": builds,
+            "release": self.release.dist_tag,
         }
         return {
             "contact": contact,
@@ -4105,7 +4101,8 @@ class Compose(Base):
             list: A list of dictionaries with keys 'alias' and 'title', indexing each update alias
                 and title associated with this Compose.
         """
-        return [{'alias': u.alias, 'title': u.beautify_title(nvr=True)} for u in self.updates]
+        return [{'alias': u.alias,
+                'title': u.get_title(nvr=True, beautify=True)} for u in self.updates]
 
     def __json__(self, request=None, exclude=None, include=None, composer=False):
         """

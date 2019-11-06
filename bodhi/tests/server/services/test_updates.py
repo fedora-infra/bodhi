@@ -330,6 +330,10 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['requirements'], 'rpmlint')
         self.assertEqual(up['from_tag'], 'f17-build-side-7777')
 
+        # check that the sidetag gets displayed on the update page
+        resp = self.app.get(f"/updates/{up['alias']}", headers={'Accept': 'text/html'})
+        assert 'title="Builds from the Side Tag: f17-build-side-7777' in resp
+
         koji_session = buildsys.get_session()
         expected_pending_signing = ('f17-build-side-7777-signing-pending',
                                     {'parent': 'f17-build-side-7777',
@@ -6388,6 +6392,9 @@ class TestTriggerTests(BaseTestCase):
 
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
         up.status = UpdateStatus.testing
+
+        with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV1):
+            self.db.commit()
 
         post_data = dict(
             csrf_token=self.get_csrf_token()

@@ -575,6 +575,7 @@ def type2color(context, t):
         'bugfix': 'rgba(150,180,205,0.5)',
         'security': 'rgba(205,150,180,0.5)',
         'newpackage': 'rgba(150,205,180,0.5)',
+        'enhancement': 'rgba(205,205,150,0.5)',
         'default': 'rgba(200,200,200,0.5)'
     }
     return cls[t] if t in cls.keys() else cls['default']
