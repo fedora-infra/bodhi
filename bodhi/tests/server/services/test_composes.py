@@ -135,7 +135,7 @@ class TestComposeGet(base.BaseTestCase):
 
         self.assertTrue(compose.state.description in response)
         self.assertTrue('{} {}'.format(compose.release.name, compose.request.value) in response)
-        self.assertTrue(update.beautify_title(amp=True, nvr=True) in response)
+        self.assertTrue(update.get_title(amp=True, nvr=True, beautify=True) in response)
 
     def test_with_compose_json(self):
         """Assert correct behavior from the json renderer when there is a compose."""

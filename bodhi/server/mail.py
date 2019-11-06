@@ -427,7 +427,7 @@ def send(to: typing.Iterable[str], msg_type: str, update: 'Update',
             "X-Bodhi-Update-Release": update.release.name,
             "X-Bodhi-Update-Status": update.status.description,
             "X-Bodhi-Update-Builds": ",".join([b.nvr for b in update.builds]),
-            "X-Bodhi-Update-Title": update.beautify_title(nvr=True),
+            "X-Bodhi-Update-Title": update.get_title(nvr=True, beautify=True),
             "X-Bodhi-Update-Pushed": update.pushed,
             "X-Bodhi-Update-Submitter": update.user.name,
         }
@@ -445,7 +445,7 @@ def send(to: typing.Iterable[str], msg_type: str, update: 'Update',
 
     subject_template = '[Fedora Update] %s[%s] %s'
     for person in to:
-        subject = subject_template % (critpath, msg_type, update.beautify_title(nvr=True))
+        subject = subject_template % (critpath, msg_type, update.get_title(nvr=True, beautify=True))
         fields = MESSAGES[msg_type]['fields'](agent, update)
         body = MESSAGES[msg_type]['body'] % fields
         send_mail(sender, person, subject, body, headers=headers)
