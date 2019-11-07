@@ -174,7 +174,9 @@ a more manual option for building a development environment on an existing syste
 sure which development environment you would like to use, Vagrant is recommended as it get you a
 working system more quickly and with less effort. If you would like to use Vagrant, see the
 :doc:`Bodhi Vagrant Guide <vagrant>`. If you would like to use Virtualenv, see the
-:doc:`Bodhi Virtualenv Guide <virtualenv>`.
+:doc:`Bodhi Virtualenv Guide <virtualenv>`. 
+
+If you use Vagrant, you can configure Visual Studio Code to run unit-tests inside with :doc:`Bodhi Vagrant - VS Code Guide <vagrant_vscode>`.
 
 .. _docs/user/release_notes.rst: https://github.com/fedora-infra/bodhi/blob/develop/docs/user/release_notes.rst#release-notes
 .. _type hints: https://docs.python.org/3/library/typing.html
