@@ -299,6 +299,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         md = UpdateInfoMetadata(epel_7, UpdateRequest.stable, self.db, self.tempdir)
 
         self.assertEqual(md.comp_type, createrepo_c.BZ2)
+        self.assertFalse(md.zchunk)
 
     def test___init___uses_xz_for_fedora(self):
         """Assert that the __init__() method sets the comp_type attribute to cr.XZ for Fedora."""
@@ -307,6 +308,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         md = UpdateInfoMetadata(fedora, UpdateRequest.stable, self.db, self.tempdir)
 
         self.assertEqual(md.comp_type, createrepo_c.XZ)
+        self.assertTrue(md.zchunk)
 
     def test_extended_metadata_once(self):
         """Assert that a single call to update the metadata works as expected."""
@@ -405,7 +407,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         mock_cr.Repomd = mock.MagicMock(return_value=mock_repomd)
 
         bodhi_metadata.insert_in_repo(bodhi_metadata.cr.XZ_COMPRESSION, self.tempcompdir,
-                                      'garbage', 'zck', '/dev/null')
+                                      'garbage', 'zck', '/dev/null', True)
 
         mock_cr.Repomd.assert_called_once_with(os.path.join(self.tempcompdir, 'repomd.xml'))
         self.assertEqual(
@@ -450,7 +452,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         mock_repomd.xml_dump = mock.MagicMock(return_value="test data")
         mock_cr.Repomd = mock.MagicMock(return_value=mock_repomd)
 
-        bodhi_metadata.insert_in_repo(99, self.tempcompdir, 'garbage', 'zck', '/dev/null')
+        bodhi_metadata.insert_in_repo(99, self.tempcompdir, 'garbage', 'zck', '/dev/null', True)
 
         mock_cr.Repomd.assert_called_once_with(os.path.join(self.tempcompdir, 'repomd.xml'))
         mock_cr.RepomdRecord.assert_called_once_with('garbage',
@@ -489,7 +491,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         mock_cr.Repomd = mock.MagicMock(return_value=mock_repomd)
 
         bodhi_metadata.insert_in_repo(bodhi_metadata.cr.XZ_COMPRESSION, self.tempcompdir,
-                                      'garbage', 'xz', '/dev/null')
+                                      'garbage', 'xz', '/dev/null', True)
 
         mock_cr.Repomd.assert_called_once_with(os.path.join(self.tempcompdir, 'repomd.xml'))
         mock_cr.RepomdRecord.assert_called_once_with('garbage',
