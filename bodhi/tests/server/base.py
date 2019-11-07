@@ -435,4 +435,4 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False):
     subprocess.check_call(createrepo_command)
     if updateinfo is not False:
         metadata.insert_in_repo(createrepo_c.XZ, os.path.join(path, 'repodata'), 'updateinfo',
-                                'xml', os.path.join(path, 'updateinfo.xml'))
+                                'xml', os.path.join(path, 'updateinfo.xml'), True)

@@ -35,7 +35,7 @@ __version__ = '2.0'
 log = logging.getLogger(__name__)
 
 
-def insert_in_repo(comp_type, repodata, filetype, extension, source):
+def insert_in_repo(comp_type, repodata, filetype, extension, source, zchunk):
     """
     Inject a file into the repodata with the help of createrepo_c.
 
@@ -48,6 +48,7 @@ def insert_in_repo(comp_type, repodata, filetype, extension, source):
         extension (str): The file extension (xml, sqlite).
         source (str): A file path. File holds the dump of metadata until
             copied to the repodata folder.
+        zchunk (bool): Whether zchunk data is supported for clients of this repo.
     """
     log.info('Inserting %s.%s into %s', filetype, extension, repodata)
     target_fname = os.path.join(repodata, '%s.%s' % (filetype, extension))
@@ -55,7 +56,7 @@ def insert_in_repo(comp_type, repodata, filetype, extension, source):
     repomd_xml = os.path.join(repodata, 'repomd.xml')
     repomd = cr.Repomd(repomd_xml)
     add_list = [(filetype, comp_type)]
-    if hasattr(cr, 'ZCK_COMPRESSION') and comp_type != cr.ZCK_COMPRESSION:
+    if zchunk and hasattr(cr, 'ZCK_COMPRESSION') and comp_type != cr.ZCK_COMPRESSION:
         add_list.append((filetype + "_zck", cr.ZCK_COMPRESSION))
     for (ft, ct) in add_list:
         # create a new record for our repomd.xml
@@ -73,7 +74,7 @@ def insert_in_repo(comp_type, repodata, filetype, extension, source):
     os.unlink(target_fname)
 
 
-def modifyrepo(comp_type, compose_path, filetype, extension, source):
+def modifyrepo(comp_type, compose_path, filetype, extension, source, zchunk):
     """
     Inject a file into the repodata for each architecture with the help of createrepo_c.
 
@@ -85,6 +86,7 @@ def modifyrepo(comp_type, compose_path, filetype, extension, source):
         extension (str): The file extension (xml, sqlite).
         source (str): A file path. File holds the dump of metadata until
             copied to the repodata folder.
+        zchunk (bool): Whether zchunk data is supported for clients of this repo.
     """
     repo_path = os.path.join(compose_path, 'compose', 'Everything')
     for arch in os.listdir(repo_path):
@@ -92,7 +94,7 @@ def modifyrepo(comp_type, compose_path, filetype, extension, source):
             repodata = os.path.join(repo_path, arch, 'tree', 'repodata')
         else:
             repodata = os.path.join(repo_path, arch, 'os', 'repodata')
-        insert_in_repo(comp_type, repodata, filetype, extension, source)
+        insert_in_repo(comp_type, repodata, filetype, extension, source, zchunk)
 
 
 class UpdateInfoMetadata(object):
@@ -138,10 +140,21 @@ class UpdateInfoMetadata(object):
 
         self.comp_type = cr.XZ
 
-        if release.id_prefix == 'FEDORA-EPEL':
+        # Some repos such as FEDORA-EPEL, are primarily targeted at
+        # distributions that use the yum client, which does not support zchunk metadata
+        self.legacy_repos = ['FEDORA-EPEL']
+        self.zchunk = True
+
+        if release.id_prefix in self.legacy_repos:
             # FIXME: I'm not sure which versions of RHEL support xz metadata
             # compression, so use the lowest common denominator for now.
             self.comp_type = cr.BZ2
+
+            log.warning(
+                'Zchunk data is disabled for repo {release.id_prefix} until it moves to a client'
+                ' with Zchunk support'
+            )
+            self.zchunk = False
 
         self.uinfo = cr.UpdateInfo()
         for update in self.updates:
@@ -289,5 +302,10 @@ class UpdateInfoMetadata(object):
         fd, tmp_file_path = tempfile.mkstemp()
         os.write(fd, self.uinfo.xml_dump().encode('utf-8'))
         os.close(fd)
-        modifyrepo(self.comp_type, compose_path, 'updateinfo', 'xml', tmp_file_path)
+        modifyrepo(self.comp_type,
+                   compose_path,
+                   'updateinfo',
+                   'xml',
+                   tmp_file_path,
+                   self.zchunk)
         os.unlink(tmp_file_path)
