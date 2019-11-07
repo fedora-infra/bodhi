@@ -325,8 +325,14 @@ def latest_candidates(request):
                         'id': build['id'],
                         'package_name': build['package_name'],
                         'owner_name': build['owner_name'],
-                        'release_name': tag_release[build['tag_name']]
                     }
+
+                    # The build's tag might not be present in tag_release
+                    # because its associated release is archived and therefore
+                    # filtered out in the query above.
+                    if build['tag_name'] in tag_release:
+                        item['release_name'] = tag_release[build['tag_name']]
+
                     # Prune duplicates
                     # https://github.com/fedora-infra/bodhi/issues/450
 
