@@ -510,8 +510,8 @@ class BodhiConfig(dict):
             'value': 'postgresql://localhost/bodhi',
             'validator': str},
         'stable_bug_msg': {
-            'value': ('%s has been pushed to the %s repository. If problems still persist, please '
-                      'make note of it in this bug report.'),
+            'value': ('{update_alias} has been pushed to the {repo} repository.\n'
+                      'If problem still persists, please make note of it in this bug report.'),
             'validator': str},
         'stats_blacklist': {
             'value': ['bodhi', 'anonymous', 'autoqa', 'taskotron'],
@@ -527,13 +527,19 @@ class BodhiConfig(dict):
             'validator': str},
         'testing_bug_epel_msg': {
             'value': (
-                '\nSee https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how '
-                'to install test updates.\nYou can provide feedback for this update here: %s'),
+                '{update_alias} has been pushed to the {repo} repository.\n'
+                '{install_instructions}\n'
+                'You can provide feedback for this update here: {update_url}\n\n'
+                'See also https://fedoraproject.org/wiki/QA:Updates_Testing for more '
+                'information on how to test updates.'),
             'validator': str},
         'testing_bug_msg': {
             'value': (
-                '\nSee https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how '
-                'to install test updates.\nYou can provide feedback for this update here: %s'),
+                '{update_alias} has been pushed to the {repo} repository.\n'
+                '{install_instructions}\n'
+                'You can provide feedback for this update here: {update_url}\n\n'
+                'See also https://fedoraproject.org/wiki/QA:Updates_Testing for more '
+                'information on how to test updates.'),
             'validator': str},
         'top_testers_timeframe': {
             'value': 7,
