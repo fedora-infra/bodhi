@@ -297,6 +297,18 @@ def latest_candidates(request):
                               models.ReleaseState.frozen,
                               models.ReleaseState.current)))
 
+        if hide_existing:
+            # We want to filter out builds associated with an update.
+
+            # Don't filter by releases here, because the associated update
+            # might be archived but the build might be inherited into an active
+            # release. If this gives performance troubles later on, caching
+            # this set should be easy enough.
+            associated_build_nvrs = set(
+                row[0] for row in
+                db.query(models.Build.nvr).filter(models.Build.update_id != None)
+            )
+
         kwargs = dict(package=pkg, prefix=prefix, latest=True)
         tag_release = dict()
         for release in releases:
@@ -320,24 +332,27 @@ def latest_candidates(request):
             else:
                 for build in taglist[0]:
                     log.debug(build)
+
+                    if hide_existing and build['nvr'] in associated_build_nvrs:
+                        continue
+
                     item = {
                         'nvr': build['nvr'],
                         'id': build['id'],
                         'package_name': build['package_name'],
                         'owner_name': build['owner_name'],
-                        'release_name': tag_release[build['tag_name']]
                     }
+
+                    # The build's tag might not be present in tag_release
+                    # because its associated release is archived and therefore
+                    # filtered out in the query above.
+                    if build['tag_name'] in tag_release:
+                        item['release_name'] = tag_release[build['tag_name']]
+
                     # Prune duplicates
                     # https://github.com/fedora-infra/bodhi/issues/450
-
                     if item not in result:
-                        if hide_existing:
-                            # show only builds that don't have updates already
-                            b = request.db.query(models.Build).filter_by(nvr=build['nvr']).first()
-                            if (b and b.update is None) or not b:
-                                result.append(item)
-                        else:
-                            result.append(item)
+                        result.append(item)
         return result
 
     pkg = request.params.get('package')
