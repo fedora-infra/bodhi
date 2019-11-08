@@ -22,7 +22,8 @@ import copy
 import webtest
 
 from bodhi.server import main, util
-from bodhi.server.models import (Update, UpdateStatus)
+from bodhi.server.models import Release, ReleaseState
+from bodhi.server.models import Update, UpdateStatus
 from bodhi.tests.server import base
 
 
@@ -340,11 +341,12 @@ class TestGenericViews(base.BaseTestCase):
         self.assertNotIn('f17-updates-testing-pending', body)
         self.assertNotIn('f17-override', body)
 
-    def test_candidate(self):
+    def test_candidates(self):
         res = self.app.get('/latest_candidates')
         body = res.json_body
         self.assertEqual(len(body), 1)
 
+    def test_candidates_pkg(self):
         res = self.app.get('/latest_candidates', {'package': 'TurboGears'})
         body = res.json_body
         self.assertEqual(len(body), 1)
@@ -354,6 +356,7 @@ class TestGenericViews(base.BaseTestCase):
         self.assertEqual(body[0]['package_name'], 'TurboGears')
         self.assertEqual(body[0]['release_name'], 'Fedora 17')
 
+    def test_candidates_pkg_testing(self):
         res = self.app.get('/latest_candidates', {'package': 'TurboGears', 'testing': True})
         body = res.json_body
         self.assertEqual(len(body), 2)
@@ -368,6 +371,7 @@ class TestGenericViews(base.BaseTestCase):
         self.assertEqual(body[1]['package_name'], 'TurboGears')
         self.assertEqual(body[1]['release_name'], 'Fedora 17')
 
+    def test_candidates_prune_duplicates(self):
         # check that we prune duplicate builds coming from koji
         with mock.patch('bodhi.server.buildsys.DevBuildsys.multiCall', create=True) as multicall:
             multicall.return_value = [[[{'owner_name': 'lmacken', 'id': 16059,
@@ -387,6 +391,12 @@ class TestGenericViews(base.BaseTestCase):
             self.assertEqual(body[0]['package_name'], 'TurboGears')
             self.assertEqual(body[0]['release_name'], 'Fedora 17')
 
+    def _test_candidates_hide_existing(self, archived):
+        if archived:
+            r = self.db.query(Release).one()
+            r.state = ReleaseState.archived
+            self.db.commit()
+
         # check that hide_existing does not return builds already in an update
         with mock.patch('bodhi.server.buildsys.DevBuildsys.multiCall', create=True) as multicall:
             multicall.return_value = [[[{'owner_name': 'lmacken', 'id': 16,
@@ -403,6 +413,12 @@ class TestGenericViews(base.BaseTestCase):
             # even though 2 builds are returned from koji, the bodhi one is
             # already in an update, so we only expect one here
             self.assertEqual(len(body), 1)
+
+    def test_candidates_hide_existing(self):
+        self._test_candidates_hide_existing(archived=False)
+
+    def test_candidates_hide_existing_archived(self):
+        self._test_candidates_hide_existing(archived=True)
 
     @mock.patch('bodhi.server.views.generic.log.error')
     @mock.patch("bodhi.server.buildsys.DevBuildsys.multiCall")
