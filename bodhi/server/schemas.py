@@ -480,18 +480,6 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         preparer=[util.splitter],
     )
 
-    approved_since = colander.SchemaNode(
-        colander.DateTime(),
-        location="querystring",
-        missing=None,
-    )
-
-    approved_before = colander.SchemaNode(
-        colander.DateTime(),
-        location="querystring",
-        missing=None,
-    )
-
     bugs = Bugs(
         colander.Sequence(accept_scalar=True),
         location="querystring",

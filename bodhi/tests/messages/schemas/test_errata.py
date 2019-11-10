@@ -78,7 +78,6 @@ class TestErrataMessage:
                             }
                         }
                     ],
-                    "date_approved": None,
                     "type": "enhancement",
                     "status": "pending",
                     "date_submitted": "2014-10-29 20:02:57",

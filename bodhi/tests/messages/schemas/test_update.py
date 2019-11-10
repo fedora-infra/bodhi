@@ -628,7 +628,6 @@ class UpdateMessageTests(unittest.TestCase):
                             }
                         }
                     ],
-                    "date_approved": None,
                     "type": "enhancement",
                     "status": "pending",
                     "date_submitted": "2014-10-29 20:02:57",
@@ -720,7 +719,6 @@ class UpdateMessageTests(unittest.TestCase):
                             }
                         }
                     ],
-                    "date_approved": None,
                     "type": "enhancement",
                     "status": "pending",
                     "date_submitted": "2014-10-29 20:02:57",

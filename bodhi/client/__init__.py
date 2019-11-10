@@ -573,8 +573,6 @@ def edit(user: str, password: str, url: str, debug: bool, openid_api: str, **kwa
 @updates.command()
 @click.option('--updateid', help='Query by update ID (eg: FEDORA-2015-0001)')
 @click.option('--alias', help='Query by alias')
-@click.option('--approved-since', help='Approved after a specific timestamp')
-@click.option('--approved-before', help='Approved before a specific timestamp')
 @click.option('--modified-since', help='Modified after a specific timestamp')
 @click.option('--modified-before', help='Modified before a specific timestamp')
 @click.option('--builds', help='Query updates based on builds')

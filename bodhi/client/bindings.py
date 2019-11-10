@@ -375,8 +375,6 @@ class BodhiClient(OpenIdBaseClient):
             packages (str): A space or comma delimited list of package names.
             limit (int): A deprecated argument, sets ``rows_per_page``. See its docstring for more
                 info.
-            approved_before (str): A datetime string.
-            approved_since (str): A datetime string.
             builds (str): A space or comma delimited string of build nvrs.
             critpath (bool): A boolean to query only critical path updates.
             locked (bool): A boolean to filter only locked updates.

@@ -536,17 +536,6 @@ if can_edit and update.release.composed_by_bodhi:
                         </div>
                       </div>
                     % endif
-
-                    % if update.date_approved:
-                    <div class="row">
-                      <div class="col font-weight-bold text-muted">approved</div>
-                        <div class="col-xs-auto font-weight-bold">
-                          <span data-toggle='tooltip' title='${(update.date_approved).strftime("%Y-%m-%d %H:%M:%S")} (UTC)' class="text-muted font-weight-bold">
-                              ${self.util.age(update.date_approved)}
-                          </span>
-                        </div>
-                      </div>
-                    % endif
               </div>
         </div>
       </div>

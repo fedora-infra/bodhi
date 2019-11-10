@@ -908,8 +908,7 @@ class TestQuery:
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'updateid': None, 'alias': None, 'approved_since': None,
-                    'approved_before': None, 'status': None, 'locked': None,
+                    'updateid': None, 'alias': None, 'status': None, 'locked': None,
                     'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
                     'content_type': None, 'severity': None,
                     'submitted_since': None, 'submitted_before': None, 'suggest': None,
@@ -949,8 +948,7 @@ class TestQuery:
         send_request.assert_called_once_with(
             bindings_client, 'updates/', verb='GET',
             params={
-                'updateid': None, 'alias': None, 'approved_since': None,
-                'approved_before': None, 'status': None, 'locked': None,
+                'updateid': None, 'alias': None, 'status': None, 'locked': None,
                 'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
                 'content_type': None, 'severity': None,
                 'submitted_since': None, 'submitted_before': None, 'suggest': None,
@@ -982,8 +980,7 @@ class TestQuery:
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'updateid': None, 'alias': None, 'approved_since': None,
-                    'approved_before': None, 'status': None, 'locked': None,
+                    'updateid': None, 'alias': None, 'status': None, 'locked': None,
                     'builds': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'releases': None,
                     'content_type': None, 'severity': None,
                     'submitted_since': None, 'submitted_before': None, 'suggest': None,
@@ -1023,8 +1020,7 @@ class TestQuery:
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'updateid': None, 'alias': None, 'approved_since': None,
-                    'approved_before': None, 'status': None, 'locked': None,
+                    'updateid': None, 'alias': None, 'status': None, 'locked': None,
                     'builds': None, 'releases': None,
                     'content_type': None, 'severity': None, 'submitted_since': None,
                     'submitted_before': None, 'suggest': None, 'request': None, 'bugs': None,
@@ -1067,8 +1063,7 @@ class TestQuery:
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'updateid': None, 'alias': None, 'approved_since': None,
-                    'approved_before': None, 'status': None, 'locked': None,
+                    'updateid': None, 'alias': None, 'status': None, 'locked': None,
                     'builds': None, 'releases': None,
                     'content_type': None, 'severity': None,
                     'submitted_since': None, 'submitted_before': None, 'suggest': None,
@@ -1106,8 +1101,7 @@ class TestQuery:
             mock.call(
                 bindings_client, 'updates/', verb='GET',
                 params={
-                    'updateid': None, 'alias': None, 'approved_since': None,
-                    'approved_before': None, 'status': None, 'locked': None,
+                    'updateid': None, 'alias': None, 'status': None, 'locked': None,
                     'builds': None, 'releases': None,
                     'content_type': None, 'severity': None,
                     'submitted_since': None, 'submitted_before': None, 'suggest': None,

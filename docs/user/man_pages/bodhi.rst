@@ -370,14 +370,6 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Query for the update given by alias.
 
-    ``--approved-since <timestamp>``
-
-        Query for updates approved after the given timestamp.
-
-    ``--approved-before <timestamp>``
-
-        Query for updates approved before the given timestamp.
-
     ``--modified-since <timestamp>``
 
         Query for updates modified after the given timestamp.

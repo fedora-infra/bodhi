@@ -253,7 +253,6 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['notes'], 'this is a test update\n\n----\n\nUseful details!')
         self.assertIsNotNone(up['date_submitted'])
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-033713b73b' % YEAR)
@@ -320,7 +319,6 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['notes'], 'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
         self.assertIsNone(up['date_modified'])
-        self.assertIsNone(up['date_approved'])
         self.assertIsNone(up['date_pushed'])
         self.assertEqual(up['locked'], False)
         self.assertIn(up['alias'],
@@ -443,7 +441,6 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['notes'], 'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-033713b73b' % YEAR)
@@ -532,7 +529,6 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['notes'], 'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-033713b73b' % YEAR)
@@ -562,7 +558,6 @@ class TestNewUpdate(BaseTestCase):
         self.assertEqual(up['notes'], 'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-033713b73b' % YEAR)
@@ -2005,109 +2000,6 @@ class TestUpdatesService(BaseTestCase):
 
         self.assertNotEqual(update1, update2)
 
-    def test_list_updates_by_approved_since(self):
-        now = datetime.utcnow()
-
-        # Try with no approved updates first
-        res = self.app.get('/updates/',
-                           {"approved_since": now.strftime("%Y-%m-%d")})
-        body = res.json_body
-        self.assertEqual(len(body['updates']), 0)
-
-        # Now approve one
-        self.db.query(Update).first().date_approved = now
-        self.db.commit()
-
-        # And try again
-        res = self.app.get('/updates/',
-                           {"approved_since": now.strftime("%Y-%m-%d")})
-        body = res.json_body
-        self.assertEqual(len(body['updates']), 1)
-
-        up = body['updates'][0]
-        self.assertEqual(up['title'], 'bodhi-2.0-1.fc17')
-        self.assertEqual(up['status'], 'pending')
-        self.assertEqual(up['request'], 'testing')
-        self.assertEqual(up['user']['name'], 'guest')
-        self.assertEqual(up['release']['name'], 'F17')
-        self.assertEqual(up['type'], 'bugfix')
-        self.assertEqual(up['content_type'], 'rpm')
-        self.assertEqual(up['severity'], 'medium')
-        self.assertEqual(up['suggest'], 'unspecified')
-        self.assertEqual(up['close_bugs'], True)
-        self.assertEqual(up['notes'], 'Useful details!')
-        self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
-        self.assertEqual(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(up['date_pushed'], None)
-        self.assertEqual(up['locked'], False)
-        self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEqual(up['karma'], 1)
-        self.assertEqual(len(up['bugs']), 1)
-        self.assertEqual(up['bugs'][0]['bug_id'], 12345)
-
-        # https://github.com/fedora-infra/bodhi/issues/270
-        self.assertEqual(len(up['test_cases']), 1)
-        self.assertEqual(up['test_cases'][0]['name'], 'Wat')
-
-    def test_list_updates_by_invalid_approved_since(self):
-        res = self.app.get('/updates/', {"approved_since": "forever"},
-                           status=400)
-        body = res.json_body
-        self.assertEqual(len(body.get('updates', [])), 0)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'approved_since')
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         'Invalid date')
-
-    def test_list_updates_by_approved_before(self):
-        # Approve an update
-        now = datetime.utcnow()
-        self.db.query(Update).first().date_approved = now
-        self.db.commit()
-
-        # First check we get no result for an old date
-        res = self.app.get('/updates/',
-                           {"approved_before": "1984-11-01"})
-        body = res.json_body
-        self.assertEqual(len(body['updates']), 0)
-
-        # Now check we get the update if we use tomorrow
-        tomorrow = datetime.utcnow() + timedelta(days=1)
-        tomorrow = tomorrow.strftime("%Y-%m-%d")
-
-        res = self.app.get('/updates/', {"approved_before": tomorrow})
-        body = res.json_body
-        self.assertEqual(len(body['updates']), 1)
-
-        up = body['updates'][0]
-        self.assertEqual(up['title'], 'bodhi-2.0-1.fc17')
-        self.assertEqual(up['status'], 'pending')
-        self.assertEqual(up['request'], 'testing')
-        self.assertEqual(up['user']['name'], 'guest')
-        self.assertEqual(up['release']['name'], 'F17')
-        self.assertEqual(up['type'], 'bugfix')
-        self.assertEqual(up['content_type'], 'rpm')
-        self.assertEqual(up['severity'], 'medium')
-        self.assertEqual(up['suggest'], 'unspecified')
-        self.assertEqual(up['close_bugs'], True)
-        self.assertEqual(up['notes'], 'Useful details!')
-        self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
-        self.assertEqual(up['date_approved'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(up['date_pushed'], None)
-        self.assertEqual(up['locked'], False)
-        self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
-        self.assertEqual(up['karma'], 1)
-        self.assertEqual(len(up['bugs']), 1)
-        self.assertEqual(up['bugs'][0]['bug_id'], 12345)
-
-    def test_list_updates_by_invalid_approved_before(self):
-        res = self.app.get('/updates/', {"approved_before": "forever"},
-                           status=400)
-        body = res.json_body
-        self.assertEqual(len(body.get('updates', [])), 0)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'approved_before')
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         'Invalid date')
-
     def test_list_updates_by_bugs(self):
         res = self.app.get('/updates/', {"bugs": '12345'})
         body = res.json_body
@@ -2126,7 +2018,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2165,7 +2056,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2217,7 +2107,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2258,7 +2147,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2284,7 +2172,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], True)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2340,7 +2227,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2391,7 +2277,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], now.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2426,7 +2311,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2454,7 +2338,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2483,7 +2366,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2530,7 +2412,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['close_bugs'], True)
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2580,7 +2461,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['close_bugs'], True)
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], now.strftime("%Y-%m-%d %H:%M:%S"))
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2615,7 +2495,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2643,7 +2522,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2667,7 +2545,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2699,7 +2576,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2733,7 +2609,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2767,7 +2642,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2818,7 +2692,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2852,7 +2725,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2886,7 +2758,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2913,7 +2784,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'Useful details!')
         self.assertEqual(up['date_submitted'], '1984-11-02 00:00:00')
         self.assertEqual(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-a3bbe1a8f2' % YEAR)
@@ -2983,7 +2853,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
         self.assertIsNotNone(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-033713b73b' % YEAR)
@@ -3041,7 +2910,6 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(up['notes'], 'this is a test update')
         self.assertIsNotNone(up['date_submitted'])
         self.assertIsNotNone(up['date_modified'], None)
-        self.assertEqual(up['date_approved'], None)
         self.assertEqual(up['date_pushed'], None)
         self.assertEqual(up['locked'], False)
         self.assertEqual(up['alias'], 'FEDORA-%s-033713b73b' % YEAR)

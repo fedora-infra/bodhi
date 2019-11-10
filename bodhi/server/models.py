@@ -1731,7 +1731,6 @@ class Update(Base):
             to should be closed automatically when the update is pushed to stable.
         date_submitted (DateTime): The date that the update was created.
         date_modified (DateTime): The date the update was last modified or ``None``.
-        date_approved (DateTime): The date the update was approved or ``None``.
         date_pushed (DateTime): The date the update was pushed or ``None``.
         date_testing (DateTime): The date the update was placed into the testing repository
             or ``None``.
@@ -1793,7 +1792,6 @@ class Update(Base):
     # Timestamps
     date_submitted = Column(DateTime, default=datetime.utcnow, index=True)
     date_modified = Column(DateTime)
-    date_approved = Column(DateTime)
     date_pushed = Column(DateTime)
     date_testing = Column(DateTime)
     date_stable = Column(DateTime)
