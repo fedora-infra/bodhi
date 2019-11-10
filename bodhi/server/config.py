@@ -417,9 +417,6 @@ class BodhiConfig(dict):
         'max_concurrent_composes': {
             'value': 2,
             'validator': int},
-        'max_update_length_for_ui': {
-            'value': 30,
-            'validator': int},
         'message_id_email_domain': {
             'value': 'admin.fedoraproject.org',
             'validator': str},
