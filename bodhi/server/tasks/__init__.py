@@ -59,7 +59,7 @@ def compose(api_version: int, **kwargs):
     """
     # Import here to avoid an import loop.
     # The compose task is routed independently in the configuration, therefore
-    # the task will not be attemted on a host that does not have the composer
+    # the task will not be attempted on a host that does not have the composer
     # installed.
     from bodhi.server.tasks.composer import ComposerHandler
     log.info("Received a compose order")
