@@ -251,9 +251,6 @@ class BodhiConfig(dict):
             # List of users to not create automatic updates from
             'value': ['releng'],
             'validator': _generate_list_validator()},
-        'badge_ids': {
-            'value': [],
-            'validator': _generate_list_validator('|')},
         'base_address': {
             'value': 'https://admin.fedoraproject.org/updates/',
             'validator': str},
