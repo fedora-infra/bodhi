@@ -52,10 +52,11 @@ compose_state_mapping = {
 
 def check_rss_common_header(rss_xml, path, bodhi_ip):
     title = None
-    description = None
+    description = "All " + path
     if path == "users":
         title = "Bodhi users"
-        description = "All users"
+    elif path == "overrides":
+        title = "Update overrides"
 
     assert rss_xml.tag == "rss"
     assert rss_xml.attrib == {"version": "2.0"}
@@ -785,6 +786,80 @@ def test_get_overrides_view(bodhi_container, db_container):
         for override in expected_overrides:
             assert override["nvr"] in http_response.text
             assert override["username"] in http_response.text
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def test_get_overrides_rss(bodhi_container, db_container):
+    """Test ``/rss/overrides`` path"""
+    # Fetch latest overrides from DB
+    query_overrides = (
+        "SELECT "
+        "  builds.nvr as nvr, "
+        "  buildroot_overrides.notes as notes, "
+        "  buildroot_overrides.submission_date as submission_date "
+        "FROM buildroot_overrides "
+        "JOIN builds ON buildroot_overrides.build_id = builds.id "
+        "ORDER BY submission_date DESC LIMIT 20"
+    )
+    overrides = []
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_overrides)
+            rows = curs.fetchall()
+            for row in rows:
+                overrides.append({
+                    "nvr": row[0],
+                    "notes": row[1],
+                    "submission_date": row[2].strftime("%a, %d %b %Y %H:%M:%S +0000"),
+                })
+    conn.close()
+
+    # GET on latest overrides
+    with bodhi_container.http_client(port="8080") as c:
+        http_response = c.get(f"/rss/overrides")
+
+    bodhi_ip = bodhi_container.get_IPv4s()[0]
+
+    rss = ET.fromstring(http_response.text)
+    rss_childs = list(rss)
+    channel = rss_childs[0]
+    channel_childs = list(channel)
+
+    # Render rss content
+    rss_content = []
+    for item in channel_childs[8:]:
+        item_content = [
+            {"tag": subitem.tag, "attrib": subitem.attrib, "text": subitem.text} for subitem in item
+        ]
+        rss_content.append(item_content)
+
+    # Prepare expected content
+    expected_rss_content = []
+    for override in overrides:
+        item_content = [
+            {"tag": "title", "attrib": {}, "text": override["nvr"]},
+            {
+                "tag": "link",
+                "attrib": {},
+                "text": f"http://{bodhi_ip}:8080/overrides/{override['nvr']}"
+            },
+            {"tag": "description", "attrib": {}, "text": override["notes"]},
+            {"tag": "pubDate", "attrib": {}, "text": override["submission_date"]},
+        ]
+        expected_rss_content.append(item_content)
+    try:
+        assert http_response.ok
+        check_rss_common_header(rss, "overrides", bodhi_ip)
+        assert len(expected_rss_content) == len(rss_content)
+        for item in expected_rss_content:
+            assert item in rss_content
     except AssertionError:
         print(http_response)
         print(http_response.text)
