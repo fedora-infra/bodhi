@@ -57,6 +57,8 @@ def check_rss_common_header(rss_xml, path, bodhi_ip):
         title = "Bodhi users"
     elif path == "overrides":
         title = "Update overrides"
+    elif path == "comments":
+        title = "User comments"
 
     assert rss_xml.tag == "rss"
     assert rss_xml.attrib == {"version": "2.0"}
@@ -1278,6 +1280,92 @@ def test_get_compose_view(bodhi_container, db_container):
         assert str(len(compose['updates'])) in http_response.text
         for update in compose['updates']:
             assert update['title'] in http_response.text
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def test_get_comments_rss(bodhi_container, db_container):
+    """Test ``/rss/comments`` path"""
+    # Fetch latest comments from DB
+    query_comments = (
+        "SELECT "
+        "  updates.alias as alias, "
+        "  comments.id as id, "
+        "  comments.text as text, "
+        "  comments.timestamp as timestamp "
+        "FROM comments "
+        "JOIN updates ON comments.update_id = updates.id "
+        "JOIN users ON comments.user_id = users.id "
+        "WHERE users.name <> 'bodhi' "
+        "ORDER BY timestamp DESC LIMIT 20"
+    )
+    comments = []
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_comments)
+            rows = curs.fetchall()
+            for row in rows:
+                comments.append({
+                    "alias": row[0],
+                    "id": row[1],
+                    "text": row[2],
+                    "timestamp": row[3].strftime("%a, %d %b %Y %H:%M:%S +0000"),
+                })
+    conn.close()
+
+    # GET on latest comments
+    with bodhi_container.http_client(port="8080") as c:
+        http_response = c.get(f"/rss/comments")
+
+    bodhi_ip = bodhi_container.get_IPv4s()[0]
+
+    rss = ET.fromstring(http_response.text)
+    rss_childs = list(rss)
+    channel = rss_childs[0]
+    channel_childs = list(channel)
+
+    # Render rss content
+    rss_content = []
+    for item in channel_childs[8:]:
+        item_content = [
+            {"tag": subitem.tag, "attrib": subitem.attrib, "text": subitem.text} for subitem in item
+        ]
+        rss_content.append(item_content)
+
+    # Prepare expected content
+    expected_rss_content = []
+    for comment in comments:
+        item_content = [
+            {
+                "tag": "title",
+                "attrib": {},
+                "text": f"{comment['alias']} comment #{comment['id']}",
+            },
+            {
+                "tag": "link",
+                "attrib": {},
+                "text": f"http://{bodhi_ip}:8080/comments/{comment['id']}",
+            },
+            {"tag": "pubDate", "attrib": {}, "text": comment["timestamp"]},
+        ]
+        # If comment doesn't have content in 'text' column,
+        # rss item doesn't contain 'description' tag
+        if comment["text"]:
+            item_content.insert(2, {"tag": "description", "attrib": {}, "text": comment["text"]})
+        expected_rss_content.append(item_content)
+
+    try:
+        assert http_response.ok
+        check_rss_common_header(rss, "comments", bodhi_ip)
+        assert len(expected_rss_content) == len(rss_content)
+        for item in expected_rss_content:
+            assert item in rss_content
     except AssertionError:
         print(http_response)
         print(http_response.text)
