@@ -15,7 +15,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Unit tests for the compose message schemas."""
 
-import unittest
 
 from bodhi.messages.schemas.compose import (
     ComposeComposingV1,
@@ -28,7 +27,7 @@ from bodhi.messages.schemas.compose import (
 from bodhi.tests.messages.utils import check_message
 
 
-class ComposeMessageTests(unittest.TestCase):
+class TestComposeMessage:
     """A set of unit tests for classes in :py:mod:`bodhi_messages.schemas.compose`"""
 
     def test_composing_v1(self):
