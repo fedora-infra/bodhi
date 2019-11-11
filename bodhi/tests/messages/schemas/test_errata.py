@@ -15,13 +15,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Unit tests for the errata message schemas."""
 
-import unittest
 
 from bodhi.messages.schemas.errata import BuildV1, ErrataPublishV1, ReleaseV1, UpdateV1, UserV1
 from bodhi.tests.messages.utils import check_message
 
 
-class ErrataMessageTests(unittest.TestCase):
+class TestErrataMessage:
     """A set of unit tests for classes in :py:mod:`bodhi_messages.schemas.errata`"""
 
     def test_publish_v1(self):
