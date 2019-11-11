@@ -4370,19 +4370,32 @@ class Bug(Base):
         Returns:
             The default comment to add to the bug related to the given update.
         """
-        message = config['stable_bug_msg'] % (
-            update.get_title(delim=', '), "%s %s" % (
-                update.release.long_name, update.status.description))
-        if update.status is UpdateStatus.testing:
-            template = config['testing_bug_msg']
+        install_msg = (
+            f'In short time you\'ll be able to install the update with the following '
+            f'command:\n`{update.install_command}`') if update.install_command else ''
+        msg_data = {'update_title': update.get_title(delim=", ", nvr=True),
+                    'update_beauty_title': update.get_title(beautify=True, nvr=True),
+                    'update_alias': update.alias,
+                    'repo': f'{update.release.long_name} {update.status.description}',
+                    'install_instructions': install_msg,
+                    'update_url': f'{config.get("base_address")}{update.get_url()}'}
 
+        if update.status is UpdateStatus.stable:
+            message = config['stable_bug_msg'].format(**msg_data)
+        elif update.status is UpdateStatus.testing:
             if update.release.id_prefix == "FEDORA-EPEL":
                 if 'testing_bug_epel_msg' in config:
                     template = config['testing_bug_epel_msg']
                 else:
+                    template = config['testing_bug_msg']
                     log.warning("No 'testing_bug_epel_msg' found in the config.")
+            else:
+                template = config['testing_bug_msg']
+            message = template.format(**msg_data)
+        else:
+            raise ValueError(f'Trying to post a default comment to a bug, but '
+                             f'{update.alias} is not in Stable or Testing status.')
 
-            message += template % (config.get('base_address') + update.get_url())
         return message
 
     def add_comment(self, update: Update, comment: typing.Optional[str] = None) -> None:

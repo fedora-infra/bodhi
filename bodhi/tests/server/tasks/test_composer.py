@@ -1792,14 +1792,15 @@ testmodule:master:20172:2
             self.handler.run(api_version, task)
 
         expected_message = (
-            'bodhi-2.0-1.fc17 has been pushed to the Fedora 17 testing repository. If problems '
-            'still persist, please make note of it in this bug report.\nSee '
-            'https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how to '
-            'install test updates.\nYou can provide feedback for this update here: {}')
+            'FEDORA-{}-a3bbe1a8f2 has been pushed to the Fedora 17 testing repository.\n\n'
+            'You can provide feedback for this update here: {}\n\n'
+            'See also https://fedoraproject.org/wiki/QA:Updates_Testing for more information '
+            'on how to test updates.')
         expected_message = expected_message.format(
+            time.strftime('%Y'),
             urlparse.urljoin(
                 config['base_address'],
-                '/updates/FEDORA-{}-a3bbe1a8f2'.format(datetime.datetime.now().year)))
+                f'/updates/FEDORA-{time.strftime("%Y")}-a3bbe1a8f2'))
         on_qa.assert_called_once_with(12345, expected_message)
 
     @mock.patch(**mock_taskotron_results)
@@ -1827,8 +1828,9 @@ testmodule:master:20172:2
         close.assert_called_with(
             12345,
             versions=dict(bodhi='bodhi-2.0-1.fc17'),
-            comment=('bodhi-2.0-1.fc17 has been pushed to the Fedora 17 stable repository. If '
-                     'problems still persist, please make note of it in this bug report.'))
+            comment=(f'FEDORA-{time.strftime("%Y")}-a3bbe1a8f2 has been pushed to the '
+                     f'Fedora 17 stable repository.\nIf problem still persists, '
+                     f'please make note of it in this bug report.'))
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_pungi')
