@@ -233,7 +233,47 @@ class TestBugAddComment(BasePyTestCase):
 class TestBugDefaultMessage(BasePyTestCase):
     """Test Bug.default_message()."""
 
-    @mock.patch.dict(config, {'testing_bug_epel_msg': 'cool stuff %s'})
+    def test_default_msg_error(self):
+        """Test we raise a ValueError if the update is not in stable or testing."""
+        bug = model.Bug()
+        update = model.Update.query.first()
+        update.status = UpdateStatus.pending
+
+        with pytest.raises(ValueError) as exc:
+            bug.default_message(update)
+            assert str(exc.exception) == (
+                f'Trying to post a default comment to a bug, but '
+                f'{update.alias} is not in Stable or Testing status.')
+
+    @mock.patch.dict(config, {'stable_bug_msg': 'cool fedora stuff {update_alias}',
+                              'testing_bug_msg': 'not here'})
+    def test_stable_bug_msg(self):
+        """Test default message when update is in stable."""
+        bug = model.Bug()
+        update = model.Update.query.first()
+        update.release.id_prefix = 'FEDORA'
+        update.status = UpdateStatus.stable
+
+        message = bug.default_message(update)
+
+        assert 'cool fedora stuff {}'.format(update.alias) == message
+        assert 'not here' not in message
+
+    @mock.patch.dict(config, {'stable_bug_msg': 'not here',
+                              'testing_bug_msg': 'cool fedora stuff {update_alias}'})
+    def test_testing_bug_msg(self):
+        """Test default message when update is in testing."""
+        bug = model.Bug()
+        update = model.Update.query.first()
+        update.release.id_prefix = 'FEDORA'
+        update.status = UpdateStatus.testing
+
+        message = bug.default_message(update)
+
+        assert 'cool fedora stuff {}'.format(update.alias) == message
+        assert 'not here' not in message
+
+    @mock.patch.dict(config, {'testing_bug_epel_msg': 'cool epel stuff {update_url}'})
     def test_epel_with_testing_bug_epel_msg(self):
         """Test with testing_bug_epel_msg defined."""
         bug = model.Bug()
@@ -243,16 +283,12 @@ class TestBugDefaultMessage(BasePyTestCase):
 
         message = bug.default_message(update)
 
-        assert 'cool stuff {}'.format(config['base_address'] + update.get_url()) in message
-        assert update.builds[0].nvr in message
-        assert update.release.long_name in message
-        assert update.status.description in message
-        assert update.get_url() in message
+        assert 'cool epel stuff {}'.format(config['base_address'] + update.get_url()) == message
 
     @mock.patch('bodhi.server.models.log.warning')
     @mock.patch.dict(
         config,
-        {'stable_bug_msg': '%s%s', 'testing_bug_msg': '%s', 'base_address': 'b',
+        {'testing_bug_msg': 'cool fedora stuff {update_url}', 'base_address': 'b',
          'critpath.min_karma': 1, 'fedora_epel.mandatory_days_in_testing': 0},
         clear=True)
     def test_epel_without_testing_bug_epel_msg(self, warning):
@@ -265,10 +301,7 @@ class TestBugDefaultMessage(BasePyTestCase):
         message = bug.default_message(update)
 
         warning.assert_called_once_with("No 'testing_bug_epel_msg' found in the config.")
-        assert update.builds[0].nvr in message
-        assert update.release.long_name in message
-        assert update.status.description in message
-        assert update.get_url() in message
+        assert 'cool fedora stuff {}'.format(config['base_address'] + update.get_url()) == message
 
 
 class TestBugModified(BasePyTestCase):
@@ -3703,11 +3736,15 @@ class TestUpdate(ModelTest):
     def test_bug(self):
         bug = self.obj.bugs[0]
         assert bug.url == 'https://bugzilla.redhat.com/show_bug.cgi?id=1'
+        with pytest.raises(ValueError) as exc:
+            bug.testing(self.obj)
+            assert 'is not in Stable or Testing status' in str(exc.exception)
+        self.obj.status = UpdateStatus.testing
         bug.testing(self.obj)
         bug.add_comment(self.obj)
         bug.add_comment(self.obj, comment='testing')
         bug.close_bug(self.obj)
-        self.obj.status = UpdateStatus.testing
+        self.obj.status = UpdateStatus.stable
         bug.add_comment(self.obj)
 
     def test_expand_messages(self):
