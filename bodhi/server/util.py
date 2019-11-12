@@ -121,14 +121,14 @@ def generate_changelog(build: 'models.Build') -> typing.Optional[str]:
         return None
 
     # Grab the RPM header of the previous update, and generate a ChangeLog
-    oldh = get_rpm_header(lastpkg)
-    oldtime = oldh['changelogtime']
-    text = oldh['changelogtext']
+    oldtime = 0
+    if lastpkg is not None:
+        oldh = get_rpm_header(lastpkg)
+        oldtime = oldh['changelogtime']
+        text = oldh['changelogtext']
 
-    if not text:
-        oldtime = 0
-    elif isinstance(oldtime, list):
-        oldtime = oldtime[0]
+        if text and isinstance(oldtime, list):
+            oldtime = oldtime[0]
 
     return build.get_changelog(oldtime)
 
