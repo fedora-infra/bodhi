@@ -35,17 +35,33 @@ def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
     output = "".join(line.decode("utf-8") for line in output)
     assert output.endswith("Requesting a compose\n")
     # Check how many composes should be done
-    query = "SELECT COUNT(*) FROM composes"
+    # because we later check for pungi.log, we need to see if there are composes that apply
+    # we can get these from the type field of the builds table,
+    # after joining with the composes table through updates table.
+    query = """
+      SELECT DISTINCT
+        c.release_id, c.request, state, b.type
+      FROM
+        composes AS c
+      INNER JOIN updates AS u ON (c.release_id = u.release_id AND c.request = u.request )
+      INNER JOIN builds AS b ON (b.update_id = u.id)
+      WHERE b.type IN ('rpm', 'module') AND state <> 'failed';
+    """
     db_ip = db_container.get_IPv4s()[0]
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
     with conn:
         with conn.cursor() as curs:
             curs.execute(query)
-            composes_count = curs.fetchone()[0]
-    if composes_count == 0:
+            composes = curs.fetchall()
+    if not composes:
         pytest.skip("We can't test whether composes were run, there are none pending")
+
     # Give some time for the message to go around and the command to be run.
-    wait_for_file(bodhi_container, "/tmp/pungi-calls.log")
+    try:
+        wait_for_file(bodhi_container, "/tmp/pungi-calls.log")
+    except ConuException as e:
+        print("Waiting for pungi-calls.log failed, relevant composes: {}".format(composes))
+        raise e
     with read_file(bodhi_container, "/tmp/pungi-calls.log") as fh:
         calls = fh.read().splitlines()
     # Just check that pungi was run at least once, we're not testing the
