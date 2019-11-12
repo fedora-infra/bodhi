@@ -13,7 +13,11 @@ ${parent.css()}
         <div class="col">
             <h3 class="font-weight-bold m-0"><a href="${request.route_url('updates')}">Updates</a>
                 <span class="text-muted"> / </span> 
+                % if not update:
                 Create New Update
+                % else:
+                Editing update ${update.alias}
+                % endif
             </h3>
         </div>
       </div>
@@ -100,17 +104,6 @@ ${parent.css()}
                 <h5 class="font-weight-bold mb-0">Metadata</h5>
             </div>
           <div class="card-body">
-<<<<<<< HEAD
-            <h6 class="font-weight-bold">Name</h6>
-            <input class="typeahead form-control noui" name="display_name" type="text" placeholder="(optional) update name. leave blank and bodhi will use the package names."
-% if update:
-value=${update.display_name | h}
-% endif
->
-          </div>
-          <div class="card-body pt-0">
-=======
->>>>>>> 450b71acc... re-arrange new/edit update form
             <h6 class="font-weight-bold">
               <div class="row">
                 <div class="col">
