@@ -13,7 +13,11 @@ ${parent.css()}
         <div class="col">
             <h3 class="font-weight-bold m-0"><a href="${request.route_url('updates')}">Updates</a>
                 <span class="text-muted"> / </span> 
+                % if not update:
                 Create New Update
+                % else:
+                Editing update ${update.alias}
+                % endif
             </h3>
         </div>
       </div>
