@@ -41,12 +41,66 @@ ${parent.css()}
 
   <div id="new-update-form" class="pt-3" style="display:none;">
     <div class="row justify-content-center">
-      <div class="col-10">
+
+        <div class="col-10">
+            <div class="card" id="builds-card">
+                <div class="card-header">
+                  <div class="row">
+                      <div class="col">
+                          <h5 class="font-weight-bold my-1 ml-2">Builds</h5>
+                      </div>
+                      <%doc>
+                      if new update form, sidetags is populated with the user's sidetags.
+                      if edit update form, sidetags is always []
+                      </%doc>
+                      % if sidetags != []:
+                      <div class="col text-right pr-0">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonSidetags" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                             <span class="fa fa-tag pr-1"></span> <span class="buttonlabel">Use Side Tag</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right w-100" aria-labelledby="dropdownMenuButtonSidetags">
+                              % for tag in sidetags:
+                              <a class="dropdown-item sidetag-item" href="javascript:void(0)" data-sidetagid="${tag['id']}" data-sidetagname="${tag['name']}"><span class="fa fa-tag pr-1"></span> <strong>${tag['name']}</strong> <div class="float-right text-muted">${len(tag['builds'])} build${'s' if len(tag['builds']) > 1 else ''}</div></a>
+                              % endfor
+                            </div>
+                          </div>
+                      </div>
+                      % endif
+                      % if update and update.from_tag:
+                      <div class="col text-right pr-0">
+                      <span class="text-muted"><span class="fa fa-tag pr-1"></span> ${update.from_tag} <button class="btn btn-outline-primary btn-sm ml-2" id="sidetag-update"><span class="fa fa-refresh"></span></button></span>
+                      </div>
+                      % endif
+                    </div>
+                    
+                </div>
+                <div class="card-body p-0">
+                  % if update and update.from_tag:
+                    <div class='list-group list-group-flush' id='sidetag-buildlist'>
+                      % for build in update.builds:
+                        <div class='list-group-item'>${build.nvr}</div>                  
+                      % endfor
+                    </div>
+                  % endif:
+                  <select name="builds" id="builds-search" ${'class=d-none' if update and update.from_tag else ''} multiple='multiple' placeholder="search and add builds">
+                      % if update:
+                      % for build in update.builds:
+                      <option selected value="${build.nvr}" data-data='{"nvr": "${build.nvr}", "release_name":"${build.release.long_name}", "id":"${build.get_build_id()}", "package_name":"${build.get_n_v_r()[0]}", "owner_name":"${build.get_owner_name()}"}'>${build.nvr}</option>
+                      % endfor
+                    % endif
+                  </select>
+                </div>
+              </div>
+          </div>
+
+      <div class="col-10 mt-4">
         <div class="card">
             <div class="card-header">
                 <h5 class="font-weight-bold mb-0">Metadata</h5>
             </div>
           <div class="card-body">
+<<<<<<< HEAD
             <h6 class="font-weight-bold">Name</h6>
             <input class="typeahead form-control noui" name="display_name" type="text" placeholder="(optional) update name. leave blank and bodhi will use the package names."
 % if update:
@@ -55,6 +109,8 @@ value=${update.display_name | h}
 >
           </div>
           <div class="card-body pt-0">
+=======
+>>>>>>> 450b71acc... re-arrange new/edit update form
             <h6 class="font-weight-bold">
               <div class="row">
                 <div class="col">
@@ -147,58 +203,6 @@ ${update.notes}
         
       </div>
       <div class="col-10 mt-4">
-        <div class="card" id="builds-card">
-            <div class="card-header">
-              <div class="row">
-                  <div class="col">
-                      <h5 class="font-weight-bold my-1 ml-2">Builds</h5>
-                  </div>
-                  <%doc>
-                  if new update form, sidetags is populated with the user's sidetags.
-                  if edit update form, sidetags is always []
-                  </%doc>
-                  % if sidetags != []:
-                  <div class="col text-right pr-0">
-                    <div class="dropdown">
-                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButtonSidetags" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                         <span class="fa fa-tag pr-1"></span> <span class="buttonlabel">Use Side Tag</span>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-right w-100" aria-labelledby="dropdownMenuButtonSidetags">
-                          % for tag in sidetags:
-                          <a class="dropdown-item sidetag-item" href="javascript:void(0)" data-sidetagid="${tag['id']}" data-sidetagname="${tag['name']}"><span class="fa fa-tag pr-1"></span> <strong>${tag['name']}</strong> <div class="float-right text-muted">${len(tag['builds'])} build${'s' if len(tag['builds']) > 1 else ''}</div></a>
-                          % endfor
-                        </div>
-                      </div>
-                  </div>
-                  % endif
-                  % if update and update.from_tag:
-                  <div class="col text-right pr-0">
-                  <span class="text-muted"><span class="fa fa-tag pr-1"></span> ${update.from_tag} <button class="btn btn-outline-primary btn-sm ml-2" id="sidetag-update"><span class="fa fa-refresh"></span></button></span>
-                  </div>
-                  % endif
-                </div>
-                
-            </div>
-            <div class="card-body p-0">
-              % if update and update.from_tag:
-                <div class='list-group list-group-flush' id='sidetag-buildlist'>
-                  % for build in update.builds:
-                    <div class='list-group-item'>${build.nvr}</div>                  
-                  % endfor
-                </div>
-              % endif:
-              <select name="builds" id="builds-search" ${'class=d-none' if update and update.from_tag else ''} multiple='multiple' placeholder="search and add builds">
-                  % if update:
-                  % for build in update.builds:
-                  <option selected value="${build.nvr}" data-data='{"nvr": "${build.nvr}", "release_name":"${build.release.long_name}", "id":"${build.get_build_id()}", "package_name":"${build.get_n_v_r()[0]}", "owner_name":"${build.get_owner_name()}"}'>${build.nvr}</option>
-                  % endfor
-                % endif
-              </select>
-            </div>
-          </div>
-      </div>
-
-      <div class="col-10 mt-4">
 
       <div class="card" id="bugs-card">
           <div class="card-header">
@@ -252,6 +256,14 @@ ${update.notes}
               <h5 class="font-weight-bold mb-0">Final details</h5>
           </div>
           <div class="card-body">
+            <h6 class="font-weight-bold">Name</h6>
+            <input class="typeahead form-control noui" name="display_name" type="text" placeholder="(optional) update name. leave blank and bodhi will use the package names."
+% if update:
+value="${update.display_name | h}"
+% endif
+>
+          </div>
+          <div class="card-body pt-0">
               <div class="row">
                   <div class="col-12">
                       <h6 class="font-weight-bold" title="If specified, the update will be blocked from stable until all of the listed taskotron tests are passing.">Required Taskotron checks</h6>
