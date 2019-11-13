@@ -67,6 +67,7 @@ ${parent.css()}
               %endif
             %else:
               <code>${override.build.nvr}</code>
+              <input id="nvr" name="nvr" type="hidden" value="${override.build.nvr}">
               <input id="edited" name="edited" type="hidden" value="${override.build.nvr}">
             %endif
           </div>
@@ -132,9 +133,7 @@ ${parent.css()}
                 Notes
             </h5>
           <div class="form-group">
-            <textarea class="form-control" id="notes" name="notes" rows="6" placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please." required="required">
-  ${override.notes if override is not UNDEFINED else ''}
-            </textarea>
+            <textarea class="form-control" id="notes" name="notes" rows="6" placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please." required="required">${override.notes if override is not UNDEFINED else ''}</textarea>
           </div>
         </div>
 
