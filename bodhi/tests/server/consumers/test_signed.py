@@ -78,6 +78,17 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         assert build.signed is True
 
     @mock.patch('bodhi.server.consumers.signed.Build')
+    def test_consume_build_with_no_update(self, mock_build_model):
+        """Assert that messages marking the build as signed updates the database"""
+        build = mock_build_model.get.return_value
+        build.signed = False
+        build.update = None
+        build.release.pending_testing_tag = self.sample_message.body["tag"]
+
+        self.handler(self.sample_message)
+        assert build.signed is True
+
+    @mock.patch('bodhi.server.consumers.signed.Build')
     def test_consume_not_pending_testing_tag(self, mock_build_model):
         """
         Assert that messages whose tag don't match the pending testing tag don't update the DB
