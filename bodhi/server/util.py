@@ -375,7 +375,7 @@ def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
     return subprocess.check_output(cmd, encoding='utf-8')
 
 
-def age(context, date, nuke_ago=False):
+def age(context, date, only_distance=False):
     """
     Return a human readable age since the given date.
 
@@ -386,11 +386,7 @@ def age(context, date, nuke_ago=False):
     Returns:
         str: A human readable age since the given date.
     """
-    humanized = arrow.get(date).humanize()
-    if nuke_ago:
-        return humanized.replace(' ago', '')
-    else:
-        return humanized
+    return arrow.get(date).humanize(only_distance=only_distance)
 
 
 hardcoded_avatars = {
