@@ -1,4 +1,4 @@
-# Copyright © 2015-2018 Red Hat, Inc.
+# Copyright © 2015-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -21,14 +21,14 @@ from bodhi.server.models import (
 from bodhi.tests.server import base
 
 
-class TestRpmPackagesService(base.BaseTestCase):
+class TestRpmPackagesService(base.BasePyTestCase):
     def test_basic_json(self):
         """ Test querying with no arguments... """
         self.db.add(RpmPackage(name='a_second_package'))
         self.db.commit()
         resp = self.app.get('/packages/')
         body = resp.json_body
-        self.assertEqual(len(body['packages']), 2)
+        assert len(body['packages']) == 2
 
     def test_filter_by_name(self):
         """ Test that filtering by name returns one package and not the other.
@@ -37,7 +37,7 @@ class TestRpmPackagesService(base.BaseTestCase):
         self.db.commit()
         resp = self.app.get('/packages/', dict(name='bodhi'))
         body = resp.json_body
-        self.assertEqual(len(body['packages']), 1)
+        assert len(body['packages']) == 1
 
     def test_filter_by_like(self):
         """ Test that filtering by like returns one package and not the other.
@@ -46,7 +46,7 @@ class TestRpmPackagesService(base.BaseTestCase):
         self.db.commit()
         resp = self.app.get('/packages/', dict(like='odh'))
         body = resp.json_body
-        self.assertEqual(len(body['packages']), 1)
+        assert len(body['packages']) == 1
 
     def test_filter_by_search(self):
         """ Test filtering by search
@@ -57,14 +57,14 @@ class TestRpmPackagesService(base.BaseTestCase):
         # test search
         resp = self.app.get('/packages/', dict(search='bodh'))
         body = resp.json_body
-        self.assertEqual(len(body['packages']), 1)
+        assert len(body['packages']) == 1
 
         # test the search is case-insensitive
         resp = self.app.get('/packages/', dict(search='Bodh'))
         body = resp.json_body
-        self.assertEqual(len(body['packages']), 1)
+        assert len(body['packages']) == 1
 
         # test a search that yields nothing
         resp = self.app.get('/packages/', dict(search='corebird'))
         body = resp.json_body
-        self.assertEqual(len(body['packages']), 0)
+        assert len(body['packages']) == 0
