@@ -1,4 +1,4 @@
-# Copyright © 2019 Red Hat, Inc.
+# Copyright © 2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 # This program is free software; you can redistribute it and/or
@@ -17,19 +17,19 @@
 """Test the bodhi.server.consumers package."""
 from unittest import mock
 
+import pytest
 from fedora_messaging.api import Message
 from fedora_messaging.exceptions import Nack
 
 from bodhi.server import config
 from bodhi.server.consumers import Consumer, HandlerInfo, signed
-from bodhi.tests.server import base
 
 
 @mock.patch.dict(
     config.config,
     {'pungi.cmd': '/usr/bin/true', 'compose_dir': '/usr/bin/true',
      'compose_stage_dir': '/usr/bin/true'})
-class TestConsumer(base.BaseTestCase):
+class TestConsumer:
     """Test class for the Consumer class."""
 
     @mock.patch('bodhi.server.consumers.bugs.set_bugtracker')
@@ -40,8 +40,8 @@ class TestConsumer(base.BaseTestCase):
         """Test the __init__() method."""
         consumer = Consumer()
 
-        self.assertTrue(any(x.name == 'Signed' and isinstance(x.handler, signed.SignedHandler)
-                            for x in consumer.handler_infos))
+        assert any(x.name == 'Signed' and isinstance(x.handler, signed.SignedHandler)
+                   for x in consumer.handler_infos)
         info.assert_called_once_with('Initializing Bodhi')
         initialize_db.assert_called_once_with(config.config)
         setup_buildsystem.assert_called_once_with(config.config)
@@ -61,7 +61,7 @@ class TestConsumer(base.BaseTestCase):
             consumer, 'handler_infos',
             [HandlerInfo('.buildsys.tag', 'Automatic Update', mock.Mock())],
         ) as handler_infos:
-            with self.assertRaises(Nack) as exc:
+            with pytest.raises(Nack) as exc:
                 handler_infos[0].handler.side_effect = Exception("Something bad happened")
                 consumer(msg)
 
@@ -74,7 +74,7 @@ class TestConsumer(base.BaseTestCase):
                                 for hi in consumer.handler_infos)
                       + "Message:\n{msg}")
 
-            self.assertEqual(str(exc.exception), excmsg)
+            assert str(exc.value) == excmsg
 
     @mock.patch('bodhi.server.consumers.AutomaticUpdateHandler')
     @mock.patch('bodhi.server.consumers.SignedHandler')
