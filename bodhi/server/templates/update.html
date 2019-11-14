@@ -5,6 +5,8 @@
 
   from bodhi.server import models
 
+  from bodhi.server.config import config
+
   install_command = update.install_command
 %>
 
@@ -406,6 +408,11 @@ if can_edit and update.release.composed_by_bodhi:
                   <a id='waive' class="btn btn-sm btn-primary hidden" data-toggle="modal" data-target="#waive_test_results">Waive Test Results</a>
                   % endif
                 </div>
+                <div>
+                  % if can_edit and config.get('test_gating.required'):
+                  <a id='trigger' class="btn btn-sm btn-primary hidden" data-toggle="modal" data-target="#trigger_tests">Trigger Tests</a>
+                  % endif
+                </div>
                 <div id="test_status_badge">
                   <i class="spinner fa fa-spinner fa-spin fa-fw"></i>
                 </div>
@@ -669,6 +676,32 @@ if can_edit and update.release.composed_by_bodhi:
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
         <button type="submit" class="btn btn-primary">Waive</button>
+      </div>
+    </div>
+  </div>
+  </form>
+</div>
+% endif
+
+% if self.util.can_trigger_tests(update):
+<div class="modal fade" id="trigger_tests" tabindex="-1" role="dialog" aria-labelledby="waiveModalLabel" aria-hidden="true">
+  <form>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h3 class="modal-title" id="waiveModalLabel">Trigger Tests</h3>
+      </div>
+      <div class="modal-body">
+          <div class="row">
+            <div class="col-sm-offset-2 col-sm-10">
+              <p>Submitting this will the tests again.</p>
+            </div>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Trigger new test run</button>
       </div>
     </div>
   </div>
@@ -1090,6 +1123,39 @@ $(document).ready(function() {
       });
     })
 % endif
+
+% if self.util.can_trigger_tests(update):
+    // handle for triggering of tests.
+    $("#trigger_tests").submit(function(evt) {
+    evt.preventDefault();
+    var url = '${request.route_url("update_trigger_tests", id=update.alias)}';
+    var $this = $(this);
+    $.ajax({
+        url: url,
+        data: {
+          csrf_token: "${request.session.get_csrf_token()}",
+        },
+        method: 'POST',
+        dataType: 'json',
+        success: function(response) {
+          // Just reload the page to refresh the test gating status.
+          location.reload();
+        },
+        error: function(response) {
+          $this.modal('hide');
+          $.each(response.responseJSON.errors, function(i, error) {
+              msg = messenger.post({
+                message: error.description,
+                type: "error",
+                hideAfter: false,
+                showCloseButton: true,
+              });
+          });
+        },
+    });
+
+% endif
+
 });
 </script>
 
