@@ -27,7 +27,7 @@ from click import testing
 
 from bodhi.server import models
 from bodhi.server.scripts import sar
-from bodhi.tests.server.base import BaseTestCase
+from bodhi.tests.server.base import BasePyTestCase
 
 
 EXPECTED_USER_DATA_OUTPUT = """\
@@ -82,7 +82,7 @@ EXPECTED_JSON_OUTPUT = (
 )
 
 
-class TestSar(BaseTestCase):
+class TestSar(BasePyTestCase):
     """This class contains tests for the get_user_data() function."""
 
     def test_invalid_user(self):
@@ -90,16 +90,16 @@ class TestSar(BaseTestCase):
         runner = testing.CliRunner()
         r = runner.invoke(sar.get_user_data, ["--username=" + "invalid_user"])
 
-        self.assertEqual(r.exit_code, 0)
-        self.assertEqual(r.output, "")
+        assert r.exit_code == 0
+        assert r.output == ""
 
     def test_invalid_user_human_readable(self):
         """Ensure proper info is printed when user is not found and human readable is on."""
         runner = testing.CliRunner()
         r = runner.invoke(sar.get_user_data, ["--username=" + "invalid_user", "--human-readable"])
 
-        self.assertEqual(r.exit_code, 0)
-        self.assertEqual(r.output, "User not found.\n")
+        assert r.exit_code == 0
+        assert r.output == "User not found.\n"
 
     def test_valid_user(self):
         """Ensure json with user data is printed when human readable is off."""
@@ -114,8 +114,8 @@ class TestSar(BaseTestCase):
         runner = testing.CliRunner()
         r = runner.invoke(sar.get_user_data, ["--username=" + "guest"])
 
-        self.assertEqual(r.exit_code, 0)
-        self.assertEqual(r.output, expected_output)
+        assert r.exit_code == 0
+        assert r.output == expected_output
 
     @mock.patch.dict(os.environ, {"SAR_USERNAME": "guest"})
     def test_valid_user_envvar(self):
@@ -131,8 +131,8 @@ class TestSar(BaseTestCase):
         runner = testing.CliRunner()
         r = runner.invoke(sar.get_user_data)
 
-        self.assertEqual(r.exit_code, 0)
-        self.assertEqual(r.output, expected_output)
+        assert r.exit_code == 0
+        assert r.output == expected_output
 
     def test_valid_user_human_readable(self):
         """Ensure user data are printed when human readable is on."""
@@ -147,4 +147,4 @@ class TestSar(BaseTestCase):
         runner = testing.CliRunner()
         r = runner.invoke(sar.get_user_data, ["--username=" + "guest", "--human-readable"])
 
-        self.assertEqual(r.exit_code, 0)
+        assert r.exit_code == 0
