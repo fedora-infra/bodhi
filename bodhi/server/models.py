@@ -1458,6 +1458,15 @@ class Build(Base):
         """
         return self._get_kojiinfo()['id']
 
+    def get_task_id(self) -> int:
+        """
+        Return the koji task id of the build.
+
+        Returns:
+            id: The task if of the build or None
+        """
+        return self._get_kojiinfo().get('task_id')
+
     def get_creation_time(self) -> datetime:
         """Return the creation time of the build."""
         return datetime.fromisoformat(self._get_kojiinfo()['creation_time'])
@@ -3864,6 +3873,7 @@ class Update(Base):
             builds.append({
                 "type": "koji-build",
                 "id": build.get_build_id(),
+                "task_id": build.get_task_id(),
                 "issuer": build.get_owner_name(),
                 "component": build.nvr_name,
                 "nvr": build.nvr,
