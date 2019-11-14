@@ -1,4 +1,4 @@
-# Copyright © 2017-2019 Red Hat, Inc.
+# Copyright © 2017-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -24,11 +24,11 @@ from click import testing
 
 from bodhi.server import models
 from bodhi.server.scripts import check_policies
-from bodhi.tests.server.base import BaseTestCase
+from bodhi.tests.server.base import BasePyTestCase
 from bodhi.server.config import config
 
 
-class TestCheckPolicies(BaseTestCase):
+class TestCheckPolicies(BasePyTestCase):
     """This class contains tests for the check_policies() function."""
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_policies_satisfied(self):
@@ -48,9 +48,9 @@ class TestCheckPolicies(BaseTestCase):
             }
             mock_greenwave.return_value = greenwave_response
             result = runner.invoke(check_policies.check, [])
-            self.assertEqual(result.exit_code, 0)
+            assert result.exit_code == 0
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
-            self.assertEqual(update.test_gating_status, models.TestGatingStatus.passed)
+            assert update.test_gating_status == models.TestGatingStatus.passed
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
@@ -80,9 +80,9 @@ class TestCheckPolicies(BaseTestCase):
             }
             mock_greenwave.return_value = greenwave_response
             result = runner.invoke(check_policies.check, [])
-            self.assertEqual(result.exit_code, 0)
+            assert result.exit_code == 0
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
-            self.assertEqual(update.test_gating_status, models.TestGatingStatus.passed)
+            assert update.test_gating_status == models.TestGatingStatus.passed
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_testing',
@@ -118,12 +118,12 @@ class TestCheckPolicies(BaseTestCase):
                      'type': 'test-result-missing', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
             result = runner.invoke(check_policies.check, [])
-            self.assertEqual(result.exit_code, 0)
+            assert result.exit_code == 0
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
-            self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
+            assert update.test_gating_status == models.TestGatingStatus.failed
             # Check for the comment
             expected_comment = "This update's test gating status has been changed to 'failed'."
-            self.assertEqual(update.comments[-1].text, expected_comment)
+            assert update.comments[-1].text == expected_comment
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
@@ -155,10 +155,10 @@ class TestCheckPolicies(BaseTestCase):
 
             result = runner.invoke(check_policies.check, [])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
         # The test_gating_status should still be None.
-        self.assertTrue(update.test_gating_status is None)
+        assert update.test_gating_status is None
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [
@@ -190,9 +190,9 @@ class TestCheckPolicies(BaseTestCase):
 
             result = runner.invoke(check_policies.check, [])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
-        self.assertEqual(update.test_gating_status, models.TestGatingStatus.failed)
+        assert update.test_gating_status == models.TestGatingStatus.failed
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
             'subject': [{'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
@@ -204,7 +204,7 @@ class TestCheckPolicies(BaseTestCase):
                                                expected_query)
         # Check for the comment
         expected_comment = "This update's test gating status has been changed to 'failed'."
-        self.assertEqual(update.comments[-1].text, expected_comment)
+        assert update.comments[-1].text == expected_comment
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])
     def test_unrestricted_policy(self):
@@ -223,12 +223,12 @@ class TestCheckPolicies(BaseTestCase):
             }
             mock_greenwave.return_value = greenwave_response
             result = runner.invoke(check_policies.check, [])
-            self.assertEqual(result.exit_code, 0)
+            assert result.exit_code == 0
             update = self.db.query(models.Update).filter(models.Update.id == update.id).one()
-            self.assertEqual(update.test_gating_status, models.TestGatingStatus.ignored)
+            assert update.test_gating_status == models.TestGatingStatus.ignored
             # Check for the comment
             expected_comment = "This update's test gating status has been changed to 'ignored'."
-            self.assertEqual(update.comments[-1].text, expected_comment)
+            assert update.comments[-1].text == expected_comment
 
         expected_query = {
             'product_version': 'fedora-17', 'decision_context': 'bodhi_update_push_stable',
@@ -261,6 +261,5 @@ class TestCheckPolicies(BaseTestCase):
             mock_greenwave.side_effect = Exception(
                 'Greenwave should not be accessed for archived releases.')
             result = runner.invoke(check_policies.check, [])
-            self.assertEqual(result.exit_code, 0)
-
-        self.assertEqual(mock_greenwave.call_count, 0)
+        assert result.exit_code == 0
+        assert mock_greenwave.call_count == 0
