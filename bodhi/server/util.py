@@ -501,13 +501,14 @@ def hostname(context=None):
     return socket.gethostname()
 
 
-def markup(context, text):
+def markup(context, text, bodhi=True):
     """
     Return HTML from a markdown string.
 
     Args:
         context (mako.runtime.Context): Unused.
         text (str): Markdown text to be converted to HTML.
+        bodhi (bool): Enable or disable Bodhi markup extensions.
     Returns:
         str: HTML representation of the markdown text.
     """
@@ -542,8 +543,10 @@ def markup(context, text):
         "a",
     ]
 
-    markdown_text = markdown.markdown(text, extensions=['markdown.extensions.fenced_code',
-                                                        ffmarkdown.BodhiExtension()])
+    extensions = ['markdown.extensions.fenced_code', ]
+    if bodhi == True:
+        extensions.append(ffmarkdown.BodhiExtension())
+    markdown_text = markdown.markdown(text, extensions=extensions)
 
     # previously, we linkified text in ffmarkdown.py, but this was causing issues like #1721
     # so now we use the bleach linkifier to do this for us.
