@@ -4253,7 +4253,7 @@ class TestUpdate(ModelTest):
             self.db.commit()
         assert msg.body["artifact"]["builds"][0]["component"] == "TurboGears"
         assert msg.body["artifact"]["id"].startswith("FEDORA-")
-        assert msg.body["artifact"]["type"] == "rpm-build-group"
+        assert msg.body["artifact"]["type"] == "koji-build-group"
         assert msg.packages == ['TurboGears']
 
     def test_create_with_status_testing(self):
@@ -4269,7 +4269,7 @@ class TestUpdate(ModelTest):
             self.db.commit()
         assert msg.body["artifact"]["builds"][0]["component"] == "TurboGears"
         assert msg.body["artifact"]["id"].startswith("FEDORA-")
-        assert msg.body["artifact"]["type"] == "rpm-build-group"
+        assert msg.body["artifact"]["type"] == "koji-build-group"
         assert msg.packages == ['TurboGears']
 
 
