@@ -128,7 +128,7 @@ def rss(info):
                 for p in builds(*args, **kwargs):
                     text += f'* {p.nvr}\n'
                 text += f'## Update description:\n{notes(*args, **kwargs)}'
-                return markup(None, text)
+                return markup(None, text, bodhi=False)
             return describe
 
         getters = {
