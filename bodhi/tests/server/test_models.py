@@ -1705,7 +1705,7 @@ class TestUpdateEdit(BasePyTestCase):
         """If new builds are added from a release with no signing tag, it should log a warning."""
         package = model.RpmPackage(name='python-rpdb')
         self.db.add(package)
-        build = model.RpmBuild(nvr='python-rpdb-1.3.1.fc17', package=package)
+        build = model.RpmBuild(nvr='python-rpdb-1.3-1.fc17', package=package)
         self.db.add(build)
         update = model.Update.query.first()
         data = {
@@ -1724,7 +1724,7 @@ class TestUpdateEdit(BasePyTestCase):
         warning.assert_called_once_with('F17 has no pending_signing_tag')
         update = model.Update.query.first()
         assert set([b.nvr for b in update.builds]) == (
-            {'bodhi-2.0-1.fc17', 'python-rpdb-1.3.1.fc17'})
+            {'bodhi-2.0-1.fc17', 'python-rpdb-1.3-1.fc17'})
 
     def test_remove_builds_from_locked_update(self):
         """Adding a build to a locked update should raise LockedUpdateException."""
@@ -1777,7 +1777,7 @@ class TestUpdateVersionHash(BasePyTestCase):
         # add another build
         package = model.RpmPackage(name='python-rpdb')
         self.db.add(package)
-        build = model.RpmBuild(nvr='python-rpdb-1.3.1.fc17', package=package)
+        build = model.RpmBuild(nvr='python-rpdb-1.3-1.fc17', package=package)
         self.db.add(build)
         update = model.Update.query.first()
         data = {
@@ -1792,14 +1792,14 @@ class TestUpdateVersionHash(BasePyTestCase):
         model.Update.edit(request, data)
 
         # now, with two builds, check the hash has changed
-        updated_expected_hash = "8560c9b2929d8104aa595ff44f6fc1e10f787b63"
+        updated_expected_hash = "d89b54971b965505179438481d761f8b5ee64e8c"
         assert initial_expected_hash != updated_expected_hash
 
         # check the updated is what we expect the hash to be
         assert update.version_hash == updated_expected_hash
 
         # calculate the updated hash, and check it again
-        updated_expected_builds = "bodhi-2.0-1.fc17 python-rpdb-1.3.1.fc17"
+        updated_expected_builds = "bodhi-2.0-1.fc17 python-rpdb-1.3-1.fc17"
         assert len(update.builds) == 2
         builds = " ".join(sorted([x.nvr for x in update.builds]))
         assert builds == updated_expected_builds
