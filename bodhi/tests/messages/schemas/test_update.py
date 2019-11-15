@@ -191,7 +191,7 @@ class TestUpdateMessage:
                     "email": "baseos-ci@somewhere.com"
                 },
                 "artifact": {
-                    "type": "rpm-build-group",
+                    "type": "koji-build-group",
                     "id": "FEDORA-2019-d64d0caab3",
                     "repository": "https://bodhi.fp.o/updates/FEDORA-2019-d64d0caab3",
                     "builds":
