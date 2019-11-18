@@ -20,22 +20,22 @@ from bodhi.server.models import RpmBuild, RpmPackage
 from bodhi.tests.server import base
 
 
-class TestBuildsService(base.BaseTestCase):
+class TestBuildsService(base.BasePyTestCase):
 
     def test_404(self):
         self.app.get('/builds/a', status=404)
 
     def test_get_single_build(self):
         res = self.app.get('/builds/bodhi-2.0-1.fc17')
-        self.assertEqual(res.json_body['nvr'], 'bodhi-2.0-1.fc17')
+        assert res.json_body['nvr'] == 'bodhi-2.0-1.fc17'
 
     def test_list_builds(self):
         res = self.app.get('/builds/')
         body = res.json_body
-        self.assertEqual(len(body['builds']), 1)
+        assert len(body['builds']) == 1
 
         up = body['builds'][0]
-        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
+        assert up['nvr'] == 'bodhi-2.0-1.fc17'
 
     def test_list_builds_pagination(self):
 
@@ -49,56 +49,54 @@ class TestBuildsService(base.BaseTestCase):
         # Then, test pagination
         res = self.app.get('/builds/', {"rows_per_page": 1})
         body = res.json_body
-        self.assertEqual(len(body['builds']), 1)
+        assert len(body['builds']) == 1
         build1 = body['builds'][0]
 
         res = self.app.get('/builds/', {"rows_per_page": 1, "page": 2})
         body = res.json_body
-        self.assertEqual(len(body['builds']), 1)
+        assert len(body['builds']) == 1
         build2 = body['builds'][0]
 
-        self.assertNotEqual(build1, build2)
+        assert build1 != build2
 
     def test_list_builds_by_package(self):
         res = self.app.get('/builds/', {"packages": "bodhi"})
         body = res.json_body
-        self.assertEqual(len(body['builds']), 1)
+        assert len(body['builds']) == 1
 
         up = body['builds'][0]
-        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
+        assert up['nvr'] == 'bodhi-2.0-1.fc17'
 
     def test_list_builds_by_nonexistent_package(self):
         res = self.app.get('/builds/', {"packages": "flash"}, status=400)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'packages')
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         'Invalid packages specified: flash')
+        assert res.json_body['errors'][0]['name'] == 'packages'
+        assert res.json_body['errors'][0]['description'] == 'Invalid packages specified: flash'
 
     def test_list_builds_by_release_name(self):
         res = self.app.get('/builds/', {"releases": "F17"})
         body = res.json_body
-        self.assertEqual(len(body['builds']), 1)
+        assert len(body['builds']) == 1
 
         up = body['builds'][0]
-        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
+        assert up['nvr'] == 'bodhi-2.0-1.fc17'
 
     def test_list_builds_by_release_version(self):
         res = self.app.get('/builds/', {"releases": "17"})
         body = res.json_body
-        self.assertEqual(len(body['builds']), 1)
+        assert len(body['builds']) == 1
 
         up = body['builds'][0]
-        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
+        assert up['nvr'] == 'bodhi-2.0-1.fc17'
 
     def test_list_builds_by_nonexistent_release(self):
         res = self.app.get('/builds/', {"releases": "WinXP"}, status=400)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'releases')
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         'Invalid releases specified: WinXP')
+        assert res.json_body['errors'][0]['name'] == 'releases'
+        assert res.json_body['errors'][0]['description'] == 'Invalid releases specified: WinXP'
 
     def test_list_builds_by_nvr(self):
         res = self.app.get('/builds/', {"nvr": "bodhi-2.0-1.fc17"})
         up = res.json_body['builds'][0]
-        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
+        assert up['nvr'] == 'bodhi-2.0-1.fc17'
 
     def test_list_builds_by_update_alias(self):
         update = RpmBuild.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
@@ -106,8 +104,8 @@ class TestBuildsService(base.BaseTestCase):
         res = self.app.get('/builds/', {"updates": [update.alias]})
 
         up = res.json_body['builds'][0]
-        self.assertEqual(up['nvr'], 'bodhi-2.0-1.fc17')
+        assert up['nvr'] == 'bodhi-2.0-1.fc17'
 
     def test_list_builds_no_rows_per_page(self):
         res = self.app.get('/builds/', {"rows_per_page": None}, status=400)
-        self.assertEqual(res.json_body['status'], 'error')
+        assert res.json_body['status'] == 'error'
