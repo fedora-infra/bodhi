@@ -657,6 +657,10 @@ class UpdateReadyForTestingV1(BodhiMessage):
                         'type': 'string',
                     },
                     'id': {
+                        'description': 'Build ID of the koji build.',
+                        'type': 'integer',
+                    },
+                    'task_id': {
                         'description': 'Task ID of the koji build.',
                         'type': 'integer',
                     },
