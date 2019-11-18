@@ -63,7 +63,7 @@ if can_edit and update.release.composed_by_bodhi:
                     </div>
                     <div class="h5 mt-1">
                         ${update.alias} created by <a href="${request.route_url('user', name=update['user']['name'])}"> ${update['user']['name']}</a>
-                        <span title="${update['date_submitted']} UTC"> ${self.util.age(update['date_submitted'], True)}</span> ago 
+                        <span title="${update['date_submitted']} UTC"> ${self.util.age(update['date_submitted'])} </span>
                         for <a href="${request.route_url('release', name=update['release']['name'])}">${update['release']['long_name']}
                         </a>
                       </div>

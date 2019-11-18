@@ -766,7 +766,7 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         Test that a User can see the expired date of the override
         """
-        get.return_value.humanize.return_value = '82 seconds bro'
+        get.return_value.humanize.return_value = '82 seconds bro ago'
         expiration_date = datetime.utcnow() + timedelta(days=1)
         data = {'nvr': 'bodhi-2.0-1.fc17', 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
