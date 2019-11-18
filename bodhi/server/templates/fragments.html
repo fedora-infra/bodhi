@@ -79,14 +79,12 @@ ${statusmap[status]}\
 % if comment.user.name == "bodhi":
 <div class="row">
         <div class="col-12 text-muted font-size-09">
-          <div class="card border-0">
-            <div class="card-body border-0 p-2">
-                <i class="fa fa-info-circle"></i>
-                <span class="font-weight-bold">${comment.text | n}</span>
-                <a href="${comment.url()}" class="notblue float-right" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
-                    ${util.age(comment.timestamp)}
-                  </a>
-            </div>
+          <div class="d-flex p-2 align-items-top">
+            <i class="fa fa-info-circle pt-2"></i>
+            <div class="font-weight-bold">${util.markup(comment.text, bodhi=False) | n}</div>
+            <a href="${comment.url()}" class="notblue pt-1 ml-auto text-nowrap" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
+              ${util.age(comment.timestamp)}
+            </a>
           </div>
         </div>
 </div>
