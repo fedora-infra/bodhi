@@ -198,14 +198,16 @@ class UpdateMessageTests(unittest.TestCase):
                     "builds":
                         [{
                             "type": "koji-build",
-                            "id": 14546276,
+                            "id": 14546275,
+                            "task_id": 14546276,
                             "issuer": "plautrba",
                             "component": "libselinux",
                             "nvr": "libselinux-2.8-6.fc29.x86_64",
                             "scratch": False,
                         }, {
                             "type": "koji-build",
-                            "id": 14546277,
+                            "id": 14546278,
+                            "task_id": 14546277,
                             "issuer": "plautrba",
                             "component": "libsepol",
                             "nvr": "libsepol-2.8-3.fc29.x86_64",
