@@ -101,7 +101,7 @@ ${parent.css()}
               % if override['expired_date'] is None:
               <span class='col-xs-auto pr-2 ml-auto text-success'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></span>
               % else:
-              <span class='col-xs-auto pr-2 ml-auto text-danger'><small>expired <strong>${util.age(override['expired_date'], True)} ago</strong></small></span>
+              <span class='col-xs-auto pr-2 ml-auto text-danger'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></span>
              % endif
              % endif
           </h5>
@@ -196,7 +196,7 @@ ${parent.css()}
               % if override['expired_date'] is None:
               <span class='col-xs-auto pr-2 ml-auto text-success'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></span>
               % else:
-              <span class='col-xs-auto pr-2 ml-auto text-danger'><small>expired <strong>${util.age(override['expired_date'], True)} ago</strong></small></span>
+              <span class='col-xs-auto pr-2 ml-auto text-danger'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></span>
              % endif
              % endif
           </h5>
