@@ -1,4 +1,4 @@
-# Copyright © 2019 Red Hat, Inc.
+# Copyright © 2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -25,14 +25,14 @@ from bodhi.server import models
 from bodhi.server.consumers import greenwave
 from bodhi.server.config import config
 from bodhi.tests.server import create_update
-from bodhi.tests.server.base import BaseTestCase, TransactionalSessionMaker
+from bodhi.tests.server.base import BasePyTestCase, TransactionalSessionMaker
 
 
-class TestGreenwaveHandler(BaseTestCase):
+class TestGreenwaveHandler(BasePyTestCase):
     """Test class for the :func:`GreenwaveHandler` method."""
 
-    def setUp(self):
-        super().setUp()
+    def setup_method(self, method):
+        super(TestGreenwaveHandler, self).setup_method(method)
         self.sample_message = Message(
             topic="org.fedoraproject.prod.greenwave.decision.update",
             body={
@@ -127,7 +127,7 @@ class TestGreenwaveHandler(BaseTestCase):
         """ Assert that the consumer ignores messages badly formed """
         bad_message = Message(topic="", body={})
         self.handler(bad_message)
-        self.assertEqual(mock_log.debug.call_count, 1)
+        assert mock_log.debug.call_count == 1
         mock_log.debug.assert_called_with("Ignoring message without body.")
 
     @mock.patch('bodhi.server.consumers.greenwave.log')
@@ -138,7 +138,7 @@ class TestGreenwaveHandler(BaseTestCase):
         """
         bad_message = Message(topic="", body={"foo": "bar"})
         self.handler(bad_message)
-        self.assertEqual(mock_log.debug.call_count, 1)
+        assert mock_log.debug.call_count == 1
         mock_log.debug.assert_called_with("Couldn't find subject_identifier in Greenwave message")
 
     @mock.patch('bodhi.server.consumers.greenwave.log')
@@ -149,7 +149,7 @@ class TestGreenwaveHandler(BaseTestCase):
         """
         bad_message = Message(topic="", body={"subject_identifier": "foobar"})
         self.handler(bad_message)
-        self.assertEqual(mock_log.debug.call_count, 1)
+        assert mock_log.debug.call_count == 1
         mock_log.debug.assert_called_with("Couldn't find policies_satisfied in Greenwave message")
 
     @mock.patch('bodhi.server.consumers.greenwave.log')
@@ -160,7 +160,7 @@ class TestGreenwaveHandler(BaseTestCase):
         """
         self.sample_message.body["subject_identifier"] = "notapackage-2.0-1.fc17"
         self.handler(self.sample_message)
-        self.assertEqual(mock_log.debug.call_count, 1)
+        assert mock_log.debug.call_count == 1
         mock_log.debug.assert_called_with("Couldn't find build notapackage-2.0-1.fc17 in DB")
 
     @mock.patch('bodhi.server.consumers.greenwave.log')
@@ -168,5 +168,5 @@ class TestGreenwaveHandler(BaseTestCase):
         """ Assert that the consumer ignores messages with subject_type equal to compose """
         self.sample_message.body["subject_type"] = "compose"
         self.handler(self.sample_message)
-        self.assertEqual(mock_log.debug.call_count, 1)
+        assert mock_log.debug.call_count == 1
         mock_log.debug.assert_called_with("Not requesting a decision for a compose")
