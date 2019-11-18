@@ -1,4 +1,4 @@
-# Copyright 2016-2019 Red Hat, Inc.
+# Copyright 2016-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -26,7 +26,7 @@ from bodhi.server import notifications, Session
 from bodhi.tests.server import base
 
 
-class TestPublish(base.BaseTestCase):
+class TestPublish(base.BasePyTestCase):
     """Tests for :func:`bodhi.server.notifications.publish`."""
 
     def test_publish_force(self):
@@ -44,10 +44,10 @@ class TestPublish(base.BaseTestCase):
         notifications.publish(message)
 
         session = Session()
-        self.assertIn('messages', session.info)
-        self.assertEqual(len(session.info['messages']), 1)
+        assert 'messages' in session.info
+        assert len(session.info['messages']) == 1
         msg = session.info['messages'][0]
-        self.assertEqual(msg, message)
+        assert msg == message
 
     def test_publish_sqlalchemy_object(self):
         """Assert publish places the message inside the session info dict."""
@@ -58,13 +58,13 @@ class TestPublish(base.BaseTestCase):
         notifications.publish(message)
 
         session = Session()
-        self.assertIn('messages', session.info)
-        self.assertEqual(len(session.info['messages']), 1)
+        assert 'messages' in session.info
+        assert len(session.info['messages']) == 1
         msg = session.info['messages'][0]
-        self.assertEqual(msg, message)
+        assert msg == message
 
 
-class TestSendMessagesAfterCommit(base.BaseTestCase):
+class TestSendMessagesAfterCommit(base.BasePyTestCase):
     """Tests for :func:`bodhi.server.notifications.send_messages_after_commit`."""
 
     def test_no_messages(self):
@@ -80,7 +80,7 @@ class TestSendMessagesAfterCommit(base.BaseTestCase):
         with fml_testing.mock_sends(api.Message()):
             notifications.send_messages_after_commit(session)
 
-        self.assertEqual(session.info['messages'], [])
+        assert session.info['messages'] == []
 
     @mock.patch('bodhi.server.notifications.api.publish')
     @mock.patch('bodhi.server.notifications._log')
