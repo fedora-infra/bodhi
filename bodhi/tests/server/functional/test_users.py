@@ -23,10 +23,10 @@ from bodhi.server.models import Update, User
 from bodhi.tests.server import base
 
 
-class TestUsersService(base.BaseTestCase):
+class TestUsersService(base.BasePyTestCase):
 
-    def setUp(self):
-        super(TestUsersService, self).setUp()
+    def setup_method(self, method):
+        super(TestUsersService, self).setup_method(method)
 
         user = User(name='bodhi')
         self.db.add(user)
@@ -37,38 +37,38 @@ class TestUsersService(base.BaseTestCase):
 
     def test_get_single_user(self):
         res = self.app.get('/users/bodhi')
-        self.assertEqual(res.json_body['user']['name'], 'bodhi')
+        assert res.json_body['user']['name'] == 'bodhi'
 
     def test_get_hardcoded_avatar(self):
         res = self.app.get('/users/bodhi')
-        self.assertEqual(res.json_body['user']['name'], 'bodhi')
+        assert res.json_body['user']['name'] == 'bodhi'
         url = 'https://apps.fedoraproject.org/img/icons/bodhi-24.png'
-        self.assertEqual(res.json_body['user']['avatar'], url)
+        assert res.json_body['user']['avatar'] == url
 
     @mock.patch.dict(config, {'libravatar_enabled': True})
     def test_get_single_avatar(self):
         res = self.app.get('/users/guest')
-        self.assertEqual(res.json_body['user']['name'], 'guest')
+        assert res.json_body['user']['name'] == 'guest'
 
         base = 'https://seccdn.libravatar.org/avatar/'
         h = 'eb48e08cc23bcd5961de9541ba5156c385cd39799e1dbf511477aa4d4d3a37e7'
         tail = '?d=retro&s=24'
         url = base + h
 
-        self.assertEqual(res.json_body['user']['avatar'][:-len(tail)], url)
+        assert res.json_body['user']['avatar'][:-len(tail)] == url
 
     def test_get_single_user_page(self):
         res = self.app.get('/users/guest', headers=dict(accept='text/html'))
-        self.assertIn('text/html', res.headers['Content-Type'])
-        self.assertIn('libravatar.org', res)
-        self.assertIn('&copy;', res)
+        assert 'text/html' in res.headers['Content-Type']
+        assert 'libravatar.org' in res
+        assert '&copy;' in res
 
     def test_get_single_user_jsonp(self):
         res = self.app.get('/users/guest',
                            {'callback': 'callback'},
                            headers=dict(accept='application/javascript'))
-        self.assertIn('application/javascript', res.headers['Content-Type'])
-        self.assertIn('libravatar.org', res)
+        assert 'application/javascript' in res.headers['Content-Type']
+        assert 'libravatar.org' in res
 
     def test_get_single_user_rss(self):
         self.app.get('/users/bodhi',
@@ -77,42 +77,42 @@ class TestUsersService(base.BaseTestCase):
 
     def test_list_users(self):
         res = self.app.get('/users/')
-        self.assertIn('application/json', res.headers['Content-Type'])
+        assert 'application/json' in res.headers['Content-Type']
         body = res.json_body
-        self.assertEqual(len(body['users']), 3)
+        assert len(body['users']) == 3
 
         users = [user['name'] for user in body['users']]
-        self.assertIn('guest', users)
-        self.assertIn('anonymous', users)
-        self.assertIn('bodhi', users)
+        assert 'guest' in users
+        assert 'anonymous' in users
+        assert 'bodhi' in users
 
     def test_list_users_jsonp(self):
         res = self.app.get('/users/',
                            {'callback': 'callback'},
                            headers=dict(accept='application/javascript'))
-        self.assertIn('application/javascript', res.headers['Content-Type'])
-        self.assertIn('callback', res)
-        self.assertIn('bodhi', res)
-        self.assertIn('guest', res)
+        assert 'application/javascript' in res.headers['Content-Type']
+        assert 'callback' in res
+        assert 'bodhi' in res
+        assert 'guest' in res
 
     def test_list_users_rss(self):
         res = self.app.get('/rss/users/',
                            headers=dict(accept='application/atom+xml'))
-        self.assertIn('application/rss+xml', res.headers['Content-Type'])
-        self.assertIn('bodhi', res)
-        self.assertIn('guest', res)
+        assert'application/rss+xml' in res.headers['Content-Type']
+        assert'bodhi' in res
+        assert'guest' in res
 
     def test_like_users(self):
         res = self.app.get('/users/', {'like': 'odh'})
         body = res.json_body
-        self.assertEqual(len(body['users']), 1)
+        assert len(body['users']) == 1
 
         user = body['users'][0]
-        self.assertEqual(user['name'], 'bodhi')
+        assert user['name'] == 'bodhi'
 
         res = self.app.get('/users/', {'like': 'wat'})
         body = res.json_body
-        self.assertEqual(len(body['users']), 0)
+        assert len(body['users']) == 0
 
     def test_search_users(self):
         """
@@ -122,83 +122,81 @@ class TestUsersService(base.BaseTestCase):
         # test that search works
         res = self.app.get('/users/', {'search': 'bodh'})
         body = res.json_body
-        self.assertEqual(len(body['users']), 1)
+        assert len(body['users']) == 1
         user = body['users'][0]
-        self.assertEqual(user['name'], 'bodhi')
+        assert user['name'] == 'bodhi'
 
         # test that the search is case insensitive
         res = self.app.get('/users/', {'search': 'Bodh'})
         body = res.json_body
-        self.assertEqual(len(body['users']), 1)
+        assert len(body['users']) == 1
         user = body['users'][0]
-        self.assertEqual(user['name'], 'bodhi')
+        assert user['name'] == 'bodhi'
 
         # test a search that yields nothing
         res = self.app.get('/users/', {'search': 'wat'})
         body = res.json_body
-        self.assertEqual(len(body['users']), 0)
+        assert len(body['users']) == 0
 
     def test_list_users_with_pagination(self):
         res = self.app.get('/users/')
         body = res.json_body
-        self.assertEqual(len(body['users']), 3)
+        assert len(body['users']) == 3
 
         users = [user['name'] for user in body['users']]
 
         res = self.app.get('/users/', {'rows_per_page': 1})
         body = res.json_body
-        self.assertEqual(len(body['users']), 1)
-        self.assertIn(body['users'][0]['name'], users)
+        assert len(body['users']) == 1
+        assert body['users'][0]['name'] in users
 
         res = self.app.get('/users/', {'rows_per_page': 1, 'page': 2})
         body = res.json_body
-        self.assertEqual(len(body['users']), 1)
-        self.assertIn(body['users'][0]['name'], users)
+        assert len(body['users']) == 1
+        assert body['users'][0]['name'] in users
 
         res = self.app.get('/users/', {'rows_per_page': 1, 'page': 3})
         body = res.json_body
-        self.assertEqual(len(body['users']), 1)
-        self.assertIn(body['users'][0]['name'], users)
+        assert len(body['users']) == 1
+        assert body['users'][0]['name'] in users
 
     def test_list_users_by_name(self):
         res = self.app.get('/users/', {"name": 'guest'})
         body = res.json_body
-        self.assertEqual(len(body['users']), 1)
-        self.assertEqual(body['users'][0]['name'], 'guest')
+        assert len(body['users']) == 1
+        assert body['users'][0]['name'] == 'guest'
 
     def test_list_users_by_name_match(self):
         res = self.app.get('/users/', {"name": 'gue%'})
         body = res.json_body
-        self.assertEqual(len(body['users']), 1)
-        self.assertEqual(body['users'][0]['name'], 'guest')
+        assert len(body['users']) == 1
+        assert body['users'][0]['name'] == 'guest'
 
     def test_list_users_by_name_match_miss(self):
         res = self.app.get('/users/', {"name": '%wat%'})
-        self.assertEqual(len(res.json_body['users']), 0)
+        assert len(res.json_body['users']) == 0
 
     def test_list_users_by_groups(self):
         res = self.app.get('/users/', {"groups": 'packager'})
-        self.assertEqual(len(res.json_body['users']), 1)
+        assert len(res.json_body['users']) == 1
 
     def test_list_users_by_nonexistent_group(self):
         res = self.app.get('/users/', {"groups": 'carbunkle'}, status=400)
         body = res.json_body
-        self.assertEqual(body['errors'][0]['name'], 'groups')
-        self.assertEqual(body['errors'][0]['description'],
-                         'Invalid groups specified: carbunkle')
+        assert body['errors'][0]['name'] == 'groups'
+        assert body['errors'][0]['description'] == 'Invalid groups specified: carbunkle'
 
     def test_list_users_by_mixed_nonexistent_group(self):
         res = self.app.get('/users/', {"groups": ['carbunkle', 'packager']}, status=400)
         body = res.json_body
-        self.assertEqual(body['errors'][0]['name'], 'groups')
-        self.assertEqual(body['errors'][0]['description'],
-                         'Invalid groups specified: carbunkle')
+        assert body['errors'][0]['name'] == 'groups'
+        assert body['errors'][0]['description'] == 'Invalid groups specified: carbunkle'
 
     def test_list_users_by_group_miss(self):
         res = self.app.get('/users/', {"groups": 'provenpackager'})
         body = res.json_body
-        self.assertEqual(len(body['users']), 0)
-        self.assertNotIn('errors', res.json_body)
+        assert len(body['users']) == 0
+        assert 'errors' not in res.json_body
 
     def test_list_users_by_update_alias(self):
         update = self.db.query(Update).first()
@@ -207,12 +205,11 @@ class TestUsersService(base.BaseTestCase):
 
         res = self.app.get('/users/', {"updates": 'some_alias'})
         body = res.json_body
-        self.assertEqual(len(body['users']), 1)
-        self.assertEqual(body['users'][0]['name'], 'guest')
+        assert len(body['users']) == 1
+        assert body['users'][0]['name'] == 'guest'
 
     def test_list_users_by_nonexistent_update(self):
         res = self.app.get('/users/', {"updates": 'carbunkle'}, status=400)
         body = res.json_body
-        self.assertEqual(body['errors'][0]['name'], 'updates')
-        self.assertEqual(body['errors'][0]['description'],
-                         'Invalid updates specified: carbunkle')
+        assert body['errors'][0]['name'] == 'updates'
+        assert body['errors'][0]['description'] == 'Invalid updates specified: carbunkle'
