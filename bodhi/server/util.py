@@ -375,7 +375,7 @@ def sanity_check_repodata_dnf(tempdir, myurl, *dnf_args):
     return subprocess.check_output(cmd, encoding='utf-8')
 
 
-def age(context, date, nuke_ago=False):
+def age(context, date, only_distance=False):
     """
     Return a human readable age since the given date.
 
@@ -386,11 +386,7 @@ def age(context, date, nuke_ago=False):
     Returns:
         str: A human readable age since the given date.
     """
-    humanized = arrow.get(date).humanize()
-    if nuke_ago:
-        return humanized.replace(' ago', '')
-    else:
-        return humanized
+    return arrow.get(date).humanize(only_distance=only_distance)
 
 
 hardcoded_avatars = {
@@ -505,13 +501,14 @@ def hostname(context=None):
     return socket.gethostname()
 
 
-def markup(context, text):
+def markup(context, text, bodhi=True):
     """
     Return HTML from a markdown string.
 
     Args:
         context (mako.runtime.Context): Unused.
         text (str): Markdown text to be converted to HTML.
+        bodhi (bool): Enable or disable Bodhi markup extensions.
     Returns:
         str: HTML representation of the markdown text.
     """
@@ -546,8 +543,10 @@ def markup(context, text):
         "a",
     ]
 
-    markdown_text = markdown.markdown(text, extensions=['markdown.extensions.fenced_code',
-                                                        ffmarkdown.BodhiExtension()])
+    extensions = ['markdown.extensions.fenced_code', ]
+    if bodhi == True:
+        extensions.append(ffmarkdown.BodhiExtension())
+    markdown_text = markdown.markdown(text, extensions=extensions)
 
     # previously, we linkified text in ffmarkdown.py, but this was causing issues like #1721
     # so now we use the bleach linkifier to do this for us.
