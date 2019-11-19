@@ -193,7 +193,7 @@ ${statusmap[status]}\
       ${update['user']['name']}
     </a>
                         %endif
-                          <span title="${update['date_submitted']} UTC"> ${util.age(update['date_submitted'], True)}</span> ago 
+                          <span title="${update['date_submitted']} UTC"> ${util.age(update['date_submitted'])} </span>
                           for <a href="${request.route_url('release', name=update['release']['name'])}">${update['release']['long_name']}
                           </a></small>
                     </div>
@@ -236,7 +236,7 @@ ${statusmap[status]}\
                   ${override['submitter']['name']}
                 </a>
               %endif
-              <span title="${override['submission_date']} UTC"> ${util.age(override['submission_date'], True)}</span> ago 
+              <span title="${override['submission_date']} UTC"> ${util.age(override['submission_date'])} </span>
               for <a href="${request.route_url('release', name=override['build']['release']['name'])}">${override['build']['release']['long_name']}
               </a></small>
           </div>
@@ -244,7 +244,7 @@ ${statusmap[status]}\
     % if override['expired_date'] is None:
           <div class='col-xs-auto pr-2 text-muted'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></div>
     % else:
-          <div class='col-xs-auto pr-2 text-muted'><small>expired <strong>${util.age(override['expired_date'], True)} ago</strong></small></div>
+          <div class='col-xs-auto pr-2 text-muted'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></div>
     % endif
   </div>
 </div>
