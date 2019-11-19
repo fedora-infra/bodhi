@@ -4,6 +4,35 @@ Release notes
 
 .. towncrier release notes start
 
+v5.1.0
+======
+
+This is a feature and bugfix release.
+
+
+Features
+^^^^^^^^
+
+* Include the task id for each build when notifying that an update is ready to
+  be tested (:issue:`3724`).
+
+Bug fixes
+^^^^^^^^^
+
+* Fix BuildrootOverrides editing/expiring from the UI (:issue:`3710`).
+* Fix the traceback when builds are being signed without being included in an
+  update (:issue:`3720`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Aurélien Bompard
+* Mattia Verga
+* Pierre-Yves Chibon
+* Ryan Lerch
+
 
 v5.0.0
 ======
