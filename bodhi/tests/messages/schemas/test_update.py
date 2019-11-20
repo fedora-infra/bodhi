@@ -15,7 +15,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Unit tests for the update message schemas."""
 
-import unittest
 
 from bodhi.messages.schemas.base import BuildV1, ReleaseV1, UpdateV1, UserV1
 from bodhi.messages.schemas.update import (
@@ -36,7 +35,7 @@ from bodhi.messages.schemas.update import (
 from bodhi.tests.messages.utils import check_message
 
 
-class UpdateMessageTests(unittest.TestCase):
+class TestUpdateMessage:
     """A set of unit tests for classes in :py:mod:`bodhi_messages.schemas.update`"""
 
     def test_eject_v1(self):
