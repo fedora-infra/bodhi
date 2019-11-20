@@ -3881,7 +3881,7 @@ class Update(Base):
             })
 
         artifact = {
-            "type": "rpm-build-group",
+            "type": "koji-build-group",
             "id": f"{self.alias}-{self.version_hash}",
             "repository": self.abs_url(),
             "builds": builds,
