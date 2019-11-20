@@ -1114,6 +1114,21 @@ class TestUtils(base.BaseTestCase):
         clean.assert_called_once_with(expected_text, tags=expected_tags,
                                       attributes=expected_attributes)
 
+    def test_markup_without_bodhi_extensions(self):
+        """Ensure Bodhi extensions are not used with bodhi=False"""
+        text = (
+            'rhbz#12345\n'
+            '@mattia\n'
+            'FEDORA-EPEL-2019-1a2b3c4d5e'
+        )
+        html = util.markup(None, text, bodhi=False)
+        assert html == \
+            (
+                '<p>rhbz#12345\n'
+                '@mattia\n'
+                'FEDORA-EPEL-2019-1a2b3c4d5e</p>'
+            )
+
     def test_rpm_header(self):
         h = util.get_rpm_header('libseccomp')
         self.assertEqual(h['name'], 'libseccomp')
