@@ -258,6 +258,48 @@ class TestGenericViews(base.BaseTestCase):
             "</div>"
         )
 
+    def test_markdown_with_update_alias(self):
+        """Update alias should be linkified."""
+        res = self.app.get('/markdown', {
+            'text': 'See FEDORA-2019-1a2b3c4d5e.',
+        }, status=200)
+        self.assertEqual(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p>See '
+            '<a href="http://localhost/updates/FEDORA-2019-1a2b3c4d5e">'
+            'FEDORA-2019-1a2b3c4d5e'
+            '</a>.</p></div>'
+        )
+
+    def test_markdown_with_update_link(self):
+        """Update link should be converted to alias."""
+        res = self.app.get('/markdown', {
+            'text': 'See http://localhost:6543/updates/FEDORA-2019-1a2b3c4d5e.',
+        }, status=200)
+        self.assertEqual(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p>See '
+            '<a href="http://localhost/updates/FEDORA-2019-1a2b3c4d5e">'
+            'FEDORA-2019-1a2b3c4d5e'
+            '</a>.</p></div>'
+        )
+
+    def test_markdown_with_fake_update_link(self):
+        """Update link of another domain isn't converted to alias."""
+        res = self.app.get('/markdown', {
+            'text': 'See http://bodhi.fake.org/updates/FEDORA-2019-1a2b3c4d5e.',
+        }, status=200)
+        self.assertEqual(
+            res.json_body['html'],
+            '<div class="markdown">'
+            '<p>See '
+            '<a href="http://bodhi.fake.org/updates/FEDORA-2019-1a2b3c4d5e">'
+            'http://bodhi.fake.org/updates/FEDORA-2019-1a2b3c4d5e'
+            '</a>.</p></div>'
+        )
+
     def test_markdown_with_fenced_code_block(self):
         res = self.app.get('/markdown', {
             'text': '```\nsudo dnf install bodhi\n```',
