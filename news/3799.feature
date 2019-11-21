@@ -1,0 +1,1 @@
+Add a dockerfile to the repository so that we can build images directly from the source code.
