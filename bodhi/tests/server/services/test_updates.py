@@ -32,7 +32,7 @@ import requests
 from webtest import TestApp
 
 from bodhi.messages.schemas import base as base_schemas, update as update_schemas
-from bodhi.server import main, buildsys
+from bodhi.server import main
 from bodhi.server.config import config
 from bodhi.server.models import (
     Build, BuildrootOverride, Compose, Group, RpmPackage, ModulePackage, Release,
@@ -292,11 +292,12 @@ class TestNewUpdate(BasePyTestCase):
         assert up['status'] == 'error'
         assert up['errors'][0]['description'] == "Koji error getting build: bodhi-2.0.0-2.fc17"
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task')
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     @unused_mock_patch(**mock_uuid4_version1)
     @unused_mock_patch(**mock_valid_requirements)
     @pytest.mark.parametrize('rawhide_workflow', (True, False))
-    def test_new_rpm_update_from_tag(self, rawhide_workflow):
+    def test_new_rpm_update_from_tag(self, handle_side_and_related_tags_task, rawhide_workflow):
         """Test creating an update using builds from a Koji tag."""
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
@@ -343,33 +344,9 @@ class TestNewUpdate(BasePyTestCase):
 
         resp = self.app.get(f"/updates/{up['alias']}", headers={'Accept': 'text/html'})
 
-        koji_session = buildsys.get_session()
         if rawhide_workflow:
             # check that the sidetag gets displayed on the update page
             assert 'title="Builds from the Side Tag: f17-build-side-7777' in resp
-
-            expected_pending_signing = ('f17-build-side-7777-signing-pending',
-                                        {'parent': 'f17-build-side-7777',
-                                         'locked': False,
-                                         'maven_support': False,
-                                         'name': 'f17-build-side-7777-signing-pending',
-                                         'perm': 'admin',
-                                         'arches': None,
-                                         'maven_include_all': False,
-                                         'perm_id': 1})
-            expected_testing = ('f17-build-side-7777-testing-pending',
-                                {'parent': 'f17-build-side-7777',
-                                 'locked': False,
-                                 'maven_support': False,
-                                 'name': 'f17-build-side-7777-testing-pending',
-                                 'perm': 'admin',
-                                 'arches': None,
-                                 'maven_include_all': False,
-                                 'perm_id': 1})
-            assert expected_pending_signing in koji_session.__tags__
-            assert expected_testing in koji_session.__tags__
-            assert ('f17-build-side-7777-signing-pending',
-                    'gnome-backgrounds-3.0-1.fc17') in koji_session.__added__
         else:
             # stable release workflow
 
@@ -377,13 +354,10 @@ class TestNewUpdate(BasePyTestCase):
             # by the time the update is created, it shouldn't exist anymore
             assert 'title="Builds from the Side Tag:' not in resp
 
-            update_added_tag = ('f17-updates-signing-pending', 'gnome-backgrounds-3.0-1.fc17')
-            removed_tag = {'id': 7777, 'name': 'f17-build-side-7777'}
-            assert update_added_tag in koji_session.__added__
-            assert removed_tag not in koji_session.__side_tags__
-            assert removed_tag in koji_session.__removed_side_tags__
-
-        koji_session.clear()
+        handle_side_and_related_tags_task.delay.assert_called_once()
+        called_args = handle_side_and_related_tags_task.delay.call_args[0]
+        # don't check the first argument, it's the update object
+        assert called_args[1] == 'f17-build-side-7777'
 
         # now try to create another update with the same side tag
         update = self.get_update(builds=None, from_tag='f17-build-side-7777')
@@ -3006,6 +2980,8 @@ class TestUpdatesService(BasePyTestCase):
         assert body['errors'][0]['name'] == 'user'
         assert body['errors'][0]['description'] == "Invalid users specified: santa"
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
     def test_edit_update(self, *args):
@@ -3058,6 +3034,8 @@ class TestUpdatesService(BasePyTestCase):
         assert up['builds'][0]['nvr'] == 'bodhi-2.0.0-3.fc17'
         assert self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first() is None
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
     def test_edit_rpm_update_from_tag(self, *args):
@@ -3120,11 +3098,8 @@ class TestUpdatesService(BasePyTestCase):
         assert up['builds'][0]['nvr'] == 'bodhi-2.0.0-3.fc17'
         assert self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first() is None
 
-        # check that the added build was tagged in koji
-        koji_session = buildsys.get_session()
-        assert ('f17-build-side-7777-signing-pending',
-                'bodhi-2.0.0-3.fc17') in koji_session.__added__
-
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
     def test_edit_testing_update_with_new_builds(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
@@ -3172,6 +3147,8 @@ class TestUpdatesService(BasePyTestCase):
         assert up['builds'][0]['nvr'] == 'bodhi-2.0.0-3.fc17'
         assert self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first() is None
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
     def test_edit_testing_update_with_new_builds_with_stable_request(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
@@ -3219,6 +3196,8 @@ class TestUpdatesService(BasePyTestCase):
         assert up['builds'][0]['nvr'] == 'bodhi-2.0.0-3.fc17'
         assert self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first() is None
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
     def test_edit_update_with_different_release(self, *args):
         """Test editing an update for one release with builds from another."""
@@ -4211,6 +4190,8 @@ class TestUpdatesService(BasePyTestCase):
         assert 'updates' in data
         assert len(data['updates']) == 2
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
     def test_edit_update_bugs(self, *args):
         build = 'bodhi-2.0.0-2.fc17'
@@ -4360,6 +4341,8 @@ class TestUpdatesService(BasePyTestCase):
         expected = False
         assert actual == expected
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
     def test_edit_testing_update_reset_karma(self, *args):
         nvr = 'bodhi-2.0.0-2.fc17'
@@ -4390,6 +4373,8 @@ class TestUpdatesService(BasePyTestCase):
         # This is what we really want to test here.
         assert up['karma'] == 0
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
     def test_edit_testing_update_reset_karma_with_same_tester(self, *args):
         """
@@ -5348,6 +5333,8 @@ class TestUpdatesService(BasePyTestCase):
         assert upd.builds[0].nvr in resp
         assert 'Push to Stable' in resp
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
     def test_edit_update_with_expired_override(self, *args):
         """
@@ -5496,6 +5483,8 @@ class TestUpdatesService(BasePyTestCase):
         assert len(up.builds) == 1
         assert up.builds[0].nvr == nvr1
 
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task', mock.Mock())
+    @mock.patch('bodhi.server.models.tag_update_builds_task', mock.Mock())
     @mock.patch(**mock_valid_requirements)
     def test_meets_testing_requirements_since_karma_reset_critpath(self, *args):
         """

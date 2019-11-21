@@ -1701,33 +1701,6 @@ class TestUpdateEdit(BasePyTestCase):
         with pytest.raises(model.LockedUpdateException):
             model.Update.edit(request, data)
 
-    @mock.patch('bodhi.server.models.log.warning')
-    def test_new_builds_log_when_release_has_no_signing_tag(self, warning):
-        """If new builds are added from a release with no signing tag, it should log a warning."""
-        package = model.RpmPackage(name='python-rpdb')
-        self.db.add(package)
-        build = model.RpmBuild(nvr='python-rpdb-1.3-1.fc17', package=package)
-        self.db.add(build)
-        update = model.Update.query.first()
-        data = {
-            'edited': update.alias, 'builds': [update.builds[0].nvr, build.nvr], 'bugs': []}
-        request = mock.MagicMock()
-        request.buildinfo = {
-            build.nvr: {
-                'nvr': build._get_n_v_r(), 'info': buildsys.get_session().getBuild(build.nvr)}}
-        request.db = self.db
-        request.user.name = 'tester'
-        update.release.pending_signing_tag = ''
-        self.db.flush()
-
-        with mock_sends(Message):
-            model.Update.edit(request, data)
-
-        warning.assert_called_once_with('F17 has no pending_signing_tag')
-        update = model.Update.query.first()
-        assert set([b.nvr for b in update.builds]) == (
-            {'bodhi-2.0-1.fc17', 'python-rpdb-1.3-1.fc17'})
-
     def test_remove_builds_from_locked_update(self):
         """Adding a build to a locked update should raise LockedUpdateException."""
         data = {
@@ -1757,6 +1730,7 @@ class TestUpdateEdit(BasePyTestCase):
         assert update.display_name == ''
 
 
+@mock.patch("bodhi.server.models.tag_update_builds_task", mock.Mock())
 @mock.patch("bodhi.server.models.handle_update", mock.Mock())
 class TestUpdateVersionHash(BasePyTestCase):
     """Tests for the Update.version_hash property."""
