@@ -69,7 +69,12 @@ $(document).ready(function() {
                     } else {
                         // Check Bug product
                         var product = data.bugs[0].product;
-                        if (settings.bz_products.indexOf(product) == -1) {
+                        // 'Security Response' product is a special case
+                        // We don't want Bodhi to operate on those bugs, but it is fine
+                        // to add them to the Update, so don't bother the user with a warning
+                        allowedProducts = settings.bz_products;
+                        allowedProducts.push('Security Response');
+                        if (allowedProducts.indexOf(product) == -1) {
                             messenger.post({
                                 message: 'Bug #' + data.bugs[0].id + ' doesn\'t seem to refer to a product that Bodhi manages updates for.\nAre you sure you want to reference it in this update? Bodhi will not be able to operate on this bug!',
                                 type: 'error',
