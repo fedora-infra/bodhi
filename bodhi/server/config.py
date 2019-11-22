@@ -276,7 +276,7 @@ class BodhiConfig(dict):
             'value': 'dev',
             'validator': str},
         'bz_products': {
-            'value': ['Fedora', 'Fedora EPEL', 'Fedora Modules'],
+            'value': ['Fedora', 'Fedora EPEL', 'Fedora Modules', 'Security Response'],
             'validator': _generate_list_validator(',')},
         'bz_server': {
             'value': 'https://bugzilla.redhat.com/xmlrpc.cgi',
