@@ -82,7 +82,11 @@ $(document).ready(function() {
                                 type: 'error',
                             });
                         }
-                        callback({'id': data.bugs[0].id, 'summary': data.bugs[0].summary})
+                        callback({
+                            'id': data.bugs[0].id, 'summary': data.bugs[0].summary,
+                            'component': data.bugs[0].component, 'product': data.bugs[0].product,
+                            'version': data.bugs[0].version
+                        });
                     }
                     $("#bugs-card .selectize-control").removeClass("loading")
                 }
