@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright (c) 2019 Clément Verna
 #
 # This file is part of Bodhi.
 #
@@ -15,9 +15,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Fedora's update manager."""
+"""
+Increase the update alias size.
 
-__version__ = "5.1.0"
+Revision ID: ff834fa4f23e
+Revises: d3f8bd499ecd
+Create Date: 2019-11-19 18:24:14.246099
+"""
+from alembic import op
+from sqlalchemy import Unicode
 
-# This is a regular expression used to match username mentions in comments.
-MENTION_RE = r'(?<!\S)(@\w+)'
+
+# revision identifiers, used by Alembic.
+revision = 'ff834fa4f23e'
+down_revision = 'd3f8bd499ecd'
+
+
+def upgrade():
+    """Increase the size of the updates alias column."""
+    op.alter_column("updates", "alias", type_=Unicode(64))
+
+
+def downgrade():
+    """Brings back the size of the updates alias column to the old value."""
+    op.alter_column("updates", "alias", type_=Unicode(32))
