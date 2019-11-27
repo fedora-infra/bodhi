@@ -17,7 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test the bodhi package."""
 
+from unittest import TestCase
+
 import _pytest.logging
+
+
+__all__ = ['assert_multiline_equal']
 
 
 if not hasattr(_pytest.logging.LogCaptureFixture, 'messages'):
@@ -31,3 +36,7 @@ if not hasattr(_pytest.logging.LogCaptureFixture, 'messages'):
             return [r.getMessage() for r in self.records]
 
     _pytest.logging.LogCaptureFixture = MonkeyLogCaptureFixture
+
+
+_dummy = TestCase()
+assert_multiline_equal = _dummy.assertMultiLineEqual
