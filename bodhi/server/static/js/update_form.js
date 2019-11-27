@@ -181,7 +181,7 @@ $(document).ready(function() {
             },
             load: function(query, callback) {
                 $.ajax({
-                    url: '/latest_candidate?hide_existing=true&prefix=' + encodeURIComponent(query),
+                    url: '/latest_candidates?hide_existing=true&prefix=' + encodeURIComponent(query),
                     type: 'GET',
                     error: function() {
                         messenger.post({
