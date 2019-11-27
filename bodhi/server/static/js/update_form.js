@@ -182,10 +182,14 @@ $(document).ready(function() {
             load: function(query, callback) {
                 $.ajax({
 <<<<<<< HEAD
+<<<<<<< HEAD
                     url: '/latest_candidates?hide_existing=false&prefix=' + encodeURIComponent(query),
 =======
                     url: '/latest_candidate?hide_existing=true&prefix=' + encodeURIComponent(query),
 >>>>>>> 3383ca09f... Add back the ability to add abitairy text as a build
+=======
+                    url: '/latest_candidates?hide_existing=true&prefix=' + encodeURIComponent(query),
+>>>>>>> 048fb3a3c... fix typo in latest candidates URL
                     type: 'GET',
                     error: function() {
                         messenger.post({
