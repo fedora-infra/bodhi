@@ -2026,8 +2026,6 @@ class TestEdit:
                           '--notes', 'Updated package.',
                           '--url', 'http://localhost:6543'])
 
-        print(result.output)
-
         assert result.exit_code == 1
         assert result.output == ("ERROR: The --from-tag option can't be used together with"
                                  " --addbuilds or --removebuilds.\n")

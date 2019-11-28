@@ -773,7 +773,6 @@ class TestValidateBuildTags(BasePyTestCase):
         mock_cache_tags.side_effect = [['tag'], None]
 
         result = validators.validate_build_tags(self.request)
-        print(result)
         assert result is None
 
 
