@@ -1307,3 +1307,14 @@ def pyfile_to_module(
         e.strerror = 'Unable to load file (%s)' % e.strerror
         raise
     return d
+
+
+def json_escape(text: str) -> str:
+    """Escape double quotes for JSON.parse compatibility.
+
+    Args:
+        text: The text to sanitize.
+    Returns:
+        Escaped text.
+    """
+    return text.replace('"', '\\"')
