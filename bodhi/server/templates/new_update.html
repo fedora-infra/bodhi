@@ -1,4 +1,7 @@
 <%inherit file="master.html"/>
+<%
+  from bodhi.server.util import json_escape
+%>
 
 <%block name="css">
 ${parent.css()}
@@ -205,7 +208,7 @@ ${update.notes}
             <select id="bugs-search" name="bugs" multiple="multiple" placeholder="search and add bugs">
                 % if update:
                 % for bug in update.bugs:
-                <option selected value="${bug.bug_id}" data-data='{"id": "${bug.bug_id}", "summary":"${bug.title}"}'>${bug.title}</option>
+                <option selected value="${bug.bug_id}" data-data='{"id": "${bug.bug_id}", "summary":"${bug.title | json_escape}"}'>${bug.title}</option>
                 % endfor
               % endif
             </select>

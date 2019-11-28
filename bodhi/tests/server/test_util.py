@@ -1596,3 +1596,11 @@ class TestGenerateChangelog:
         build.get_latest.return_value = None
         util.generate_changelog(build)
         build.get_changelog.assert_called_with(0)
+
+
+class TestJsonEscape:
+    """Tests for the json_escape() function."""
+    def test_doublequotes_escaped(self):
+        """Test that double quotes are escaped correctly for JSON.parse()."""
+        title = 'This is a "terrible" bug title!'
+        assert util.json_escape(title) == 'This is a \\"terrible\\" bug title!'
