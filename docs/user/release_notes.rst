@@ -24,6 +24,10 @@ Bug fixes
 * Fix the traceback when builds are being signed without being included in an
   update (:issue:`3720`).
 * Increase the size of the update alias column (:issue:`3779`).
+* Fix JS error when removing a bug from the list in the update form
+  (:pr:`3796`).
+* Disable warnings when adding `Security Response` bugs to an update
+  (:issue:`3789`).
 
 Contributors
 ^^^^^^^^^^^^
