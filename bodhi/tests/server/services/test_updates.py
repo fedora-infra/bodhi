@@ -476,7 +476,7 @@ class TestNewUpdate(BasePyTestCase):
         assert self.db.query(ModulePackage).count() == 2
 
     @mock.patch(**mock_valid_requirements)
-    def test_multiple_updates_single_module_steam(self, *args):
+    def test_multiple_updates_single_module_stream(self, *args):
         # Ensure there are no module packages in the DB to begin with.
         assert not self.db.query(ModulePackage).count()
         self.create_release('27M')
