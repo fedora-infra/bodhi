@@ -18,7 +18,6 @@
 """
 This module contains tests for the bodhi.server.scripts.expire_overrides module.
 """
-import unittest
 from datetime import timedelta
 from io import StringIO
 from unittest import mock
@@ -27,10 +26,10 @@ from fedora_messaging import api, testing as fml_testing
 
 from bodhi.server import models
 from bodhi.server.scripts import expire_overrides
-from bodhi.tests.server.base import BaseTestCase
+from bodhi.tests.server.base import BasePyTestCase
 
 
-class TestUsage(unittest.TestCase):
+class TestUsage:
     """
     This class contains tests for the usage() function.
     """
@@ -45,14 +44,13 @@ class TestUsage(unittest.TestCase):
         expire_overrides.usage(argv)
 
         message = ''.join([c[1][0] for c in write.mock_calls])
-        self.assertEqual(
-            message,
+        assert message == \
             ('usage: bodhi-expire-overrides <config_uri>\n(example: "bodhi-expire-overrides '
-             'development.ini")\n'))
+             'development.ini")\n')
         exit.assert_called_once_with(1)
 
 
-class TestMain(BaseTestCase):
+class TestMain(BasePyTestCase):
     """
     This class contains tests for the main() function.
     """
@@ -68,9 +66,8 @@ class TestMain(BaseTestCase):
                 with mock.patch('bodhi.server.scripts.expire_overrides.setup_logging'):
                     expire_overrides.main(['expire_overrides', 'some_config.ini', 'testnoses'])
 
-        self.assertEqual(
-            stdout.getvalue(),
-            'usage: expire_overrides <config_uri>\n(example: "expire_overrides development.ini")\n')
+        assert stdout.getvalue() == \
+            'usage: expire_overrides <config_uri>\n(example: "expire_overrides development.ini")\n'
         exit.assert_called_once_with(1)
 
     @mock.patch('bodhi.server.scripts.expire_overrides.logging.Logger.info')
@@ -90,7 +87,7 @@ class TestMain(BaseTestCase):
 
         log_info.assert_called_once_with("No active buildroot override to expire")
         buildrootoverride = self.db.query(models.BuildrootOverride).all()[0]
-        self.assertEqual(buildrootoverride.expired_date, None)
+        assert buildrootoverride.expired_date is None
 
     @mock.patch('bodhi.server.scripts.expire_overrides.logging.Logger.info')
     def test_expire(self, log_info):
@@ -110,7 +107,7 @@ class TestMain(BaseTestCase):
 
         log_info.assert_has_calls([mock.call('Expiring %d buildroot overrides...', 1),
                                    mock.call('Expired bodhi-2.0-1.fc17')], any_order=True)
-        self.assertNotEqual(buildrootoverride.expired_date, None)
+        assert buildrootoverride.expired_date is not None
 
     @mock.patch('sys.exit')
     @mock.patch('bodhi.server.scripts.expire_overrides.logging.Logger.error')
