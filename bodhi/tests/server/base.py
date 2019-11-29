@@ -184,6 +184,9 @@ class BaseTestCaseMixin:
                 _app = TestApp(main({}, testing='guest', **self.app_settings))
         self.app = _app
 
+        # ensure a clean state of the dev build system
+        buildsys.DevBuildsys.clear()
+
     def get_csrf_token(self, app=None):
         """
         Return a CSRF token that can be used by tests as they test the REST API.
