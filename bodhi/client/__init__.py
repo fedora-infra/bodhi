@@ -543,6 +543,13 @@ def edit(user: str, password: str, url: str, debug: bool, openid_api: str, **kwa
                     " --addbuilds or --removebuilds.", err=True
                 )
                 sys.exit(1)
+            if former_update.get('release', {}).get('composed_by_bodhi'):
+                click.echo(
+                    "ERROR: The release of the update is composed by Bodhi, i.e. follows the normal"
+                    " update workflow. Please build packages normally, using build root overrides"
+                    " as required, and edit the update accordingly with these new builds.", err=True
+                )
+                sys.exit(1)
             kwargs['from_tag'] = former_update['from_tag']
             del kwargs['builds']
         else:
