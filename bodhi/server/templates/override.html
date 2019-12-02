@@ -67,6 +67,7 @@ ${parent.css()}
               %endif
             %else:
               <code>${override.build.nvr}</code>
+              <input id="nvr" name="nvr" type="hidden" value="${override.build.nvr}">
               <input id="edited" name="edited" type="hidden" value="${override.build.nvr}">
             %endif
           </div>
@@ -100,7 +101,7 @@ ${parent.css()}
               % if override['expired_date'] is None:
               <span class='col-xs-auto pr-2 ml-auto text-success'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></span>
               % else:
-              <span class='col-xs-auto pr-2 ml-auto text-danger'><small>expired <strong>${util.age(override['expired_date'], True)} ago</strong></small></span>
+              <span class='col-xs-auto pr-2 ml-auto text-danger'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></span>
              % endif
              % endif
           </h5>
@@ -132,9 +133,7 @@ ${parent.css()}
                 Notes
             </h5>
           <div class="form-group">
-            <textarea class="form-control" id="notes" name="notes" rows="6" placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please." required="required">
-  ${override.notes if override is not UNDEFINED else ''}
-            </textarea>
+            <textarea class="form-control" id="notes" name="notes" rows="6" placeholder="Buildroot override notes go here.  They're really *really* useful, so feel free to write as you please." required="required">${override.notes if override is not UNDEFINED else ''}</textarea>
           </div>
         </div>
 
@@ -197,7 +196,7 @@ ${parent.css()}
               % if override['expired_date'] is None:
               <span class='col-xs-auto pr-2 ml-auto text-success'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></span>
               % else:
-              <span class='col-xs-auto pr-2 ml-auto text-danger'><small>expired <strong>${util.age(override['expired_date'], True)} ago</strong></small></span>
+              <span class='col-xs-auto pr-2 ml-auto text-danger'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></span>
              % endif
              % endif
           </h5>

@@ -89,7 +89,7 @@ class SignedHandler(object):
                 log.info('Build is not assigned to release, skipping')
                 return
 
-            if build.update.from_tag:
+            if build.update and build.update.from_tag:
                 koji_testing_tag = build.release.get_testing_side_tag(build.update.from_tag)
                 if tag != koji_testing_tag:
                     log.info("Tag is not testing side tag, skipping")
@@ -112,7 +112,9 @@ class SignedHandler(object):
             log.info("Build %s has been marked as signed" % build_nvr)
 
             # If every build in update is signed change status to testing
-            if not build.update.release.composed_by_bodhi and build.update.signed:
+            if build.update \
+                    and not build.update.release.composed_by_bodhi \
+                    and build.update.signed:
                 log.info("Every build in update is signed, set status to testing")
 
                 build.update.status = UpdateStatus.testing

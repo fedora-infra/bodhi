@@ -1,4 +1,4 @@
-# Copyright © 2016-2019 Red Hat, Inc.
+# Copyright © 2016-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -22,12 +22,14 @@ from datetime import datetime, timedelta
 from io import StringIO
 from unittest.mock import call, patch
 
+import pytest
+
 from bodhi.server import models
 from bodhi.server.scripts import untag_branched
-from bodhi.tests.server.base import BaseTestCase
+from bodhi.tests.server.base import BasePyTestCase
 
 
-class TestMain(BaseTestCase):
+class TestMain(BasePyTestCase):
     """Test the main() function."""
 
     @patch('bodhi.server.models.buildsys.get_session')
@@ -56,7 +58,7 @@ class TestMain(BaseTestCase):
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged
-        self.assertEqual(koji.untagBuild.call_count, 0)
+        assert koji.untagBuild.call_count == 0
         # An error should have been logged
         log.error.assert_called_once_with(koji.listTags.side_effect)
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
@@ -87,9 +89,9 @@ class TestMain(BaseTestCase):
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged
-        self.assertEqual(koji.untagBuild.call_count, 0)
+        assert koji.untagBuild.call_count == 0
         # No errors should have been logged
-        self.assertEqual(log.error.call_count, 0)
+        assert log.error.call_count == 0
         # The Release name should have been logged
         log.info.assert_called_once_with(release.name)
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
@@ -121,13 +123,12 @@ class TestMain(BaseTestCase):
         # Nothing should have been untagged
         koji.untagBuild.assert_called_once_with('f17-updates-signing-pending', 'bodhi-2.0-1.fc17')
         # An error should have been logged about the stable tag missing
-        self.assertEqual(log.error.call_count, 0)
+        assert log.error.call_count == 0
         # The Release name should have been logged and a message should have been logged about
         # removing the tag.
-        self.assertEqual(
-            log.info.mock_calls,
+        assert log.info.mock_calls == \
             [call(release.name),
-             call('Removing f17-updates-signing-pending from bodhi-2.0-1.fc17')])
+             call('Removing f17-updates-signing-pending from bodhi-2.0-1.fc17')]
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
     @patch('bodhi.server.models.buildsys.get_session')
@@ -157,13 +158,12 @@ class TestMain(BaseTestCase):
         # Nothing should have been untagged
         koji.untagBuild.assert_called_once_with('f17-updates-testing-pending', 'bodhi-2.0-1.fc17')
         # An error should have been logged about the stable tag missing
-        self.assertEqual(log.error.call_count, 0)
+        assert log.error.call_count == 0
         # The Release name should have been logged and a message should have been logged about
         # removing the tag.
-        self.assertEqual(
-            log.info.mock_calls,
+        assert log.info.mock_calls ==\
             [call(release.name),
-             call('Removing f17-updates-testing-pending from bodhi-2.0-1.fc17')])
+             call('Removing f17-updates-testing-pending from bodhi-2.0-1.fc17')]
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
     @patch('bodhi.server.models.buildsys.get_session')
@@ -193,7 +193,7 @@ class TestMain(BaseTestCase):
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged
-        self.assertEqual(koji.untagBuild.call_count, 0)
+        assert koji.untagBuild.call_count == 0
         # An error should have been logged about the stable tag missing
         log.error.assert_called_once_with(
             ("bodhi-2.0-1.fc17 not tagged as stable ['f17-updates-testing', "
@@ -229,12 +229,11 @@ class TestMain(BaseTestCase):
         # Nothing should have been untagged
         koji.untagBuild.assert_called_once_with('f17-updates-testing', 'bodhi-2.0-1.fc17')
         # An error should have been logged about the stable tag missing
-        self.assertEqual(log.error.call_count, 0)
+        assert log.error.call_count == 0
         # The Release name should have been logged and a message should have been logged about
         # removing the tag.
-        self.assertEqual(
-            log.info.mock_calls,
-            [call(release.name), call('Removing f17-updates-testing from bodhi-2.0-1.fc17')])
+        assert log.info.mock_calls == \
+            [call(release.name), call('Removing f17-updates-testing from bodhi-2.0-1.fc17')]
         koji.listTags.assert_called_once_with('bodhi-2.0-1.fc17')
 
     @patch('bodhi.server.models.buildsys.get_session')
@@ -262,13 +261,13 @@ class TestMain(BaseTestCase):
         initialize_db.assert_called_once_with({'some': 'settings'})
         get_appsettings.assert_called_once_with('some_config_path')
         # Nothing should have been untagged
-        self.assertEqual(koji.untagBuild.call_count, 0)
+        assert koji.untagBuild.call_count == 0
         # No errors should have been logged
-        self.assertEqual(log.error.call_count, 0)
+        assert log.error.call_count == 0
         # The Release name should have been logged
         log.info.assert_called_once_with(release.name)
         # There should have been no attempts to list the tags
-        self.assertEqual(koji.listTags.call_count, 0)
+        assert koji.listTags.call_count == 0
 
     @patch('sys.exit')
     @patch('sys.stdout', new_callable=StringIO)
@@ -276,17 +275,17 @@ class TestMain(BaseTestCase):
         """Ensure that usage is called if not enough args are passed."""
         exit.side_effect = RuntimeError("We don't want the main() function to continue.")
 
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             untag_branched.main(['untag_branched'])
 
-        self.assertIs(exc.exception, exit.side_effect)
-        self.assertEqual(
-            stdout.getvalue(),
-            'usage: untag_branched <config_uri>\n(example: "untag_branched development.ini")\n')
+        assert exc.type is RuntimeError
+        assert exc.value is exit.side_effect
+        assert stdout.getvalue() == \
+            'usage: untag_branched <config_uri>\n(example: "untag_branched development.ini")\n'
         exit.assert_called_once_with(1)
 
 
-class TestUsage(BaseTestCase):
+class TestUsage:
     """
     This class contains tests for the usage() function.
     """
@@ -300,7 +299,6 @@ class TestUsage(BaseTestCase):
 
         untag_branched.usage(argv)
 
-        self.assertEqual(
-            stdout.getvalue(),
-            'usage: untag_branched <config_uri>\n(example: "untag_branched development.ini")\n')
+        assert stdout.getvalue() == \
+            'usage: untag_branched <config_uri>\n(example: "untag_branched development.ini")\n'
         exit.assert_called_once_with(1)
