@@ -97,22 +97,22 @@ validators = (
 )
 
 
-@overrides_rss.get(schema=bodhi.server.schemas.ListOverrideSchema, renderer='rss',
+@overrides_rss.get(schema=bodhi.server.schemas.ListOverrideSchema(), renderer='rss',
                    error_handler=bodhi.server.services.errors.html_handler,
                    validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema, renderer='rss',
+@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(), renderer='rss',
                accept=('application/atom+xml',),
                error_handler=bodhi.server.services.errors.html_handler,
                validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema,
+@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(),
                accept=("application/json", "text/json"), renderer="json",
                error_handler=bodhi.server.services.errors.json_handler,
                validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema,
+@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(),
                accept=("application/javascript"), renderer="jsonp",
                error_handler=bodhi.server.services.errors.jsonp_handler,
                validators=validators)
-@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema,
+@overrides.get(schema=bodhi.server.schemas.ListOverrideSchema(),
                accept=('text/html'), renderer='overrides.html',
                error_handler=bodhi.server.services.errors.html_handler,
                validators=validators)
@@ -207,7 +207,7 @@ def query_overrides(request):
     )
 
 
-@overrides.post(schema=bodhi.server.schemas.SaveOverrideSchema,
+@overrides.post(schema=bodhi.server.schemas.SaveOverrideSchema(),
                 permission='edit',
                 accept=("application/json", "text/json"), renderer='json',
                 error_handler=bodhi.server.services.errors.json_handler,
@@ -216,7 +216,7 @@ def query_overrides(request):
                     validate_override_builds,
                     validate_expiration_date,
                 ))
-@overrides.post(schema=bodhi.server.schemas.SaveOverrideSchema,
+@overrides.post(schema=bodhi.server.schemas.SaveOverrideSchema(),
                 permission='edit',
                 accept=("application/javascript"), renderer="jsonp",
                 error_handler=bodhi.server.services.errors.jsonp_handler,

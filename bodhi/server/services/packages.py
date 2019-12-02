@@ -35,7 +35,7 @@ packages = Service(name='packages', path='/packages/',
 
 
 @packages.get(
-    schema=bodhi.server.schemas.ListPackageSchema, renderer='json',
+    schema=bodhi.server.schemas.ListPackageSchema(), renderer='json',
     error_handler=bodhi.server.services.errors.json_handler,
     validators=(colander_querystring_validator,))
 def query_packages(request):
