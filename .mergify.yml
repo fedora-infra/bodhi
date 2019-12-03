@@ -106,3 +106,11 @@ pull_request_rules:
   - label!=WIP
   - label=5.0-backports
   name: backport 5.0
+- actions:
+    backport:
+      branches:
+      - '5.1'
+  conditions:
+  - label!=WIP
+  - label=5.1-backports
+  name: backport 5.1

@@ -1808,7 +1808,7 @@ class Update(Base):
     date_stable = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
-    alias = Column(Unicode(32), unique=True, nullable=False)
+    alias = Column(Unicode(64), unique=True, nullable=False)
 
     # One-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)
@@ -3881,7 +3881,7 @@ class Update(Base):
             })
 
         artifact = {
-            "type": "rpm-build-group",
+            "type": "koji-build-group",
             "id": f"{self.alias}-{self.version_hash}",
             "repository": self.abs_url(),
             "builds": builds,
