@@ -1,4 +1,4 @@
-# Copyright © 2007-2019 Red Hat, Inc.
+# Copyright © 2007-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -110,8 +110,7 @@ class TestCheckpoint:
 
         with pytest.raises(ValueError) as exc:
             TestClass().dont_wrap_me_bro()
-
-            assert 'checkpointed functions may not return stuff' in str(exc.value)
+        assert 'checkpointed functions may not return stuff' in str(exc.value)
 
 
 @mock.patch('bodhi.server.push.initialize_db', mock.MagicMock())
@@ -349,7 +348,7 @@ That was the actual one''' % compose_dir
         with pytest.raises(ValueError) as exc:
             self.handler._get_composes(3, task)
 
-            assert f'Unable to process request: {task}' in str(exc.value)
+        assert f'Unable to process request: {task}' in str(exc.value)
         with self.db_factory() as db:
             compose = db.query(Compose).one()
             # The Compose's state should not have been altered.
@@ -647,10 +646,10 @@ That was the actual one'''
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year
                 t._wait_for_pungi(fake_popen)
-                expected_error = ('Directory at /tmp/nonsensical_directory does not look like a '
-                                  'compose')
-                expected_error = expected_error.format(datetime.datetime.utcnow().year)
-                assert expected_error in str(exc.value)
+            expected_error = ('Directory at /tmp/nonsensical_directory does not look like a '
+                              'compose')
+            expected_error = expected_error.format(datetime.datetime.utcnow().year)
+            assert expected_error in str(exc.value)
             t.db = None
 
     @mock.patch('bodhi.server.tasks.composer.ComposerThread.save_state')
@@ -674,9 +673,9 @@ That was the actual one'''
                 fake_popen.returncode = 0
                 t._startyear = datetime.datetime.utcnow().year
                 t._wait_for_pungi(fake_popen)
-                expected_error = ('Unable to find the path to the compose')
-                expected_error = expected_error.format(datetime.datetime.utcnow().year)
-                assert expected_error in str(exc.value)
+            expected_error = ('Unable to find the path to the compose')
+            expected_error = expected_error.format(datetime.datetime.utcnow().year)
+            assert expected_error in str(exc.value)
             t.db = None
 
     @mock.patch('bodhi.server.tasks.composer.ComposerThread.save_state')
@@ -699,7 +698,7 @@ That was the actual one'''
         assert 'completed_repo' in t._checkpoints
         with pytest.raises(FileNotFoundError) as exc:
             t._sanity_check_repo()
-            assert '[Errno 2] No such file or directory' in str(exc.value)
+        assert '[Errno 2] No such file or directory' in str(exc.value)
         assert 'completed_repo' not in t._checkpoints
         save_state.assert_called()
 
@@ -723,7 +722,7 @@ That was the actual one'''
         assert 'completed_repo' in t._checkpoints
         with pytest.raises(Exception) as exc:
             t._sanity_check_repo()
-            assert "Empty compose found" in str(exc.value)
+        assert "Empty compose found" in str(exc.value)
         assert 'completed_repo' not in t._checkpoints
         save_state.assert_called()
 
@@ -836,7 +835,7 @@ That was the actual one'''
         save_state.reset_mock()
         with pytest.raises(Exception) as exc:
             t._sanity_check_repo()
-            assert "Symlinks found" in str(exc.value)
+        assert "Symlinks found" in str(exc.value)
         assert 'completed_repo' not in t._checkpoints
         save_state.assert_called()
 
@@ -868,7 +867,7 @@ That was the actual one'''
         save_state.reset_mock()
         with pytest.raises(OSError) as exc:
             t._sanity_check_repo()
-            assert exc.value.errno == errno.ENOENT
+        assert exc.value.errno == errno.ENOENT
         assert 'completed_repo' not in t._checkpoints
         save_state.assert_called()
 
@@ -1555,10 +1554,10 @@ testmodule:master:20172:2
         with pytest.raises(Exception) as exc:
             t._raise_on_get_build_multicall_error([], build)
 
-            assert (
-                f'Empty list returned for getBuild("{ build.nvr }").'
-                in str(exc.value)
-            )
+        assert (
+            f'Empty list returned for getBuild("{ build.nvr }").'
+            in str(exc.value)
+        )
 
     def test_compose_module_koji_multicall_result_dict(self):
         release = self.create_release('27M')
@@ -1572,10 +1571,10 @@ testmodule:master:20172:2
         with pytest.raises(Exception) as exc:
             t._raise_on_get_build_multicall_error({}, build)
 
-            assert (
-                f'Unexpected data returned for getBuild("{ build.nvr }"): {{}}.'
-                in str(exc.value)
-            )
+        assert (
+            f'Unexpected data returned for getBuild("{ build.nvr }"): {{}}.'
+            in str(exc.value)
+        )
 
     @mock.patch(**mock_failed_taskotron_results)
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._sanity_check_repo')
@@ -2389,15 +2388,15 @@ class TestContainerComposerThread__compose_updates(ComposerThreadBaseTestCase):
         with pytest.raises(RuntimeError) as exc:
             t._compose_updates()
 
-            # Popen should have been called once.
-            skopeo_cmd = [
-                config['skopeo.cmd'], 'copy',
-                'docker://{}/f28/testcontainer1:2.0.1-71.fc28container'.format(
-                    config['container.source_registry']),
-                'docker://{}/f28/testcontainer1:2.0.1-71.fc28container'.format(
-                    config['container.destination_registry'])]
-            Popen.assert_called_once_with(skopeo_cmd, shell=False, stderr=-1, stdout=-1, cwd=None)
-            assert f"{' '.join(skopeo_cmd)} returned a non-0 exit code: 1" in str(exc.value)
+        # Popen should have been called once.
+        skopeo_cmd = [
+            config['skopeo.cmd'], 'copy',
+            'docker://{}/f28/testcontainer1:2.0.1-71.fc28container'.format(
+                config['container.source_registry']),
+            'docker://{}/f28/testcontainer1:2.0.1-71.fc28container'.format(
+                config['container.destination_registry'])]
+        Popen.assert_called_once_with(skopeo_cmd, shell=False, stderr=-1, stdout=-1, cwd=None)
+        assert f"{' '.join(skopeo_cmd)} returned a non-0 exit code: 1" in str(exc.value)
 
     @mock.patch.dict(config, {'skopeo.extra_copy_flags': '--dest-tls-verify=false'})
     @mock.patch('bodhi.server.tasks.composer.subprocess.Popen')
@@ -2565,11 +2564,11 @@ class TestPungiComposerThread__get_master_repomd_url(ComposerThreadBaseTestCase)
         with pytest.raises(ValueError) as exc:
             t._get_master_repomd_url('aarch64')
 
-            assert (
-                'Could not find any of fedora_17_testing_alt_master_repomd,'
-                'fedora_testing_alt_master_repomd in the config file'
-                in str(exc.value)
-            )
+        assert (
+            'Could not find any of fedora_17_testing_alt_master_repomd,'
+            'fedora_testing_alt_master_repomd in the config file'
+            in str(exc.value)
+        )
 
         self.assert_sems(0)
 
@@ -2689,7 +2688,7 @@ class TestComposerThread__perform_tag_actions(ComposerThreadBaseTestCase):
         with pytest.raises(Exception) as exc:
             t._perform_tag_actions()
 
-            assert "Failed to move builds: ['failed_task_1']" in str(exc.value)
+        assert "Failed to move builds: ['failed_task_1']" in str(exc.value)
         # Since the task didn't really fail (we just mocked that it did) the DevBuildsys should have
         # registered that the move occurred.
         assert buildsys.DevBuildsys.__moved__ == \
@@ -2995,7 +2994,7 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
             with mock_sends(*[base_schemas.BodhiMessage] * 5):
                 t._wait_for_sync()
 
-            assert "Not found an arch to _wait_for_sync with" in str(exc.value)
+        assert "Not found an arch to _wait_for_sync with" in str(exc.value)
         save.assert_not_called()
 
     @mock.patch.dict(
@@ -3207,11 +3206,11 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
                     {'repo': t.id, 'agent': 'bowlofeggs'})):
                 t._wait_for_sync()
 
-            assert (
-                'Could not find any of fedora_17_testing_master_repomd,'
-                'fedora_testing_master_repomd in the config file'
-                in str(exc.value)
-            )
+        assert (
+            'Could not find any of fedora_17_testing_master_repomd,'
+            'fedora_testing_master_repomd in the config file'
+            in str(exc.value)
+        )
         save.assert_called_once_with(ComposeState.syncing_repo)
 
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread.save_state')
