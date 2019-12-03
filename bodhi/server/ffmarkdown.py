@@ -22,6 +22,7 @@ Fedora-flavored Markdown.
 Author: Ralph Bean <rbean@redhat.com>
 """
 
+from re import escape
 import typing
 
 from markdown.extensions import Extension
@@ -31,6 +32,7 @@ import markdown.util
 import pyramid.threadlocal
 
 from bodhi import MENTION_RE
+from bodhi.server.config import config
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import re  # noqa: 401
@@ -38,6 +40,9 @@ if typing.TYPE_CHECKING:  # pragma: no cover
 
 
 BUGZILLA_RE = r'([a-zA-Z]+)(#[0-9]{5,})'
+UPDATE_RE = (r'(?:(?<!\S)|('
+             + escape(config['base_address'])
+             + r'updates/))([A-Z\-]+-\d{4}-[^\W_]{10})(?:(?=[\.,;:])|(?!\S))')
 
 
 def user_url(name: str) -> str:
@@ -86,6 +91,19 @@ def bug_url(tracker: str, idx: typing.Union[int, str]) -> typing.Optional[str]:
         return None
 
 
+def update_url(alias: str) -> str:
+    """
+    Return a URL to the given update.
+
+    Args:
+        alias: The alias of the update.
+    Returns:
+        A URL to the requested update.
+    """
+    request = pyramid.threadlocal.get_current_request()
+    return request.route_url('update', id=alias)
+
+
 class MentionPattern(markdown.inlinepatterns.Pattern):
     """Match username mentions and point to their profiles."""
 
@@ -130,6 +148,27 @@ class BugzillaPattern(markdown.inlinepatterns.Pattern):
         return el
 
 
+class UpdatePattern(markdown.inlinepatterns.Pattern):
+    """Match update alias pattern and link to the update."""
+
+    def handleMatch(self, m: 're.Match') -> 'xml.etree.ElementTree.Element':
+        """
+        Build and return an Element that links to the referenced update.
+
+        Args:
+            m: The regex match on the update.
+        Returns:
+            An html anchor referencing the matched update.
+        """
+        alias = markdown.util.AtomicString(m.group(3))
+        url = update_url(alias)
+
+        el = markdown.util.etree.Element("a")
+        el.set('href', url)
+        el.text = alias
+        return el
+
+
 class SurroundProcessor(markdown.postprocessors.Postprocessor):
     """A postprocessor to surround the text with a markdown <div>."""
 
@@ -158,4 +197,5 @@ class BodhiExtension(Extension):
         """
         md.inlinePatterns.add('mention', MentionPattern(MENTION_RE, md), '_end')
         md.inlinePatterns.add('bugzilla', BugzillaPattern(BUGZILLA_RE, md), '_end')
+        md.inlinePatterns.add('update', UpdatePattern(UPDATE_RE, md), '_end')
         md.postprocessors.add('surround', SurroundProcessor(md), '_end')

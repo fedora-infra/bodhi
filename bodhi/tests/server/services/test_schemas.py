@@ -1,4 +1,4 @@
-# Copyright 2019 Red Hat, Inc.
+# Copyright 2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -25,7 +25,7 @@ from bodhi.server.services import schemas
 from bodhi.tests.server import base
 
 
-class TestMessageSchemasV1__init__(base.BaseTestCase):
+class TestMessageSchemasV1__init__(base.BasePyTestCase):
     """This class contains tests for the MessageSchemasV1.__init__() method."""
     def test___init__(self):
         """Assert the request is stored properly."""
@@ -33,10 +33,10 @@ class TestMessageSchemasV1__init__(base.BaseTestCase):
 
         schemas_resource = schemas.MessageSchemasV1(request)
 
-        self.assertIs(schemas_resource.request, request)
+        assert schemas_resource.request is request
 
 
-class TestMessageSchemasV1__acl__(base.BaseTestCase):
+class TestMessageSchemasV1__acl__(base.BasePyTestCase):
     """This class contains tests for the MessageSchemasV1.__acl__() method."""
     def test___acl__(self):
         """Assert the permissions are correct."""
@@ -45,31 +45,30 @@ class TestMessageSchemasV1__acl__(base.BaseTestCase):
 
         acls = schemas_resource.__acl__()
 
-        self.assertEqual(acls, [(security.Allow, security.Everyone, 'view_schemas')])
+        assert acls == [(security.Allow, security.Everyone, 'view_schemas')]
 
 
-class TestMessageSchemasV1CollectionGet(base.BaseTestCase):
+class TestMessageSchemasV1CollectionGet(base.BasePyTestCase):
     """This class contains tests for the MessageSchemasV1.collection_get() method."""
     def test_get(self):
         """Test with a GET request."""
         response = self.app.get('/message-schemas/v1/', status=200, headers={'Accept': 'text/json'})
 
-        self.assertEqual(
-            set(response.json),
-            set([
-                'bodhi.buildroot_override.tag', 'bodhi.buildroot_override.untag',
-                'bodhi.compose.complete', 'bodhi.compose.composing', 'bodhi.compose.start',
-                'bodhi.compose.sync.done', 'bodhi.compose.sync.wait',
-                'bodhi.errata.publish', 'bodhi.repo.done', 'bodhi.update.comment',
-                'bodhi.update.complete.stable', 'bodhi.update.complete.testing',
-                'bodhi.update.status.testing.koji-build-group.build.complete',
-                'bodhi.update.karma.threshold.reach', 'bodhi.update.edit', 'bodhi.update.eject',
-                'bodhi.update.request.obsolete', 'bodhi.update.request.revoke',
-                'bodhi.update.request.stable', 'bodhi.update.request.testing',
-                'bodhi.update.request.unpush', 'bodhi.update.requirements_met.stable']))
+        assert set(response.json) == set([
+            'bodhi.buildroot_override.tag', 'bodhi.buildroot_override.untag',
+            'bodhi.compose.complete', 'bodhi.compose.composing', 'bodhi.compose.start',
+            'bodhi.compose.sync.done', 'bodhi.compose.sync.wait',
+            'bodhi.errata.publish', 'bodhi.repo.done', 'bodhi.update.comment',
+            'bodhi.update.complete.stable', 'bodhi.update.complete.testing',
+            'bodhi.update.status.testing.koji-build-group.build.complete',
+            'bodhi.update.karma.threshold.reach', 'bodhi.update.edit', 'bodhi.update.eject',
+            'bodhi.update.request.obsolete', 'bodhi.update.request.revoke',
+            'bodhi.update.request.stable', 'bodhi.update.request.testing',
+            'bodhi.update.request.unpush', 'bodhi.update.requirements_met.stable'
+        ])
 
 
-class TestMessageSchemasV1Get(base.BaseTestCase):
+class TestMessageSchemasV1Get(base.BasePyTestCase):
     """This class contains tests for the MessageSchemasV1.get() method."""
     def test_404(self):
         """Assert a 404 error code when there isn't a message topic matching the URL."""
@@ -82,4 +81,4 @@ class TestMessageSchemasV1Get(base.BaseTestCase):
             '/message-schemas/v1/bodhi.update.comment',
             status=200, headers={'Accept': 'text/json'})
 
-        self.assertEqual(response.json, UpdateCommentV1.body_schema)
+        assert response.json == UpdateCommentV1.body_schema

@@ -384,7 +384,7 @@ padding-bottom: 2em;
 #builds-card .selectize-control.multi .selectize-input > div,
 #bugs-card .selectize-control.multi .selectize-input > div
 {
-    background-color: white; 428bca
+    background-color: white;
 }
 
 #builds-card .selectize-control.multi .selectize-input > div.active,
@@ -399,9 +399,6 @@ padding-bottom: 2em;
     padding-top:4px;
 }
 
-#builds-card  .selectize-dropdown .create{
-    display: none;
-}
 .masthead{
     border-bottom: 1px solid #ccc;
     box-shadow: 0 0 10px 2px #ddd;
