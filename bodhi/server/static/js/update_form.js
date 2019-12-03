@@ -69,7 +69,12 @@ $(document).ready(function() {
                     } else {
                         // Check Bug product
                         var product = data.bugs[0].product;
-                        if (settings.bz_products.indexOf(product) == -1) {
+                        // 'Security Response' product is a special case
+                        // We don't want Bodhi to operate on those bugs, but it is fine
+                        // to add them to the Update, so don't bother the user with a warning
+                        allowedProducts = settings.bz_products;
+                        allowedProducts.push('Security Response');
+                        if (allowedProducts.indexOf(product) == -1) {
                             messenger.post({
                                 message: 'Bug #' + data.bugs[0].id + ' doesn\'t seem to refer to a product that Bodhi manages updates for.\nAre you sure you want to reference it in this update? Bodhi will not be able to operate on this bug!',
                                 type: 'error',
@@ -82,7 +87,11 @@ $(document).ready(function() {
                                 type: 'error',
                             });
                         }
-                        callback({'id': data.bugs[0].id, 'summary': data.bugs[0].summary})
+                        callback({
+                            'id': data.bugs[0].id, 'summary': data.bugs[0].summary,
+                            'component': data.bugs[0].component, 'product': data.bugs[0].product,
+                            'version': data.bugs[0].version
+                        });
                     }
                     $("#bugs-card .selectize-control").removeClass("loading")
                 }
@@ -131,19 +140,7 @@ $(document).ready(function() {
         var $builds_search_selectize = $('#builds-search').selectize({
             valueField: 'nvr',
             labelField: 'nvr',
-            create: function(input, callback){
-                if (input in $builds_search_selectize.options){
-                    callback($builds_search_selectize.options[input])
-                } else {
-                    messenger.post({
-                        message: input+' is not tagged in koji as a candidate build',
-                        type: 'error',
-                    });
-                    callback();
-                }
-                console.log();
-                callback()
-            },
+            create: true,
             searchField: ['nvr', 'tag_name', 'owner_name'],
             preload: true,
             plugins: ['remove_button','restore_on_backspace'],
@@ -178,9 +175,6 @@ $(document).ready(function() {
                 $('#builds-search-selectized').attr("placeholder", $builds_search_selectize.settings.placeholder);
             },
             onInitialize: function(){
-                // make sure the placeholder shows when items already exist when page loads
-                $('#builds-search-selectized').attr("placeholder", "loading candidate builds...");
-
                 // preload bugs from builds that exist when the page loads (i.e. when editing an existing update)
                     for (var b in this.options) {
                         if (this.options.hasOwnProperty(b)) {
@@ -195,10 +189,6 @@ $(document).ready(function() {
                 $('#builds-search-selectized').attr("placeholder", "");
             },
             load: function(query, callback) {
-                if (query == ""){
-                    console.log("query -"+query+"-");
-                    $builds_search_selectize.disable()
-                }
                 $.ajax({
                     url: '/latest_candidates?hide_existing=true&prefix=' + encodeURIComponent(query),
                     type: 'GET',
@@ -211,7 +201,6 @@ $(document).ready(function() {
                     },
                     success: function(res) {
                         $('#builds-search-selectized').attr("placeholder", "search and add builds");
-                        $builds_search_selectize.enable()
                         callback(res);
                     }
                 });
