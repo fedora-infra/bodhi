@@ -1,4 +1,4 @@
-# Copyright © 2017 Red Hat, Inc.
+# Copyright © 2017-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -19,7 +19,7 @@
 from bodhi.tests.server import base
 
 
-class TestCSRFService(base.BaseTestCase):
+class TestCSRFService(base.BasePyTestCase):
 
     def test_csrf_html(self):
         """
@@ -27,7 +27,7 @@ class TestCSRFService(base.BaseTestCase):
         """
         res = self.app.get('/csrf', headers={'Accept': 'text/html'}, status=200)
 
-        self.assertEqual(res.body.decode('utf-8'), self.get_csrf_token())
+        assert res.body.decode('utf-8') == self.get_csrf_token()
 
     def test_csrf_json(self):
         """
@@ -35,4 +35,4 @@ class TestCSRFService(base.BaseTestCase):
         """
         res = self.app.get('/csrf', headers={'Accept': 'application/json'}, status=200)
 
-        self.assertEqual(res.body.decode('utf-8'), '{"csrf_token": "%s"}' % self.get_csrf_token())
+        assert res.body.decode('utf-8') == '{"csrf_token": "%s"}' % self.get_csrf_token()

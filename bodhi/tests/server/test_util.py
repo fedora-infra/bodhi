@@ -1091,6 +1091,21 @@ class TestUtils(base.BasePyTestCase):
         clean.assert_called_once_with(expected_text, tags=expected_tags,
                                       attributes=expected_attributes)
 
+    def test_markup_without_bodhi_extensions(self):
+        """Ensure Bodhi extensions are not used with bodhi=False"""
+        text = (
+            'rhbz#12345\n'
+            '@mattia\n'
+            'FEDORA-EPEL-2019-1a2b3c4d5e'
+        )
+        html = util.markup(None, text, bodhi=False)
+        assert html == \
+            (
+                '<p>rhbz#12345\n'
+                '@mattia\n'
+                'FEDORA-EPEL-2019-1a2b3c4d5e</p>'
+            )
+
     def test_rpm_header(self):
         h = util.get_rpm_header('libseccomp')
         assert h['name'] == 'libseccomp'
@@ -1502,3 +1517,57 @@ class TestPyfileToModule(base.BasePyTestCase):
         except IOError as e:
             self.fail("pyfile_to_module raised an exception in silent mode: {}".format(e))
         assert not result
+
+
+class TestGenerateChangelog:
+
+    @mock.patch("bodhi.server.util.get_rpm_header")
+    def test_nominal(self, get_rpm_header):
+        """
+        Check for nominal behavior
+        """
+        get_rpm_header.return_value = {
+            "changelogtime": [42, 41, 40],
+            "changelogtext": "dummy",
+        }
+        build = mock.Mock()
+        expected = object()
+        build.get_changelog.return_value = expected
+        result = util.generate_changelog(build)
+        build.get_changelog.assert_called_with(42)
+        assert result == expected
+
+    @mock.patch("bodhi.server.util.get_rpm_header")
+    def test_time_no_list(self, get_rpm_header):
+        """
+        Check for behavior when the changelog time is not a list
+        """
+        get_rpm_header.return_value = {
+            "changelogtime": 42,
+            "changelogtext": "dummy",
+        }
+        build = mock.Mock()
+        util.generate_changelog(build)
+        build.get_changelog.assert_called_with(42)
+
+    @mock.patch("bodhi.server.util.get_rpm_header")
+    def test_no_text(self, get_rpm_header):
+        """
+        Check for behavior when there is no changelog text
+        """
+        get_rpm_header.return_value = {
+            "changelogtime": 42,
+            "changelogtext": "",
+        }
+        build = mock.Mock()
+        util.generate_changelog(build)
+        build.get_changelog.assert_called_with(0)
+
+    def test_no_latest(self):
+        """
+        Check for crash when there are no latest builds.
+        """
+        build = mock.Mock()
+        build.get_latest.return_value = None
+        util.generate_changelog(build)
+        build.get_changelog.assert_called_with(0)

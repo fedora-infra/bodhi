@@ -20,14 +20,13 @@ This module contains tests for the bodhi.server.scripts.bshell module.
 """
 
 from unittest.mock import patch
-import unittest
 
 from click import testing
 
 from bodhi.server.scripts import bshell
 
 
-class TestMain(unittest.TestCase):
+class TestMain:
     """
     This class contains tests for the get_bodhi_shell() function.
     """
@@ -39,8 +38,8 @@ class TestMain(unittest.TestCase):
         runner = testing.CliRunner()
         r = runner.invoke(bshell.get_bodhi_shell)
 
-        self.assertEqual(r.exit_code, 0)
-        self.assertEqual(r.output, "")
+        assert r.exit_code == 0
+        assert r.output == ""
         call.assert_called_once_with(['pshell-3', '/path/to/config.ini'])
 
     @patch('bodhi.server.scripts.bshell.get_configfile')
@@ -51,6 +50,6 @@ class TestMain(unittest.TestCase):
         runner = testing.CliRunner()
         r = runner.invoke(bshell.get_bodhi_shell)
 
-        self.assertEqual(r.exit_code, 1)
-        self.assertEqual(r.output, "Config file not found!\n")
+        assert r.exit_code == 1
+        assert r.output == "Config file not found!\n"
         call.assert_not_called()

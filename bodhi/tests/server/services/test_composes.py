@@ -1,4 +1,4 @@
-# Copyright 2017-2018 Red Hat, Inc.
+# Copyright 2017-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -25,7 +25,7 @@ from bodhi.server.services import composes
 from bodhi.tests.server import base
 
 
-class TestCompose__init__(base.BaseTestCase):
+class TestCompose__init__(base.BasePyTestCase):
     """This class contains tests for the Compose.__init__() method."""
     def test___init__(self):
         """Assert the request is stored properly."""
@@ -33,10 +33,10 @@ class TestCompose__init__(base.BaseTestCase):
 
         composes_resource = composes.Composes(request)
 
-        self.assertIs(composes_resource.request, request)
+        assert composes_resource.request is request
 
 
-class TestCompose__acl__(base.BaseTestCase):
+class TestCompose__acl__(base.BasePyTestCase):
     """This class contains tests for the Compose.__acl__() method."""
     def test___acl__(self):
         """Assert the permissions are correct."""
@@ -45,10 +45,10 @@ class TestCompose__acl__(base.BaseTestCase):
 
         acls = composes_resource.__acl__()
 
-        self.assertEqual(acls, [(security.Allow, security.Everyone, 'view_composes')])
+        assert acls == [(security.Allow, security.Everyone, 'view_composes')]
 
 
-class TestComposeCollectionGet(base.BaseTestCase):
+class TestComposeCollectionGet(base.BasePyTestCase):
     """This class contains tests for the Compose.collection_get() method."""
     def test_default_accept(self):
         """Test that an Accept header of */* gets the default JSON response."""
@@ -59,20 +59,20 @@ class TestComposeCollectionGet(base.BaseTestCase):
 
         response = self.app.get('/composes/', status=200, headers={'Accept': '*/*'})
 
-        self.assertEqual(response.json, {'composes': [compose.__json__()]})
+        assert response.json == {'composes': [compose.__json__()]}
 
     def test_no_composes_html(self):
         """Assert correct behavior for html interface when there are no composes."""
         response = self.app.get('/composes/', status=200, headers={'Accept': 'text/html'})
 
         # The Composes header should still appear in the page
-        self.assertTrue('no active composes' in response)
+        assert 'no active composes' in response
 
     def test_no_composes_json(self):
         """Assert correct behavior for json interface when there are no composes."""
         response = self.app.get('/composes/', status=200, headers={'Accept': 'application/json'})
 
-        self.assertEqual(response.json, {'composes': []})
+        assert response.json == {'composes': []}
 
     def test_with_compose_html(self):
         """Assert correct behavior for the html interface when there is a compose."""
@@ -84,10 +84,9 @@ class TestComposeCollectionGet(base.BaseTestCase):
         response = self.app.get('/composes/', status=200, headers={'Accept': 'text/html'})
 
         # The Composes header should still appear in the page
-        self.assertTrue('<h3 class="font-weight-bold m-0">Composes</h3>' in response)
-        self.assertTrue(
-            '/composes/{}/{}'.format(compose.release.name, compose.request.value) in response)
-        self.assertTrue(compose.state.description in response)
+        assert '<h3 class="font-weight-bold m-0">Composes</h3>' in response
+        assert '/composes/{}/{}'.format(compose.release.name, compose.request.value) in response
+        assert compose.state.description in response
 
     def test_with_compose_json(self):
         """Assert correct behavior for the json interface when there is a compose."""
@@ -98,10 +97,10 @@ class TestComposeCollectionGet(base.BaseTestCase):
 
         response = self.app.get('/composes/', status=200, headers={'Accept': 'application/json'})
 
-        self.assertEqual(response.json, {'composes': [compose.__json__()]})
+        assert response.json == {'composes': [compose.__json__()]}
 
 
-class TestComposeGet(base.BaseTestCase):
+class TestComposeGet(base.BasePyTestCase):
     """This class contains tests for the Compose.get() method."""
     def test_404_compose(self):
         """Assert a 404 error code when there isn't a Compose matching the URL."""
@@ -133,9 +132,9 @@ class TestComposeGet(base.BaseTestCase):
             '/composes/{}/{}'.format(compose.release.name, compose.request.value),
             status=200, headers={'Accept': 'text/html'})
 
-        self.assertTrue(compose.state.description in response)
-        self.assertTrue('{} {}'.format(compose.release.name, compose.request.value) in response)
-        self.assertTrue(update.get_title(amp=True, nvr=True, beautify=True) in response)
+        assert compose.state.description in response
+        assert '{} {}'.format(compose.release.name, compose.request.value) in response
+        assert update.get_title(amp=True, nvr=True, beautify=True) in response
 
     def test_with_compose_json(self):
         """Assert correct behavior from the json renderer when there is a compose."""
@@ -149,4 +148,4 @@ class TestComposeGet(base.BaseTestCase):
             '/composes/{}/{}'.format(compose.release.name, compose.request.value),
             status=200, headers={'Accept': 'application/json'})
 
-        self.assertEqual(response.json, {'compose': compose.__json__()})
+        assert response.json == {'compose': compose.__json__()}
