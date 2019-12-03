@@ -31,7 +31,7 @@ class TestRSS:
         """HTTPBadRequest should be raised if data can't be rendered and there's no request."""
         with pytest.raises(HTTPBadRequest) as exc:
             renderers.rss(None)({}, {})
-            assert str(exc.exception) == 'Invalid RSS feed request'
+        assert str(exc.value) == 'Invalid RSS feed request'
 
     def test_invalid_request(self):
         """HTTPBadRequest should be raised if the data isn't a type we can render."""
