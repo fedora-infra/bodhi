@@ -465,8 +465,8 @@ class TestBodhiClient_get_compose:
         with pytest.raises(bindings.ComposeNotFound) as exc:
             client.get_compose('EPEL-7', 'stable')
 
-            assert exc.release == 'EPEL-7'
-            assert exc.request == 'stable'
+        assert exc.value.release == 'EPEL-7'
+        assert exc.value.request == 'stable'
 
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
         __init__.assert_called_once_with(staging=False)
@@ -509,7 +509,7 @@ class TestBodhiClient_get_compose:
         with pytest.raises(fedora.client.ServerError) as exc:
             client.get_compose('EPEL-7', 'stable')
 
-            assert exc is server_error
+        assert exc.value is server_error
 
         send_request.assert_called_once_with('composes/EPEL-7/stable', verb='GET')
         __init__.assert_called_once_with(staging=False)
@@ -1051,7 +1051,7 @@ class TestBodhiClient_request:
         with pytest.raises(bindings.UpdateNotFound) as exc:
             client.request('bodhi-2.2.4-1.el7', 'revoke')
 
-            assert exc.update == 'bodhi-2.2.4-1.el7'
+        assert exc.value.update == 'bodhi-2.2.4-1.el7'
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
@@ -1100,7 +1100,7 @@ class TestBodhiClient_request:
         with pytest.raises(fedora.client.ServerError) as exc:
             client.request('bodhi-2.2.4-1.el7', 'revoke')
 
-            assert exc is server_error
+        assert exc.value is server_error
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/request', verb='POST', auth=True,
@@ -1854,7 +1854,7 @@ class TestBodhiClient_waive:
         with pytest.raises(bindings.UpdateNotFound) as exc:
             client.waive('bodhi-2.2.4-1.el7', comment='Expected failure', tests=None)
 
-            assert exc.update == 'bodhi-2.2.4-1.el7'
+        assert exc.value.update == 'bodhi-2.2.4-1.el7'
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/waive-test-results', verb='POST', auth=True,
@@ -1928,7 +1928,7 @@ class TestBodhiClient_waive:
         with pytest.raises(fedora.client.ServerError) as exc:
             client.waive('bodhi-2.2.4-1.el7', comment='Expected failure', tests=None)
 
-            assert exc is server_error
+        assert exc.value is server_error
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/waive-test-results', verb='POST', auth=True,
@@ -1960,7 +1960,7 @@ class TestBodhiClient_trigger_tests:
         with pytest.raises(bindings.UpdateNotFound) as exc:
             client.trigger_tests('bodhi-2.2.4-1.el7')
 
-            assert exc.update == 'bodhi-2.2.4-1.el7'
+        assert exc.value.update == 'bodhi-2.2.4-1.el7'
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,
@@ -2010,7 +2010,7 @@ class TestBodhiClient_trigger_tests:
         with pytest.raises(fedora.client.ServerError) as exc:
             client.trigger_tests('bodhi-2.2.4-1.el7')
 
-            assert exc is server_error
+        assert exc.value is server_error
 
         send_request.assert_called_once_with(
             'updates/bodhi-2.2.4-1.el7/trigger-tests', verb='POST', auth=True,
