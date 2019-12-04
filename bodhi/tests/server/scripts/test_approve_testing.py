@@ -919,7 +919,11 @@ class TestMain(BasePyTestCase):
 
     @patch("bodhi.server.buildsys.DevBuildsys.getLatestBuilds", return_value=[{
         'creation_time': '2007-08-25 19:38:29.422344'}])
-    def test_update_conflicting_build_not_pushed(self, build_creation_time):
+    @pytest.mark.parametrize(('from_tag', 'update_status'),
+                             [('f17-build-side-1234', models.UpdateStatus.pending),
+                             (None, models.UpdateStatus.obsolete)])
+    def test_update_conflicting_build_not_pushed(self, build_creation_time,
+                                                 from_tag, update_status):
         """
         Ensure that an update that have conflicting builds will not get pushed.
         """
@@ -932,7 +936,7 @@ class TestMain(BasePyTestCase):
         update.date_testing = datetime.utcnow() - timedelta(days=8)
         update.status = models.UpdateStatus.testing
         update.release.composed_by_bodhi = False
-        update.from_tag = 'f17-build-side-1234'
+        update.from_tag = from_tag
 
         # Clear pending messages
         self.db.info['messages'] = []
@@ -943,7 +947,7 @@ class TestMain(BasePyTestCase):
                 with fml_testing.mock_sends(api.Message):
                     approve_testing.main(['nosetests', 'some_config.ini'])
 
-        assert update.status == models.UpdateStatus.pending
+        assert update.status == update_status
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
