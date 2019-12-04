@@ -28,6 +28,7 @@ Bug fixes
   (:pr:`3796`).
 * Disable warnings when adding `Security Response` bugs to an update
   (:issue:`3789`).
+* Manage single build update conflicting builds. (:issue:`3828`).
 
 Contributors
 ^^^^^^^^^^^^
@@ -38,6 +39,7 @@ The following developers contributed to this release of Bodhi:
 * Clement Verna
 * Mattia Verga
 * Pierre-Yves Chibon
+* Rick Elrod
 * Ryan Lerch
 
 
