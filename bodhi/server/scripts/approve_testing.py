@@ -128,9 +128,15 @@ def main(argv=sys.argv):
                                 f"These builds {builds_str} have a more recent "
                                 f"build in koji's {update.release.stable_tag} tag.",
                                 author="bodhi")
-                            update.status = UpdateStatus.pending
                             update.request = None
-                            update.remove_tag(update.release.get_testing_side_tag(update.from_tag))
+                            if update.from_tag is not None:
+                                update.status = UpdateStatus.pending
+                                update.remove_tag(
+                                    update.release.get_testing_side_tag(update.from_tag))
+                            else:
+                                update.status = UpdateStatus.obsolete
+                                update.remove_tag(update.release.pending_testing_tag)
+                                update.remove_tag(update.release.candidate_tag)
                             db.commit()
                             continue
 
