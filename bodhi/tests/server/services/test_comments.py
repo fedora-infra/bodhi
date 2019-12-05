@@ -18,12 +18,15 @@
 
 from datetime import datetime, timedelta
 from unittest import mock
+import copy
 
 from fedora_messaging import api, testing as fml_testing
+import webtest
 
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.models import (Build, Comment, Release, RpmBuild, RpmPackage, Update,
                                  UpdateRequest, UpdateStatus, UpdateType, User)
+from bodhi.server import main
 from bodhi.tests.server import base
 
 
@@ -674,3 +677,28 @@ class TestCommentsService(base.BasePyTestCase):
         up = self.db.query(Build).filter_by(nvr=up2).one().update
         assert len(up.comments) == 0
         assert up.karma == 0
+
+    def test_comment_not_loggedin(self):
+        """
+        Test that 403 error is returned if a non-authenticated 'post comment'
+        request is received. It's important that we return 403 here so the
+        client will know to re-authenticate
+        """
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        with mock.patch('bodhi.server.Session.remove'):
+            app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
+
+        csrf = app.get('/csrf', headers={'Accept': 'application/json'}).json_body['csrf_token']
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update.alias
+        comment = {
+            'update': update,
+            'text': 'Test',
+            'karma': 0,
+            'csrf_token': csrf,
+        }
+        res = app.post_json('/comments/', comment, status=403)
+        assert 'errors' in res.json_body

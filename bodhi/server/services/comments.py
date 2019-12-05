@@ -21,6 +21,7 @@ import math
 
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
+from pyramid.httpexceptions import HTTPForbidden
 from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_, and_
 
@@ -214,6 +215,13 @@ def new_comment(request):
 
     update = data.pop('update')
     author = request.user and request.user.name
+    if not author:
+        # this can happen if we have a stale cached session, a 403
+        # response will trigger the client to reauth:
+        # https://github.com/fedora-infra/bodhi/issues/3298
+        request.errors.add('body', 'email', 'You must provide an author')
+        request.errors.status = HTTPForbidden.code
+        return
 
     try:
         comment, caveats = update.comment(session=request.db, author=author, **data)
