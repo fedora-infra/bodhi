@@ -402,7 +402,7 @@ class DevBuildsys:
 
     @multicall_enabled
     def listTagged(self, tag: str, *args, **kw) -> typing.List[typing.Any]:
-        """List updates tagged with teh given tag."""
+        """List updates tagged with the given tag."""
         latest = kw.get('latest', False)
         if tag in self._side_tag_ids_names:
             return [self.getBuild(build="gnome-backgrounds-3.0-1.fc17")]
