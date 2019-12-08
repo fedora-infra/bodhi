@@ -484,22 +484,24 @@ class TestGenericViews(base.BaseTestCase):
         # test without any parameters
         res = self.app.get('/get_sidetags')
         body = res.json_body
-        self.assertEqual(len(body), 1)
-        self.assertEqual(body[0]['id'], 7777)
-        self.assertEqual(body[0]['name'], 'f17-build-side-7777')
-        self.assertEqual(len(body[0]['builds']), 1)
-        self.assertEqual(body[0]['builds'][0]['name'], 'gnome-backgrounds')
+        self.assertEqual(len(body), 2)
+        for i, tid in enumerate((1234, 7777)):
+            self.assertEqual(body[i]['id'], tid)
+            self.assertEqual(body[i]['name'], f'f17-build-side-{tid}')
+            self.assertEqual(len(body[i]['builds']), 1)
+            self.assertEqual(body[i]['builds'][0]['name'], 'gnome-backgrounds')
 
         # test with a user parameter.
         # the actual user filtering is done on the koji side, so results
         # are the same
         res = self.app.get('/get_sidetags', {'user': 'dudemcpants'})
         body = res.json_body
-        self.assertEqual(len(body), 1)
-        self.assertEqual(body[0]['id'], 7777)
-        self.assertEqual(body[0]['name'], 'f17-build-side-7777')
-        self.assertEqual(len(body[0]['builds']), 1)
-        self.assertEqual(body[0]['builds'][0]['name'], 'gnome-backgrounds')
+        self.assertEqual(len(body), 2)
+        for i, tid in enumerate((1234, 7777)):
+            self.assertEqual(body[i]['id'], tid)
+            self.assertEqual(body[i]['name'], f'f17-build-side-{tid}')
+            self.assertEqual(len(body[i]['builds']), 1)
+            self.assertEqual(body[i]['builds'][0]['name'], 'gnome-backgrounds')
 
         # test that the contains_builds flag works
         with mock.patch('bodhi.server.buildsys.DevBuildsys.multiCall', create=True) as multicall:

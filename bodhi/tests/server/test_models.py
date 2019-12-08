@@ -2902,7 +2902,6 @@ class TestUpdate(ModelTest):
         b = self.obj.builds[0]
         release = self.obj.release
         koji = buildsys.get_session()
-        koji.clear()
         koji.__tagged__[b.nvr] = [release.testing_tag,
                                   release.pending_signing_tag,
                                   release.pending_testing_tag,
@@ -2922,7 +2921,6 @@ class TestUpdate(ModelTest):
         release = self.obj.release
         build = self.obj.builds[0]
         koji = buildsys.get_session()
-        koji.clear()
         koji.__tagged__[build.nvr] = [
             release.testing_tag, release.pending_signing_tag, release.pending_testing_tag,
             release.pending_stable_tag,

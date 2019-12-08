@@ -27,6 +27,7 @@ import time
 
 from fedora_messaging import api, testing as fml_testing
 import koji
+import pytest
 import requests
 from webtest import TestApp
 
@@ -81,6 +82,12 @@ mock_absent_taskotron_results = {
     'target': 'bodhi.server.util.taskotron_results',
     'return_value': [],
 }
+
+
+def unused_mock_patch(_mockcls=mock.MagicMock, **kwargs):
+    target = kwargs.pop('target')
+    mockobj = _mockcls(**kwargs)
+    return mock.patch(target, new=mockobj)
 
 
 @mock.patch('bodhi.server.models.handle_update', mock.Mock())
@@ -286,17 +293,19 @@ class TestNewUpdate(BasePyTestCase):
         assert up['errors'][0]['description'] == "Koji error getting build: bodhi-2.0.0-2.fc17"
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
-    @mock.patch(**mock_uuid4_version1)
-    @mock.patch(**mock_valid_requirements)
-    def test_new_rpm_update_from_tag(self, *args):
+    @unused_mock_patch(**mock_uuid4_version1)
+    @unused_mock_patch(**mock_valid_requirements)
+    @pytest.mark.parametrize('rawhide_workflow', (True, False))
+    def test_new_rpm_update_from_tag(self, rawhide_workflow):
         """Test creating an update using builds from a Koji tag."""
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
 
-        # We need release that is not composed by bodhi
-        release = Release.query.one()
-        release.composed_by_bodhi = False
-        self.db.commit()
+        if rawhide_workflow:
+            # We need a release that isn't composed by bodhi
+            release = Release.query.one()
+            release.composed_by_bodhi = False
+            self.db.commit()
 
         update = self.get_update(builds=None, from_tag='f17-build-side-7777')
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
@@ -325,33 +334,47 @@ class TestNewUpdate(BasePyTestCase):
         assert up['requirements'] == 'rpmlint'
         assert up['from_tag'] == 'f17-build-side-7777'
 
-        # check that the sidetag gets displayed on the update page
         resp = self.app.get(f"/updates/{up['alias']}", headers={'Accept': 'text/html'})
-        assert 'title="Builds from the Side Tag: f17-build-side-7777' in resp
 
         koji_session = buildsys.get_session()
-        expected_pending_signing = ('f17-build-side-7777-signing-pending',
-                                    {'parent': 'f17-build-side-7777',
-                                     'locked': False,
-                                     'maven_support': False,
-                                     'name': 'f17-build-side-7777-signing-pending',
-                                     'perm': 'admin',
-                                     'arches': None,
-                                     'maven_include_all': False,
-                                     'perm_id': 1})
-        expected_testing = ('f17-build-side-7777-testing-pending',
-                            {'parent': 'f17-build-side-7777',
-                             'locked': False,
-                             'maven_support': False,
-                             'name': 'f17-build-side-7777-testing-pending',
-                             'perm': 'admin',
-                             'arches': None,
-                             'maven_include_all': False,
-                             'perm_id': 1})
-        assert expected_pending_signing in koji_session.__tags__
-        assert expected_testing in koji_session.__tags__
-        assert ('f17-build-side-7777-signing-pending',
-                'gnome-backgrounds-3.0-1.fc17') in koji_session.__added__
+        if rawhide_workflow:
+            # check that the sidetag gets displayed on the update page
+            assert 'title="Builds from the Side Tag: f17-build-side-7777' in resp
+
+            expected_pending_signing = ('f17-build-side-7777-signing-pending',
+                                        {'parent': 'f17-build-side-7777',
+                                         'locked': False,
+                                         'maven_support': False,
+                                         'name': 'f17-build-side-7777-signing-pending',
+                                         'perm': 'admin',
+                                         'arches': None,
+                                         'maven_include_all': False,
+                                         'perm_id': 1})
+            expected_testing = ('f17-build-side-7777-testing-pending',
+                                {'parent': 'f17-build-side-7777',
+                                 'locked': False,
+                                 'maven_support': False,
+                                 'name': 'f17-build-side-7777-testing-pending',
+                                 'perm': 'admin',
+                                 'arches': None,
+                                 'maven_include_all': False,
+                                 'perm_id': 1})
+            assert expected_pending_signing in koji_session.__tags__
+            assert expected_testing in koji_session.__tags__
+            assert ('f17-build-side-7777-signing-pending',
+                    'gnome-backgrounds-3.0-1.fc17') in koji_session.__added__
+        else:
+            # stable release workflow
+
+            # check that the sidetag doesn't get displayed on the update page,
+            # by the time the update is created, it shouldn't exist anymore
+            assert 'title="Builds from the Side Tag:' not in resp
+
+            update_added_tag = ('f17-updates-signing-pending', 'gnome-backgrounds-3.0-1.fc17')
+            removed_tag = {'id': 7777, 'name': 'f17-build-side-7777'}
+            assert update_added_tag in koji_session.__added__
+            assert removed_tag not in koji_session.__side_tags__
+            assert removed_tag in koji_session.__removed_side_tags__
 
         koji_session.clear()
 
@@ -476,7 +499,7 @@ class TestNewUpdate(BasePyTestCase):
         assert self.db.query(ModulePackage).count() == 2
 
     @mock.patch(**mock_valid_requirements)
-    def test_multiple_updates_single_module_steam(self, *args):
+    def test_multiple_updates_single_module_stream(self, *args):
         # Ensure there are no module packages in the DB to begin with.
         assert not self.db.query(ModulePackage).count()
         self.create_release('27M')
@@ -2995,6 +3018,11 @@ class TestUpdatesService(BasePyTestCase):
         """Test editing an update using (updated) builds from a Koji tag."""
         # We don't want the new update to obsolete the existing one.
         self.db.delete(Update.query.one())
+
+        # We need a release that isn't composed by bodhi
+        release = Release.query.one()
+        release.composed_by_bodhi = False
+        self.db.commit()
 
         # We don't want an existing buildroot override to clutter the messages.
         self.db.delete(BuildrootOverride.query.one())
