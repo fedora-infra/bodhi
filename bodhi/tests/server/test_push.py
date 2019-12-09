@@ -177,7 +177,10 @@ class TestFilterReleases(base.BaseTestCase):
 
         with self.assertRaises(click.BadParameter) as ex:
             push._filter_releases(self.db, query, 'RELEASE WITH NO NAME')
-            self.assertEqual(str(ex.exception), 'Unknown release: RELEASE WITH NO NAME')
+        self.assertEqual(
+            str(ex.exception),
+            'Unknown release, or release not allowed to be composed: RELEASE WITH NO NAME'
+        )
 
     def test_archived_release(self):
         """

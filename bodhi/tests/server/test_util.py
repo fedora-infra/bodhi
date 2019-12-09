@@ -189,10 +189,10 @@ class TestCallAPI:
         with pytest.raises(RuntimeError) as exc:
             util.call_api('url', 'service_name', retries=1)
 
-            assert str(exc.exception) == \
-                ('Bodhi failed to get a resource from '
-                 'service_name at the following URL "url". The '
-                 'status code was "503". The error was "{\'some\': \'stuff\'}".')
+        assert str(exc.value) == \
+            ('Bodhi failed to get a resource from '
+             'service_name at the following URL "url". The '
+             'status code was "503". The error was "{\'some\': \'stuff\'}".')
         assert get.mock_calls == [mock.call('url', timeout=60), mock.call('url', timeout=60)]
         sleep.assert_called_once_with(1)
 
@@ -391,7 +391,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
         """A ValueError should be raised with invalid repo type."""
         with pytest.raises(ValueError) as excinfo:
             util.sanity_check_repodata("so", "wrong")
-            assert str(excinfo.exception) == 'repo_type must be one of module, source, or yum.'
+        assert str(excinfo.value) == 'repo_type must be one of module, source, or yum.'
 
     @mock.patch('bodhi.server.util.librepo')
     def test_librepo_exception(self, librepo):
@@ -403,7 +403,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
 
         with pytest.raises(RepodataException) as excinfo:
             util.sanity_check_repodata('/tmp/', 'yum')
-            assert str(excinfo.exception) == 'msg'
+        assert str(excinfo.value) == 'msg'
 
     def _mkmetadatadir_w_modules(self):
         base.mkmetadatadir(self.tempdir)
@@ -437,9 +437,9 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
 
         with pytest.raises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='module')
-            assert str(exc.exception) == \
-                ("DNF did not return expected output when running test!"
-                 " Test: ['module', 'list'], expected: .*, output: ")
+        assert str(exc.value) == \
+            ("DNF did not return expected output when running test!"
+             " Test: ['module', 'list'], expected: .*, output: ")
 
     def test_updateinfo_empty_tags(self):
         """RepodataException should be raised if <id/> is found in updateinfo."""
@@ -450,7 +450,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
 
         with pytest.raises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='yum')
-            assert str(exc.exception) == 'updateinfo.xml.gz contains empty ID tags'
+        assert str(exc.value) == 'updateinfo.xml.gz contains empty ID tags'
 
     def test_comps_invalid_notxml(self):
         """RepodataException should be raised if comps is invalid."""
@@ -461,7 +461,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
 
         with pytest.raises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='yum')
-            assert str(exc.exception) == 'Comps file unable to be parsed'
+        assert str(exc.value) == 'Comps file unable to be parsed'
 
     def test_comps_invalid_nonsense(self):
         """RepodataException should be raised if comps is invalid."""
@@ -472,7 +472,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
 
         with pytest.raises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='yum')
-            assert str(exc.exception) == 'Comps file empty'
+        assert str(exc.value) == 'Comps file empty'
 
     def test_repomd_missing_updateinfo(self):
         """If the updateinfo data tag is missing in repomd.xml, an Exception should be raised."""
@@ -489,7 +489,7 @@ class TestSanityCheckRepodata(base.BasePyTestCase):
 
         with pytest.raises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='yum')
-            assert str(exc.exception) == 'Required parts not in repomd.xml: updateinfo'
+        assert str(exc.value) == 'Required parts not in repomd.xml: updateinfo'
 
     def test_source_true(self):
         """It should not fail source repos for missing prestodelta or comps."""
@@ -591,10 +591,10 @@ class TestUtils(base.BasePyTestCase):
             {'error': 'some error'}
         with pytest.raises(RuntimeError) as exc:
             util.get_critpath_components('f25')
-            # We are not testing the whole error message because there is no
-            # guarantee of the ordering of the GET parameters.
-            assert 'Bodhi failed to get a resource from PDC' in str(exc.exception)
-            assert 'The status code was "500".' in str(exc.exception)
+        # We are not testing the whole error message because there is no
+        # guarantee of the ordering of the GET parameters.
+        assert 'Bodhi failed to get a resource from PDC' in str(exc.value)
+        assert 'The status code was "500".' in str(exc.value)
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.log')
@@ -635,7 +635,7 @@ class TestUtils(base.BasePyTestCase):
         with pytest.raises(Exception) as exc:
             util.get_critpath_components('f26', 'rpm', frozenset(['gcc']))
 
-            assert str(exc.exception) == 'We got paging when requesting a single component?!'
+        assert str(exc.value) == 'We got paging when requesting a single component?!'
         assert session.get.mock_calls == \
             [mock.call(
                 ('http://domain.local/rest_api/v1/component-branches/?active=true'
@@ -784,11 +784,11 @@ class TestUtils(base.BasePyTestCase):
         }
         with pytest.raises(RuntimeError) as exc:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
-            expected_error = (
-                'Bodhi failed to get a resource from Pagure at the following URL '
-                '"http://domain.local/api/0/rpms/python". The status code was '
-                '"404". The error was "Project not found".')
-            assert str(exc.exception) == expected_error
+        expected_error = (
+            'Bodhi failed to get a resource from Pagure at the following URL '
+            '"http://domain.local/api/0/rpms/python". The status code was '
+            '"404". The error was "Project not found".')
+        assert str(exc.value) == expected_error
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
@@ -801,11 +801,11 @@ class TestUtils(base.BasePyTestCase):
         with pytest.raises(RuntimeError) as exc:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
 
-            expected_error = (
-                'Bodhi failed to get a resource from Pagure at the following URL '
-                '"http://domain.local/api/0/rpms/python". The status code was '
-                '"500".')
-            assert str(exc.exception) == expected_error
+        expected_error = (
+            'Bodhi failed to get a resource from Pagure at the following URL '
+            '"http://domain.local/api/0/rpms/python". The status code was '
+            '"500".')
+        assert str(exc.value) == expected_error
         assert sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
@@ -819,11 +819,11 @@ class TestUtils(base.BasePyTestCase):
         with pytest.raises(RuntimeError) as exc:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
 
-            expected_error = (
-                'Bodhi failed to get a resource from Pagure at the following URL '
-                '"http://domain.local/api/0/rpms/python". The status code was '
-                '"404". The error was "".')
-            assert str(exc.exception) == expected_error
+        expected_error = (
+            'Bodhi failed to get a resource from Pagure at the following URL '
+            '"http://domain.local/api/0/rpms/python". The status code was '
+            '"404". The error was "".')
+        assert str(exc.value) == expected_error
         assert sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
@@ -866,11 +866,11 @@ class TestUtils(base.BasePyTestCase):
         with pytest.raises(RuntimeError) as exc:
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/')
-            expected_error = (
-                'Bodhi failed to get a resource from PDC at the following URL '
-                '"http://domain.local/rest_api/v1/component-branch-slas/". The '
-                'status code was "500".')
-            assert str(exc) == expected_error
+        expected_error = (
+            'Bodhi failed to get a resource from PDC at the following URL '
+            '"http://domain.local/rest_api/v1/component-branch-slas/". The '
+            'status code was "500".')
+        assert str(exc.value) == expected_error
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
@@ -887,12 +887,12 @@ class TestUtils(base.BasePyTestCase):
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
 
-            expected_error = (
-                'Bodhi failed to get a resource from PDC at the following URL '
-                '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
-                'status code was "404". The error was '
-                '"{\'detail\': \'Not found.\'}".')
-            assert str(exc.exception) == expected_error
+        expected_error = (
+            'Bodhi failed to get a resource from PDC at the following URL '
+            '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
+            'status code was "404". The error was '
+            '"{\'detail\': \'Not found.\'}".')
+        assert str(exc.value) == expected_error
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
@@ -907,11 +907,11 @@ class TestUtils(base.BasePyTestCase):
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
 
-            expected_error = (
-                'Bodhi failed to get a resource from PDC at the following URL '
-                '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
-                'status code was "404". The error was "".')
-            assert str(exc.exception) == expected_error
+        expected_error = (
+            'Bodhi failed to get a resource from PDC at the following URL '
+            '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
+            'status code was "404". The error was "".')
+        assert str(exc.value) == expected_error
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
@@ -951,10 +951,10 @@ class TestUtils(base.BasePyTestCase):
             util.greenwave_api_post('http://domain.local/api/v1.0/decision',
                                     data)
 
-            expected_error = (
-                'Bodhi failed to send POST request to Greenwave at the following URL '
-                '"http://domain.local/api/v1.0/decision". The status code was "500".')
-            assert str(exc.exception) == expected_error
+        expected_error = (
+            'Bodhi failed to send POST request to Greenwave at the following URL '
+            '"http://domain.local/api/v1.0/decision". The status code was "500".')
+        assert str(exc.value) == expected_error
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
@@ -976,11 +976,11 @@ class TestUtils(base.BasePyTestCase):
             util.greenwave_api_post('http://domain.local/api/v1.0/decision',
                                     data)
 
-            expected_error = (
-                'Bodhi failed to send POST request to Greenwave at the following URL '
-                '"http://domain.local/api/v1.0/decision". The status code was "404". '
-                'The error was "{\'message\': \'Not found.\'}".')
-            assert str(exc.exception) == expected_error
+        expected_error = (
+            'Bodhi failed to send POST request to Greenwave at the following URL '
+            '"http://domain.local/api/v1.0/decision". The status code was "404". '
+            'The error was "{\'message\': \'Not found.\'}".')
+        assert str(exc.value) == expected_error
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
@@ -1000,11 +1000,11 @@ class TestUtils(base.BasePyTestCase):
             util.greenwave_api_post('http://domain.local/api/v1.0/decision',
                                     data)
 
-            expected_error = (
-                'Bodhi failed to send POST request to Greenwave at the following URL '
-                '"http://domain.local/api/v1.0/decision". The status code was "404". '
-                'The error was "".')
-            assert str(exc.exception) == expected_error
+        expected_error = (
+            'Bodhi failed to send POST request to Greenwave at the following URL '
+            '"http://domain.local/api/v1.0/decision". The status code was "404". '
+            'The error was "".')
+        assert str(exc.value) == expected_error
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
@@ -1117,8 +1117,8 @@ class TestUtils(base.BasePyTestCase):
     def test_rpm_header_not_found(self):
         with pytest.raises(ValueError) as exc:
             util.get_rpm_header("do-not-find-anything")
-            expected_error = "No rpm headers found in koji for 'do-not-find-anything'"
-            assert str(exc.exception) == expected_error
+        expected_error = "No rpm headers found in koji for 'do-not-find-anything'"
+        assert str(exc.value) == expected_error
 
     def test_cmd_failure_exceptions_off(self):
         ret = util.cmd('false', raise_on_error=False)
@@ -1127,7 +1127,7 @@ class TestUtils(base.BasePyTestCase):
     def test_cmd_failure_exceptions_on(self):
         with pytest.raises(RuntimeError) as exc:
             util.cmd('false', raise_on_error=True)
-            assert str(exc.exception) == "f a l s e returned a non-0 exit code: 1"
+        assert str(exc.value) == "f a l s e returned a non-0 exit code: 1"
 
     def test_sorted_updates_async_removal(self):
         u1 = self.create_update(['bodhi-1.0-1.fc24', 'somepkg-2.0-3.fc24'])
@@ -1432,7 +1432,7 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
         with pytest.raises(ValueError) as exc_context:
             with tsm():
                 raise exception
-            assert exc_context.exception is exception
+        assert exc_context.value is exception
 
         log_exception.assert_called_once_with(
             'An Exception was raised while rolling back a transaction.')
@@ -1456,7 +1456,7 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
         with pytest.raises(ValueError) as exc_context:
             with tsm():
                 raise exception
-            assert exc_context.exception is exception
+        assert exc_context.value is exception
 
         assert log_exception.call_count == 0
         assert Session.return_value.commit.call_count == 0
@@ -1507,8 +1507,9 @@ class TestPyfileToModule(base.BasePyTestCase):
         filepath = os.path.join(self.tempdir, "does-not-exist.py")
         with pytest.raises(IOError) as cm:
             util.pyfile_to_module(filepath, "testfile")
-            assert cm.exception.strerror == \
-                'Unable to load file (No such file or directory)'
+        assert str(cm.value) == \
+            ("[Errno 2] Unable to load file (No such file or directory):"
+             f" '{self.tempdir}/does-not-exist.py'")
 
     def test_invalid_path_silent(self):
         filepath = os.path.join(self.tempdir, "does-not-exist.py")
@@ -1517,3 +1518,57 @@ class TestPyfileToModule(base.BasePyTestCase):
         except IOError as e:
             self.fail("pyfile_to_module raised an exception in silent mode: {}".format(e))
         assert not result
+
+
+class TestGenerateChangelog:
+
+    @mock.patch("bodhi.server.util.get_rpm_header")
+    def test_nominal(self, get_rpm_header):
+        """
+        Check for nominal behavior
+        """
+        get_rpm_header.return_value = {
+            "changelogtime": [42, 41, 40],
+            "changelogtext": "dummy",
+        }
+        build = mock.Mock()
+        expected = object()
+        build.get_changelog.return_value = expected
+        result = util.generate_changelog(build)
+        build.get_changelog.assert_called_with(42)
+        assert result == expected
+
+    @mock.patch("bodhi.server.util.get_rpm_header")
+    def test_time_no_list(self, get_rpm_header):
+        """
+        Check for behavior when the changelog time is not a list
+        """
+        get_rpm_header.return_value = {
+            "changelogtime": 42,
+            "changelogtext": "dummy",
+        }
+        build = mock.Mock()
+        util.generate_changelog(build)
+        build.get_changelog.assert_called_with(42)
+
+    @mock.patch("bodhi.server.util.get_rpm_header")
+    def test_no_text(self, get_rpm_header):
+        """
+        Check for behavior when there is no changelog text
+        """
+        get_rpm_header.return_value = {
+            "changelogtime": 42,
+            "changelogtext": "",
+        }
+        build = mock.Mock()
+        util.generate_changelog(build)
+        build.get_changelog.assert_called_with(0)
+
+    def test_no_latest(self):
+        """
+        Check for crash when there are no latest builds.
+        """
+        build = mock.Mock()
+        build.get_latest.return_value = None
+        util.generate_changelog(build)
+        build.get_changelog.assert_called_with(0)
