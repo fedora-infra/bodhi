@@ -173,7 +173,6 @@ class TestComposer(base.BasePyTestCase):
         os.makedirs(os.path.join(self._new_compose_stage_dir, 'compose'))
 
         self.koji = buildsys.get_session()
-        self.koji.clear()  # clear out our dev introspection
 
         self.tempdir = tempfile.mkdtemp('bodhi')
         self.db_factory = base.TransactionalSessionMaker(self.Session)

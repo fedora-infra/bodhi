@@ -1889,6 +1889,7 @@ class TestEdit:
         """
         data = client_test_data.EXAMPLE_QUERY_MUNCH.copy()
         data.updates[0]['from_tag'] = 'fake_tag'
+        data.updates[0]['release']['composed_by_bodhi'] = False
         query.return_value = data
         runner = testing.CliRunner()
 
@@ -1945,6 +1946,35 @@ class TestEdit:
         assert result.exit_code == 1
         assert result.output == ("ERROR: This update was not created from a tag."
                                  " Please remove --from_tag and try again.\n")
+        bindings_client = query.mock_calls[0][1][0]
+        query.assert_called_with(
+            bindings_client, updateid='FEDORA-2017-c95b33872d')
+
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.query',
+                return_value=client_test_data.EXAMPLE_QUERY_MUNCH, autospec=True)
+    def test_from_tag_flag_release_composed_by_bodhi(self, query):
+        """
+        Assert --from-tag bails out if the release is composed by Bodhi.
+        """
+        data = client_test_data.EXAMPLE_QUERY_MUNCH.copy()
+        data.updates[0]['from_tag'] = 'fake_tag'
+        data.updates[0]['release']['composed_by_bodhi'] = True
+        query.return_value = data
+        runner = testing.CliRunner()
+
+        result = runner.invoke(
+            client.edit, ['FEDORA-2017-c95b33872d', '--user', 'bowlofeggs',
+                          '--password', 's3kr3t', '--from-tag',
+                          '--notes', 'Updated package.',
+                          '--url', 'http://localhost:6543'])
+
+        assert result.exit_code == 1
+        assert result.output == ("ERROR: The release of the update is composed by Bodhi, i.e."
+                                 " follows the normal update workflow. Please build packages"
+                                 " normally, using build root overrides as required, and edit the"
+                                 " update accordingly with these new builds.\n")
         bindings_client = query.mock_calls[0][1][0]
         query.assert_called_with(
             bindings_client, updateid='FEDORA-2017-c95b33872d')
