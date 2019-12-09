@@ -671,7 +671,6 @@ class TestCommentsService(base.BasePyTestCase):
         with fml_testing.mock_sends():
             res = self.app.post_json('/comments/', comment, status=400)
 
-        print(res)
         assert res.json_body['errors'][0]['description'] == \
             "Comments are Closed on this update. It has been pushed to stable"
         up = self.db.query(Build).filter_by(nvr=up2).one().update
