@@ -206,7 +206,7 @@ class TestUpdateMessage:
                         }, {
                             "type": "koji-build",
                             "id": 14546278,
-                            "task_id": 14546277,
+                            "task_id": None,
                             "issuer": "plautrba",
                             "component": "libsepol",
                             "nvr": "libsepol-2.8-3.fc29.x86_64",

@@ -1,0 +1,1 @@
+Allow task id to be null in the bodhi.update.status.testing message schema.

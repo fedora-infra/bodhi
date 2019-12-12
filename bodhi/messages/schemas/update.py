@@ -662,7 +662,7 @@ class UpdateReadyForTestingV1(BodhiMessage):
                     },
                     'task_id': {
                         'description': 'Task ID of the koji build.',
-                        'type': 'integer',
+                        'type': ['null', 'integer'],
                     },
                     'component': {
                         'description': 'Name of the component tested.',
