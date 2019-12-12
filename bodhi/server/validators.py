@@ -421,7 +421,7 @@ def validate_acls(request, **kwargs):
         builds = request.validated['update'].builds
 
     if not builds:
-        log.error("validate_acls was passed data with nothing to validate.")
+        log.warning("validate_acls was passed data with nothing to validate.")
         request.errors.add('body', 'builds', 'ACL validation mechanism was '
                            'unable to determine ACLs.')
         return
