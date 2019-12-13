@@ -33,6 +33,7 @@ RUN dnf install -y \
     python3-pyramid             \
     python3-pyramid-fas-openid  \
     python3-pyramid-mako        \
+    python3-pyramid_sawing      \
     python3-bugzilla            \
     python3-fedora              \
     python3-pyyaml              \
