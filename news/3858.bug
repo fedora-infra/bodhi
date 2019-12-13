@@ -1,0 +1,1 @@
+Fix potential race condition with the celery worker accessing an update before the web request was commited.
