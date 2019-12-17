@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:29
+FROM registry.fedoraproject.org/fedora:30
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
 # This works around https://bugzilla.redhat.com/show_bug.cgi?id=1705265
@@ -31,7 +31,7 @@ RUN pip-3 install \
     diff-cover \
     flake8 \
     flake8-import-order \
-    responses \
+    "responses<0.10.8" \
     "pydocstyle<4.0" \
     pytest \
     pytest-cov \
