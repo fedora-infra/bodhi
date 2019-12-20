@@ -53,4 +53,8 @@ RUN git clone -b staging https://github.com/fedora-infra/bodhi.git /srv/bodhi &&
     mkdir -p /usr/share/bodhi && \
     cp /srv/bodhi/apache/bodhi.wsgi /usr/share/bodhi/bodhi.wsgi
 
+RUN rm -f /etc/krb5.conf && \
+    ln -sf /etc/bodhi/krb5.conf /etc/krb5.conf && \
+    ln -sf /etc/keytabs/koji-keytab /etc/krb5.bodhi_bodhi.fedoraproject.org.keytab
+
 ENV USER=openshift
