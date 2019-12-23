@@ -36,20 +36,20 @@ task_routes = {
 
 beat_schedule = {
     "approve-testing": {
-        "task": "bodhi.server.tasks.approve_testing_task",
+        "task": "approve_testing",
         "schedule": 3 * 60,  # every 3 minutes
     },
     "check-policies": {
-        "task": "bodhi.server.tasks.check_policies_task",
+        "task": "check_policies",
         "schedule": 60 * 60,  # every hour
     },
     "clean-old-composes": {
-        "task": "bodhi.server.tasks.clean_old_composes_task",
+        "task": "clean_old_composes",
         "schedule": crontab(hour=3, minute=3),
         "kwargs": {"num_to_keep": 10},
     },
     "expire-overrides": {
-        "task": "bodhi.server.tasks.expire_overrides_task",
+        "task": "expire_overrides",
         "schedule": 60 * 60,  # every hour
     },
 }
