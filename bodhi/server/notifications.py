@@ -75,7 +75,7 @@ def publish(message: 'base.BodhiMessage', force: bool = False):
 
 @backoff.on_exception(
     backoff.expo,
-    (fml_exceptions.ConnectionException, fml_exceptions.PublishReturned), max_time=120)
+    (fml_exceptions.ConnectionException, fml_exceptions.PublishException), max_time=120)
 def _publish_with_retry(message: 'base.BodhiMessage'):
     """
     Call fedora_messaging.api.publish with the given message, and retry upon temporary failures.
