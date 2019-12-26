@@ -3918,6 +3918,8 @@ class Update(Base):
             # This is the object initialization phase. This instance is not ready, don't create
             # the message now. This method will be called again at the end of __init__
             return
+        if target.content_type != ContentType.rpm:
+            return
 
         message = update_schemas.UpdateReadyForTestingV1.from_dict(
             message=target._build_group_test_message()

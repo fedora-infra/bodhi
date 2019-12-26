@@ -728,9 +728,10 @@ def trigger_tests(request):
         log.error("Can't trigger tests for update: Update is not in testing status")
         request.errors.add('body', 'request', 'Update is not in testing status')
     else:
-        message = update_schemas.UpdateReadyForTestingV1.from_dict(
-            message=update._build_group_test_message()
-        )
-        notifications.publish(message)
+        if update.content_type == ContentType.rpm:
+            message = update_schemas.UpdateReadyForTestingV1.from_dict(
+                message=update._build_group_test_message()
+            )
+            notifications.publish(message)
 
     return dict(update=update)
