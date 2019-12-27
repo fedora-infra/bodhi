@@ -21,6 +21,8 @@ import hashlib
 from urllib.parse import urlencode
 import xml.etree.ElementTree as ET
 
+import bleach
+import markdown
 import psycopg2
 import pytest
 
@@ -59,6 +61,8 @@ def check_rss_common_header(rss_xml, path, bodhi_ip):
         title = "Update overrides"
     elif path == "comments":
         title = "User comments"
+    elif path == "updates":
+        title = "Released updates"
 
     assert rss_xml.tag == "rss"
     assert rss_xml.attrib == {"version": "2.0"}
@@ -296,6 +300,118 @@ def test_get_updates_view(bodhi_container, db_container):
         assert http_response.ok
         for update_title in expected_updates_titles:
             assert update_title in http_response.text
+    except AssertionError:
+        print(http_response)
+        print(http_response.text)
+        with read_file(bodhi_container, "/httpdir/errorlog") as log:
+            print(log.read())
+        raise
+
+
+def test_get_updates_rss(bodhi_container, db_container):
+    """Test ``/rss/updates`` path"""
+    # Fetch latest updates from DB
+    query_updates = (
+        "SELECT "
+        "id, "
+        "alias, "
+        "notes, "
+        "date_submitted "
+        "FROM updates "
+        "ORDER BY date_submitted DESC LIMIT 20"
+    )
+    query_builds = (
+        "SELECT builds.nvr as nvr "
+        "FROM builds "
+        "JOIN updates ON builds.update_id = updates.id "
+        "WHERE update_id = %s "
+        "ORDER BY nvr"
+    )
+    expected_updates = []
+    db_ip = db_container.get_IPv4s()[0]
+    conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+    with conn:
+        with conn.cursor() as curs:
+            curs.execute(query_updates)
+            expected_updates = [
+                {
+                    "id": row[0],
+                    "alias": row[1],
+                    "notes": row[2],
+                    "date_submitted": row[3].strftime("%a, %d %b %Y %H:%M:%S +0000")
+                } for row in curs]
+            for update in expected_updates:
+                curs.execute(query_builds, (update["id"], ))
+                builds_nvrs = [row[0] for row in curs]
+                update["nvrs"] = builds_nvrs
+
+    # GET on latest updates
+    with bodhi_container.http_client(port="8080") as c:
+        http_response = c.get(f"/rss/updates")
+
+    bodhi_ip = bodhi_container.get_IPv4s()[0]
+
+    rss = ET.fromstring(http_response.text)
+    rss_childs = list(rss)
+    channel = rss_childs[0]
+    channel_childs = list(channel)
+
+    # Render rss content
+    rss_content = []
+    for item in channel_childs[8:]:
+        item_content = [
+            {"tag": subitem.tag, "attrib": subitem.attrib, "text": subitem.text} for subitem in item
+        ]
+        rss_content.append(item_content)
+
+    def markup(text):
+        markdown_attrs = {
+            "img": ["src", "alt", "title"],
+            "a": ["href", "alt", "title"],
+            "div": ["class"],
+        }
+        markdown_tags = [
+            "h1", "h2", "h3", "h4", "h5", "h6",
+            "b", "i", "strong", "em", "tt",
+            "p", "br",
+            "span", "div", "blockquote", "code", "hr", "pre",
+            "ul", "ol", "li", "dd", "dt",
+            "img",
+            "a",
+        ]
+        extensions = ['markdown.extensions.fenced_code', ]
+        markdown_text = markdown.markdown(text, extensions=extensions)
+        markdown_text = bleach.linkify(markdown_text, parse_email=True)
+        return bleach.clean(markdown_text, tags=markdown_tags, attributes=markdown_attrs)
+
+    # Prepare expected content
+    expected_rss_content = []
+    for update in expected_updates:
+        text = f"# {update['alias']}\n"
+        text += f"## Packages in this update:\n"
+        for nvr in update["nvrs"]:
+            text += f"* {nvr}\n"
+        text += f"## Update description:\n"
+        text += f"{update['notes']}"
+
+        item_content = [
+            {"tag": "title", "attrib": {}, "text": " ".join(update["nvrs"])},
+            {
+                "tag": "link",
+                "attrib": {},
+                "text": f"http://{bodhi_ip}:8080/updates/{update['alias']}"
+            },
+            {"tag": "description", "attrib": {}, "text": markup(text)},
+            {"tag": "pubDate", "attrib": {}, "text": update["date_submitted"]},
+        ]
+        expected_rss_content.append(item_content)
+
+    try:
+        assert http_response.ok
+        check_rss_common_header(rss, "updates", bodhi_ip)
+        assert len(expected_rss_content) == len(rss_content)
+        for item in expected_rss_content:
+            assert item in rss_content
     except AssertionError:
         print(http_response)
         print(http_response.text)

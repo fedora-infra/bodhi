@@ -43,7 +43,7 @@ def synctoduffynode(rsyncpath) {
  */
 def configure_node = {
     onmyduffynode 'yum -y install epel-release'
-    onmyduffynode 'yum install -y docker python36-click python36-pip python36-psycopg2 python36-requests rsync python36-cryptography python36-devel gcc'
+    onmyduffynode 'yum install -y docker python36-click python36-pip python36-psycopg2 python36-requests rsync python36-cryptography python36-devel gcc python3-bleach python3-markdown'
     onmyduffynode 'systemctl start docker'
     // To run the integration testsuite
     onmyduffynode 'python3.6 -m pip install \'pytest<4.0\' pytest-cov conu munch fedora-messaging'
