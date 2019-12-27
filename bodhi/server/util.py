@@ -482,27 +482,11 @@ def markup(context, text, bodhi=True):
     Returns:
         str: HTML representation of the markdown text.
     """
-    # determine the major component of the bleach version installed.
-    # this is similar to the approach that Pagure uses to determine the bleach version
-    # https://pagure.io/pagure/pull-request/2269#request_diff
-    bleach_major_v = int(bleach.__version__.split('.')[0])
-
-    # the only difference in the bleach API that we use between v1 and v2 is
-    # the formatting of the attributes parameter. Bleach 1 only allowed you
-    # to specify attributes to be whitelisted for all whitelisted tags.
-    # Bleach 2 requires you to specify the list of attributes whitelisted for
-    # specific tags.
-    if bleach_major_v >= 2:
-        markdown_attrs = {
-            "img": ["src", "alt", "title"],
-            "a": ["href", "alt", "title"],
-            "div": ["class"],
-        }
-    else:
-        markdown_attrs = [
-            "src", "href", "alt", "title", "class"
-        ]
-
+    markdown_attrs = {
+        "img": ["src", "alt", "title"],
+        "a": ["href", "alt", "title"],
+        "div": ["class"],
+    }
     markdown_tags = [
         "h1", "h2", "h3", "h4", "h5", "h6",
         "b", "i", "strong", "em", "tt",
