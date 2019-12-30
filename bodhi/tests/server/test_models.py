@@ -1739,6 +1739,21 @@ class TestUpdateEdit(BasePyTestCase):
         with pytest.raises(model.LockedUpdateException):
             model.Update.edit(request, data)
 
+    def test_empty_display_name(self):
+        """An only whitespaces string should not be set as display name."""
+        update = model.Update.query.first()
+        data = {
+            'edited': update.alias, 'builds': [update.builds[0].nvr],
+            'bugs': [], 'display_name': '  '}
+        request = mock.MagicMock()
+        request.db = self.db
+        request.user.name = 'tester'
+
+        model.Update.edit(request, data)
+
+        update = model.Update.query.first()
+        assert update.display_name == ''
+
 
 @mock.patch("bodhi.server.models.handle_update", mock.Mock())
 class TestUpdateVersionHash(BasePyTestCase):
