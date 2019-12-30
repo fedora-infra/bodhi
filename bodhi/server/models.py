@@ -2224,6 +2224,11 @@ class Update(Base):
         data['critpath'] = cls.contains_critpath_component(
             data['builds'], data['release'].name)
 
+        # Be sure to not add an empty string as alternative title
+        # and strip whitespaces from it
+        if 'display_name' in data:
+            data['display_name'] = data['display_name'].strip()
+
         # Create the Bug entities, but don't talk to rhbz yet.  We do that
         # offline in the UpdatesHandler task worker now.
         bugs = []
@@ -2304,6 +2309,11 @@ class Update(Base):
 
         caveats = []
         edited_builds = [build.nvr for build in up.builds]
+
+        # Be sure to not add an empty string as alternative title
+        # and strip whitespaces from it
+        if 'display_name' in data:
+            data['display_name'] = data['display_name'].strip()
 
         # stable_days can be set by the user. We want to make sure that the value
         # will not be lower than the mandatory_days_in_testing.
