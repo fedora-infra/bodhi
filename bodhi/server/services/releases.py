@@ -80,7 +80,7 @@ def get_release_html(request):
         Update.date_submitted.desc())
 
     updates_count = request.db.query(Update.date_submitted, Update.type).filter(
-        Update.release == release).order_by(Update.date_submitted.desc())
+        Update.release == release).order_by(Update.date_submitted.asc())
 
     date_commits = {}
     dates = set()
