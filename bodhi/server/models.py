@@ -1242,7 +1242,7 @@ class Package(Base):
         return name
 
     @staticmethod
-    def get_or_create(build):
+    def get_or_create(session, build):
         """
         Identify and return the Package instance associated with the build.
 
@@ -1250,6 +1250,7 @@ class Package(Base):
         Or, given a container, return a ContainerBuild instance.
 
         Args:
+            session (sqlalchemy.orm.session.Session): A database session.
             build (dict): Information about the build from the build system (koji).
         Returns:
             Package: A type-specific instance of Package for the specific build requested.
@@ -1259,8 +1260,8 @@ class Package(Base):
         package = base.query.filter_by(name=name).one_or_none()
         if not package:
             package = base(name=name)
-            Session().add(package)
-            Session().flush()
+            session.add(package)
+            session.flush()
         return package
 
 
@@ -2334,7 +2335,7 @@ class Update(Base):
                                                 "locked update")
 
                 new_builds.append(build)
-                Package.get_or_create(buildinfo[build])
+                Package.get_or_create(db, buildinfo[build])
                 b = db.query(Build).filter_by(nvr=build).first()
 
                 up.builds.append(b)
