@@ -21,7 +21,7 @@ import psycopg2
 import pytest
 from conu import ConuException
 
-from .utils import read_file, wait_for_file, get_task_results
+from .utils import read_file, get_task_results
 
 
 def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
@@ -58,9 +58,9 @@ def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
 
     # Give some time for the message to go around and the command to be run.
     try:
-        wait_for_file(bodhi_container, "/tmp/pungi-calls.log")
+        bodhi_container.execute(["wait-for-file", "/tmp/pungi-calls.log"])
     except ConuException as e:
-        print("Waiting for pungi-calls.log failed, relevant composes: {}".format(composes))
+        print(f"Waiting for pungi-calls.log failed, relevant composes: {composes}")
         raise e
     with read_file(bodhi_container, "/tmp/pungi-calls.log") as fh:
         calls = fh.read().splitlines()
@@ -131,7 +131,11 @@ def test_update_edit(
         with read_file(bodhi_container, "/httpdir/errorlog") as log:
             print(log.read())
         assert False, str(e)
-    wait_for_file(bodhi_container, "/srv/celery-results", dir_not_empty=True)
+    try:
+        bodhi_container.execute(["wait-for-file", "-d", "/srv/celery-results"])
+    except ConuException as e:
+        print(f"Waiting for celery results failed, relevant update: {update_alias}")
+        raise e
     results = get_task_results(bodhi_container)
     assert len(results) > 0
     result = results[-1]

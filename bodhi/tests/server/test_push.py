@@ -22,20 +22,21 @@ from unittest import mock
 
 import click
 from click.testing import CliRunner
+import pytest
 
 from bodhi.server import push
 from bodhi.server import models
 from bodhi.tests.server import base
 
 
-class TestFilterReleases(base.BaseTestCase):
+class TestFilterReleases(base.BasePyTestCase):
     """This test class contains tests for the _filter_releases() function."""
 
-    def setUp(self):
+    def setup_method(self, method):
         """
         Set up an archived release with an Update so we can test the filtering.
         """
-        super(TestFilterReleases, self).setUp()
+        super().setup_method(method)
 
         self.user = self.db.query(models.User).all()[0]
 
@@ -68,9 +69,15 @@ class TestFilterReleases(base.BaseTestCase):
 
         test_config = base.original_config.copy()
         test_config['compose_dir'] = '/composedir/'
-        mock_config = mock.patch.dict('bodhi.server.push.config', test_config)
-        mock_config.start()
-        self.addCleanup(mock_config.stop)
+        self.mock_config = mock.patch.dict('bodhi.server.push.config', test_config)
+        self.mock_config.start()
+
+    def teardown_method(self, method):
+        """
+        Clean up after the tests.
+        """
+        super().teardown_method(method)
+        self.mock_config.stop()
 
     def test_defaults_to_filtering_correct_releases(self):
         """
@@ -131,8 +138,8 @@ class TestFilterReleases(base.BaseTestCase):
         query = push._filter_releases(self.db, query)
 
         # Make sure the archived update didn't get in this business
-        self.assertEqual(set([u.release.state for u in query]),
-                         set([models.ReleaseState.current, models.ReleaseState.pending]))
+        assert set([u.release.state for u in query]) == \
+            set([models.ReleaseState.current, models.ReleaseState.pending])
 
     def test_one_release(self):
         """
@@ -143,7 +150,7 @@ class TestFilterReleases(base.BaseTestCase):
         query = push._filter_releases(self.db, query, 'F17')
 
         # Make sure only F17 made it in.
-        self.assertEqual([u.release.name for u in query], ['F17'])
+        assert [u.release.name for u in query] == ['F17']
 
     def test_two_releases(self):
         """
@@ -167,7 +174,7 @@ class TestFilterReleases(base.BaseTestCase):
         query = push._filter_releases(self.db, query, 'F18,F17')
 
         # Make sure F17 and F18 made it in.
-        self.assertEqual(set([u.release.name for u in query]), {'F17', 'F18'})
+        assert set([u.release.name for u in query]) == {'F17', 'F18'}
 
     def test_unknown_release(self):
         """
@@ -175,12 +182,10 @@ class TestFilterReleases(base.BaseTestCase):
         """
         query = self.db.query(models.Update)
 
-        with self.assertRaises(click.BadParameter) as ex:
+        with pytest.raises(click.BadParameter) as ex:
             push._filter_releases(self.db, query, 'RELEASE WITH NO NAME')
-        self.assertEqual(
-            str(ex.exception),
+        assert str(ex.value) == \
             'Unknown release, or release not allowed to be composed: RELEASE WITH NO NAME'
-        )
 
     def test_archived_release(self):
         """
@@ -188,11 +193,9 @@ class TestFilterReleases(base.BaseTestCase):
         """
         query = self.db.query(models.Update)
 
-        with self.assertRaises(click.BadParameter) as ex:
+        with pytest.raises(click.BadParameter) as ex:
             push._filter_releases(self.db, query, 'F22')
-        self.assertEqual(
-            str(ex.exception), 'Unknown release, or release not allowed to be composed: F22'
-        )
+        assert str(ex.value) == 'Unknown release, or release not allowed to be composed: F22'
 
 
 TEST_ABORT_PUSH_EXPECTED_OUTPUT = """
@@ -369,15 +372,15 @@ TEST_BUILDS_AND_UPDATES_FLAG_EXPECTED_OUTPUT = """ERROR: Must specify only one o
 """
 
 
-class TestPush(base.BaseTestCase):
+class TestPush(base.BasePyTestCase):
     """
     This class contains tests for the push() function.
     """
-    def setUp(self):
+    def setup_method(self, method):
         """
         Make some updates that can be pushed.
         """
-        super(TestPush, self).setUp()
+        super().setup_method(method)
         python_nose = self.create_update(['python-nose-1.3.7-11.fc17'])
         python_paste_deploy = self.create_update(['python-paste-deploy-1.5.2-8.fc17'])
         # Make it so we have two builds to push out
@@ -387,9 +390,15 @@ class TestPush(base.BaseTestCase):
 
         test_config = base.original_config.copy()
         test_config['compose_dir'] = '/composedir/'
-        mock_config = mock.patch.dict('bodhi.server.push.config', test_config)
-        mock_config.start()
-        self.addCleanup(mock_config.stop)
+        self.mock_config = mock.patch.dict('bodhi.server.push.config', test_config)
+        self.mock_config.start()
+
+    def teardown_method(self, method):
+        """
+        Clean up after the tests.
+        """
+        super().teardown_method(method)
+        self.mock_config.stop()
 
     def test_abort_push(self):
         """
@@ -405,7 +414,7 @@ class TestPush(base.BaseTestCase):
                 compose_task.delay.assert_not_called()
 
         # The exit code is 1 when the push is aborted.
-        self.assertEqual(result.exit_code, 1)
+        assert result.exit_code == 1
 
         # This is a terribly dirty hack that strips an SQLAlchemy warning about calling configure
         # on a scoped session with existing sessions. This should ultimately be fixed by making
@@ -414,13 +423,13 @@ class TestPush(base.BaseTestCase):
             doctored_output = result.output.split('\n', 2)[2]
         else:
             doctored_output = result.output
-        self.assertEqual(doctored_output, TEST_ABORT_PUSH_EXPECTED_OUTPUT)
+        assert doctored_output == TEST_ABORT_PUSH_EXPECTED_OUTPUT
         # The updates should not be locked
         for nvr in ['bodhi-2.0-1.fc17', 'python-nose-1.3.7-11.fc17',
                     'python-paste-deploy-1.5.2-8.fc17']:
             u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
-            self.assertFalse(u.locked)
-            self.assertIsNone(u.date_locked)
+            assert not u.locked
+            assert u.date_locked is None
 
     def test_builds_flag(self):
         """
@@ -446,16 +455,16 @@ class TestPush(base.BaseTestCase):
                                'request': u'testing', 'content_type': u'rpm'}],
                 )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_BUILDS_FLAG_EXPECTED_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == TEST_BUILDS_FLAG_EXPECTED_OUTPUT
         for nvr in ['ejabberd-16.09-4.fc17', 'python-nose-1.3.7-11.fc17']:
             u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
-            self.assertTrue(u.locked)
-            self.assertTrue(u.date_locked <= datetime.utcnow())
+            assert u.locked
+            assert u.date_locked <= datetime.utcnow()
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        self.assertFalse(python_paste_deploy.locked)
-        self.assertIsNone(python_paste_deploy.date_locked)
+        assert not python_paste_deploy.locked
+        assert python_paste_deploy.date_locked is None
 
     def test_updates_flag(self):
         """
@@ -477,25 +486,25 @@ class TestPush(base.BaseTestCase):
                     push.push,
                     ['--username', 'bowlofeggs', '--updates', alias1 + ',' + alias2],
                     input='y')
-                self.assertTrue(compose.delay.called)
+                assert compose.delay.called
                 compose_call = compose.delay.call_args_list[0][1]
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(compose_call["api_version"], 2)
-        self.assertEqual(compose_call["composes"],
-                         [{'security': False, 'release_id': ejabberd.release.id,
-                           'request': 'testing', 'content_type': 'rpm'}])
-        self.assertEqual(compose_call['resume'], False)
-        self.assertEqual(compose_call['agent'], 'bowlofeggs')
-        self.assertEqual(result.output, TEST_BUILDS_FLAG_EXPECTED_OUTPUT)
+        assert result.exit_code == 0
+        assert compose_call["api_version"] == 2
+        assert compose_call["composes"] == \
+            [{'security': False, 'release_id': ejabberd.release.id,
+              'request': 'testing', 'content_type': 'rpm'}]
+        assert not compose_call['resume']
+        assert compose_call['agent'] == 'bowlofeggs'
+        assert result.output == TEST_BUILDS_FLAG_EXPECTED_OUTPUT
         for nvr in ['ejabberd-16.09-4.fc17', 'python-nose-1.3.7-11.fc17']:
             u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
-            self.assertTrue(u.locked)
-            self.assertTrue(u.date_locked <= datetime.utcnow())
+            assert u.locked
+            assert u.date_locked <= datetime.utcnow()
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        self.assertFalse(python_paste_deploy.locked)
-        self.assertIsNone(python_paste_deploy.date_locked)
+        assert not python_paste_deploy.locked
+        assert python_paste_deploy.date_locked is None
 
     def test_updates_and_builds_flag(self):
         """
@@ -515,17 +524,17 @@ class TestPush(base.BaseTestCase):
                      '--updates', alias],
                     input='y')
 
-        self.assertEqual(result.exit_code, 1)
-        self.assertEqual(result.output, TEST_BUILDS_AND_UPDATES_FLAG_EXPECTED_OUTPUT)
-        self.assertFalse(compose.delay.called)
+        assert result.exit_code == 1
+        assert result.output == TEST_BUILDS_AND_UPDATES_FLAG_EXPECTED_OUTPUT
+        assert not compose.delay.called
         for nvr in [
             'ejabberd-16.09-4.fc17',
             'python-nose-1.3.7-11.fc17',
             'python-paste-deploy-1.5.2-8.fc17',
         ]:
             u = self.db.query(models.Build).filter_by(nvr=nvr).one().update
-            self.assertFalse(u.locked)
-            self.assertIsNone(u.date_locked)
+            assert not u.locked
+            assert u.date_locked is None
 
     def test_yes_flag(self):
         """
@@ -545,8 +554,8 @@ class TestPush(base.BaseTestCase):
                                'request': u'testing', 'content_type': u'rpm'}],
                 )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_YES_FLAG_EXPECTED_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == TEST_YES_FLAG_EXPECTED_OUTPUT
         bodhi = self.db.query(models.Build).filter_by(
             nvr='bodhi-2.0-1.fc17').one().update
         python_nose = self.db.query(models.Build).filter_by(
@@ -554,11 +563,11 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         for u in [bodhi, python_nose, python_paste_deploy]:
-            self.assertTrue(u.locked)
-            self.assertTrue(u.date_locked <= datetime.utcnow())
-            self.assertEqual(u.compose.release.id, python_paste_deploy.release.id)
-            self.assertEqual(u.compose.request, models.UpdateRequest.testing)
-            self.assertEqual(u.compose.content_type, models.ContentType.rpm)
+            assert u.locked
+            assert u.date_locked <= datetime.utcnow()
+            assert u.compose.release.id == python_paste_deploy.release.id
+            assert u.compose.request == models.UpdateRequest.testing
+            assert u.compose.content_type == models.ContentType.rpm
 
     def test_locked_updates(self):
         """
@@ -586,22 +595,22 @@ class TestPush(base.BaseTestCase):
                                'request': u'testing', 'content_type': u'rpm'}],
                 )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_LOCKED_UPDATES_EXPECTED_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == TEST_LOCKED_UPDATES_EXPECTED_OUTPUT
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
-        self.assertTrue(ejabberd.locked)
-        self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
-        self.assertEqual(ejabberd.compose.release, ejabberd.release)
-        self.assertEqual(ejabberd.compose.request, ejabberd.request)
-        self.assertEqual(ejabberd.compose.state, models.ComposeState.requested)
-        self.assertEqual(ejabberd.compose.error_message, '')
+        assert ejabberd.locked
+        assert ejabberd.date_locked <= datetime.utcnow()
+        assert ejabberd.compose.release == ejabberd.release
+        assert ejabberd.compose.request == ejabberd.request
+        assert ejabberd.compose.state == models.ComposeState.requested
+        assert ejabberd.compose.error_message == ''
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         for u in [python_nose, python_paste_deploy]:
-            self.assertFalse(u.locked)
-            self.assertIsNone(u.date_locked)
+            assert not u.locked
+            assert u.date_locked is None
 
     def test_locked_updates_yes_flag(self):
         """
@@ -628,22 +637,22 @@ class TestPush(base.BaseTestCase):
                     composes=[ejabberd.compose.__json__(composer=True)],
                 )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == TEST_LOCKED_UPDATES_YES_FLAG_EXPECTED_OUTPUT
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
-        self.assertTrue(ejabberd.locked)
-        self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
-        self.assertEqual(ejabberd.compose.release, ejabberd.release)
-        self.assertEqual(ejabberd.compose.request, ejabberd.request)
-        self.assertEqual(ejabberd.compose.state, models.ComposeState.requested)
-        self.assertEqual(ejabberd.compose.error_message, '')
+        assert ejabberd.locked
+        assert ejabberd.date_locked <= datetime.utcnow()
+        assert ejabberd.compose.release == ejabberd.release
+        assert ejabberd.compose.request == ejabberd.request
+        assert ejabberd.compose.state == models.ComposeState.requested
+        assert ejabberd.compose.error_message == ''
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         for u in [python_nose, python_paste_deploy]:
-            self.assertFalse(u.locked)
-            self.assertIsNone(u.date_locked)
+            assert not u.locked
+            assert u.date_locked is None
 
     def test_no_updates_to_push(self):
         """
@@ -670,7 +679,7 @@ class TestPush(base.BaseTestCase):
                     result = cli.invoke(push.push, ['--username', 'bowlofeggs'], input='y')
                     compose_task.delay.assert_not_called()
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         # The updates should not be locked
         bodhi = self.db.query(models.Build).filter_by(
             nvr='bodhi-2.0-1.fc17').one().update
@@ -679,8 +688,8 @@ class TestPush(base.BaseTestCase):
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         for u in [python_nose, python_paste_deploy]:
-            self.assertFalse(u.locked)
-            self.assertIsNone(u.date_locked)
+            assert not u.locked
+            assert u.date_locked is None
 
     def test_releases_flag(self):
         """
@@ -742,29 +751,29 @@ class TestPush(base.BaseTestCase):
                     ],
                 )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == TEST_RELEASES_FLAG_EXPECTED_OUTPUT
         # The Fedora 17 updates should not have been locked.
         f17_python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
         f17_python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        self.assertFalse(f17_python_nose.locked)
-        self.assertIsNone(f17_python_nose.date_locked)
-        self.assertIsNone(f17_python_nose.compose)
-        self.assertFalse(f17_python_paste_deploy.locked)
-        self.assertIsNone(f17_python_paste_deploy.date_locked)
-        self.assertIsNone(f17_python_paste_deploy.compose)
+        assert not f17_python_nose.locked
+        assert f17_python_nose.date_locked is None
+        assert f17_python_nose.compose is None
+        assert not f17_python_paste_deploy.locked
+        assert f17_python_paste_deploy.date_locked is None
+        assert f17_python_paste_deploy.compose is None
         # The new updates should both be locked.
-        self.assertTrue(f25_python_nose.locked)
-        self.assertTrue(f25_python_nose.date_locked <= datetime.utcnow())
-        self.assertTrue(f26_python_paste_deploy.locked)
-        self.assertTrue(f26_python_paste_deploy.date_locked <= datetime.utcnow())
+        assert f25_python_nose.locked
+        assert f25_python_nose.date_locked <= datetime.utcnow()
+        assert f26_python_paste_deploy.locked
+        assert f26_python_paste_deploy.date_locked <= datetime.utcnow()
         # The new updates should also be associated with the new Composes.
-        self.assertEqual(f25_python_nose.compose.release.id, f25.id)
-        self.assertEqual(f25_python_nose.compose.request, models.UpdateRequest.testing)
-        self.assertEqual(f26_python_paste_deploy.compose.release.id, f26.id)
-        self.assertEqual(f26_python_paste_deploy.compose.request, models.UpdateRequest.testing)
+        assert f25_python_nose.compose.release.id == f25.id
+        assert f25_python_nose.compose.request == models.UpdateRequest.testing
+        assert f26_python_paste_deploy.compose.release.id == f26.id
+        assert f26_python_paste_deploy.compose.request == models.UpdateRequest.testing
 
     def test_create_composes_for_releases_marked_as_composed_by_bodhi(self):
         """
@@ -827,29 +836,29 @@ class TestPush(base.BaseTestCase):
                     ],
                 )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_RELEASES_FLAG_EXPECTED_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == TEST_RELEASES_FLAG_EXPECTED_OUTPUT
         # The Fedora 17 updates should not have been locked and composed.
         f17_python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
         f17_python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        self.assertFalse(f17_python_nose.locked)
-        self.assertIsNone(f17_python_nose.date_locked)
-        self.assertIsNone(f17_python_nose.compose)
-        self.assertFalse(f17_python_paste_deploy.locked)
-        self.assertIsNone(f17_python_paste_deploy.date_locked)
-        self.assertIsNone(f17_python_paste_deploy.compose)
+        assert not f17_python_nose.locked
+        assert f17_python_nose.date_locked is None
+        assert f17_python_nose.compose is None
+        assert not f17_python_paste_deploy.locked
+        assert f17_python_paste_deploy.date_locked is None
+        assert f17_python_paste_deploy.compose is None
         # The new updates should both be locked.
-        self.assertTrue(f25_python_nose.locked)
-        self.assertTrue(f25_python_nose.date_locked <= datetime.utcnow())
-        self.assertTrue(f26_python_paste_deploy.locked)
-        self.assertTrue(f26_python_paste_deploy.date_locked <= datetime.utcnow())
+        assert f25_python_nose.locked
+        assert f25_python_nose.date_locked <= datetime.utcnow()
+        assert f26_python_paste_deploy.locked
+        assert f26_python_paste_deploy.date_locked <= datetime.utcnow()
         # The new updates should also be associated with the new Composes.
-        self.assertEqual(f25_python_nose.compose.release.id, f25.id)
-        self.assertEqual(f25_python_nose.compose.request, models.UpdateRequest.testing)
-        self.assertEqual(f26_python_paste_deploy.compose.release.id, f26.id)
-        self.assertEqual(f26_python_paste_deploy.compose.request, models.UpdateRequest.testing)
+        assert f25_python_nose.compose.release.id == f25.id
+        assert f25_python_nose.compose.request == models.UpdateRequest.testing
+        assert f26_python_paste_deploy.compose.release.id == f26.id
+        assert f26_python_paste_deploy.compose.request == models.UpdateRequest.testing
 
     def test_request_flag(self):
         """
@@ -877,21 +886,21 @@ class TestPush(base.BaseTestCase):
                     ],
                 )
 
-            self.assertEqual(result.exit_code, 0)
-            self.assertEqual(result.output, TEST_REQUEST_FLAG_EXPECTED_OUTPUT)
+            assert result.exit_code == 0
+            assert result.output == TEST_REQUEST_FLAG_EXPECTED_OUTPUT
             python_nose = self.db.query(models.Build).filter_by(
                 nvr='python-nose-1.3.7-11.fc17').one().update
             python_paste_deploy = self.db.query(models.Build).filter_by(
                 nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-            self.assertFalse(python_nose.locked)
-            self.assertIsNone(python_nose.date_locked)
-            self.assertIsNone(python_nose.compose)
+            assert not python_nose.locked
+            assert python_nose.date_locked is None
+            assert python_nose.compose is None
             for u in [bodhi, python_paste_deploy]:
-                self.assertTrue(u.locked)
-                self.assertTrue(u.date_locked <= datetime.utcnow())
-                self.assertEqual(u.compose.release.id, python_paste_deploy.release.id)
-                self.assertEqual(u.compose.request, models.UpdateRequest.testing)
-                self.assertEqual(u.compose.content_type, models.ContentType.rpm)
+                assert u.locked
+                assert u.date_locked <= datetime.utcnow()
+                assert u.compose.release.id == python_paste_deploy.release.id
+                assert u.compose.request == models.UpdateRequest.testing
+                assert u.compose.content_type == models.ContentType.rpm
 
     def test_resume_flag(self):
         """
@@ -917,23 +926,23 @@ class TestPush(base.BaseTestCase):
                     composes=[ejabberd.compose.__json__(composer=True)],
                 )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_RESUME_FLAG_EXPECTED_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == TEST_RESUME_FLAG_EXPECTED_OUTPUT
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         # ejabberd should be locked still
-        self.assertTrue(ejabberd.locked)
-        self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
-        self.assertEqual(ejabberd.compose.release, ejabberd.release)
-        self.assertEqual(ejabberd.compose.request, ejabberd.request)
+        assert ejabberd.locked
+        assert ejabberd.date_locked <= datetime.utcnow()
+        assert ejabberd.compose.release == ejabberd.release
+        assert ejabberd.compose.request == ejabberd.request
         # The other packages should have been left alone
         for u in [python_nose, python_paste_deploy]:
-            self.assertFalse(u.locked)
-            self.assertIsNone(u.date_locked)
-            self.assertIsNone(u.compose)
+            assert not u.locked
+            assert u.date_locked is None
+            assert u.compose is None
 
     def test_resume_and_yes_flags(self):
         """
@@ -958,23 +967,23 @@ class TestPush(base.BaseTestCase):
                     composes=[ejabberd.compose.__json__(composer=True)],
                 )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_RESUME_AND_YES_FLAGS_EXPECTED_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == TEST_RESUME_AND_YES_FLAGS_EXPECTED_OUTPUT
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         # ejabberd should be locked still
-        self.assertTrue(ejabberd.locked)
-        self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
-        self.assertEqual(ejabberd.compose.release, ejabberd.release)
-        self.assertEqual(ejabberd.compose.request, ejabberd.request)
+        assert ejabberd.locked
+        assert ejabberd.date_locked <= datetime.utcnow()
+        assert ejabberd.compose.release == ejabberd.release
+        assert ejabberd.compose.request == ejabberd.request
         # The other packages should have been left alone
         for u in [python_nose, python_paste_deploy]:
-            self.assertFalse(u.locked)
-            self.assertIsNone(u.date_locked)
-            self.assertIsNone(u.compose)
+            assert not u.locked
+            assert u.date_locked is None
+            assert u.compose is None
 
     def test_resume_empty_compose(self):
         """
@@ -1005,28 +1014,27 @@ class TestPush(base.BaseTestCase):
                     composes=[ejabberd.compose.__json__(composer=True)],
                 )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_RESUME_EMPTY_COMPOSE)
+        assert result.exit_code == 0
+        assert result.output == TEST_RESUME_EMPTY_COMPOSE
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
         python_paste_deploy = self.db.query(models.Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         # ejabberd should still be locked.
-        self.assertTrue(ejabberd.locked)
-        self.assertTrue(ejabberd.date_locked <= datetime.utcnow())
-        self.assertEqual(ejabberd.compose.release, ejabberd.release)
-        self.assertEqual(ejabberd.compose.request, ejabberd.request)
+        assert ejabberd.locked
+        assert ejabberd.date_locked <= datetime.utcnow()
+        assert ejabberd.compose.release == ejabberd.release
+        assert ejabberd.compose.request == ejabberd.request
         # These should be left alone.
         for u in [python_nose, python_paste_deploy]:
-            self.assertFalse(u.locked)
-            self.assertIsNone(u.date_locked)
-            self.assertIsNone(u.compose)
+            assert not u.locked
+            assert u.date_locked is None
+            assert u.compose is None
         # The empty compose should have been deleted.
-        self.assertEqual(
-            self.db.query(models.Compose).filter_by(
-                release_id=ejabberd.release.id, request=models.UpdateRequest.stable).count(),
-            0)
+        num_of_empty_composes = self.db.query(models.Compose).filter_by(
+            release_id=ejabberd.release.id, request=models.UpdateRequest.stable).count()
+        assert num_of_empty_composes == 0
 
     def test_resume_human_says_no(self):
         """
@@ -1060,8 +1068,8 @@ class TestPush(base.BaseTestCase):
                     composes=[ejabberd.compose.__json__(composer=True)],
                 )
 
-        self.assertEqual(result.exit_code, 0)
-        self.assertEqual(result.output, TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT)
+        assert result.exit_code == 0
+        assert result.output == TEST_RESUME_HUMAN_SAYS_NO_EXPECTED_OUTPUT
         ejabberd = self.db.query(models.Build).filter_by(nvr='ejabberd-16.09-4.fc17').one().update
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
@@ -1069,14 +1077,14 @@ class TestPush(base.BaseTestCase):
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
         # These should still be locked.
         for u in [ejabberd, python_nose]:
-            self.assertTrue(u.locked)
-            self.assertTrue(u.date_locked <= datetime.utcnow())
-            self.assertEqual(u.compose.release, u.release)
-            self.assertEqual(u.compose.request, u.request)
+            assert u.locked
+            assert u.date_locked <= datetime.utcnow()
+            assert u.compose.release == u.release
+            assert u.compose.request == u.request
         # paste_deploy should have been left alone
-        self.assertFalse(python_paste_deploy.locked)
-        self.assertIsNone(python_paste_deploy.date_locked)
-        self.assertIsNone(python_paste_deploy.compose)
+        assert not python_paste_deploy.locked
+        assert python_paste_deploy.date_locked is None
+        assert python_paste_deploy.compose is None
 
     def test_unsigned_updates_unsigned_skipped(self):
         """
@@ -1107,19 +1115,18 @@ class TestPush(base.BaseTestCase):
                         ],
                     )
 
-        self.assertIn(
-            f'Warning: {python_nose.get_title()} has unsigned builds and has been skipped',
-            result.output)
-        self.assertEqual(result.exception, None)
-        self.assertEqual(result.exit_code, 0)
+        wanted_warn = f'Warning: {python_nose.get_title()} has unsigned builds and has been skipped'
+        assert wanted_warn in result.output
+        assert result.exception == None
+        assert result.exit_code == 0
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
-        self.assertFalse(python_nose.locked)
-        self.assertIsNone(python_nose.date_locked)
-        self.assertTrue(python_paste_deploy.locked)
-        self.assertTrue(python_paste_deploy.date_locked <= datetime.utcnow())
-        self.assertEqual(python_paste_deploy.compose.release, python_paste_deploy.release)
-        self.assertEqual(python_paste_deploy.compose.request, python_paste_deploy.request)
+        assert not python_nose.locked
+        assert python_nose.date_locked is None
+        assert python_paste_deploy.locked
+        assert python_paste_deploy.date_locked <= datetime.utcnow()
+        assert python_paste_deploy.compose.release == python_paste_deploy.release
+        assert python_paste_deploy.compose.request == python_paste_deploy.request
 
     def test_unsigned_updates_signed_updated(self):
         """
@@ -1151,21 +1158,21 @@ class TestPush(base.BaseTestCase):
                         ],
                     )
 
-        self.assertEqual(result.exception, None)
-        self.assertEqual(result.exit_code, 0)
+        assert result.exception == None
+        assert result.exit_code == 0
         python_nose = self.db.query(models.Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
-        self.assertTrue(python_nose.locked)
-        self.assertTrue(python_nose.date_locked <= datetime.utcnow())
-        self.assertEqual(python_nose.compose.release, python_paste_deploy.release)
-        self.assertEqual(python_nose.compose.request, python_paste_deploy.request)
-        self.assertTrue(python_paste_deploy.locked)
-        self.assertTrue(python_paste_deploy.date_locked <= datetime.utcnow())
-        self.assertEqual(python_paste_deploy.compose.release, python_paste_deploy.release)
-        self.assertEqual(python_paste_deploy.compose.request, python_paste_deploy.request)
+        assert python_nose.locked
+        assert python_nose.date_locked <= datetime.utcnow()
+        assert python_nose.compose.release == python_paste_deploy.release
+        assert python_nose.compose.request == python_paste_deploy.request
+        assert python_paste_deploy.locked
+        assert python_paste_deploy.date_locked <= datetime.utcnow()
+        assert python_paste_deploy.compose.release == python_paste_deploy.release
+        assert python_paste_deploy.compose.request == python_paste_deploy.request
 
 
-class TetUpdateSigStatus(base.BaseTestCase):
+class TetUpdateSigStatus(base.BasePyTestCase):
     """Test the update_sig_status() function."""
 
     @mock.patch.dict('bodhi.server.push.config',
@@ -1182,4 +1189,4 @@ class TetUpdateSigStatus(base.BaseTestCase):
 
         push.update_sig_status(u)
 
-        self.assertEqual(krb_login.call_count, 0)
+        assert krb_login.call_count == 0
