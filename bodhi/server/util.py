@@ -663,9 +663,9 @@ def page_url(context, page):
         str: The current path appended with a GET query for the requested page.
     """
     request = context.get('request')
-    params = dict(request.params)
+    params = request.params.mixed()
     params['page'] = page
-    return request.path_url + "?" + urlencode(params)
+    return f'{request.path_url}?{urlencode(params, doseq=True)}'
 
 
 def bug_link(context, bug, short=False):
