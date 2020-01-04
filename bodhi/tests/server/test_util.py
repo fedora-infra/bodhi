@@ -23,6 +23,7 @@ import shutil
 import subprocess
 import tempfile
 
+from webob.multidict import MultiDict
 import bleach
 import pkg_resources
 import pytest
@@ -1580,3 +1581,17 @@ class TestJsonEscape:
         """Test that double quotes are escaped correctly for JSON.parse()."""
         title = 'This is a "terrible" bug title!'
         assert util.json_escape(title) == 'This is a \\"terrible\\" bug title!'
+
+
+class TestPageUrl:
+    """Tests for the page_url() method."""
+    def test_multi_values_parameter(self):
+        """Ensure correct url is generated from multiple values for same filter."""
+        context = mock.Mock()
+        context.get().path_url = 'http://localhost:6543'
+        context.get().params = MultiDict([('search', ''),
+                                          ('status', 'pending'),
+                                          ('status', 'testing')])
+        page = 2
+        expected_url = 'http://localhost:6543?search=&status=pending&status=testing&page=2'
+        assert util.page_url(context, page) == expected_url
