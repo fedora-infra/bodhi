@@ -122,7 +122,7 @@ class AutomaticUpdateHandler:
 
                 # Package.get_or_create() infers content type already
                 log.debug("Getting/creating related package object.")
-                pkg = Package.get_or_create(rbuildinfo)
+                pkg = Package.get_or_create(dbsession, rbuildinfo)
 
                 log.debug("Creating build object, adding it to the DB.")
                 build = bcls(nvr=bnvr, package=pkg, release=rel)

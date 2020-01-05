@@ -500,7 +500,7 @@ def new_update(request):
         for nvr in build_nvrs:
             name, version, release = request.buildinfo[nvr]['nvr']
 
-            package = Package.get_or_create(request.buildinfo[nvr])
+            package = Package.get_or_create(request.db, request.buildinfo[nvr])
 
             # Also figure out the build type and create the build if absent.
             build_class = ContentType.infer_content_class(

@@ -1887,7 +1887,7 @@ class TestUpdatesService(BasePyTestCase):
         res = self.app.get('/rss/updates/',
                            headers={'Accept': 'application/atom+xml'})
         assert 'application/rss+xml' in res.headers['Content-Type']
-        assert 'FEDORA-2019-a3bbe1a8f2' in res
+        assert f'FEDORA-{datetime.utcnow().year}-a3bbe1a8f2' in res
         assert 'Released updates' in res
         assert 'All updates' in res
 
