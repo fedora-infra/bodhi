@@ -728,6 +728,19 @@ def can_waive_test_results(context, update):
         and config.get('waiverdb.access_token') and update.status.description != 'stable'
 
 
+def can_trigger_tests(context, update):
+    """
+    Return True or False if we should be able to trigger tests.
+
+    Args:
+        context (mako.runtime.Context): The current template rendering context. Unused.
+        update (bodhi.server.models.Update): The Update on which we are going to waive test results.
+    Returns:
+        bool: Indicating if the test results can be triggered on the given update.
+    """
+    return config.get('test_gating.required')
+
+
 def sorted_builds(builds):
     """
     Sort the given builds by their NVRs.
