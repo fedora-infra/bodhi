@@ -58,46 +58,6 @@ hr {
     display: inline;
 }
 
-/* Make the navbar collapse take effect at larger sizes than it normally would
- * so we don't crowd out the search widget...
- */
-@media (max-width: 991px) {
-    .navbar-header {
-        float: none;
-    }
-    .navbar-toggle {
-        display: block;
-    }
-    .navbar-collapse {
-        border-top: 1px solid transparent;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
-    }
-    .navbar-collapse.collapse {
-        display: none!important;
-    }
-    .navbar-nav {
-        float: none!important;
-        margin: 7.5px -15px;
-    }
-    .navbar-nav>li {
-        float: none;
-    }
-    .navbar-nav>li>a {
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }
-    .navbar-text {
-        float: none;
-        margin: 15px 0;
-    }
-    .navbar-collapse.collapse.in {
-        display: block!important;
-    }
-    .collapsing {
-        overflow: hidden!important;
-    }
-}
-
 /* Search-y stuff */
 form#search, form#search input, .twitter-typeahead {
     width: 100%;
@@ -161,10 +121,16 @@ form#search, form#search input, .twitter-typeahead {
 .searchbar{
     background:#fff;
     border:1px solid #666;
+    margin:0 1rem;
+}
+@media(max-width: 576px) {
+    .searchbar{
+        margin:0;
+    }
 }
 
 #searchbox{
-    height:50px;
+    height:2.1875rem;
     background:rgba(0,0,0,0);
     border:0;
     color:#444;
