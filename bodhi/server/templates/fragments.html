@@ -79,14 +79,12 @@ ${statusmap[status]}\
 % if comment.user.name == "bodhi":
 <div class="row">
         <div class="col-12 text-muted font-size-09">
-          <div class="card border-0">
-            <div class="card-body border-0 p-2">
-                <i class="fa fa-info-circle"></i>
-                <span class="font-weight-bold">${comment.text | n}</span>
-                <a href="${comment.url()}" class="notblue float-right" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
-                    ${util.age(comment.timestamp)}
-                  </a>
-            </div>
+          <div class="d-flex p-2 align-items-top">
+            <i class="fa fa-info-circle pt-2"></i>
+            <div class="font-weight-bold">${util.markup(comment.text, bodhi=False) | n}</div>
+            <a href="${comment.url()}" class="notblue pt-1 ml-auto text-nowrap" data-toggle="tooltip" title="${comment.timestamp.strftime("%Y-%m-%d %H:%M:%S")} (UTC)">
+              ${util.age(comment.timestamp)}
+            </a>
           </div>
         </div>
 </div>
@@ -193,7 +191,7 @@ ${statusmap[status]}\
       ${update['user']['name']}
     </a>
                         %endif
-                          <span title="${update['date_submitted']} UTC"> ${util.age(update['date_submitted'], True)}</span> ago 
+                          <span title="${update['date_submitted']} UTC"> ${util.age(update['date_submitted'])} </span>
                           for <a href="${request.route_url('release', name=update['release']['name'])}">${update['release']['long_name']}
                           </a></small>
                     </div>
@@ -236,7 +234,7 @@ ${statusmap[status]}\
                   ${override['submitter']['name']}
                 </a>
               %endif
-              <span title="${override['submission_date']} UTC"> ${util.age(override['submission_date'], True)}</span> ago 
+              <span title="${override['submission_date']} UTC"> ${util.age(override['submission_date'])} </span>
               for <a href="${request.route_url('release', name=override['build']['release']['name'])}">${override['build']['release']['long_name']}
               </a></small>
           </div>
@@ -244,7 +242,7 @@ ${statusmap[status]}\
     % if override['expired_date'] is None:
           <div class='col-xs-auto pr-2 text-muted'><small>still active for <strong>${util.age(override['expiration_date'], True)}</strong></small></div>
     % else:
-          <div class='col-xs-auto pr-2 text-muted'><small>expired <strong>${util.age(override['expired_date'], True)} ago</strong></small></div>
+          <div class='col-xs-auto pr-2 text-muted'><small>expired <strong>${util.age(override['expired_date'])}</strong></small></div>
     % endif
   </div>
 </div>

@@ -233,7 +233,47 @@ class TestBugAddComment(BasePyTestCase):
 class TestBugDefaultMessage(BasePyTestCase):
     """Test Bug.default_message()."""
 
-    @mock.patch.dict(config, {'testing_bug_epel_msg': 'cool stuff %s'})
+    def test_default_msg_error(self):
+        """Test we raise a ValueError if the update is not in stable or testing."""
+        bug = model.Bug()
+        update = model.Update.query.first()
+        update.status = UpdateStatus.pending
+
+        with pytest.raises(ValueError) as exc:
+            bug.default_message(update)
+        assert str(exc.value) == (
+            f'Trying to post a default comment to a bug, but '
+            f'{update.alias} is not in Stable or Testing status.')
+
+    @mock.patch.dict(config, {'stable_bug_msg': 'cool fedora stuff {update_alias}',
+                              'testing_bug_msg': 'not here'})
+    def test_stable_bug_msg(self):
+        """Test default message when update is in stable."""
+        bug = model.Bug()
+        update = model.Update.query.first()
+        update.release.id_prefix = 'FEDORA'
+        update.status = UpdateStatus.stable
+
+        message = bug.default_message(update)
+
+        assert 'cool fedora stuff {}'.format(update.alias) == message
+        assert 'not here' not in message
+
+    @mock.patch.dict(config, {'stable_bug_msg': 'not here',
+                              'testing_bug_msg': 'cool fedora stuff {update_alias}'})
+    def test_testing_bug_msg(self):
+        """Test default message when update is in testing."""
+        bug = model.Bug()
+        update = model.Update.query.first()
+        update.release.id_prefix = 'FEDORA'
+        update.status = UpdateStatus.testing
+
+        message = bug.default_message(update)
+
+        assert 'cool fedora stuff {}'.format(update.alias) == message
+        assert 'not here' not in message
+
+    @mock.patch.dict(config, {'testing_bug_epel_msg': 'cool epel stuff {update_url}'})
     def test_epel_with_testing_bug_epel_msg(self):
         """Test with testing_bug_epel_msg defined."""
         bug = model.Bug()
@@ -243,16 +283,12 @@ class TestBugDefaultMessage(BasePyTestCase):
 
         message = bug.default_message(update)
 
-        assert 'cool stuff {}'.format(config['base_address'] + update.get_url()) in message
-        assert update.builds[0].nvr in message
-        assert update.release.long_name in message
-        assert update.status.description in message
-        assert update.get_url() in message
+        assert 'cool epel stuff {}'.format(config['base_address'] + update.get_url()) == message
 
     @mock.patch('bodhi.server.models.log.warning')
     @mock.patch.dict(
         config,
-        {'stable_bug_msg': '%s%s', 'testing_bug_msg': '%s', 'base_address': 'b',
+        {'testing_bug_msg': 'cool fedora stuff {update_url}', 'base_address': 'b',
          'critpath.min_karma': 1, 'fedora_epel.mandatory_days_in_testing': 0},
         clear=True)
     def test_epel_without_testing_bug_epel_msg(self, warning):
@@ -265,10 +301,7 @@ class TestBugDefaultMessage(BasePyTestCase):
         message = bug.default_message(update)
 
         warning.assert_called_once_with("No 'testing_bug_epel_msg' found in the config.")
-        assert update.builds[0].nvr in message
-        assert update.release.long_name in message
-        assert update.status.description in message
-        assert update.get_url() in message
+        assert 'cool fedora stuff {}'.format(config['base_address'] + update.get_url()) == message
 
 
 class TestBugModified(BasePyTestCase):
@@ -355,7 +388,7 @@ class TestDeclEnum:
         """Test the from_string() method with a value that doesn't exist."""
         with pytest.raises(ValueError) as exc:
             model.UpdateStatus.from_string('wrong')
-            assert str(exc.exception) == "Invalid value for 'UpdateStatus': 'wrong'"
+        assert str(exc.value) == "Invalid value for 'UpdateStatus': 'wrong'"
 
 
 class TestDeclEnumType(BasePyTestCase):
@@ -987,9 +1020,9 @@ class TestModulePackage(ModelTest):
 
         with pytest.raises(ValueError) as exc_context:
             self.package.builds.append(build2)
-            assert str(exc_context.exception) == (
-                ("A RPM Build cannot be associated with a Module Package. A Package's "
-                 "builds must be the same type as the package."))
+        assert str(exc_context.value) == (
+            ("A RPM Build cannot be associated with a Module Package. A Package's "
+             "builds must be the same type as the package."))
 
     def test_adding_list_of_module_and_rpmbuild(self):
         """Assert that validation fails when adding a ModuleBuild and RpmBuild via a list."""
@@ -998,9 +1031,9 @@ class TestModulePackage(ModelTest):
 
         with pytest.raises(ValueError) as exc_context:
             self.package.builds = [build1, build2]
-            assert str(exc_context.exception) == (
-                ("A RPM Build cannot be associated with a Module Package. A Package's "
-                 "builds must be the same type as the package."))
+        assert str(exc_context.value) == (
+            ("A RPM Build cannot be associated with a Module Package. A Package's "
+             "builds must be the same type as the package."))
 
     def test_backref_no_builds(self):
         """Assert that a ModuleBuild can be appended via a backref."""
@@ -1018,9 +1051,9 @@ class TestModulePackage(ModelTest):
 
         with pytest.raises(ValueError) as exc_context:
             build2.package = self.package
-            assert str(exc_context.exception) == (
-                ("A RPM Build cannot be associated with a Module Package. A Package's "
-                 "builds must be the same type as the package."))
+        assert str(exc_context.value) == (
+            ("A RPM Build cannot be associated with a Module Package. A Package's "
+             "builds must be the same type as the package."))
 
     def test_backref_second_modulebuild(self):
         """Assert that two ModuleBuilds can be appended via backrefs."""
@@ -1291,8 +1324,8 @@ class TestRpmPackage(ModelTest):
         with pytest.raises(BodhiException) as exc_context:
             pkg = model.RpmPackage(name='gnome-shell')
             pkg.fetch_test_cases(self.db)
-            assert len(pkg.test_cases) == 0
-            assert str(exc_context.exception) == 'Failed retrieving testcases from Wiki'
+        assert len(pkg.test_cases) == 0
+        assert str(exc_context.value) == 'Failed retrieving testcases from Wiki'
 
     def test_adding_modulebuild(self):
         """Assert that validation fails when adding a ModuleBuild."""
@@ -1302,9 +1335,9 @@ class TestRpmPackage(ModelTest):
 
         with pytest.raises(ValueError) as exc_context:
             self.package.builds.append(build2)
-            assert str(exc_context.exception) == (
-                ("A Module Build cannot be associated with a RPM Package. A Package's "
-                 "builds must be the same type as the package."))
+        assert str(exc_context.value) == (
+            ("A Module Build cannot be associated with a RPM Package. A Package's "
+             "builds must be the same type as the package."))
 
     def test_backref_no_builds(self):
         """Assert that a RpmBuild can be appended via a backref."""
@@ -1322,9 +1355,9 @@ class TestRpmPackage(ModelTest):
 
         with pytest.raises(ValueError) as exc_context:
             build2.package = self.package
-            assert str(exc_context.exception) == (
-                ("A Module Build cannot be associated with a RPM Package. A Package's "
-                 "builds must be the same type as the package."))
+        assert str(exc_context.value) == (
+            ("A Module Build cannot be associated with a RPM Package. A Package's "
+             "builds must be the same type as the package."))
 
     def test_backref_second_modulebuild(self):
         """Assert that two RpmBuilds can be appended via backrefs."""
@@ -1647,7 +1680,7 @@ class TestUpdateInit(BasePyTestCase):
         """If the release is not passed when creating an Update, a ValueError should be raised."""
         with pytest.raises(ValueError) as exc:
             model.Update()
-            assert str(exc.exception) == 'You must specify a Release when creating an Update.'
+        assert str(exc.value) == 'You must specify a Release when creating an Update.'
 
 
 @mock.patch("bodhi.server.models.handle_update", mock.Mock())
@@ -1705,6 +1738,21 @@ class TestUpdateEdit(BasePyTestCase):
 
         with pytest.raises(model.LockedUpdateException):
             model.Update.edit(request, data)
+
+    def test_empty_display_name(self):
+        """An only whitespaces string should not be set as display name."""
+        update = model.Update.query.first()
+        data = {
+            'edited': update.alias, 'builds': [update.builds[0].nvr],
+            'bugs': [], 'display_name': '  '}
+        request = mock.MagicMock()
+        request.db = self.db
+        request.user.name = 'tester'
+
+        model.Update.edit(request, data)
+
+        update = model.Update.query.first()
+        assert update.display_name == ''
 
 
 @mock.patch("bodhi.server.models.handle_update", mock.Mock())
@@ -2137,7 +2185,7 @@ class TestUpdateValidateBuilds(BasePyTestCase):
         build1.update = self.update
         with pytest.raises(ValueError) as cm:
             build2.update = self.update
-            assert str(cm.exception) == 'An update must contain builds of the same type.'
+        assert str(cm.value) == 'An update must contain builds of the same type.'
 
 
 class TestUpdateMeetsTestingRequirements(BasePyTestCase):
@@ -2705,7 +2753,7 @@ class TestUpdate(ModelTest):
 
         with pytest.raises(RuntimeError) as exc:
             self.obj.requested_tag
-            assert str(exc.exception) == f'Unable to determine requested tag for {self.obj.alias}.'
+        assert str(exc.value) == f'Unable to determine requested tag for {self.obj.alias}.'
 
     def test_requested_tag_request_obsolete(self):
         """requested_tag() should return the candidate_tag if the request is obsolete."""
@@ -2869,7 +2917,6 @@ class TestUpdate(ModelTest):
         b = self.obj.builds[0]
         release = self.obj.release
         koji = buildsys.get_session()
-        koji.clear()
         koji.__tagged__[b.nvr] = [release.testing_tag,
                                   release.pending_signing_tag,
                                   release.pending_testing_tag,
@@ -2889,7 +2936,6 @@ class TestUpdate(ModelTest):
         release = self.obj.release
         build = self.obj.builds[0]
         koji = buildsys.get_session()
-        koji.clear()
         koji.__tagged__[build.nvr] = [
             release.testing_tag, release.pending_signing_tag, release.pending_testing_tag,
             release.pending_stable_tag,
@@ -2914,7 +2960,7 @@ class TestUpdate(ModelTest):
 
         with pytest.raises(BodhiException) as exc:
             self.obj.unpush(self.db)
-            assert str(exc.exception) == "Can't unpush a stable update"
+        assert str(exc.value) == "Can't unpush a stable update"
         debug.assert_called_once_with('Unpushing %s', self.obj.alias)
         assert self.obj.untag.call_count == 0
 
@@ -2995,8 +3041,6 @@ class TestUpdate(ModelTest):
     def test_dupe(self):
         with pytest.raises(IntegrityError):
             session = Session()
-            session.add(self.get_update())
-            session.commit()
             session.add(self.get_update())
             session.commit()
 
@@ -3142,7 +3186,7 @@ class TestUpdate(ModelTest):
 
         with pytest.raises(ValueError) as exc:
             self.obj.last_modified
-            assert 'Update has no timestamps set:' in str(exc.exception)
+        assert 'Update has no timestamps set:' in str(exc.value)
 
     def test_stable_karma(self):
         update = self.obj
@@ -3205,7 +3249,7 @@ class TestUpdate(ModelTest):
 
         with pytest.raises(BodhiException) as exc:
             self.obj.revoke()
-            assert str(exc.exception) == 'Can only revoke an update with an existing request'
+        assert str(exc.value) == 'Can only revoke an update with an existing request'
 
     def test_unstable_karma(self):
         update = self.obj
@@ -3368,7 +3412,7 @@ class TestUpdate(ModelTest):
         assert self.obj.status == UpdateStatus.pending
         with pytest.raises(BodhiException) as exc:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
-            assert str(exc.exception) == config.get('not_yet_tested_msg')
+        assert str(exc.value) == config.get('not_yet_tested_msg')
         assert self.obj.request == UpdateRequest.testing
         assert self.obj.status == UpdateStatus.pending
 
@@ -3456,7 +3500,7 @@ class TestUpdate(ModelTest):
         with pytest.raises(BodhiException) as exc:
             with mock_sends():
                 self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
-            assert str(exc.exception) == config['not_yet_tested_epel_msg']
+        assert str(exc.value) == config['not_yet_tested_epel_msg']
 
         assert self.obj.request is None
 
@@ -3501,19 +3545,19 @@ class TestUpdate(ModelTest):
         with pytest.raises(BodhiException) as exc:
             self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
 
-            expected_msg = (
-                'This critical path update has not yet been approved for pushing to the '
-                'stable repository.  It must first reach a karma of %s, consisting of %s '
-                'positive karma from proventesters, along with %d additional karma from '
-                'the community. Or, it must spend %s days in testing without any negative '
-                'feedback')
-            expected_msg = expected_msg % (
-                config.get('critpath.min_karma'),
-                config.get('critpath.num_admin_approvals'),
-                (config.get('critpath.min_karma') - config.get('critpath.num_admin_approvals')),
-                config.get('critpath.stable_after_days_without_negative_karma'))
-            expected_msg += ' Additionally, it must pass automated tests.'
-            assert str(exc.exception) == expected_msg
+        expected_msg = (
+            'This critical path update has not yet been approved for pushing to the '
+            'stable repository.  It must first reach a karma of %s, consisting of %s '
+            'positive karma from proventesters, along with %d additional karma from '
+            'the community. Or, it must spend %s days in testing without any negative '
+            'feedback')
+        expected_msg = expected_msg % (
+            config.get('critpath.min_karma'),
+            config.get('critpath.num_admin_approvals'),
+            (config.get('critpath.min_karma') - config.get('critpath.num_admin_approvals')),
+            config.get('critpath.stable_after_days_without_negative_karma'))
+        expected_msg += ' Additionally, it must pass automated tests.'
+        assert str(exc.value) == expected_msg
 
     def test_set_request_string_action(self):
         """Ensure that the action can be passed as a str."""
@@ -3689,13 +3733,13 @@ class TestUpdate(ModelTest):
         """A comment with no author should raise a ValueError."""
         with pytest.raises(ValueError) as exc:
             self.obj.comment(self.db, 'Broke.', -1)
-            assert str(exc.exception) == 'You must provide a comment author'
+        assert str(exc.value) == 'You must provide a comment author'
 
     def test_comment_empty(self):
         """A comment with no text or feedback should raise a ValueError."""
         with pytest.raises(ValueError) as exc:
             self.obj.comment(self.db, '', author='bowlofeggs')
-            assert str(exc.exception) == 'You must provide either some text or feedback'
+        assert str(exc.value) == 'You must provide either some text or feedback'
 
     def test_get_url(self):
         assert self.obj.get_url() == f'updates/{self.obj.alias}'
@@ -3703,11 +3747,15 @@ class TestUpdate(ModelTest):
     def test_bug(self):
         bug = self.obj.bugs[0]
         assert bug.url == 'https://bugzilla.redhat.com/show_bug.cgi?id=1'
+        with pytest.raises(ValueError) as exc:
+            bug.testing(self.obj)
+        assert 'is not in Stable or Testing status' in str(exc.value)
+        self.obj.status = UpdateStatus.testing
         bug.testing(self.obj)
         bug.add_comment(self.obj)
         bug.add_comment(self.obj, comment='testing')
         bug.close_bug(self.obj)
-        self.obj.status = UpdateStatus.testing
+        self.obj.status = UpdateStatus.stable
         bug.add_comment(self.obj)
 
     def test_expand_messages(self):
@@ -4018,7 +4066,7 @@ class TestUpdate(ModelTest):
         # We should not be allowed to add our RPM Update to the Module release.
         with pytest.raises(ValueError) as exc:
             self.obj.release = release
-            assert str(exc.exception) == 'A release must contain updates of the same type.'
+        assert str(exc.value) == 'A release must contain updates of the same type.'
 
     def test_validate_release_none(self):
         """Test validate_release() with the release set to None."""
@@ -4080,15 +4128,14 @@ class TestUpdate(ModelTest):
         update = self.obj
         with pytest.raises(BodhiException) as exc:
             update.waive_test_results('foo')
-            assert str(exc.exception) == ("Test gating is not enabled")
+        assert str(exc.value) == "Test gating is not enabled"
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_cannot_waive_test_results_of_an_update_which_passes_gating(self):
         update = self.obj
         with pytest.raises(BodhiException) as exc:
             update.waive_test_results('foo')
-            assert str(exc.exception) == (
-                "Can't waive test results on an update that passes test gating")
+        assert str(exc.value) == "Can't waive test results on an update that passes test gating"
 
     @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
     def test_cannot_waive_test_results_of_an_update_which_is_locked(self):
@@ -4096,7 +4143,7 @@ class TestUpdate(ModelTest):
         update.locked = True
         with pytest.raises(LockedUpdateException) as exc:
             update.waive_test_results('foo')
-            assert str(exc.exception) == ("Can't waive test results on a locked update")
+        assert str(exc.value) == "Can't waive test results on a locked update"
 
     @mock.patch('bodhi.server.util.greenwave_api_post')
     @mock.patch('bodhi.server.util.http_session.post')
@@ -4253,7 +4300,7 @@ class TestUpdate(ModelTest):
             self.db.commit()
         assert msg.body["artifact"]["builds"][0]["component"] == "TurboGears"
         assert msg.body["artifact"]["id"].startswith("FEDORA-")
-        assert msg.body["artifact"]["type"] == "rpm-build-group"
+        assert msg.body["artifact"]["type"] == "koji-build-group"
         assert msg.packages == ['TurboGears']
 
     def test_create_with_status_testing(self):
@@ -4269,7 +4316,7 @@ class TestUpdate(ModelTest):
             self.db.commit()
         assert msg.body["artifact"]["builds"][0]["component"] == "TurboGears"
         assert msg.body["artifact"]["id"].startswith("FEDORA-")
-        assert msg.body["artifact"]["type"] == "rpm-build-group"
+        assert msg.body["artifact"]["type"] == "koji-build-group"
         assert msg.packages == ['TurboGears']
 
 

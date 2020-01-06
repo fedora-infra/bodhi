@@ -32,10 +32,10 @@ from bodhi.tests.server import base, create_update
 from bodhi.server.views import generic
 
 
-class TestReleasesService(base.BaseTestCase):
+class TestReleasesService(base.BasePyTestCase):
 
-    def setUp(self):
-        super(TestReleasesService, self).setUp()
+    def setup_method(self, method):
+        super().setup_method(method)
 
         release = Release(
             name='F22', long_name='Fedora 22',
@@ -74,80 +74,80 @@ class TestReleasesService(base.BaseTestCase):
         res = app.post("/releases/", r, status=403)
 
         r = self.db.query(Release).filter(Release.name == name).one()
-        self.assertEqual(r.state, ReleaseState.disabled)
+        assert r.state == ReleaseState.disabled
 
     def test_get_single_release_by_lower(self):
         res = self.app.get('/releases/f22', headers={'Accept': 'application/json'})
-        self.assertEqual(res.json_body['name'], 'F22')
+        assert res.json_body['name'] == 'F22'
 
     def test_get_single_release_by_upper(self):
         res = self.app.get('/releases/F22', headers={'Accept': 'application/json'})
-        self.assertEqual(res.json_body['name'], 'F22')
+        assert res.json_body['name'] == 'F22'
 
     def test_get_single_release_by_long(self):
         res = self.app.get('/releases/Fedora%2022', headers={'Accept': 'application/json'})
-        self.assertEqual(res.json_body['name'], 'F22')
+        assert res.json_body['name'] == 'F22'
 
     def test_list_releases(self):
         res = self.app.get('/releases/')
         body = res.json_body
-        self.assertEqual(len(body['releases']), 2)
+        assert len(body['releases']) == 2
 
-        self.assertEqual(body['releases'][0]['name'], 'F17')
-        self.assertEqual(body['releases'][1]['name'], 'F22')
+        assert body['releases'][0]['name'] == 'F17'
+        assert body['releases'][1]['name'] == 'F22'
 
     def test_list_releases_with_pagination(self):
         res = self.app.get('/releases/')
         body = res.json_body
-        self.assertEqual(len(body['releases']), 2)
+        assert len(body['releases']) == 2
 
         res = self.app.get('/releases/', {'rows_per_page': 1})
         body = res.json_body
-        self.assertEqual(len(body['releases']), 1)
-        self.assertEqual(body['releases'][0]['name'], 'F17')
+        assert len(body['releases']) == 1
+        assert body['releases'][0]['name'] == 'F17'
 
         res = self.app.get('/releases/', {'rows_per_page': 1, 'page': 2})
         body = res.json_body
-        self.assertEqual(len(body['releases']), 1)
-        self.assertEqual(body['releases'][0]['name'], 'F22')
+        assert len(body['releases']) == 1
+        assert body['releases'][0]['name'] == 'F22'
 
     def test_list_releases_by_ids_unknown(self):
         res = self.app.get('/releases/', {"ids": [9234872348923467]})
 
-        self.assertEqual(len(res.json_body['releases']), 0)
+        assert len(res.json_body['releases']) == 0
 
     def test_list_releases_by_ids_plural(self):
         releases = Release.query.all()
 
         res = self.app.get('/releases/', {"ids": [release.id for release in releases]})
 
-        self.assertEqual(len(res.json_body['releases']), len(releases))
-        self.assertEqual(set([r['name'] for r in res.json_body['releases']]),
-                         set([release.name for release in releases]))
+        assert len(res.json_body['releases']) == len(releases)
+        assert set([r['name'] for r in res.json_body['releases']]) == \
+            set([release.name for release in releases])
 
     def test_list_releases_by_ids_singular(self):
         release = Release.query.all()[0]
 
         res = self.app.get('/releases/', {"ids": release.id})
 
-        self.assertEqual(len(res.json_body['releases']), 1)
-        self.assertEqual(res.json_body['releases'][0]['name'], release.name)
+        assert len(res.json_body['releases']) == 1
+        assert res.json_body['releases'][0]['name'] == release.name
 
     def test_list_releases_by_name(self):
         res = self.app.get('/releases/', {"name": 'F22'})
         body = res.json_body
-        self.assertEqual(len(body['releases']), 1)
-        self.assertEqual(body['releases'][0]['name'], 'F22')
+        assert len(body['releases']) == 1
+        assert body['releases'][0]['name'] == 'F22'
 
     def test_list_releases_by_name_match(self):
         res = self.app.get('/releases/', {"name": '%1%'})
         body = res.json_body
-        self.assertEqual(len(body['releases']), 1)
-        self.assertEqual(body['releases'][0]['name'], 'F17')
+        assert len(body['releases']) == 1
+        assert body['releases'][0]['name'] == 'F17'
 
     def test_list_releases_by_name_match_miss(self):
         res = self.app.get('/releases/', {"name": '%wat%'})
-        self.assertEqual(len(res.json_body['releases']), 0)
+        assert len(res.json_body['releases']) == 0
 
     def test_list_releases_by_update_alias(self):
         update = self.db.query(Update).first()
@@ -156,26 +156,26 @@ class TestReleasesService(base.BaseTestCase):
 
         res = self.app.get('/releases/', {"updates": 'some_alias'})
         body = res.json_body
-        self.assertEqual(len(body['releases']), 1)
-        self.assertEqual(body['releases'][0]['name'], 'F17')
+        assert len(body['releases']) == 1
+        assert body['releases'][0]['name'] == 'F17'
 
     def test_list_releases_by_nonexistent_update(self):
         res = self.app.get('/releases/', {"updates": 'carbunkle'}, status=400)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'updates')
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         'Invalid updates specified: carbunkle')
+        assert res.json_body['errors'][0]['name'] == 'updates'
+        assert res.json_body['errors'][0]['description'] == \
+            'Invalid updates specified: carbunkle'
 
     def test_list_releases_by_package_name(self):
         res = self.app.get('/releases/', {"packages": 'bodhi'})
         body = res.json_body
-        self.assertEqual(len(body['releases']), 1)
-        self.assertEqual(body['releases'][0]['name'], 'F17')
+        assert len(body['releases']) == 1
+        assert body['releases'][0]['name'] == 'F17'
 
     def test_list_releases_by_nonexistent_package(self):
         res = self.app.get('/releases/', {"packages": 'carbunkle'}, status=400)
-        self.assertEqual(res.json_body['errors'][0]['name'], 'packages')
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         'Invalid packages specified: carbunkle')
+        assert res.json_body['errors'][0]['name'] == 'packages'
+        assert res.json_body['errors'][0]['description'] == \
+            'Invalid packages specified: carbunkle'
 
     def test_new_release(self):
         attrs = {"name": "F42", "long_name": "Fedora 42", "version": "42",
@@ -199,41 +199,41 @@ class TestReleasesService(base.BaseTestCase):
 
         for k, v in attrs.items():
             if k in ['state', 'package_manager']:
-                self.assertEqual(getattr(r, k).value, v)
+                assert getattr(r, k).value == v
             else:
-                self.assertEqual(getattr(r, k), v)
+                assert getattr(r, k) == v
 
-        self.assertEqual(r.state, ReleaseState.disabled)
+        assert r.state == ReleaseState.disabled
 
         # Let's check Release cache content
         releases = Release.all_releases()
         disabled_releases = releases["disabled"]
-        self.assertEqual(disabled_releases[0]["name"], "F42")
-        self.assertEqual(disabled_releases[1]["name"], "F22")
-        self.assertEqual(len(disabled_releases), 2)
+        assert disabled_releases[0]["name"] == "F42"
+        assert disabled_releases[1]["name"] == "F22"
+        assert len(disabled_releases) == 2
         current_releases = releases["current"]
-        self.assertEqual(current_releases[0]["name"], "F17")
-        self.assertEqual(len(current_releases), 1)
+        assert current_releases[0]["name"] == "F17"
+        assert len(current_releases) == 1
 
     def test_list_releases_by_current_state(self):
         """ Test that we can filter releases using the 'current' state """
         res = self.app.get('/releases/', {"state": 'current'})
         body = res.json_body
-        self.assertEqual(len(body['releases']), 1)
-        self.assertEqual(body['releases'][0]['name'], 'F17')
+        assert len(body['releases']) == 1
+        assert body['releases'][0]['name'] == 'F17'
 
     def test_list_releases_by_disabled_state(self):
         """ Test that we can filter releases using the 'disabled' state """
         res = self.app.get('/releases/', {"state": 'disabled'})
         body = res.json_body
-        self.assertEqual(len(body['releases']), 1)
-        self.assertEqual(body['releases'][0]['name'], 'F22')
+        assert len(body['releases']) == 1
+        assert body['releases'][0]['name'] == 'F22'
 
     def test_list_releases_by_pending_state(self):
         """ Test that we can filter releases using the 'pending' state """
         res = self.app.get('/releases/', {"state": 'pending'})
         body = res.json_body
-        self.assertEqual(len(body['releases']), 0)
+        assert len(body['releases']) == 0
 
     def test_list_releases_with_a_wrong_state(self):
         """ Test that we get a 400 error when we use an undefined state """
@@ -241,7 +241,7 @@ class TestReleasesService(base.BaseTestCase):
         body = res.json_body
         # the error description is not the same in Python2 and Python3
         # so let's just make sure we have an error.
-        self.assertEqual(body['status'], 'error')
+        assert body['status'] == 'error'
 
     def test_list_releases_exclude_archived_on(self):
         """ Test that we can filter releases using the exclude_archived flag"""
@@ -254,9 +254,9 @@ class TestReleasesService(base.BaseTestCase):
         res = self.app.get('/releases/', {"exclude_archived": True})
 
         body = res.json_body
-        self.assertEqual([r['name'] for r in body['releases']], ['F22'])
+        assert [r['name'] for r in body['releases']] == ['F22']
         for r in body["releases"]:
-            self.assertNotEqual(r["state"], ReleaseState.archived)
+            assert r["state"] != ReleaseState.archived
 
     def test_list_releases_exclude_archived_off(self):
         """
@@ -271,8 +271,8 @@ class TestReleasesService(base.BaseTestCase):
         res = self.app.get('/releases/')
 
         body = res.json_body
-        self.assertEqual(len(body['releases']), 2)
-        self.assertEqual({r['name'] for r in body['releases']}, {'F17', 'F22'})
+        assert len(body['releases']) == 2
+        assert {r['name'] for r in body['releases']} == {'F17', 'F22'}
 
     @mock.patch('bodhi.server.services.releases.log.info', side_effect=IOError('BOOM!'))
     def test_save_release_exception_handler(self, info):
@@ -291,13 +291,11 @@ class TestReleasesService(base.BaseTestCase):
 
         res = self.app.post("/releases/", attrs, status=400)
 
-        self.assertEqual(
-            res.json,
-            {"status": "error", "errors": [
-                {"location": "body", "name": "release",
-                 "description": "Unable to create/edit release: BOOM!"}]})
+        assert res.json == {"status": "error", "errors": [
+            {"location": "body", "name": "release",
+             "description": "Unable to create/edit release: BOOM!"}]}
         # The release should not have been created.
-        self.assertEqual(self.db.query(Release).filter(Release.name == attrs["name"]).count(), 0)
+        assert self.db.query(Release).filter(Release.name == attrs["name"]).count() == 0
         info.assert_called_once_with('Creating a new release: F42')
 
     def test_new_release_invalid_tags(self):
@@ -311,9 +309,9 @@ class TestReleasesService(base.BaseTestCase):
                  }
         res = self.app.post("/releases/", attrs, status=400)
 
-        self.assertEqual(len(res.json_body['errors']), 4)
+        assert len(res.json_body['errors']) == 4
         for error in res.json_body['errors']:
-            self.assertEqual(error["description"], "Invalid tag: %s" % attrs[error["name"]])
+            assert error["description"] == "Invalid tag: %s" % attrs[error["name"]]
 
     def test_edit_release(self):
         name = "F22"
@@ -328,7 +326,7 @@ class TestReleasesService(base.BaseTestCase):
         res = self.app.post("/releases/", r, status=200)
 
         r = self.db.query(Release).filter(Release.name == name).one()
-        self.assertEqual(r.state, ReleaseState.current)
+        assert r.state == ReleaseState.current
 
     def test_edit_mail_template(self):
         """Test `mail_template` is saved correctly in db after release edit."""
@@ -344,7 +342,7 @@ class TestReleasesService(base.BaseTestCase):
         res = self.app.post("/releases/", r, status=200)
 
         r = self.db.query(Release).filter(Release.name == name).one()
-        self.assertEqual(r.mail_template, "fedora_modular_errata_template")
+        assert r.mail_template == "fedora_modular_errata_template"
 
     def test_edit_mail_template_with_null_value(self):
         """Test that null value for `mail_template` gets replaced by default value."""
@@ -360,7 +358,7 @@ class TestReleasesService(base.BaseTestCase):
         res = self.app.post("/releases/", r, status=200)
 
         r = self.db.query(Release).filter(Release.name == name).one()
-        self.assertEqual(r.mail_template, "fedora_errata_template")
+        assert r.mail_template == "fedora_errata_template"
 
     def test_edit_mail_template_with_invalid_value(self):
         """Test appropriate error is returned when provided `mail_template` doesn't exist."""
@@ -379,9 +377,9 @@ class TestReleasesService(base.BaseTestCase):
 
         res = self.app.post("/releases/", r, status=400)
 
-        self.assertEqual(res.json_body['errors'][0]['name'], 'mail_template')
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         '"invalid_template_name" is not one of {}'.format(template_vals))
+        assert res.json_body['errors'][0]['name'] == 'mail_template'
+        assert res.json_body['errors'][0]['description'] == \
+            f'"invalid_template_name" is not one of {template_vals}'
 
     def test_change_release_state_to_archived(self):
         """
@@ -409,32 +407,32 @@ class TestReleasesService(base.BaseTestCase):
         res = self.app.post("/releases/", r, status=200)
 
         r = self.db.query(Release).filter(Release.name == name).one()
-        self.assertEqual(r.state, ReleaseState.archived)
+        assert r.state == ReleaseState.archived
 
         # Expect update status not changed
         python_nose = self.db.query(Build).filter_by(
             nvr='python-nose-1.3.7-11.fc17').one().update
-        self.assertEqual(python_nose.status, UpdateStatus.stable)
+        assert python_nose.status == UpdateStatus.stable
         # Expect update status not changed
         python_paste_deploy = self.db.query(Build).filter_by(
             nvr='python-paste-deploy-1.5.2-8.fc17').one().update
-        self.assertEqual(python_paste_deploy.status, UpdateStatus.obsolete)
+        assert python_paste_deploy.status == UpdateStatus.obsolete
         # Expect update status not changed
         firefox = self.db.query(Build).filter_by(
             nvr='firefox-61.0.2-3.fc17').one().update
-        self.assertEqual(firefox.status, UpdateStatus.unpushed)
+        assert firefox.status == UpdateStatus.unpushed
         # Expect update status changed to 'obsolete'
         bodhi_update = self.db.query(Build).filter_by(
             nvr='bodhi-2.0-1.fc17').one().update
-        self.assertEqual(bodhi_update.status, UpdateStatus.obsolete)
+        assert bodhi_update.status == UpdateStatus.obsolete
         # Check for the comment
         expected_comment = ('This update is marked obsolete because the F17 release '
                             'is archived.')
-        self.assertEqual(bodhi_update.comments[-1].text, expected_comment)
+        assert bodhi_update.comments[-1].text == expected_comment
         # Expect update status not changed
         python_test_update = self.db.query(Build).filter_by(
             nvr='python-test-update.fc22').one().update
-        self.assertEqual(python_test_update.status, UpdateStatus.pending)
+        assert python_test_update.status == UpdateStatus.pending
 
     def test_change_release_state_to_frozen(self):
         """
@@ -458,19 +456,19 @@ class TestReleasesService(base.BaseTestCase):
         res = self.app.post("/releases/", r, status=200)
 
         r = self.db.query(Release).filter(Release.name == name).one()
-        self.assertEqual(r.state, ReleaseState.frozen)
+        assert r.state == ReleaseState.frozen
 
         # Check for the comment
         python_test_update = self.db.query(Build).filter_by(
             nvr='python-test-update.fc22').one().update
         expected_comment = ('There is an ongoing freeze; this will be pushed to'
                             ' stable after the freeze is over.')
-        self.assertEqual(python_test_update.comments[-1].text, expected_comment)
+        assert python_test_update.comments[-1].text == expected_comment
 
     def test_get_single_release_html(self):
         res = self.app.get('/releases/f17', headers={'Accept': 'text/html'})
-        self.assertEqual(res.content_type, 'text/html')
-        self.assertIn('f17-updates-testing', res)
+        assert res.content_type == 'text/html'
+        assert 'f17-updates-testing' in res
 
     def test_get_single_release_html_two_same_updates_same_month(self):
         """Test the HTML view with two updates of the same type from the same month."""
@@ -480,21 +478,20 @@ class TestReleasesService(base.BaseTestCase):
 
         res = self.app.get('/releases/f17', headers={'Accept': 'text/html'})
 
-        self.assertEqual(res.content_type, 'text/html')
-        self.assertIn('f17-updates-testing', res)
+        assert res.content_type == 'text/html'
+        assert 'f17-updates-testing' in res
         # Since the updates are the same type and from the same month, we should see a count of 2 in
         # the graph data.
         graph_data = 'data : [\n            2,\n          ]'
-        print(res)
-        self.assertTrue(graph_data in res)
+        assert graph_data in res
 
     def test_get_non_existent_release_html(self):
         self.app.get('/releases/x', headers={'Accept': 'text/html'}, status=404)
 
 
-class TestReleasesHTML(base.BaseTestCase):
-    def setUp(self, *args, **kwargs):
-        super(TestReleasesHTML, self).setUp(*args, **kwargs)
+class TestReleasesHTML(base.BasePyTestCase):
+    def setup_method(self, method):
+        super().setup_method(method)
 
         def _add_updates(updateslist, user, release, packagesuffix):
             """Private method that adds updates to the database for testing
@@ -585,13 +582,13 @@ class TestReleasesHTML(base.BaseTestCase):
         # Assert that pending updates counts in a current release are displayed properly
         # Note the bug update count here is one more than what we generate above
         # because there is already a single update in the test data.
-        self.assertIn('?releases=F17&amp;status=pending">15', res)
+        assert '?releases=F17&amp;status=pending">15' in res
 
         # Assert that testing updates counts in a current release are displayed properly
-        self.assertIn('?releases=F17&amp;status=testing">54', res)
+        assert '?releases=F17&amp;status=testing">54' in res
 
         # Assert that testing updates counts in a pending release are displayed properly
-        self.assertIn('?releases=F18&amp;status=testing">12', res)
+        assert '?releases=F18&amp;status=testing">12' in res
 
         # Assert that stable updates counts in a pending release are displayed properly
-        self.assertIn('?releases=F18&amp;status=stable">16', res)
+        assert '?releases=F18&amp;status=stable">16' in res

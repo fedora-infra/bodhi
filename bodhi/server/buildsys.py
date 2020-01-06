@@ -71,12 +71,17 @@ def multicall_enabled(func: typing.Callable[..., typing.Any]) -> typing.Callable
 class DevBuildsys:
     """A dummy buildsystem instance used during development and testing."""
 
+    _side_tag_data = [{'id': 1234, 'name': 'f17-build-side-1234'},
+                      {'id': 7777, 'name': 'f17-build-side-7777'}]
+
     __untag__ = []  # type: typing.List[typing.Tuple[str, str]]
     __moved__ = []  # type: typing.List[typing.Tuple[str, str, str]]
     __added__ = []  # type: typing.List[typing.Tuple[str, str]]
     __tagged__ = {}  # type: typing.Mapping[str, typing.List[str]]
     __rpms__ = []  # type: typing.List[typing.Dict[str, object]]
     __tags__ = []  # type: typing.List[typing.Tuple[str, typing.Mapping[str, typing.Any]]]
+    __side_tags__ = _side_tag_data  # type: typing.List[typing.Dict[str, object]]
+    __removed_side_tags__ = []  # type: typing.List[typing.Dict[str, object]]
 
     _build_data = {'build_id': 16058,
                    'completion_time': '2007-08-24 23:26:10.890319',
@@ -96,6 +101,12 @@ class DevBuildsys:
         """Initialize the DevBuildsys."""
         self._multicall = False
         self.multicall_result = []
+
+    @property
+    def _side_tag_ids_names(self):
+        return {id_or_name
+                for taginfo in self._side_tag_data
+                for id_or_name in (taginfo['id'], taginfo['name'])}
 
     @property
     def multicall(self) -> bool:
@@ -127,6 +138,8 @@ class DevBuildsys:
         cls.__tagged__ = {}
         cls.__rpms__ = []
         cls.__tags__ = []
+        cls.__side_tags__ = list(cls._side_tag_data)
+        cls.__removed_side_tags__ = []
 
     def multiCall(self):
         """Emulate Koji's multiCall."""
@@ -391,7 +404,7 @@ class DevBuildsys:
     def listTagged(self, tag: str, *args, **kw) -> typing.List[typing.Any]:
         """List updates tagged with teh given tag."""
         latest = kw.get('latest', False)
-        if tag == 'f17-build-side-7777':
+        if tag in self._side_tag_ids_names:
             return [self.getBuild(build="gnome-backgrounds-3.0-1.fc17")]
         builds = []
 
@@ -456,12 +469,19 @@ class DevBuildsys:
             else:
                 return None
 
-        # hardcode a side-tag response
-        if taginfo == 'f17-build-side-7777':
-            return {'maven_support': False, 'locked': False, 'name': 'f17-build-side-7777',
-                    'extra': {'sidetag_user': 'dudemcpants', 'sidetag': True},
-                    'perm': None, 'perm_id': None, 'arches': None, 'maven_include_all': False,
-                    'id': 7777}
+        # emulate a side-tag response
+        if taginfo in self._side_tag_ids_names:
+            for sidetag in self.__side_tags__:
+                if taginfo in (sidetag['id'], sidetag['name']):
+                    return {'maven_support': False, 'locked': False, 'name': sidetag['name'],
+                            'extra': {'sidetag_user': 'dudemcpants', 'sidetag': True},
+                            'perm': None, 'perm_id': None, 'arches': None,
+                            'maven_include_all': False, 'id': sidetag['id']}
+
+            if kw.get('strict'):
+                raise koji.GenericError("Invalid tagInfo: '%s'" % taginfo)
+            else:
+                return None
 
         return {'maven_support': False, 'locked': False, 'name': taginfo,
                 'extra': {}, 'perm': None, 'id': 246, 'arches': None,
@@ -490,8 +510,8 @@ class DevBuildsys:
                  'nextdepth': None, 'filter': [], 'currdepth': 4}]
 
     def listSideTags(self, **kw):
-        """Return a list of side tags."""
-        return [{'id': 7777, 'name': 'f17-build-side-7777'}]
+        """Return a list of side-tags."""
+        return self.__side_tags__
 
     def createTag(self, tag: str, **opts):
         """Emulate tag adding."""
@@ -523,9 +543,22 @@ class DevBuildsys:
         else:
             del self.__tags__[tagid]
 
-    def removeSideTag(self, sidetag):
-        """Emulate side tag and build target deletion."""
-        pass
+    def removeSideTag(self, side_tag):
+        """Emulate side-tag and build target deletion."""
+        if isinstance(side_tag, int):
+            what = 'id'
+        elif isinstance(side_tag, str):
+            what = 'name'
+        else:
+            raise TypeError(f'sidetag: {side_tag!r}')
+
+        matching_tags = [t for t in self.__side_tags__ if t[what] == side_tag]
+
+        if not matching_tags:
+            raise koji.GenericError(f"Not a sidetag: {side_tag}")
+
+        self.__side_tags__.remove(matching_tags[0])
+        self.__removed_side_tags__.append(matching_tags[0])
 
     def getRPMHeaders(self, rpmID: str,
                       headers: typing.Any) -> typing.Union[typing.Mapping[str, str], None]:

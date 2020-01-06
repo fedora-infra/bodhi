@@ -1242,7 +1242,7 @@ class Package(Base):
         return name
 
     @staticmethod
-    def get_or_create(build):
+    def get_or_create(session, build):
         """
         Identify and return the Package instance associated with the build.
 
@@ -1250,6 +1250,7 @@ class Package(Base):
         Or, given a container, return a ContainerBuild instance.
 
         Args:
+            session (sqlalchemy.orm.session.Session): A database session.
             build (dict): Information about the build from the build system (koji).
         Returns:
             Package: A type-specific instance of Package for the specific build requested.
@@ -1259,8 +1260,8 @@ class Package(Base):
         package = base.query.filter_by(name=name).one_or_none()
         if not package:
             package = base(name=name)
-            Session().add(package)
-            Session().flush()
+            session.add(package)
+            session.flush()
         return package
 
 
@@ -1457,6 +1458,15 @@ class Build(Base):
             id: The task/build if of the build.
         """
         return self._get_kojiinfo()['id']
+
+    def get_task_id(self) -> int:
+        """
+        Return the koji task id of the build.
+
+        Returns:
+            id: The task if of the build or None
+        """
+        return self._get_kojiinfo().get('task_id')
 
     def get_creation_time(self) -> datetime:
         """Return the creation time of the build."""
@@ -1799,7 +1809,7 @@ class Update(Base):
     date_stable = Column(DateTime)
 
     # eg: FEDORA-EPEL-2009-12345
-    alias = Column(Unicode(32), unique=True, nullable=False)
+    alias = Column(Unicode(64), unique=True, nullable=False)
 
     # One-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)
@@ -2215,6 +2225,11 @@ class Update(Base):
         data['critpath'] = cls.contains_critpath_component(
             data['builds'], data['release'].name)
 
+        # Be sure to not add an empty string as alternative title
+        # and strip whitespaces from it
+        if 'display_name' in data:
+            data['display_name'] = data['display_name'].strip()
+
         # Create the Bug entities, but don't talk to rhbz yet.  We do that
         # offline in the UpdatesHandler task worker now.
         bugs = []
@@ -2296,6 +2311,11 @@ class Update(Base):
         caveats = []
         edited_builds = [build.nvr for build in up.builds]
 
+        # Be sure to not add an empty string as alternative title
+        # and strip whitespaces from it
+        if 'display_name' in data:
+            data['display_name'] = data['display_name'].strip()
+
         # stable_days can be set by the user. We want to make sure that the value
         # will not be lower than the mandatory_days_in_testing.
         if up.mandatory_days_in_testing > data.get('stable_days', up.stable_days):
@@ -2315,7 +2335,7 @@ class Update(Base):
                                                 "locked update")
 
                 new_builds.append(build)
-                Package.get_or_create(buildinfo[build])
+                Package.get_or_create(db, buildinfo[build])
                 b = db.query(Build).filter_by(nvr=build).first()
 
                 up.builds.append(b)
@@ -3864,6 +3884,7 @@ class Update(Base):
             builds.append({
                 "type": "koji-build",
                 "id": build.get_build_id(),
+                "task_id": build.get_task_id(),
                 "issuer": build.get_owner_name(),
                 "component": build.nvr_name,
                 "nvr": build.nvr,
@@ -3871,7 +3892,7 @@ class Update(Base):
             })
 
         artifact = {
-            "type": "rpm-build-group",
+            "type": "koji-build-group",
             "id": f"{self.alias}-{self.version_hash}",
             "repository": self.abs_url(),
             "builds": builds,
@@ -4370,19 +4391,32 @@ class Bug(Base):
         Returns:
             The default comment to add to the bug related to the given update.
         """
-        message = config['stable_bug_msg'] % (
-            update.get_title(delim=', '), "%s %s" % (
-                update.release.long_name, update.status.description))
-        if update.status is UpdateStatus.testing:
-            template = config['testing_bug_msg']
+        install_msg = (
+            f'In short time you\'ll be able to install the update with the following '
+            f'command:\n`{update.install_command}`') if update.install_command else ''
+        msg_data = {'update_title': update.get_title(delim=", ", nvr=True),
+                    'update_beauty_title': update.get_title(beautify=True, nvr=True),
+                    'update_alias': update.alias,
+                    'repo': f'{update.release.long_name} {update.status.description}',
+                    'install_instructions': install_msg,
+                    'update_url': f'{config.get("base_address")}{update.get_url()}'}
 
+        if update.status is UpdateStatus.stable:
+            message = config['stable_bug_msg'].format(**msg_data)
+        elif update.status is UpdateStatus.testing:
             if update.release.id_prefix == "FEDORA-EPEL":
                 if 'testing_bug_epel_msg' in config:
                     template = config['testing_bug_epel_msg']
                 else:
+                    template = config['testing_bug_msg']
                     log.warning("No 'testing_bug_epel_msg' found in the config.")
+            else:
+                template = config['testing_bug_msg']
+            message = template.format(**msg_data)
+        else:
+            raise ValueError(f'Trying to post a default comment to a bug, but '
+                             f'{update.alias} is not in Stable or Testing status.')
 
-            message += template % (config.get('base_address') + update.get_url())
         return message
 
     def add_comment(self, update: Update, comment: typing.Optional[str] = None) -> None:

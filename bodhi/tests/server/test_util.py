@@ -22,8 +22,8 @@ import os
 import shutil
 import subprocess
 import tempfile
-import unittest
 
+from webob.multidict import MultiDict
 import bleach
 import pkg_resources
 import pytest
@@ -35,7 +35,7 @@ from bodhi.server.models import TestGatingStatus, Update
 from bodhi.tests.server import base
 
 
-class TestAvatar(unittest.TestCase):
+class TestAvatar:
     """Test the avatar() function."""
 
     @mock.patch.dict(config, {'libravatar_enabled': False})
@@ -49,7 +49,7 @@ class TestAvatar(unittest.TestCase):
 
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
-        self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'libravatar.org')
+        assert util.avatar(context, 'bowlofeggs', 50) == 'libravatar.org'
 
     @mock.patch.dict(
         config,
@@ -66,7 +66,7 @@ class TestAvatar(unittest.TestCase):
 
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
-        self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'cool url')
+        assert util.avatar(context, 'bowlofeggs', 50) == 'cool url'
         openid_user_host = config['openid_template'].format(username='bowlofeggs')
         libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
                                                https=False, size=50, default='retro')
@@ -86,13 +86,13 @@ class TestAvatar(unittest.TestCase):
 
         context['request'].cache.cache_on_arguments = cache_on_arguments
 
-        self.assertEqual(util.avatar(context, 'bowlofeggs', 50), 'cool url')
+        assert util.avatar(context, 'bowlofeggs', 50) == 'cool url'
         openid_user_host = config['openid_template'].format(username='bowlofeggs')
         libravatar_url.assert_called_once_with(openid=f'http://{openid_user_host}/',
                                                https=True, size=50, default='retro')
 
 
-class TestBugLink(base.BaseTestCase):
+class TestBugLink:
     """Tests for the bug_link() function."""
     def test_short_false_with_title(self):
         """Test a call to bug_link() with short=False on a Bug that has a title."""
@@ -102,10 +102,9 @@ class TestBugLink(base.BaseTestCase):
 
         link = util.bug_link(None, bug)
 
-        self.assertEqual(
-            link,
+        assert link == \
             ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
-             "class='notblue'>BZ#1234567</a> Lucky bug number"))
+             "class='notblue'>BZ#1234567</a> Lucky bug number")
 
     def test_short_false_with_title_sanitizes_safe_tags(self):
         """
@@ -118,10 +117,9 @@ class TestBugLink(base.BaseTestCase):
 
         link = util.bug_link(None, bug)
 
-        self.assertEqual(
-            link,
+        assert link == \
             ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
-             "class='notblue'>BZ#1234567</a> Check &lt;b&gt;this&lt;/b&gt; out"))
+             "class='notblue'>BZ#1234567</a> Check &lt;b&gt;this&lt;/b&gt; out")
 
     def test_short_false_with_title_sanitizes_unsafe_tags(self):
         """
@@ -138,17 +136,15 @@ class TestBugLink(base.BaseTestCase):
         # https://github.com/mozilla/bleach/issues/392
         bleach_v = pkg_resources.parse_version(bleach.__version__)
         if bleach_v >= pkg_resources.parse_version('3.0.0'):
-            self.assertEqual(
-                link,
+            assert link == \
                 ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091' "
                  "class='notblue'>BZ#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should "
-                 "be optional"))
+                 "be optional")
         else:
-            self.assertEqual(
-                link,
+            assert link == \
                 ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1473091' "
                  "class='notblue'>BZ#1473091</a> &lt;disk&gt; &lt;driver name=\"...\"&gt; should "
-                 "be optional&lt;/driver&gt;&lt;/disk&gt;"))
+                 "be optional&lt;/driver&gt;&lt;/disk&gt;")
 
     def test_short_false_without_title(self):
         """Test a call to bug_link() with short=False on a Bug that has no title."""
@@ -158,10 +154,9 @@ class TestBugLink(base.BaseTestCase):
 
         link = util.bug_link(None, bug)
 
-        self.assertEqual(
-            link,
+        assert link == \
             ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
-             "class='notblue'>BZ#1234567</a> <i class='fa fa-spinner fa-spin fa-fw'></i>"))
+             "class='notblue'>BZ#1234567</a> <i class='fa fa-spinner fa-spin fa-fw'></i>")
 
     def test_short_true(self):
         """Test a call to bug_link() with short=True."""
@@ -171,14 +166,13 @@ class TestBugLink(base.BaseTestCase):
 
         link = util.bug_link(None, bug, True)
 
-        self.assertEqual(
-            link,
+        assert link == \
             ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1234567' "
-             "class='notblue'>BZ#1234567</a>"))
+             "class='notblue'>BZ#1234567</a>")
 
 
 @mock.patch('bodhi.server.util.time.sleep')
-class TestCallAPI(unittest.TestCase):
+class TestCallAPI:
     """Test the call_api() function."""
 
     @mock.patch('bodhi.server.util.http_session.get')
@@ -193,15 +187,14 @@ class TestCallAPI(unittest.TestCase):
 
         get.side_effect = [FakeResponse(503), FakeResponse(503)]
 
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             util.call_api('url', 'service_name', retries=1)
 
-        self.assertEqual(
-            str(exc.exception),
-            ('Bodhi failed to get a resource from service_name at the following URL "url". The '
-             'status code was "503". The error was "{\'some\': \'stuff\'}".'))
-        self.assertEqual(get.mock_calls,
-                         [mock.call('url', timeout=60), mock.call('url', timeout=60)])
+        assert str(exc.value) == \
+            ('Bodhi failed to get a resource from '
+             'service_name at the following URL "url". The '
+             'status code was "503". The error was "{\'some\': \'stuff\'}".')
+        assert get.mock_calls == [mock.call('url', timeout=60), mock.call('url', timeout=60)]
         sleep.assert_called_once_with(1)
 
     @mock.patch('bodhi.server.util.http_session.get')
@@ -218,13 +211,12 @@ class TestCallAPI(unittest.TestCase):
 
         res = util.call_api('url', 'service_name', retries=1)
 
-        self.assertEqual(res, {'some': 'stuff'})
-        self.assertEqual(get.mock_calls,
-                         [mock.call('url', timeout=60), mock.call('url', timeout=60)])
+        assert res == {'some': 'stuff'}
+        assert get.mock_calls == [mock.call('url', timeout=60), mock.call('url', timeout=60)]
         sleep.assert_called_once_with(1)
 
 
-class TestMemoized(unittest.TestCase):
+class TestMemoized:
     """Test the memoized class."""
 
     def test_caching(self):
@@ -235,12 +227,12 @@ class TestMemoized(unittest.TestCase):
         def some_function(arg):
             return return_value
 
-        self.assertIs(some_function(42), True)
+        assert some_function(42)
         # Let's flip the value of return_value just to make sure the cached value is used and not
         # the new value.
         return_value = False
         # It should still return True, indicating that some_function() was not called again.
-        self.assertIs(some_function(42), True)
+        assert some_function(42)
 
     def test_caching_different_args(self):
         """Ensure that caching works for hashable parameters, but is sensitive to arguments."""
@@ -250,11 +242,11 @@ class TestMemoized(unittest.TestCase):
         def some_function(arg):
             return return_value
 
-        self.assertIs(some_function(42), True)
+        assert some_function(42)
         # Let's flip the value of return_value just to make sure the cached value is not used.
         return_value = False
         # It should return False because the argument is different.
-        self.assertIs(some_function(41), False)
+        assert not some_function(41)
 
     def test_dont_cache_lists(self):
         """memoized should not cache calls with list arguments."""
@@ -264,10 +256,10 @@ class TestMemoized(unittest.TestCase):
         def some_function(arg):
             return return_value
 
-        self.assertIs(some_function(['some', 'list']), True)
+        assert some_function(['some', 'list'])
         # Let's flip the value of return_value just to make sure it isn't cached.
         return_value = False
-        self.assertIs(some_function(['some', 'list']), False)
+        assert not some_function(['some', 'list'])
 
     def test___get__(self):
         """__get__() should allow us to set the function as an attribute of another object."""
@@ -279,10 +271,10 @@ class TestMemoized(unittest.TestCase):
         class some_class(object):
             thing = some_function
 
-        self.assertEqual(some_class().thing(), 42)
+        assert some_class().thing() == 42
 
 
-class TestNoAutoflush(unittest.TestCase):
+class TestNoAutoflush:
     """Test the no_autoflush context manager."""
     def test_autoflush_disabled(self):
         """Test correct behavior when autoflush is disabled."""
@@ -290,10 +282,10 @@ class TestNoAutoflush(unittest.TestCase):
         session.autoflush = False
 
         with util.no_autoflush(session):
-            self.assertFalse(session.autoflush)
+            assert session.autoflush is False
 
         # autoflush should still be False since that was the starting condition.
-        self.assertFalse(session.autoflush)
+        assert session.autoflush is False
 
     def test_autoflush_enabled(self):
         """Test correct behavior when autoflush is enabled."""
@@ -301,13 +293,13 @@ class TestNoAutoflush(unittest.TestCase):
         session.autoflush = True
 
         with util.no_autoflush(session):
-            self.assertFalse(session.autoflush)
+            assert not session.autoflush
 
         # autoflush should again be True since that was the starting condition.
-        self.assertTrue(session.autoflush)
+        assert session.autoflush
 
 
-class TestCanWaiveTestResults(base.BaseTestCase):
+class TestCanWaiveTestResults(base.BasePyTestCase):
     """Test the can_waive_test_results() function."""
 
     @mock.patch.dict('bodhi.server.util.config',
@@ -318,7 +310,7 @@ class TestCanWaiveTestResults(base.BaseTestCase):
         u.test_gating_status = TestGatingStatus.failed
         u.status = models.UpdateStatus.testing
 
-        self.assertFalse(util.can_waive_test_results(None, u))
+        assert not util.can_waive_test_results(None, u)
 
     @mock.patch.dict('bodhi.server.util.config',
                      {'test_gating.required': True, 'waiverdb.access_token': 'secret'})
@@ -326,7 +318,7 @@ class TestCanWaiveTestResults(base.BaseTestCase):
         u = Update.query.all()[0]
         u.test_gating_status = TestGatingStatus.failed
         u.status = models.UpdateStatus.testing
-        self.assertTrue(util.can_waive_test_results(None, u))
+        assert util.can_waive_test_results(None, u)
 
     @mock.patch.dict('bodhi.server.util.config',
                      {'test_gating.required': False, 'waiverdb.access_token': 'secret'})
@@ -338,7 +330,7 @@ class TestCanWaiveTestResults(base.BaseTestCase):
         u = Update.query.all()[0]
         u.test_gating_status = TestGatingStatus.failed
         u.status = models.UpdateStatus.testing
-        self.assertFalse(util.can_waive_test_results(None, u))
+        assert not util.can_waive_test_results(None, u)
 
     @mock.patch.dict('bodhi.server.util.config',
                      {'test_gating.required': True, 'waiverdb.access_token': 'secret'})
@@ -350,7 +342,7 @@ class TestCanWaiveTestResults(base.BaseTestCase):
         u = Update.query.all()[0]
         u.test_gating_status = TestGatingStatus.passed
         u.status = models.UpdateStatus.testing
-        self.assertFalse(util.can_waive_test_results(None, u))
+        assert not util.can_waive_test_results(None, u)
 
     @mock.patch.dict('bodhi.server.util.config',
                      {'test_gating.required': True, 'waiverdb.access_token': 'secret'})
@@ -362,31 +354,31 @@ class TestCanWaiveTestResults(base.BaseTestCase):
         u = Update.query.all()[0]
         u.test_gating_status = TestGatingStatus.failed
         u.status = models.UpdateStatus.stable
-        self.assertFalse(util.can_waive_test_results(None, u))
+        assert not util.can_waive_test_results(None, u)
 
 
-class TestPagesList(unittest.TestCase):
+class TestPagesList:
     """Test the pages_list() function."""
 
     def test_page_in_middle(self):
         """Test for when the current page is in the middle of the pages."""
         val = util.pages_list(mock.MagicMock(), 15, 30)
-        self.assertEqual(val, [1, "..."] + list(range(11, 20)) + ['...', 30])
+        assert val == [1, "..."] + list(range(11, 20)) + ['...', 30]
 
     def test_page_near_end(self):
         """Test for when the current page is near the end of the pages."""
         val = util.pages_list(mock.MagicMock(), 6, 7)
 
-        self.assertEqual(val, list(range(1, 8)))
+        assert val == list(range(1, 8))
 
 
-class TestSanityCheckRepodata(unittest.TestCase):
+class TestSanityCheckRepodata(base.BasePyTestCase):
     """Test the sanity_check_repodata() function."""
 
-    def setUp(self):
+    def setup_method(self):
         self.tempdir = tempfile.mkdtemp('bodhi')
 
-    def tearDown(self):
+    def teardown_method(self):
         shutil.rmtree(self.tempdir)
 
     def test_correct_yum_repo(self):
@@ -398,11 +390,9 @@ class TestSanityCheckRepodata(unittest.TestCase):
 
     def test_invalid_repo_type(self):
         """A ValueError should be raised with invalid repo type."""
-        with self.assertRaises(ValueError) as excinfo:
+        with pytest.raises(ValueError) as excinfo:
             util.sanity_check_repodata("so", "wrong")
-
-        self.assertEqual(str(excinfo.exception),
-                         'repo_type must be one of module, source, or yum.')
+        assert str(excinfo.value) == 'repo_type must be one of module, source, or yum.'
 
     @mock.patch('bodhi.server.util.librepo')
     def test_librepo_exception(self, librepo):
@@ -412,10 +402,9 @@ class TestSanityCheckRepodata(unittest.TestCase):
         librepo.LibrepoException = MockException
         librepo.Handle.return_value.perform.side_effect = MockException(-1, 'msg', 'general_msg')
 
-        with self.assertRaises(RepodataException) as excinfo:
+        with pytest.raises(RepodataException) as excinfo:
             util.sanity_check_repodata('/tmp/', 'yum')
-
-        self.assertEqual(str(excinfo.exception), 'msg')
+        assert str(excinfo.value) == 'msg'
 
     def _mkmetadatadir_w_modules(self):
         base.mkmetadatadir(self.tempdir)
@@ -447,12 +436,11 @@ class TestSanityCheckRepodata(unittest.TestCase):
         """No Exception should be raised if the repo is a normal module repo."""
         self._mkmetadatadir_w_modules()
 
-        with self.assertRaises(util.RepodataException) as exc:
+        with pytest.raises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='module')
-
-        self.assertEqual(str(exc.exception),
-                         "DNF did not return expected output when running test!"
-                         + " Test: ['module', 'list'], expected: .*, output: ")
+        assert str(exc.value) == \
+            ("DNF did not return expected output when running test!"
+             " Test: ['module', 'list'], expected: .*, output: ")
 
     def test_updateinfo_empty_tags(self):
         """RepodataException should be raised if <id/> is found in updateinfo."""
@@ -461,10 +449,9 @@ class TestSanityCheckRepodata(unittest.TestCase):
             uinfo.write('<id/>')
         base.mkmetadatadir(self.tempdir, updateinfo=updateinfo)
 
-        with self.assertRaises(util.RepodataException) as exc:
+        with pytest.raises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='yum')
-
-        self.assertEqual(str(exc.exception), 'updateinfo.xml.gz contains empty ID tags')
+        assert str(exc.value) == 'updateinfo.xml.gz contains empty ID tags'
 
     def test_comps_invalid_notxml(self):
         """RepodataException should be raised if comps is invalid."""
@@ -473,10 +460,9 @@ class TestSanityCheckRepodata(unittest.TestCase):
             uinfo.write('this is not even xml')
         base.mkmetadatadir(self.tempdir, comps=comps)
 
-        with self.assertRaises(util.RepodataException) as exc:
+        with pytest.raises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='yum')
-
-        self.assertEqual(str(exc.exception), 'Comps file unable to be parsed')
+        assert str(exc.value) == 'Comps file unable to be parsed'
 
     def test_comps_invalid_nonsense(self):
         """RepodataException should be raised if comps is invalid."""
@@ -485,10 +471,9 @@ class TestSanityCheckRepodata(unittest.TestCase):
             uinfo.write('<whatever />')
         base.mkmetadatadir(self.tempdir, comps=comps)
 
-        with self.assertRaises(util.RepodataException) as exc:
+        with pytest.raises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='yum')
-
-        self.assertEqual(str(exc.exception), 'Comps file empty')
+        assert str(exc.value) == 'Comps file empty'
 
     def test_repomd_missing_updateinfo(self):
         """If the updateinfo data tag is missing in repomd.xml, an Exception should be raised."""
@@ -503,10 +488,9 @@ class TestSanityCheckRepodata(unittest.TestCase):
                 root.remove(data)
         repomd.write(repomd_path, encoding='UTF-8', xml_declaration=True)
 
-        with self.assertRaises(util.RepodataException) as exc:
+        with pytest.raises(util.RepodataException) as exc:
             util.sanity_check_repodata(self.tempdir, repo_type='yum')
-
-        self.assertEqual(str(exc.exception), 'Required parts not in repomd.xml: updateinfo')
+        assert str(exc.value) == 'Required parts not in repomd.xml: updateinfo'
 
     def test_source_true(self):
         """It should not fail source repos for missing prestodelta or comps."""
@@ -555,45 +539,43 @@ class TestTestcaseLink:
         assert f">{self.displayed_name}<" in retval
 
 
-class TestType2Color(unittest.TestCase):
+class TestType2Color:
     """Test the type2color() function."""
 
     def test_colors(self):
         """Test type2color() output."""
         context = {'request': mock.MagicMock()}
-        self.assertEqual(util.type2color(context, 'bugfix'), 'rgba(150,180,205,0.5)')
-        self.assertEqual(util.type2color(context, 'security'), 'rgba(205,150,180,0.5)')
-        self.assertEqual(util.type2color(context, 'newpackage'), 'rgba(150,205,180,0.5)')
-        self.assertEqual(util.type2color(context, 'enhancement'), 'rgba(205,205,150,0.5)')
-        self.assertEqual(util.type2color(context, 'something_else'), 'rgba(200,200,200,0.5)')
+        assert util.type2color(context, 'bugfix') == 'rgba(150,180,205,0.5)'
+        assert util.type2color(context, 'security') == 'rgba(205,150,180,0.5)'
+        assert util.type2color(context, 'newpackage') == 'rgba(150,205,180,0.5)'
+        assert util.type2color(context, 'enhancement') == 'rgba(205,205,150,0.5)'
+        assert util.type2color(context, 'something_else') == 'rgba(200,200,200,0.5)'
 
 
-class TestType2Icon(unittest.TestCase):
+class TestType2Icon:
     """Test the type2icon() function."""
 
     def test_consonant(self):
         """Test type2icon() with a kind that starts with a consonant."""
-        self.assertEqual(
-            util.type2icon(None, 'security'),
+        assert util.type2icon(None, 'security') == \
             ("<span data-toggle='tooltip' title='This is a security update'>"
-             "<i class='fa fa-fw fa-shield'></i></span>"))
+             "<i class='fa fa-fw fa-shield'></i></span>")
 
     def test_vowel(self):
         """Test type2icon() with a kind that starts with a vowel."""
-        self.assertEqual(
-            util.type2icon(None, 'enhancement'),
+        assert util.type2icon(None, 'enhancement') == \
             ("<span data-toggle='tooltip' title='This is an enhancement update'>"
-             "<i class='fa fa-fw fa-bolt'></i></span>"))
+             "<i class='fa fa-fw fa-bolt'></i></span>")
 
 
-class TestUtils(base.BaseTestCase):
+class TestUtils(base.BasePyTestCase):
 
     @mock.patch.dict(util.config, {'critpath.type': None, 'critpath_pkgs': ['kernel', 'glibc']})
     def test_get_critpath_components_dummy(self):
         """ Ensure that critpath packages can be found using the hardcoded
         list.
         """
-        self.assertEqual(util.get_critpath_components(), ['kernel', 'glibc'])
+        assert util.get_critpath_components() == ['kernel', 'glibc']
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -608,13 +590,13 @@ class TestUtils(base.BaseTestCase):
         session.get.return_value.status_code = 500
         session.get.return_value.json.return_value = \
             {'error': 'some error'}
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             util.get_critpath_components('f25')
         # We are not testing the whole error message because there is no
         # guarantee of the ordering of the GET parameters.
-        self.assertIn('Bodhi failed to get a resource from PDC', str(exc.exception))
-        self.assertIn('The status code was "500".', str(exc.exception))
-        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        assert 'Bodhi failed to get a resource from PDC' in str(exc.value)
+        assert 'The status code was "500".' in str(exc.value)
+        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.log')
     @mock.patch.dict(util.config, {'critpath.type': None, 'critpath_pkgs': ['kernel', 'glibc']})
@@ -623,7 +605,7 @@ class TestUtils(base.BaseTestCase):
         and the type of components to search for is not rpm.
         """
         pkgs = util.get_critpath_components('f25', 'module')
-        self.assertIn('kernel', pkgs)
+        assert 'kernel' in pkgs
         warning = ('The critpath.type of "module" does not support searching '
                    'for non-RPM components')
         mock_log.warning.assert_called_once_with(warning)
@@ -651,18 +633,17 @@ class TestUtils(base.BaseTestCase):
                         'type': 'rpm'
                     }]}]
 
-        with self.assertRaises(Exception) as exc:
+        with pytest.raises(Exception) as exc:
             util.get_critpath_components('f26', 'rpm', frozenset(['gcc']))
 
-        self.assertEqual(str(exc.exception), 'We got paging when requesting a single component?!')
-        self.assertEqual(
-            session.get.mock_calls,
+        assert str(exc.value) == 'We got paging when requesting a single component?!'
+        assert session.get.mock_calls == \
             [mock.call(
                 ('http://domain.local/rest_api/v1/component-branches/?active=true'
                  '&critical_path=true&fields=global_component&name=f26&page_size=100&type=rpm'
                  '&global_component=gcc'),
                 timeout=60),
-             mock.call().json()])
+             mock.call().json()]
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch.dict(util.config, {'critpath.type': 'pdc', 'pdc_url': 'http://domain.local'})
@@ -684,15 +665,14 @@ class TestUtils(base.BaseTestCase):
 
         pkgs = util.get_critpath_components('f26', 'rpm', frozenset(['gcc']))
 
-        self.assertEqual(pkgs, ['gcc'])
-        self.assertEqual(
-            session.get.mock_calls,
+        assert pkgs == ['gcc']
+        assert session.get.mock_calls == \
             [mock.call(
                 ('http://domain.local/rest_api/v1/component-branches/?active=true'
                  '&critical_path=true&fields=global_component&name=f26&page_size=100&type=rpm'
                  '&global_component=gcc'),
                 timeout=60),
-             mock.call().json()])
+             mock.call().json()]
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch.dict(util.config, {
@@ -741,16 +721,16 @@ class TestUtils(base.BaseTestCase):
             }
         ]
         pkgs = util.get_critpath_components('f26')
-        self.assertIn('python', pkgs)
-        self.assertIn('gcc', pkgs)
+        assert 'python' in pkgs
+        assert 'gcc' in pkgs
         # At least make sure it called the next url to cycle through the pages.
         # We can't verify all the calls made because the URL GET parameters
         # in the URL may have different orders based on the system/Python
         # version.
         session.get.assert_called_with(pdc_next_url, timeout=60)
         # Verify there were two GET requests made and two .json() calls
-        self.assertEqual(session.get.call_count, 2)
-        self.assertEqual(session.get.return_value.json.call_count, 2)
+        assert session.get.call_count == 2
+        assert session.get.return_value.json.call_count == 2
 
     @mock.patch('bodhi.server.util.http_session')
     def test_pagure_api_get(self, session):
@@ -790,7 +770,7 @@ class TestUtils(base.BaseTestCase):
         }
         session.get.return_value.json.return_value = expected_json
         rv = util.pagure_api_get('http://domain.local/api/0/rpms/python')
-        self.assertEqual(rv, expected_json)
+        assert rv == expected_json
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -803,14 +783,14 @@ class TestUtils(base.BaseTestCase):
             "error": "Project not found",
             "error_code": "ENOPROJECT"
         }
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
             '"http://domain.local/api/0/rpms/python". The status code was '
             '"404". The error was "Project not found".')
-        self.assertEqual(str(exc.exception), expected_error)
-        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        assert str(exc.value) == expected_error
+        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -819,15 +799,15 @@ class TestUtils(base.BaseTestCase):
         raises the expected error message.
         """
         session.get.return_value.status_code = 500
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
 
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
             '"http://domain.local/api/0/rpms/python". The status code was '
             '"500".')
-        self.assertEqual(str(exc.exception), expected_error)
-        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        assert str(exc.value) == expected_error
+        assert sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -837,15 +817,15 @@ class TestUtils(base.BaseTestCase):
         """
         session.get.return_value.status_code = 404
         session.get.return_value.json.side_effect = ValueError('Not JSON')
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             util.pagure_api_get('http://domain.local/api/0/rpms/python')
 
         expected_error = (
             'Bodhi failed to get a resource from Pagure at the following URL '
             '"http://domain.local/api/0/rpms/python". The status code was '
             '"404". The error was "".')
-        self.assertEqual(str(exc.exception), expected_error)
-        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        assert str(exc.value) == expected_error
+        assert sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
     def test_pdc_api_get(self, session):
@@ -875,7 +855,7 @@ class TestUtils(base.BaseTestCase):
         session.get.return_value.json.return_value = expected_json
         rv = util.pdc_api_get(
             'http://domain.local/rest_api/v1/component-branch-slas/')
-        self.assertEqual(rv, expected_json)
+        assert rv == expected_json
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -884,15 +864,15 @@ class TestUtils(base.BaseTestCase):
         raises the expected error message.
         """
         session.get.return_value.status_code = 500
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/')
         expected_error = (
             'Bodhi failed to get a resource from PDC at the following URL '
             '"http://domain.local/rest_api/v1/component-branch-slas/". The '
             'status code was "500".')
-        self.assertEqual(str(exc.exception), expected_error)
-        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        assert str(exc.value) == expected_error
+        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -904,7 +884,7 @@ class TestUtils(base.BaseTestCase):
         session.get.return_value.json.return_value = {
             "detail": "Not found."
         }
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
 
@@ -913,8 +893,8 @@ class TestUtils(base.BaseTestCase):
             '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
             'status code was "404". The error was '
             '"{\'detail\': \'Not found.\'}".')
-        self.assertEqual(str(exc.exception), expected_error)
-        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        assert str(exc.value) == expected_error
+        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -924,7 +904,7 @@ class TestUtils(base.BaseTestCase):
         """
         session.get.return_value.status_code = 404
         session.get.return_value.json.side_effect = ValueError('Not JSON')
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             util.pdc_api_get(
                 'http://domain.local/rest_api/v1/component-branch-slas/3/')
 
@@ -932,8 +912,8 @@ class TestUtils(base.BaseTestCase):
             'Bodhi failed to get a resource from PDC at the following URL '
             '"http://domain.local/rest_api/v1/component-branch-slas/3/". The '
             'status code was "404". The error was "".')
-        self.assertEqual(str(exc.exception), expected_error)
-        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        assert str(exc.value) == expected_error
+        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
     def test_greenwave_api_post(self, session):
@@ -954,7 +934,7 @@ class TestUtils(base.BaseTestCase):
         }
         decision = util.greenwave_api_post('http://domain.local/api/v1.0/decision',
                                            data)
-        self.assertEqual(decision, expected_json)
+        assert decision == expected_json
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -963,7 +943,7 @@ class TestUtils(base.BaseTestCase):
         raises the expected error message.
         """
         session.post.return_value.status_code = 500
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             data = {
                 'product_version': 'fedora-26',
                 'decision_context': 'bodhi_push_update_stable',
@@ -975,8 +955,8 @@ class TestUtils(base.BaseTestCase):
         expected_error = (
             'Bodhi failed to send POST request to Greenwave at the following URL '
             '"http://domain.local/api/v1.0/decision". The status code was "500".')
-        self.assertEqual(str(exc.exception), expected_error)
-        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        assert str(exc.value) == expected_error
+        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -988,7 +968,7 @@ class TestUtils(base.BaseTestCase):
         session.post.return_value.json.return_value = {
             "message": "Not found."
         }
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             data = {
                 'product_version': 'fedora-26',
                 'decision_context': 'bodhi_push_update_stable',
@@ -1001,8 +981,8 @@ class TestUtils(base.BaseTestCase):
             'Bodhi failed to send POST request to Greenwave at the following URL '
             '"http://domain.local/api/v1.0/decision". The status code was "404". '
             'The error was "{\'message\': \'Not found.\'}".')
-        self.assertEqual(str(exc.exception), expected_error)
-        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        assert str(exc.value) == expected_error
+        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
     @mock.patch('bodhi.server.util.time.sleep')
@@ -1012,7 +992,7 @@ class TestUtils(base.BaseTestCase):
         """
         session.post.return_value.status_code = 404
         session.post.return_value.json.side_effect = ValueError('Not JSON')
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             data = {
                 'product_version': 'fedora-26',
                 'decision_context': 'bodhi_push_update_stable',
@@ -1025,8 +1005,8 @@ class TestUtils(base.BaseTestCase):
             'Bodhi failed to send POST request to Greenwave at the following URL '
             '"http://domain.local/api/v1.0/decision". The status code was "404". '
             'The error was "".')
-        self.assertEqual(str(exc.exception), expected_error)
-        self.assertEqual(sleep.mock_calls, [mock.call(1), mock.call(1), mock.call(1)])
+        assert str(exc.value) == expected_error
+        assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
 
     @mock.patch('bodhi.server.util.http_session')
     def test_waiverdb_api_post(self, session):
@@ -1055,7 +1035,7 @@ class TestUtils(base.BaseTestCase):
         }
         waiver = util.waiverdb_api_post('http://domain.local/api/v1.0/waivers/',
                                         data)
-        self.assertEqual(waiver, expected_json)
+        assert waiver == expected_json
 
     def test_markup_escapes(self):
         """Ensure we correctly parse markdown & escape HTML"""
@@ -1065,14 +1045,12 @@ class TestUtils(base.BaseTestCase):
             '<script>alert("pants")</script>'
         )
         html = util.markup(None, text)
-        self.assertEqual(
-            html,
+        assert html == \
             (
                 '<div class="markdown"><h1>this is a header</h1>\n'
                 '<p>this is some <strong>text</strong>\n'
                 '&lt;script&gt;alert("pants")&lt;/script&gt;</p></div>'
             )
-        )
 
     @mock.patch('bodhi.server.util.bleach.clean', return_value='cleaned text')
     @mock.patch.object(util.bleach, '__version__', '1.4.3')
@@ -1082,7 +1060,7 @@ class TestUtils(base.BaseTestCase):
 
         result = util.markup(None, text)
 
-        self.assertEqual(result, 'cleaned text')
+        assert result == 'cleaned text'
         expected_text = (
             '<div class="markdown"><h1>this is a header</h1>\n<p>this is some <strong>text'
             '</strong></p></div>')
@@ -1101,7 +1079,7 @@ class TestUtils(base.BaseTestCase):
 
         result = util.markup(None, text)
 
-        self.assertEqual(result, 'cleaned text')
+        assert result == 'cleaned text'
         expected_text = (
             '<div class="markdown"><h1>this is a header</h1>\n<p>this is some <strong>text'
             '</strong></p></div>')
@@ -1114,28 +1092,43 @@ class TestUtils(base.BaseTestCase):
         clean.assert_called_once_with(expected_text, tags=expected_tags,
                                       attributes=expected_attributes)
 
+    def test_markup_without_bodhi_extensions(self):
+        """Ensure Bodhi extensions are not used with bodhi=False"""
+        text = (
+            'rhbz#12345\n'
+            '@mattia\n'
+            'FEDORA-EPEL-2019-1a2b3c4d5e'
+        )
+        html = util.markup(None, text, bodhi=False)
+        assert html == \
+            (
+                '<p>rhbz#12345\n'
+                '@mattia\n'
+                'FEDORA-EPEL-2019-1a2b3c4d5e</p>'
+            )
+
     def test_rpm_header(self):
         h = util.get_rpm_header('libseccomp')
-        self.assertEqual(h['name'], 'libseccomp')
+        assert h['name'] == 'libseccomp'
 
     def test_rpm_header_exception(self):
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             util.get_rpm_header('raise-exception')
 
     def test_rpm_header_not_found(self):
-        with self.assertRaises(ValueError) as exc:
+        with pytest.raises(ValueError) as exc:
             util.get_rpm_header("do-not-find-anything")
         expected_error = "No rpm headers found in koji for 'do-not-find-anything'"
-        self.assertEqual(str(exc.exception), expected_error)
+        assert str(exc.value) == expected_error
 
     def test_cmd_failure_exceptions_off(self):
         ret = util.cmd('false', raise_on_error=False)
-        self.assertEqual((b'', b'', 1), ret)
+        assert (b'', b'', 1) == ret
 
     def test_cmd_failure_exceptions_on(self):
-        with self.assertRaises(RuntimeError) as exc:
+        with pytest.raises(RuntimeError) as exc:
             util.cmd('false', raise_on_error=True)
-        self.assertEqual(str(exc.exception), "f a l s e returned a non-0 exit code: 1")
+        assert str(exc.value) == "f a l s e returned a non-0 exit code: 1"
 
     def test_sorted_updates_async_removal(self):
         u1 = self.create_update(['bodhi-1.0-1.fc24', 'somepkg-2.0-3.fc24'])
@@ -1144,10 +1137,10 @@ class TestUtils(base.BaseTestCase):
         us = [u1, u2]
         sync, async_ = util.sorted_updates(us)
 
-        self.assertEqual(len(sync), 2)
-        self.assertEqual(len(async_), 0)
-        self.assertEqual(sync[0], u2)
-        self.assertEqual(sync[1], u1)
+        assert len(sync) == 2
+        assert len(async_) == 0
+        assert sync[0] == u2
+        assert sync[1] == u1
 
     def test_sorted_updates_general(self):
         u1 = self.create_update(['bodhi-1.0-1.fc24', 'somepkg-2.0-3.fc24'])
@@ -1163,9 +1156,9 @@ class TestUtils(base.BaseTestCase):
         # This ordering is because:
         #  u5 contains pkgd-1.0, which is < pkgd-2.0 from u6
         #  u2 contains somepkg-1.0, which is < somepkg-2.0 from u1
-        self.assertEqual(sync, [u5, u6, u2, u1])
+        assert sync == [u5, u6, u2, u1]
         # This ordering is because neither u3 nor u4 overlap with other updates
-        self.assertEqual(async_, [u3, u4])
+        assert async_ == [u3, u4]
 
     def test_sorted_updates_insanity(self):
         """
@@ -1182,19 +1175,19 @@ class TestUtils(base.BaseTestCase):
         sync, async_ = util.sorted_updates(us)
 
         # This ordering is actually insane, since both u2 and u3 contain a newer and an older build
-        self.assertEqual(sync, [u2, u3])
+        assert sync == [u2, u3]
         # This ordering is because u1 doesn't overlap with anything
-        self.assertEqual(async_, [u1])
+        assert async_ == [u1]
 
     def test_splitter(self):
         splitlist = util.splitter(["build-0.1", "build-0.2"])
-        self.assertEqual(splitlist, ['build-0.1', 'build-0.2'])
+        assert splitlist == ['build-0.1', 'build-0.2']
 
         splitcommastring = util.splitter("build-0.1, build-0.2")
-        self.assertEqual(splitcommastring, ['build-0.1', 'build-0.2'])
+        assert splitcommastring == ['build-0.1', 'build-0.2']
 
         splitspacestring = util.splitter("build-0.1 build-0.2")
-        self.assertEqual(splitspacestring, ['build-0.1', 'build-0.2'])
+        assert splitspacestring == ['build-0.1', 'build-0.2']
 
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch('bodhi.server.util.log.exception')
@@ -1208,8 +1201,8 @@ class TestUtils(base.BaseTestCase):
 
         log_exception.assert_called_once()
         msg = log_exception.call_args[0][0]
-        self.assertIn('Problem talking to', msg)
-        self.assertIn('status code was %r' % mock_get.return_value.status_code, msg)
+        assert 'Problem talking to' in msg
+        assert 'status code was %r' % mock_get.return_value.status_code in msg
 
     @mock.patch('bodhi.server.util.requests.get')
     def test_taskotron_results_paging(self, mock_get):
@@ -1225,11 +1218,11 @@ class TestUtils(base.BaseTestCase):
 
         results = list(util.taskotron_results(settings))
 
-        self.assertEqual(results, ['datum1', 'datum2', 'datum3'])
-        self.assertEqual(mock_get.return_value.json.call_count, 2)
-        self.assertEqual(mock_get.call_count, 2)
-        self.assertEqual(mock_get.call_args[0][0], 'url2')
-        self.assertEqual(mock_get.call_args[1]['timeout'], 60)
+        assert results == ['datum1', 'datum2', 'datum3']
+        assert mock_get.return_value.json.call_count == 2
+        assert mock_get.call_count == 2
+        assert mock_get.call_args[0][0] == 'url2'
+        assert mock_get.call_args[1]['timeout'] == 60
 
     @mock.patch('bodhi.server.util.requests.get')
     @mock.patch('bodhi.server.util.log.debug')
@@ -1244,12 +1237,12 @@ class TestUtils(base.BaseTestCase):
 
         results = list(util.taskotron_results(settings, max_queries=5))
 
-        self.assertEqual(mock_get.call_count, 5)
-        self.assertEqual(results, ['datum'] * 5)
-        self.assertIn('Too many result pages, aborting at', log_debug.call_args[0][0])
+        assert mock_get.call_count == 5
+        assert results == ['datum'] * 5
+        assert 'Too many result pages, aborting at' in log_debug.call_args[0][0]
 
 
-class TestCMDFunctions(base.BaseTestCase):
+class TestCMDFunctions:
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
     @mock.patch('subprocess.Popen')
@@ -1290,13 +1283,11 @@ class TestCMDFunctions(base.BaseTestCase):
             ['/bin/echo'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             shell=False)
 
-        self.assertEqual(
-            mock_error.mock_calls,
-            [mock.call('/bin/echo returned a non-0 exit code: 1'), mock.call('output\nerror')])
+        assert mock_error.mock_calls == \
+            [mock.call('/bin/echo returned a non-0 exit code: 1'), mock.call('output\nerror')]
         mock_debug.assert_called_once_with('Running /bin/echo')
-        self.assertEqual(
-            mock_error.mock_calls,
-            [mock.call('/bin/echo returned a non-0 exit code: 1'), mock.call('output\nerror')])
+        assert mock_error.mock_calls == \
+            [mock.call('/bin/echo returned a non-0 exit code: 1'), mock.call('output\nerror')]
 
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
@@ -1317,8 +1308,8 @@ class TestCMDFunctions(base.BaseTestCase):
             ['/bin/echo'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             shell=False)
         mock_error.assert_not_called()
-        self.assertEqual(mock_debug.mock_calls,
-                         [mock.call('Running /bin/echo'), mock.call('output\nNone')])
+        assert mock_debug.mock_calls == \
+            [mock.call('Running /bin/echo'), mock.call('output\nNone')]
 
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
@@ -1361,18 +1352,18 @@ class TestCMDFunctions(base.BaseTestCase):
         ]
         build = mock.Mock()
         build.nvr = 'cockpit-167-5'
-        self.assertEqual(util._get_build_repository(build), 'f29/cockpit')
-        self.assertEqual(util._get_build_repository(build), 'myrepo')
+        assert util._get_build_repository(build) == 'f29/cockpit'
+        assert util._get_build_repository(build) == 'myrepo'
         session.return_value.getBuild.assert_called_with('cockpit-167-5')
 
     def test_build_evr(self):
         """Test the test_build_evr() function."""
         build = {'epoch': None, 'version': '1', 'release': '2.fc30'}
 
-        self.assertEqual(util.build_evr(build), ('0', '1', '2.fc30'))
+        assert util.build_evr(build) == ('0', '1', '2.fc30')
 
         build['epoch'] = 2
-        self.assertEqual(util.build_evr(build), ('2', '1', '2.fc30'))
+        assert util.build_evr(build) == ('2', '1', '2.fc30')
 
 
 @mock.patch('bodhi.server.util.cmd', autospec=True)
@@ -1422,7 +1413,7 @@ class TestCopyContainer:
                                     raise_on_error=True)
 
 
-class TestTransactionalSessionMaker(base.BaseTestCase):
+class TestTransactionalSessionMaker(base.BasePyTestCase):
     """This class contains tests on the TransactionalSessionMaker class."""
     @mock.patch('bodhi.server.util.log.exception')
     @mock.patch('bodhi.server.util.Session')
@@ -1439,14 +1430,14 @@ class TestTransactionalSessionMaker(base.BaseTestCase):
         # Now let's make it super bad by having rollback raise an Exception
         Session.return_value.rollback.side_effect = IOError("lol now u can't connect to the db")
 
-        with self.assertRaises(ValueError) as exc_context:
+        with pytest.raises(ValueError) as exc_context:
             with tsm():
                 raise exception
+        assert exc_context.value is exception
 
         log_exception.assert_called_once_with(
             'An Exception was raised while rolling back a transaction.')
-        self.assertTrue(exc_context.exception is exception)
-        self.assertEqual(Session.return_value.commit.call_count, 0)
+        assert Session.return_value.commit.call_count == 0
         Session.return_value.rollback.assert_called_once_with()
         Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
@@ -1463,13 +1454,13 @@ class TestTransactionalSessionMaker(base.BaseTestCase):
         tsm = util.TransactionalSessionMaker()
         exception = ValueError("u can't do that lol")
 
-        with self.assertRaises(ValueError) as exc_context:
+        with pytest.raises(ValueError) as exc_context:
             with tsm():
                 raise exception
+        assert exc_context.value is exception
 
-        self.assertEqual(log_exception.call_count, 0)
-        self.assertTrue(exc_context.exception is exception)
-        self.assertEqual(Session.return_value.commit.call_count, 0)
+        assert log_exception.call_count == 0
+        assert Session.return_value.commit.call_count == 0
         Session.return_value.rollback.assert_called_once_with()
         Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
@@ -1488,20 +1479,20 @@ class TestTransactionalSessionMaker(base.BaseTestCase):
         with tsm():
             pass
 
-        self.assertEqual(log_exception.call_count, 0)
-        self.assertEqual(Session.return_value.rollback.call_count, 0)
+        assert log_exception.call_count == 0
+        assert Session.return_value.rollback.call_count == 0
         Session.return_value.commit.assert_called_once_with()
         Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
 
 
-class TestPyfileToModule(unittest.TestCase):
+class TestPyfileToModule(base.BasePyTestCase):
     """Test the pyfile_to_module() function."""
 
-    def setUp(self):
+    def setup_method(self):
         self.tempdir = tempfile.mkdtemp('bodhi')
 
-    def tearDown(self):
+    def teardown_method(self):
         shutil.rmtree(self.tempdir)
 
     def test_basic_call(self):
@@ -1509,16 +1500,17 @@ class TestPyfileToModule(unittest.TestCase):
         with open(filepath, "w") as fh:
             fh.write("FOO = 'bar'\n")
         result = util.pyfile_to_module(filepath, "testfile")
-        self.assertEqual(getattr(result, "FOO"), "bar")
-        self.assertEqual(result.__file__, filepath)
-        self.assertEqual(result.__name__, "testfile")
+        assert getattr(result, "FOO") == "bar"
+        assert result.__file__ == filepath
+        assert result.__name__ == "testfile"
 
     def test_invalid_path(self):
         filepath = os.path.join(self.tempdir, "does-not-exist.py")
-        with self.assertRaises(IOError) as cm:
+        with pytest.raises(IOError) as cm:
             util.pyfile_to_module(filepath, "testfile")
-        self.assertEqual(
-            cm.exception.strerror, 'Unable to load file (No such file or directory)')
+        assert str(cm.value) == \
+            ("[Errno 2] Unable to load file (No such file or directory):"
+             f" '{self.tempdir}/does-not-exist.py'")
 
     def test_invalid_path_silent(self):
         filepath = os.path.join(self.tempdir, "does-not-exist.py")
@@ -1526,4 +1518,80 @@ class TestPyfileToModule(unittest.TestCase):
             result = util.pyfile_to_module(filepath, "testfile", silent=True)
         except IOError as e:
             self.fail("pyfile_to_module raised an exception in silent mode: {}".format(e))
-        self.assertFalse(result)
+        assert not result
+
+
+class TestGenerateChangelog:
+
+    @mock.patch("bodhi.server.util.get_rpm_header")
+    def test_nominal(self, get_rpm_header):
+        """
+        Check for nominal behavior
+        """
+        get_rpm_header.return_value = {
+            "changelogtime": [42, 41, 40],
+            "changelogtext": "dummy",
+        }
+        build = mock.Mock()
+        expected = object()
+        build.get_changelog.return_value = expected
+        result = util.generate_changelog(build)
+        build.get_changelog.assert_called_with(42)
+        assert result == expected
+
+    @mock.patch("bodhi.server.util.get_rpm_header")
+    def test_time_no_list(self, get_rpm_header):
+        """
+        Check for behavior when the changelog time is not a list
+        """
+        get_rpm_header.return_value = {
+            "changelogtime": 42,
+            "changelogtext": "dummy",
+        }
+        build = mock.Mock()
+        util.generate_changelog(build)
+        build.get_changelog.assert_called_with(42)
+
+    @mock.patch("bodhi.server.util.get_rpm_header")
+    def test_no_text(self, get_rpm_header):
+        """
+        Check for behavior when there is no changelog text
+        """
+        get_rpm_header.return_value = {
+            "changelogtime": 42,
+            "changelogtext": "",
+        }
+        build = mock.Mock()
+        util.generate_changelog(build)
+        build.get_changelog.assert_called_with(0)
+
+    def test_no_latest(self):
+        """
+        Check for crash when there are no latest builds.
+        """
+        build = mock.Mock()
+        build.get_latest.return_value = None
+        util.generate_changelog(build)
+        build.get_changelog.assert_called_with(0)
+
+
+class TestJsonEscape:
+    """Tests for the json_escape() function."""
+    def test_doublequotes_escaped(self):
+        """Test that double quotes are escaped correctly for JSON.parse()."""
+        title = 'This is a "terrible" bug title!'
+        assert util.json_escape(title) == 'This is a \\"terrible\\" bug title!'
+
+
+class TestPageUrl:
+    """Tests for the page_url() method."""
+    def test_multi_values_parameter(self):
+        """Ensure correct url is generated from multiple values for same filter."""
+        context = mock.Mock()
+        context.get().path_url = 'http://localhost:6543'
+        context.get().params = MultiDict([('search', ''),
+                                          ('status', 'pending'),
+                                          ('status', 'testing')])
+        page = 2
+        expected_url = 'http://localhost:6543?search=&status=pending&status=testing&page=2'
+        assert util.page_url(context, page) == expected_url

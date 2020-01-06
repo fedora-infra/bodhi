@@ -15,7 +15,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Unit tests for the update message schemas."""
 
-import unittest
 
 from bodhi.messages.schemas.base import BuildV1, ReleaseV1, UpdateV1, UserV1
 from bodhi.messages.schemas.update import (
@@ -36,7 +35,7 @@ from bodhi.messages.schemas.update import (
 from bodhi.tests.messages.utils import check_message
 
 
-class UpdateMessageTests(unittest.TestCase):
+class TestUpdateMessage:
     """A set of unit tests for classes in :py:mod:`bodhi_messages.schemas.update`"""
 
     def test_eject_v1(self):
@@ -192,20 +191,22 @@ class UpdateMessageTests(unittest.TestCase):
                     "email": "baseos-ci@somewhere.com"
                 },
                 "artifact": {
-                    "type": "rpm-build-group",
+                    "type": "koji-build-group",
                     "id": "FEDORA-2019-d64d0caab3",
                     "repository": "https://bodhi.fp.o/updates/FEDORA-2019-d64d0caab3",
                     "builds":
                         [{
                             "type": "koji-build",
-                            "id": 14546276,
+                            "id": 14546275,
+                            "task_id": 14546276,
                             "issuer": "plautrba",
                             "component": "libselinux",
                             "nvr": "libselinux-2.8-6.fc29.x86_64",
                             "scratch": False,
                         }, {
                             "type": "koji-build",
-                            "id": 14546277,
+                            "id": 14546278,
+                            "task_id": None,
                             "issuer": "plautrba",
                             "component": "libsepol",
                             "nvr": "libsepol-2.8-3.fc29.x86_64",

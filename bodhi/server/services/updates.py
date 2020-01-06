@@ -467,8 +467,12 @@ def new_update(request):
     empty, the list of builds will be filled with the latest builds in this
     Koji tag. This is done by validate_from_tag() because the list of builds
     needs to be available in validate_acls().
-    Ensure that related tags ``from_tag``-pending-signing and ``from_tag``-testing
-    exists and if not create them in Koji.
+
+    If the release is composed by Bodhi (i.e. a branched or stable release
+    after the Bodhi activation point), ensure that related tags
+    ``from_tag``-pending-signing and ``from_tag``-testing exists and if not
+    create them in Koji. If the state of the release is not `pending`, add its
+    pending-signing tag and remove it if it's a side tag.
 
     Args:
         request (pyramid.request): The current request.
@@ -496,7 +500,7 @@ def new_update(request):
         for nvr in build_nvrs:
             name, version, release = request.buildinfo[nvr]['nvr']
 
-            package = Package.get_or_create(request.buildinfo[nvr])
+            package = Package.get_or_create(request.db, request.buildinfo[nvr])
 
             # Also figure out the build type and create the build if absent.
             build_class = ContentType.infer_content_class(
@@ -569,20 +573,32 @@ def new_update(request):
             if from_tag:
                 koji = buildsys.get_session()
                 for update in updates:
-                    # Validate that <koji_tag>-pending-signing and <koji-tag>-testing exists,
-                    # if not create them
-                    side_tag_signing_pending = update.release.get_pending_signing_side_tag(
-                        from_tag)
-                    side_tag_testing_pending = update.release.get_testing_side_tag(from_tag)
-                    if not koji.getTag(side_tag_signing_pending):
-                        koji.createTag(side_tag_signing_pending, parent=from_tag)
-                    if not koji.getTag(side_tag_testing_pending):
-                        koji.createTag(side_tag_testing_pending, parent=from_tag)
-                        koji.editTag2(side_tag_testing_pending, perm="autosign")
+                    release = update.release
+                    if not release.composed_by_bodhi:
+                        # Before the Bodhi activation point of a release, keep builds tagged
+                        # with the side-tag and its associate tags. Validate that
+                        # <koji_tag>-pending-signing and <koji-tag>-testing exists, if not create
+                        # them.
+                        side_tag_signing_pending = update.release.get_pending_signing_side_tag(
+                            from_tag)
+                        side_tag_testing_pending = update.release.get_testing_side_tag(from_tag)
+                        if not koji.getTag(side_tag_signing_pending):
+                            koji.createTag(side_tag_signing_pending, parent=from_tag)
+                        if not koji.getTag(side_tag_testing_pending):
+                            koji.createTag(side_tag_testing_pending, parent=from_tag)
+                            koji.editTag2(side_tag_testing_pending, perm="autosign")
 
-                    to_tag = side_tag_signing_pending
-                    # Move every new build to <from_tag>-signing-pending tag
-                    update.add_tag(to_tag)
+                        to_tag = side_tag_signing_pending
+                        # Move every new build to <from_tag>-signing-pending tag
+                        update.add_tag(to_tag)
+                    else:
+                        # After the Bodhi activation point of a release, add the pending-signing tag
+                        # of the release to funnel the builds back into a normal workflow for a
+                        # stable release.
+                        update.add_tag(release.pending_signing_tag)
+
+                        # From here on out, we don't need the side-tag anymore.
+                        koji.removeSideTag(from_tag)
 
     except LockedUpdateException as e:
         log.warning(str(e))

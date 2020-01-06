@@ -1,0 +1,1 @@
+Use existing db session when creating a package: `Package.get_or_create()` now requires a session object in input

@@ -251,9 +251,6 @@ class BodhiConfig(dict):
             # List of users to not create automatic updates from
             'value': ['releng'],
             'validator': _generate_list_validator()},
-        'badge_ids': {
-            'value': [],
-            'validator': _generate_list_validator('|')},
         'base_address': {
             'value': 'https://admin.fedoraproject.org/updates/',
             'validator': str},
@@ -417,9 +414,6 @@ class BodhiConfig(dict):
         'max_concurrent_composes': {
             'value': 2,
             'validator': int},
-        'max_update_length_for_ui': {
-            'value': 30,
-            'validator': int},
         'message_id_email_domain': {
             'value': 'admin.fedoraproject.org',
             'validator': str},
@@ -510,8 +504,8 @@ class BodhiConfig(dict):
             'value': 'postgresql://localhost/bodhi',
             'validator': str},
         'stable_bug_msg': {
-            'value': ('%s has been pushed to the %s repository. If problems still persist, please '
-                      'make note of it in this bug report.'),
+            'value': ('{update_alias} has been pushed to the {repo} repository.\n'
+                      'If problem still persists, please make note of it in this bug report.'),
             'validator': str},
         'stats_blacklist': {
             'value': ['bodhi', 'anonymous', 'autoqa', 'taskotron'],
@@ -527,13 +521,19 @@ class BodhiConfig(dict):
             'validator': str},
         'testing_bug_epel_msg': {
             'value': (
-                '\nSee https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how '
-                'to install test updates.\nYou can provide feedback for this update here: %s'),
+                '{update_alias} has been pushed to the {repo} repository.\n'
+                '{install_instructions}\n'
+                'You can provide feedback for this update here: {update_url}\n\n'
+                'See also https://fedoraproject.org/wiki/QA:Updates_Testing for more '
+                'information on how to test updates.'),
             'validator': str},
         'testing_bug_msg': {
             'value': (
-                '\nSee https://fedoraproject.org/wiki/QA:Updates_Testing for\ninstructions on how '
-                'to install test updates.\nYou can provide feedback for this update here: %s'),
+                '{update_alias} has been pushed to the {repo} repository.\n'
+                '{install_instructions}\n'
+                'You can provide feedback for this update here: {update_url}\n\n'
+                'See also https://fedoraproject.org/wiki/QA:Updates_Testing for more '
+                'information on how to test updates.'),
             'validator': str},
         'top_testers_timeframe': {
             'value': 7,

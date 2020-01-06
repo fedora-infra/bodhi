@@ -1,0 +1,1 @@
+Fix bug title escaping to prevent a JS crash while editing updates

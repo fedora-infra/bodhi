@@ -1,4 +1,4 @@
-# Copyright © 2018-2019 Red Hat, Inc.
+# Copyright © 2018-2019 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -18,10 +18,12 @@
 """This module contains tests for bodhi.server.services.errors.py"""
 from unittest import mock
 
+import pytest
+
 from bodhi.tests.server import base
 
 
-class TestHTMLHandlerErrors(base.BaseTestCase):
+class TestHTMLHandlerErrors(base.BasePyTestCase):
 
     @mock.patch('bodhi.server.services.errors.log.error')
     @mock.patch('bodhi.server.services.errors.status2summary',
@@ -30,12 +32,12 @@ class TestHTMLHandlerErrors(base.BaseTestCase):
         """
         Assert that we log an error if the error template renderer raises an exception
         """
-        with self.assertRaises(IOError) as exc:
+        with pytest.raises(IOError) as exc:
             self.app.get('/pants', headers={'Accept': 'text/html'}, status=404)
 
-        self.assertEqual(str(exc.exception), 'random error')
+        assert str(exc.value) == 'random error'
         error_log_message = log_error.call_args[0][0]
-        self.assertIn("Traceback (most recent call last):\n", error_log_message)
-        self.assertIn("summary=status2summary(errors.status),\n", error_log_message)
-        self.assertIn("raise effect\n", error_log_message)
-        self.assertIn("OSError: random error\n", error_log_message)
+        assert "Traceback (most recent call last):\n" in error_log_message
+        assert "summary=status2summary(errors.status),\n" in error_log_message
+        assert "raise effect\n" in error_log_message
+        assert "OSError: random error\n" in error_log_message

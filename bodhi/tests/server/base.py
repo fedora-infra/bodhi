@@ -126,7 +126,6 @@ class BaseTestCaseMixin:
         'bugtracker': 'dummy',
         'stats_blacklist': 'bodhi autoqa',
         'system_users': 'bodhi autoqa',
-        'max_update_length_for_ui': '70',
         'openid.provider': 'https://id.stg.fedoraproject.org/openid/',
         'openid.url': 'https://id.stg.fedoraproject.org',
         'test_case_base_url': 'https://fedoraproject.org/wiki/',
@@ -184,6 +183,9 @@ class BaseTestCaseMixin:
             with mock.patch('bodhi.server.Session.remove'):
                 _app = TestApp(main({}, testing='guest', **self.app_settings))
         self.app = _app
+
+        # ensure a clean state of the dev build system
+        buildsys.DevBuildsys.clear()
 
     def get_csrf_token(self, app=None):
         """
@@ -435,4 +437,4 @@ def mkmetadatadir(path, updateinfo=None, comps=None, source=False):
     subprocess.check_call(createrepo_command)
     if updateinfo is not False:
         metadata.insert_in_repo(createrepo_c.XZ, os.path.join(path, 'repodata'), 'updateinfo',
-                                'xml', os.path.join(path, 'updateinfo.xml'))
+                                'xml', os.path.join(path, 'updateinfo.xml'), True)

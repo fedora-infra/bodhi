@@ -38,7 +38,7 @@ from bodhi.server import main
 from bodhi.tests.server import base
 
 
-class TestOverridesService(base.BaseTestCase):
+class TestOverridesService(base.BasePyTestCase):
     def test_404_build_not_found(self):
         """Test a 404 due to the build for the override not existing."""
         self.app.get('/overrides/watwatwat', status=404)
@@ -57,64 +57,64 @@ class TestOverridesService(base.BaseTestCase):
 
         override = res.json_body['override']
 
-        self.assertEqual(override['build']['nvr'], "bodhi-2.0-1.fc17")
-        self.assertEqual(override['submitter']['name'], 'guest')
-        self.assertEqual(override['notes'], 'blah blah blah')
+        assert override['build']['nvr'] == "bodhi-2.0-1.fc17"
+        assert override['submitter']['name'] == 'guest'
+        assert override['notes'] == 'blah blah blah'
 
     def test_list_overrides(self):
         res = self.app.get('/overrides/')
 
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 1)
+        assert len(body['overrides']) == 1
 
         override = body['overrides'][0]
-        self.assertEqual(override['build']['nvr'], "bodhi-2.0-1.fc17")
-        self.assertEqual(override['submitter']['name'], 'guest')
-        self.assertEqual(override['notes'], 'blah blah blah')
+        assert override['build']['nvr'] == "bodhi-2.0-1.fc17"
+        assert override['submitter']['name'] == 'guest'
+        assert override['notes'] == 'blah blah blah'
 
     def test_list_overrides_rss(self):
         res = self.app.get('/rss/overrides/',
                            headers=dict(accept='application/atom+xml'))
-        self.assertIn('application/rss+xml', res.headers['Content-Type'])
-        self.assertIn('blah blah blah', res)
+        assert 'application/rss+xml' in res.headers['Content-Type']
+        assert 'blah blah blah' in res
 
     def test_list_expired_overrides(self):
         res = self.app.get('/overrides/', {'expired': 'true'})
 
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 0)
+        assert len(body['overrides']) == 0
 
     def test_list_notexpired_overrides(self):
         res = self.app.get('/overrides/', {'expired': 'false'})
 
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 1)
+        assert len(body['overrides']) == 1
 
         override = body['overrides'][0]
-        self.assertEqual(override['build']['nvr'], "bodhi-2.0-1.fc17")
-        self.assertEqual(override['submitter']['name'], 'guest')
-        self.assertEqual(override['notes'], 'blah blah blah')
+        assert override['build']['nvr'] == "bodhi-2.0-1.fc17"
+        assert override['submitter']['name'] == 'guest'
+        assert override['notes'] == 'blah blah blah'
 
     def test_list_overrides_by_invalid_expired(self):
         res = self.app.get('/overrides/', {"expired": "lalala"},
                            status=400)
         errors = res.json_body['errors']
-        self.assertEqual(len(res.json_body.get('overrides', [])), 0)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[0]['name'], 'expired')
-        self.assertEqual(errors[0]['description'],
-                         '"lalala" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')')
+        assert len(res.json_body.get('overrides', [])) == 0
+        assert len(errors) == 1
+        assert errors[0]['name'] == 'expired'
+        assert errors[0]['description'] == \
+            '"lalala" is neither in (\'false\', \'0\') nor in (\'true\', \'1\')'
 
     def test_list_overrides_by_packages(self):
         res = self.app.get('/overrides/', {'packages': 'bodhi'})
 
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 1)
+        assert len(body['overrides']) == 1
 
         override = body['overrides'][0]
-        self.assertEqual(override['build']['nvr'], "bodhi-2.0-1.fc17")
-        self.assertEqual(override['submitter']['name'], 'guest')
-        self.assertEqual(override['notes'], 'blah blah blah')
+        assert override['build']['nvr'] == "bodhi-2.0-1.fc17"
+        assert override['submitter']['name'] == 'guest'
+        assert override['notes'] == 'blah blah blah'
 
     def test_list_overrides_by_packages_without_override(self):
         self.db.add(RpmPackage(name='python'))
@@ -123,40 +123,39 @@ class TestOverridesService(base.BaseTestCase):
         res = self.app.get('/overrides/', {'packages': 'python'})
 
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 0)
+        assert len(body['overrides']) == 0
 
     def test_list_overrides_by_invalid_packages(self):
         res = self.app.get('/overrides/', {'packages': 'flash-player'},
                            status=400)
 
         errors = res.json_body['errors']
-        self.assertEqual(len(res.json_body.get('overrides', [])), 0)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[0]['name'], 'packages')
-        self.assertEqual(errors[0]['description'],
-                         'Invalid packages specified: flash-player')
+        assert len(res.json_body.get('overrides', [])) == 0
+        assert len(errors) == 1
+        assert errors[0]['name'] == 'packages'
+        assert errors[0]['description'] == 'Invalid packages specified: flash-player'
 
     def test_list_overrides_by_releases(self):
         res = self.app.get('/overrides/', {'releases': 'F17'})
 
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 1)
+        assert len(body['overrides']) == 1
 
         override = body['overrides'][0]
-        self.assertEqual(override['build']['nvr'], "bodhi-2.0-1.fc17")
-        self.assertEqual(override['submitter']['name'], 'guest')
-        self.assertEqual(override['notes'], 'blah blah blah')
+        assert override['build']['nvr'] == "bodhi-2.0-1.fc17"
+        assert override['submitter']['name'] == 'guest'
+        assert override['notes'] == 'blah blah blah'
 
     def test_list_overrides_by_builds(self):
         res = self.app.get('/overrides/', {'builds': 'bodhi-2.0-1.fc17'})
 
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 1)
+        assert len(body['overrides']) == 1
 
         override = body['overrides'][0]
-        self.assertEqual(override['build']['nvr'], "bodhi-2.0-1.fc17")
-        self.assertEqual(override['submitter']['name'], 'guest')
-        self.assertEqual(override['notes'], 'blah blah blah')
+        assert override['build']['nvr'] == "bodhi-2.0-1.fc17"
+        assert override['submitter']['name'] == 'guest'
+        assert override['notes'] == 'blah blah blah'
 
     def test_list_overrides_by_releases_without_override(self):
         self.db.add(Release(name='F42', long_name='Fedora 42',
@@ -176,28 +175,27 @@ class TestOverridesService(base.BaseTestCase):
         res = self.app.get('/overrides/', {'releases': 'F42'})
 
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 0)
+        assert len(body['overrides']) == 0
 
     def test_list_overrides_by_invalid_releases(self):
         res = self.app.get('/overrides/', {'releases': 'F42'},
                            status=400)
 
         errors = res.json_body['errors']
-        self.assertEqual(len(res.json_body.get('overrides', [])), 0)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[0]['name'], 'releases')
-        self.assertEqual(errors[0]['description'],
-                         'Invalid releases specified: F42')
+        assert len(res.json_body.get('overrides', [])) == 0
+        assert len(errors) == 1
+        assert errors[0]['name'] == 'releases'
+        assert errors[0]['description'] == 'Invalid releases specified: F42'
 
     def test_list_overrides_by_username(self):
         res = self.app.get('/overrides/', {"user": "guest"})
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 1)
+        assert len(body['overrides']) == 1
 
         override = body['overrides'][0]
-        self.assertEqual(override['build']['nvr'], "bodhi-2.0-1.fc17")
-        self.assertEqual(override['submitter']['name'], 'guest')
-        self.assertEqual(override['notes'], 'blah blah blah')
+        assert override['build']['nvr'] == "bodhi-2.0-1.fc17"
+        assert override['submitter']['name'] == 'guest'
+        assert override['notes'] == 'blah blah blah'
 
     def test_list_overrides_by_multiple_usernames(self):
         release = Release.get('F17')
@@ -219,17 +217,17 @@ class TestOverridesService(base.BaseTestCase):
 
         res = self.app.get('/overrides/', {"user": "guest,aUser"})
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 2)
+        assert len(body['overrides']) == 2
 
         override_fake = body['overrides'][0]
-        self.assertEqual(override_fake['build']['nvr'], 'just-testing-1.0-2.fc17')
-        self.assertEqual(override_fake['submitter']['name'], 'aUser')
-        self.assertEqual(override_fake['notes'], 'Crazy! 😱')
+        assert override_fake['build']['nvr'] == 'just-testing-1.0-2.fc17'
+        assert override_fake['submitter']['name'] == 'aUser'
+        assert override_fake['notes'] == 'Crazy! 😱'
 
         override_orig = body['overrides'][1]
-        self.assertEqual(override_orig['build']['nvr'], 'bodhi-2.0-1.fc17')
-        self.assertEqual(override_orig['submitter']['name'], 'guest')
-        self.assertEqual(override_orig['notes'], 'blah blah blah')
+        assert override_orig['build']['nvr'] == 'bodhi-2.0-1.fc17'
+        assert override_orig['submitter']['name'] == 'guest'
+        assert override_orig['notes'] == 'blah blah blah'
 
     def test_list_overrides_by_username_without_override(self):
         self.db.add(User(name='bochecha'))
@@ -238,17 +236,16 @@ class TestOverridesService(base.BaseTestCase):
         res = self.app.get('/overrides/', {'user': 'bochecha'})
 
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 0)
+        assert len(body['overrides']) == 0
 
     def test_list_overrides_by_nonexistent_username(self):
         res = self.app.get('/overrides/', {"user": "santa"}, status=400)
 
         errors = res.json_body['errors']
-        self.assertEqual(len(res.json_body.get('overrides', [])), 0)
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[0]['name'], 'user')
-        self.assertEqual(errors[0]['description'],
-                         "Invalid users specified: santa")
+        assert len(res.json_body.get('overrides', [])) == 0
+        assert len(errors) == 1
+        assert errors[0]['name'] == 'user'
+        assert errors[0]['description'] == "Invalid users specified: santa"
 
     def test_list_overrides_by_like(self):
         """
@@ -258,14 +255,14 @@ class TestOverridesService(base.BaseTestCase):
         # test that like works
         res = self.app.get('/overrides/', {"like": "bodh"})
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 1)
+        assert len(body['overrides']) == 1
         override = body['overrides'][0]
-        self.assertEqual(override['build']['nvr'], "bodhi-2.0-1.fc17")
+        assert override['build']['nvr'] == "bodhi-2.0-1.fc17"
 
         # test a like that yields nothing
         res = self.app.get('/overrides/', {"like": "corebird"})
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 0)
+        assert len(body['overrides']) == 0
 
     def test_list_overrides_by_search(self):
         """
@@ -275,20 +272,20 @@ class TestOverridesService(base.BaseTestCase):
         # test that search works
         res = self.app.get('/overrides/', {"search": "bodh"})
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 1)
+        assert len(body['overrides']) == 1
         override = body['overrides'][0]
-        self.assertEqual(override['build']['nvr'], "bodhi-2.0-1.fc17")
+        assert override['build']['nvr'] == "bodhi-2.0-1.fc17"
 
         # test a search that is case-insensitive
         res = self.app.get('/overrides/', {"search": "Bodh"})
-        self.assertEqual(len(body['overrides']), 1)
+        assert len(body['overrides']) == 1
         override = body['overrides'][0]
-        self.assertEqual(override['build']['nvr'], "bodhi-2.0-1.fc17")
+        assert override['build']['nvr'] == "bodhi-2.0-1.fc17"
 
         # test a search that yields nothing
         res = self.app.get('/overrides/', {"search": "corebird"})
         body = res.json_body
-        self.assertEqual(len(body['overrides']), 0)
+        assert len(body['overrides']) == 0
 
     def test_create_override(self):
         release = Release.get('F17')
@@ -309,11 +306,10 @@ class TestOverridesService(base.BaseTestCase):
             res = self.app.post('/overrides/', data)
 
         o = res.json_body
-        self.assertEqual(o['build_id'], build.id)
-        self.assertEqual(o['notes'], 'blah blah blah')
-        self.assertEqual(o['expiration_date'],
-                         expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(o['expired_date'], None)
+        assert o['build_id'] == build.id
+        assert o['notes'] == 'blah blah blah'
+        assert o['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+        assert o['expired_date'] is None
 
     def test_create_override_for_build_with_test_gating_status_failed(self):
         """
@@ -338,11 +334,10 @@ class TestOverridesService(base.BaseTestCase):
             res = self.app.post('/overrides/', data, status=400)
 
         errors = res.json_body['errors']
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[0]['name'], 'nvr')
-        self.assertEqual(errors[0]['description'],
-                         "Cannot create a buildroot override if "
-                         "build's test gating status is failed.")
+        assert len(errors) == 1
+        assert errors[0]['name'] == 'nvr'
+        assert errors[0]['description'] == \
+            "Cannot create a buildroot override if build's test gating status is failed."
 
     def test_create_duplicate_override(self):
         release = Release.get('F17')
@@ -362,11 +357,10 @@ class TestOverridesService(base.BaseTestCase):
             res = self.app.post('/overrides/', data)
 
         o = res.json_body
-        self.assertEqual(o['build_id'], build.id)
-        self.assertEqual(o['notes'], 'blah blah blah')
-        self.assertEqual(o['expiration_date'],
-                         expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(o['expired_date'], None)
+        assert o['build_id'] == build.id
+        assert o['notes'] == 'blah blah blah'
+        assert o['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+        assert o['expired_date'] is None
 
         # Submit it again
         data['notes'] = 'new blah blah'
@@ -378,7 +372,7 @@ _@guest ({})_
 
 _____________
 new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
-        self.assertEqual(o['notes'], new_notes)
+        assert o['notes'] == new_notes
 
     def test_create_override_multiple_nvr(self):
         release = Release.get('F17')
@@ -408,20 +402,17 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
             res = self.app.post('/overrides/', data)
 
         result = res.json_body
-        self.assertEqual(result['caveats'][0]['description'],
-                         'Your override submission was split into 2.')
+        assert result['caveats'][0]['description'] == 'Your override submission was split into 2.'
 
         o1, o2 = result['overrides']
-        self.assertEqual(o1['build_id'], build1.id)
-        self.assertEqual(o1['notes'], 'blah blah blah')
-        self.assertEqual(o1['expiration_date'],
-                         expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(o1['expired_date'], None)
-        self.assertEqual(o2['build_id'], build2.id)
-        self.assertEqual(o2['notes'], 'blah blah blah')
-        self.assertEqual(o2['expiration_date'],
-                         expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(o2['expired_date'], None)
+        assert o1['build_id'] == build1.id
+        assert o1['notes'] == 'blah blah blah'
+        assert o1['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+        assert o1['expired_date'] is None
+        assert o2['build_id'] == build2.id
+        assert o2['notes'] == 'blah blah blah'
+        assert o2['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+        assert o2['expired_date'] is None
 
     def test_create_override_too_long(self):
         release = Release.get('F17')
@@ -460,15 +451,14 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
             res = self.app.post('/overrides/', data)
 
         o = res.json_body
-        self.assertEqual(o['build_id'], build.id)
-        self.assertEqual(o['notes'], 'blah blah blah')
-        self.assertEqual(o['expiration_date'],
-                         expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(o['expired_date'], None)
+        assert o['build_id'] == build.id
+        assert o['notes'] == 'blah blah blah'
+        assert o['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+        assert o['expired_date'] is None
 
         old_build = RpmBuild.get('bodhi-2.0-1.fc17')
 
-        self.assertNotEqual(old_build.override['expired_date'], None)
+        assert old_build.override['expired_date'] is not None
 
     def test_cannot_edit_override_build(self):
         release = Release.get('F17')
@@ -496,10 +486,10 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
             res = self.app.post('/overrides/', o)
 
         override = res.json_body
-        self.assertEqual(override['build_id'], old_build_id)
-        self.assertEqual(override['notes'], 'blah blah blah')
-        self.assertEqual(override['expiration_date'], expiration_date)
-        self.assertEqual(override['expired_date'], None)
+        assert override['build_id'] == old_build_id
+        assert override['notes'] == 'blah blah blah'
+        assert override['expiration_date'] == expiration_date
+        assert override['expired_date'] is None
 
     def test_edit_nonexistent_build(self):
         """
@@ -522,10 +512,9 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         res = self.app.post('/overrides/', o, status=400)
 
         errors = res.json_body['errors']
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[0]['name'], 'edited')
-        self.assertEqual(errors[0]['description'],
-                         'No such build')
+        assert len(errors) == 1
+        assert errors[0]['name'] == 'edited'
+        assert errors[0]['description'] == 'No such build'
 
     def test_edit_nonexistent_override(self):
         release = Release.get('F17')
@@ -547,10 +536,9 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         res = self.app.post('/overrides/', o, status=400)
 
         errors = res.json_body['errors']
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[0]['name'], 'edited')
-        self.assertEqual(errors[0]['description'],
-                         'No buildroot override for this build')
+        assert len(errors) == 1
+        assert errors[0]['name'] == 'edited'
+        assert errors[0]['description'] == 'No buildroot override for this build'
 
     @mock.patch('bodhi.server.services.overrides.BuildrootOverride.edit',
                 mock.MagicMock(side_effect=IOError('no db for you!')))
@@ -569,10 +557,9 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         res = self.app.post('/overrides/', o, status=400)
 
         errors = res.json_body['errors']
-        self.assertEqual(len(errors), 1)
-        self.assertEqual(errors[0]['name'], 'override')
-        self.assertEqual(errors[0]['description'],
-                         'Unable to save buildroot override: no db for you!')
+        assert len(errors) == 1
+        assert errors[0]['name'] == 'override'
+        assert errors[0]['description'] == 'Unable to save buildroot override: no db for you!'
 
     def test_edit_notes(self):
         old_nvr = 'bodhi-2.0-1.fc17'
@@ -588,10 +575,10 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         res = self.app.post('/overrides/', o)
 
         override = res.json_body
-        self.assertEqual(override['build_id'], build_id)
-        self.assertEqual(override['notes'], 'blah blah blah blah')
-        self.assertEqual(override['expiration_date'], expiration_date)
-        self.assertEqual(override['expired_date'], None)
+        assert override['build_id'] == build_id
+        assert override['notes'] == 'blah blah blah blah'
+        assert override['expiration_date'] == expiration_date
+        assert override['expired_date'] is None
 
     def test_edit_expiration_date(self):
         old_nvr = 'bodhi-2.0-1.fc17'
@@ -607,11 +594,10 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         res = self.app.post('/overrides/', o)
 
         override = res.json_body
-        self.assertEqual(override['build'], o['build'])
-        self.assertEqual(override['notes'], o['notes'])
-        self.assertEqual(override['expiration_date'],
-                         expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(override['expired_date'], None)
+        assert override['build'] == o['build']
+        assert override['notes'] == o['notes']
+        assert override['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+        assert override['expired_date'] is None
 
     def test_edit_fail_on_multiple(self):
         old_nvr = 'bodhi-2.0-1.fc17'
@@ -623,10 +609,8 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
                   'edited': old_nvr, 'csrf_token': self.get_csrf_token()})
         res = self.app.post('/overrides/', o, status=400)
         result = res.json_body
-        self.assertEqual(
-            result['errors'][0]['description'],
-            'Cannot combine multiple NVRs with editing a buildroot override.',
-        )
+        assert result['errors'][0]['description'] == \
+            'Cannot combine multiple NVRs with editing a buildroot override.'
 
     def test_expire_override(self):
         old_nvr = 'bodhi-2.0-1.fc17'
@@ -642,10 +626,10 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
             res = self.app.post('/overrides/', o)
 
         override = res.json_body
-        self.assertEqual(override['build'], o['build'])
-        self.assertEqual(override['notes'], o['notes'])
-        self.assertEqual(override['expiration_date'], o['expiration_date'])
-        self.assertNotEqual(override['expired_date'], None)
+        assert override['build'] == o['build']
+        assert override['notes'] == o['notes']
+        assert override['expiration_date'] == o['expiration_date']
+        assert override['expired_date'] is not None
 
     def test_unexpire_override(self):
         # First expire a buildroot override
@@ -675,10 +659,10 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
             res = self.app.post('/overrides/', o)
 
         override = res.json_body
-        self.assertEqual(override['build'], o['build'])
-        self.assertEqual(override['notes'], o['notes'])
-        self.assertEqual(override['expiration_date'], o['expiration_date'])
-        self.assertEqual(override['expired_date'], None)
+        assert override['build'] == o['build']
+        assert override['notes'] == o['notes']
+        assert override['expiration_date'] == o['expiration_date']
+        assert override['expired_date'] is None
 
     def test_create_override_with_missing_pkg(self):
         nvr = 'not-bodhi-2.0-2.fc17'
@@ -693,14 +677,13 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
                                 headers={'Accept': 'application/json'})
 
         o = res.json_body
-        self.assertEqual(o['nvr'], nvr)
-        self.assertEqual(o['notes'], 'blah blah blah')
-        self.assertEqual(o['expiration_date'],
-                         expiration_date.strftime("%Y-%m-%d %H:%M:%S"))
-        self.assertEqual(o['expired_date'], None)
+        assert o['nvr'] == nvr
+        assert o['notes'] == 'blah blah blah'
+        assert o['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+        assert o['expired_date'] is None
 
 
-class TestOverridesWebViews(base.BaseTestCase):
+class TestOverridesWebViews(base.BasePyTestCase):
     def test_override_view_not_loggedin(self):
         """
         Test a non logged in User can't see the edit overrides form
@@ -715,8 +698,8 @@ class TestOverridesWebViews(base.BaseTestCase):
 
         resp = app.get('/overrides/bodhi-2.0-1.fc17',
                        status=200, headers={'Accept': 'text/html'})
-        self.assertNotIn('<h3>New Buildroot Override Form Requires JavaScript</h3>', resp)
-        self.assertIn('<code>bodhi-2.0-1.fc17</code>', resp)
+        assert '<h3>New Buildroot Override Form Requires JavaScript</h3>' not in resp
+        assert '<code>bodhi-2.0-1.fc17</code>' in resp
 
     def test_override_view_loggedin(self):
         """
@@ -725,8 +708,8 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         resp = self.app.get('/overrides/bodhi-2.0-1.fc17',
                             status=200, headers={'Accept': 'text/html'})
-        self.assertIn('<h3>New Buildroot Override Form Requires JavaScript</h3>', resp)
-        self.assertIn('<code>bodhi-2.0-1.fc17</code>', resp)
+        assert '<h3>New Buildroot Override Form Requires JavaScript</h3>' in resp
+        assert '<code>bodhi-2.0-1.fc17</code>' in resp
 
     def test_override_new_not_loggedin(self):
         """
@@ -740,8 +723,8 @@ class TestOverridesWebViews(base.BaseTestCase):
         app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
         resp = app.get('/overrides/new',
                        status=403, headers={'Accept': 'text/html'})
-        self.assertIn('<h1>403 <small>Forbidden</small></h1>', resp)
-        self.assertIn('<p class="lead">Access was denied to this resource.</p>', resp)
+        assert '<h1>403 <small>Forbidden</small></h1>' in resp
+        assert '<p class="lead">Access was denied to this resource.</p>' in resp
 
     def test_override_new_loggedin(self):
         """
@@ -749,7 +732,7 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         resp = self.app.get('/overrides/new',
                             status=200, headers={'Accept': 'text/html'})
-        self.assertIn('Create New Override', resp)
+        assert 'Create New Override' in resp
 
     def test_overrides_list(self):
         """
@@ -758,15 +741,15 @@ class TestOverridesWebViews(base.BaseTestCase):
         """
         resp = self.app.get('/overrides/',
                             status=200, headers={'Accept': 'text/html'})
-        self.assertIn('<h3 class="font-weight-bold m-0 d-flex align-items-center">Overrides', resp)
-        self.assertIn('<a href="http://localhost/overrides/bodhi-2.0-1.fc17">', resp)
+        assert '<h3 class="font-weight-bold m-0 d-flex align-items-center">Overrides' in resp
+        assert '<a href="http://localhost/overrides/bodhi-2.0-1.fc17">' in resp
 
     @mock.patch('bodhi.server.util.arrow.get')
     def test_override_expired_date(self, get):
         """
         Test that a User can see the expired date of the override
         """
-        get.return_value.humanize.return_value = '82 seconds bro'
+        get.return_value.humanize.return_value = '82 seconds bro ago'
         expiration_date = datetime.utcnow() + timedelta(days=1)
         data = {'nvr': 'bodhi-2.0-1.fc17', 'notes': 'blah blah blah',
                 'expiration_date': expiration_date,
@@ -778,7 +761,6 @@ class TestOverridesWebViews(base.BaseTestCase):
         resp = self.app.get('/overrides/bodhi-2.0-1.fc17',
                             status=200, headers={'Accept': 'text/html'})
 
-        self.assertRegex(
-            str(resp), ("<span class='col-xs-auto pr-2 ml-auto text-danger'><small>"
-                        "expired <strong>82 seconds bro ago</strong></small></span>"))
-        self.assertTrue(abs((get.mock_calls[0][1][0] - expiration_date).seconds) < 64)
+        assert ("<span class='col-xs-auto pr-2 ml-auto text-danger'><small>"
+                "expired <strong>82 seconds bro ago</strong></small></span>") in resp
+        assert abs((get.mock_calls[0][1][0] - expiration_date).seconds) < 64

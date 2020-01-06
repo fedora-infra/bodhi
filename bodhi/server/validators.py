@@ -421,7 +421,7 @@ def validate_acls(request, **kwargs):
         builds = request.validated['update'].builds
 
     if not builds:
-        log.error("validate_acls was passed data with nothing to validate.")
+        log.warning("validate_acls was passed data with nothing to validate.")
         request.errors.add('body', 'builds', 'ACL validation mechanism was '
                            'unable to determine ACLs.')
         return
@@ -450,7 +450,7 @@ def validate_acls(request, **kwargs):
                 return
 
             # Get the Package and Release objects
-            package = Package.get_or_create(buildinfo)
+            package = Package.get_or_create(request.db, buildinfo)
             release = cache_release(request, build)
             if release is None:
                 return
@@ -560,7 +560,7 @@ def validate_build_uniqueness(request, **kwargs):
             return
         seen_build.add(build)
 
-        pkg = Package.get_or_create(request.buildinfo[build])
+        pkg = Package.get_or_create(request.db, request.buildinfo[build])
         if (pkg, rel) in seen_packages:
             request.errors.add(
                 'body', 'builds', f'Multiple {pkg.name} builds specified in {rel.name}')
@@ -1163,7 +1163,8 @@ def _validate_override_build(request, nvr, db):
             return
 
         build_info = request.koji.getBuild(nvr)
-        package = Package.get_or_create({'nvr': (build_info['name'],
+        package = Package.get_or_create(db,
+                                        {'nvr': (build_info['name'],
                                                  build_info['version'],
                                                  build_info['release']),
                                          'info': build_info})
