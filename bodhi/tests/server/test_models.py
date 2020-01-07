@@ -19,7 +19,7 @@
 from datetime import datetime, timedelta
 from unittest import mock
 import hashlib
-import html.parser
+import html
 import json
 import pickle
 import time
@@ -3003,10 +3003,9 @@ class TestUpdate(ModelTest):
         assert update.get_title(nvr=True, beautify=True) == (
             'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, and 1 more')
 
-        p = html.parser.HTMLParser()
-        assert p.unescape(update.get_title(amp=True, beautify=True)) == (
+        assert html.unescape(update.get_title(amp=True, beautify=True)) == (
             'TurboGears, TurboGears, & 1 more')
-        assert p.unescape(update.get_title(amp=True, nvr=True, beautify=True)) == (
+        assert html.unescape(update.get_title(amp=True, nvr=True, beautify=True)) == (
             'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, & 1 more')
 
     def test_pkg_str(self):
