@@ -738,6 +738,21 @@ def validate_releases(request, **kwargs):
     bad_releases = []
     validated_releases = []
 
+    if '__current__' in releases:
+        releases.remove('__current__')
+        active_releases = db.query(Release).filter(Release.state == ReleaseState.current).all()
+        validated_releases.extend(active_releases)
+
+    if '__pending__' in releases:
+        releases.remove('__pending__')
+        active_releases = db.query(Release).filter(Release.state == ReleaseState.pending).all()
+        validated_releases.extend(active_releases)
+
+    if '__archived__' in releases:
+        releases.remove('__archived__')
+        active_releases = db.query(Release).filter(Release.state == ReleaseState.archived).all()
+        validated_releases.extend(active_releases)
+
     for r in releases:
         release = db.query(Release).filter(or_(Release.name == r, Release.name == r.upper(),
                                                Release.version == r)).first()
