@@ -23,6 +23,7 @@ from sqlalchemy import func
 
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import Session, notifications, buildsys
+from bodhi.server.util import transactional_session_maker
 from ..models import Update, UpdateStatus, UpdateRequest
 from ..config import config
 
@@ -37,16 +38,15 @@ def main():
     Queries for updates in the testing state that have a NULL request, and run approve_update on
     them.
     """
-    db = Session()
+    db_factory = transactional_session_maker()
     try:
-        testing = db.query(Update).filter_by(status=UpdateStatus.testing, request=None)
-        for update in testing:
-            approve_update(update, db)
-            db.commit()
+        with db_factory() as db:
+            testing = db.query(Update).filter_by(status=UpdateStatus.testing, request=None)
+            for update in testing:
+                approve_update(update, db)
+                db.commit()
     except Exception:
         log.exception("There was an error approving testing updates.")
-        db.rollback()
-        Session.remove()
 
 
 def approve_update(update: Update, db: Session):
