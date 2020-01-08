@@ -17,6 +17,7 @@ from datetime import datetime
 import logging
 
 from bodhi.server import Session
+from bodhi.server.util import transactional_session_maker
 from ..models import BuildrootOverride
 
 
@@ -25,14 +26,13 @@ log = logging.getLogger(__name__)
 
 def main():
     """Wrap ``expire_overrides()``, catching exceptions."""
-    db = Session()
-    try:
-        expire_overrides(db)
-        db.commit()
-    except Exception:
-        log.exception("There was an error expiring overrides")
-        db.rollback()
-        Session.remove()
+    db_factory = transactional_session_maker()
+    with db_factory() as db:
+        try:
+            expire_overrides(db)
+        except Exception:
+            log.exception("There was an error expiring overrides")
+            raise
 
 
 def expire_overrides(db: Session):
