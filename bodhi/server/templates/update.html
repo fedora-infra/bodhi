@@ -1091,7 +1091,7 @@ $(document).ready(function() {
     // set focus on the comment textarea when opening the modal.
     $("#waive_test_results").on('shown.bs.modal', function () {
         $('#waive_comment').trigger('focus')
-    })
+    });
     $("#waive_test_results").submit(function(evt) {
       evt.preventDefault();
       var comment = $('#waive_test_results [name=waive_comment]').val();
@@ -1121,16 +1121,16 @@ $(document).ready(function() {
             });
           },
       });
-    })
+    });
 % endif
 
 % if self.util.can_trigger_tests(update):
     // handle for triggering of tests.
     $("#trigger_tests").submit(function(evt) {
-    evt.preventDefault();
-    var url = '${request.route_url("update_trigger_tests", id=update.alias)}';
-    var $this = $(this);
-    $.ajax({
+      evt.preventDefault();
+      var url = '${request.route_url("update_trigger_tests", id=update.alias)}';
+      var $this = $(this);
+      $.ajax({
         url: url,
         data: {
           csrf_token: "${request.session.get_csrf_token()}",
@@ -1152,10 +1152,9 @@ $(document).ready(function() {
               });
           });
         },
+      });
     });
-
 % endif
-
 });
 </script>
 
