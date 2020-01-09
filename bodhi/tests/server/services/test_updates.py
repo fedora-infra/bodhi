@@ -1473,16 +1473,10 @@ class TestUpdatesService(BaseTestCase):
         self.assertEqual(update.request, None)
         update.comment(self.db, "foo", 1, 'bar')
         update = Build.query.filter_by(nvr=nvr).one().update
-<<<<<<< HEAD
         self.assertEqual(update.karma, 2)
         self.assertEqual(update.request, None)
-        update.comment(self.db, "foo", 1, 'biz')
-=======
-        assert update.karma == 2
-        assert update.request is None
         with fml_testing.mock_sends(api.Message, api.Message):
             update.comment(self.db, "foo", 1, 'biz')
->>>>>>> d928acfbd... Fix potential race condition with the celery update handler.
         update = Build.query.filter_by(nvr=nvr).one().update
         self.assertEqual(update.karma, 3)
         self.assertEqual(update.request, UpdateRequest.stable)
