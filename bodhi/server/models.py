@@ -2431,6 +2431,9 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
+        # Store the update alias so Celery doesn't have to emit SQL
+        update_alias = up.alias
+
         # Commit the changes in the db before calling a celery task.
         db.commit()
 
@@ -2438,8 +2441,8 @@ class Update(Base):
             message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
 
         handle_update.delay(
-            api_version=1, action='edit',
-            update=up.__json__(request=request),
+            api_version=2, action='edit',
+            update_alias=update_alias,
             agent=request.user.name,
             new_bugs=new_bugs
         )
@@ -2875,6 +2878,9 @@ class Update(Base):
             )
         self.comment(db, comment_text, author=u'bodhi')
 
+        # Store the update alias so Celery doesn't have to emit SQL
+        alias = self.alias
+
         # Commit the changes in the db before calling a celery task.
         db.commit()
 
@@ -2889,8 +2895,8 @@ class Update(Base):
 
         if action == UpdateRequest.testing:
             handle_update.delay(
-                api_version=1, action="testing",
-                update=self.__json__(),
+                api_version=2, action="testing",
+                update_alias=alias,
                 agent=username)
 
     def waive_test_results(self, username, comment=None, tests=None):
