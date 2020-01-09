@@ -1830,7 +1830,7 @@ class Update(Base):
         backref=backref('updates', passive_deletes=True))
 
     # Many-to-many relationships
-    bugs = relationship('Bug', secondary=update_bug_table, backref='updates')
+    bugs = relationship('Bug', secondary=update_bug_table, backref='updates', order_by='Bug.bug_id')
 
     user_id = Column(Integer, ForeignKey('users.id'))
 
