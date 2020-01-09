@@ -81,9 +81,20 @@ class UpdatesHandler:
             api_version: API version number.
             data: Information about a new or edited update.
         """
-        action = data["action"]
-        alias = data['update'].get('alias')
+        if api_version == 1:
+            alias = data["update"].get("alias")
+        elif api_version == 2:
+            try:
+                alias = data['update_alias']
+            except KeyError:
+                log.error(f"Wrong message format for the handle_update task: {data}")
+                return
+        else:
+            log.error(f"The Updates Handler doesn't know how to handle api_version {api_version}. "
+                      f"Message was: {data}")
+            return
 
+        action = data["action"]
         log.info("Updates Handler handling  %s, %s" % (alias, action))
 
         # Go to sleep for a second to try and avoid a race condition
