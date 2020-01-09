@@ -383,6 +383,66 @@ class TestUpdatesHandlerConsume(base.BasePyTestCase):
 
         assert update.status == models.UpdateStatus.pending
 
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
+    def test_api_version_2(self, work_on_bugs, fetch_test_cases, sleep):
+        """Test API version 2"""
+        bug = models.Bug(bug_id=123456)
+        self.db.add(bug)
+        self.db.commit()
+
+        h = updates.UpdatesHandler()
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        update = models.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+
+        h.run(
+            api_version=2,
+            data={
+                'action': 'testing',
+                'update_alias': update.alias,
+            })
+
+        assert work_on_bugs.call_count == 1
+        called_update = work_on_bugs.mock_calls[0][1][1]
+        assert called_update.title == 'bodhi-2.0-1.fc17'
+
+        assert fetch_test_cases.call_count == 1
+        called_update = fetch_test_cases.mock_calls[0][1][1]
+        assert called_update.title == 'bodhi-2.0-1.fc17'
+
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
+    @mock.patch('bodhi.server.tasks.updates.log.error')
+    def test_api_version_2_wrong_format(self, log_error, work_on_bugs, fetch_test_cases, sleep):
+        """Test API version 2"""
+        h = updates.UpdatesHandler()
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        data = {
+            'action': 'testing',
+            # No update_alias key.
+        }
+        h.run(api_version=2, data=data)
+
+        work_on_bugs.assert_not_called()
+        fetch_test_cases.assert_not_called()
+        log_error.assert_called_with(f"Wrong message format for the handle_update task: {data}")
+
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.fetch_test_cases')
+    @mock.patch('bodhi.server.tasks.updates.UpdatesHandler.work_on_bugs')
+    @mock.patch('bodhi.server.tasks.updates.log.error')
+    def test_unknown_api_version(self, log_error, work_on_bugs, fetch_test_cases, sleep):
+        """Test an unknown API version"""
+        h = updates.UpdatesHandler()
+        h.db_factory = base.TransactionalSessionMaker(self.Session)
+        h.run(api_version="unknown", data={})
+
+        work_on_bugs.assert_not_called()
+        fetch_test_cases.assert_not_called()
+        log_error.assert_called_with(
+            "The Updates Handler doesn't know how to handle api_version unknown. "
+            "Message was: {}"
+        )
+
 
 class TestUpdatesHandlerInit:
     """This test class contains tests for the UpdatesHandler.__init__() method."""
