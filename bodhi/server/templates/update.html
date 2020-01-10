@@ -206,12 +206,7 @@ if can_edit and update.release.composed_by_bodhi:
             </div>
           </div>
           <hr/>
-          % if request.user and update.status.value == "stable" and update.pushed == True:
-          <div class="alert alert-secondary bg-light mt-5 text-center text-muted">
-            <h5 class="mb-0 mt-2 font-weight-bold">Comments and Feedback are Closed</h5>
-            <p><small>this update has been pushed to stable</small></p>
-          </div>
-          % elif request.user:
+          % if request.user:
           <form id="new_comment"
           action="javascript:form.submit();">
           <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>

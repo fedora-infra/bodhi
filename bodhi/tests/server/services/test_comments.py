@@ -651,32 +651,3 @@ class TestCommentsService(base.BaseTestCase):
         # Ensure that the request did not change .. don't trigger something.
         self.assertEqual(up.status.value, UpdateStatus.testing.value)
         self.assertEqual(up.request.value, UpdateRequest.stable.value)
-
-    def test_no_comment_on_stable_pushed_update(self):
-        """ Make sure you cannot comment on stable, pushed updates """
-        up = self.db.query(Build).filter_by(nvr=up2).one().update
-        up.status = UpdateStatus.stable
-        up.request = None
-        up.pushed = True
-        self.assertEqual(len(up.comments), 0)
-        self.assertEqual(up.karma, 0)
-        self.db.info['messages'] = []
-        self.db.flush()
-
-        # check the webui deosnt show the comment form
-        htmlres = self.app.get(f'/updates/{up.alias}', headers={'Accept': 'text/html'})
-        self.assertIn("Comments and Feedback are Closed", htmlres.text)
-        self.assertIn("this update has been pushed to stable", htmlres.text)
-        self.assertNotIn('<form id="new_comment"', htmlres.text)
-
-        # check that we can't actually submit a comment
-        comment = self.make_comment(up2, karma=1)
-        with fml_testing.mock_sends():
-            res = self.app.post_json('/comments/', comment, status=400)
-
-        print(res)
-        self.assertEqual(res.json_body['errors'][0]['description'],
-                         "Comments are Closed on this update. It has been pushed to stable")
-        up = self.db.query(Build).filter_by(nvr=up2).one().update
-        self.assertEqual(len(up.comments), 0)
-        self.assertEqual(up.karma, 0)
