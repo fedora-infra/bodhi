@@ -652,6 +652,7 @@ class TestCommentsService(base.BaseTestCase):
         self.assertEqual(up.status.value, UpdateStatus.testing.value)
         self.assertEqual(up.request.value, UpdateRequest.stable.value)
 
+<<<<<<< HEAD
     def test_no_comment_on_stable_pushed_update(self):
         """ Make sure you cannot comment on stable, pushed updates """
         up = self.db.query(Build).filter_by(nvr=up2).one().update
@@ -680,3 +681,29 @@ class TestCommentsService(base.BaseTestCase):
         up = self.db.query(Build).filter_by(nvr=up2).one().update
         self.assertEqual(len(up.comments), 0)
         self.assertEqual(up.karma, 0)
+=======
+    def test_comment_not_loggedin(self):
+        """
+        Test that 403 error is returned if a non-authenticated 'post comment'
+        request is received. It's important that we return 403 here so the
+        client will know to re-authenticate
+        """
+        anonymous_settings = copy.copy(self.app_settings)
+        anonymous_settings.update({
+            'authtkt.secret': 'whatever',
+            'authtkt.secure': True,
+        })
+        with mock.patch('bodhi.server.Session.remove'):
+            app = webtest.TestApp(main({}, session=self.db, **anonymous_settings))
+
+        csrf = app.get('/csrf', headers={'Accept': 'application/json'}).json_body['csrf_token']
+        update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update.alias
+        comment = {
+            'update': update,
+            'text': 'Test',
+            'karma': 0,
+            'csrf_token': csrf,
+        }
+        res = app.post_json('/comments/', comment, status=403)
+        assert 'errors' in res.json_body
+>>>>>>> c9153ae1c... Allow comments on stable updates.
