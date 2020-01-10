@@ -27,6 +27,7 @@ import uuid
 from urllib.error import URLError
 
 from fedora_messaging.testing import mock_sends
+from fedora_messaging.api import Message
 from pyramid.testing import DummyRequest
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -1705,7 +1706,7 @@ class TestUpdateEdit(BasePyTestCase):
         """If new builds are added from a release with no signing tag, it should log a warning."""
         package = model.RpmPackage(name='python-rpdb')
         self.db.add(package)
-        build = model.RpmBuild(nvr='python-rpdb-1.3.1.fc17', package=package)
+        build = model.RpmBuild(nvr='python-rpdb-1.3-1.fc17', package=package)
         self.db.add(build)
         update = model.Update.query.first()
         data = {
@@ -1724,7 +1725,7 @@ class TestUpdateEdit(BasePyTestCase):
         warning.assert_called_once_with('F17 has no pending_signing_tag')
         update = model.Update.query.first()
         assert set([b.nvr for b in update.builds]) == (
-            {'bodhi-2.0-1.fc17', 'python-rpdb-1.3.1.fc17'})
+            {'bodhi-2.0-1.fc17', 'python-rpdb-1.3-1.fc17'})
 
     def test_remove_builds_from_locked_update(self):
         """Adding a build to a locked update should raise LockedUpdateException."""
@@ -1777,7 +1778,7 @@ class TestUpdateVersionHash(BasePyTestCase):
         # add another build
         package = model.RpmPackage(name='python-rpdb')
         self.db.add(package)
-        build = model.RpmBuild(nvr='python-rpdb-1.3.1.fc17', package=package)
+        build = model.RpmBuild(nvr='python-rpdb-1.3-1.fc17', package=package)
         self.db.add(build)
         update = model.Update.query.first()
         data = {
@@ -1792,14 +1793,14 @@ class TestUpdateVersionHash(BasePyTestCase):
         model.Update.edit(request, data)
 
         # now, with two builds, check the hash has changed
-        updated_expected_hash = "8560c9b2929d8104aa595ff44f6fc1e10f787b63"
+        updated_expected_hash = "d89b54971b965505179438481d761f8b5ee64e8c"
         assert initial_expected_hash != updated_expected_hash
 
         # check the updated is what we expect the hash to be
         assert update.version_hash == updated_expected_hash
 
         # calculate the updated hash, and check it again
-        updated_expected_builds = "bodhi-2.0-1.fc17 python-rpdb-1.3.1.fc17"
+        updated_expected_builds = "bodhi-2.0-1.fc17 python-rpdb-1.3-1.fc17"
         assert len(update.builds) == 2
         builds = " ".join(sorted([x.nvr for x in update.builds]))
         assert builds == updated_expected_builds
@@ -2201,7 +2202,8 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.status = UpdateStatus.testing
         update.stable_karma = 1
         # Now let's add some karma to get it to the required threshold
-        update.comment(self.db, 'testing', author='hunter2', karma=1)
+        with mock_sends(Message):
+            update.comment(self.db, 'testing', author='hunter2', karma=1)
 
         # meets_testing_requirement() should return True since the karma threshold has been reached
         assert update.meets_testing_requirements
@@ -2238,12 +2240,13 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.critpath = True
         update.stable_karma = 1
         with mock.patch('bodhi.server.models.handle_update'):
-            update.comment(self.db, 'testing', author='enemy', karma=-1)
-            update.comment(self.db, 'testing', author='bro', karma=1)
-            # Despite meeting the stable_karma, the function should still not mark this as meeting
-            # testing requirements because critpath packages have a higher requirement for minimum
-            # karma. So let's get it a second one.
-            update.comment(self.db, 'testing', author='ham', karma=1)
+            with mock_sends(Message, Message, Message, Message):
+                update.comment(self.db, 'testing', author='enemy', karma=-1)
+                update.comment(self.db, 'testing', author='bro', karma=1)
+                # Despite meeting the stable_karma, the function should still not
+                # mark this as meeting testing requirements because critpath packages
+                # have a higher requirement for minimum karma. So let's get it a second one.
+                update.comment(self.db, 'testing', author='ham', karma=1)
 
         assert update.meets_testing_requirements
 
