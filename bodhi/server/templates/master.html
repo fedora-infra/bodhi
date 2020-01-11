@@ -84,6 +84,17 @@
                             Updates
                           </a>
                         </li>
+
+                        % if request.matched_route and request.matched_route.name in ('override', 'overrides'):
+                        <li class="nav-item active font-weight-bold">
+                        % else:
+                        <li class="nav-item font-weight-bold">
+                        % endif
+                          <a class="nav-link" href="${request.route_url('overrides')}?expired=False">
+                            Overrides
+                          </a>
+                        </li>
+
                         <li class="nav-item">
                             <a class="nav-link" href="javascript:void(0);" id="search-toggle">
                               <span class="fa fa-search"></span>
