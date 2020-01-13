@@ -1204,6 +1204,15 @@ class TestEditUpdateForm(BasePyTestCase):
 
 @mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestUpdatesService(BasePyTestCase):
+    @pytest.fixture
+    def create_quick_filters_data(self):
+        self.create_release('20')
+        self.create_release('40')
+        Release.query.filter_by(version='20').first().state = ReleaseState.archived
+        Release.query.filter_by(version='40').first().state = ReleaseState.pending
+        self.create_update([('really_old-1.2.3-1.fc20')], 'F20')
+        self.create_update([('shiny_new-7.8.9-1.fc40')], 'F40')
+        self.db.commit()
 
     def test_content_type(self):
         """Assert that the content type is displayed in the update template."""
@@ -2687,6 +2696,35 @@ class TestUpdatesService(BasePyTestCase):
         assert not body.get('updates')
         assert body['errors'][0]['name'] == 'releases'
         assert body['errors'][0]['description'] == 'Invalid releases specified: WinXP'
+
+    def test_list_updates_by_releases_pending(self, create_quick_filters_data):
+        """Test the quick filter for all pending releases."""
+        res = self.app.get('/updates/', {"releases": "__pending__"})
+        body = res.json_body
+        assert len(body['updates']) == 1
+        assert body['updates'][0]['title'] == 'shiny_new-7.8.9-1.fc40'
+
+    def test_list_updates_by_releases_current(self, create_quick_filters_data):
+        """Test the quick filter for all current releases."""
+        res = self.app.get('/updates/', {"releases": "__current__"})
+        body = res.json_body
+        assert len(body['updates']) == 1
+        assert body['updates'][0]['title'] == 'bodhi-2.0-1.fc17'
+
+    def test_list_updates_by_releases_archived(self, create_quick_filters_data):
+        """Test the quick filter for all archived releases."""
+        res = self.app.get('/updates/', {"releases": "__archived__"})
+        body = res.json_body
+        assert len(body['updates']) == 1
+        assert body['updates'][0]['title'] == 'really_old-1.2.3-1.fc20'
+
+    def test_list_updates_by_releases_current_and_specific(self, create_quick_filters_data):
+        """Test updates list for quick filter OR a specific release."""
+        res = self.app.get('/updates/', {"releases": ["__current__", "F20"]})
+        body = res.json_body
+        assert len(body['updates']) == 2
+        assert body['updates'][0]['title'] == 'really_old-1.2.3-1.fc20'
+        assert body['updates'][1]['title'] == 'bodhi-2.0-1.fc17'
 
     def test_list_updates_by_request(self):
         res = self.app.get('/updates/', {'request': "testing"})
