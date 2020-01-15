@@ -4,44 +4,6 @@ Release notes
 
 .. towncrier release notes start
 
-v5.1.0
-======
-
-This is a feature and bugfix release.
-
-
-Features
-^^^^^^^^
-
-* Include the task id for each build when notifying that an update is ready to
-  be tested (:issue:`3724`).
-* Linkify update aliases in comments (:issue:`776`).
-
-Bug fixes
-^^^^^^^^^
-
-* Fix BuildrootOverrides editing/expiring from the UI (:issue:`3710`).
-* Fix the traceback when builds are being signed without being included in an
-  update (:issue:`3720`).
-* Increase the size of the update alias column (:issue:`3779`).
-* Fix JS error when removing a bug from the list in the update form
-  (:pr:`3796`).
-* Disable warnings when adding `Security Response` bugs to an update
-  (:issue:`3789`).
-* Manage single build update conflicting builds. (:issue:`3828`).
-
-Contributors
-^^^^^^^^^^^^
-
-The following developers contributed to this release of Bodhi:
-
-* Aurélien Bompard
-* Clement Verna
-* Mattia Verga
-* Pierre-Yves Chibon
-* Rick Elrod
-* Ryan Lerch
-
 
 v5.1.1
 ======
