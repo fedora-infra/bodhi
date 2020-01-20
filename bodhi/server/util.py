@@ -663,9 +663,9 @@ def page_url(context, page):
         str: The current path appended with a GET query for the requested page.
     """
     request = context.get('request')
-    params = dict(request.params)
+    params = request.params.mixed()
     params['page'] = page
-    return request.path_url + "?" + urlencode(params)
+    return f'{request.path_url}?{urlencode(params, doseq=True)}'
 
 
 def bug_link(context, bug, short=False):
@@ -726,6 +726,19 @@ def can_waive_test_results(context, update):
     """
     return config.get('test_gating.required') and not update.test_gating_passed \
         and config.get('waiverdb.access_token') and update.status.description != 'stable'
+
+
+def can_trigger_tests(context, update):
+    """
+    Return True or False if we should be able to trigger tests.
+
+    Args:
+        context (mako.runtime.Context): The current template rendering context. Unused.
+        update (bodhi.server.models.Update): The Update on which we are going to waive test results.
+    Returns:
+        bool: Indicating if the test results can be triggered on the given update.
+    """
+    return config.get('test_gating.required')
 
 
 def sorted_builds(builds):
@@ -894,22 +907,31 @@ class TransactionalSessionMaker(object):
         Exceptions or rolls back the transaction. In either case, it also will close and remove the
         Session.
         """
-        session = Session()
+        self.session = Session()
         try:
-            yield session
-            session.commit()
+            yield self.session
+            self.session.commit()
         except Exception as e:
             # It is possible for session.rollback() to raise Exceptions, so we will wrap it in an
             # Exception handler as well so we can log the rollback failure and still raise the
             # original Exception.
             try:
-                session.rollback()
+                self.session.rollback()
             except Exception:
                 log.exception('An Exception was raised while rolling back a transaction.')
             raise e
         finally:
-            session.close()
-            Session.remove()
+            self._end_session()
+
+    def _end_session(self):
+        """
+        Close and remove the session.
+
+        This has been split off the main __call__ method to make it easier to
+        mock it out in unit tests.
+        """
+        self.session.close()
+        Session.remove()
 
 
 transactional_session_maker = TransactionalSessionMaker

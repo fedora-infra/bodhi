@@ -30,6 +30,7 @@ from bodhi.server import models
 from bodhi.server.tasks import approve_testing_task
 from bodhi.server.tasks.approve_testing import main as approve_testing_main
 from bodhi.tests.server.base import BasePyTestCase
+from .base import BaseTaskTestCase
 
 
 class TestTask(BasePyTestCase):
@@ -49,7 +50,7 @@ class TestTask(BasePyTestCase):
         main_function.assert_called_with()
 
 
-class TestMain(BasePyTestCase):
+class TestMain(BaseTaskTestCase):
     """
     This class contains tests for the main() function.
     """
@@ -147,10 +148,9 @@ class TestMain(BasePyTestCase):
         assert self.db.query(models.Comment).count() == 0
 
     @patch('bodhi.server.models.Update.comment', side_effect=IOError('The DB died lol'))
-    @patch('bodhi.server.tasks.approve_testing.Session.remove')
     @patch('bodhi.server.tasks.approve_testing.log')
     @pytest.mark.parametrize('composed_by_bodhi', (True, False))
-    def test_exception_handler(self, log, remove, comment, composed_by_bodhi):
+    def test_exception_handler(self, log, comment, composed_by_bodhi):
         """The Exception handler prints the Exception, rolls back and closes the db, and exits."""
         update = self.db.query(models.Update).all()[0]
         update.date_testing = datetime.utcnow() - timedelta(days=15)
@@ -173,14 +173,12 @@ class TestMain(BasePyTestCase):
         )
         log.info.assert_called_with(f'{update.alias} now meets testing requirements')
         log.exception.assert_called_with("There was an error approving testing updates.")
-        remove.assert_called_once_with()
 
     @patch('bodhi.server.models.Update.comment', side_effect=[None, IOError('The DB died lol')])
-    @patch('bodhi.server.tasks.approve_testing.Session.remove')
     @patch('bodhi.server.tasks.approve_testing.log')
     @pytest.mark.parametrize('composed_by_bodhi', (True, False))
     def test_exception_handler_on_the_second_update(
-            self, log, remove, comment, composed_by_bodhi):
+            self, log, comment, composed_by_bodhi):
         """
         Ensure, that when the Exception is raised, all previous transactions are commited,
         the Exception handler prints the Exception, rolls back and closes the db, and exits.
@@ -215,7 +213,6 @@ class TestMain(BasePyTestCase):
         log.info.assert_any_call(f'{update.alias} now meets testing requirements')
         log.info.assert_any_call(f'{update2.alias} now meets testing requirements')
         log.exception.assert_called_with("There was an error approving testing updates.")
-        remove.assert_called_once_with()
 
     def test_non_autokarma_critpath_update_meeting_karma_requirements_gets_one_comment(self):
         """
@@ -275,11 +272,15 @@ class TestMain(BasePyTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
+        self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         approve_testing_main()
         # Now we will run main() again, but this time we expect Bodhi not to add any
         # further comments.
-        approve_testing_main()
+        with fml_testing.mock_sends():
+            approve_testing_main()
 
         # The update should have one +1, which is as much as the stable karma but not as much as the
         # required +2 to go stable.
@@ -376,6 +377,9 @@ class TestMain(BasePyTestCase):
         update.request = None
         update.stable_karma = 10
         update.status = models.UpdateStatus.testing
+        self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         with fml_testing.mock_sends():
             approve_testing_main()
@@ -432,6 +436,9 @@ class TestMain(BasePyTestCase):
         update.request = None
         update.stable_karma = 1
         update.status = models.UpdateStatus.testing
+        self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
 
         approve_testing_main()
 
