@@ -4,11 +4,37 @@ Release notes
 
 .. towncrier release notes start
 
+
+v5.1.1
+======
+
+This is a bugfix release.
+
+Bug fixes
+^^^^^^^^^
+
+* Fix the Fedora Messaging exception caught for publish backoff (:pr:`3871`).
+* Only pass scalar arguments to celery tasks to avoid lingering database
+  transactions (:pr:`3902`).
+* Fix bug title escaping to prevent a JS crash while editing updates
+  (:issue:`3714`).
+* Fix potential race condition with the celery worker accessing an update
+  before the web request was commited. (:issue:`3858`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Aurélien Bompard
+* Clement Verna
+* Mattia Verga
+
+
 v5.1.0
 ======
 
 This is a feature and bugfix release.
-
 
 Features
 ^^^^^^^^
