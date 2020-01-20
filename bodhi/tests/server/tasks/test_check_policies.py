@@ -25,6 +25,7 @@ from bodhi.server.tasks import check_policies_task
 from bodhi.server.tasks.check_policies import main as check_policies_main
 from bodhi.tests.server.base import BasePyTestCase
 from bodhi.server.config import config
+from .base import BaseTaskTestCase
 
 
 class TestTask(BasePyTestCase):
@@ -44,7 +45,7 @@ class TestTask(BasePyTestCase):
         main_function.assert_called_with()
 
 
-class TestCheckPolicies(BasePyTestCase):
+class TestCheckPolicies(BaseTaskTestCase):
     """This class contains tests for the check_policies() function."""
 
     @patch.dict(config, [('greenwave_api_url', 'http://domain.local')])

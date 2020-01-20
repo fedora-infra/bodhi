@@ -907,22 +907,31 @@ class TransactionalSessionMaker(object):
         Exceptions or rolls back the transaction. In either case, it also will close and remove the
         Session.
         """
-        session = Session()
+        self.session = Session()
         try:
-            yield session
-            session.commit()
+            yield self.session
+            self.session.commit()
         except Exception as e:
             # It is possible for session.rollback() to raise Exceptions, so we will wrap it in an
             # Exception handler as well so we can log the rollback failure and still raise the
             # original Exception.
             try:
-                session.rollback()
+                self.session.rollback()
             except Exception:
                 log.exception('An Exception was raised while rolling back a transaction.')
             raise e
         finally:
-            session.close()
-            Session.remove()
+            self._end_session()
+
+    def _end_session(self):
+        """
+        Close and remove the session.
+
+        This has been split off the main __call__ method to make it easier to
+        mock it out in unit tests.
+        """
+        self.session.close()
+        Session.remove()
 
 
 transactional_session_maker = TransactionalSessionMaker

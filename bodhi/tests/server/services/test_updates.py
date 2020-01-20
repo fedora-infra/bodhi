@@ -1204,6 +1204,15 @@ class TestEditUpdateForm(BasePyTestCase):
 
 @mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestUpdatesService(BasePyTestCase):
+    @pytest.fixture
+    def create_quick_filters_data(self):
+        self.create_release('20')
+        self.create_release('40')
+        Release.query.filter_by(version='20').first().state = ReleaseState.archived
+        Release.query.filter_by(version='40').first().state = ReleaseState.pending
+        self.create_update([('really_old-1.2.3-1.fc20')], 'F20')
+        self.create_update([('shiny_new-7.8.9-1.fc40')], 'F40')
+        self.db.commit()
 
     def test_content_type(self):
         """Assert that the content type is displayed in the update template."""
@@ -1491,7 +1500,8 @@ class TestUpdatesService(BasePyTestCase):
         update = Build.query.filter_by(nvr=nvr).one().update
         assert update.karma == 2
         assert update.request is None
-        update.comment(self.db, "foo", 1, 'biz')
+        with fml_testing.mock_sends(api.Message, api.Message):
+            update.comment(self.db, "foo", 1, 'biz')
         update = Build.query.filter_by(nvr=nvr).one().update
         assert update.karma == 3
         assert update.request == UpdateRequest.stable
@@ -2687,6 +2697,35 @@ class TestUpdatesService(BasePyTestCase):
         assert body['errors'][0]['name'] == 'releases'
         assert body['errors'][0]['description'] == 'Invalid releases specified: WinXP'
 
+    def test_list_updates_by_releases_pending(self, create_quick_filters_data):
+        """Test the quick filter for all pending releases."""
+        res = self.app.get('/updates/', {"releases": "__pending__"})
+        body = res.json_body
+        assert len(body['updates']) == 1
+        assert body['updates'][0]['title'] == 'shiny_new-7.8.9-1.fc40'
+
+    def test_list_updates_by_releases_current(self, create_quick_filters_data):
+        """Test the quick filter for all current releases."""
+        res = self.app.get('/updates/', {"releases": "__current__"})
+        body = res.json_body
+        assert len(body['updates']) == 1
+        assert body['updates'][0]['title'] == 'bodhi-2.0-1.fc17'
+
+    def test_list_updates_by_releases_archived(self, create_quick_filters_data):
+        """Test the quick filter for all archived releases."""
+        res = self.app.get('/updates/', {"releases": "__archived__"})
+        body = res.json_body
+        assert len(body['updates']) == 1
+        assert body['updates'][0]['title'] == 'really_old-1.2.3-1.fc20'
+
+    def test_list_updates_by_releases_current_and_specific(self, create_quick_filters_data):
+        """Test updates list for quick filter OR a specific release."""
+        res = self.app.get('/updates/', {"releases": ["__current__", "F20"]})
+        body = res.json_body
+        assert len(body['updates']) == 2
+        assert body['updates'][0]['title'] == 'really_old-1.2.3-1.fc20'
+        assert body['updates'][1]['title'] == 'bodhi-2.0-1.fc17'
+
     def test_list_updates_by_request(self):
         res = self.app.get('/updates/', {'request': "testing"})
         body = res.json_body
@@ -3305,7 +3344,8 @@ class TestUpdatesService(BasePyTestCase):
         up.comment(self.db, 'WFM', author='dustymabe', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
 
-        up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
+        with fml_testing.mock_sends(api.Message):
+            up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
 
         assert up.karma == 2
@@ -3336,7 +3376,8 @@ class TestUpdatesService(BasePyTestCase):
         up.comment(self.db, 'WFM', author='dustymabe', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
 
-        up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
+        with fml_testing.mock_sends(api.Message):
+            up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
 
         assert up.karma == 2
@@ -4662,7 +4703,8 @@ class TestUpdatesService(BasePyTestCase):
         up.comment(self.db, 'LGTM', author='ralph', karma=1)
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
 
-        up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
+        with fml_testing.mock_sends(api.Message):
+            up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         assert up.karma == 2
 
@@ -4859,7 +4901,8 @@ class TestUpdatesService(BasePyTestCase):
         up.comment(self.db, 'LGTM Now', author='ralph', karma=1)
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
 
-        up.comment(self.db, 'WFM', author='puiterwijk', karma=1)
+        with fml_testing.mock_sends(api.Message):
+            up.comment(self.db, 'WFM', author='puiterwijk', karma=1)
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
 
         # No negative karma: Update gets automatically marked as stable
@@ -5364,7 +5407,8 @@ class TestUpdatesService(BasePyTestCase):
                         stable_karma=3, unstable_karma=-3)
         update.comment(self.db, "foo1", 1, 'foo1')
         update.comment(self.db, "foo2", 1, 'foo2')
-        update.comment(self.db, "foo3", 1, 'foo3')
+        with fml_testing.mock_sends(api.Message, api.Message):
+            update.comment(self.db, "foo3", 1, 'foo3')
         self.db.add(update)
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []

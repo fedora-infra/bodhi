@@ -1830,7 +1830,7 @@ class Update(Base):
         backref=backref('updates', passive_deletes=True))
 
     # Many-to-many relationships
-    bugs = relationship('Bug', secondary=update_bug_table, backref='updates')
+    bugs = relationship('Bug', secondary=update_bug_table, backref='updates', order_by='Bug.bug_id')
 
     user_id = Column(Integer, ForeignKey('users.id'))
 
@@ -2271,14 +2271,14 @@ class Update(Base):
                                f"release value of {up.mandatory_days_in_testing} days"
             })
 
+        log.debug("Adding new update to the db.")
+        db.add(up)
+        log.debug("Triggering db commit for new update.")
+        db.commit()
+
         if not data.get("from_tag"):
             log.debug("Setting request for new update.")
             up.set_request(db, req, request.user.name)
-
-        log.debug("Adding new update to the db.")
-        db.add(up)
-        log.debug("Triggering db flush for new update.")
-        db.flush()
 
         if config.get('test_gating.required'):
             log.debug(
@@ -2431,14 +2431,21 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
+        # Store the update alias so Celery doesn't have to emit SQL
+        update_alias = up.alias
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
+
+        notifications.publish(update_schemas.UpdateEditV1.from_dict(
+            message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
+
         handle_update.delay(
-            api_version=1, action='edit',
-            update=up.__json__(request=request),
+            api_version=2, action='edit',
+            update_alias=update_alias,
             agent=request.user.name,
             new_bugs=new_bugs
         )
-        notifications.publish(update_schemas.UpdateEditV1.from_dict(
-            message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
 
         return up, caveats
 
@@ -2871,12 +2878,12 @@ class Update(Base):
             )
         self.comment(db, comment_text, author=u'bodhi')
 
-        if action == UpdateRequest.testing:
-            handle_update.delay(
-                api_version=1, action="testing",
-                update=self.__json__(),
-                agent=username
-            )
+        # Store the update alias so Celery doesn't have to emit SQL
+        alias = self.alias
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
+
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -2885,6 +2892,12 @@ class Update(Base):
             UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1}
         notifications.publish(action_message_map[action].from_dict(
             dict(update=self, agent=username)))
+
+        if action == UpdateRequest.testing:
+            handle_update.delay(
+                api_version=2, action="testing",
+                update_alias=alias,
+                agent=username)
 
     def waive_test_results(self, username, comment=None, tests=None):
         """

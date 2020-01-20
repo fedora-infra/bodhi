@@ -208,12 +208,7 @@ if can_edit and update.release.composed_by_bodhi:
             </div>
           </div>
           <hr/>
-          % if request.user and update.status.value == "stable" and update.pushed == True:
-          <div class="alert alert-secondary bg-light mt-5 text-center text-muted">
-            <h5 class="mb-0 mt-2 font-weight-bold">Comments and Feedback are Closed</h5>
-            <p><small>this update has been pushed to stable</small></p>
-          </div>
-          % elif request.user:
+          % if request.user:
           <form id="new_comment"
           action="javascript:form.submit();">
           <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
@@ -1091,7 +1086,7 @@ $(document).ready(function() {
     // set focus on the comment textarea when opening the modal.
     $("#waive_test_results").on('shown.bs.modal', function () {
         $('#waive_comment').trigger('focus')
-    })
+    });
     $("#waive_test_results").submit(function(evt) {
       evt.preventDefault();
       var comment = $('#waive_test_results [name=waive_comment]').val();
@@ -1121,16 +1116,16 @@ $(document).ready(function() {
             });
           },
       });
-    })
+    });
 % endif
 
 % if self.util.can_trigger_tests(update):
     // handle for triggering of tests.
     $("#trigger_tests").submit(function(evt) {
-    evt.preventDefault();
-    var url = '${request.route_url("update_trigger_tests", id=update.alias)}';
-    var $this = $(this);
-    $.ajax({
+      evt.preventDefault();
+      var url = '${request.route_url("update_trigger_tests", id=update.alias)}';
+      var $this = $(this);
+      $.ajax({
         url: url,
         data: {
           csrf_token: "${request.session.get_csrf_token()}",
@@ -1152,10 +1147,9 @@ $(document).ready(function() {
               });
           });
         },
+      });
     });
-
 % endif
-
 });
 </script>
 
