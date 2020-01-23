@@ -2,7 +2,7 @@
 
 $(document).ready(function() {
     var base = document.baseURI;
-    CommentsForm = function() {};
+    var CommentsForm = function() {};
     CommentsForm.prototype = new Form("#new_comment", base + "comments/");
     CommentsForm.prototype.success = function(data) {
         Form.prototype.success.call(this, data);
