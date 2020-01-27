@@ -12,6 +12,7 @@ fedora_messaging
 feedgen>=0.7.0
 jinja2
 markdown
+prometheus_client
 psycopg2
 py3dns  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 pylibravatar

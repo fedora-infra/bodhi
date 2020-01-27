@@ -26,6 +26,7 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
+from pyramid.tweens import EXCVIEW
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
 import pkg_resources
@@ -292,6 +293,15 @@ def main(global_config, testing=None, session=None, **settings):
             secure=bodhi_config['authtkt.secure'], hashalg='sha512', timeout=timeout,
             max_age=timeout))
         config.set_authorization_policy(ACLAuthorizationPolicy())
+
+    # Collect metrics for endpoints
+
+    config.add_tween(
+        'bodhi.server.services.monitoring_tween.histo_tween_factory', over=EXCVIEW
+    )
+
+    # Metrics Route
+    config.add_route('prometheus_metric', '/metrics')
 
     # Frontpage
     config.add_route('home', '/')

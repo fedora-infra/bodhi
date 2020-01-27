@@ -444,6 +444,10 @@ class TestGenericViews(base.BasePyTestCase):
         res = self.app.get('/api_version')
         assert 'version' in res.json_body
 
+    def test_metrics(self):
+        res = self.app.get('/metrics')
+        assert 'python_gc_objects_collected_total' in res.text
+
     def test_new_update_form(self):
         """Test the new update Form page"""
 
