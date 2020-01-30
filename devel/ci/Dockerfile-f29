@@ -40,6 +40,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-webtest \
     python3-cornice \
     python3-cornice-sphinx \
+    python3-prometheus_client \
     python3-pyramid-fas-openid
 
 # sqlalchemy_schemadisplay is not packaged for Python 3 in Fedora < 30
