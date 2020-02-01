@@ -2166,12 +2166,11 @@ class Update(Base):
 
     @property
     def install_command(self) -> str:
-        r"""
+        """
         Return the appropriate command for installing the Update.
 
         There are four conditions under which the empty string is returned:
-            * If the update is in testing status for rawhide (this should be a \
-            temporary state).
+            * If the update is in testing status for rawhide.
             * If the update is not in a stable or testing repository.
             * If the release has not specified a package manager.
             * If the release has not specified a testing repository.
@@ -2264,6 +2263,12 @@ class Update(Base):
         # Create the update
         log.debug("Creating new Update(**data) object.")
         release = data.pop('release', None)
+
+        if not release.composed_by_bodhi:
+            # For rawhide updates make sure autotime push is enabled
+            # https://github.com/fedora-infra/bodhi/issues/3912
+            data['autotime'] = True
+
         up = Update(**data, release=release)
 
         # We want to make sure that the value of stable_days
