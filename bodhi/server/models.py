@@ -2166,10 +2166,12 @@ class Update(Base):
 
     @property
     def install_command(self) -> str:
-        """
+        r"""
         Return the appropriate command for installing the Update.
 
-        There are three conditions under which the empty string is returned:
+        There are four conditions under which the empty string is returned:
+            * If the update is in testing status for rawhide (this should be a \
+            temporary state).
             * If the update is not in a stable or testing repository.
             * If the release has not specified a package manager.
             * If the release has not specified a testing repository.
@@ -2177,6 +2179,9 @@ class Update(Base):
         Returns:
             The dnf command to install the Update, or the empty string.
         """
+        if not self.release.composed_by_bodhi and self.status == UpdateStatus.testing:
+            return ''
+
         if self.status != UpdateStatus.stable and self.status != UpdateStatus.testing:
             return ''
 
