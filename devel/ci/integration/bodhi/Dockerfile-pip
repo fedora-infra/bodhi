@@ -30,7 +30,7 @@ RUN groupadd -r bodhi && \
     useradd  -r -s /sbin/nologin -d /home/bodhi/ -m -c 'Bodhi Server' -g bodhi bodhi
 
 # Install it
-RUN python3 setup.py build && pip3 install .
+RUN python3 setup.py build && pip3 install --no-use-pep517 .
 
 # Configuration
 RUN mkdir -p /etc/bodhi
