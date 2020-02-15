@@ -188,6 +188,7 @@ $(document).ready(function() {
                 // make sure the placeholder disappears when focused
                 $('#builds-search-selectized').attr("placeholder", "");
             },
+            loadThrottle: 800,
             load: function(query, callback) {
                 $.ajax({
                     url: '/latest_candidates?hide_existing=true&prefix=' + encodeURIComponent(query),
