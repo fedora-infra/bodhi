@@ -37,8 +37,10 @@ if can_edit and update.release.composed_by_bodhi:
       else:
         actions['revoke'] = True
     elif update.pushed and (update.status.value != 'stable' or (update.status.value == 'stable' and 'releng' in [group.name for group in request.user.groups])):
+      if update.request:
+        actions['revoke'] = True
       actions['unpush'] = True
-      if update.meets_testing_requirements:
+      if update.meets_testing_requirements and not update.request:
         actions['push to stable'] = True
 %>
 <div class="subheader pt-3">
