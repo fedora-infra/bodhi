@@ -103,39 +103,6 @@ def get_rpm_header(nvr, tries=0):
     raise ValueError("No rpm headers found in koji for %r" % nvr)
 
 
-def generate_changelog(build: 'models.Build') -> typing.Optional[str]:
-    """
-    Generate a changelog for a given build.
-
-    Args:
-        build: the build to create a changelog for.
-    Returns:
-        A changelog of changes between the given build, and the previous one.
-        Or returns None if the build type doesn't have the get_latest() method.
-    """
-    # Find the most recent update for this package, other than this one
-    try:
-        lastpkg = build.get_latest()
-    except AttributeError:
-        # Not all build types have the get_latest() method, such as ModuleBuilds.
-        return None
-
-    # Grab the RPM header of the previous update, and generate a ChangeLog
-
-    def _get_oldtime(lastpkg):
-        if lastpkg is None:
-            return 0
-        oldh = get_rpm_header(lastpkg)
-        if not oldh['changelogtext']:
-            return 0
-        oldtime = oldh['changelogtime']
-        if isinstance(oldtime, list):
-            oldtime = oldtime[0]
-        return oldtime
-
-    return build.get_changelog(_get_oldtime(lastpkg))
-
-
 def build_evr(build):
     """
     Return a tuple of strings of the given build's epoch, version, and release.

@@ -1521,60 +1521,6 @@ class TestPyfileToModule(base.BasePyTestCase):
         assert not result
 
 
-class TestGenerateChangelog:
-
-    @mock.patch("bodhi.server.util.get_rpm_header")
-    def test_nominal(self, get_rpm_header):
-        """
-        Check for nominal behavior
-        """
-        get_rpm_header.return_value = {
-            "changelogtime": [42, 41, 40],
-            "changelogtext": "dummy",
-        }
-        build = mock.Mock()
-        expected = object()
-        build.get_changelog.return_value = expected
-        result = util.generate_changelog(build)
-        build.get_changelog.assert_called_with(42)
-        assert result == expected
-
-    @mock.patch("bodhi.server.util.get_rpm_header")
-    def test_time_no_list(self, get_rpm_header):
-        """
-        Check for behavior when the changelog time is not a list
-        """
-        get_rpm_header.return_value = {
-            "changelogtime": 42,
-            "changelogtext": "dummy",
-        }
-        build = mock.Mock()
-        util.generate_changelog(build)
-        build.get_changelog.assert_called_with(42)
-
-    @mock.patch("bodhi.server.util.get_rpm_header")
-    def test_no_text(self, get_rpm_header):
-        """
-        Check for behavior when there is no changelog text
-        """
-        get_rpm_header.return_value = {
-            "changelogtime": 42,
-            "changelogtext": "",
-        }
-        build = mock.Mock()
-        util.generate_changelog(build)
-        build.get_changelog.assert_called_with(0)
-
-    def test_no_latest(self):
-        """
-        Check for crash when there are no latest builds.
-        """
-        build = mock.Mock()
-        build.get_latest.return_value = None
-        util.generate_changelog(build)
-        build.get_changelog.assert_called_with(0)
-
-
 class TestJsonEscape:
     """Tests for the json_escape() function."""
     def test_doublequotes_escaped(self):
