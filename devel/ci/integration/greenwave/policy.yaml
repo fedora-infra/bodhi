@@ -55,6 +55,7 @@ rules:
 --- !Policy
 id: "taskotron_release_critical_tasks_for_testing"
 product_versions:
+  - fedora-33
   - fedora-32
   - fedora-31
   - fedora-30
@@ -68,6 +69,7 @@ rules:
 --- !Policy
 id: "taskotron_release_critical_tasks_for_stable"
 product_versions:
+  - fedora-33
   - fedora-32
   - fedora-31
   - fedora-30
