@@ -299,6 +299,9 @@ def latest_candidates(request):
 
         if hide_existing:
             # We want to filter out builds associated with an update.
+            # Since the candidate_tag is removed when an update is pushed to
+            # stable, we only need a list of builds that are associated to
+            # updates still in pending state.
 
             # Don't filter by releases here, because the associated update
             # might be archived but the build might be inherited into an active
@@ -306,7 +309,9 @@ def latest_candidates(request):
             # this set should be easy enough.
             associated_build_nvrs = set(
                 row[0] for row in
-                db.query(models.Build.nvr).filter(models.Build.update_id != None)
+                db.query(models.Build.nvr).
+                join(models.Update).
+                filter(models.Update.status == models.UpdateStatus.pending)
             )
 
         kwargs = dict(package=pkg, prefix=prefix, latest=True)

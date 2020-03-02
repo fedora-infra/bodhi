@@ -879,7 +879,7 @@ real_open = open
 def fake_open_no_session_cache(*args, **kwargs):
     """Fake open so that it looks like we have no session cache."""
     if args[0] == fedora.client.openidbaseclient.b_SESSION_FILE:
-        return mock.mock_open(read_data='{}')(*args, **kwargs)
+        return mock.mock_open(read_data=b'{}')(*args, **kwargs)
     return real_open(*args, **kwargs)
 
 
