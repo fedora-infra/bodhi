@@ -2185,7 +2185,8 @@ class Update(Base):
         """
         Return the appropriate command for installing the Update.
 
-        There are three conditions under which the empty string is returned:
+        There are four conditions under which the empty string is returned:
+            * If the update is in testing status for rawhide.
             * If the update is not in a stable or testing repository.
             * If the release has not specified a package manager.
             * If the release has not specified a testing repository.
@@ -2193,6 +2194,9 @@ class Update(Base):
         Returns:
             The dnf command to install the Update, or the empty string.
         """
+        if not self.release.composed_by_bodhi and self.status == UpdateStatus.testing:
+            return ''
+
         if self.status != UpdateStatus.stable and self.status != UpdateStatus.testing:
             return ''
 
@@ -2275,6 +2279,12 @@ class Update(Base):
         # Create the update
         log.debug("Creating new Update(**data) object.")
         release = data.pop('release', None)
+
+        if not release.composed_by_bodhi:
+            # For rawhide updates make sure autotime push is enabled
+            # https://github.com/fedora-infra/bodhi/issues/3912
+            data['autotime'] = True
+
         up = Update(**data, release=release)
 
         # We want to make sure that the value of stable_days
@@ -3957,6 +3967,8 @@ class Update(Base):
         if old == NEVER_SET:
             # This is the object initialization phase. This instance is not ready, don't create
             # the message now. This method will be called again at the end of __init__
+            return
+        if target.content_type != ContentType.rpm:
             return
 
         message = update_schemas.UpdateReadyForTestingV1.from_dict(

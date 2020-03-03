@@ -182,6 +182,10 @@ class TestCallAPI:
             def __init__(self, status_code):
                 self.status_code = status_code
 
+            @property
+            def text(self):
+                return "Some stuff"
+
             def json(self):
                 return {'some': 'stuff'}
 

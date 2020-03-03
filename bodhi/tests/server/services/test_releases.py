@@ -20,7 +20,7 @@ import os
 from datetime import datetime
 
 import webtest
-from fedora_messaging import api, testing as fml_testing
+from fedora_messaging import testing as fml_testing
 
 from bodhi import server
 from bodhi.server.config import config
@@ -550,7 +550,7 @@ class TestReleasesHTML(base.BasePyTestCase):
                           [UpdateType.enhancement, 23],
                           [UpdateType.newpackage, 22]]]]
 
-        with fml_testing.mock_sends(*[api.Message] * 54):
+        with fml_testing.mock_sends():
             _add_updates(addedupdates, user2, currentrelease, "fc17")
 
         pendingrelease = self.db.query(Release).filter_by(name='F18').one()
@@ -569,7 +569,7 @@ class TestReleasesHTML(base.BasePyTestCase):
                            [UpdateType.bugfix, 4],
                            [UpdateType.enhancement, 4],
                            [UpdateType.newpackage, 4]]]]
-        with fml_testing.mock_sends(*[api.Message] * 12):
+        with fml_testing.mock_sends():
             _add_updates(addedupdates2, user2, pendingrelease, "fc18")
         self.db.flush()
         # Clear the caches
