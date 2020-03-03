@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:31
+FROM fedora:31
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
 RUN dnf install -y \
