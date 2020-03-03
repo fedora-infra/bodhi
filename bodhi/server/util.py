@@ -1065,6 +1065,7 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
     """
     if data is None:
         data = dict()
+    log.debug("Querying url: %s", api_url)
     if method == 'POST':
         if headers is None:
             headers = {'Content-Type': 'application/json'}
@@ -1087,12 +1088,14 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
         time.sleep(1)
         return call_api(api_url, service_name, error_key, method, data, headers, retries - 1)
     elif rv.status_code == 500:
+        log.debug(rv.text)
         # There will be no JSON with an error message here
         error_msg = base_error_msg.format(
             service_name, api_url, rv.status_code)
         log.error(error_msg)
         raise RuntimeError(error_msg)
     else:
+        log.debug(rv.text)
         # If it's not a 500 error, we can assume that the API returned an error
         # message in JSON that we can log
         try:
