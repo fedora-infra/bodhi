@@ -907,22 +907,31 @@ class TransactionalSessionMaker(object):
         Exceptions or rolls back the transaction. In either case, it also will close and remove the
         Session.
         """
-        session = Session()
+        self.session = Session()
         try:
-            yield session
-            session.commit()
+            yield self.session
+            self.session.commit()
         except Exception as e:
             # It is possible for session.rollback() to raise Exceptions, so we will wrap it in an
             # Exception handler as well so we can log the rollback failure and still raise the
             # original Exception.
             try:
-                session.rollback()
+                self.session.rollback()
             except Exception:
                 log.exception('An Exception was raised while rolling back a transaction.')
             raise e
         finally:
-            session.close()
-            Session.remove()
+            self._end_session()
+
+    def _end_session(self):
+        """
+        Close and remove the session.
+
+        This has been split off the main __call__ method to make it easier to
+        mock it out in unit tests.
+        """
+        self.session.close()
+        Session.remove()
 
 
 transactional_session_maker = TransactionalSessionMaker
@@ -1056,6 +1065,7 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
     """
     if data is None:
         data = dict()
+    log.debug("Querying url: %s", api_url)
     if method == 'POST':
         if headers is None:
             headers = {'Content-Type': 'application/json'}
@@ -1078,12 +1088,14 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
         time.sleep(1)
         return call_api(api_url, service_name, error_key, method, data, headers, retries - 1)
     elif rv.status_code == 500:
+        log.debug(rv.text)
         # There will be no JSON with an error message here
         error_msg = base_error_msg.format(
             service_name, api_url, rv.status_code)
         log.error(error_msg)
         raise RuntimeError(error_msg)
     else:
+        log.debug(rv.text)
         # If it's not a 500 error, we can assume that the API returned an error
         # message in JSON that we can log
         try:

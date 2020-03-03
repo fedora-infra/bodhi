@@ -6,6 +6,12 @@
   with_items:
       - rabbitmq-server
 
+- name: Start rabbitmq
+  service:
+    name: rabbitmq-server
+    state: started
+    enabled: yes
+
 - name: Create RabbitMQ systemd override directory
   file:
     path: /etc/systemd/system/rabbitmq-server.service.d/
@@ -24,9 +30,6 @@
   notify:
     - reload rabbitmq
 
-- name: start rabbitmq
-  service: name=rabbitmq-server state=started enabled=yes
-
 - name: Ensure default vhost exists
   rabbitmq_vhost:
     name: /
@@ -37,9 +40,8 @@
     user: guest
     password: guest
     tags: administrator
-    permissions:
-      - vhost: /
-        configure_priv: .*
-        read_priv: .*
-        write_priv: .*
+    vhost: /
+    configure_priv: .*
+    read_priv: .*
+    write_priv: .*
     state: present

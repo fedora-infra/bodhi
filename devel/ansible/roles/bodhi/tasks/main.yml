@@ -56,6 +56,7 @@
       - python3-rpdb
       - python3-simplemediawiki
       - python3-sqlalchemy
+      - python3-sqlalchemy_schemadisplay
       - python3-webtest
       - redhat-rpm-config
       - screen
@@ -90,12 +91,6 @@
   shell: runuser -l postgres -c 'createdb bodhi2' && touch /home/vagrant/.db-created
   args:
       creates: /home/vagrant/.db-created
-
-# This is only packaged for Python 3 for Fedora >= 30, so we'll pip install it for now.
-- name: pip install sqlalchemy_schemadisplay
-  pip:
-    executable: pip-3
-    name: sqlalchemy_schemadisplay
 
 # This isn't packaged in Fedora yet, but it's only a development tool (we should still add it)
 - name: pip install debugtoolbar

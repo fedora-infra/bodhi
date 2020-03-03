@@ -19,7 +19,7 @@
 from datetime import datetime, timedelta
 from unittest import mock
 import hashlib
-import html.parser
+import html
 import json
 import pickle
 import time
@@ -27,6 +27,7 @@ import uuid
 from urllib.error import URLError
 
 from fedora_messaging.testing import mock_sends
+from fedora_messaging.api import Message
 from pyramid.testing import DummyRequest
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -1905,6 +1906,21 @@ class TestUpdateInstallCommand(BasePyTestCase):
 
         assert update.install_command == ''
 
+    def test_cannot_install_rawhide_testing(self):
+        """Update is in testing state and is for Rawhide.
+
+        This should be a temporary state, however, since it's not available
+        in any repository, just don't show a wrong update command.
+        """
+        update = model.Update.query.first()
+        update.status = UpdateStatus.testing
+        update.type = UpdateType.bugfix
+        update.release.package_manager = PackageManager.dnf
+        update.release.testing_repository = 'updates-testing'
+        update.release.composed_by_bodhi = False
+
+        assert update.install_command == ''
+
     def test_update_command_not_possible_missing_packagemanager(self):
         """The Release of the Update misses the package manager definition."""
         update = model.Update.query.first()
@@ -2201,7 +2217,8 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.status = UpdateStatus.testing
         update.stable_karma = 1
         # Now let's add some karma to get it to the required threshold
-        update.comment(self.db, 'testing', author='hunter2', karma=1)
+        with mock_sends(Message):
+            update.comment(self.db, 'testing', author='hunter2', karma=1)
 
         # meets_testing_requirement() should return True since the karma threshold has been reached
         assert update.meets_testing_requirements
@@ -2238,12 +2255,13 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.critpath = True
         update.stable_karma = 1
         with mock.patch('bodhi.server.models.handle_update'):
-            update.comment(self.db, 'testing', author='enemy', karma=-1)
-            update.comment(self.db, 'testing', author='bro', karma=1)
-            # Despite meeting the stable_karma, the function should still not mark this as meeting
-            # testing requirements because critpath packages have a higher requirement for minimum
-            # karma. So let's get it a second one.
-            update.comment(self.db, 'testing', author='ham', karma=1)
+            with mock_sends(Message, Message, Message, Message):
+                update.comment(self.db, 'testing', author='enemy', karma=-1)
+                update.comment(self.db, 'testing', author='bro', karma=1)
+                # Despite meeting the stable_karma, the function should still not
+                # mark this as meeting testing requirements because critpath packages
+                # have a higher requirement for minimum karma. So let's get it a second one.
+                update.comment(self.db, 'testing', author='ham', karma=1)
 
         assert update.meets_testing_requirements
 
@@ -3003,10 +3021,9 @@ class TestUpdate(ModelTest):
         assert update.get_title(nvr=True, beautify=True) == (
             'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, and 1 more')
 
-        p = html.parser.HTMLParser()
-        assert p.unescape(update.get_title(amp=True, beautify=True)) == (
+        assert html.unescape(update.get_title(amp=True, beautify=True)) == (
             'TurboGears, TurboGears, & 1 more')
-        assert p.unescape(update.get_title(amp=True, nvr=True, beautify=True)) == (
+        assert html.unescape(update.get_title(amp=True, nvr=True, beautify=True)) == (
             'TurboGears-1.0.8-3.fc11, TurboGears-1.0.8-3.fc11, & 1 more')
 
     def test_pkg_str(self):

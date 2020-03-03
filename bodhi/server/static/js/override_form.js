@@ -1,7 +1,7 @@
 // This file handles all the magic that happens in the 'New Override Form'
 
 $(document).ready(function() {
-    OverridesForm = function() {};
+    var OverridesForm = function() {};
     OverridesForm.prototype = new Form("#new-override-form", "/overrides/");
     OverridesForm.prototype.success = function(data) {
         Form.prototype.success.call(this, data);
