@@ -1507,7 +1507,7 @@ class TestUpdatesService(BasePyTestCase):
         update = Build.query.filter_by(nvr=nvr).one().update
         assert update.karma == 2
         assert update.request is None
-        with fml_testing.mock_sends(api.Message, api.Message):
+        with fml_testing.mock_sends(api.Message, api.Message, api.Message):
             update.comment(self.db, "foo", 1, 'biz')
         update = Build.query.filter_by(nvr=nvr).one().update
         assert update.karma == 3
@@ -3351,7 +3351,7 @@ class TestUpdatesService(BasePyTestCase):
         up.comment(self.db, 'WFM', author='dustymabe', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
 
-        with fml_testing.mock_sends(api.Message):
+        with fml_testing.mock_sends(api.Message, api.Message):
             up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
 
@@ -3383,7 +3383,7 @@ class TestUpdatesService(BasePyTestCase):
         up.comment(self.db, 'WFM', author='dustymabe', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
 
-        with fml_testing.mock_sends(api.Message):
+        with fml_testing.mock_sends(api.Message, api.Message):
             up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
         up = self.db.query(Build).filter_by(nvr=nvr).one().update
 
@@ -4710,7 +4710,7 @@ class TestUpdatesService(BasePyTestCase):
         up.comment(self.db, 'LGTM', author='ralph', karma=1)
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
 
-        with fml_testing.mock_sends(api.Message):
+        with fml_testing.mock_sends(api.Message, api.Message):
             up.comment(self.db, 'LGTM', author='bowlofeggs', karma=1)
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
         assert up.karma == 2
@@ -4908,7 +4908,7 @@ class TestUpdatesService(BasePyTestCase):
         up.comment(self.db, 'LGTM Now', author='ralph', karma=1)
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
 
-        with fml_testing.mock_sends(api.Message):
+        with fml_testing.mock_sends(api.Message, api.Message):
             up.comment(self.db, 'WFM', author='puiterwijk', karma=1)
         up = self.db.query(Update).filter_by(alias=resp.json['alias']).one()
 
@@ -5414,7 +5414,7 @@ class TestUpdatesService(BasePyTestCase):
                         stable_karma=3, unstable_karma=-3)
         update.comment(self.db, "foo1", 1, 'foo1')
         update.comment(self.db, "foo2", 1, 'foo2')
-        with fml_testing.mock_sends(api.Message, api.Message):
+        with fml_testing.mock_sends(api.Message, api.Message, api.Message):
             update.comment(self.db, "foo3", 1, 'foo3')
         self.db.add(update)
         # Let's clear any messages that might get sent
