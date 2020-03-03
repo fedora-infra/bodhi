@@ -308,6 +308,9 @@ class TestNewUpdate(BasePyTestCase):
             self.db.commit()
 
         update = self.get_update(builds=None, from_tag='f17-build-side-7777')
+        # Let's test what happens if the user sets autotime to False
+        # Rawhide workflow must ignore this setting
+        update['autotime'] = False
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
             r = self.app.post_json('/updates/', update)
 
@@ -333,6 +336,10 @@ class TestNewUpdate(BasePyTestCase):
         assert up['karma'] == 0
         assert up['requirements'] == 'rpmlint'
         assert up['from_tag'] == 'f17-build-side-7777'
+        if rawhide_workflow:
+            assert up['autotime'] is True
+        else:
+            assert up['autotime'] is False
 
         resp = self.app.get(f"/updates/{up['alias']}", headers={'Accept': 'text/html'})
 

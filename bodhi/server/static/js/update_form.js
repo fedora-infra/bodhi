@@ -1,7 +1,7 @@
 // This file handles all the magic that happens in the 'New Update Form'
 
 $(document).ready(function() {
-    UpdatesForm = function() {};
+    var UpdatesForm = function() {};
     UpdatesForm.prototype = new Form("#new-update-form", document.baseURI + "updates/");
     UpdatesForm.prototype.success = function(data) {
         // display caveat popups first
