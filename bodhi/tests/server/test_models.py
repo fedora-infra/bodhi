@@ -1906,6 +1906,21 @@ class TestUpdateInstallCommand(BasePyTestCase):
 
         assert update.install_command == ''
 
+    def test_cannot_install_rawhide_testing(self):
+        """Update is in testing state and is for Rawhide.
+
+        This should be a temporary state, however, since it's not available
+        in any repository, just don't show a wrong update command.
+        """
+        update = model.Update.query.first()
+        update.status = UpdateStatus.testing
+        update.type = UpdateType.bugfix
+        update.release.package_manager = PackageManager.dnf
+        update.release.testing_repository = 'updates-testing'
+        update.release.composed_by_bodhi = False
+
+        assert update.install_command == ''
+
     def test_update_command_not_possible_missing_packagemanager(self):
         """The Release of the Update misses the package manager definition."""
         update = model.Update.query.first()
