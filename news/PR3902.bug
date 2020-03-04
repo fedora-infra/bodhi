@@ -1,1 +1,0 @@
-Only pass scalar arguments to celery tasks to avoid lingering database transactions
