@@ -2444,11 +2444,11 @@ class Update(Base):
         # Store the update alias so Celery doesn't have to emit SQL
         update_alias = up.alias
 
-        # Commit the changes in the db before calling a celery task.
-        db.commit()
-
         notifications.publish(update_schemas.UpdateEditV1.from_dict(
             message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
 
         handle_update.delay(
             api_version=2, action='edit',
@@ -2891,9 +2891,6 @@ class Update(Base):
         # Store the update alias so Celery doesn't have to emit SQL
         alias = self.alias
 
-        # Commit the changes in the db before calling a celery task.
-        db.commit()
-
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -2902,6 +2899,9 @@ class Update(Base):
             UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1}
         notifications.publish(action_message_map[action].from_dict(
             dict(update=self, agent=username)))
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
 
         if action == UpdateRequest.testing:
             handle_update.delay(

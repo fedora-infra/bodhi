@@ -1720,7 +1720,8 @@ class TestUpdateEdit(BasePyTestCase):
         update.release.pending_signing_tag = ''
         self.db.flush()
 
-        model.Update.edit(request, data)
+        with mock_sends(Message):
+            model.Update.edit(request, data)
 
         warning.assert_called_once_with('F17 has no pending_signing_tag')
         update = model.Update.query.first()
@@ -1749,8 +1750,8 @@ class TestUpdateEdit(BasePyTestCase):
         request = mock.MagicMock()
         request.db = self.db
         request.user.name = 'tester'
-
-        model.Update.edit(request, data)
+        with mock_sends(Message):
+            model.Update.edit(request, data)
 
         update = model.Update.query.first()
         assert update.display_name == ''
@@ -1790,7 +1791,8 @@ class TestUpdateVersionHash(BasePyTestCase):
         request.db = self.db
         request.user.name = 'tester'
         self.db.flush()
-        model.Update.edit(request, data)
+        with mock_sends(Message):
+            model.Update.edit(request, data)
 
         # now, with two builds, check the hash has changed
         updated_expected_hash = "d89b54971b965505179438481d761f8b5ee64e8c"
@@ -2217,7 +2219,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.status = UpdateStatus.testing
         update.stable_karma = 1
         # Now let's add some karma to get it to the required threshold
-        with mock_sends(Message):
+        with mock_sends(Message, Message):
             update.comment(self.db, 'testing', author='hunter2', karma=1)
 
         # meets_testing_requirement() should return True since the karma threshold has been reached
@@ -2255,7 +2257,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.critpath = True
         update.stable_karma = 1
         with mock.patch('bodhi.server.models.handle_update'):
-            with mock_sends(Message, Message, Message, Message):
+            with mock_sends(Message, Message, Message, Message, Message):
                 update.comment(self.db, 'testing', author='enemy', karma=-1)
                 update.comment(self.db, 'testing', author='bro', karma=1)
                 # Despite meeting the stable_karma, the function should still not
@@ -3366,7 +3368,8 @@ class TestUpdate(ModelTest):
         req.koji = buildsys.get_session()
         assert self.obj.status == UpdateStatus.pending
         self.obj.stable_karma = 1
-        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        with mock_sends(Message):
+            self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
 
         self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
 
@@ -3583,7 +3586,8 @@ class TestUpdate(ModelTest):
         req.koji = buildsys.get_session()
         assert self.obj.status == UpdateStatus.pending
         self.obj.stable_karma = 1
-        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        with mock_sends(Message):
+            self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
 
         self.obj.set_request(self.db, 'stable', req.user.name)
 
