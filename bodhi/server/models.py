@@ -2169,7 +2169,8 @@ class Update(Base):
         """
         Return the appropriate command for installing the Update.
 
-        There are three conditions under which the empty string is returned:
+        There are four conditions under which the empty string is returned:
+            * If the update is in testing status for rawhide.
             * If the update is not in a stable or testing repository.
             * If the release has not specified a package manager.
             * If the release has not specified a testing repository.
@@ -2177,6 +2178,9 @@ class Update(Base):
         Returns:
             The dnf command to install the Update, or the empty string.
         """
+        if not self.release.composed_by_bodhi and self.status == UpdateStatus.testing:
+            return ''
+
         if self.status != UpdateStatus.stable and self.status != UpdateStatus.testing:
             return ''
 
@@ -2259,6 +2263,12 @@ class Update(Base):
         # Create the update
         log.debug("Creating new Update(**data) object.")
         release = data.pop('release', None)
+
+        if not release.composed_by_bodhi:
+            # For rawhide updates make sure autotime push is enabled
+            # https://github.com/fedora-infra/bodhi/issues/3912
+            data['autotime'] = True
+
         up = Update(**data, release=release)
 
         # We want to make sure that the value of stable_days
@@ -2434,11 +2444,11 @@ class Update(Base):
         # Store the update alias so Celery doesn't have to emit SQL
         update_alias = up.alias
 
-        # Commit the changes in the db before calling a celery task.
-        db.commit()
-
         notifications.publish(update_schemas.UpdateEditV1.from_dict(
             message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
 
         handle_update.delay(
             api_version=2, action='edit',
@@ -2881,9 +2891,6 @@ class Update(Base):
         # Store the update alias so Celery doesn't have to emit SQL
         alias = self.alias
 
-        # Commit the changes in the db before calling a celery task.
-        db.commit()
-
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -2892,6 +2899,9 @@ class Update(Base):
             UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1}
         notifications.publish(action_message_map[action].from_dict(
             dict(update=self, agent=username)))
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
 
         if action == UpdateRequest.testing:
             handle_update.delay(
@@ -3941,6 +3951,8 @@ class Update(Base):
         if old == NEVER_SET:
             # This is the object initialization phase. This instance is not ready, don't create
             # the message now. This method will be called again at the end of __init__
+            return
+        if target.content_type != ContentType.rpm:
             return
 
         message = update_schemas.UpdateReadyForTestingV1.from_dict(
