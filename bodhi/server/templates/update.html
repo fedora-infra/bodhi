@@ -84,10 +84,13 @@ if can_edit and update.release.composed_by_bodhi:
               <span class="sr-only">Locked</span>
             </a>
             % endif
+              <span class="btn btn-sm btn-${self.fragments.status_context(update.status.value)}">
+                  ${self.fragments.status_text(update)}
+              </span>
             % if actions:
               <div class="dropdown d-inline" id="updatebuttons">
-                <button class="btn btn-${self.fragments.status_context(update.status.value)} dropdown-toggle btn-sm" type="button" id="statusActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    ${self.fragments.status_text(update)}
+                <button class="btn btn-outline-primary border-0 btn-sm dropdown-toggle" type="button" id="statusActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Actions
                 </button>
                 <div class="dropdown-menu" aria-labelledby="statusActions">
                   %if "push to testing" in actions:
@@ -104,10 +107,6 @@ if can_edit and update.release.composed_by_bodhi:
                   %endif
                 </div>
               </div>
-            % else:
-              <span class="btn btn-sm btn-${self.fragments.status_context(update.status.value)}">
-                  ${self.fragments.status_text(update)}
-              </span>
             % endif
         </div>
       </div>
@@ -1064,7 +1063,6 @@ $(document).ready(function() {
               method: 'POST',
               dataType: 'json',
               success: function(response) {
-                $("#updatebuttons a").removeClass('disabled');
                 // Just reload the page if all went well..
                 location.reload();
               },
