@@ -19,6 +19,8 @@
 from unittest import mock
 import copy
 
+import pytest
+from pyramid.testing import DummyRequest
 import webtest
 
 from bodhi.server import main, util
@@ -443,6 +445,22 @@ class TestGenericViews(base.BasePyTestCase):
     def test_version(self):
         res = self.app.get('/api_version')
         assert 'version' in res.json_body
+
+    def test_readyness(self):
+        res = self.app.get('/healthz/ready')
+        assert 'db_session' in res.json_body
+
+    def test_readyness_not_ready(self):
+        from bodhi.server.views.generic import readyness
+        request = DummyRequest()
+
+        with pytest.raises(Exception) as exc:
+            readyness(request)
+        assert str(exc.value) == 'App not ready, is unable to execute a trivial select.'
+
+    def test_liveness(self):
+        res = self.app.get('/healthz/live')
+        assert 'ok' == res.json_body
 
     def test_new_update_form(self):
         """Test the new update Form page"""
