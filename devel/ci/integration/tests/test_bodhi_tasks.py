@@ -16,6 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test the bodhi async tasks."""
+import json
 
 import psycopg2
 import pytest
@@ -40,12 +41,12 @@ def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
     # after joining with the composes table through updates table.
     query = """
       SELECT DISTINCT
-        c.release_id, c.request, state, b.type
+        c.release_id, c.request, c.checkpoints, state, b.type
       FROM
         composes AS c
       INNER JOIN updates AS u ON (c.release_id = u.release_id AND c.request = u.request )
       INNER JOIN builds AS b ON (b.update_id = u.id)
-      WHERE b.type IN ('rpm', 'module') AND state <> 'failed';
+      WHERE b.type = 'rpm' AND state <> 'failed';
     """
     db_ip = db_container.get_IPv4s()[0]
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
@@ -53,9 +54,13 @@ def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
         with conn.cursor() as curs:
             curs.execute(query)
             composes = curs.fetchall()
-    if not composes:
+    valid_composes = []
+    for compose in composes:
+        checkpoints = json.loads(compose[2])
+        if not checkpoints.get("compose_done"):
+            valid_composes.append(compose)
+    if not valid_composes:
         pytest.skip("We can't test whether composes were run, there are none pending")
-
     # Give some time for the message to go around and the command to be run.
     try:
         bodhi_container.execute(["wait-for-file", "/tmp/pungi-calls.log"])
