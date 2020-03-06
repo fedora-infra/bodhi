@@ -453,12 +453,6 @@ class DevBuildsys:
         Raises:
             koji.GenericError: If strict is True and epel is requested.
         """
-        for nr in self.__tags__:
-            if taginfo == self.__tags__[nr][0]:
-                toreturn = self.__tags__[nr][1]
-                toreturn['id'] = nr
-                return toreturn
-
         if isinstance(taginfo, int):
             taginfo = "f%d" % taginfo
 
@@ -468,6 +462,11 @@ class DevBuildsys:
 
             else:
                 return None
+
+        # These tags needs to be created
+        if taginfo in ["f32-build-side-1234-signing-pending",
+                       "f32-build-side-1234-testing-pending"]:
+            return None
 
         # emulate a side-tag response
         if taginfo in self._side_tag_ids_names:

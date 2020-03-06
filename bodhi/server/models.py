@@ -46,7 +46,7 @@ from bodhi.messages.schemas import (buildroot_override as override_schemas,
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
-from bodhi.server.tasks import handle_update
+from bodhi.server.tasks import handle_update, tag_update_builds_task
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
@@ -2314,7 +2314,6 @@ class Update(Base):
         """
         db = request.db
         buildinfo = request.buildinfo
-        koji = request.koji
         up = db.query(Update).filter_by(alias=data['edited']).first()
         del(data['edited'])
 
@@ -2411,18 +2410,7 @@ class Update(Base):
                 })
 
             # Add the pending_signing_tag to all new builds
-            for build in new_builds:
-                if up.from_tag:
-                    # this is a sidetag based update. use the sidetag pending signing tag
-                    side_tag_pending_signing = up.release.get_pending_signing_side_tag(up.from_tag)
-                    koji.tagBuild(side_tag_pending_signing, build)
-                elif up.release.pending_signing_tag:
-                    # Add the release's pending_signing_tag to all new builds
-                    koji.tagBuild(up.release.pending_signing_tag, build)
-                else:
-                    # EL6 doesn't have these, and that's okay...
-                    # We still warn in case the config gets messed up.
-                    log.warning('%s has no pending_signing_tag' % up.release.name)
+            tag_update_builds_task.delay(update=up, builds=new_builds)
 
         # And, updates with new or removed builds always get their karma reset.
         # https://github.com/fedora-infra/bodhi/issues/511
@@ -2444,11 +2432,11 @@ class Update(Base):
         # Store the update alias so Celery doesn't have to emit SQL
         update_alias = up.alias
 
-        # Commit the changes in the db before calling a celery task.
-        db.commit()
-
         notifications.publish(update_schemas.UpdateEditV1.from_dict(
             message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
 
         handle_update.delay(
             api_version=2, action='edit',
@@ -2891,9 +2879,6 @@ class Update(Base):
         # Store the update alias so Celery doesn't have to emit SQL
         alias = self.alias
 
-        # Commit the changes in the db before calling a celery task.
-        db.commit()
-
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -2902,6 +2887,9 @@ class Update(Base):
             UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1}
         notifications.publish(action_message_map[action].from_dict(
             dict(update=self, agent=username)))
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
 
         if action == UpdateRequest.testing:
             handle_update.delay(
@@ -4692,7 +4680,6 @@ class BuildrootOverride(Base):
             The new updated override.
         """
         db = request.db
-
         edited = data.pop('edited')
         override = cls.get(edited.id)
 

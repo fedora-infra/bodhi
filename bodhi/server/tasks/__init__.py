@@ -19,12 +19,16 @@
 
 import logging
 import sys
+import typing
 
 import celery
 
 from bodhi.server import bugs, buildsys, initialize_db
 from bodhi.server.config import config
 from bodhi.server.util import pyfile_to_module
+
+if typing.TYPE_CHECKING:  # pragma: no cover
+    from bodhi.server.models import Update
 
 
 # Workaround https://github.com/celery/celery/issues/5416
@@ -119,3 +123,21 @@ def expire_overrides_task(**kwargs):
     log.info("Received a expire overrides order")
     _do_init()
     main()
+
+
+@app.task(name="handle_side_and_related_tags")
+def handle_side_and_related_tags_task(updates: typing.List["Update"], from_tag: str):
+    """Handle side-tags and related tags for updates in Koji."""
+    from .handle_side_and_related_tags import main
+    log.info("Received an order for handling update tags")
+    _do_init()
+    main(updates, from_tag)
+
+
+@app.task(name="tag_update_builds")
+def tag_update_builds_task(update: "Update", builds: typing.List[str]):
+    """Handle tagging builds for an update in Koji."""
+    from .tag_update_builds import main
+    log.info("Received an order to tag builds for an update")
+    _do_init()
+    main(update, builds)
