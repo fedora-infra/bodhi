@@ -1,1 +1,1 @@
-Create celery tasks to interact with koji and allow these calls to be perfromed asynchronously.
+Tag builds for updates asynchronously using Celery tasks.
