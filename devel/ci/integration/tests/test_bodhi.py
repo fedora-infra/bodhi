@@ -155,6 +155,24 @@ def test_get_api_version(bodhi_container):
         raise
 
 
+def test_get_liveness(bodhi_container):
+    """Test ``/healthz/live`` path"""
+    # GET on /healthz/live
+    # this is standard `requests.Response`
+    http_response = bodhi_container.http_request(path="/healthz/live", port=8080)
+    assert http_response.ok
+    assert http_response.json() == 'ok'
+
+
+def test_get_readyness(bodhi_container):
+    """Test ``/healthz/ready`` path"""
+    # GET on /healthz/ready
+    # this is standard `requests.Response`
+    http_response = bodhi_container.http_request(path="/healthz/ready", port=8080)
+    assert http_response.ok
+    assert http_response.json() == {'db_session': True}
+
+
 def test_get_notfound_view(bodhi_container):
     """Test not_found_view path"""
     # GET on /inexisting_path

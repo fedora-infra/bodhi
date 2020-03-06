@@ -37,8 +37,10 @@ if can_edit and update.release.composed_by_bodhi:
       else:
         actions['revoke'] = True
     elif update.pushed and (update.status.value != 'stable' or (update.status.value == 'stable' and 'releng' in [group.name for group in request.user.groups])):
+      if update.request:
+        actions['revoke'] = True
       actions['unpush'] = True
-      if update.meets_testing_requirements:
+      if update.meets_testing_requirements and not update.request:
         actions['push to stable'] = True
 %>
 <div class="subheader pt-3">
@@ -82,10 +84,13 @@ if can_edit and update.release.composed_by_bodhi:
               <span class="sr-only">Locked</span>
             </a>
             % endif
+              <span class="btn btn-sm btn-${self.fragments.status_context(update.status.value)}">
+                  ${self.fragments.status_text(update)}
+              </span>
             % if actions:
               <div class="dropdown d-inline" id="updatebuttons">
-                <button class="btn btn-${self.fragments.status_context(update.status.value)} dropdown-toggle btn-sm" type="button" id="statusActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    ${self.fragments.status_text(update)}
+                <button class="btn btn-outline-primary border-0 btn-sm dropdown-toggle" type="button" id="statusActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Actions
                 </button>
                 <div class="dropdown-menu" aria-labelledby="statusActions">
                   %if "push to testing" in actions:
@@ -102,10 +107,6 @@ if can_edit and update.release.composed_by_bodhi:
                   %endif
                 </div>
               </div>
-            % else:
-              <span class="btn btn-sm btn-${self.fragments.status_context(update.status.value)}">
-                  ${self.fragments.status_text(update)}
-              </span>
             % endif
         </div>
       </div>
@@ -1062,7 +1063,6 @@ $(document).ready(function() {
               method: 'POST',
               dataType: 'json',
               success: function(response) {
-                $("#updatebuttons a").removeClass('disabled');
                 // Just reload the page if all went well..
                 location.reload();
               },

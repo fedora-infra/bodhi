@@ -315,6 +315,8 @@ def main(global_config, testing=None, session=None, **settings):
     config.add_view('pyramid_fas_openid.verify_openid', route_name='verify_openid')
 
     config.add_route('api_version', '/api_version')
+    config.add_route('liveness', '/healthz/live')
+    config.add_route('readyness', '/healthz/ready')
 
     config.scan('bodhi.server.views')
     config.scan('bodhi.server.services')
