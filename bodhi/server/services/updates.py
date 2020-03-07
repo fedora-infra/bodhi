@@ -205,6 +205,11 @@ def set_request(request):
                            "Can't change request for an archived release")
         return
 
+    if update.status == UpdateStatus.stable and action == UpdateRequest.testing:
+        request.errors.add('body', 'request',
+                           "Pushing back to testing a stable update is not allowed")
+        return
+
     if action == UpdateRequest.stable:
         settings = request.registry.settings
         result, reason = update.check_requirements(request.db, settings)

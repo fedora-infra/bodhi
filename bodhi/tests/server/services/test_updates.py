@@ -985,6 +985,25 @@ class TestSetRequest(BasePyTestCase):
             "Can't change request for an archived release"
         )
 
+    @mock.patch(**mock_valid_requirements)
+    def test_set_request_testing_from_stable(self, *args):
+        """Ensure that we get an error if trying to push to testing a stable update"""
+        nvr = 'bodhi-2.0-1.fc17'
+
+        up = self.db.query(Build).filter_by(nvr=nvr).one().update
+        up.locked = False
+        up.status = UpdateStatus.stable
+
+        post_data = dict(update=up.alias, request='testing',
+                         csrf_token=self.app.get('/csrf').json_body['csrf_token'])
+
+        res = self.app.post_json(f'/updates/{up.alias}/request', post_data, status=400)
+
+        assert res.json_body['status'] == 'error'
+        assert res.json_body['errors'][0]['description'] == (
+            "Pushing back to testing a stable update is not allowed"
+        )
+
     @mock.patch('bodhi.server.services.updates.log.info')
     @mock.patch.dict(config, {'test_gating.required': True})
     def test_test_gating_status_failed(self, info):
