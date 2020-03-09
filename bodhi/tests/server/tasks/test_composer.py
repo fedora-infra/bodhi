@@ -540,7 +540,8 @@ That was the actual one''' % compose_dir
 
         with self.db_factory() as session:
             firstupdate = session.query(Update).one()
-            build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package, signed=True)
+            build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package,
+                             release=firstupdate.release, signed=True)
             session.add(build)
             update = Update(
                 builds=[build], type=UpdateType.bugfix,
@@ -2178,7 +2179,8 @@ testmodule:master:20172:2
             oldupdate.locked = False
 
             # Create a newer build
-            build = RpmBuild(nvr=otherbuild, package=oldupdate.builds[0].package, signed=True)
+            build = RpmBuild(nvr=otherbuild, package=oldupdate.builds[0].package,
+                             release=oldupdate.release, signed=True)
             session.add(build)
             update = Update(
                 builds=[build], type=UpdateType.bugfix,
