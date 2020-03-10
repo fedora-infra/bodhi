@@ -2063,14 +2063,17 @@ class TestEdit:
                           '--url', 'http://localhost:6543'])
         assert result.exit_code == 2
         # Click 7.0 capitalizes UPDATE, and < 7 does not.
-        if [int(n) for n in click.__version__.split('.')] < [7, 0]:
-            label = 'update'
+        # Click <= 7.0 uses " while > 7 uses '
+        click_ver = [int(n) for n in click.__version__.split('.')]
+        if click_ver < [7, 0]:
+            label = '"update"'
+        elif click_ver == [7, 0]:
+            label = '"UPDATE"'
         else:
-            label = 'UPDATE'
-        expected = 'Usage: edit [OPTIONS] UPDATE\n\n' \
-                   'Error: Invalid value for "{}": ' \
-                   'Please provide an Update ID\n'
-        expected = expected.format(label)
+            label = "'UPDATE'"
+        expected = f'Usage: edit [OPTIONS] UPDATE\n\n' \
+                   f'Error: Invalid value for {label}: ' \
+                   f'Please provide an Update ID\n'
 
         assert result.output == expected
 
