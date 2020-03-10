@@ -91,13 +91,16 @@ def test_update_edit(
             with conn.cursor() as curs:
                 # First try to find an update that we can use.
                 query = base_query[:]
-                query.insert(4, "AND u.status != 'testing' AND u.request != 'testing'")
+                query.insert(
+                    4,
+                    "AND u.status NOT IN ('testing', 'stable') AND u.request != 'testing'"
+                )
                 curs.execute(" ".join(query))
                 result = curs.fetchone()
                 if result is None:
                     # Well, let's hack one into something we can use.
                     query = base_query[:]
-                    query.insert(4, "AND u.status != 'testing'")
+                    query.insert(4, "AND u.status NOT IN ('testing', 'stable')")
                     curs.execute(" ".join(query))
                     result = curs.fetchone()
                     assert result is not None
