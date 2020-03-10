@@ -30,7 +30,7 @@ from bodhi.server import buildsys
 from bodhi.server.config import config
 from bodhi.server.models import Build, ContentType, Package, Release
 from bodhi.server.models import Update, UpdateStatus, UpdateType, User
-from bodhi.server.util import generate_changelog, transactional_session_maker
+from bodhi.server.util import transactional_session_maker
 
 log = logging.getLogger('bodhi')
 
@@ -139,7 +139,7 @@ class AutomaticUpdateHandler:
                 dbsession.add(user)
 
             log.debug(f"Creating new update for {bnvr}.")
-            changelog = generate_changelog(build)
+            changelog = build.get_changelog(lastupdate=True)
             if changelog:
                 notes = f"""Automatic update for {bnvr}.
 

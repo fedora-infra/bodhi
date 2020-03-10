@@ -24,7 +24,7 @@ import typing
 
 from bodhi.server import log
 from bodhi.server.config import config
-from bodhi.server.util import get_rpm_header, get_absolute_path, generate_changelog
+from bodhi.server.util import get_rpm_header, get_absolute_path
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     from bodhi.server.models import Update  # noqa: 401
@@ -334,7 +334,7 @@ def get_template(update: 'Update', use_template: str = 'fedora_errata_template')
 
         # generate a ChangeLog
         info['changelog'] = ""
-        changelog = generate_changelog(build)
+        changelog = build.get_changelog(lastupdate=True)
         if changelog is not None:
             info['changelog'] = "ChangeLog:\n\n%s%s" % \
                 (changelog, line)
