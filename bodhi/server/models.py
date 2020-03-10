@@ -1468,6 +1468,10 @@ class Build(Base):
         """
         return self._get_kojiinfo().get('task_id')
 
+    def get_changelog(self, timelimit=0, lastupdate=False):
+        """Will be overridden from child classes, when appropriate."""
+        return ""
+
     def get_creation_time(self) -> datetime:
         """Return the creation time of the build."""
         return datetime.fromisoformat(self._get_kojiinfo()['creation_time'])
@@ -1635,9 +1639,9 @@ class RpmBuild(Build):
         # generate ChangeLogs against those.
         latest = None
         evr = self.evr
-        for tag in [self.update.release.stable_tag, self.update.release.dist_tag]:
-            builds = koji_session.getLatestBuilds(
-                tag, package=self.package.name)
+        for tag in [self.release.stable_tag, self.release.dist_tag]:
+            builds = koji_session.listTagged(
+                tag, package=self.package.name, inherit=True)
 
             # Find the first build that is older than us
             for build in builds:
@@ -1649,13 +1653,14 @@ class RpmBuild(Build):
                 break
         return latest
 
-    def get_changelog(self, timelimit=0):
+    def get_changelog(self, timelimit=0, lastupdate=False):
         """
         Retrieve the RPM changelog of this package since it's last update, or since timelimit.
 
         Args:
             timelimit (int): Timestamp, specified as the number of seconds since 1970-01-01 00:00:00
                 UTC.
+            lastupdate (bool): Only returns changelog since last update.
         Return:
             str: The RpmBuild's changelog.
         """
@@ -1670,6 +1675,17 @@ class RpmBuild(Build):
         num = len(descrip)
         if not isinstance(when, list):
             when = [when]
+
+        if lastupdate:
+            lastpkg = self.get_latest()
+            if lastpkg is not None:
+                oldh = get_rpm_header(lastpkg)
+                if oldh['changelogtext']:
+                    timelimit = oldh['changelogtime']
+                    if isinstance(timelimit, list):
+                        timelimit = timelimit[0]
+            else:
+                return ""
 
         str = ""
         i = 0
