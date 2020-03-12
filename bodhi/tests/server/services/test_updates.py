@@ -1121,7 +1121,8 @@ class TestEditUpdateForm(BasePyTestCase):
             '/updates/FEDORA-{}-a3bbe1a8f2/edit'.format(datetime.utcnow().year), status=400,
             headers={'accept': 'text/html'})
         assert (
-            'anonymous is not a member of "packager", which is a mandatory packager group') in resp
+            'anonymous is not a member of &#34;packager&#34;, which is a mandatory packager group'
+        ) in resp
 
     def test_edit_not_loggedin(self):
         """
