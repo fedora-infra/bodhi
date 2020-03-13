@@ -103,39 +103,6 @@ def get_rpm_header(nvr, tries=0):
     raise ValueError("No rpm headers found in koji for %r" % nvr)
 
 
-def generate_changelog(build: 'models.Build') -> typing.Optional[str]:
-    """
-    Generate a changelog for a given build.
-
-    Args:
-        build: the build to create a changelog for.
-    Returns:
-        A changelog of changes between the given build, and the previous one.
-        Or returns None if the build type doesn't have the get_latest() method.
-    """
-    # Find the most recent update for this package, other than this one
-    try:
-        lastpkg = build.get_latest()
-    except AttributeError:
-        # Not all build types have the get_latest() method, such as ModuleBuilds.
-        return None
-
-    # Grab the RPM header of the previous update, and generate a ChangeLog
-
-    def _get_oldtime(lastpkg):
-        if lastpkg is None:
-            return 0
-        oldh = get_rpm_header(lastpkg)
-        if not oldh['changelogtext']:
-            return 0
-        oldtime = oldh['changelogtime']
-        if isinstance(oldtime, list):
-            oldtime = oldtime[0]
-        return oldtime
-
-    return build.get_changelog(_get_oldtime(lastpkg))
-
-
 def build_evr(build):
     """
     Return a tuple of strings of the given build's epoch, version, and release.
@@ -1065,6 +1032,7 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
     """
     if data is None:
         data = dict()
+    log.debug("Querying url: %s", api_url)
     if method == 'POST':
         if headers is None:
             headers = {'Content-Type': 'application/json'}
@@ -1087,12 +1055,14 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
         time.sleep(1)
         return call_api(api_url, service_name, error_key, method, data, headers, retries - 1)
     elif rv.status_code == 500:
+        log.debug(rv.text)
         # There will be no JSON with an error message here
         error_msg = base_error_msg.format(
             service_name, api_url, rv.status_code)
         log.error(error_msg)
         raise RuntimeError(error_msg)
     else:
+        log.debug(rv.text)
         # If it's not a 500 error, we can assume that the API returned an error
         # message in JSON that we can log
         try:

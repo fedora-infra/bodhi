@@ -93,7 +93,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         assert not any(r.levelno >= logging.WARNING for r in caplog.records)
 
     @pytest.mark.parametrize('changelog', (True, None, ""))
-    @mock.patch('bodhi.server.consumers.automatic_updates.generate_changelog')
+    @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
     def test_changelog(self, mock_generate_changelog, changelog):
         """Assert that update notes contain the changelog if it exists."""
         if changelog:

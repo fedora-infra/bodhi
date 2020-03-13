@@ -822,8 +822,8 @@ class TestMain(BaseTaskTestCase):
         # Clear pending messages
         self.db.info['messages'] = []
 
-        update.comment(self.db, u'Works great', author=u'luke', karma=1)
         with fml_testing.mock_sends(api.Message, api.Message, api.Message):
+            update.comment(self.db, u'Works great', author=u'luke', karma=1)
             self.db.commit()
 
         approve_testing_main()

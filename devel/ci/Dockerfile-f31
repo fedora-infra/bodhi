@@ -1,4 +1,4 @@
-FROM registry.fedoraproject.org/fedora:31
+FROM fedora:31
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
 RUN dnf install -y \
@@ -44,9 +44,6 @@ RUN dnf install -y \
     python3-waitress \
     python3-webtest \
     python3-yaml
-
-# Workaround base image bug #1737013.
-COPY devel/ci/integration/bodhi/zone.tab /usr/share/zoneinfo/zone.tab
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji

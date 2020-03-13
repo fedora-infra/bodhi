@@ -46,7 +46,7 @@ from bodhi.messages.schemas import (buildroot_override as override_schemas,
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
-from bodhi.server.tasks import handle_update
+from bodhi.server.tasks import handle_update, tag_update_builds_task
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
@@ -1468,6 +1468,10 @@ class Build(Base):
         """
         return self._get_kojiinfo().get('task_id')
 
+    def get_changelog(self, timelimit=0, lastupdate=False):
+        """Will be overridden from child classes, when appropriate."""
+        return ""
+
     def get_creation_time(self) -> datetime:
         """Return the creation time of the build."""
         return datetime.fromisoformat(self._get_kojiinfo()['creation_time'])
@@ -1635,9 +1639,9 @@ class RpmBuild(Build):
         # generate ChangeLogs against those.
         latest = None
         evr = self.evr
-        for tag in [self.update.release.stable_tag, self.update.release.dist_tag]:
-            builds = koji_session.getLatestBuilds(
-                tag, package=self.package.name)
+        for tag in [self.release.stable_tag, self.release.dist_tag]:
+            builds = koji_session.listTagged(
+                tag, package=self.package.name, inherit=True)
 
             # Find the first build that is older than us
             for build in builds:
@@ -1649,13 +1653,14 @@ class RpmBuild(Build):
                 break
         return latest
 
-    def get_changelog(self, timelimit=0):
+    def get_changelog(self, timelimit=0, lastupdate=False):
         """
         Retrieve the RPM changelog of this package since it's last update, or since timelimit.
 
         Args:
             timelimit (int): Timestamp, specified as the number of seconds since 1970-01-01 00:00:00
                 UTC.
+            lastupdate (bool): Only returns changelog since last update.
         Return:
             str: The RpmBuild's changelog.
         """
@@ -1670,6 +1675,17 @@ class RpmBuild(Build):
         num = len(descrip)
         if not isinstance(when, list):
             when = [when]
+
+        if lastupdate:
+            lastpkg = self.get_latest()
+            if lastpkg is not None:
+                oldh = get_rpm_header(lastpkg)
+                if oldh['changelogtext']:
+                    timelimit = oldh['changelogtime']
+                    if isinstance(timelimit, list):
+                        timelimit = timelimit[0]
+            else:
+                return ""
 
         str = ""
         i = 0
@@ -2169,7 +2185,8 @@ class Update(Base):
         """
         Return the appropriate command for installing the Update.
 
-        There are three conditions under which the empty string is returned:
+        There are four conditions under which the empty string is returned:
+            * If the update is in testing status for rawhide.
             * If the update is not in a stable or testing repository.
             * If the release has not specified a package manager.
             * If the release has not specified a testing repository.
@@ -2177,6 +2194,9 @@ class Update(Base):
         Returns:
             The dnf command to install the Update, or the empty string.
         """
+        if not self.release.composed_by_bodhi and self.status == UpdateStatus.testing:
+            return ''
+
         if self.status != UpdateStatus.stable and self.status != UpdateStatus.testing:
             return ''
 
@@ -2259,6 +2279,12 @@ class Update(Base):
         # Create the update
         log.debug("Creating new Update(**data) object.")
         release = data.pop('release', None)
+
+        if not release.composed_by_bodhi:
+            # For rawhide updates make sure autotime push is enabled
+            # https://github.com/fedora-infra/bodhi/issues/3912
+            data['autotime'] = True
+
         up = Update(**data, release=release)
 
         # We want to make sure that the value of stable_days
@@ -2304,7 +2330,6 @@ class Update(Base):
         """
         db = request.db
         buildinfo = request.buildinfo
-        koji = request.koji
         up = db.query(Update).filter_by(alias=data['edited']).first()
         del(data['edited'])
 
@@ -2401,18 +2426,7 @@ class Update(Base):
                 })
 
             # Add the pending_signing_tag to all new builds
-            for build in new_builds:
-                if up.from_tag:
-                    # this is a sidetag based update. use the sidetag pending signing tag
-                    side_tag_pending_signing = up.release.get_pending_signing_side_tag(up.from_tag)
-                    koji.tagBuild(side_tag_pending_signing, build)
-                elif up.release.pending_signing_tag:
-                    # Add the release's pending_signing_tag to all new builds
-                    koji.tagBuild(up.release.pending_signing_tag, build)
-                else:
-                    # EL6 doesn't have these, and that's okay...
-                    # We still warn in case the config gets messed up.
-                    log.warning('%s has no pending_signing_tag' % up.release.name)
+            tag_update_builds_task.delay(update=up, builds=new_builds)
 
         # And, updates with new or removed builds always get their karma reset.
         # https://github.com/fedora-infra/bodhi/issues/511
@@ -2434,11 +2448,11 @@ class Update(Base):
         # Store the update alias so Celery doesn't have to emit SQL
         update_alias = up.alias
 
-        # Commit the changes in the db before calling a celery task.
-        db.commit()
-
         notifications.publish(update_schemas.UpdateEditV1.from_dict(
             message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
 
         handle_update.delay(
             api_version=2, action='edit',
@@ -2881,9 +2895,6 @@ class Update(Base):
         # Store the update alias so Celery doesn't have to emit SQL
         alias = self.alias
 
-        # Commit the changes in the db before calling a celery task.
-        db.commit()
-
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -2892,6 +2903,9 @@ class Update(Base):
             UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1}
         notifications.publish(action_message_map[action].from_dict(
             dict(update=self, agent=username)))
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
 
         if action == UpdateRequest.testing:
             handle_update.delay(
@@ -3942,6 +3956,8 @@ class Update(Base):
             # This is the object initialization phase. This instance is not ready, don't create
             # the message now. This method will be called again at the end of __init__
             return
+        if target.content_type != ContentType.rpm:
+            return
 
         message = update_schemas.UpdateReadyForTestingV1.from_dict(
             message=target._build_group_test_message()
@@ -4680,7 +4696,6 @@ class BuildrootOverride(Base):
             The new updated override.
         """
         db = request.db
-
         edited = data.pop('edited')
         override = cls.get(edited.id)
 
