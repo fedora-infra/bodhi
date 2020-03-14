@@ -35,6 +35,7 @@ def main(update: Update, builds: typing.List[str]):
         builds: a list of build NVRs
     """
     koji = buildsys.get_session()
+    koji.multicall = True
     for build in builds:
         if update.from_tag:
             # this is a sidetag based update. use the sidetag pending signing tag
@@ -47,3 +48,4 @@ def main(update: Update, builds: typing.List[str]):
             # EL6 doesn't have these, and that's okay...
             # We still warn in case the config gets messed up.
             log.warning(f'{update.release.name} has no pending_signing_tag')
+    koji.multiCall()

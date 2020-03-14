@@ -1,0 +1,1 @@
+Use koji's multicall in `tag_update_builds` task
