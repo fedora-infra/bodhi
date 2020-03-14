@@ -108,9 +108,9 @@ ${parent.css()}
           <div class="form-group">
             <%
               from datetime import datetime,timedelta
-              min = datetime.today()
+              min = datetime.today() + timedelta(days=1)
               max = min + timedelta(days=request.registry.settings.get('buildroot_limit'))
-              default = min + timedelta(days=1)
+              default = min
             %>
             <input class="form-control" id="expiration_date"
                 name="expiration_date" type="date" min="${min.strftime('%Y-%m-%d')}" max="${max.strftime('%Y-%m-%d')}" 
