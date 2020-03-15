@@ -5546,10 +5546,10 @@ class TestUpdatesService(BasePyTestCase):
 
         assert up['title'] == 'bodhi-2.0.0-3.fc17'
         assert up['karma'] == 0
-
+        assert up['date_testing'] == None
         update = Update.get(update.alias)
         update.status = UpdateStatus.testing
-        self.date_testing = update.date_testing + timedelta(days=7)
+        self.date_testing = datetime.utcnow() + timedelta(days=7)
         update.comment(self.db, 'lgtm', author='friend3', karma=1)
         update.comment(self.db, 'lgtm2', author='friend4', karma=1)
         # Let's clear any messages that might get sent

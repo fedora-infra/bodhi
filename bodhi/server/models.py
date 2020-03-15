@@ -2415,6 +2415,10 @@ class Update(Base):
         # Updates with new or removed builds always go back to testing
         if new_builds or removed_builds:
             data['request'] = UpdateRequest.testing
+            # And, updates with new or removed builds always get their karma reset.
+            # https://github.com/fedora-infra/bodhi/issues/511
+            data['karma_critipath'] = 0
+            up.date_testing = None
 
             # Remove all koji tags and change the status back to pending
             if up.status is not UpdateStatus.pending:
@@ -2434,11 +2438,6 @@ class Update(Base):
 
             if tag is not None:
                 tag_update_builds_task.delay(tag=tag, builds=new_builds)
-
-        # And, updates with new or removed builds always get their karma reset.
-        # https://github.com/fedora-infra/bodhi/issues/511
-        if new_builds or removed_builds:
-            data['karma_critpath'] = 0
 
         new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
