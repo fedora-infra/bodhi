@@ -386,11 +386,13 @@ def test_get_update_view(bodhi_container, db_container):
         if update_info['request']:
             assert update_info['request'] in http_response.text
         if update_info['autokarma']:
-            assert "Stable by Karma" in http_response.text
+            assert "The update will be automatically pushed to stable when karma reaches"\
+                in http_response.text
             assert (f"The update will be automatically pushed to stable"
                     f" when karma reaches {update_info['stable_karma']}") in http_response.text
         else:
-            assert "Stable by Karma" not in http_response.text
+            assert "The update will not be automatically pushed to stable by karma"\
+                in http_response.text
         if update_info['locked']:
             assert "Locked" in http_response.text
         if update_info['suggest'] == "reboot":
