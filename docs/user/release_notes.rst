@@ -4,6 +4,92 @@ Release notes
 
 .. towncrier release notes start
 
+v5.2.0
+======
+This is a feature and bugfix release.
+
+
+Features
+^^^^^^^^
+
+* Added `__current__`, `__pending__` and `__archived__` macro filters to
+  quickly filter Updates by Release status (:pr:`3892`).
+* Added search filtering capabilities to the Overrides page (:pr:`3903`).
+* Output the update install command into the bugs comments. Also change the
+  `stable_bug_msg` and `testing_bug_msg` settings format to use placeholders in
+  place of `%s`: if you have customized these settings you will need to adjust
+  them to the new format. Here it is the list of the available placeholders:
+  `{update_title}, {update_beauty_title}, {update_alias}, {repo},
+  {install_instructions}, {update_url}` (:issue:`740`).
+* Tag builds for updates asynchronously using Celery tasks. (:issue:`3061`).
+* Add a Liveness and Readyness endpoints for OpenShift probes. (:issue:`3854`).
+* Allow revoking the `push to stable` action (:issue:`3921`).
+
+Bug fixes
+^^^^^^^^^
+
+* Place 404 Not Found in the middle of the website (:pr:`3835`).
+* RPM changelog was not automatically added in the notes for Rawhide updates as
+  expected (:pr:`3931`).
+* Add back the ability to add abitairy text as a build. (:issue:`3707`,
+  :issue:`3765`).
+* Allow to comment on update that were pushed to stable. (:issue:`3748`).
+* Make comments submission to use common code with other forms and avoid
+  clearing the spinner until the page refreshes (:issue:`3837`).
+* Try to avoid timeout error when requesting latest_candidates with
+  `hide_existing=true` (:issue:`3841`).
+* Allow task id to be null in the bodhi.update.status.testing message schema.
+  (:issue:`3852`).
+* Sent UpdateReadyForTestingV1 only for rpm (:issue:`3855`).
+* Prevent whitespaces string to be set as display name of an update
+  (:issue:`3877`).
+* Fixed pagination issue when using multiple values for the same filter
+  (:issue:`3885`).
+* Make sure we send the fedora-messaging messages before trigerring a celery
+  task. (:issue:`3904`).
+* Prevent updates from sidetags being stuck in Testing (:issue:`3912`).
+* Do not allow to push back to testing a stable update (:issue:`3936`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Use existing db session when creating a package: `Package.get_or_create()`
+  now requires a session object in input (:pr:`3860`).
+* Use koji's multicall in `tag_update_builds` task (:pr:`3958`).
+
+Other changes
+^^^^^^^^^^^^^
+
+* Use Celery Beat instead of cron jobs. The corresponding CLIs have been
+  adjusted
+  to trigger the task. They will still block until the task is done, but it may
+  not be running on the host that the CLI was called on. The affected CLIs are:
+  ``bodhi-clean-old-composes``, ``bodhi-expire-overrides``,
+  ``bodhi-approve-testing``, and ``bodhi-check-policies`` (:issue:`2867`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Saleh
+* Aurélien Bompard
+* Adam Williamson
+* Clement Verna
+* Eli Young
+* Karma Dolkar
+* Mattia Verga
+* Michal Konečný
+* Nils Philippsen
+* Pierre-Yves Chibon
+* Elliott Sales de Andrade
+* Richard O. Gregory
+* Rick Elrod
+* Ryan Lerch
+* Stephen Coady
+* subhamkrai
+* Sebastian Wojciechowski
+
 
 v5.1.1
 ======
