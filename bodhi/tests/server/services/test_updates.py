@@ -3569,7 +3569,7 @@ class TestUpdatesService(BasePyTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
         assert 'text/html' in resp.headers['Content-Type']
         assert nvr in resp
-        assert 'Stable by Karma' in resp
+        assert 'The update will be automatically pushed to stable when karma reaches' in resp
 
     @mock.patch(**mock_valid_requirements)
     def test_disabled_button_for_autopush(self, *args):
@@ -3583,7 +3583,7 @@ class TestUpdatesService(BasePyTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
         assert 'text/html' in resp.headers['Content-Type']
         assert nvr in resp
-        assert 'Stable by Karma' not in resp
+        assert 'The update will not be automatically pushed to stable by karma' in resp
 
     @mock.patch(**mock_taskotron_results)
     @mock.patch(**mock_valid_requirements)

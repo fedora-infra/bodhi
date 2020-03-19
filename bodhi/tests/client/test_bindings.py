@@ -1124,7 +1124,7 @@ class TestBodhiClient_update_str:
         assert compare_output(
             text,
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-                '[-3, 3]', '[-3, 3]\n        Bugs: 1234 - it broke\n            : 1235 - halp'))
+                'Autotime: True', 'Autotime: True\n   Bugs: 1234 - it broke\n    : 1235 - halp'))
 
     @mock.patch('bodhi.client.bindings.datetime.datetime')
     def test_minimal(self, mock_datetime):
@@ -1243,11 +1243,12 @@ class TestBodhiClient_update_str:
         client.base_url = 'http://example.com/tests/'
 
         text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+        print("This is", text)
 
         assert compare_output(
             text,
             client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
-                '[-3, 3]', '[-3, 3]\n     Request: stable'))
+                'Autotime: True', 'Autotime: True\n     Request: stable'))
 
     def test_severity(self):
         """Test that severity is rendered."""
@@ -1283,6 +1284,33 @@ class TestBodhiClient_update_str:
 
         expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
             'Autokarma: True  [-3, 3]', 'Autokarma: False  [-3, 3]')
+        assert compare_output(text, expected_output)
+
+    def test_autotime_set(self):
+        """
+        Ensure correct operation when autotime is True.
+        """
+        client = bindings.BodhiClient(username='some_user', password='s3kr3t')
+        client.base_url = 'http://example.com/tests/'
+
+        text = client.update_str(client_test_data.EXAMPLE_UPDATE_MUNCH)
+
+        assert compare_output(text, client_test_data.EXPECTED_UPDATE_OUTPUT)
+
+    def test_autotime_unset(self):
+        """
+        Ensure correct operation when autotime is False.
+        """
+        client = bindings.BodhiClient(username='some_user', password='s3kr3t')
+        client.base_url = 'http://example.com/tests/'
+        update = copy.deepcopy(client_test_data.EXAMPLE_UPDATE_MUNCH)
+        # Set the update's autotime and to False.
+        update.autotime = False
+
+        text = client.update_str(update)
+
+        expected_output = client_test_data.EXPECTED_UPDATE_OUTPUT.replace(
+            'Autotime: True', 'Autotime: False')
         assert compare_output(text, expected_output)
 
     def test_update_as_string(self):

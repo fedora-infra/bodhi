@@ -839,7 +839,8 @@ class BodhiClient(OpenIdBaseClient):
             line_formatter.format('Karma', update['karma']),
             line_formatter.format(
                 'Autokarma',
-                f"{update['autokarma']}  [{update['unstable_karma']}, {update['stable_karma']}]")
+                f"{update['autokarma']}  [{update['unstable_karma']}, {update['stable_karma']}]"),
+            line_formatter.format('Autotime', update['autotime'])
         ]
 
         try:
