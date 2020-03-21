@@ -380,7 +380,7 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
             for record in curs:
                 update.comments.append(_db_record_to_munch(curs, record))
             curs.execute(query_karma, (update.id, ))
-            update.karma = _db_record_to_munch(curs, curs.fetchone()).karma
+            update.karma = _db_record_to_munch(curs, curs.fetchone()).karma or 0
             curs.execute(query_ct, (update.id, ))
             update.content_type = _db_record_to_munch(curs, curs.fetchone()).type
             curs.execute(query_builds, (update.id, ))
@@ -500,23 +500,24 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
             with conn.cursor() as curs:
                 # First try to find an update that we can use.
                 query = base_query[:]
-                query.insert(4, "AND u.status != 'testing' AND u.request != 'testing'")
+                query.insert(
+                    4,
+                    "AND u.status = 'testing' AND u.request IS NULL"
+                )
+                query.insert(
+                    5,
+                    "AND u.test_gating_status IN ('ignored', 'passed', 'greenwave_failed')"
+                )
                 curs.execute(" ".join(query))
                 result = curs.fetchone()
-                if result is None:
-                    # Well, let's hack one into something we can use.
-                    query = base_query[:]
-                    query.insert(4, "AND u.status != 'testing'")
-                    curs.execute(" ".join(query))
-                    result = curs.fetchone()
-                    assert result is not None
-                    update_alias = result[0]
-                    curs.execute(
-                        "UPDATE updates SET request = 'stable' WHERE alias = %s",
-                        (update_alias,)
-                    )
-                else:
-                    update_alias = result[0]
+                assert result is not None
+                update_alias = result[0]
+                # Now let's make sure the update is pushable to stable
+                curs.execute(
+                    "UPDATE updates SET stable_karma = 0, stable_days = 0 "
+                    "WHERE alias = %s",
+                    (update_alias,)
+                )
         conn.close()
         return update_alias
 
@@ -534,7 +535,7 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
         "--password",
         "ipsilon",
         update_alias,
-        "testing",
+        "stable",
     ]
     try:
         output = bodhi_container.execute(cmd)
@@ -543,4 +544,4 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
             print(log.read())
         assert False, str(e)
     output = "".join(line.decode("utf-8") for line in output)
-    assert "This update has been submitted for testing by guest." in output
+    assert "This update has been submitted for stable by guest." in output
