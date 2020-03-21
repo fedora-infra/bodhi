@@ -59,7 +59,7 @@ hr {
 }
 
 /* Search-y stuff */
-#bodhi-searchbar .typeahead__result {
+.typeahead__result {
     font-size: .9rem;
 }
 
@@ -96,73 +96,6 @@ form#search, form#search input, .twitter-typeahead {
     width: 100%;
 }
 
-.typeahead.form-control:focus{
-    box-shadow: none!important;
-}
-
-.tt-hint {
-  color: #999
-}
-
-.tt-menu {
-  width: 100%;
-  margin-top: 0px;
-  padding: 8px;
-
-  font-size: 90%;
-
-  /* Make it scrollable */
-  max-height: 550px;
-  overflow-y: auto;
-
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
-     -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
-          box-shadow: 0 5px 10px rgba(0,0,0,.2);
-}
-
-.tt-suggestion {
-  padding: 3px 10px;
-  font-size: 14px;
-  line-height: 18px;
-}
-
-.tt-suggestion.tt-cursor, .tt-suggestion:hover {
-  color: #fff;
-  background-color: #0097cf;
-  cursor: pointer;
-}
-
-.tt-suggestion.tt-cursor a, .tt-suggestion:hover a{
-  color:#fff;
-}
-
-.tt-suggestion.tt-cursor span.text-muted, .tt-suggestion:hover span.text-muted{
-  color: rgba(255,255,255,0.6);
-}
-
-.tt-suggestion a{
-  color:black;
-  display:block;
-}
-
-.tt-suggestion p {
-  margin: 0;
-}
-.searchbar{
-    background:#fff;
-    border:1px solid #666;
-}
-
-#searchbox{
-    height:50px;
-    background:rgba(0,0,0,0);
-    border:0;
-    color:#444;
-    line-height:50px;
-}
 ul.updateslist {
     list-style: none;
 }
