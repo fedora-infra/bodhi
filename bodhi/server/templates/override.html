@@ -47,7 +47,7 @@ ${parent.css()}
   %endif
 
   %if request.user:
-  <div id="new-override-form" class="col-md-12 hidden">
+  <form id="new-override-form" class="col-md-12 hidden">
     <div class="row">
       <div class="col-md-8 mx-auto">
 
@@ -55,21 +55,25 @@ ${parent.css()}
           <h5 class="font-weight-bold d-flex align-items-center">
               Candidate Build
           </h5>
-          <div class="form-group">
-            %if override is UNDEFINED:
-              %if nvr is UNDEFINED or nvr is None:
-              <input class="form-control" id="nvr" name="nvr" type="text"
-                  placeholder="Add a build, like package-0.2.1-5.fc32">
+          <div class="typeahead__container form-group">
+            <div class="typeahead__field">
+            <div class="typeahead__query">
+              %if override is UNDEFINED:
+                %if nvr is UNDEFINED or nvr is None:
+                <input class="js-typeahead form-control" id="nvr" name="nvr" type="text"
+                    placeholder="Add a build, like package-0.2.1-5.fc32" autocomplete="off">
+                %else:
+                <input class="js-typeahead form-control" id="nvr" name="nvr" type="text"
+                    placeholder="Add a build, like package-0.2.1-5.fc32"
+                    value="${nvr}" autocomplete="off">
+                %endif
               %else:
-              <input class="form-control" id="nvr" name="nvr" type="text"
-                  placeholder="Add a build, like package-0.2.1-5.fc32"
-                  value="${nvr}">
+                <code>${override.build.nvr}</code>
+                <input id="nvr" name="nvr" type="hidden" value="${override.build.nvr}">
+                <input id="edited" name="edited" type="hidden" value="${override.build.nvr}">
               %endif
-            %else:
-              <code>${override.build.nvr}</code>
-              <input id="nvr" name="nvr" type="hidden" value="${override.build.nvr}">
-              <input id="edited" name="edited" type="hidden" value="${override.build.nvr}">
-            %endif
+            </div>
+            </div>
           </div>
         </div>
 
@@ -164,7 +168,7 @@ ${parent.css()}
     </div>
     </div>
     <input type="hidden" name="csrf_token" value="${request.session.get_csrf_token()}"/>
-  </div>
+  </form>
   %elif not request.user and override is not UNDEFINED:
   <div class="row">
     <div class="col-md-8 mx-auto">
