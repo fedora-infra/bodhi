@@ -4,6 +4,25 @@ Release notes
 
 .. towncrier release notes start
 
+v5.2.1
+======
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Get the update object in the celery worker from the database.
+  (:issue:`3966`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+
+
 v5.2.0
 ======
 This is a feature and bugfix release.
