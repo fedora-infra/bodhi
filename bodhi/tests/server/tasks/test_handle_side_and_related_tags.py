@@ -29,6 +29,7 @@ class TestMain(BaseTaskTestCase):
 
     def test_side_tag_composed_by_bodhi(self):
         updates = self.db.query(models.Update).all()
+        updates = [u.__json__() for u in updates]
         handle_srtags_main(updates, "f17-build-side-1234")
         koji = buildsys.get_session()
 
@@ -39,7 +40,7 @@ class TestMain(BaseTaskTestCase):
         update = self.db.query(models.Update).first()
         update.release.composed_by_bodhi = False
         self.db.commit()
-        handle_srtags_main([update], "f32-build-side-1234")
+        handle_srtags_main([update.__json__()], "f32-build-side-1234")
         koji = buildsys.get_session()
 
         assert ('f32-build-side-1234-signing-pending', 'bodhi-2.0-1.fc17') in koji.__added__
