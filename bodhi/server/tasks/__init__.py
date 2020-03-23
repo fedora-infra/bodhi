@@ -27,9 +27,6 @@ from bodhi.server import bugs, buildsys, initialize_db
 from bodhi.server.config import config
 from bodhi.server.util import pyfile_to_module
 
-if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server.models import Update
-
 
 # Workaround https://github.com/celery/celery/issues/5416
 if celery.version_info < (4, 3) and sys.version_info >= (3, 7):  # pragma: no cover
@@ -126,7 +123,7 @@ def expire_overrides_task(**kwargs):
 
 
 @app.task(name="handle_side_and_related_tags")
-def handle_side_and_related_tags_task(updates: typing.List["Update"], from_tag: str):
+def handle_side_and_related_tags_task(updates: typing.List[dict], from_tag: str):
     """Handle side-tags and related tags for updates in Koji."""
     from .handle_side_and_related_tags import main
     log.info("Received an order for handling update tags")
@@ -135,7 +132,7 @@ def handle_side_and_related_tags_task(updates: typing.List["Update"], from_tag: 
 
 
 @app.task(name="tag_update_builds")
-def tag_update_builds_task(update: "Update", builds: typing.List[str]):
+def tag_update_builds_task(update: dict, builds: typing.List[str]):
     """Handle tagging builds for an update in Koji."""
     from .tag_update_builds import main
     log.info("Received an order to tag builds for an update")
