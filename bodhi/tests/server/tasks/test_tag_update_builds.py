@@ -31,7 +31,7 @@ class TestMain(BaseTaskTestCase):
     def test_tag_pending_signing_builds(self):
         update = self.db.query(models.Update).first()
         pending_signing_tag = update.release.pending_signing_tag
-        tag_update_builds_main(update, update.builds)
+        tag_update_builds_main(update.__json__(), update.builds)
         koji = buildsys.get_session()
         assert (pending_signing_tag, update.builds[0]) in koji.__added__
 
@@ -41,7 +41,7 @@ class TestMain(BaseTaskTestCase):
         side_tag_pending_signing = "f17-build-side-1234-signing-pending"
         self.db.commit()
 
-        tag_update_builds_main(update, update.builds)
+        tag_update_builds_main(update.__json__(), update.builds)
 
         koji = buildsys.get_session()
         assert (side_tag_pending_signing, update.builds[0]) in koji.__added__
@@ -52,6 +52,6 @@ class TestMain(BaseTaskTestCase):
         update = self.db.query(models.Update).first()
         update.release.pending_signing_tag = ""
         self.db.commit()
-        tag_update_builds_main(update, update.builds)
+        tag_update_builds_main(update.__json__(), update.builds)
 
         assert f'{update.release.name} has no pending_signing_tag' in caplog.messages
