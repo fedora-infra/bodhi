@@ -123,18 +123,18 @@ def expire_overrides_task(**kwargs):
 
 
 @app.task(name="handle_side_and_related_tags")
-def handle_side_and_related_tags_task(updates: typing.List[dict], from_tag: str):
+def handle_side_and_related_tags_task(aliases: typing.List[str], from_tag: str):
     """Handle side-tags and related tags for updates in Koji."""
     from .handle_side_and_related_tags import main
     log.info("Received an order for handling update tags")
     _do_init()
-    main(updates, from_tag)
+    main(aliases, from_tag)
 
 
 @app.task(name="tag_update_builds")
-def tag_update_builds_task(update: dict, builds: typing.List[str]):
+def tag_update_builds_task(alias: str, builds: typing.List[str]):
     """Handle tagging builds for an update in Koji."""
     from .tag_update_builds import main
     log.info("Received an order to tag builds for an update")
     _do_init()
-    main(update, builds)
+    main(alias, builds)
