@@ -577,7 +577,8 @@ def new_update(request):
                 result = dict(updates=updates)
 
             if from_tag:
-                handle_side_and_related_tags_task.delay(updates, from_tag)
+                aliases = [u.alias for u in updates]
+                handle_side_and_related_tags_task.delay(aliases, from_tag)
 
     except LockedUpdateException as e:
         log.warning(str(e))

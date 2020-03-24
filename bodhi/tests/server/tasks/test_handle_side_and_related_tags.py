@@ -15,7 +15,7 @@ class TestTask(BasePyTestCase):
     @patch("bodhi.server.tasks.config")
     @patch("bodhi.server.tasks.handle_side_and_related_tags.main")
     def test_task(self, main_function, config_mock, init_db_mock, buildsys):
-        handle_side_and_related_tags_task(updates=[], from_tag="")
+        handle_side_and_related_tags_task(aliases=[], from_tag="")
         config_mock.load_config.assert_called_with()
         init_db_mock.assert_called_with(config_mock)
         buildsys.setup_buildsystem.assert_called_with(config_mock)
@@ -29,7 +29,7 @@ class TestMain(BaseTaskTestCase):
 
     def test_side_tag_composed_by_bodhi(self):
         updates = self.db.query(models.Update).all()
-        updates = [u.__json__() for u in updates]
+        updates = [u.alias for u in updates]
         handle_srtags_main(updates, "f17-build-side-1234")
         koji = buildsys.get_session()
 
@@ -40,9 +40,14 @@ class TestMain(BaseTaskTestCase):
         update = self.db.query(models.Update).first()
         update.release.composed_by_bodhi = False
         self.db.commit()
-        handle_srtags_main([update.__json__()], "f32-build-side-1234")
+        handle_srtags_main([update.alias], "f32-build-side-1234")
         koji = buildsys.get_session()
 
         assert ('f32-build-side-1234-signing-pending', 'bodhi-2.0-1.fc17') in koji.__added__
         assert "f32-build-side-1234-signing-pending" in koji.__tags__[0][0]
         assert "f32-build-side-1234-testing-pending" in koji.__tags__[1][0]
+
+    def test_side_tag_raise_exception(self, caplog):
+        update = self.db.query(models.Update).first()
+        handle_srtags_main([update.alias], None)
+        assert "There was an error handling side-tags updates" in caplog.messages

@@ -20,6 +20,8 @@
 import logging
 import typing
 
+import koji  # noqa: 401
+
 from bodhi.server import buildsys, util
 from bodhi.server.models import Update
 
@@ -27,30 +29,47 @@ from bodhi.server.models import Update
 log = logging.getLogger(__name__)
 
 
-def main(update: dict, builds: typing.List[str]):
+def main(alias: str, builds: typing.List[str]):
     """Handle tagging builds for an update in Koji.
 
     Args:
-        update: an Update object
-        builds: a list of build NVRs
+        alias: an Update alias
+        builds: list of new build added to the update.
     """
     koji = buildsys.get_session()
     koji.multicall = True
     db_factory = util.transactional_session_maker()
-    with db_factory() as session:
-        update = session.query(Update).filter_by(alias=update["alias"]).first()
+    try:
+        with db_factory() as session:
+            update = session.query(Update).filter_by(alias=alias).first()
         if update is not None:
-            for build in builds:
-                if update.from_tag:
-                    # this is a sidetag based update. use the sidetag pending signing tag
-                    side_tag_pending_signing = update.release.get_pending_signing_side_tag(
-                        update.from_tag)
-                    koji.tagBuild(side_tag_pending_signing, build)
-                elif update.release.pending_signing_tag:
-                    # Add the release's pending_signing_tag to all new builds
-                    koji.tagBuild(update.release.pending_signing_tag, build)
-                else:
-                    # EL6 doesn't have these, and that's okay...
-                    # We still warn in case the config gets messed up.
-                    log.warning(f'{update.release.name} has no pending_signing_tag')
-            koji.multiCall()
+            tag_builds(update, builds, koji)
+    except Exception:
+        log.exception("There was an error handling tagging builds in koji")
+    finally:
+        db_factory._end_session()
+
+
+def tag_builds(update: Update, builds: typing.List[str],
+               koji: typing.Union[koji.ClientSession, buildsys.DevBuildsys]):
+    """Tag the update builds in koji.
+
+    Args:
+        update: an Update object
+        builds: list of new build added to the update.
+        koji: Koji client.
+    """
+    for build in builds:
+        if update.from_tag:
+            # this is a sidetag based update. use the sidetag pending signing tag
+            side_tag_pending_signing = update.release.get_pending_signing_side_tag(
+                update.from_tag)
+            koji.tagBuild(side_tag_pending_signing, build)
+        elif update.release.pending_signing_tag:
+            # Add the release's pending_signing_tag to all new builds
+            koji.tagBuild(update.release.pending_signing_tag, build)
+        else:
+            # EL6 doesn't have these, and that's okay...
+            # We still warn in case the config gets messed up.
+            log.warning(f'{update.release.name} has no pending_signing_tag')
+    koji.multiCall()
