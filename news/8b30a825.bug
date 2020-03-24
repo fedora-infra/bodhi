@@ -1,0 +1,1 @@
+Only pass scalar argument to celery (part 2). Avoid the celery enqueuer emitting SQL queries to resolve attributes, and therefore opening new transactions.
