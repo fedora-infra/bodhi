@@ -4,6 +4,26 @@ Release notes
 
 .. towncrier release notes start
 
+v5.2.2
+======
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Only pass scalar argument to celery (part 2). Avoid the celery enqueuer
+  emitting SQL queries to resolve attributes, and therefore opening new
+  transactions. (:issue:`8b30a825`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+
+
 v5.2.1
 ======
 This is a bugfix release.
