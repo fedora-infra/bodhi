@@ -349,6 +349,7 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
         "FROM updates "
         "JOIN users ON updates.user_id = users.id "
         "JOIN releases ON updates.release_id = releases.id "
+        "WHERE releases.state = 'current' "
         "ORDER BY date_submitted DESC LIMIT 1"
     )
     query_comments = (
