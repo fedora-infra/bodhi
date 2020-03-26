@@ -186,11 +186,11 @@ def test_composes_list(bodhi_container, db_container):
     # Look in the DB for what is expected
     expected = {}
     query = """SELECT
-    r.name, c.request, COUNT(u.id), c.state
+    r.name, c.request, SUM(CASE WHEN u.locked = TRUE THEN 1 ELSE 0 END), c.state
     FROM composes c
     JOIN releases r ON r.id = c.release_id
     JOIN updates u ON u.release_id = r.id AND u.request = c.request
-    WHERE (r.state = 'current' OR r.state = 'pending') AND u.locked = TRUE
+    WHERE (r.state = 'current' OR r.state = 'pending')
     GROUP BY r.name, c.request, c.state
     """
     db_ip = db_container.get_IPv4s()[0]
