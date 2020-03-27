@@ -295,9 +295,10 @@ def validate_builds(request, **kwargs):
     for nvr in builds:
         build = request.db.query(Build).filter_by(nvr=nvr).first()
         if build and build.update is not None:
-            request.errors.add('body', 'builds',
-                               "Update for {} already exists".format(nvr))
-            return
+            if build.update.status != UpdateStatus.unpushed:
+                request.errors.add('body', 'builds',
+                                   "Update for {} already exists".format(nvr))
+                return
 
 
 @postschema_validator
