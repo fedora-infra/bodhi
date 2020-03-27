@@ -172,6 +172,17 @@ class TestNewUpdate(BasePyTestCase):
         assert 'Update for bodhi-2.0-1.fc17 already exists' in res
 
     @mock.patch(**mock_valid_requirements)
+    def test_unpushed_update(self, *args):
+
+        unpushed_update = self.create_update(['whoopsie-1.0.0-1.fc17'])
+        unpushed_update.status = UpdateStatus.unpushed
+        self.db.commit()
+
+        res = self.app.post_json('/updates/', self.get_update('whoopsie-1.0.0-1.fc17'))
+
+        assert res.json['alias'] != unpushed_update.alias
+
+    @mock.patch(**mock_valid_requirements)
     def test_invalid_requirements(self, *args):
         update = self.get_update()
         update['requirements'] = 'rpmlint silly-dilly'
