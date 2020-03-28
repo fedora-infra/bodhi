@@ -182,8 +182,7 @@ class ComposerHandler(object):
         resume = data.get('resume', False)
         agent = data.get('agent')
         notifications.publish(
-            compose_schemas.ComposeStartV1.from_dict(dict(agent=agent)),
-            force=True)
+            compose_schemas.ComposeStartV1.from_dict(dict(agent=agent)))
 
         results = []
         threads = []
@@ -372,8 +371,7 @@ class ComposerThread(threading.Thread):
             dict(repo=self.id,
                  updates=[' '.join([b.nvr for b in u.builds]) for u in self.compose.updates],
                  agent=self.agent,
-                 ctype=self.ctype.value)),
-            force=True,
+                 ctype=self.ctype.value))
         )
 
         try:
@@ -492,8 +490,7 @@ class ComposerThread(threading.Thread):
                     request=self.compose.request,
                     release=self.compose.release,
                     agent=self.agent,
-                )),
-            force=True,
+                ))
         )
 
     def save_state(self, state=None):
@@ -530,8 +527,7 @@ class ComposerThread(threading.Thread):
         """
         log.info('Thread(%s) finished.  Success: %r' % (self.id, success))
         notifications.publish(compose_schemas.ComposeCompleteV1.from_dict(dict(
-            dict(success=success, repo=self.id, agent=self.agent, ctype=self.ctype.value))),
-            force=True,
+            dict(success=success, repo=self.id, agent=self.agent, ctype=self.ctype.value)))
         )
 
     def update_security_bugs(self):
@@ -698,7 +694,7 @@ class ComposerThread(threading.Thread):
                 UpdateRequest.testing: update_schemas.UpdateCompleteTestingV1
             }
             message = messages[update.request].from_dict(dict(update=update, agent=agent))
-            notifications.publish(message, force=True)
+            notifications.publish(message)
 
     @checkpoint
     def modify_bugs(self):
@@ -1240,8 +1236,8 @@ class PungiComposerThread(ComposerThread):
         # This message indicates to consumers that the repos are fully created and ready to be
         # signed or otherwise processed.
         notifications.publish(compose_schemas.RepoDoneV1.from_dict(
-            dict(repo=self.id, agent=self.agent, path=self.path)),
-            force=True)
+            dict(repo=self.id, agent=self.agent, path=self.path))
+        )
         if config.get('wait_for_repo_sig'):
             self.save_state(ComposeState.signing_repo)
             sigpaths = []
@@ -1278,8 +1274,8 @@ class PungiComposerThread(ComposerThread):
         """
         log.info('Waiting for updates to hit the master mirror')
         notifications.publish(compose_schemas.ComposeSyncWaitV1.from_dict(
-            dict(repo=self.id, agent=self.agent)),
-            force=True)
+            dict(repo=self.id, agent=self.agent))
+        )
         compose_path = os.path.join(self.path, 'compose', 'Everything')
         checkarch = None
         # Find the first non-source arch to check against
@@ -1313,8 +1309,8 @@ class PungiComposerThread(ComposerThread):
             if newsum == checksum:
                 log.info("master repomd.xml matches!")
                 notifications.publish(compose_schemas.ComposeSyncDoneV1.from_dict(
-                    dict(repo=self.id, agent=self.agent)),
-                    force=True)
+                    dict(repo=self.id, agent=self.agent))
+                )
                 return
 
             log.debug("master repomd.xml doesn't match! %s != %s for %r",

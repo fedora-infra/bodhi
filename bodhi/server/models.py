@@ -2299,17 +2299,21 @@ class Update(Base):
 
         log.debug("Adding new update to the db.")
         db.add(up)
-        log.debug("Triggering db commit for new update.")
-        db.commit()
-
-        if not data.get("from_tag"):
-            log.debug("Setting request for new update.")
-            up.set_request(db, req, request.user.name)
 
         if config.get('test_gating.required'):
             log.debug(
                 'Test gating required is enforced, marking the update as waiting on test gating')
             up.test_gating_status = TestGatingStatus.waiting
+
+        db.flush()
+
+        # set_request already commits to db
+        if not data.get("from_tag"):
+            log.debug("Setting request for new update.")
+            up.set_request(db, req, request.user.name)
+        else:
+            log.debug("Triggering db commit for new update from sidetag.")
+            db.commit()
 
         log.debug("Done with Update.new(...)")
         return up, caveats
@@ -2449,7 +2453,7 @@ class Update(Base):
         update_alias = up.alias
 
         notifications.publish(update_schemas.UpdateEditV1.from_dict(
-            message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
+            message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}), db)
 
         # Commit the changes in the db before calling a celery task.
         db.commit()
@@ -2770,14 +2774,14 @@ class Update(Base):
             self.unpush(db)
             self.comment(db, u'This update has been unpushed.', author=username)
             notifications.publish(update_schemas.UpdateRequestUnpushV1.from_dict(dict(
-                update=self, agent=username)))
+                update=self, agent=username)), db)
             log.debug("%s has been unpushed." % self.alias)
             return
         elif action is UpdateRequest.obsolete:
             self.obsolete(db)
             log.debug("%s has been obsoleted." % self.alias)
             notifications.publish(update_schemas.UpdateRequestObsoleteV1.from_dict(dict(
-                update=self, agent=username)))
+                update=self, agent=username)), db)
             return
 
         # If status is pending going to testing request and action is revoke,
@@ -2788,7 +2792,7 @@ class Update(Base):
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
             notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
-                update=self, agent=username)))
+                update=self, agent=username)), db)
             return
 
         # If status is testing going to stable request and action is revoke,
@@ -2798,14 +2802,14 @@ class Update(Base):
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
             notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
-                update=self, agent=username)))
+                update=self, agent=username)), db)
             return
 
         elif action is UpdateRequest.revoke:
             self.revoke()
             log.debug("%s has been revoked." % self.alias)
             notifications.publish(update_schemas.UpdateRequestRevokeV1.from_dict(dict(
-                update=self, agent=username)))
+                update=self, agent=username)), db)
             return
 
         # Disable pushing critical path updates for pending releases directly to stable
@@ -2902,16 +2906,20 @@ class Update(Base):
             UpdateRequest.unpush: update_schemas.UpdateRequestUnpushV1,
             UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1}
         notifications.publish(action_message_map[action].from_dict(
-            dict(update=self, agent=username)))
+            dict(update=self, agent=username)), db)
+        log.debug('Notification added, trying to commit db')
 
         # Commit the changes in the db before calling a celery task.
         db.commit()
+        log.debug('db committed')
 
         if action == UpdateRequest.testing:
+            log.debug('submitting handle_update task to celery')
             handle_update.delay(
                 api_version=2, action="testing",
                 update_alias=alias,
                 agent=username)
+            log.debug('task submitted')
 
     def waive_test_results(self, username, comment=None, tests=None):
         """
@@ -3315,7 +3323,7 @@ class Update(Base):
         # Publish to Fedora Messaging
         if author not in config.get('system_users'):
             notifications.publish(update_schemas.UpdateCommentV1.from_dict(
-                {'comment': comment.__json__(), 'agent': author}))
+                {'comment': comment.__json__(), 'agent': author}), session)
 
         # Send a notification to everyone that has commented on this update
         people = set()
@@ -3577,7 +3585,7 @@ class Update(Base):
                 self.set_request(db, UpdateRequest.stable, agent)
                 self.date_pushed = None
                 notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
-                    dict(update=self, status='stable')))
+                    dict(update=self, status='stable')), db)
             else:
                 # Add the stable approval message now
                 log.info((
@@ -3590,7 +3598,7 @@ class Update(Base):
                 log.info("Automatically unpushing %s", self.alias)
                 self.obsolete(db)
                 notifications.publish(update_schemas.UpdateKarmaThresholdV1.from_dict(
-                    dict(update=self, status='unstable')))
+                    dict(update=self, status='unstable')), db)
 
     @property
     def builds_json(self):

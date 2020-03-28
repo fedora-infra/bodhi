@@ -85,7 +85,7 @@ def approve_update(update: Update, db: Session):
         email_notification=update.release.composed_by_bodhi
     )
     notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
-        dict(update=update)))
+        dict(update=update)), db)
     if update.autotime and update.days_in_testing >= update.stable_days:
         log.info(f"Automatically marking {update.alias} as stable")
         # For now only rawhide update can be created using side tag

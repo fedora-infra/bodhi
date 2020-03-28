@@ -41,16 +41,21 @@ def send_messages_after_commit(session):
         session (sqlalchemy.orm.session.Session): The session that was committed.
     """
     if 'messages' in session.info:
+        if session.info['messages'] == []:
+            _log.debug('No messages queued to be sent in session')
+            return
         for m in session.info['messages']:
             try:
+                _log.debug('trying to publish message')
                 _publish_with_retry(m)
+                _log.debug('message published')
             except fml_exceptions.BaseException:
                 # In the future we should handle errors more gracefully
                 _log.exception("An error occurred publishing %r after a database commit", m)
         session.info['messages'] = []
 
 
-def publish(message: 'base.BodhiMessage', force: bool = False):
+def publish(message: 'base.BodhiMessage', session: 'sqlalchemy.orm.session.Session' = None):
     """
     Send a message via Fedora Messaging.
 
@@ -58,15 +63,14 @@ def publish(message: 'base.BodhiMessage', force: bool = False):
 
     Args:
         message: The Message you wish to publish.
-        force: If False (the default), the message is only sent after the
-            currently active database transaction successfully commits. If true,
-            the messages is sent immediately.
+        session: An active database session or None. If None (default) the message
+            is sent immediately, otherwise it will be sent when the
+            currently active database transaction successfully commits.
     """
-    if force:
+    if not session:
         _publish_with_retry(message)
         return
 
-    session = Session()
     if 'messages' not in session.info:
         session.info['messages'] = []
     session.info['messages'].append(message)
