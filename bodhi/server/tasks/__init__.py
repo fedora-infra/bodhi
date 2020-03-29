@@ -132,9 +132,9 @@ def handle_side_and_related_tags_task(aliases: typing.List[str], from_tag: str):
 
 
 @app.task(name="tag_update_builds")
-def tag_update_builds_task(alias: str, builds: typing.List[str]):
+def tag_update_builds_task(tag: str, builds: typing.List[str]):
     """Handle tagging builds for an update in Koji."""
     from .tag_update_builds import main
     log.info("Received an order to tag builds for an update")
     _do_init()
-    main(alias, builds)
+    main(tag, builds)
