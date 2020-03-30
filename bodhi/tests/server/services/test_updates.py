@@ -344,20 +344,24 @@ class TestNewUpdate(BasePyTestCase):
 
         resp = self.app.get(f"/updates/{up['alias']}", headers={'Accept': 'text/html'})
 
+        handle_side_and_related_tags_task.delay.assert_called_once()
+        called_args = handle_side_and_related_tags_task.delay.call_args[1]
+        # don't check the first argument, it's the update object
+        assert called_args['builds'] == ['gnome-backgrounds-3.0-1.fc17']
+        assert called_args['from_tag'] == 'f17-build-side-7777'
+
         if rawhide_workflow:
             # check that the sidetag gets displayed on the update page
             assert 'title="Builds from the Side Tag: f17-build-side-7777' in resp
+            assert called_args['pending_signing_tag'] == 'f17-build-side-7777-signing-pending'
+            assert called_args['pending_testing_tag'] == 'f17-build-side-7777-testing-pending'
         else:
             # stable release workflow
 
             # check that the sidetag doesn't get displayed on the update page,
             # by the time the update is created, it shouldn't exist anymore
             assert 'title="Builds from the Side Tag:' not in resp
-
-        handle_side_and_related_tags_task.delay.assert_called_once()
-        called_args = handle_side_and_related_tags_task.delay.call_args[0]
-        # don't check the first argument, it's the update object
-        assert called_args[1] == 'f17-build-side-7777'
+            assert called_args['pending_signing_tag'] == 'f17-updates-signing-pending'
 
         # now try to create another update with the same side tag
         update = self.get_update(builds=None, from_tag='f17-build-side-7777')
