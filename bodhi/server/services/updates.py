@@ -577,8 +577,26 @@ def new_update(request):
                 result = dict(updates=updates)
 
             if from_tag:
-                aliases = [u.alias for u in updates]
-                handle_side_and_related_tags_task.delay(aliases, from_tag)
+                for u in updates:
+                    builds = [b.nvr for b in u.builds]
+                    if not u.release.composed_by_bodhi:
+                        # Before the Bodhi activation point of a release, keep builds tagged
+                        # with the side-tag and its associate tags.
+                        side_tag_signing_pending = u.release.get_pending_signing_side_tag(from_tag)
+                        side_tag_testing_pending = u.release.get_testing_side_tag(from_tag)
+                        handle_side_and_related_tags_task.delay(
+                            builds=builds,
+                            pending_signing_tag=side_tag_signing_pending,
+                            from_tag=from_tag,
+                            pending_testing_tag=side_tag_testing_pending)
+                    else:
+                        # After the Bodhi activation point of a release, add the pending-signing tag
+                        # of the release to funnel the builds back into a normal workflow for a
+                        # stable release.
+                        handle_side_and_related_tags_task.delay(
+                            builds=builds,
+                            pending_signing_tag=u.release.pending_signing_tag,
+                            from_tag=from_tag)
 
     except LockedUpdateException as e:
         log.warning(str(e))
