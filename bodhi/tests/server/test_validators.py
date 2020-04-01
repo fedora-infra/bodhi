@@ -619,6 +619,37 @@ class TestValidateTestcaseFeedback(BasePyTestCase):
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
 
+class TestValidateBuilds(BasePyTestCase):
+    """Test the validate_builds()"function"""
+    def setup_method(self, method):
+        """Sets up the environment for each test method call."""
+        super().setup_method(method)
+        
+        self.request = mock.Mock()
+        self.request.db = self.db
+        self.request.errors = Errors()
+        self.request.validated = {}
+        
+    def test_valid_builds(self):
+        """A request with valid builds should pass without errors"""
+        self.request.validated['builds'] = ['foo-1-1.fc30']
+        
+        validators.validate_builds(self.request)
+        
+        assert len(self.request.errors) == 0
+        
+    def test_invalid_builds(self):
+        """A request with wrongly typed builds should give an error."""
+         self.request.validated['builds'] = 'foo-1-1.fc30'
+         
+         validators.validate_builds(self.request)
+         
+         assert self.request.errors == [
+             {'location': 'body', 'name': 'builds',
+              'description': 'The builds parameter must be a list.'}
+         ]
+         
+
 class TestValidateBuildsOrFromTagExist(BasePyTestCase):
     """Test the validate_builds_or_from_tag_exist() function."""
 
