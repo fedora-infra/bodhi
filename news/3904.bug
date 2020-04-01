@@ -1,1 +1,0 @@
-Make sure we send the fedora-messaging messages before trigerring a celery task.

@@ -41,37 +41,51 @@ $(document).ready(function() {
     };
 
     // These next couple blocks of code wire up the auto-complete search for
-    // builds in the override form.  Two technologies are at play here.  The
-    // first is 'bloodhound' which is a suggestion engine.  Its suggestions are
-    // then fed to 'typeahead.js' which is responsible for presenting and
-    // acting on the suggestions.
-    var url = 'latest_candidates?testing=true&package=';
+    // builds in the override form.
 
-    var candidates = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        remote: {
-            url: url + '%QUERY',
-            rateLimitWait: 600,
+    $.typeahead({
+        input: '#nvr',
+        minLength: 2,
+        delay: 600,
+        maxItem: 20,
+        dynamic: true,
+        emptyTemplate: 'No result for "{{query}}"',
+        source: {
+            builds: {
+                display: 'nvr',
+                ajax: {
+                    url: 'latest_candidates',
+                    timeout: 10000,
+                    data: {
+                        testing: true,
+                        package: '{{query}}',
+                    },
+                    path: '',
+                },
+                template: '<h6 class="font-weight-bold mb-0">{{nvr}}</h6>' +
+                    '   <span class="badge badge-light border"><i class="fa fa-tag"></i>{{release_name}}</span> ' +
+                    '   <span class="badge badge-light border"><i class="fa fa-user"></i> {{owner_name}}</span> ',
+                templateValue: '{{nvr}}',
+            }
+        },
+        callback: {
+            onSubmit: function (node, form, item, event) {
+                    event.preventDefault();
+                },
+            onCancel: function (node, event) {
+                $("#new-override-form .typeahead__list").remove();
+            }
         }
     });
-    candidates.initialize();
 
-    $('#candidates-search .typeahead').typeahead({
-        hint: true,
-        highlight: true,
-        minLength: 1,
-    },
-    {
-        name: 'candidates',
-        displayKey: 'nvr',
-        source: candidates.ttAdapter(),
+    $("#nvr").focus(function() {
+        if ($(this).val() != '') {
+            $("#new-override-form .typeahead__list").attr("style", "display: inline !important");
+        }
     });
 
-    // This wires up the action that happens when the user selects something
-    // from the "add a candidate" typeahead search box.
-    $('#candidates-search input.typeahead').on('typeahead:selected', function (e, datum) {
-        $("#nvr").val(datum.nvr);
+    $("#nvr").blur(function() {
+        $("#new-override-form .typeahead__list").attr("style", "display: none !important");
     });
 
     // Wire up the submit button

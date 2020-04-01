@@ -58,118 +58,44 @@ hr {
     display: inline;
 }
 
-/* Make the navbar collapse take effect at larger sizes than it normally would
- * so we don't crowd out the search widget...
- */
-@media (max-width: 991px) {
-    .navbar-header {
-        float: none;
-    }
-    .navbar-toggle {
-        display: block;
-    }
-    .navbar-collapse {
-        border-top: 1px solid transparent;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
-    }
-    .navbar-collapse.collapse {
-        display: none!important;
-    }
-    .navbar-nav {
-        float: none!important;
-        margin: 7.5px -15px;
-    }
-    .navbar-nav>li {
-        float: none;
-    }
-    .navbar-nav>li>a {
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }
-    .navbar-text {
-        float: none;
-        margin: 15px 0;
-    }
-    .navbar-collapse.collapse.in {
-        display: block!important;
-    }
-    .collapsing {
-        overflow: hidden!important;
-    }
+/* Search-y stuff */
+.typeahead__result {
+    font-size: .9rem;
 }
 
-/* Search-y stuff */
+#bodhi-searchbar .typeahead__list {
+    width: 70vw;
+    right: 0;
+    left: unset;
+}
+
+#bodhi-searchbar .typeahead__group {
+    border: none;
+}
+
+#bodhi-searchbar .typeahead__group > a {
+    background: none;
+    padding: 0 .5rem;
+}
+
+#bodhi-searchbar .typeahead__group > a > h3 {
+    margin-top: .75rem;
+    margin-bottom: 0;
+    text-transform: capitalize;
+}
+
+#bodhi-searchbar .typeahead__item {
+    border: none;
+}
+
+#bodhi-searchbar .typeahead__item > a {
+    padding: .5rem .75rem 0 1.5rem
+}
+
 form#search, form#search input, .twitter-typeahead {
     width: 100%;
 }
 
-.typeahead.form-control:focus{
-    box-shadow: none!important;
-}
-
-.tt-hint {
-  color: #999
-}
-
-.tt-menu {
-  width: 100%;
-  margin-top: 0px;
-  padding: 8px;
-
-  font-size: 90%;
-
-  /* Make it scrollable */
-  max-height: 550px;
-  overflow-y: auto;
-
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
-     -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
-          box-shadow: 0 5px 10px rgba(0,0,0,.2);
-}
-
-.tt-suggestion {
-  padding: 3px 10px;
-  font-size: 14px;
-  line-height: 18px;
-}
-
-.tt-suggestion.tt-cursor, .tt-suggestion:hover {
-  color: #fff;
-  background-color: #0097cf;
-  cursor: pointer;
-}
-
-.tt-suggestion.tt-cursor a, .tt-suggestion:hover a{
-  color:#fff;
-}
-
-.tt-suggestion.tt-cursor span.text-muted, .tt-suggestion:hover span.text-muted{
-  color: rgba(255,255,255,0.6);
-}
-
-.tt-suggestion a{
-  color:black;
-  display:block;
-}
-
-.tt-suggestion p {
-  margin: 0;
-}
-.searchbar{
-    background:#fff;
-    border:1px solid #666;
-}
-
-#searchbox{
-    height:50px;
-    background:rgba(0,0,0,0);
-    border:0;
-    color:#444;
-    line-height:50px;
-}
 ul.updateslist {
     list-style: none;
 }

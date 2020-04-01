@@ -1,1 +1,0 @@
-Try to avoid timeout error when requesting latest_candidates with `hide_existing=true`
