@@ -35,6 +35,7 @@ User Guide
    user/update_states
    user/buildroot_overrides
    user/automatic_updates
+   user/fedora-flavored-markdown
    user/man_pages/index
 
 .. toctree::
