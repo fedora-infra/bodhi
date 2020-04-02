@@ -21,31 +21,24 @@ import logging
 import typing
 
 from bodhi.server import buildsys
-from bodhi.server.models import Update
 
 
 log = logging.getLogger(__name__)
 
 
-def main(update: Update, builds: typing.List[str]):
+def main(tag: str, builds: typing.List[str]):
     """Handle tagging builds for an update in Koji.
 
     Args:
-        update: an Update object
-        builds: a list of build NVRs
+        tag: a koji tag to apply on the builds.
+        builds: list of new build added to the update.
     """
-    koji = buildsys.get_session()
-    koji.multicall = True
-    for build in builds:
-        if update.from_tag:
-            # this is a sidetag based update. use the sidetag pending signing tag
-            side_tag_pending_signing = update.release.get_pending_signing_side_tag(update.from_tag)
-            koji.tagBuild(side_tag_pending_signing, build)
-        elif update.release.pending_signing_tag:
-            # Add the release's pending_signing_tag to all new builds
-            koji.tagBuild(update.release.pending_signing_tag, build)
-        else:
-            # EL6 doesn't have these, and that's okay...
-            # We still warn in case the config gets messed up.
-            log.warning(f'{update.release.name} has no pending_signing_tag')
-    koji.multiCall()
+    try:
+        kc = buildsys.get_session()
+        kc.multicall = True
+        for build in builds:
+            kc.tagBuild(tag, build)
+            log.info(f"Tagging build {build} in {tag}")
+        kc.multiCall()
+    except Exception:
+        log.exception(f"There was an error handling tagging builds in koji.")
