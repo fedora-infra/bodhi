@@ -48,14 +48,4 @@ $(document).ready(function() {
         td.parent().addClass(td.attr('data-class'));
     });
 
-    $('.searchbar .typeahead').blur(function(){
-        $('.searchbar').slideUp();
-    });
-
-    $('#search-toggle').click(function(){
-      if ($('.searchbar').is(":hidden")){
-        $('.searchbar').slideDown();
-        $('.searchbar .typeahead').focus();
-      }
-    });
 });

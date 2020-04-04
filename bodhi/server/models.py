@@ -2415,6 +2415,10 @@ class Update(Base):
         # Updates with new or removed builds always go back to testing
         if new_builds or removed_builds:
             data['request'] = UpdateRequest.testing
+            # And, updates with new or removed builds always get their karma reset.
+            # https://github.com/fedora-infra/bodhi/issues/511
+            data['karma_critipath'] = 0
+            up.date_testing = None
 
             # Remove all koji tags and change the status back to pending
             if up.status is not UpdateStatus.pending:
@@ -2426,12 +2430,14 @@ class Update(Base):
                 })
 
             # Add the pending_signing_tag to all new builds
-            tag_update_builds_task.delay(update=up, builds=new_builds)
+            tag = None
+            if up.from_tag:
+                tag = up.release.get_pending_signing_side_tag(up.from_tag)
+            elif up.release.pending_signing_tag:
+                tag = up.release.pending_signing_tag
 
-        # And, updates with new or removed builds always get their karma reset.
-        # https://github.com/fedora-infra/bodhi/issues/511
-        if new_builds or removed_builds:
-            data['karma_critpath'] = 0
+            if tag is not None:
+                tag_update_builds_task.delay(tag=tag, builds=new_builds)
 
         new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])

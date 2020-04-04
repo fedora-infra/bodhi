@@ -1443,7 +1443,6 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
             'An Exception was raised while rolling back a transaction.')
         assert Session.return_value.commit.call_count == 0
         Session.return_value.rollback.assert_called_once_with()
-        Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
 
     @mock.patch('bodhi.server.util.log.exception')
@@ -1466,7 +1465,6 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
         assert log_exception.call_count == 0
         assert Session.return_value.commit.call_count == 0
         Session.return_value.rollback.assert_called_once_with()
-        Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
 
     @mock.patch('bodhi.server.util.log.exception')
@@ -1486,7 +1484,6 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
         assert log_exception.call_count == 0
         assert Session.return_value.rollback.call_count == 0
         Session.return_value.commit.assert_called_once_with()
-        Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
 
 

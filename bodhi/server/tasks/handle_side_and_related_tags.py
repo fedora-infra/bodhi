@@ -21,45 +21,48 @@ import logging
 import typing
 
 from bodhi.server import buildsys
-from bodhi.server.models import Update
 
 
 log = logging.getLogger(__name__)
 
 
-def main(updates: typing.List[Update], from_tag: str):
+def main(builds: typing.List[str],
+         pending_signing_tag: str,
+         from_tag: str,
+         pending_testing_tag: typing.Optional[str]):
     """Handle side-tags and related tags for updates in Koji.
 
     Args:
-        updates: one or more Update objects
-        from_tag: the tag into which the builds were built
+        builds: a list of builds to be tagged.
+        pending_signing_tag: the pending signing tag to apply on the builds.
+        from_tag: the tag into which the builds were built.
+        pending_testing_tag: the pending_testing_tag to create if not None.
     """
-    koji = buildsys.get_session()
-    for update in updates:
-        release = update.release
-        if not release.composed_by_bodhi:
-            # Before the Bodhi activation point of a release, keep builds tagged
-            # with the side-tag and its associate tags. Validate that
-            # <koji_tag>-pending-signing and <koji-tag>-testing exists, if not create
-            # them.
-            side_tag_signing_pending = update.release.get_pending_signing_side_tag(
-                from_tag
-            )
-            side_tag_testing_pending = update.release.get_testing_side_tag(from_tag)
-            if not koji.getTag(side_tag_signing_pending):
-                koji.createTag(side_tag_signing_pending, parent=from_tag)
-            if not koji.getTag(side_tag_testing_pending):
-                koji.createTag(side_tag_testing_pending, parent=from_tag)
-                koji.editTag2(side_tag_testing_pending, perm="autosign")
+    try:
+        koji = buildsys.get_session()
+        koji.multicall = True
 
-            to_tag = side_tag_signing_pending
-            # Move every new build to <from_tag>-signing-pending tag
-            update.add_tag(to_tag)
+        if pending_testing_tag is not None:
+            # Validate that <koji_tag>-pending-signing and <koji-tag>-testing-signing exists
+            # if not create them.
+            if not koji.getTag(pending_signing_tag):
+                log.info(f"Create {pending_signing_tag} in koji")
+                koji.createTag(pending_signing_tag, parent=from_tag)
+            if not koji.getTag(pending_testing_tag):
+                log.info(f"Create {pending_testing_tag} in koji")
+                koji.createTag(pending_testing_tag, parent=from_tag)
+                koji.editTag2(pending_testing_tag, perm="autosign")
         else:
-            # After the Bodhi activation point of a release, add the pending-signing tag
-            # of the release to funnel the builds back into a normal workflow for a
-            # stable release.
-            update.add_tag(release.pending_signing_tag)
-
-            # From here on out, we don't need the side-tag anymore.
+            # If we don't provide a pending_testing_tag, then we have merged the
+            # side tag into the release pending_signing tag.
+            # We can remove the side tag.
             koji.removeSideTag(from_tag)
+
+        for b in builds:
+            log.info(f"Tagging build {b} in {pending_signing_tag}")
+            koji.tagBuild(pending_signing_tag, b)
+
+        koji.multiCall()
+
+    except Exception:
+        log.exception("There was an error handling side-tags updates")
