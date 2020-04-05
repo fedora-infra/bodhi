@@ -293,9 +293,6 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             self.db.add(user)
         self.db.flush()
 
-        with mock.patch('bodhi.server.models.handle_update'):
-            self.handler(self.sample_message)
-
         assert(f"Creating bodhi user for '{expected_username}'."
                not in caplog.messages)
 
