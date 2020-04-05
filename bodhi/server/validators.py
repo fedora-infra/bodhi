@@ -272,9 +272,9 @@ def validate_builds(request, **kwargs):
         up = request.db.query(Update).filter_by(alias=edited).first()
         if not up:
             request.errors.add('body', 'builds',
-                               'Cannot find update to edit: %s' % edited)
+                               'Cannot find update to edit: %s' % request.route_url(edited))
             return
-
+        
         # Allow admins to edit stable updates
         user_groups = set([group.name for group in user.groups])
         admin_groups = set(config['admin_packager_groups'])
@@ -910,6 +910,7 @@ def validate_update_id(request, **kwargs):
         if package:
             query = dict(packages=package.name)
             location = request.route_url('updates', _query=query)
+            print(location)
             raise HTTPFound(location=location)
 
         request.errors.add('url', 'id', 'Invalid update id')

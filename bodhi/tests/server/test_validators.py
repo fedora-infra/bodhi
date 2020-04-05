@@ -629,27 +629,32 @@ class TestValidateBuilds(BasePyTestCase):
         self.request.db = self.db
         self.request.errors = Errors()
         self.request.validated = {}
+        self.user = self.db.query(models.User).all()[0]
+        self.update = models.Update.query.first()
+                
+    def test_build_parameters_valid(self):
+        """A request for builds should have valid parameters"""
         
-    def test_valid_builds(self):
-        """A request with valid builds should pass without errors"""
-        self.request.validated['builds'] = ['foo-1-1.fc30']
+        self.request.validated['builds'] = 'foo-1-1.fc30'
+        self.request.validated['edited'] = self.update.alias
+        self.request.user = self.user
         
-        validators.validate_builds(self.request)
+        validators.validate_builds(self.request)  
         
         assert len(self.request.errors) == 0
-        
-    def test_invalid_builds(self):
-        """A request with wrongly typed builds should give an error."""
-         self.request.validated['builds'] = 'foo-1-1.fc30'
-         
-         validators.validate_builds(self.request)
-         
-         assert self.request.errors == [
-             {'location': 'body', 'name': 'builds',
-              'description': 'The builds parameter must be a list.'}
-         ]
-         
 
+        
+    def test_build_gets_edited_key(self):
+        "A request with edited parameter passes without errors"
+        self.request.validated['builds'] = 'foo-1-1.fc30'
+        self.request.validated['edited'] = self.update.alias
+        
+        self.request.user = self.user
+        
+        validators.validate_builds(self.request) 
+        assert len(self.request.errors) == 0
+
+        
 class TestValidateBuildsOrFromTagExist(BasePyTestCase):
     """Test the validate_builds_or_from_tag_exist() function."""
 
