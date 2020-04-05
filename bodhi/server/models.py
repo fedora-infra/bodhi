@@ -30,7 +30,7 @@ import uuid
 from urllib.error import URLError
 
 from simplemediawiki import MediaWiki
-from sqlalchemy import (and_, Boolean, Column, DateTime, event, ForeignKey,
+from sqlalchemy import (and_, Boolean, Column, DateTime, event, func, ForeignKey,
                         Integer, or_, Table, Unicode, UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
@@ -45,8 +45,8 @@ from bodhi.messages.schemas import (buildroot_override as override_schemas,
                                     errata as errata_schemas, update as update_schemas)
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
-from bodhi.server.exceptions import BodhiException, LockedUpdateException
-from bodhi.server.tasks import handle_update, tag_update_builds_task
+from bodhi.server.exceptions import BodhiException, ExternalCallException, LockedUpdateException
+from bodhi.server.tasks import fetch_test_cases_task, tag_update_builds_task, work_on_bugs_task
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
@@ -1130,7 +1130,7 @@ class Package(Base):
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
         Raises:
-            BodhiException: When retrieving testcases from Wiki failed.
+            ExternalCallException: When retrieving testcases from Wiki failed.
         """
         if not config.get('query_wiki_test_cases'):
             return
@@ -1148,7 +1148,7 @@ class Package(Base):
             try:
                 response = wiki.call(query)
             except URLError:
-                raise BodhiException('Failed retrieving testcases from Wiki')
+                raise ExternalCallException('Failed retrieving testcases from Wiki')
             members = [entry['title'] for entry in
                        response.get('query', {}).get('categorymembers', {})
                        if 'title' in entry]
@@ -2451,22 +2451,36 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
-        # Store the update alias so Celery doesn't have to emit SQL
-        update_alias = up.alias
-
         notifications.publish(update_schemas.UpdateEditV1.from_dict(
             message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
 
-        # Commit the changes in the db before calling a celery task.
+        # If editing a Pending update, all of whose builds are signed, for a release
+        # which isn't composed by Bodhi (i.e. Rawhide), move it directly to Testing.
+        if not up.release.composed_by_bodhi and up.status == UpdateStatus.pending \
+                and up.signed:
+            log.info("Every build in the update is signed, set status to testing")
+            up.status = UpdateStatus.testing
+            up.date_testing = func.current_timestamp()
+            up.request = None
+            log.info(f"Update status of {up.alias} has been set to testing")
+
+        if config['test_gating.required']:
+            log.info(f"Updating test gating status of {up.alias}")
+            up.update_test_gating_status()
+
+        # Commit the changes in the db before calling celery tasks.
         db.commit()
 
-        handle_update.delay(
-            api_version=2, action='edit',
-            update_alias=update_alias,
-            agent=request.user.name,
-            new_bugs=new_bugs
-        )
+        log.info("Deferring working on bugs and fetching test cases to celery")
+        alias = up.alias
+        if not bool(config.get('bodhi_email')):
+            log.warning("Not configured to handle bugs")
+        else:
+            work_on_bugs_task.delay(alias, new_bugs)
 
+        fetch_test_cases_task.delay(alias)
+
+        log.info(f"Done editing {up.alias}")
         return up, caveats
 
     @property
@@ -2916,10 +2930,19 @@ class Update(Base):
         db.commit()
 
         if action == UpdateRequest.testing:
-            handle_update.delay(
-                api_version=2, action="testing",
-                update_alias=alias,
-                agent=username)
+            if config['test_gating.required']:
+                log.info(f"Updating test gating status of {self.alias}")
+                self.update_test_gating_status()
+                db.commit()
+
+            log.info("Deferring working on bugs and fetching test cases to celery")
+            if not bool(config.get('bodhi_email')):
+                log.warning("Not configured to handle bugs")
+            else:
+                bugs = [bug.bug_id for bug in self.bugs]
+                work_on_bugs_task.delay(alias, bugs)
+
+            fetch_test_cases_task.delay(alias)
 
     def waive_test_results(self, username, comment=None, tests=None):
         """
