@@ -3363,7 +3363,7 @@ class Update(Base):
             raise BodhiException("Can't unpush a %s update"
                                  % self.status.description)
 
-        self.untag(db)
+        self.untag(db, preserve_override=True)
 
         for build in self.builds:
             koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
@@ -3402,12 +3402,13 @@ class Update(Base):
 
         self.request = None
 
-    def untag(self, db):
+    def untag(self, db, preserve_override: bool = False):
         """
         Untag all of the :class:`Builds <Build>` in this update.
 
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
+            preserve_override: whether to preserve the override tag or not
         """
         log.info("Untagging %s", self.alias)
         koji = buildsys.get_session()
@@ -3416,7 +3417,10 @@ class Update(Base):
             for tag in build.get_tags():
                 # Only remove tags that we know about
                 if tag in tag_rels:
-                    koji.untagBuild(tag, build.nvr, force=True)
+                    if preserve_override and tag == self.release.override_tag:
+                        log.info("Skipping override tag")
+                    else:
+                        koji.untagBuild(tag, build.nvr, force=True)
                 else:
                     log.info("Skipping tag that we don't know about: %s" % tag)
         self.pushed = False
