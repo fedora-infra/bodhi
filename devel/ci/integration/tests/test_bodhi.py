@@ -427,6 +427,9 @@ def test_get_user_view(bodhi_container, db_container):
             username = curs.fetchone()[0]
     conn.close()
 
+    if username.startswith('packagerbot/'):
+        pytest.skip("Skipping test due to bad username")
+
     # GET on user with latest update
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
@@ -561,6 +564,9 @@ def test_get_user_json(bodhi_container, db_container):
             for row in rows:
                 user_groups.append({"name": row[0]})
     conn.close()
+
+    if user_name.startswith('packagerbot/'):
+        pytest.skip("Skipping test due to bad username")
 
     # GET on user
     with bodhi_container.http_client(port="8080") as c:
