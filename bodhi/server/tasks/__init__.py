@@ -127,12 +127,13 @@ def handle_side_and_related_tags_task(
         builds: typing.List[str],
         pending_signing_tag: str,
         from_tag: str,
-        pending_testing_tag: typing.Optional[str] = None):
+        pending_testing_tag: typing.Optional[str] = None,
+        candidate_tag: typing.Optional[str] = None):
     """Handle side-tags and related tags for updates in Koji."""
     from .handle_side_and_related_tags import main
     log.info("Received an order for handling update tags")
     _do_init()
-    main(builds, pending_signing_tag, from_tag, pending_testing_tag)
+    main(builds, pending_signing_tag, from_tag, pending_testing_tag, candidate_tag)
 
 
 @app.task(name="tag_update_builds")
