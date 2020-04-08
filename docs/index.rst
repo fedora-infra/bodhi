@@ -34,6 +34,7 @@ User Guide
    user/testing
    user/update_states
    user/buildroot_overrides
+   user/automatic_updates
    user/man_pages/index
 
 .. toctree::

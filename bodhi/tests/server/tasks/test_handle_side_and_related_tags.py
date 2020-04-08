@@ -19,7 +19,7 @@ class TestTask(BasePyTestCase):
         config_mock.load_config.assert_called_with()
         init_db_mock.assert_called_with(config_mock)
         buildsys.setup_buildsystem.assert_called_with(config_mock)
-        main_function.assert_called_with([], "", "", None)
+        main_function.assert_called_with([], "", "", None, None)
 
 
 class TestMain(BaseTaskTestCase):
@@ -31,10 +31,12 @@ class TestMain(BaseTaskTestCase):
         u = self.db.query(models.Update).first()
         from_tag = "f17-build-side-1234"
         builds = [b.nvr for b in u.builds]
-        handle_srtags_main(builds, u.release.pending_signing_tag, from_tag, None)
+        handle_srtags_main(builds, u.release.pending_signing_tag, from_tag,
+                           None, u.release.candidate_tag)
 
         koji = buildsys.get_session()
         assert ('f17-updates-signing-pending', 'bodhi-2.0-1.fc17') in koji.__added__
+        assert ('f17-updates-candidate', 'bodhi-2.0-1.fc17') in koji.__added__
         assert {'id': 1234, 'name': 'f17-build-side-1234'} in koji.__removed_side_tags__
 
     def test_side_tag_not_composed_by_bodhi(self):
@@ -43,7 +45,8 @@ class TestMain(BaseTaskTestCase):
         side_tag_signing_pending = u.release.get_pending_signing_side_tag(from_tag)
         side_tag_testing_pending = u.release.get_testing_side_tag(from_tag)
         builds = [b.nvr for b in u.builds]
-        handle_srtags_main(builds, side_tag_signing_pending, from_tag, side_tag_testing_pending)
+        handle_srtags_main(builds, side_tag_signing_pending, from_tag,
+                           side_tag_testing_pending, None)
 
         koji = buildsys.get_session()
         assert ('f32-build-side-1234-signing-pending', 'bodhi-2.0-1.fc17') in koji.__added__
@@ -53,5 +56,6 @@ class TestMain(BaseTaskTestCase):
     def test_side_tag_raise_exception(self, caplog):
         update = self.db.query(models.Update).first()
         builds = [b.nvr for b in update.builds]
-        handle_srtags_main(builds, update.release.pending_signing_tag, None, None)
+        handle_srtags_main(builds, update.release.pending_signing_tag, None, None,
+                           update.release.candidate_tag)
         assert "There was an error handling side-tags updates" in caplog.messages
