@@ -103,39 +103,6 @@ def get_rpm_header(nvr, tries=0):
     raise ValueError("No rpm headers found in koji for %r" % nvr)
 
 
-def generate_changelog(build: 'models.Build') -> typing.Optional[str]:
-    """
-    Generate a changelog for a given build.
-
-    Args:
-        build: the build to create a changelog for.
-    Returns:
-        A changelog of changes between the given build, and the previous one.
-        Or returns None if the build type doesn't have the get_latest() method.
-    """
-    # Find the most recent update for this package, other than this one
-    try:
-        lastpkg = build.get_latest()
-    except AttributeError:
-        # Not all build types have the get_latest() method, such as ModuleBuilds.
-        return None
-
-    # Grab the RPM header of the previous update, and generate a ChangeLog
-
-    def _get_oldtime(lastpkg):
-        if lastpkg is None:
-            return 0
-        oldh = get_rpm_header(lastpkg)
-        if not oldh['changelogtext']:
-            return 0
-        oldtime = oldh['changelogtime']
-        if isinstance(oldtime, list):
-            oldtime = oldtime[0]
-        return oldtime
-
-    return build.get_changelog(_get_oldtime(lastpkg))
-
-
 def build_evr(build):
     """
     Return a tuple of strings of the given build's epoch, version, and release.
@@ -907,16 +874,16 @@ class TransactionalSessionMaker(object):
         Exceptions or rolls back the transaction. In either case, it also will close and remove the
         Session.
         """
-        self.session = Session()
+        session = Session()
         try:
-            yield self.session
-            self.session.commit()
+            yield session
+            session.commit()
         except Exception as e:
             # It is possible for session.rollback() to raise Exceptions, so we will wrap it in an
             # Exception handler as well so we can log the rollback failure and still raise the
             # original Exception.
             try:
-                self.session.rollback()
+                session.rollback()
             except Exception:
                 log.exception('An Exception was raised while rolling back a transaction.')
             raise e
@@ -930,7 +897,6 @@ class TransactionalSessionMaker(object):
         This has been split off the main __call__ method to make it easier to
         mock it out in unit tests.
         """
-        self.session.close()
         Session.remove()
 
 

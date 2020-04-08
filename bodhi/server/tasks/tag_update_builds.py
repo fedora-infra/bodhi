@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2019-2020 Red Hat, Inc.
 #
 # This file is part of Bodhi.
 #
@@ -15,9 +15,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Fedora's update manager."""
+"""Handle tagging builds for an update in Koji."""
 
-__version__ = "5.2.2"
+import logging
+import typing
 
-# This is a regular expression used to match username mentions in comments.
-MENTION_RE = r'(?<!\S)(@\w+)'
+from bodhi.server import buildsys
+
+
+log = logging.getLogger(__name__)
+
+
+def main(tag: str, builds: typing.List[str]):
+    """Handle tagging builds for an update in Koji.
+
+    Args:
+        tag: a koji tag to apply on the builds.
+        builds: list of new build added to the update.
+    """
+    try:
+        kc = buildsys.get_session()
+        kc.multicall = True
+        for build in builds:
+            kc.tagBuild(tag, build)
+            log.info(f"Tagging build {build} in {tag}")
+        kc.multiCall()
+    except Exception:
+        log.exception(f"There was an error handling tagging builds in koji.")

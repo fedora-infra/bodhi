@@ -1701,32 +1701,6 @@ class TestUpdateEdit(BasePyTestCase):
         with pytest.raises(model.LockedUpdateException):
             model.Update.edit(request, data)
 
-    @mock.patch('bodhi.server.models.log.warning')
-    def test_new_builds_log_when_release_has_no_signing_tag(self, warning):
-        """If new builds are added from a release with no signing tag, it should log a warning."""
-        package = model.RpmPackage(name='python-rpdb')
-        self.db.add(package)
-        build = model.RpmBuild(nvr='python-rpdb-1.3-1.fc17', package=package)
-        self.db.add(build)
-        update = model.Update.query.first()
-        data = {
-            'edited': update.alias, 'builds': [update.builds[0].nvr, build.nvr], 'bugs': []}
-        request = mock.MagicMock()
-        request.buildinfo = {
-            build.nvr: {
-                'nvr': build._get_n_v_r(), 'info': buildsys.get_session().getBuild(build.nvr)}}
-        request.db = self.db
-        request.user.name = 'tester'
-        update.release.pending_signing_tag = ''
-        self.db.flush()
-
-        model.Update.edit(request, data)
-
-        warning.assert_called_once_with('F17 has no pending_signing_tag')
-        update = model.Update.query.first()
-        assert set([b.nvr for b in update.builds]) == (
-            {'bodhi-2.0-1.fc17', 'python-rpdb-1.3-1.fc17'})
-
     def test_remove_builds_from_locked_update(self):
         """Adding a build to a locked update should raise LockedUpdateException."""
         data = {
@@ -1749,13 +1723,14 @@ class TestUpdateEdit(BasePyTestCase):
         request = mock.MagicMock()
         request.db = self.db
         request.user.name = 'tester'
-
-        model.Update.edit(request, data)
+        with mock_sends(Message):
+            model.Update.edit(request, data)
 
         update = model.Update.query.first()
         assert update.display_name == ''
 
 
+@mock.patch("bodhi.server.models.tag_update_builds_task", mock.Mock())
 @mock.patch("bodhi.server.models.handle_update", mock.Mock())
 class TestUpdateVersionHash(BasePyTestCase):
     """Tests for the Update.version_hash property."""
@@ -1790,7 +1765,8 @@ class TestUpdateVersionHash(BasePyTestCase):
         request.db = self.db
         request.user.name = 'tester'
         self.db.flush()
-        model.Update.edit(request, data)
+        with mock_sends(Message):
+            model.Update.edit(request, data)
 
         # now, with two builds, check the hash has changed
         updated_expected_hash = "d89b54971b965505179438481d761f8b5ee64e8c"
@@ -2217,7 +2193,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.status = UpdateStatus.testing
         update.stable_karma = 1
         # Now let's add some karma to get it to the required threshold
-        with mock_sends(Message):
+        with mock_sends(Message, Message):
             update.comment(self.db, 'testing', author='hunter2', karma=1)
 
         # meets_testing_requirement() should return True since the karma threshold has been reached
@@ -2255,7 +2231,7 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update.critpath = True
         update.stable_karma = 1
         with mock.patch('bodhi.server.models.handle_update'):
-            with mock_sends(Message, Message, Message, Message):
+            with mock_sends(Message, Message, Message, Message, Message):
                 update.comment(self.db, 'testing', author='enemy', karma=-1)
                 update.comment(self.db, 'testing', author='bro', karma=1)
                 # Despite meeting the stable_karma, the function should still not
@@ -2970,6 +2946,23 @@ class TestUpdate(ModelTest):
             ('dist-f11-updates-testing-pending', 'TurboGears-1.0.8-3.fc11'),
             ('dist-f11-updates-pending', 'TurboGears-1.0.8-3.fc11')]
 
+    @mock.patch('bodhi.server.models.log.info')
+    def test_unpush_update(self, info):
+        """Unpushing an update shouldn't clear the override tag from builds."""
+        self.obj.status = UpdateStatus.testing
+        assert len(self.obj.builds) == 1
+        b = self.obj.builds[0]
+        release = self.obj.release
+        koji = buildsys.get_session()
+        koji.__tagged__[b.nvr] = [release.testing_tag,
+                                  release.pending_signing_tag,
+                                  release.pending_testing_tag,
+                                  release.override_tag,
+                                  # Add an unknown tag that we shouldn't touch
+                                  release.dist_tag + '-compose']
+        self.obj.unpush(self.db)
+        info.assert_any_call("Skipping override tag")
+
     @mock.patch('bodhi.server.models.log.debug')
     def test_unpush_stable(self, debug):
         """unpush() should raise a BodhiException on a stable update."""
@@ -3366,12 +3359,17 @@ class TestUpdate(ModelTest):
         req.koji = buildsys.get_session()
         assert self.obj.status == UpdateStatus.pending
         self.obj.stable_karma = 1
-        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        with mock_sends(Message):
+            self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
 
         self.obj.set_request(self.db, UpdateRequest.stable, req.user.name)
 
         assert self.obj.request == UpdateRequest.stable
         assert self.obj.status == UpdateStatus.pending
+
+        self.obj = mock.Mock()
+        self.obj.remove_tag(self.obj.release.pending_testing_tag)
+        self.obj.remove_tag.assert_called_once_with(self.obj.release.pending_testing_tag)
 
     @mock.patch('bodhi.server.models.buildsys.get_session')
     def test_set_request_resubmit_candidate_tag_missing(self, get_session):
@@ -3583,7 +3581,8 @@ class TestUpdate(ModelTest):
         req.koji = buildsys.get_session()
         assert self.obj.status == UpdateStatus.pending
         self.obj.stable_karma = 1
-        self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
+        with mock_sends(Message):
+            self.obj.comment(self.db, 'works', karma=1, author='bowlofeggs')
 
         self.obj.set_request(self.db, 'stable', req.user.name)
 

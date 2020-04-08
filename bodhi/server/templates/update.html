@@ -37,8 +37,10 @@ if can_edit and update.release.composed_by_bodhi:
       else:
         actions['revoke'] = True
     elif update.pushed and (update.status.value != 'stable' or (update.status.value == 'stable' and 'releng' in [group.name for group in request.user.groups])):
+      if update.request:
+        actions['revoke'] = True
       actions['unpush'] = True
-      if update.meets_testing_requirements:
+      if update.meets_testing_requirements and not update.request:
         actions['push to stable'] = True
 %>
 <div class="subheader pt-3">
@@ -82,10 +84,13 @@ if can_edit and update.release.composed_by_bodhi:
               <span class="sr-only">Locked</span>
             </a>
             % endif
+              <span class="btn btn-sm btn-${self.fragments.status_context(update.status.value)}">
+                  ${self.fragments.status_text(update)}
+              </span>
             % if actions:
               <div class="dropdown d-inline" id="updatebuttons">
-                <button class="btn btn-${self.fragments.status_context(update.status.value)} dropdown-toggle btn-sm" type="button" id="statusActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    ${self.fragments.status_text(update)}
+                <button class="btn btn-outline-primary border-0 btn-sm dropdown-toggle" type="button" id="statusActions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Actions
                 </button>
                 <div class="dropdown-menu" aria-labelledby="statusActions">
                   %if "push to testing" in actions:
@@ -102,10 +107,6 @@ if can_edit and update.release.composed_by_bodhi:
                   %endif
                 </div>
               </div>
-            % else:
-              <span class="btn btn-sm btn-${self.fragments.status_context(update.status.value)}">
-                  ${self.fragments.status_text(update)}
-              </span>
             % endif
         </div>
       </div>
@@ -441,7 +442,6 @@ if can_edit and update.release.composed_by_bodhi:
                       <div class="py-2 text-uppercase font-size-09">Settings</div>
                   </div>
 
-
               % if update.unstable_karma:
               <div class="pb-1">
                   <div class="row">
@@ -455,32 +455,44 @@ if can_edit and update.release.composed_by_bodhi:
               </div>
               % endif
 
-              % if update.autokarma is True and update.stable_karma:
               <div class="pb-1">
                   <div class="row">
                     <div class="col font-weight-bold text-muted">Stable by Karma</div>
                     <div class="col-xs-auto font-weight-bold">
+                      % if update.autokarma is True and update.stable_karma:
                           <span class="text-muted font-weight-bold" data-toggle='tooltip' title='The update will be automatically pushed to stable when karma reaches ${update.stable_karma}'>
                             <i class="fa fa-thumbs-up pr-1"></i>${update.stable_karma}
                           </span>
-                    </div>
-                  </div>
-              </div>
-              % endif
-
-              % if update.autotime is True and update.stable_days:
-              <div class="pb-1">
-                  <div class="row">
-                    <div class="col font-weight-bold text-muted">Stable by Time</div>
-                    <div class="col-xs-auto font-weight-bold">
-                          <span class="text-muted font-weight-bold" data-toggle='tooltip' title='The update will be automatically pushed to stable after being in testing for ${update.stable_days} days'>
-                            ${update.stable_days} days
+                      % else:
+                          <span class="text-muted font-weight-bold" data-toggle='tooltip'
+                            title='The update will not be automatically pushed to stable by karma'>
+                            disabled
                           </span>
+                      % endif
                     </div>
                   </div>
               </div>
-              % endif
+              
+              <div class="pb-1">
+                <div class="row">
+                  <div class="col font-weight-bold text-muted">Stable by Time</div>
+                  <div class="col-xs-auto font-weight-bold">
+                    % if update.autotime is True and update.stable_days:
+                        <span class="text-muted font-weight-bold" data-toggle='tooltip'
+                        title='The update will be automatically pushed to stable after being in testing for ${update.stable_days} days'>
+                          ${update.stable_days} days
+                        </span>
+                    % else:
+                        <span class="text-muted font-weight-bold" data-toggle='tooltip'
+                          title='The update will not be automatically pushed to stable by a time frame'>
+                          disabled
+                        </span>
+                    % endif
+                  </div>
+                </div>
               </div>
+              </div>
+
               <div class="mt-3">
                   <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Dates</div>
@@ -1062,7 +1074,6 @@ $(document).ready(function() {
               method: 'POST',
               dataType: 'json',
               success: function(response) {
-                $("#updatebuttons a").removeClass('disabled');
                 // Just reload the page if all went well..
                 location.reload();
               },

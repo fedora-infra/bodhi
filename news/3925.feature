@@ -1,0 +1,1 @@
+Associate bugs mentioned in rpm changelog to automatically created Rawhide updates; the bugs mentioned with the format `fix(es)|close(s) (fedora|epel|rh|rhbz)#BUG_ID` will be associated to the update and automatically closed

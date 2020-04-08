@@ -81,3 +81,9 @@ Currently suggested workaround is to disable the coverage-reporting with `--no-c
 The issue is currently tracked in https://github.com/microsoft/vscode-python/issues/693
 
 After configuring you sould be able to populate the test-explorer with unit-tests and start debugging :-)
+
+Debugging celery 
+===========================
+If you want to debug code running in hte celery worker, you first need to stop the celery service and then start celery from inside vs-code,
+in simmilar fashion as you'd run `pserve` in previous example.
+

@@ -470,6 +470,36 @@ def api_version(request):
     return dict(version=bodhi.server.util.version())
 
 
+@view_config(route_name='liveness', renderer='json')
+def liveness(request):
+    """
+    Return 'ok' as a sign of being alive.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+    Returns:
+        str: 'ok'
+    """
+    return 'ok'
+
+
+@view_config(route_name='readyness', renderer='json')
+def readyness(request):
+    """
+    Return 200 if the app can query the db, to signify being ready.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+    Returns:
+        dict: A dictionary with list of services checked.
+    """
+    try:
+        request.db.execute("SELECT 1")
+        return dict(db_session=True)
+    except Exception:
+        raise Exception("App not ready, is unable to execute a trivial select.")
+
+
 @notfound_view_config(append_slash=True)
 def notfound_view(context, request):
     """

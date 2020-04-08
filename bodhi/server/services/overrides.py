@@ -196,7 +196,7 @@ def query_overrides(request):
     pages = int(math.ceil(total / float(rows_per_page)))
     query = query.offset(rows_per_page * (page - 1)).limit(rows_per_page)
 
-    return dict(
+    return_values = dict(
         overrides=query.all(),
         page=page,
         pages=pages,
@@ -205,6 +205,13 @@ def query_overrides(request):
         chrome=data.get('chrome'),
         display_user=data.get('display_user'),
     )
+    # we need some extra information for the searching / filterings interface
+    # when rendering the html, so we add this here.
+    if request.accept.accept_html():
+        return_values.update(
+            releases=Release.all_releases(),
+        )
+    return return_values
 
 
 @overrides.post(schema=bodhi.server.schemas.SaveOverrideSchema,

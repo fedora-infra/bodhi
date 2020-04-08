@@ -1,5 +1,4 @@
 import os
-import re
 
 from setuptools import setup, find_packages
 import setuptools.command.egg_info
@@ -39,9 +38,8 @@ def get_requirements(requirements_file='requirements.txt'):
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
-with open(os.path.join(here, "bodhi", "__init__.py")) as fd:
-    match = re.search('^__version__ = "([^"]+)"$', fd.read(), re.MULTILINE)
-    VERSION = match.group(1)
+VERSION = '5.2.2'
+
 
 # Possible options are at https://pypi.python.org/pypi?%3Aaction=list_classifiers
 CLASSIFIERS = [

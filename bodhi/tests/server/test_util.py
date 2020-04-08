@@ -1443,7 +1443,6 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
             'An Exception was raised while rolling back a transaction.')
         assert Session.return_value.commit.call_count == 0
         Session.return_value.rollback.assert_called_once_with()
-        Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
 
     @mock.patch('bodhi.server.util.log.exception')
@@ -1466,7 +1465,6 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
         assert log_exception.call_count == 0
         assert Session.return_value.commit.call_count == 0
         Session.return_value.rollback.assert_called_once_with()
-        Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
 
     @mock.patch('bodhi.server.util.log.exception')
@@ -1486,7 +1484,6 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
         assert log_exception.call_count == 0
         assert Session.return_value.rollback.call_count == 0
         Session.return_value.commit.assert_called_once_with()
-        Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
 
 
@@ -1523,60 +1520,6 @@ class TestPyfileToModule(base.BasePyTestCase):
         except IOError as e:
             self.fail("pyfile_to_module raised an exception in silent mode: {}".format(e))
         assert not result
-
-
-class TestGenerateChangelog:
-
-    @mock.patch("bodhi.server.util.get_rpm_header")
-    def test_nominal(self, get_rpm_header):
-        """
-        Check for nominal behavior
-        """
-        get_rpm_header.return_value = {
-            "changelogtime": [42, 41, 40],
-            "changelogtext": "dummy",
-        }
-        build = mock.Mock()
-        expected = object()
-        build.get_changelog.return_value = expected
-        result = util.generate_changelog(build)
-        build.get_changelog.assert_called_with(42)
-        assert result == expected
-
-    @mock.patch("bodhi.server.util.get_rpm_header")
-    def test_time_no_list(self, get_rpm_header):
-        """
-        Check for behavior when the changelog time is not a list
-        """
-        get_rpm_header.return_value = {
-            "changelogtime": 42,
-            "changelogtext": "dummy",
-        }
-        build = mock.Mock()
-        util.generate_changelog(build)
-        build.get_changelog.assert_called_with(42)
-
-    @mock.patch("bodhi.server.util.get_rpm_header")
-    def test_no_text(self, get_rpm_header):
-        """
-        Check for behavior when there is no changelog text
-        """
-        get_rpm_header.return_value = {
-            "changelogtime": 42,
-            "changelogtext": "",
-        }
-        build = mock.Mock()
-        util.generate_changelog(build)
-        build.get_changelog.assert_called_with(0)
-
-    def test_no_latest(self):
-        """
-        Check for crash when there are no latest builds.
-        """
-        build = mock.Mock()
-        build.get_latest.return_value = None
-        util.generate_changelog(build)
-        build.get_changelog.assert_called_with(0)
 
 
 class TestJsonEscape:

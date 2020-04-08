@@ -26,7 +26,7 @@ from sqlalchemy import func, distinct
 from sqlalchemy.sql import or_
 from requests import RequestException, Timeout as RequestsTimeout
 
-from bodhi.server import log, security, buildsys
+from bodhi.server import log, security
 from bodhi.server.exceptions import BodhiException, LockedUpdateException
 from bodhi.server.models import (
     Update,
@@ -39,6 +39,7 @@ from bodhi.server.models import (
     Package,
     Release,
 )
+from bodhi.server.tasks import handle_side_and_related_tags_task
 import bodhi.server.schemas
 import bodhi.server.services.errors
 import bodhi.server.util
@@ -202,6 +203,11 @@ def set_request(request):
     if update.release.state is ReleaseState.archived:
         request.errors.add('body', 'request',
                            "Can't change request for an archived release")
+        return
+
+    if update.status == UpdateStatus.stable and action == UpdateRequest.testing:
+        request.errors.add('body', 'request',
+                           "Pushing back to testing a stable update is not allowed")
         return
 
     if action == UpdateRequest.stable:
@@ -571,34 +577,29 @@ def new_update(request):
                 result = dict(updates=updates)
 
             if from_tag:
-                koji = buildsys.get_session()
-                for update in updates:
-                    release = update.release
-                    if not release.composed_by_bodhi:
+                for u in updates:
+                    builds = [b.nvr for b in u.builds]
+                    if not u.release.composed_by_bodhi:
                         # Before the Bodhi activation point of a release, keep builds tagged
-                        # with the side-tag and its associate tags. Validate that
-                        # <koji_tag>-pending-signing and <koji-tag>-testing exists, if not create
-                        # them.
-                        side_tag_signing_pending = update.release.get_pending_signing_side_tag(
-                            from_tag)
-                        side_tag_testing_pending = update.release.get_testing_side_tag(from_tag)
-                        if not koji.getTag(side_tag_signing_pending):
-                            koji.createTag(side_tag_signing_pending, parent=from_tag)
-                        if not koji.getTag(side_tag_testing_pending):
-                            koji.createTag(side_tag_testing_pending, parent=from_tag)
-                            koji.editTag2(side_tag_testing_pending, perm="autosign")
-
-                        to_tag = side_tag_signing_pending
-                        # Move every new build to <from_tag>-signing-pending tag
-                        update.add_tag(to_tag)
+                        # with the side-tag and its associate tags.
+                        side_tag_signing_pending = u.release.get_pending_signing_side_tag(from_tag)
+                        side_tag_testing_pending = u.release.get_testing_side_tag(from_tag)
+                        handle_side_and_related_tags_task.delay(
+                            builds=builds,
+                            pending_signing_tag=side_tag_signing_pending,
+                            from_tag=from_tag,
+                            pending_testing_tag=side_tag_testing_pending)
                     else:
                         # After the Bodhi activation point of a release, add the pending-signing tag
                         # of the release to funnel the builds back into a normal workflow for a
                         # stable release.
-                        update.add_tag(release.pending_signing_tag)
-
-                        # From here on out, we don't need the side-tag anymore.
-                        koji.removeSideTag(from_tag)
+                        pending_signing_tag = u.release.pending_signing_tag
+                        candidate_tag = u.release.candidate_tag
+                        handle_side_and_related_tags_task.delay(
+                            builds=builds,
+                            pending_signing_tag=pending_signing_tag,
+                            from_tag=from_tag,
+                            candidate_tag=candidate_tag)
 
     except LockedUpdateException as e:
         log.warning(str(e))

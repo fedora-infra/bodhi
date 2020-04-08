@@ -23,14 +23,15 @@ tagged with certain tags.
 """
 
 import logging
+import re
 
 import fedora_messaging
 
 from bodhi.server import buildsys
 from bodhi.server.config import config
-from bodhi.server.models import Build, ContentType, Package, Release
-from bodhi.server.models import Update, UpdateStatus, UpdateType, User
-from bodhi.server.util import generate_changelog, transactional_session_maker
+from bodhi.server.models import (
+    Bug, Build, ContentType, Package, Release, Update, UpdateStatus, UpdateType, User)
+from bodhi.server.util import transactional_session_maker
 
 log = logging.getLogger('bodhi')
 
@@ -139,8 +140,10 @@ class AutomaticUpdateHandler:
                 dbsession.add(user)
 
             log.debug(f"Creating new update for {bnvr}.")
-            changelog = generate_changelog(build)
+            changelog = build.get_changelog(lastupdate=True)
+            closing_bugs = []
             if changelog:
+                log.debug("Adding changelog to update notes.")
                 notes = f"""Automatic update for {bnvr}.
 
 ##### **Changelog**
@@ -148,11 +151,23 @@ class AutomaticUpdateHandler:
 ```
 {changelog}
 ```"""
+
+                for b in re.finditer(config.get('bz_regex'), changelog, re.IGNORECASE):
+                    idx = int(b.group(1))
+                    log.debug(f'Adding bug #{idx} to the update.')
+                    bug = Bug.get(idx)
+                    if bug is None:
+                        bug = Bug(bug_id=idx)
+                        dbsession.add(bug)
+                        dbsession.flush()
+                    if bug not in closing_bugs:
+                        closing_bugs.append(bug)
             else:
                 notes = f"Automatic update for {bnvr}."
             update = Update(
                 release=rel,
                 builds=[build],
+                bugs=closing_bugs,
                 notes=notes,
                 type=UpdateType.unspecified,
                 stable_karma=3,
