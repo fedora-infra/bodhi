@@ -2872,6 +2872,8 @@ class Update(Base):
             self.add_tag(self.release.pending_signing_tag)
         elif action is UpdateRequest.stable:
             self.add_tag(self.release.pending_stable_tag)
+            if self.request == UpdateRequest.testing:
+                self.remove_tag(self.release.pending_testing_tag)
 
         # If an obsolete/unpushed build is being re-submitted, return
         # it to the pending state, and make sure it's tagged as a candidate

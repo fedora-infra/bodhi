@@ -3350,6 +3350,10 @@ class TestUpdate(ModelTest):
         assert self.obj.request == UpdateRequest.stable
         assert self.obj.status == UpdateStatus.pending
 
+        self.obj = mock.Mock()
+        self.obj.remove_tag(self.obj.release.pending_testing_tag)
+        self.obj.remove_tag.assert_called_once_with(self.obj.release.pending_testing_tag)
+
     @mock.patch('bodhi.server.models.buildsys.get_session')
     def test_set_request_resubmit_candidate_tag_missing(self, get_session):
         """Ensure that set_request() adds the candidate tag back to a resubmitted build."""
