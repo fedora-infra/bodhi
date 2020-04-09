@@ -49,7 +49,7 @@ def _do_init():
     bugs.set_bugtracker()
 
 
-@app.task(name="compose")
+@app.task(name="compose", ignore_result=True)
 def compose(api_version: int, **kwargs):
     """Trigger the compose.
 
@@ -70,7 +70,7 @@ def compose(api_version: int, **kwargs):
     composer.run(api_version=api_version, data=kwargs)
 
 
-@app.task(name="handle_update")
+@app.task(name="handle_update", ignore_result=True)
 def handle_update(api_version: int, **kwargs):
     """Trigger the Updates handler.
 
@@ -123,7 +123,7 @@ def expire_overrides_task(**kwargs):
     main()
 
 
-@app.task(name="handle_side_and_related_tags")
+@app.task(name="handle_side_and_related_tags", ignore_result=True)
 def handle_side_and_related_tags_task(
         builds: typing.List[str],
         pending_signing_tag: str,
@@ -137,7 +137,7 @@ def handle_side_and_related_tags_task(
     main(builds, pending_signing_tag, from_tag, pending_testing_tag, candidate_tag)
 
 
-@app.task(name="tag_update_builds")
+@app.task(name="tag_update_builds", ignore_result=True)
 def tag_update_builds_task(tag: str, builds: typing.List[str]):
     """Handle tagging builds for an update in Koji."""
     from .tag_update_builds import main
