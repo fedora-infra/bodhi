@@ -1,0 +1,1 @@
+Ignore celery task's results we don't use.
