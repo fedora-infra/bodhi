@@ -155,6 +155,7 @@ class TestMain(BaseTaskTestCase):
         update = self.db.query(models.Update).all()[0]
         update.date_testing = datetime.utcnow() - timedelta(days=15)
         update.request = None
+        update.autotime = False
         update.status = models.UpdateStatus.testing
         update.release.composed_by_bodhi = composed_by_bodhi
         self.db.flush()
@@ -501,15 +502,14 @@ class TestMain(BaseTaskTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with fml_testing.mock_sends(api.Message, api.Message):
-            approve_testing_main()
+        approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
 
     def test_autotime_update_does_not_meet_stable_days_doesnt_get_pushed(self):
         """
         Ensure that an autotime update that meets the test requirements but has a longer
-        stable days define does not get push.
+        stable days defined does not get pushed.
         """
         update = self.db.query(models.Update).all()[0]
         update.autokarma = False
@@ -523,8 +523,7 @@ class TestMain(BaseTaskTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with fml_testing.mock_sends(api.Message):
-            approve_testing_main()
+        approve_testing_main()
 
         assert update.request is None
 
@@ -544,8 +543,7 @@ class TestMain(BaseTaskTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with fml_testing.mock_sends(api.Message, api.Message):
-            approve_testing_main()
+        approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
 
@@ -610,8 +608,7 @@ class TestMain(BaseTaskTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with fml_testing.mock_sends(api.Message, api.Message):
-            approve_testing_main()
+        approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
 
@@ -633,8 +630,7 @@ class TestMain(BaseTaskTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with fml_testing.mock_sends(api.Message, api.Message):
-            approve_testing_main()
+        approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
         assert update.status == models.UpdateStatus.testing
@@ -668,8 +664,7 @@ class TestMain(BaseTaskTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with fml_testing.mock_sends(api.Message):
-            approve_testing_main()
+        approve_testing_main()
 
         assert update.request is None
         assert update.date_stable is not None
@@ -695,8 +690,6 @@ class TestMain(BaseTaskTestCase):
 
             assert add_tag.call_args_list == \
                 [call('f17-updates')]
-
-        assert mail.send.call_count == 1
 
     @patch.dict(config, [('fedora.mandatory_days_in_testing', 0)])
     @patch.dict(config, [('test_gating.required', True)])

@@ -1,0 +1,3 @@
+Reduce the number of messages/comments sent by 'approve_testing.py'   
+Added a conditional statement so 'approve_testing' doesn't send a
+message if 'autotime' is set or update meets testing requirement.

@@ -78,14 +78,17 @@ def approve_update(update: Update, db: Session):
     log.info(f'{update.alias} now meets testing requirements')
     # Only send email notification about the update reaching
     # testing approval on releases composed by bodhi
-    update.comment(
-        db,
-        str(config.get('testing_approval_msg')),
-        author='bodhi',
-        email_notification=update.release.composed_by_bodhi
-    )
-    notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
-        dict(update=update)))
+    if not update.autotime or update.meets_testing_requirements:
+        update.comment(
+            db,
+            str(config.get('testing_approval_msg')),
+            author='bodhi',
+            email_notification=update.release.composed_by_bodhi
+        )
+        notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
+            dict(update=update)))
+    # Only post a comment informing the maintainer that the update can now be pushed
+    # to stable if autotime is not set and/or update has met testing requirements.
     if update.autotime and update.days_in_testing >= update.stable_days:
         log.info(f"Automatically marking {update.alias} as stable")
         # For now only rawhide update can be created using side tag
@@ -123,7 +126,7 @@ def approve_update(update: Update, db: Session):
             update.pushed = True
             update.date_stable = update.date_pushed = func.current_timestamp()
             update.comment(db, "This update has been submitted for stable by bodhi",
-                           author=u'bodhi')
+                           author=u'bodhi', email_notification=update.release.composed_by_bodhi)
             # Multi build update
             if update.from_tag:
                 # Merging the side tag should happen here
