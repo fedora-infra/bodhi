@@ -96,7 +96,7 @@ ${statusmap[status]}\
         <div class="row no-gutters">
           <div class="col font-size-09">
           % if comment.user:
-          <a href="${request.route_url('user', name=comment.user.name)}" class="font-weight-bold notblue">
+          <a href="${request.route_url('user', name=comment.user.url_name)}" class="font-weight-bold notblue">
             <img src="${util.avatar(comment.user.name, size=16)}" alt="User Icon"/>
             ${comment.user.name}
           </a>
@@ -187,7 +187,7 @@ ${statusmap[status]}\
                       <div class="line-height-1">
                         <small> created
                         %if display_user:
-    by <a href="${request.route_url('user', name=update['user']['name'])}">
+    by <a href="${request.route_url('user', name=update['user']['url_name'])}">
       ${update['user']['name']}
     </a>
                         %endif
@@ -230,7 +230,7 @@ ${statusmap[status]}\
             <small>created 
               %if display_user:
               by
-                <a href="${request.route_url('user', name=override['submitter']['name'])}">
+                <a href="${request.route_url('user', name=override['submitter']['url_name'])}">
                   ${override['submitter']['name']}
                 </a>
               %endif

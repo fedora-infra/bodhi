@@ -4344,6 +4344,32 @@ class TestUser(ModelTest):
         group = model.Group(name='proventesters')
         return dict(groups=[group])
 
+    def test_url_name(self):
+        """Test that url_name is safe when creating a new User with odd characters."""
+        user = model.User(name='packagerbot/os-master01.phx2.fedoraproject.org',
+                          email='bodhi@fp.o')
+        self.db.add(user)
+        self.db.flush()
+
+        user = model.User.get('packagerbot/os-master01.phx2.fedoraproject.org')
+        assert user.url_name == 'packagerbot_os-master01_phx2_fedoraproject_org'
+
+    def test_url_name_not_unique(self):
+        """Test that url_name is suffixed when the first part is not unique."""
+        user1 = model.User(name='packagerbot/os-master01.phx2.fedoraproject.org',
+                           email='bodhi@fp.o')
+        self.db.add(user1)
+        self.db.flush()
+        user2 = model.User(name='packagerbot.os-master01.phx2.fedoraproject.org',
+                           email='bodhi@fp.o')
+        self.db.add(user2)
+        self.db.flush()
+
+        user1 = model.User.get('packagerbot/os-master01.phx2.fedoraproject.org')
+        assert user1.url_name == 'packagerbot_os-master01_phx2_fedoraproject_org'
+        user2 = model.User.get('packagerbot.os-master01.phx2.fedoraproject.org')
+        assert user2.url_name == 'packagerbot_os-master01_phx2_fedoraproject_org_01'
+
 
 class TestGroup(ModelTest):
     klass = model.Group

@@ -845,7 +845,7 @@ def ensure_user_exists(param, request):
     validated_users = []
 
     for u in users:
-        user = db.query(User).filter_by(name=u).first()
+        user = db.query(User).filter(or_(User.name == u, User.url_name == u)).first()
 
         if not user:
             bad_users.append(u)

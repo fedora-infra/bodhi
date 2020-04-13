@@ -4536,6 +4536,7 @@ class User(Base):
 
     Attributes:
         name (str): The username.
+        url_name (str): A safe username to be used in URLs.
         email (str): An e-mail address for the user.
         comments (sqlalchemy.orm.dynamic.AppenderQuery): An iterable of :class:`Comments <Comment>`
             the user has written.
@@ -4548,9 +4549,10 @@ class User(Base):
     __tablename__ = 'users'
     __exclude_columns__ = ('comments', 'updates', 'buildroot_overrides')
     __include_extras__ = ('avatar', 'openid')
-    __get_by__ = ('name',)
+    __get_by__ = ('url_name', 'name')
 
     name = Column(Unicode(64), unique=True, nullable=False)
+    url_name = Column(Unicode(64), unique=True, nullable=False)
     email = Column(UnicodeText)
 
     # One-to-many relationships
@@ -4559,6 +4561,26 @@ class User(Base):
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
+
+    def __init__(self, *args, **kwargs):
+        """
+        Initialize the User.
+
+        We use this to set url_name from the given username.
+        """
+        safe_username = re.sub(r'[^a-zA-Z\d_-]', '_', kwargs['name'])
+        for count in range(1, 100):
+            u = User.get(safe_username)
+            if u is not None:
+                if count == 1:
+                    safe_username += f'_{count:02}'
+                else:
+                    safe_username = safe_username[:-3] + f'_{count:02}'
+            else:
+                break
+        self.url_name = safe_username
+
+        super(User, self).__init__(*args, **kwargs)
 
     def avatar(self, request: 'pyramid.request') -> typing.Union[str, None]:
         """

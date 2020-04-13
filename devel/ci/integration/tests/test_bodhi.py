@@ -414,7 +414,7 @@ def test_get_user_view(bodhi_container, db_container):
     # Fetch user(of latest update) from DB
     query_users = (
         "SELECT "
-        "  users.name as username "
+        "  users.name as username, users.url_name as urlname "
         "FROM updates "
         "JOIN users ON updates.user_id = users.id "
         "ORDER BY date_submitted DESC LIMIT 1"
@@ -424,16 +424,15 @@ def test_get_user_view(bodhi_container, db_container):
     with conn:
         with conn.cursor() as curs:
             curs.execute(query_users)
-            username = curs.fetchone()[0]
+            user = curs.fetchone()
+            username = user[0]
+            urlname = user[1]
     conn.close()
-
-    if username.startswith('packagerbot/'):
-        pytest.skip("Skipping test due to bad username")
 
     # GET on user with latest update
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
-        http_response = c.get(f"/users/{username}", headers=headers)
+        http_response = c.get(f"/users/{urlname}", headers=headers)
 
     try:
         assert http_response.ok
@@ -536,6 +535,7 @@ def test_get_user_json(bodhi_container, db_container):
     query_updates = (
         "SELECT "
         "  users.name as user_name, "
+        "  users.url_name as user_urlname, "
         "  users.id as user_id, "
         "  users.email as user_email "
         "FROM updates "
@@ -556,8 +556,9 @@ def test_get_user_json(bodhi_container, db_container):
             curs.execute(query_updates)
             row = curs.fetchone()
             user_name = row[0]
-            user_id = row[1]
-            user_email = row[2]
+            user_urlname = row[1]
+            user_id = row[2]
+            user_email = row[3]
             curs.execute(query_groups, (user_id, ))
             rows = curs.fetchall()
             user_groups = []
@@ -565,32 +566,30 @@ def test_get_user_json(bodhi_container, db_container):
                 user_groups.append({"name": row[0]})
     conn.close()
 
-    if user_name.startswith('packagerbot/'):
-        pytest.skip("Skipping test due to bad username")
-
     # GET on user
     with bodhi_container.http_client(port="8080") as c:
-        http_response = c.get(f"/users/{user_name}")
+        http_response = c.get(f"/users/{user_urlname}")
 
     bodhi_ip = bodhi_container.get_IPv4s()[0]
 
     user = {
         "id": user_id,
         "name": user_name,
+        "url_name": user_urlname,
         "email": user_email,
         "avatar": create_avatar_url(user_name, 24),
         "openid": f"{user_name}.id.dev.fedoraproject.org",
         "groups": user_groups,
     }
     urls = {
-        'comments_by': f"http://{bodhi_ip}:8080/comments/?user={user_name}",
-        'comments_on': f"http://{bodhi_ip}:8080/comments/?update_owner={user_name}",
-        'recent_updates': f"http://{bodhi_ip}:8080/updates/?user={user_name}",
-        'recent_overrides': f"http://{bodhi_ip}:8080/overrides/?user={user_name}",
-        'comments_by_rss': f"http://{bodhi_ip}:8080/rss/comments/?user={user_name}",
-        'comments_on_rss': f"http://{bodhi_ip}:8080/rss/comments/?update_owner={user_name}",
-        'recent_updates_rss': f"http://{bodhi_ip}:8080/rss/updates/?user={user_name}",
-        'recent_overrides_rss': f"http://{bodhi_ip}:8080/rss/overrides/?user={user_name}",
+        'comments_by': f"http://{bodhi_ip}:8080/comments/?user={user_urlname}",
+        'comments_on': f"http://{bodhi_ip}:8080/comments/?update_owner={user_urlname}",
+        'recent_updates': f"http://{bodhi_ip}:8080/updates/?user={user_urlname}",
+        'recent_overrides': f"http://{bodhi_ip}:8080/overrides/?user={user_urlname}",
+        'comments_by_rss': f"http://{bodhi_ip}:8080/rss/comments/?user={user_urlname}",
+        'comments_on_rss': f"http://{bodhi_ip}:8080/rss/comments/?update_owner={user_urlname}",
+        'recent_updates_rss': f"http://{bodhi_ip}:8080/rss/updates/?user={user_urlname}",
+        'recent_overrides_rss': f"http://{bodhi_ip}:8080/rss/overrides/?user={user_urlname}",
     }
     expected_json = {
         "user": user,
@@ -612,7 +611,7 @@ def test_get_users_rss(bodhi_container, db_container):
     # Fetch users from DB
     query_users = (
         "SELECT "
-        "  name "
+        "  name, url_name "
         "FROM users "
         "LIMIT 20"
     )
@@ -622,7 +621,7 @@ def test_get_users_rss(bodhi_container, db_container):
         with conn.cursor() as curs:
             curs.execute(query_users)
             rows = curs.fetchall()
-            usernames = [row[0] for row in rows]
+            users = [(row[0], row[1]) for row in rows]
     conn.close()
 
     # GET on users
@@ -646,10 +645,10 @@ def test_get_users_rss(bodhi_container, db_container):
 
     # Prepare expected content
     expected_rss_content = []
-    for username in usernames:
+    for username, userurl in users:
         item_content = [
             {"tag": "title", "attrib": {}, "text": username},
-            {"tag": "link", "attrib": {}, "text": f"http://{bodhi_ip}:8080/users/{username}"},
+            {"tag": "link", "attrib": {}, "text": f"http://{bodhi_ip}:8080/users/{userurl}"},
             {"tag": "description", "attrib": {}, "text": username},
         ]
         expected_rss_content.append(item_content)

@@ -1,0 +1,1 @@
+Add `url_name` to User to provide safe username for URLs. This will be `username` with all characters other than [a-zA-Z\d_-] replaced by `_` (underscore) and possibly a numbered suffix to avoid collisions

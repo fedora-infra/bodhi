@@ -65,6 +65,7 @@ def get_user(request):
     """
     id = request.matchdict.get('name')
     user = User.get(id)
+    user_urlname = user.url_name
 
     if not user:
         request.errors.add('body', 'name', 'No such user')
@@ -76,14 +77,14 @@ def get_user(request):
     # Throw some extra information in there
     rurl = request.route_url  # Just shorthand
     urls = {
-        'comments_by': rurl('comments') + '?user=%s' % id,
-        'comments_on': rurl('comments') + '?update_owner=%s' % id,
-        'recent_updates': rurl('updates') + '?user=%s' % id,
-        'recent_overrides': rurl('overrides') + '?user=%s' % id,
-        'comments_by_rss': rurl('comments_rss') + '?user=%s' % id,
-        'comments_on_rss': rurl('comments_rss') + '?update_owner=%s' % id,
-        'recent_updates_rss': rurl('updates_rss') + '?user=%s' % id,
-        'recent_overrides_rss': rurl('overrides_rss') + '?user=%s' % id,
+        'comments_by': rurl('comments') + '?user=%s' % user_urlname,
+        'comments_on': rurl('comments') + '?update_owner=%s' % user_urlname,
+        'recent_updates': rurl('updates') + '?user=%s' % user_urlname,
+        'recent_overrides': rurl('overrides') + '?user=%s' % user_urlname,
+        'comments_by_rss': rurl('comments_rss') + '?user=%s' % user_urlname,
+        'comments_on_rss': rurl('comments_rss') + '?update_owner=%s' % user_urlname,
+        'recent_updates_rss': rurl('updates_rss') + '?user=%s' % user_urlname,
+        'recent_overrides_rss': rurl('overrides_rss') + '?user=%s' % user_urlname,
     }
 
     return dict(user=user, urls=urls)
