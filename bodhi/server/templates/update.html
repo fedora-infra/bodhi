@@ -427,7 +427,7 @@ if can_edit and update.release.composed_by_bodhi:
               % for build in update.builds:
               <%
               koji_web_url = request.registry.settings.get('koji_web_url').strip('/') + '/'
-              build_url = urljoin(koji_web_url, 'search?terms='+build.nvr+'&type=build&match=glob')
+              build_url = urljoin(koji_web_url, 'search?terms='+build.nvr+'&type=build&match=exact')
               %>
               <div class="pb-1">
                   <div class="row">
@@ -589,7 +589,7 @@ if can_edit and update.release.composed_by_bodhi:
           <td>
             <%
               koji_web_url = request.registry.settings.get('koji_web_url').strip('/') + '/'
-              build_url = urljoin(koji_web_url, 'search?terms='+build.nvr+'&type=build&match=glob')
+              build_url = urljoin(koji_web_url, 'search?terms='+build.nvr+'&type=build&match=exact')
             %>
             <a href="${build_url}" target="_blank">
                 ${build.nvr}</a>
