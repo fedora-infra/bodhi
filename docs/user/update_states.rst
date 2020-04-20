@@ -10,6 +10,8 @@ Once submitted to Bodhi, updates move through the following states:
 
 :ref:`testing-stable`: The package is ready to go stable, and will wait until the next update push.
 
+:ref:`frozen`: The package is held back in the testing repository for additional checks.
+
 :ref:`stable`: The package has been released to the main updates repository.
 
 :ref:`sidetag-active`: This update represents a side tag whose content can still be modified; i.e. in which packages can still be built.
@@ -76,6 +78,16 @@ Testing/Stable
 The "stable" state means that the package will be sent out to the stable
 repositories the next time a Release Engineer runs the update push command. The update will remain
 in the testing repository during this state.
+
+
+.. _frozen:
+
+Frozen
+======
+
+A package is said to be in a frozen state when a release is stabilized before the release Beta or
+GA (Generaly Available). In such a state, all updates are blocked and release engineering will only
+push the updates that have been given a freeze break exception to fix a bug.
 
 
 .. _stable:
