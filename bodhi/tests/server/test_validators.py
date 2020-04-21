@@ -628,7 +628,7 @@ class TestValidateBuilds(BasePyTestCase):
         self.request = mock.Mock()
         self.request.db = self.db
         self.request.errors = Errors()
-        self.request.validated = {}
+        self.request.validated = {}        
         self.user = self.db.query(models.User).all()[0]
         self.update = models.Update.query.first()
                 
@@ -642,7 +642,6 @@ class TestValidateBuilds(BasePyTestCase):
         validators.validate_builds(self.request)  
         
         assert len(self.request.errors) == 0
-
         
     def test_build_gets_edited_key(self):
         "A request with edited parameter passes without errors"
@@ -653,8 +652,24 @@ class TestValidateBuilds(BasePyTestCase):
         
         validators.validate_builds(self.request) 
         assert len(self.request.errors) == 0
-
         
+        
+    def test_error_messages_prints_url(self):
+        """A failed request prints an error message that contains a url"""
+        
+        self.request.validated['builds'] = 'foo-1-1.fc30'
+        
+        self.request.validated['edited'] = 'edited'
+        self.request.user = self.user
+                
+        validators.validate_builds(self.request)  
+        
+        assert self.request.errors == [{
+            'location':'body', 'name':'builds',
+            'description':'Cannot find update to edit: %s' % self.request.route_url(self.request.validated['edited']) 
+        }]
+
+
 class TestValidateBuildsOrFromTagExist(BasePyTestCase):
     """Test the validate_builds_or_from_tag_exist() function."""
 

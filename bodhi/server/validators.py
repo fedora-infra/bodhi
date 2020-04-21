@@ -910,7 +910,6 @@ def validate_update_id(request, **kwargs):
         if package:
             query = dict(packages=package.name)
             location = request.route_url('updates', _query=query)
-            print(location)
             raise HTTPFound(location=location)
 
         request.errors.add('url', 'id', 'Invalid update id')
