@@ -652,8 +652,7 @@ class TestValidateBuilds(BasePyTestCase):
         
         validators.validate_builds(self.request) 
         assert len(self.request.errors) == 0
-        
-        
+                
     def test_error_messages_prints_url(self):
         """A failed request prints an error message that contains a url"""
         

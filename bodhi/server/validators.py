@@ -274,7 +274,6 @@ def validate_builds(request, **kwargs):
             request.errors.add('body', 'builds',
                                'Cannot find update to edit: %s' % request.route_url(edited))
             return
-        
         # Allow admins to edit stable updates
         user_groups = set([group.name for group in user.groups])
         admin_groups = set(config['admin_packager_groups'])
