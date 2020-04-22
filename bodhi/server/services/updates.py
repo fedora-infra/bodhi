@@ -593,10 +593,13 @@ def new_update(request):
                         # After the Bodhi activation point of a release, add the pending-signing tag
                         # of the release to funnel the builds back into a normal workflow for a
                         # stable release.
+                        pending_signing_tag = u.release.pending_signing_tag
+                        candidate_tag = u.release.candidate_tag
                         handle_side_and_related_tags_task.delay(
                             builds=builds,
-                            pending_signing_tag=u.release.pending_signing_tag,
-                            from_tag=from_tag)
+                            pending_signing_tag=pending_signing_tag,
+                            from_tag=from_tag,
+                            candidate_tag=candidate_tag)
 
     except LockedUpdateException as e:
         log.warning(str(e))

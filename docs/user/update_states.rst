@@ -22,7 +22,7 @@ Once submitted to Bodhi, updates move through the following states:
 
 :ref:`obsolete`: The package has been obsoleted by a different update
 
-:ref:`revoked`: The update was removed before it reached the testing repository.
+:ref:`revoked`: The update was removed before it reached the testing or stable repository.
 
 :ref:`unpushed`: The update has been removed from testing.
 
@@ -145,7 +145,9 @@ update's bugs and notes.
 Revoked
 =======
 
-The update was withdrawn before it reached the testing repository.
+If the update is in pending request for testing, then revoking it will put the update in the
+`unpushed`_ status. If the update is in testing request stable, then revoking will keep the
+`testing`_ status.
 
 
 .. _unpushed:

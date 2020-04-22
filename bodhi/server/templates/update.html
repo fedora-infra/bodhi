@@ -218,9 +218,10 @@ if can_edit and update.release.composed_by_bodhi:
                 <div class="row">
                   <div class="col pr-0">
                     <%
-                      help_content = "Comments support Fedora-Flavored Markdown"
+                      help_content = "Comments support <a href='docs/user/fedora-flavored-markdown.html'>Fedora-Flavored Markdown</a>"
                       if request.registry.settings.get('privacy_link'):
-                        help_content = help_content + "<br/><br/>Comments are governed under <a href='${request.registry.settings.get('privacy_link')}'>this privacy policy</a>."
+                        privacy_link = request.registry.settings.get('privacy_link')
+                        help_content = help_content + "<br/><br/>Comments are governed under <a href='{}'>this privacy policy</a>.".format(privacy_link)
                     %>
                       <a tabindex="0" class="btn btn-link text-muted float-right" role="button" data-toggle="popover" data-trigger="focus" title="Comment Help"
                       data-content="${help_content}" data-html="true" data-placement="bottom">

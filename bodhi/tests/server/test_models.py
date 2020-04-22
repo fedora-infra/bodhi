@@ -2946,6 +2946,23 @@ class TestUpdate(ModelTest):
             ('dist-f11-updates-testing-pending', 'TurboGears-1.0.8-3.fc11'),
             ('dist-f11-updates-pending', 'TurboGears-1.0.8-3.fc11')]
 
+    @mock.patch('bodhi.server.models.log.info')
+    def test_unpush_update(self, info):
+        """Unpushing an update shouldn't clear the override tag from builds."""
+        self.obj.status = UpdateStatus.testing
+        assert len(self.obj.builds) == 1
+        b = self.obj.builds[0]
+        release = self.obj.release
+        koji = buildsys.get_session()
+        koji.__tagged__[b.nvr] = [release.testing_tag,
+                                  release.pending_signing_tag,
+                                  release.pending_testing_tag,
+                                  release.override_tag,
+                                  # Add an unknown tag that we shouldn't touch
+                                  release.dist_tag + '-compose']
+        self.obj.unpush(self.db)
+        info.assert_any_call("Skipping override tag")
+
     @mock.patch('bodhi.server.models.log.debug')
     def test_unpush_stable(self, debug):
         """unpush() should raise a BodhiException on a stable update."""
@@ -3349,6 +3366,10 @@ class TestUpdate(ModelTest):
 
         assert self.obj.request == UpdateRequest.stable
         assert self.obj.status == UpdateStatus.pending
+
+        self.obj = mock.Mock()
+        self.obj.remove_tag(self.obj.release.pending_testing_tag)
+        self.obj.remove_tag.assert_called_once_with(self.obj.release.pending_testing_tag)
 
     @mock.patch('bodhi.server.models.buildsys.get_session')
     def test_set_request_resubmit_candidate_tag_missing(self, get_session):
