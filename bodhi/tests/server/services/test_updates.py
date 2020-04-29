@@ -386,7 +386,7 @@ class TestNewUpdate(BasePyTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
         assert re.search(r'https://koji.fedoraproject.org/koji/search\?terms=.*\&amp;'
-                         r'type=build\&amp;match=glob', str(resp))
+                         r'type=build\&amp;match=exact', str(resp))
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_url_without_trailing_slash(self, *args):
@@ -401,7 +401,7 @@ class TestNewUpdate(BasePyTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
         assert re.search(r'https://koji.fedoraproject.org/koji/search\?terms=.*\&amp;'
-                         r'type=build\&amp;match=glob', str(resp))
+                         r'type=build\&amp;match=exact', str(resp))
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_mock_url_without_trailing_slash(self, *args):
@@ -416,7 +416,7 @@ class TestNewUpdate(BasePyTestCase):
 
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
-        assert re.search(r'https://host.org/search\?terms=.*\&amp;type=build\&amp;match=glob',
+        assert re.search(r'https://host.org/search\?terms=.*\&amp;type=build\&amp;match=exact',
                          str(resp))
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
