@@ -503,7 +503,7 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
                 query = base_query[:]
                 query.insert(
                     4,
-                    "AND u.status = 'testing' AND u.request IS NULL"
+                    "AND u.status = 'testing' AND u.request IS NULL and u.critpath = FALSE"
                 )
                 query.insert(
                     5,

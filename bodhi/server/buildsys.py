@@ -387,7 +387,7 @@ class DevBuildsys:
                  'name': 'f28F'},
             ]
         else:
-            release = build.split('.')[-1].replace('fc', 'f')
+            release = build.split('.')[-1].replace('fc', 'f').replace('~bootstrap', '')
             result = [
                 {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                  'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
