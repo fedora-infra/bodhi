@@ -3185,6 +3185,19 @@ class TestUpdate(ModelTest):
 
         assert update.get_title(beautify=True) == 'some human made title'
 
+    @pytest.mark.parametrize('beautify', (False, True))
+    def test_get_title_no_builds(self, beautify):
+        """If the update include no builds, return update alias."""
+        update = self.get_update()
+        update.builds = []
+        assert update.get_title(beautify=beautify) == update.alias
+
+        update.display_name = 'some human made title'
+        if beautify:
+            assert update.get_title(beautify=beautify) == 'some human made title'
+        else:
+            assert update.get_title(beautify=beautify) == update.alias
+
     def test_get_title_with_beautify(self):
         update = self.get_update()
         rpm_build = update.builds[0]

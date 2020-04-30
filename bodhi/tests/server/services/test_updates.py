@@ -2993,8 +2993,8 @@ class TestUpdatesService(BasePyTestCase):
         assert len(body['updates']) == 2
 
         assert body['updates'][0]['title'] == 'bodhi-2.0-1.fc17'
-        # This one has a blank title because it doesn't have any builds associated with it yet.
-        assert body['updates'][1]['title'] == ''
+        # This one uses alias because it doesn't have any builds associated with it yet.
+        assert body['updates'][1]['title'] == body['updates'][1]['alias']
         assert body['updates'][0]['user']['name'] == 'guest'
         assert body['updates'][1]['user']['name'] == 'aUser'
 
