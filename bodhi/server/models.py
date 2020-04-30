@@ -2659,9 +2659,13 @@ class Update(Base):
                 title += " more"
 
                 return title
+            elif len(self.builds) == 0:
+                return self.alias
             else:
                 return " and ".join([build_label(build) for build in self.builds])
         else:
+            if len(self.builds) == 0:
+                return self.alias
             all_nvrs = [x.nvr for x in self.builds]
             nvrs = all_nvrs[:limit]
             builds = delim.join(sorted(nvrs)) + \
