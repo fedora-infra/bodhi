@@ -300,6 +300,8 @@ class BodhiBase(object):
         __exclude_columns__ (tuple): A list of columns to exclude from JSON
         __include_extras__ (tuple): A list of methods or attrs to include in JSON
         __get_by__ (tuple): A list of columns that :meth:`.get` will query.
+        __relation_fields__ (tuple): A list of columns to include in JSON when
+            the object is referenced as relation inside another object.
         id (int): An integer id that serves as the default primary key.
         query (sqlalchemy.orm.query.Query): a class property which produces a
             Query object against the class and the current Session when called.
@@ -308,6 +310,7 @@ class BodhiBase(object):
     __exclude_columns__ = ('id',)
     __include_extras__ = tuple()
     __get_by__ = ()
+    __relation_fields__ = ('id',)
 
     id = Column(Integer, primary_key=True)
 
@@ -366,7 +369,8 @@ class BodhiBase(object):
         return self._to_json(self, request=request, exclude=exclude, include=include)
 
     @classmethod
-    def _to_json(cls, obj, seen=None, request=None, exclude=None, include=None):
+    def _to_json(cls, obj, seen=None, request=None, exclude=None, include=None,
+                 relation_fields=None):
         """
         Return a JSON representation of obj.
 
@@ -381,6 +385,9 @@ class BodhiBase(object):
             include (iterable or None): An iterable of strings naming the extra attributes to
                 include in the JSON representation of the model. If None (the default), the class's
                 __include_extras__ attribute will be used.
+            __relation_fields__ (iterable or None): A list of columns to include in JSON when
+                the object is referenced as relation inside another object. If None (the default),
+                the class's __relation_fields__ attribute will be used.
         Returns:
             dict: A dict representation of the model suitable for serialization.
         """
@@ -391,28 +398,42 @@ class BodhiBase(object):
 
         if exclude is None:
             exclude = getattr(obj, '__exclude_columns__', [])
+        if include is None:
+            include = getattr(obj, '__include_extras__', [])
         properties = list(class_mapper(type(obj)).iterate_properties)
         rels = [p.key for p in properties if isinstance(p, RelationshipProperty)]
         attrs = [p.key for p in properties if p.key not in rels]
-        d = dict([(attr, getattr(obj, attr)) for attr in attrs
-                  if attr not in exclude and not attr.startswith('_')])
-
-        if include is None:
-            include = getattr(obj, '__include_extras__', [])
-
-        for name in include:
-            attribute = getattr(obj, name)
-            if callable(attribute):
-                attribute = attribute(request)
-            d[name] = attribute
-
-        for attr in rels:
-            if attr in exclude:
-                continue
-            target = getattr(type(obj), attr).property.mapper.class_
-            if target in seen:
-                continue
-            d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
+        if not relation_fields:
+            d = dict([(attr, getattr(obj, attr)) for attr in attrs
+                     if attr not in exclude and not attr.startswith('_')])
+            for name in include:
+                attribute = getattr(obj, name)
+                if callable(attribute):
+                    attribute = attribute(request)
+                d[name] = attribute
+            for attr in rels:
+                if attr in exclude:
+                    continue
+                target = getattr(type(obj), attr).property.mapper.class_
+                if target in seen:
+                    continue
+                d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
+        else:
+            d = dict([(attr, getattr(obj, attr)) for attr in attrs if attr in relation_fields])
+            for name in include:
+                if name not in relation_fields:
+                    continue
+                attribute = getattr(obj, name)
+                if callable(attribute):
+                    attribute = attribute(request)
+                d[name] = attribute
+            for attr in rels:
+                if attr not in relation_fields:
+                    continue
+                target = getattr(type(obj), attr).property.mapper.class_
+                if target in seen:
+                    continue
+                d[attr] = cls._expand(obj, getattr(obj, attr), seen, request)
 
         for key, value in d.items():
             if isinstance(value, datetime):
@@ -440,7 +461,9 @@ class BodhiBase(object):
         if hasattr(relation, '__iter__'):
             return [cls._expand(obj, item, seen, req) for item in relation]
         if type(relation) not in seen:
-            return cls._to_json(relation, seen + [type(obj)], req)
+            relation_fields = getattr(relation, '__relation_fields__', [])
+            return cls._to_json(relation, seen + [type(obj)], req,
+                                relation_fields=relation_fields)
         else:
             return relation.id
 
@@ -799,6 +822,7 @@ class Release(Base):
     __tablename__ = 'releases'
     __exclude_columns__ = ('id', 'builds')
     __get_by__ = ('name', 'long_name', 'dist_tag')
+    __relation_fields__ = ('id', 'name', 'long_name')
 
     name = Column(Unicode(10), unique=True, nullable=False)
     long_name = Column(Unicode(25), unique=True, nullable=False)
@@ -824,6 +848,10 @@ class Release(Base):
 
     package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
     testing_repository = Column(UnicodeText, nullable=True)
+
+    # One-to-many relationships
+    # builds backref from Build
+    # composes backref from Compose
 
     @property
     def critpath_min_karma(self) -> int:
@@ -1024,11 +1052,17 @@ class TestCase(Base):
 
     __tablename__ = 'testcases'
     __get_by__ = ('name',)
+    __exclude_columns__ = ('id', 'package', 'feedback',)
+    __relation_fields__ = ('id', 'name',)
 
     name = Column(UnicodeText, nullable=False)
 
+    # Many-to-one relationships
     package_id = Column(Integer, ForeignKey('packages.id'))
-    # package backref
+    # package backref from Package
+
+    # One-to-many relationships
+    # feedback backref from TestCaseKarma
 
 
 class Package(Base):
@@ -1051,12 +1085,14 @@ class Package(Base):
     __tablename__ = 'packages'
     __get_by__ = ('name',)
     __exclude_columns__ = ('id', 'test_cases', 'builds',)
+    __relation_fields__ = ('id', 'name',)
 
     name = Column(UnicodeText, nullable=False)
     requirements = Column(UnicodeText)
     type = Column(ContentType.db_type(), nullable=False)
 
-    builds = relationship('Build', backref=backref('package', lazy='joined'))
+    # One-to-many relationships
+    builds = relationship('Build', backref=backref('package', lazy='joined', innerjoin=True))
     test_cases = relationship('TestCase', backref='package', order_by="TestCase.id")
 
     __mapper_args__ = {
@@ -1348,17 +1384,22 @@ class Build(Base):
     """
 
     __tablename__ = 'builds'
-    __exclude_columns__ = ('id', 'package', 'package_id', 'release',
-                           'update_id', 'update', 'override')
+    __exclude_columns__ = ('id', 'package', 'release', 'update', 'override')
     __get_by__ = ('nvr',)
+    __relation_fields__ = ('id', 'nvr', 'type', 'signed')
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
-    package_id = Column(Integer, ForeignKey('packages.id'), nullable=False)
-    release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
-    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
 
-    release = relationship('Release', backref='builds', lazy=False)
+    # Many-to-one relationships
+    package_id = Column(Integer, ForeignKey('packages.id'), nullable=False)
+    # package backref from Package
+
+    release_id = Column(Integer, ForeignKey('releases.id'))
+    release = relationship('Release', backref='builds', lazy='joined')
+
+    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
+    # update backref from Update
 
     type = Column(ContentType.db_type(), nullable=False)
     __mapper_args__ = {
@@ -1787,6 +1828,8 @@ class Update(Base):
     __exclude_columns__ = ('id', 'user_id', 'release_id')
     __include_extras__ = ('meets_testing_requirements', 'url', 'title', 'version_hash')
     __get_by__ = ('alias',)
+    __relation_fields__ = ('id', 'alias', 'request', 'status', 'title',
+                           'builds', 'user', 'release')
 
     autokarma = Column(Boolean, default=True, nullable=False)
     autotime = Column(Boolean, default=True, nullable=False)
@@ -1828,15 +1871,13 @@ class Update(Base):
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(64), unique=True, nullable=False)
 
-    # One-to-one relationships
+    # Many-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)
-    release = relationship('Release', lazy='joined')
+    release = relationship('Release', lazy='joined', innerjoin=True)
 
-    # One-to-many relationships
-    comments = relationship('Comment', backref=backref('update', lazy='joined'), lazy='joined',
-                            order_by='Comment.timestamp')
-    builds = relationship('Build', backref=backref('update', lazy='joined'), lazy='joined',
-                          order_by='Build.nvr')
+    user_id = Column(Integer, ForeignKey('users.id'))
+    # user backref from User
+
     # If the update is locked and a Compose exists for the same release and request, this will be
     # set to that Compose.
     compose = relationship(
@@ -1846,10 +1887,13 @@ class Update(Base):
         foreign_keys=(release_id, request),
         backref=backref('updates', passive_deletes=True))
 
-    # Many-to-many relationships
-    bugs = relationship('Bug', secondary=update_bug_table, backref='updates', order_by='Bug.bug_id')
+    # One-to-many relationships
+    comments = relationship('Comment', backref='update', order_by='Comment.timestamp')
+    builds = relationship('Build', backref='update', order_by='Build.nvr')
 
-    user_id = Column(Integer, ForeignKey('users.id'))
+    # Many-to-many relationships
+    bugs = relationship('Bug', secondary=update_bug_table, backref='updates',
+                        order_by='Bug.bug_id')
 
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
@@ -3285,16 +3329,15 @@ class Update(Base):
                 notice = 'You may not give karma to your own updates.'
                 caveats.append({'name': 'karma', 'description': notice})
 
-        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath)
-        session.add(comment)
-
         try:
             user = session.query(User).filter_by(name=author).one()
         except NoResultFound:
             user = User(name=author)
             session.add(user)
 
-        user.comments.append(comment)
+        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath, user=user)
+        session.add(comment)
+
         self.comments.append(comment)
         session.flush()
 
@@ -4258,9 +4301,12 @@ class BugKarma(Base):
     """
 
     __tablename__ = 'comment_bug_assoc'
+    __exclude_columns__ = ('id', 'comment', 'bug',)
+    __relation_fields__ = ('id', 'karma',)
 
     karma = Column(Integer, default=0)
 
+    # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
     comment = relationship("Comment", backref='bug_feedback')
 
@@ -4280,9 +4326,12 @@ class TestCaseKarma(Base):
     """
 
     __tablename__ = 'comment_testcase_assoc'
+    __exclude_columns__ = ('id', 'comment', 'testcase',)
+    __relation_fields__ = ('id', 'karma',)
 
     karma = Column(Integer, default=0)
 
+    # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
     comment = relationship("Comment", backref='testcase_feedback')
 
@@ -4301,21 +4350,31 @@ class Comment(Base):
         text (str): The text of the comment.
         timestamp (datetime.datetime): The time the comment was created. Defaults to
             the return value of datetime.utcnow().
+        update_id (int): The primary key of the :class:`Update` associated to this comment.
         update (Update): The update that this comment pertains to.
+        user_id (int): The primary key of the :class:`User` who posted this comment.
         user (User): The user who wrote this comment.
     """
 
     __tablename__ = 'comments'
-    __exclude_columns__ = tuple()
+    __exclude_columns__ = ('update_id', 'user_id',)
     __get_by__ = ('id',)
+    __relation_fields__ = ('id', 'karma', 'text', 'timestamp', 'user',)
 
     karma = Column(Integer, default=0)
     karma_critpath = Column(Integer, default=0)
     text = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
+    # One-to-many relationships
+    # bug_feedback backref from BugKarma
+    # testcase_feedback backref from TestCaseKarma
+
+    # Many-to-one relationships
     update_id = Column(Integer, ForeignKey('updates.id'), index=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    # update backref from Update
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    # user backref from User
 
     def url(self) -> str:
         """
@@ -4369,18 +4428,19 @@ class Comment(Base):
             A JSON-serializable dict representation of this comment.
         """
         result = super(Comment, self).__json__(*args, **kwargs)
-        # Duplicate 'user' as 'author' just for backwards compat with bodhi1.
-        # Things like the message schemas and fedbadges rely on this.
-        if result['user']:
-            result['author'] = result['user']['name']
 
-        # Similarly, duplicate the update's alias as update_alias.
-        result['update_alias'] = result['update']['alias']
+        if 'relation_fields' not in kwargs:
+            # Duplicate 'user' as 'author' just for backwards compat with bodhi1.
+            # Things like the message schemas and fedbadges rely on this.
+            result['author'] = self.user.name
 
-        # Updates used to have a karma column which would be included in result['update']. The
-        # column was replaced with a property, so we need to include it here for backwards
-        # compatibility.
-        result['update']['karma'] = self.update.karma
+            # Similarly, duplicate the update's alias as update_alias.
+            result['update_alias'] = self.update.alias
+
+            # Updates used to have a karma column which would be included in result['update']. The
+            # column was replaced with a property, so we need to include it here for backwards
+            # compatibility.
+            result['update']['karma'] = self.update.karma
 
         return result
 
@@ -4409,8 +4469,10 @@ class Bug(Base):
     """
 
     __tablename__ = 'bugs'
-    __exclude_columns__ = ('id', 'updates')
+    __exclude_columns__ = ('id',)
+    __include_extras__ = ('url',)
     __get_by__ = ('bug_id',)
+    __relation_fields__ = ('bug_id', 'title',)
 
     # Bug number. If None, assume ``url`` points to an external bug tracker
     bug_id = Column(Integer, unique=True)
@@ -4423,6 +4485,10 @@ class Bug(Base):
 
     # If this bug is a parent tracker bug for release-specific bugs
     parent = Column(Boolean, default=False)
+
+    # Many-to-many relationships
+    # updates backref from Update
+    # feedback backref from BugKarma
 
     @property
     def url(self) -> str:
@@ -4572,6 +4638,7 @@ class User(Base):
     __exclude_columns__ = ('comments', 'updates', 'buildroot_overrides')
     __include_extras__ = ('avatar', 'openid')
     __get_by__ = ('name',)
+    __relation_fields__ = ('id', 'name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
     email = Column(UnicodeText)
@@ -4579,6 +4646,7 @@ class User(Base):
     # One-to-many relationships
     comments = relationship(Comment, backref=backref('user'), lazy='dynamic')
     updates = relationship(Update, backref=backref('user'), lazy='dynamic')
+    # buildroot_overrides backref from BuildrootOverride
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
@@ -4625,10 +4693,12 @@ class Group(Base):
     __tablename__ = 'groups'
     __get_by__ = ('name',)
     __exclude_columns__ = ('id',)
+    __relation_fields__ = ('id', 'name',)
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
-    # users backref
+    # Many-to-many relationships
+    # users backref from User
 
 
 class BuildrootOverride(Base):
@@ -4652,23 +4722,24 @@ class BuildrootOverride(Base):
     """
 
     __tablename__ = 'buildroot_overrides'
+    __exclude_columns__ = ('build_id', 'submitter_id',)
     __include_extras__ = ('nvr',)
     __get_by__ = ('build_id',)
 
-    build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
-    submitter_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     notes = Column(Unicode, nullable=False)
 
     submission_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     expiration_date = Column(DateTime, nullable=False)
     expired_date = Column(DateTime)
 
-    build = relationship('Build', lazy='joined',
-                         backref=backref('override', lazy='joined',
-                                         uselist=False))
-    submitter = relationship('User', lazy='joined',
-                             backref=backref('buildroot_overrides',
-                                             lazy='joined'))
+    # Many-to-one relationships
+    build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
+    build = relationship('Build', lazy='joined', innerjoin=True,
+                         backref=backref('override', uselist=False))
+
+    submitter_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    submitter = relationship('User', lazy='joined', innerjoin=True,
+                             backref='buildroot_overrides')
 
     @property
     def nvr(self) -> str:

@@ -122,11 +122,7 @@ class TestBodhiBase(BasePyTestCase):
         assert 'text' in j_with_text
 
         j = c.__json__(exclude=['text'])
-
         assert 'text' not in j
-        # If we remove the 'text' attribute from j_with_text, j should be equal to what remains.
-        del j_with_text['text']
-        assert j == j_with_text
 
     def test___json___include(self):
         """Test __json__()'s include flag."""
@@ -149,11 +145,7 @@ class TestBodhiBase(BasePyTestCase):
         assert 'text' in j_with_text
 
         j = model.Comment._to_json(c, exclude=['text'])
-
         assert 'text' not in j
-        # If we remove the 'text' attribute from j_with_text, j should be equal to what remains.
-        del j_with_text['text']
-        assert j == j_with_text
 
     def test__to_json_include(self):
         """Test _to_json()'s include flag."""
@@ -183,12 +175,43 @@ class TestBodhiBase(BasePyTestCase):
         j = b._to_json(b, seen=None)
 
         assert j == (
-            {'release_id': 1, 'epoch': b.epoch, 'nvr': b.nvr,
-             'signed': b.signed, 'type': str(b.type.value)})
+            {'package_id': 1, 'release_id': 1, 'update_id': 1, 'epoch': b.epoch,
+             'nvr': b.nvr, 'signed': b.signed, 'type': str(b.type.value)})
+
+    def test__to_json_with_seen(self):
+        """Assert correct behavior from _to_json() when seen is set."""
+        c = model.Comment.query.all()[0]
+
+        c_with = c._to_json(c, seen=None)
+        assert 'update' in c_with
+
+        c_without = c._to_json(c, seen=[type(c.update)])
+        del c_with['update']
+        assert c_with == c_without
+
+    def test__to_json_with_seen_inside_relation(self):
+        """Assert correct behavior from _to_json() when seen is set."""
+        c = model.Comment.query.all()[0]
+
+        c_with = c._to_json(c, seen=None, relation_fields=('id', 'text', 'update'))
+        assert 'update' in c_with
+
+        c_without = c._to_json(c, seen=[type(c.update)], relation_fields=('id', 'text', 'update'))
+        del c_with['update']
+        assert c_with == c_without
+
+    def test__to_json_callable_inside_relation(self):
+        """Assert a callable inside a reation is correctly serialized."""
+        c = model.Comment.query.all()[0]
+
+        c.update.__relation_fields__ = ('url', )
+        j = c._to_json(c)
+        assert 'url' in j['update']
 
     def test_grid_columns(self):
         """Assert correct return value from the grid_columns() method."""
-        assert model.Build.grid_columns() == ['nvr', 'release_id', 'signed', 'type', 'epoch']
+        assert model.Build.grid_columns() == ['nvr', 'signed', 'package_id',
+                                              'release_id', 'update_id', 'type', 'epoch']
 
     def test_find_child_for_rpm(self):
         subclass = model.Package.find_polymorphic_child(model.ContentType.rpm)

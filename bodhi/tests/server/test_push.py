@@ -202,9 +202,9 @@ TEST_ABORT_PUSH_EXPECTED_OUTPUT = """
 
 ===== <Compose: F17 testing> =====
 
+bodhi-2.0-1.fc17
 python-nose-1.3.7-11.fc17
 python-paste-deploy-1.5.2-8.fc17
-bodhi-2.0-1.fc17
 
 
 Push these 3 updates? [y/N]: n
@@ -215,8 +215,8 @@ TEST_BUILDS_FLAG_EXPECTED_OUTPUT = """
 
 ===== <Compose: F17 testing> =====
 
-ejabberd-16.09-4.fc17
 python-nose-1.3.7-11.fc17
+ejabberd-16.09-4.fc17
 
 
 Push these 2 updates? [y/N]: y
@@ -230,9 +230,9 @@ TEST_YES_FLAG_EXPECTED_OUTPUT = """
 
 ===== <Compose: F17 testing> =====
 
+bodhi-2.0-1.fc17
 python-nose-1.3.7-11.fc17
 python-paste-deploy-1.5.2-8.fc17
-bodhi-2.0-1.fc17
 
 
 Pushing 3 updates.
@@ -295,8 +295,8 @@ TEST_REQUEST_FLAG_EXPECTED_OUTPUT = """
 
 ===== <Compose: F17 testing> =====
 
-python-paste-deploy-1.5.2-8.fc17
 bodhi-2.0-1.fc17
+python-paste-deploy-1.5.2-8.fc17
 
 
 Push these 2 updates? [y/N]: y

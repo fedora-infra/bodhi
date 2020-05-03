@@ -306,7 +306,7 @@ class TestOverridesService(base.BasePyTestCase):
             res = self.app.post('/overrides/', data)
 
         o = res.json_body
-        assert o['build_id'] == build.id
+        assert o['build']['id'] == build.id
         assert o['notes'] == 'blah blah blah'
         assert o['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
         assert o['expired_date'] is None
@@ -357,7 +357,7 @@ class TestOverridesService(base.BasePyTestCase):
             res = self.app.post('/overrides/', data)
 
         o = res.json_body
-        assert o['build_id'] == build.id
+        assert o['build']['id'] == build.id
         assert o['notes'] == 'blah blah blah'
         assert o['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
         assert o['expired_date'] is None
@@ -405,11 +405,11 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         assert result['caveats'][0]['description'] == 'Your override submission was split into 2.'
 
         o1, o2 = result['overrides']
-        assert o1['build_id'] == build1.id
+        assert o1['build']['id'] == build1.id
         assert o1['notes'] == 'blah blah blah'
         assert o1['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
         assert o1['expired_date'] is None
-        assert o2['build_id'] == build2.id
+        assert o2['build']['id'] == build2.id
         assert o2['notes'] == 'blah blah blah'
         assert o2['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
         assert o2['expired_date'] is None
@@ -451,7 +451,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
             res = self.app.post('/overrides/', data)
 
         o = res.json_body
-        assert o['build_id'] == build.id
+        assert o['build']['id'] == build.id
         assert o['notes'] == 'blah blah blah'
         assert o['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
         assert o['expired_date'] is None
@@ -469,7 +469,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
                            headers={'Accept': 'application/json'})
         o = res.json_body['override']
         expiration_date = o['expiration_date']
-        old_build_id = o['build_id']
+        old_build_id = o['build']['id']
 
         build = RpmBuild(nvr='bodhi-2.0-2.fc17', release=release,
                          package=RpmPackage.query.filter_by(name='bodhi').one())
@@ -486,7 +486,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
             res = self.app.post('/overrides/', o)
 
         override = res.json_body
-        assert override['build_id'] == old_build_id
+        assert override['build']['id'] == old_build_id
         assert override['notes'] == 'blah blah blah'
         assert override['expiration_date'] == expiration_date
         assert override['expired_date'] is None
@@ -567,7 +567,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         res = self.app.get('/overrides/%s' % old_nvr,
                            headers={'Accept': 'application/json'})
         o = res.json_body['override']
-        build_id = o['build_id']
+        build_id = o['build']['id']
         expiration_date = o['expiration_date']
 
         o.update({'nvr': old_nvr, 'notes': 'blah blah blah blah',
@@ -575,7 +575,7 @@ new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
         res = self.app.post('/overrides/', o)
 
         override = res.json_body
-        assert override['build_id'] == build_id
+        assert override['build']['id'] == build_id
         assert override['notes'] == 'blah blah blah blah'
         assert override['expiration_date'] == expiration_date
         assert override['expired_date'] is None

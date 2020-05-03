@@ -1,0 +1,1 @@
+The user_id column in comments table has been set to be not nullable

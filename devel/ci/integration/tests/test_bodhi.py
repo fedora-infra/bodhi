@@ -475,7 +475,7 @@ def test_get_users_json(bodhi_container, db_container):
     )
     query_groups = (
         "SELECT "
-        "  groups.name as group_name "
+        "  groups.id as group_id, groups.name as group_name "
         "FROM user_group_table "
         "JOIN groups ON user_group_table.group_id = groups.id "
         "WHERE user_group_table.user_id = %s"
@@ -500,7 +500,7 @@ def test_get_users_json(bodhi_container, db_container):
                 rows = curs.fetchall()
                 user_groups = []
                 for row in rows:
-                    user_groups.append({"name": row[0]})
+                    user_groups.append({"id": row[0], "name": row[1]})
                 user["groups"] = user_groups
             curs.execute(query_total_users)
             total = curs.fetchone()[0]
@@ -544,7 +544,7 @@ def test_get_user_json(bodhi_container, db_container):
     )
     query_groups = (
         "SELECT "
-        "  groups.name as group_name "
+        "  groups.id as group_id, groups.name as group_name "
         "FROM user_group_table "
         "JOIN groups ON user_group_table.group_id = groups.id "
         "WHERE user_group_table.user_id = %s"
@@ -562,7 +562,7 @@ def test_get_user_json(bodhi_container, db_container):
             rows = curs.fetchall()
             user_groups = []
             for row in rows:
-                user_groups.append({"name": row[0]})
+                user_groups.append({"id": row[0], "name": row[1]})
     conn.close()
 
     if user_name.startswith('packagerbot/'):
@@ -911,7 +911,9 @@ def test_get_build_json(bodhi_container, db_container):
         "  release_id, "
         "  signed, "
         "  type, "
-        "  epoch "
+        "  epoch, "
+        "  package_id, "
+        "  update_id "
         "FROM builds "
         "WHERE update_id = %s LIMIT 1"
     )
@@ -922,7 +924,7 @@ def test_get_build_json(bodhi_container, db_container):
             curs.execute(query_updates)
             update_id = curs.fetchone()[0]
             curs.execute(query_builds, (update_id, ))
-            nvr, release_id, signed, build_type, epoch = curs.fetchone()
+            nvr, release_id, signed, build_type, epoch, package_id, update_id = curs.fetchone()
     conn.close()
 
     # GET on build
@@ -931,6 +933,7 @@ def test_get_build_json(bodhi_container, db_container):
 
     build = {
         "nvr": nvr, "release_id": release_id, "signed": signed, "type": build_type,
+        "package_id": package_id, "update_id": update_id,
     }
     if build_type == 'rpm':
         build["epoch"] = epoch
@@ -961,7 +964,9 @@ def test_get_builds_json(bodhi_container, db_container):
         "  release_id, "
         "  signed, "
         "  type, "
-        "  epoch "
+        "  epoch, "
+        "  package_id, "
+        "  update_id "
         "FROM builds "
         "WHERE update_id = %s"
         "ORDER BY nvr ASC"
@@ -1026,25 +1031,9 @@ def test_get_compose_json(bodhi_container, db_container):
     # Fetch release for compose from the DB
     query_releases = (
         "SELECT "
+        "  id, "
         "  name, "
-        "  long_name, "
-        "  version, "
-        "  id_prefix, "
-        "  branch, "
-        "  dist_tag, "
-        "  stable_tag, "
-        "  testing_tag, "
-        "  candidate_tag, "
-        "  pending_signing_tag, "
-        "  pending_testing_tag, "
-        "  pending_stable_tag, "
-        "  override_tag, "
-        "  mail_template, "
-        "  state, "
-        "  composed_by_bodhi, "
-        "  create_automatic_updates, "
-        "  package_manager, "
-        "  testing_repository "
+        "  long_name "
         "FROM releases "
         "WHERE id = %s "
     )

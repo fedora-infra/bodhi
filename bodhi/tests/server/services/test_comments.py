@@ -103,7 +103,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert'errors' not in res.json_body
         assert'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
         assert res.json_body['comment']['karma_critpath'] == -1
 
     def test_commenting_with_bug_feedback(self):
@@ -117,7 +117,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
         assert'bug_feedback' in res.json_body['comment']
         feedback = res.json_body['comment']['bug_feedback']
         assert len(feedback) == 1
@@ -133,7 +133,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
         assert'testcase_feedback' in res.json_body['comment']
         feedback = res.json_body['comment']['testcase_feedback']
         assert len(feedback) == 1
@@ -145,7 +145,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
 
     def test_commenting_twice_with_neutral_karma(self):
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
@@ -154,7 +154,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
 
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
             res = self.app.post_json('/comments/', self.make_comment())
@@ -162,7 +162,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
 
     def test_commenting_twice_with_double_positive_karma(self):
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
@@ -171,7 +171,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
         assert res.json_body['comment']['karma'] == 1
         assert res.json_body['comment']['update']['karma'] == 1
 
@@ -181,7 +181,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
         # Mainly, ensure that the karma didn't increase *again*
         assert res.json_body['comment']['update']['karma'] == 1
 
@@ -192,7 +192,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
         assert res.json_body['comment']['update']['karma'] == 1
 
         with fml_testing.mock_sends(update_schemas.UpdateCommentV1):
@@ -201,7 +201,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
 
         # Mainly, ensure that original karma is overwritten..
         assert res.json_body['comment']['update']['karma'] == -1
@@ -214,7 +214,7 @@ class TestCommentsService(base.BasePyTestCase):
         assert 'errors' not in res.json_body
         assert 'comment' in res.json_body
         assert res.json_body['comment']['text'] == 'Test'
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
         assert res.json_body['comment']['update']['karma'] == -1
 
     def test_empty_comment(self):
@@ -242,8 +242,8 @@ class TestCommentsService(base.BasePyTestCase):
 
     def test_get_single_comment(self):
         res = self.app.get('/comments/1')
-        assert res.json_body['comment']['update_id'] == 1
-        assert res.json_body['comment']['user_id'] == 1
+        assert res.json_body['comment']['update']['id'] == 1
+        assert res.json_body['comment']['user']['id'] == 1
         assert res.json_body['comment']['id'] == 1
 
     def test_get_single_comment_page(self):
@@ -257,7 +257,7 @@ class TestCommentsService(base.BasePyTestCase):
                            headers=dict(accept='application/javascript'))
         assert 'application/javascript' in res.headers['Content-Type']
         assert 'callback' in res
-        assert 'libravatar.org' in res
+        assert 'karma' in res
 
     def test_404(self):
         self.app.get('/comments/a', status=400)

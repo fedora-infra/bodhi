@@ -1,0 +1,1 @@
+Improved Bodhi performance in quering object lists and serializing objects. This changes the JSON schema of some objects, especially when returning inherited objects

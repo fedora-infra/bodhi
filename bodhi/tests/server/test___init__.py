@@ -124,7 +124,7 @@ class TestGetUser(base.BasePyTestCase):
 
         user = server.get_user(Request())
 
-        assert user['groups'] == [{'name': 'packager'}]
+        assert user['groups'] == [{'id': 2, 'name': 'packager'}]
         assert user['name'] == 'guest'
         assert isinstance(user, munch.Munch)
 
