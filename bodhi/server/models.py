@@ -4400,8 +4400,6 @@ class Bug(Base):
         bug_id (int): The bug's id.
         title (str): The description of the bug.
         security (bool): True if the bug is marked as a security issue.
-        url (str): The URL for the bug. Inaccessible due to being overridden by the url
-            property (https://github.com/fedora-infra/bodhi/issues/1995).
         parent (bool): True if this is a parent tracker bug for release-specific bugs.
     """
 
@@ -4417,9 +4415,6 @@ class Bug(Base):
 
     # If we're dealing with a security bug
     security = Column(Boolean, default=False)
-
-    # Bug URL.  If None, then assume it's in Red Hat Bugzilla
-    url = Column('url', UnicodeText)
 
     # If this bug is a parent tracker bug for release-specific bugs
     parent = Column(Boolean, default=False)
