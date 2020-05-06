@@ -25,6 +25,7 @@ import celery
 
 from bodhi.server import bugs, buildsys, initialize_db
 from bodhi.server.config import config
+from bodhi.server.exceptions import ExternalCallException
 from bodhi.server.util import pyfile_to_module
 
 
@@ -143,3 +144,23 @@ def tag_update_builds_task(tag: str, builds: typing.List[str]):
     log.info("Received an order to tag builds for an update")
     _do_init()
     main(tag, builds)
+
+
+@app.task(name="bodhi.server.tasks.work_on_bugs", autoretry_for=(ExternalCallException,),
+          retry_kwargs={'max_retries': 5}, retry_backoff=True)
+def work_on_bugs_task(update: str, bugs: typing.List[int]):
+    """Iterate the list of bugs, retrieving information from Bugzilla and modifying them."""
+    from .work_on_bugs import main
+    log.info("Received an order to fetch bugs and update their details")
+    _do_init()
+    main(update, bugs)
+
+
+@app.task(name="bodhi.server.tasks.fetch_test_cases", autoretry_for=(ExternalCallException,),
+          retry_kwargs={'max_retries': 5}, retry_backoff=True)
+def fetch_test_cases_task(update: str):
+    """Query the wiki for test cases for each package on the given update."""
+    from .fetch_test_cases import main
+    log.info("Received an order to fetch test cases")
+    _do_init()
+    main(update)

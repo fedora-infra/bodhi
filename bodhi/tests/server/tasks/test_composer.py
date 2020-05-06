@@ -1980,6 +1980,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     @mock.patch('bodhi.server.util.cmd')
+    @mock.patch('bodhi.server.models.Update.update_test_gating_status', mock.Mock())
     def test_retry_done_compose(self, mock_cmd, sleep,
                                 mock_wait_for_sync, mock_generate_updateinfo,
                                 mock_wait_for_repo_signature, mock_stage_repo,
