@@ -1,4 +1,0 @@
-Revise display for update's settings
-    
-Showed a 'stable by karma: disabled' and a 'stable by time: disabled' in
-the UI when appropriate. Also added a 'Autotime: <Bool>' to the CLI output.
