@@ -39,7 +39,7 @@ class TestGetTemplate(BasePyTestCase):
         t = mail.get_template(u)
 
         # Assemble the template for easier asserting.
-        t = '\n'.join([l for l in t[0]])
+        t = '\n'.join([line for line in t[0]])
         assert 'ChangeLog:' in t
         assert '* Sat Aug  3 2013 Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1' in t
         assert '- Added some bowlofeggs charm.' in t
@@ -57,7 +57,7 @@ class TestGetTemplate(BasePyTestCase):
         t = mail.get_template(u)
 
         # Assemble the template for easier asserting.
-        t = '\n'.join([l for l in t[0]])
+        t = '\n'.join([line for line in t[0]])
         assert 'ChangeLog:' in t
         assert '* Sat Aug  3 2013 Randy Barlow <bowlofeggs@fp.o> - 2.2.0-1' in t
         assert '- Added some bowlofeggs charm.' in t
@@ -74,7 +74,7 @@ class TestGetTemplate(BasePyTestCase):
         t = mail.get_template(u)
 
         # Assemble the template for easier asserting.
-        t = '\n'.join([l for l in t[0]])
+        t = '\n'.join([line for line in t[0]])
         assert '\xe7' in t
 
     def test_module_build(self):
@@ -89,7 +89,7 @@ class TestGetTemplate(BasePyTestCase):
         t = mail.get_template(update)
 
         # Assemble the template for easier asserting.
-        t = '\n'.join([l for l in t[0]])
+        t = '\n'.join([line for line in t[0]])
         # No changelog should appear. We can just verify that there's a blank line where the
         # changelog would be.
         assert '----\n\nThis update can be installed' in t
@@ -107,7 +107,7 @@ class TestGetTemplate(BasePyTestCase):
         t = mail.get_template(u)
 
         # Assemble the template for easier asserting.
-        t = '\n'.join([l for l in t[0]])
+        t = '\n'.join([line for line in t[0]])
         assert '54321 - this should appear' in t
         assert 'this should not appear' not in t
         assert debug.call_count == 1
@@ -123,7 +123,7 @@ class TestGetTemplate(BasePyTestCase):
         t = mail.get_template(u)
 
         # Assemble the template for easier asserting.
-        t = '\n'.join([l for l in t[0]])
+        t = '\n'.join([line for line in t[0]])
         assert '--enablerepo=updates-testing' not in t
         assert 'Fedora Test Update Notification' not in t
         # The advisory flag should be included in the dnf instructions.
@@ -137,7 +137,7 @@ class TestGetTemplate(BasePyTestCase):
         t = mail.get_template(u)
 
         # Assemble the template for easier asserting.
-        t = '\n'.join([l for l in t[0]])
+        t = '\n'.join([line for line in t[0]])
         assert '--enablerepo=updates-testing' in t
         assert 'Fedora Test Update Notification' in t
         # The advisory flag should be included in the dnf instructions.

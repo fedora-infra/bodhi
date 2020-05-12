@@ -53,6 +53,7 @@ from bodhi.server.util import (
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import pyramid  # noqa: 401
+    import bugzilla # noqa: 401
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe

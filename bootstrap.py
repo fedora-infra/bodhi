@@ -172,7 +172,7 @@ def setup_develop():
     if VENVWRAPPER:
         workon = os.getenv("WORKON_HOME")
     cmd = '{workon}/{env}/bin/python setup.py develop'.format(
-        envs=ENVS, env=VENV, workon=workon)
+        env=VENV, workon=workon)
     print(cmd)
     subprocess.call(cmd.split())
 
@@ -186,7 +186,7 @@ def install_test_deps():
     if VENVWRAPPER:
         workon = os.getenv("WORKON_HOME")
     cmd = '{workon}/{env}/bin/pip install pytest-cov webtest mock'.format(
-        envs=ENVS, env=VENV, workon=workon)
+        env=VENV, workon=workon)
     print(cmd)
     subprocess.call(cmd.split())
 

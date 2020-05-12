@@ -314,7 +314,7 @@ def sanity_check_repodata(myurl, repo_type):
                 continue
             else:
                 raise RepodataException(
-                    f"DNF did not return expected output when running test!"
+                    "DNF did not return expected output when running test!"
                     + f" Test: {dnfargs}, expected: {expout}, output: {output}")
 
 
