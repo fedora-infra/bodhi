@@ -205,7 +205,7 @@ def test_get_releases_view(bodhi_container, db_container):
     # GET on /releases
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
-        http_response = c.get(f"/releases", headers=headers)
+        http_response = c.get("/releases", headers=headers)
 
     try:
         assert http_response.ok
@@ -806,7 +806,7 @@ def test_get_overrides_view(bodhi_container, db_container):
     # GET on latest overrides
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
-        http_response = c.get(f"/overrides", headers=headers)
+        http_response = c.get("/overrides", headers=headers)
 
     try:
         assert http_response.ok
@@ -851,7 +851,7 @@ def test_get_overrides_rss(bodhi_container, db_container):
 
     # GET on latest overrides
     with bodhi_container.http_client(port="8080") as c:
-        http_response = c.get(f"/rss/overrides")
+        http_response = c.get("/rss/overrides")
 
     bodhi_ip = bodhi_container.get_IPv4s()[0]
 
@@ -1175,7 +1175,7 @@ def test_get_composes_view(bodhi_container, db_container):
     # GET on /composes
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
-        http_response = c.get(f"/composes", headers=headers)
+        http_response = c.get("/composes", headers=headers)
 
     try:
         assert http_response.ok
@@ -1347,7 +1347,7 @@ def test_get_comments_rss(bodhi_container, db_container):
 
     # GET on latest comments
     with bodhi_container.http_client(port="8080") as c:
-        http_response = c.get(f"/rss/comments")
+        http_response = c.get("/rss/comments")
 
     bodhi_ip = bodhi_container.get_IPv4s()[0]
 

@@ -1166,7 +1166,7 @@ class TestEditUpdateForm(BasePyTestCase):
         When creating an update the minimum value of days in testing should be set to 1
         and the value should be empty.
         """
-        resp = self.app.get(f'/updates/new',
+        resp = self.app.get('/updates/new',
                             headers={'accept': 'text/html'})
         assert re.search(r'<input type="number" name="stable_days" placeholder="auto"'
                          r' class="form-control"\n.*min="0" value=""\n.*>',

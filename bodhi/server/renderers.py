@@ -124,7 +124,7 @@ def rss(info):
             """
             def describe(*args, **kwargs):
                 text = f'# {alias(*args, **kwargs)}\n'
-                text += f'## Packages in this update:\n'
+                text += '## Packages in this update:\n'
                 for p in builds(*args, **kwargs):
                     text += f'* {p.nvr}\n'
                 text += f'## Update description:\n{notes(*args, **kwargs)}'
