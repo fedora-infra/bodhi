@@ -1,1 +1,0 @@
-Splitted handle_update task into two celery tasks for bugs and testcases. These two new tasks will make use of Celery's `autoretry_for` and `retry_backoff` features to circumvent external services connection problems. `retry_backoff` needs Celery >= 4.2
