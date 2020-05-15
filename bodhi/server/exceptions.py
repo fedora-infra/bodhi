@@ -28,3 +28,7 @@ class RepodataException(Exception):
 
 class LockedUpdateException(Exception):
     """Raised when something attempts to operate on a locked update."""
+
+
+class ExternalCallException(Exception):
+    """Raised when a call to an external service fails."""

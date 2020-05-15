@@ -1,1 +1,0 @@
-Avoid using a database session in the tag_update_builds_task.
