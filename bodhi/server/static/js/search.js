@@ -87,12 +87,12 @@ $(document).ready(function() {
 
     $(".bodhi-searchbar-input").focus(function() {
         if ($(this).val() != '') {
-            $("#bodhi-searchbar .typeahead__list").attr("style", "display: inline !important");
+            $("#bodhi-searchbar .typeahead__list").removeClass("custom-d-none").addClass("d-block");
         }
     });
 
     $(".bodhi-searchbar-input").blur(function() {
-        $("#bodhi-searchbar .typeahead__list").attr("style", "display: none !important");
+        $("#bodhi-searchbar .typeahead__list").removeClass("d-block").addClass("custom-d-none");
     });
 });
 // @license-end

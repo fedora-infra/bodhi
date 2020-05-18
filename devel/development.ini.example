@@ -17,6 +17,7 @@ f7.post_beta.critpath.min_karma = 2
 cors_origins_ro = *
 cors_origins_rw = http://0.0.0.0:6543
 cors_connect_src = http://0.0.0.0:6543 http://localhost:6543 https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/
+content_security_policy = base-uri 'self'; default-src 'self'; script-src 'self' {nonce} https://*.fedoraproject.org https://bugzilla.redhat.com; style-src 'self'; img-src 'self' https://*.fedoraproject.org https://seccdn.libravatar.org; connect-src 'self' http://localhost:6544 http://localhost:6545 https://*.fedoraproject.org wss://hub.fedoraproject.org:9939 https://bugzilla.redhat.com; object-src 'none'
 pyramid.reload_templates = true
 pyramid.debug_authorization = true
 pyramid.debug_notfound = true

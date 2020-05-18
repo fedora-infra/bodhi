@@ -16,9 +16,6 @@
     <meta name="author" content="Ralph Bean" />
     <meta name="author" content="Randy Barlow" />
 
-    <!-- Only allow websockets connections to fedoraproject.org. -->
-    <meta http-equiv="Content-Security-Policy" content="connect-src ${request.registry.settings['cors_connect_src']}">
-
     <link rel="shortcut icon" href="${request.static_url('bodhi:server/static/ico/favicon.ico')}">
 
     <base href="${request.registry.settings['base_address']}"/>
@@ -94,10 +91,10 @@
 
                     % if request.user:
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        <button class="dropdown-toggle nav-link btn btn-default btn-sm" data-toggle="dropdown">
                             <span class="glyphicon glyphicon-user"></span>
                             <img src="${self.util.avatar(request.user.name, size=24)}" alt="User Icon"/>
-                        </a>
+                        </button>
                         <div class="dropdown-menu dropdown-menu-right">
                             <a class="dropdown-item" href="${request.route_url('home')}">
                                 Dashboard
@@ -191,15 +188,15 @@
       </div>
     </div>
 
-    <script>
+    <script type="text/javascript" nonce="${request.js_nonce}">
       var settings = {
           bz_products: ["${ '","'.join(config['bz_products']) | n }"],
           bz_server_rest: "${config['bz_server_rest']}"
       };
     </script>
     <%block name="javascript">
-    <script src="${request.static_url('bodhi:server/static/vendor/jquery/jquery-1.10.2.min.js')}"></script>
-    <script>
+    <script src="${request.static_url('bodhi:server/static/vendor/jquery/jquery-3.4.1.min.js')}"></script>
+    <script type="text/javascript" nonce="${request.js_nonce}">
       $('#alertModal').on('hidden.bs.modal', function (e) {
           document.location.href = document.baseURI;
       })

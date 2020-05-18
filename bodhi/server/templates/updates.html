@@ -103,7 +103,7 @@ ${parent.css()}
               </div>
               <input name="search" type="text" autocomplete='off' class="form-control" id="updates-search" value="${searchterm}" placeholder="search">
             </div>
-            <div class="dropdown-menu dropdown-menu-right p-3" style="min-width:400px; max-width: 400px" id="filters-dropdown">
+            <div class="dropdown-menu dropdown-menu-right p-3" id="filters-dropdown">
                 % for param, values in parameters.items():
                   % for i, value in enumerate(values):
                     % if (param in allValidParams) and (param not in visibleParams):
@@ -245,7 +245,7 @@ ${parent.css()}
 <%block name="javascript">
 ${parent.javascript()}
 <script src="${request.static_url('bodhi:server/static/vendor/selectize/selectize-0.12.3.min.js')}"></script>
-<script>
+<script type="text/javascript" nonce="${request.js_nonce}">
   var parameters = ${str(request.params.dict_of_lists())|n}
   console.log(parameters)
   $(document).ready(function() {

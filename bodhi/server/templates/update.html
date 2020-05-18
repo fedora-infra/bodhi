@@ -77,7 +77,7 @@ if can_edit and update.release.composed_by_bodhi:
         </div>
         <div class="col-x-auto">
             % if can_edit and (not update.locked and update.status.value != 'stable'):
-              <a id='edit' href="javascript:void(0)" class="btn btn-outline-primary border-0 btn-sm"><span class="fa fa-fw fa-pencil-square-o"></span> Edit</a>
+              <button id='edit' class="btn btn-outline-primary border-0 btn-sm"><span class="fa fa-fw fa-pencil-square-o"></span> Edit</button>
             % elif update.locked and update.date_locked:
             <a class="btn btn-link text-muted" href="${request.route_url('composes', release_name=update.compose.release.name, request=update.compose.request.value)}" data-toggle="tooltip" title="This update is currently locked since ${(update.date_locked).strftime('%Y-%m-%d %H:%M:%S')} (UTC) and cannot be modified.">
               <span class="fa fa-fw fa-lock text-muted"></span>
@@ -94,16 +94,16 @@ if can_edit and update.release.composed_by_bodhi:
                 </button>
                 <div class="dropdown-menu" aria-labelledby="statusActions">
                   %if "push to testing" in actions:
-                    <a class="dropdown-item" id="testing" href="javascript:void(0)">Push to Testing</a>
+                    <button class="dropdown-item" id="testing">Push to Testing</button>
                   %endif
                   %if "revoke" in actions:
-                    <a class="dropdown-item" id="revoke" href="javascript:void(0)">Revoke</a>
+                    <button class="dropdown-item" id="revoke">Revoke</button>
                   %endif
                   %if "unpush" in actions:
-                    <a class="dropdown-item" id="unpush" href="javascript:void(0)">Unpush</a>
+                    <button class="dropdown-item" id="unpush">Unpush</button>
                   %endif
                   %if "push to stable" in actions:
-                    <a class="dropdown-item" id="stable" href="javascript:void(0)">Push to Stable</a>
+                    <button class="dropdown-item" id="stable">Push to Stable</button>
                   %endif
                 </div>
               </div>
@@ -137,19 +137,19 @@ if can_edit and update.release.composed_by_bodhi:
   <li class="nav-item">
     <a class="nav-link" id="tab-automatedtests" data-toggle="tab" href="#automatedtests" role="tab">
       Automated Tests
-      <span style="display:none" class='badge badge-success'>
+      <span class='badge badge-success custom-d-none'>
         <span class='fa fa-check-circle'></span>
         <span id="automatedtests-success"></span>
       </span>
-      <span style="display:none" class='badge badge-info'>
+      <span class='badge badge-info custom-d-none'>
         <span class='fa fa-info-circle'></span>
         <span id="automatedtests-info"></span>
       </span>
-      <span style="display:none" class='badge badge-warning'>
+      <span class='badge badge-warning custom-d-none'>
         <span class='fa fa-exclamation-circle'></span>
         <span id="automatedtests-warning"></span>
       </span>
-      <span style="display:none" class='badge badge-danger'>
+      <span class='badge badge-danger custom-d-none'>
         <span class='fa fa-minus-circle'></span>
         <span id="automatedtests-danger"></span>
       </span>
@@ -190,7 +190,7 @@ if can_edit and update.release.composed_by_bodhi:
           % if install_command:
           <div class="pt-2">
           <h4>How to install</h4>
-            <pre style="position: relative;"><span class="badge badge-secondary" id="copybutton" style="position: absolute; top: 0px; right: 0px; cursor: pointer;" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${install_command}</code></pre>
+            <pre class="position-relative"><span class="badge badge-secondary" id="copybutton" title="Copy to clipboard"><i class="fa fa-copy"></i></span><code id="commandtext">${install_command}</code></pre>
           </div>
           % endif
 
@@ -239,7 +239,7 @@ if can_edit and update.release.composed_by_bodhi:
               </div>
               <div class="card-body p-0">
                 <textarea class="form-control border-0" rows="8" id="text" name="text" placeholder="Enter your comment here" tabindex="1"></textarea>
-                <div id="preview" class="p-3 comment-preview" style="display: none;">
+                <div id="preview" class="p-3 comment-preview custom-d-none">
                 </div>
               </div>
                   <div class="list-group list-group-flush">
@@ -724,7 +724,7 @@ ${parent.javascript()}
 <script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
 <script src="${request.static_url('bodhi:server/static/js/comment_form.js')}"></script>
 <script src="${request.static_url('bodhi:server/static/vendor/moment/moment.min.js')}"></script>
-<script>
+<script type="text/javascript" nonce="${request.js_nonce}">
   $(document).ready(function() {
     // Some handy lookups that map taskotron states to bootstrap CSS classes.
     var classes = {
@@ -855,10 +855,10 @@ ${parent.javascript()}
           waiver_details = "@" + w.username + ": '" + w.comment.replace("'", "&#39;") + "'"
           comments.push(waiver_details);
         }
-	reason += comments.join(", ")
-        required = '<span style="white-space:pre-line;" data-toggle="tooltip" data-placement="top" ' +
+        reason += comments.join(", ")
+        required = '<span data-toggle="tooltip" data-placement="top" ' +
           'title="' + reason + '" ' +
-          'class="fa fa-thumbs-up">' +
+          'class="fa fa-thumbs-up pre-line">' +
           '</span>';
       } else if ($.inArray(testcase, requirements) != -1) {
         required = '<span data-toggle="tooltip" data-placement="top" ' +
@@ -890,7 +890,7 @@ ${parent.javascript()}
       if (outcome == 'ABSENT') {
           html += ' absent-automatedtest"';
       } else {
-          html += '" style="cursor: pointer;" data-href="' + url + '"';
+          html += ' cursor-pointer" data-href="' + url + '"';
       }
       html += '>' +
         '<td>' + required + '</td>' +
@@ -1051,7 +1051,7 @@ ${parent.javascript()}
   });
 </script>
 
-<script>
+<script type="text/javascript" nonce="${request.js_nonce}">
 $(document).ready(function() {
     var messenger = Messenger({theme: 'flat'});
     var update_id = '${update.alias}';
@@ -1165,7 +1165,7 @@ $(document).ready(function() {
 });
 </script>
 
-<script>
+<script type="text/javascript" nonce="${request.js_nonce}">
 $(document).ready(function(){
     var button = document.getElementById('copybutton')
 

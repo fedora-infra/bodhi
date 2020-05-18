@@ -1,7 +1,7 @@
 <%inherit file="master.html"/>
 <div class="subheader">
 <div class="container pt-2">
-<div class="row" style="margin-top: 10px;">
+<div class="row">
   <div class="col-md-12">
     <div class="float-left">
       % if request.user and user['name'] == request.user.name:
@@ -12,9 +12,9 @@
         <img class="img-thumbnail" src="${self.util.avatar(user['name'], size=128)}" alt="User Icon"/>
       % endif
     </div>
-    <div class="float-left" style="margin-left: 15px">
+    <div class="float-left ml-1">
       <h1 class="nomargin nopadding">${user['name']}</h1>
-      <h3 id="lastactive" class="spinner nomargin nopadding" style="color: #666;"></h3>
+      <h3 id="lastactive" class="spinner nomargin nopadding text-secondary"></h3>
     </div>
   </div>
 </div>
@@ -70,7 +70,7 @@
 
 <%block name="javascript">
 ${parent.javascript()}
-<script>
+<script type="text/javascript" nonce="${request.js_nonce}">
     $(function() {
         $('.onlyjs').css('visibility', 'visible');
         $('.onlyjs').css('display', 'block');

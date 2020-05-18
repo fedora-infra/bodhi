@@ -20,6 +20,7 @@
 from unittest import mock
 
 from bodhi.server import webapp
+from bodhi.tests.server import base
 
 
 class TestCompleteDatabaseSession:
@@ -64,3 +65,31 @@ class TestPrepareRequest:
 
         event.request.add_finished_callback.assert_called_once_with(
             webapp._complete_database_session)
+
+
+class TestContentSecurityPolicy(base.BasePyTestCase):
+    """Test Content-Security-Policy header."""
+
+    def test_csp_header_not_set(self):
+        """Test that CSP is disabled."""
+        resp = self.app.get('/', status=200)
+
+        assert 'Content-Security-Policy' not in resp.headers
+
+    @mock.patch.dict('bodhi.server.config.config',
+                     {'content_security_policy': 'script-src \'self\' {nonce}'})
+    def test_csp_header_set_with_nonce(self):
+        """Test that CSP Header and nonce-{} are set when config option is present."""
+        resp = self.app.get('/', status=200)
+
+        assert 'Content-Security-Policy' in resp.headers
+        assert 'nonce-' in resp.headers['Content-Security-Policy']
+
+    @mock.patch.dict('bodhi.server.config.config',
+                     {'content_security_policy': 'script-src \'self\''})
+    def test_csp_header_set_without_nonce(self):
+        """Test that CSP Header is set but not nonce-{} when config option is absent."""
+        resp = self.app.get('/', status=200)
+
+        assert 'Content-Security-Policy' in resp.headers
+        assert 'nonce-' not in resp.headers['Content-Security-Policy']

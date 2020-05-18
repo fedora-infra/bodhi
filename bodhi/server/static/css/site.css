@@ -339,3 +339,28 @@ padding-bottom: 2em;
 .caption-top {
     caption-side: top;
 }
+
+/* Fedora bootstrap d-none has !important set, we don't want to use that */
+.custom-d-none {
+    display: none;
+}
+
+#copybutton {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    cursor: pointer;
+}
+
+.pre-line {
+    white-space: pre-line;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+#filters-dropdown {
+    min-width:400px;
+    max-width: 400px;
+}

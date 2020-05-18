@@ -229,5 +229,5 @@ ${parent.javascript()}
 <script src="${request.static_url('bodhi:server/static/vendor/messenger/js/messenger-theme-flat.js')}"></script>
 <script src="${request.static_url('bodhi:server/static/js/forms.js')}"></script>
 <script src="${request.static_url('bodhi:server/static/js/override_form.js')}"></script>
-<script>$("#js-warning").hide();</script>
+<script type="text/javascript" nonce="${request.js_nonce}">$("#js-warning").hide();</script>
 </%block>

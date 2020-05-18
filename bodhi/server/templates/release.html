@@ -217,7 +217,7 @@ ${parent.css()}
 ${parent.javascript()}
 <script src="${request.static_url('bodhi:server/static/vendor/chartjs/Chart.min.js')}"></script>
 
-<script type="text/javascript">
+<script type="text/javascript" nonce="${request.js_nonce}">
   $(document).ready(function() {
     Chart.platform.disableCSSInjection = true;
     $('#releasetimeline').html('');

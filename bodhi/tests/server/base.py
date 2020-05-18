@@ -133,9 +133,9 @@ class BaseTestCaseMixin:
         'site_requirements': 'rpmlint',
         'resultsdb_api_url': 'whatever',
         'base_address': 'http://0.0.0.0:6543',
-        'cors_connect_src': 'http://0.0.0.0:6543',
         'cors_origins_ro': 'http://0.0.0.0:6543',
         'cors_origins_rw': 'http://0.0.0.0:6543',
+        'content_security_policy': '',
         'sqlalchemy.url': DEFAULT_DB,
         'warm_cache_on_start': False
     }

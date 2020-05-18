@@ -303,8 +303,18 @@ class BodhiConfig(dict):
         'container.source_registry': {
             'value': 'candidate-registry.fedoraproject.org',
             'validator': str},
-        'cors_connect_src': {
-            'value': 'https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/',
+        'content_security_policy': {
+            'value': (
+                "base-uri 'self'; "
+                "default-src 'self'; "
+                "script-src 'self' {nonce} https://*.fedoraproject.org "
+                "https://bugzilla.redhat.com; "
+                "style-src 'self'; "
+                "img-src 'self' data: https://*.fedoraproject.org "
+                "https://seccdn.libravatar.org; "
+                "connect-src 'self' https://*.fedoraproject.org "
+                "wss://hub.fedoraproject.org:9939 https://bugzilla.redhat.com; "
+                "object-src 'none'"),
             'validator': str},
         'cors_origins_ro': {
             'value': '*',

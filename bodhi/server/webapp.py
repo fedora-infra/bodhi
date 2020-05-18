@@ -25,9 +25,11 @@ Unfortunately, it is a backwards-incompatible change to move main() here, so it 
 __init__ until we make a major Bodhi release. See https://github.com/fedora-infra/bodhi/issues/2294
 """
 
+from cryptography import fernet
 from pyramid.events import NewRequest, subscriber
 
 from bodhi import server
+from bodhi.server.config import config
 
 
 def _complete_database_session(request):
@@ -51,7 +53,7 @@ def _prepare_request(event):
     """
     Prepare each incoming request to Bodhi.
 
-    This function does two things:
+    This function does three things:
         * If requests do not have an Accept header, or if their Accept header is "*/*", it sets the
           header to application/json. Pyramid has undefined behavior when an ambiguous or missing
           Accept header is received, and multiple views are defined that handle specific Accept
@@ -61,6 +63,7 @@ def _prepare_request(event):
           handle the request. Let's force ambiguous requests to receive a JSON response so we have a
           defined behavior. See https://github.com/fedora-infra/bodhi/issues/2731.
         * It adds a callback to clean up the database session when the request is finished.
+        * It adds a Content-Security-Policy header.
 
     Args:
         event (pyramid.events.NewRequest): The new request event.
@@ -69,6 +72,18 @@ def _prepare_request(event):
         event.request.headers['Accept'] = 'application/json'
 
     event.request.add_finished_callback(_complete_database_session)
+
+    # Rather than having all of our templates have to check whether the Content-Security-Policy
+    # nonce is present, let's just define it as the empty string. If the CSP uses it, it will get
+    # set to a real nonce a few lines below. Otherwise it'll just be a harmless attribute in some
+    # of our script tags.
+    event.request.js_nonce = ''
+    if config['content_security_policy']:
+        csp = config['content_security_policy']
+        if '{nonce}' in config['content_security_policy']:
+            event.request.js_nonce = fernet.Fernet.generate_key().decode('utf-8')
+            csp = csp.format(nonce=f'\'nonce-{event.request.js_nonce}\'')
+        event.request.response.headerlist.append(('Content-Security-Policy', csp))
 
 
 def _rollback_or_commit(request):
