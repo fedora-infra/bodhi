@@ -103,39 +103,6 @@ def get_rpm_header(nvr, tries=0):
     raise ValueError("No rpm headers found in koji for %r" % nvr)
 
 
-def generate_changelog(build: 'models.Build') -> typing.Optional[str]:
-    """
-    Generate a changelog for a given build.
-
-    Args:
-        build: the build to create a changelog for.
-    Returns:
-        A changelog of changes between the given build, and the previous one.
-        Or returns None if the build type doesn't have the get_latest() method.
-    """
-    # Find the most recent update for this package, other than this one
-    try:
-        lastpkg = build.get_latest()
-    except AttributeError:
-        # Not all build types have the get_latest() method, such as ModuleBuilds.
-        return None
-
-    # Grab the RPM header of the previous update, and generate a ChangeLog
-
-    def _get_oldtime(lastpkg):
-        if lastpkg is None:
-            return 0
-        oldh = get_rpm_header(lastpkg)
-        if not oldh['changelogtext']:
-            return 0
-        oldtime = oldh['changelogtime']
-        if isinstance(oldtime, list):
-            oldtime = oldtime[0]
-        return oldtime
-
-    return build.get_changelog(_get_oldtime(lastpkg))
-
-
 def build_evr(build):
     """
     Return a tuple of strings of the given build's epoch, version, and release.
@@ -347,7 +314,7 @@ def sanity_check_repodata(myurl, repo_type):
                 continue
             else:
                 raise RepodataException(
-                    f"DNF did not return expected output when running test!"
+                    "DNF did not return expected output when running test!"
                     + f" Test: {dnfargs}, expected: {expout}, output: {output}")
 
 
@@ -647,9 +614,9 @@ def page_url(context, page):
         str: The current path appended with a GET query for the requested page.
     """
     request = context.get('request')
-    params = dict(request.params)
+    params = request.params.mixed()
     params['page'] = page
-    return request.path_url + "?" + urlencode(params)
+    return f'{request.path_url}?{urlencode(params, doseq=True)}'
 
 
 def bug_link(context, bug, short=False):
@@ -692,7 +659,7 @@ def testcase_link(context, test, short=False):
     """
     url = config.get('test_case_base_url') + test.name
     display = test.name.replace('QA:Testcase ', '')
-    link = "<a target='_blank' href='%s' class='notblue'>%s</a>" % (url, display)
+    link = f"<a target='_blank' href='{url}' class='font-weight-bolder'>{display}</a>"
     if not short:
         link = "Test Case " + link
     return link
@@ -710,6 +677,19 @@ def can_waive_test_results(context, update):
     """
     return config.get('test_gating.required') and not update.test_gating_passed \
         and config.get('waiverdb.access_token') and update.status.description != 'stable'
+
+
+def can_trigger_tests(context, update):
+    """
+    Return True or False if we should be able to trigger tests.
+
+    Args:
+        context (mako.runtime.Context): The current template rendering context. Unused.
+        update (bodhi.server.models.Update): The Update on which we are going to waive test results.
+    Returns:
+        bool: Indicating if the test results can be triggered on the given update.
+    """
+    return config.get('test_gating.required')
 
 
 def sorted_builds(builds):
@@ -892,8 +872,16 @@ class TransactionalSessionMaker(object):
                 log.exception('An Exception was raised while rolling back a transaction.')
             raise e
         finally:
-            session.close()
-            Session.remove()
+            self._end_session()
+
+    def _end_session(self):
+        """
+        Close and remove the session.
+
+        This has been split off the main __call__ method to make it easier to
+        mock it out in unit tests.
+        """
+        Session.remove()
 
 
 transactional_session_maker = TransactionalSessionMaker
@@ -1027,6 +1015,7 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
     """
     if data is None:
         data = dict()
+    log.debug("Querying url: %s", api_url)
     if method == 'POST':
         if headers is None:
             headers = {'Content-Type': 'application/json'}
@@ -1049,12 +1038,14 @@ def call_api(api_url, service_name, error_key=None, method='GET', data=None, hea
         time.sleep(1)
         return call_api(api_url, service_name, error_key, method, data, headers, retries - 1)
     elif rv.status_code == 500:
+        log.debug(rv.text)
         # There will be no JSON with an error message here
         error_msg = base_error_msg.format(
             service_name, api_url, rv.status_code)
         log.error(error_msg)
         raise RuntimeError(error_msg)
     else:
+        log.debug(rv.text)
         # If it's not a 500 error, we can assume that the API returned an error
         # message in JSON that we can log
         try:

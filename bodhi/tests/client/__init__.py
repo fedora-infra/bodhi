@@ -28,7 +28,7 @@ EXAMPLE_COMMENT_MUNCH = Munch({
             'date_testing': '2017-02-13 22:56:06', 'pushed': True,
             'require_testcases': False, 'date_stable': None, 'critpath': False,
             'date_approved': None, 'stable_karma': 3, 'date_pushed': '2017-02-13 22:56:06',
-            'requirements': '', 'severity': 'low', 'autokarma': True,
+            'requirements': '', 'severity': 'low', 'autokarma': True, 'autotime': True,
             'title': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'suggest': 'unspecified',
             'require_bugs': False, 'date_locked': None, 'type': 'newpackage',
             'close_bugs': True, 'status': 'testing', 'meets_testing_requirements': True,
@@ -187,6 +187,7 @@ EXAMPLE_QUERY_MUNCH = Munch({
     'updates': [{
         'alias': 'FEDORA-2017-c95b33872d',
         'autokarma': True,
+        'autotime': True,
         'content_type': 'rpm',
         'bugs': [{
             'bug_id': 1420605,
@@ -309,6 +310,7 @@ Content Type: rpm
     Severity: low
        Karma: 0
    Autokarma: True  [-3, 3]
+    Autotime: True
         Bugs: 1420605 - Review Request: nodejs-grunt-wrap - A Grunt plugin for
             : wrapping project text files
        Notes: New package.
@@ -337,6 +339,7 @@ EXAMPLE_QUERY_MUNCH_MULTI = Munch({
     'updates': [{
         'alias': 'FEDORA-2017-c95b33872d',
         'autokarma': True,
+        'autotime': True,
         'content_type': 'rpm',
         'bugs': [{
             'bug_id': 1420605,
@@ -404,6 +407,7 @@ EXAMPLE_QUERY_MUNCH_MULTI = Munch({
         {
         'alias': 'FEDORA-2017-c95b33872d',
         'autokarma': True,
+        'autotime': True,
         'content_type': 'rpm',
         'bugs': [{
             'bug_id': 1420605,
@@ -709,7 +713,7 @@ EXAMPLE_UPDATE_MUNCH = Munch({
     'date_testing': '2016-10-06 00:55:15', 'pushed': True,
     'require_testcases': True, 'date_locked': None, 'critpath': False, 'date_approved': None,
     'stable_karma': 3, 'date_pushed': '2016-10-21 13:23:01', 'requirements': '',
-    'severity': 'unspecified', 'autokarma': True, 'title': 'bodhi-2.2.4-1.el7',
+    'severity': 'unspecified', 'autokarma': True, 'autotime': True, 'title': 'bodhi-2.2.4-1.el7',
     'suggest': 'unspecified', 'require_bugs': True,
     'comments': [
         Munch({
@@ -764,8 +768,8 @@ SINGLE_UPDATE_MUNCH = Munch({
         'require_testcases': True, 'date_locked': None,
         'critpath': False, 'date_approved': None,
         'stable_karma': 3, 'date_pushed': '2016-10-21 13:23:01', 'requirements': '',
-        'severity': 'unspecified', 'autokarma': True, 'title': 'bodhi-2.2.4-1.el7',
-        'suggest': 'unspecified', 'require_bugs': True,
+        'severity': 'unspecified', 'autokarma': True, 'autotime': True,
+        'title': 'bodhi-2.2.4-1.el7', 'suggest': 'unspecified', 'require_bugs': True,
         'comments': [
             Munch({
                 'bug_feedback': [], 'user_id': 91, 'timestamp': '2016-10-05 18:10:22',
@@ -843,6 +847,7 @@ Content Type: rpm
     Severity: unspecified
        Karma: 0
    Autokarma: True  [-3, 3]
+    Autotime: True
        Notes: Update to 2.2.4. Release notes available at https://github.com
             : /fedora-infra/bodhi/releases/tag/2.2.4
    Submitter: bowlofeggs

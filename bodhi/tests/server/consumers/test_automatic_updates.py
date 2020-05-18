@@ -93,7 +93,7 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         assert not any(r.levelno >= logging.WARNING for r in caplog.records)
 
     @pytest.mark.parametrize('changelog', (True, None, ""))
-    @mock.patch('bodhi.server.consumers.automatic_updates.generate_changelog')
+    @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
     def test_changelog(self, mock_generate_changelog, changelog):
         """Assert that update notes contain the changelog if it exists."""
         if changelog:
@@ -122,6 +122,32 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 ```"""
         else:  # no changelog
             assert update.notes == "Automatic update for colord-1.3.4-1.fc26."
+
+    @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
+    def test_bug_added(self, mock_generate_changelog):
+        """Assert that a bug is added to the update if proper string is in changelog."""
+        changelog = ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2\n'
+                     '- Added a free money feature.\n- Fix rhbz#112233.')
+
+        mock_generate_changelog.return_value = changelog
+
+        # process the message
+        self.handler(self.sample_message)
+
+        # check if the update exists...
+        update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+
+        assert update.notes == f"""Automatic update for colord-1.3.4-1.fc26.
+
+##### **Changelog**
+
+```
+{changelog}
+```"""
+        assert len(update.bugs) > 0
+        assert update.bugs[0].bug_id == 112233
 
     def test_consume_with_orphan_build(self, caplog):
         """
@@ -266,9 +292,6 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
             user = User(name=expected_username)
             self.db.add(user)
         self.db.flush()
-
-        with mock.patch('bodhi.server.models.handle_update'):
-            self.handler(self.sample_message)
 
         assert(f"Creating bodhi user for '{expected_username}'."
                not in caplog.messages)

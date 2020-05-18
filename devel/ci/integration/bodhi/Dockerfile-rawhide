@@ -54,6 +54,10 @@ RUN \
 
 # Apache
 RUN mkdir -p /httpdir && chown bodhi:bodhi /httpdir
+
+# Tests tooling
+COPY devel/ci/integration/bodhi/wait-for-file.py /usr/local/bin/wait-for-file
+RUN chmod +x /usr/local/bin/wait-for-file
 # Celery results
 RUN mkdir -p /srv/celery-results && chown -R bodhi:bodhi /srv/celery-results
 # Composes

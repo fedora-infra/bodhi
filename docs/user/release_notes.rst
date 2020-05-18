@@ -4,6 +4,271 @@ Release notes
 
 .. towncrier release notes start
 
+v5.3.0
+======
+This is a minor release.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Splitted handle_update task into two celery tasks for bugs and testcases.
+  These two new tasks will make use of Celery's `autoretry_for` and
+  `retry_backoff` features to circumvent external services connection problems.
+  `retry_backoff` needs Celery >= 4.2 (:pr:`3989`).
+
+Features
+^^^^^^^^
+
+* Associate bugs mentioned in rpm changelog to automatically created Rawhide
+  updates; the bugs mentioned with the format `fix(es)|close(s)
+  (fedora|epel|rh|rhbz)#BUG_ID` will be associated to the update and
+  automatically closed (:issue:`3925`).
+
+Bug fixes
+^^^^^^^^^
+
+* Use jquery-typeahead for bodhi searchbar and always show the input field
+  (:issue:`1455`).
+* Reset update.date_testing when editing builds (:issue:`3493`).
+* Removed pending_testing tag when self.request is still in
+  UpdateRequest.testing (:issue:`3944`).
+* Fix the broken privacy policy link for update's comment box. (:issue:`3971`).
+* Do not bound the database session created using TransactionalSessionMaker
+  class to the object created.
+  Since threads are sharing the memory binding to the session object, it makes
+  it possible for threads to
+  override a previous session leading to unexpected behaviours.
+  (:issue:`3979`).
+* Editing builds in an update should not remove override tags (:issue:`3988`).
+* Make Test Cases look clickable. (:issue:`4003`).
+* If an update include no builds, use alias as title (:issue:`4012`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Revise display for update's settings
+
+  Showed a 'stable by karma: disabled' and a 'stable by time: disabled' in
+  the UI when appropriate. Also added a 'Autotime: <Bool>' to the CLI output.
+  (:issue:`3957`).
+* Avoid using a database session in the tag_update_builds_task.
+  (:issue:`3981`).
+* Avoid using a database session in the handle side tag task. (:issue:`3983`).
+* Ignore celery task's results we don't use. (:issue:`3995`).
+
+Documentation improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Reference the state that happens when an update is revoked (:issue:`2902`).
+* Document the full set of bug trackers that can be reference in Bodhi's
+  markdown.
+  Also added a section to Bodhi's Sphinx docs about Bodhi markdown,
+  and listed the bug trackers there as well. (:issue:`3209`).
+* Add information to Bodhi docs that Bodhi has frozen release state
+  (:issue:`3505`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+* Karma Dolkar
+* Mattia Verga
+* Richard O. Gregory
+* Tomas Kopecek
+
+
+v5.2.2
+======
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Only pass scalar argument to celery (part 2). Avoid the celery enqueuer
+  emitting SQL queries to resolve attributes, and therefore opening new
+  transactions. (:issue:`8b30a825`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+
+
+v5.2.1
+======
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Get the update object in the celery worker from the database.
+  (:issue:`3966`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+
+
+v5.2.0
+======
+This is a feature and bugfix release.
+
+
+Features
+^^^^^^^^
+
+* Added `__current__`, `__pending__` and `__archived__` macro filters to
+  quickly filter Updates by Release status (:pr:`3892`).
+* Added search filtering capabilities to the Overrides page (:pr:`3903`).
+* Output the update install command into the bugs comments. Also change the
+  `stable_bug_msg` and `testing_bug_msg` settings format to use placeholders in
+  place of `%s`: if you have customized these settings you will need to adjust
+  them to the new format. Here it is the list of the available placeholders:
+  `{update_title}, {update_beauty_title}, {update_alias}, {repo},
+  {install_instructions}, {update_url}` (:issue:`740`).
+* Tag builds for updates asynchronously using Celery tasks. (:issue:`3061`).
+* Add a Liveness and Readyness endpoints for OpenShift probes. (:issue:`3854`).
+* Allow revoking the `push to stable` action (:issue:`3921`).
+
+Bug fixes
+^^^^^^^^^
+
+* Place 404 Not Found in the middle of the website (:pr:`3835`).
+* RPM changelog was not automatically added in the notes for Rawhide updates as
+  expected (:pr:`3931`).
+* Add back the ability to add abitairy text as a build. (:issue:`3707`,
+  :issue:`3765`).
+* Allow to comment on update that were pushed to stable. (:issue:`3748`).
+* Make comments submission to use common code with other forms and avoid
+  clearing the spinner until the page refreshes (:issue:`3837`).
+* Try to avoid timeout error when requesting latest_candidates with
+  `hide_existing=true` (:issue:`3841`).
+* Allow task id to be null in the bodhi.update.status.testing message schema.
+  (:issue:`3852`).
+* Sent UpdateReadyForTestingV1 only for rpm (:issue:`3855`).
+* Prevent whitespaces string to be set as display name of an update
+  (:issue:`3877`).
+* Fixed pagination issue when using multiple values for the same filter
+  (:issue:`3885`).
+* Make sure we send the fedora-messaging messages before trigerring a celery
+  task. (:issue:`3904`).
+* Prevent updates from sidetags being stuck in Testing (:issue:`3912`).
+* Do not allow to push back to testing a stable update (:issue:`3936`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Use existing db session when creating a package: `Package.get_or_create()`
+  now requires a session object in input (:pr:`3860`).
+* Use koji's multicall in `tag_update_builds` task (:pr:`3958`).
+
+Other changes
+^^^^^^^^^^^^^
+
+* Use Celery Beat instead of cron jobs. The corresponding CLIs have been
+  adjusted
+  to trigger the task. They will still block until the task is done, but it may
+  not be running on the host that the CLI was called on. The affected CLIs are:
+  ``bodhi-clean-old-composes``, ``bodhi-expire-overrides``,
+  ``bodhi-approve-testing``, and ``bodhi-check-policies`` (:issue:`2867`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Saleh
+* Aurélien Bompard
+* Adam Williamson
+* Clement Verna
+* Eli Young
+* Karma Dolkar
+* Mattia Verga
+* Michal Konečný
+* Nils Philippsen
+* Pierre-Yves Chibon
+* Elliott Sales de Andrade
+* Richard O. Gregory
+* Rick Elrod
+* Ryan Lerch
+* Stephen Coady
+* subhamkrai
+* Sebastian Wojciechowski
+
+
+v5.1.1
+======
+
+This is a bugfix release.
+
+Bug fixes
+^^^^^^^^^
+
+* Fix the Fedora Messaging exception caught for publish backoff (:pr:`3871`).
+* Only pass scalar arguments to celery tasks to avoid lingering database
+  transactions (:pr:`3902`).
+* Fix bug title escaping to prevent a JS crash while editing updates
+  (:issue:`3714`).
+* Fix potential race condition with the celery worker accessing an update
+  before the web request was commited. (:issue:`3858`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Aurélien Bompard
+* Clement Verna
+* Mattia Verga
+
+
+v5.1.0
+======
+
+This is a feature and bugfix release.
+
+Features
+^^^^^^^^
+
+* Include the task id for each build when notifying that an update is ready to
+  be tested (:issue:`3724`).
+* Linkify update aliases in comments (:issue:`776`).
+
+Bug fixes
+^^^^^^^^^
+
+* Fix BuildrootOverrides editing/expiring from the UI (:issue:`3710`).
+* Fix the traceback when builds are being signed without being included in an
+  update (:issue:`3720`).
+* Increase the size of the update alias column (:issue:`3779`).
+* Fix JS error when removing a bug from the list in the update form
+  (:pr:`3796`).
+* Disable warnings when adding `Security Response` bugs to an update
+  (:issue:`3789`).
+* Manage single build update conflicting builds. (:issue:`3828`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Aurélien Bompard
+* Clement Verna
+* Mattia Verga
+* Pierre-Yves Chibon
+* Rick Elrod
+* Ryan Lerch
+
 
 v5.0.0
 ======

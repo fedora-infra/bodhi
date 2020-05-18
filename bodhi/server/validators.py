@@ -450,7 +450,7 @@ def validate_acls(request, **kwargs):
                 return
 
             # Get the Package and Release objects
-            package = Package.get_or_create(buildinfo)
+            package = Package.get_or_create(request.db, buildinfo)
             release = cache_release(request, build)
             if release is None:
                 return
@@ -560,7 +560,7 @@ def validate_build_uniqueness(request, **kwargs):
             return
         seen_build.add(build)
 
-        pkg = Package.get_or_create(request.buildinfo[build])
+        pkg = Package.get_or_create(request.db, request.buildinfo[build])
         if (pkg, rel) in seen_packages:
             request.errors.add(
                 'body', 'builds', f'Multiple {pkg.name} builds specified in {rel.name}')
@@ -738,6 +738,21 @@ def validate_releases(request, **kwargs):
     bad_releases = []
     validated_releases = []
 
+    if '__current__' in releases:
+        releases.remove('__current__')
+        active_releases = db.query(Release).filter(Release.state == ReleaseState.current).all()
+        validated_releases.extend(active_releases)
+
+    if '__pending__' in releases:
+        releases.remove('__pending__')
+        active_releases = db.query(Release).filter(Release.state == ReleaseState.pending).all()
+        validated_releases.extend(active_releases)
+
+    if '__archived__' in releases:
+        releases.remove('__archived__')
+        active_releases = db.query(Release).filter(Release.state == ReleaseState.archived).all()
+        validated_releases.extend(active_releases)
+
     for r in releases:
         release = db.query(Release).filter(or_(Release.name == r, Release.name == r.upper(),
                                                Release.version == r)).first()
@@ -914,23 +929,6 @@ def _conditionally_get_update(request):
         update = Update.get(update)
 
     return update
-
-
-@postschema_validator
-def validate_comments_open(request, **kwargs):
-    """
-    Ensure that a comment cannot be added to a stable, pushed update.
-
-    Args:
-        request (pyramid.request.Request): The current request.
-        kwargs (dict): The kwargs of the related service definition. Unused.
-    """
-    update = _conditionally_get_update(request)
-
-    if update.status == UpdateStatus.stable and update.pushed:
-        request.errors.add("body", "comment",
-                           "Comments are Closed on this update. It has been "
-                           "pushed to stable")
 
 
 @postschema_validator
@@ -1163,7 +1161,8 @@ def _validate_override_build(request, nvr, db):
             return
 
         build_info = request.koji.getBuild(nvr)
-        package = Package.get_or_create({'nvr': (build_info['name'],
+        package = Package.get_or_create(db,
+                                        {'nvr': (build_info['name'],
                                                  build_info['version'],
                                                  build_info['release']),
                                          'info': build_info})

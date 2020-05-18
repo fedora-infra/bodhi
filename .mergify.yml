@@ -8,10 +8,6 @@ pull_request_rules:
   - label!=WIP
   - approved-reviews-by=@fedora-infra/bodhi
   - status-success=DCO
-  - status-success=f29-docs
-  - status-success=f29-unit
-  - status-success=f29-diff-cover
-  - status-success=f29-integration
   - status-success=f30-docs
   - status-success=f30-unit
   - status-success=f30-diff-cover
@@ -38,10 +34,6 @@ pull_request_rules:
   - author=@fedora-infra/bodhi
   - "#approved-reviews-by>=1"
   - status-success=DCO
-  - status-success=f29-docs
-  - status-success=f29-unit
-  - status-success=f29-diff-cover
-  - status-success=f29-integration
   - status-success=f30-docs
   - status-success=f30-unit
   - status-success=f30-diff-cover
@@ -61,46 +53,6 @@ pull_request_rules:
 - actions:
     backport:
       branches:
-      - '3.12'
-  conditions:
-  - label!=WIP
-  - label=3.12-backports
-  name: backport 3.12
-- actions:
-    backport:
-      branches:
-      - '3.13'
-  conditions:
-  - label!=WIP
-  - label=3.13-backports
-  name: backport 3.13
-- actions:
-    backport:
-      branches:
-      - '3.14'
-  conditions:
-  - label!=WIP
-  - label=3.14-backports
-  name: backport 3.14
-- actions:
-    backport:
-      branches:
-      - '4.0'
-  conditions:
-  - label!=WIP
-  - label=4.0-backports
-  name: backport 4.0
-- actions:
-    backport:
-      branches:
-      - '4.1'
-  conditions:
-  - label!=WIP
-  - label=4.1-backports
-  name: backport 4.1
-- actions:
-    backport:
-      branches:
       - '5.0'
   conditions:
   - label!=WIP
@@ -114,3 +66,19 @@ pull_request_rules:
   - label!=WIP
   - label=5.1-backports
   name: backport 5.1
+- actions:
+    backport:
+      branches:
+      - '5.2'
+  conditions:
+  - label!=WIP
+  - label=5.2-backports
+  name: backport 5.2
+- actions:
+    backport:
+      branches:
+      - '5.3'
+  conditions:
+  - label!=WIP
+  - label=5.3-backports
+  name: backport 5.3

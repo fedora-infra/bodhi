@@ -83,7 +83,7 @@ class Consumer:
                 error_handlers_msgs.append((handler_info.name, str(e)))
 
         if error_handlers_msgs:
-            error_msg = f"Unable to (fully) handle message.\nAffected handlers:\n"
+            error_msg = "Unable to (fully) handle message.\nAffected handlers:\n"
             for handler, exc in error_handlers_msgs:
                 error_msg += f"\t{handler}: {exc}\n"
             error_msg += "Message:\n{msg}"

@@ -299,6 +299,9 @@ def latest_candidates(request):
 
         if hide_existing:
             # We want to filter out builds associated with an update.
+            # Since the candidate_tag is removed when an update is pushed to
+            # stable, we only need a list of builds that are associated to
+            # updates still in pending state.
 
             # Don't filter by releases here, because the associated update
             # might be archived but the build might be inherited into an active
@@ -306,7 +309,9 @@ def latest_candidates(request):
             # this set should be easy enough.
             associated_build_nvrs = set(
                 row[0] for row in
-                db.query(models.Build.nvr).filter(models.Build.update_id != None)
+                db.query(models.Build.nvr).
+                join(models.Update).
+                filter(models.Update.status == models.UpdateStatus.pending)
             )
 
         kwargs = dict(package=pkg, prefix=prefix, latest=True)
@@ -463,6 +468,36 @@ def api_version(request):
         dict: A dictionary with a "version" key indexing a string of the Bodhi version.
     """
     return dict(version=bodhi.server.util.version())
+
+
+@view_config(route_name='liveness', renderer='json')
+def liveness(request):
+    """
+    Return 'ok' as a sign of being alive.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+    Returns:
+        str: 'ok'
+    """
+    return 'ok'
+
+
+@view_config(route_name='readyness', renderer='json')
+def readyness(request):
+    """
+    Return 200 if the app can query the db, to signify being ready.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+    Returns:
+        dict: A dictionary with list of services checked.
+    """
+    try:
+        request.db.execute("SELECT 1")
+        return dict(db_session=True)
+    except Exception:
+        raise Exception("App not ready, is unable to execute a trivial select.")
 
 
 @notfound_view_config(append_slash=True)

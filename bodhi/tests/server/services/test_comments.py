@@ -649,34 +649,6 @@ class TestCommentsService(base.BasePyTestCase):
         assert up.status.value == UpdateStatus.testing.value
         assert up.request.value == UpdateRequest.stable.value
 
-    def test_no_comment_on_stable_pushed_update(self):
-        """ Make sure you cannot comment on stable, pushed updates """
-        up = self.db.query(Build).filter_by(nvr=up2).one().update
-        up.status = UpdateStatus.stable
-        up.request = None
-        up.pushed = True
-        assert len(up.comments) == 0
-        assert up.karma == 0
-        self.db.info['messages'] = []
-        self.db.flush()
-
-        # check the webui deosnt show the comment form
-        htmlres = self.app.get(f'/updates/{up.alias}', headers={'Accept': 'text/html'})
-        assert "Comments and Feedback are Closed" in htmlres.text
-        assert "this update has been pushed to stable" in htmlres.text
-        assert '<form id="new_comment"' not in htmlres.text
-
-        # check that we can't actually submit a comment
-        comment = self.make_comment(up2, karma=1)
-        with fml_testing.mock_sends():
-            res = self.app.post_json('/comments/', comment, status=400)
-
-        assert res.json_body['errors'][0]['description'] == \
-            "Comments are Closed on this update. It has been pushed to stable"
-        up = self.db.query(Build).filter_by(nvr=up2).one().update
-        assert len(up.comments) == 0
-        assert up.karma == 0
-
     def test_comment_not_loggedin(self):
         """
         Test that 403 error is returned if a non-authenticated 'post comment'

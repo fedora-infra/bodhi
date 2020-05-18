@@ -126,7 +126,9 @@ The ``overrides`` command allows users to manage build overrides.
     ``--releases <releases>``
 
         Query for overrides related to a list of releases, given as a comma-separated list.
-        <releases> is the release shortname, for example: F26 or F26,F25
+        <releases> is the release shortname, for example: F26 or F26,F25, or a macro filter
+        (`__current__`, `__pending__`, `__archived__`) to include all releases in a
+        certain status.
 
     ``--builds <builds>``
 
@@ -425,6 +427,8 @@ The ``updates`` command allows users to interact with bodhi updates.
     ``--releases <releases>``
 
         Query for updates related to a list of releases, given as a comma-separated list.
+        It is possible to use the macro filters `__current__`, `__pending__` and `__archived__`
+        to include all releases in a certain status.
 
     ``--locked``
 

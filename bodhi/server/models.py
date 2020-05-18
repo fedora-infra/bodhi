@@ -30,7 +30,7 @@ import uuid
 from urllib.error import URLError
 
 from simplemediawiki import MediaWiki
-from sqlalchemy import (and_, Boolean, Column, DateTime, event, ForeignKey,
+from sqlalchemy import (and_, Boolean, Column, DateTime, event, func, ForeignKey,
                         Integer, or_, Table, Unicode, UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
@@ -45,14 +45,15 @@ from bodhi.messages.schemas import (buildroot_override as override_schemas,
                                     errata as errata_schemas, update as update_schemas)
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
-from bodhi.server.exceptions import BodhiException, LockedUpdateException
-from bodhi.server.tasks import handle_update
+from bodhi.server.exceptions import BodhiException, ExternalCallException, LockedUpdateException
+from bodhi.server.tasks import fetch_test_cases_task, tag_update_builds_task, work_on_bugs_task
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import pyramid  # noqa: 401
+    import bugzilla # noqa: 401
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
@@ -1130,7 +1131,7 @@ class Package(Base):
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
         Raises:
-            BodhiException: When retrieving testcases from Wiki failed.
+            ExternalCallException: When retrieving testcases from Wiki failed.
         """
         if not config.get('query_wiki_test_cases'):
             return
@@ -1148,7 +1149,7 @@ class Package(Base):
             try:
                 response = wiki.call(query)
             except URLError:
-                raise BodhiException('Failed retrieving testcases from Wiki')
+                raise ExternalCallException('Failed retrieving testcases from Wiki')
             members = [entry['title'] for entry in
                        response.get('query', {}).get('categorymembers', {})
                        if 'title' in entry]
@@ -1242,7 +1243,7 @@ class Package(Base):
         return name
 
     @staticmethod
-    def get_or_create(build):
+    def get_or_create(session, build):
         """
         Identify and return the Package instance associated with the build.
 
@@ -1250,6 +1251,7 @@ class Package(Base):
         Or, given a container, return a ContainerBuild instance.
 
         Args:
+            session (sqlalchemy.orm.session.Session): A database session.
             build (dict): Information about the build from the build system (koji).
         Returns:
             Package: A type-specific instance of Package for the specific build requested.
@@ -1259,8 +1261,8 @@ class Package(Base):
         package = base.query.filter_by(name=name).one_or_none()
         if not package:
             package = base(name=name)
-            Session().add(package)
-            Session().flush()
+            session.add(package)
+            session.flush()
         return package
 
 
@@ -1467,6 +1469,10 @@ class Build(Base):
         """
         return self._get_kojiinfo().get('task_id')
 
+    def get_changelog(self, timelimit=0, lastupdate=False):
+        """Will be overridden from child classes, when appropriate."""
+        return ""
+
     def get_creation_time(self) -> datetime:
         """Return the creation time of the build."""
         return datetime.fromisoformat(self._get_kojiinfo()['creation_time'])
@@ -1634,9 +1640,9 @@ class RpmBuild(Build):
         # generate ChangeLogs against those.
         latest = None
         evr = self.evr
-        for tag in [self.update.release.stable_tag, self.update.release.dist_tag]:
-            builds = koji_session.getLatestBuilds(
-                tag, package=self.package.name)
+        for tag in [self.release.stable_tag, self.release.dist_tag]:
+            builds = koji_session.listTagged(
+                tag, package=self.package.name, inherit=True)
 
             # Find the first build that is older than us
             for build in builds:
@@ -1648,13 +1654,14 @@ class RpmBuild(Build):
                 break
         return latest
 
-    def get_changelog(self, timelimit=0):
+    def get_changelog(self, timelimit=0, lastupdate=False):
         """
         Retrieve the RPM changelog of this package since it's last update, or since timelimit.
 
         Args:
             timelimit (int): Timestamp, specified as the number of seconds since 1970-01-01 00:00:00
                 UTC.
+            lastupdate (bool): Only returns changelog since last update.
         Return:
             str: The RpmBuild's changelog.
         """
@@ -1669,6 +1676,17 @@ class RpmBuild(Build):
         num = len(descrip)
         if not isinstance(when, list):
             when = [when]
+
+        if lastupdate:
+            lastpkg = self.get_latest()
+            if lastpkg is not None:
+                oldh = get_rpm_header(lastpkg)
+                if oldh['changelogtext']:
+                    timelimit = oldh['changelogtime']
+                    if isinstance(timelimit, list):
+                        timelimit = timelimit[0]
+            else:
+                return ""
 
         str = ""
         i = 0
@@ -1829,7 +1847,7 @@ class Update(Base):
         backref=backref('updates', passive_deletes=True))
 
     # Many-to-many relationships
-    bugs = relationship('Bug', secondary=update_bug_table, backref='updates')
+    bugs = relationship('Bug', secondary=update_bug_table, backref='updates', order_by='Bug.bug_id')
 
     user_id = Column(Integer, ForeignKey('users.id'))
 
@@ -2168,7 +2186,8 @@ class Update(Base):
         """
         Return the appropriate command for installing the Update.
 
-        There are three conditions under which the empty string is returned:
+        There are four conditions under which the empty string is returned:
+            * If the update is in testing status for rawhide.
             * If the update is not in a stable or testing repository.
             * If the release has not specified a package manager.
             * If the release has not specified a testing repository.
@@ -2176,6 +2195,9 @@ class Update(Base):
         Returns:
             The dnf command to install the Update, or the empty string.
         """
+        if not self.release.composed_by_bodhi and self.status == UpdateStatus.testing:
+            return ''
+
         if self.status != UpdateStatus.stable and self.status != UpdateStatus.testing:
             return ''
 
@@ -2224,6 +2246,11 @@ class Update(Base):
         data['critpath'] = cls.contains_critpath_component(
             data['builds'], data['release'].name)
 
+        # Be sure to not add an empty string as alternative title
+        # and strip whitespaces from it
+        if 'display_name' in data:
+            data['display_name'] = data['display_name'].strip()
+
         # Create the Bug entities, but don't talk to rhbz yet.  We do that
         # offline in the UpdatesHandler task worker now.
         bugs = []
@@ -2253,6 +2280,12 @@ class Update(Base):
         # Create the update
         log.debug("Creating new Update(**data) object.")
         release = data.pop('release', None)
+
+        if not release.composed_by_bodhi:
+            # For rawhide updates make sure autotime push is enabled
+            # https://github.com/fedora-infra/bodhi/issues/3912
+            data['autotime'] = True
+
         up = Update(**data, release=release)
 
         # We want to make sure that the value of stable_days
@@ -2265,14 +2298,14 @@ class Update(Base):
                                f"release value of {up.mandatory_days_in_testing} days"
             })
 
+        log.debug("Adding new update to the db.")
+        db.add(up)
+        log.debug("Triggering db commit for new update.")
+        db.commit()
+
         if not data.get("from_tag"):
             log.debug("Setting request for new update.")
             up.set_request(db, req, request.user.name)
-
-        log.debug("Adding new update to the db.")
-        db.add(up)
-        log.debug("Triggering db flush for new update.")
-        db.flush()
 
         if config.get('test_gating.required'):
             log.debug(
@@ -2298,12 +2331,16 @@ class Update(Base):
         """
         db = request.db
         buildinfo = request.buildinfo
-        koji = request.koji
         up = db.query(Update).filter_by(alias=data['edited']).first()
         del(data['edited'])
 
         caveats = []
         edited_builds = [build.nvr for build in up.builds]
+
+        # Be sure to not add an empty string as alternative title
+        # and strip whitespaces from it
+        if 'display_name' in data:
+            data['display_name'] = data['display_name'].strip()
 
         # stable_days can be set by the user. We want to make sure that the value
         # will not be lower than the mandatory_days_in_testing.
@@ -2324,7 +2361,7 @@ class Update(Base):
                                                 "locked update")
 
                 new_builds.append(build)
-                Package.get_or_create(buildinfo[build])
+                Package.get_or_create(db, buildinfo[build])
                 b = db.query(Build).filter_by(nvr=build).first()
 
                 up.builds.append(b)
@@ -2379,6 +2416,10 @@ class Update(Base):
         # Updates with new or removed builds always go back to testing
         if new_builds or removed_builds:
             data['request'] = UpdateRequest.testing
+            # And, updates with new or removed builds always get their karma reset.
+            # https://github.com/fedora-infra/bodhi/issues/511
+            data['karma_critipath'] = 0
+            up.date_testing = None
 
             # Remove all koji tags and change the status back to pending
             if up.status is not UpdateStatus.pending:
@@ -2390,23 +2431,14 @@ class Update(Base):
                 })
 
             # Add the pending_signing_tag to all new builds
-            for build in new_builds:
-                if up.from_tag:
-                    # this is a sidetag based update. use the sidetag pending signing tag
-                    side_tag_pending_signing = up.release.get_pending_signing_side_tag(up.from_tag)
-                    koji.tagBuild(side_tag_pending_signing, build)
-                elif up.release.pending_signing_tag:
-                    # Add the release's pending_signing_tag to all new builds
-                    koji.tagBuild(up.release.pending_signing_tag, build)
-                else:
-                    # EL6 doesn't have these, and that's okay...
-                    # We still warn in case the config gets messed up.
-                    log.warning('%s has no pending_signing_tag' % up.release.name)
+            tag = None
+            if up.from_tag:
+                tag = up.release.get_pending_signing_side_tag(up.from_tag)
+            elif up.release.pending_signing_tag:
+                tag = up.release.pending_signing_tag
 
-        # And, updates with new or removed builds always get their karma reset.
-        # https://github.com/fedora-infra/bodhi/issues/511
-        if new_builds or removed_builds:
-            data['karma_critpath'] = 0
+            if tag is not None:
+                tag_update_builds_task.delay(tag=tag, builds=new_builds)
 
         new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
@@ -2420,15 +2452,36 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
-        handle_update.delay(
-            api_version=1, action='edit',
-            update=up.__json__(request=request),
-            agent=request.user.name,
-            new_bugs=new_bugs
-        )
         notifications.publish(update_schemas.UpdateEditV1.from_dict(
             message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
 
+        # If editing a Pending update, all of whose builds are signed, for a release
+        # which isn't composed by Bodhi (i.e. Rawhide), move it directly to Testing.
+        if not up.release.composed_by_bodhi and up.status == UpdateStatus.pending \
+                and up.signed:
+            log.info("Every build in the update is signed, set status to testing")
+            up.status = UpdateStatus.testing
+            up.date_testing = func.current_timestamp()
+            up.request = None
+            log.info(f"Update status of {up.alias} has been set to testing")
+
+        if config['test_gating.required']:
+            log.info(f"Updating test gating status of {up.alias}")
+            up.update_test_gating_status()
+
+        # Commit the changes in the db before calling celery tasks.
+        db.commit()
+
+        log.info("Deferring working on bugs and fetching test cases to celery")
+        alias = up.alias
+        if not bool(config.get('bodhi_email')):
+            log.warning("Not configured to handle bugs")
+        else:
+            work_on_bugs_task.delay(alias, new_bugs)
+
+        fetch_test_cases_task.delay(alias)
+
+        log.info(f"Done editing {up.alias}")
         return up, caveats
 
     @property
@@ -2621,9 +2674,13 @@ class Update(Base):
                 title += " more"
 
                 return title
+            elif len(self.builds) == 0:
+                return self.alias
             else:
                 return " and ".join([build_label(build) for build in self.builds])
         else:
+            if len(self.builds) == 0:
+                return self.alias
             all_nvrs = [x.nvr for x in self.builds]
             nvrs = all_nvrs[:limit]
             builds = delim.join(sorted(nvrs)) + \
@@ -2834,6 +2891,8 @@ class Update(Base):
             self.add_tag(self.release.pending_signing_tag)
         elif action is UpdateRequest.stable:
             self.add_tag(self.release.pending_stable_tag)
+            if self.request == UpdateRequest.testing:
+                self.remove_tag(self.release.pending_testing_tag)
 
         # If an obsolete/unpushed build is being re-submitted, return
         # it to the pending state, and make sure it's tagged as a candidate
@@ -2860,12 +2919,9 @@ class Update(Base):
             )
         self.comment(db, comment_text, author=u'bodhi')
 
-        if action == UpdateRequest.testing:
-            handle_update.delay(
-                api_version=1, action="testing",
-                update=self.__json__(),
-                agent=username
-            )
+        # Store the update alias so Celery doesn't have to emit SQL
+        alias = self.alias
+
         action_message_map = {
             UpdateRequest.revoke: update_schemas.UpdateRequestRevokeV1,
             UpdateRequest.stable: update_schemas.UpdateRequestStableV1,
@@ -2874,6 +2930,24 @@ class Update(Base):
             UpdateRequest.obsolete: update_schemas.UpdateRequestObsoleteV1}
         notifications.publish(action_message_map[action].from_dict(
             dict(update=self, agent=username)))
+
+        # Commit the changes in the db before calling a celery task.
+        db.commit()
+
+        if action == UpdateRequest.testing:
+            if config['test_gating.required']:
+                log.info(f"Updating test gating status of {self.alias}")
+                self.update_test_gating_status()
+                db.commit()
+
+            log.info("Deferring working on bugs and fetching test cases to celery")
+            if not bool(config.get('bodhi_email')):
+                log.warning("Not configured to handle bugs")
+            else:
+                bugs = [bug.bug_id for bug in self.bugs]
+                work_on_bugs_task.delay(alias, bugs)
+
+            fetch_test_cases_task.delay(alias)
 
     def waive_test_results(self, username, comment=None, tests=None):
         """
@@ -3317,7 +3391,7 @@ class Update(Base):
             raise BodhiException("Can't unpush a %s update"
                                  % self.status.description)
 
-        self.untag(db)
+        self.untag(db, preserve_override=True)
 
         for build in self.builds:
             koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
@@ -3356,12 +3430,13 @@ class Update(Base):
 
         self.request = None
 
-    def untag(self, db):
+    def untag(self, db, preserve_override: bool = False):
         """
         Untag all of the :class:`Builds <Build>` in this update.
 
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
+            preserve_override: whether to preserve the override tag or not
         """
         log.info("Untagging %s", self.alias)
         koji = buildsys.get_session()
@@ -3370,7 +3445,10 @@ class Update(Base):
             for tag in build.get_tags():
                 # Only remove tags that we know about
                 if tag in tag_rels:
-                    koji.untagBuild(tag, build.nvr, force=True)
+                    if preserve_override and tag == self.release.override_tag:
+                        log.info("Skipping override tag")
+                    else:
+                        koji.untagBuild(tag, build.nvr, force=True)
                 else:
                     log.info("Skipping tag that we don't know about: %s" % tag)
         self.pushed = False
@@ -3918,6 +3996,8 @@ class Update(Base):
             # This is the object initialization phase. This instance is not ready, don't create
             # the message now. This method will be called again at the end of __init__
             return
+        if target.content_type != ContentType.rpm:
+            return
 
         message = update_schemas.UpdateReadyForTestingV1.from_dict(
             message=target._build_group_test_message()
@@ -4325,8 +4405,6 @@ class Bug(Base):
         bug_id (int): The bug's id.
         title (str): The description of the bug.
         security (bool): True if the bug is marked as a security issue.
-        url (str): The URL for the bug. Inaccessible due to being overridden by the url
-            property (https://github.com/fedora-infra/bodhi/issues/1995).
         parent (bool): True if this is a parent tracker bug for release-specific bugs.
     """
 
@@ -4342,9 +4420,6 @@ class Bug(Base):
 
     # If we're dealing with a security bug
     security = Column(Boolean, default=False)
-
-    # Bug URL.  If None, then assume it's in Red Hat Bugzilla
-    url = Column('url', UnicodeText)
 
     # If this bug is a parent tracker bug for release-specific bugs
     parent = Column(Boolean, default=False)
@@ -4656,7 +4731,6 @@ class BuildrootOverride(Base):
             The new updated override.
         """
         db = request.db
-
         edited = data.pop('edited')
         override = cls.get(edited.id)
 

@@ -251,10 +251,10 @@ class BaseTestCaseMixin:
         """
         Create and return an Update with the given iterable of build_nvrs.
 
-        Each build_nvr should be a tuple of strings describing the name, version, and release for
-        the build. For example, build_nvrs might look like this:
+        Each build_nvr should be a string describing the name, version, and release for the build
+        separated by dashes. For example, build_nvrs might look like this:
 
-        (('bodhi', '2.3.3', '1.fc24'), ('python-fedora-atomic-composer', '2016.3', '1.fc24'))
+        ('bodhi-2.3.3-1.fc24', 'python-fedora-atomic-composer-2016.3-1.fc24')
 
         You can optionally pass a release_name to select a different release than the default F17,
         but the release must already exist in the database.

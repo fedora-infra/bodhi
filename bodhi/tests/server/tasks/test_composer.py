@@ -540,7 +540,8 @@ That was the actual one''' % compose_dir
 
         with self.db_factory() as session:
             firstupdate = session.query(Update).one()
-            build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package, signed=True)
+            build = RpmBuild(nvr=otherbuild, package=firstupdate.builds[0].package,
+                             release=firstupdate.release, signed=True)
             session.add(build)
             update = Update(
                 builds=[build], type=UpdateType.bugfix,
@@ -1979,6 +1980,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     @mock.patch('bodhi.server.util.cmd')
+    @mock.patch('bodhi.server.models.Update.update_test_gating_status', mock.Mock())
     def test_retry_done_compose(self, mock_cmd, sleep,
                                 mock_wait_for_sync, mock_generate_updateinfo,
                                 mock_wait_for_repo_signature, mock_stage_repo,
@@ -2178,7 +2180,8 @@ testmodule:master:20172:2
             oldupdate.locked = False
 
             # Create a newer build
-            build = RpmBuild(nvr=otherbuild, package=oldupdate.builds[0].package, signed=True)
+            build = RpmBuild(nvr=otherbuild, package=oldupdate.builds[0].package,
+                             release=oldupdate.release, signed=True)
             session.add(build)
             update = Update(
                 builds=[build], type=UpdateType.bugfix,

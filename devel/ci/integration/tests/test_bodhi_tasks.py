@@ -16,12 +16,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Test the bodhi async tasks."""
+import json
 
 import psycopg2
 import pytest
 from conu import ConuException
 
-from .utils import read_file, wait_for_file, get_task_results
+from .utils import read_file, get_task_results
 
 
 def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
@@ -40,12 +41,12 @@ def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
     # after joining with the composes table through updates table.
     query = """
       SELECT DISTINCT
-        c.release_id, c.request, state, b.type
+        c.release_id, c.request, c.checkpoints, state, b.type
       FROM
         composes AS c
       INNER JOIN updates AS u ON (c.release_id = u.release_id AND c.request = u.request )
       INNER JOIN builds AS b ON (b.update_id = u.id)
-      WHERE b.type IN ('rpm', 'module') AND state <> 'failed';
+      WHERE b.type = 'rpm' AND state <> 'failed';
     """
     db_ip = db_container.get_IPv4s()[0]
     conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
@@ -53,14 +54,18 @@ def test_push_composer_start(bodhi_container, db_container, rabbitmq_container):
         with conn.cursor() as curs:
             curs.execute(query)
             composes = curs.fetchall()
-    if not composes:
+    valid_composes = []
+    for compose in composes:
+        checkpoints = json.loads(compose[2])
+        if not checkpoints.get("compose_done"):
+            valid_composes.append(compose)
+    if not valid_composes:
         pytest.skip("We can't test whether composes were run, there are none pending")
-
     # Give some time for the message to go around and the command to be run.
     try:
-        wait_for_file(bodhi_container, "/tmp/pungi-calls.log")
+        bodhi_container.execute(["wait-for-file", "/tmp/pungi-calls.log"])
     except ConuException as e:
-        print("Waiting for pungi-calls.log failed, relevant composes: {}".format(composes))
+        print(f"Waiting for pungi-calls.log failed, relevant composes: {composes}")
         raise e
     with read_file(bodhi_container, "/tmp/pungi-calls.log") as fh:
         calls = fh.read().splitlines()
@@ -86,33 +91,43 @@ def test_update_edit(
             with conn.cursor() as curs:
                 # First try to find an update that we can use.
                 query = base_query[:]
-                query.insert(4, "AND u.status != 'testing' AND u.request != 'testing'")
+                query.insert(
+                    4,
+                    "AND u.status IN ('pending', 'testing')"
+                )
                 curs.execute(" ".join(query))
                 result = curs.fetchone()
-                if result is None:
-                    # Well, let's hack one into something we can use.
-                    query = base_query[:]
-                    query.insert(4, "AND u.status != 'testing'")
-                    curs.execute(" ".join(query))
-                    result = curs.fetchone()
-                    assert result is not None
-                    update_alias = result[0]
-                    curs.execute(
-                        "UPDATE updates SET request = 'stable' WHERE alias = %s",
-                        (update_alias,)
-                    )
-                else:
-                    update_alias = result[0]
+                assert result is not None
+                update_alias = result[0]
         conn.close()
         return update_alias
 
+    def find_bug():
+        base_query = [
+            "SELECT bug_id",
+            "FROM bugs b",
+            "WHERE TRUE",
+            "LIMIT 1"
+        ]
+        db_ip = db_container.get_IPv4s()[0]
+        conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+        with conn:
+            with conn.cursor() as curs:
+                curs.execute(" ".join(base_query))
+                result = curs.fetchone()
+                assert result is not None
+                bug_id = result[0]
+        conn.close()
+        return str(bug_id)
+
     update_alias = find_update()
+    bug_id = find_bug()
     # Remove previous task results
     bodhi_container.execute(["find", "/srv/celery-results", "-type", "f", "-delete"])
     cmd = [
         "bodhi",
         "updates",
-        "request",
+        "edit",
         "--debug",
         "--url",
         "http://localhost:8080",
@@ -123,7 +138,8 @@ def test_update_edit(
         "--password",
         "ipsilon",
         update_alias,
-        "testing",
+        "--bugs",
+        bug_id,
     ]
     try:
         bodhi_container.execute(cmd)
@@ -131,7 +147,11 @@ def test_update_edit(
         with read_file(bodhi_container, "/httpdir/errorlog") as log:
             print(log.read())
         assert False, str(e)
-    wait_for_file(bodhi_container, "/srv/celery-results", dir_not_empty=True)
+    try:
+        bodhi_container.execute(["wait-for-file", "-d", "/srv/celery-results"])
+    except ConuException as e:
+        print(f"Waiting for celery results failed, relevant update: {update_alias}")
+        raise e
     results = get_task_results(bodhi_container)
     assert len(results) > 0
     result = results[-1]

@@ -28,6 +28,7 @@ from bodhi.server import models
 from bodhi.server.tasks import expire_overrides_task
 from bodhi.server.tasks.expire_overrides import main as expire_overrides_main
 from bodhi.tests.server.base import BasePyTestCase
+from .base import BaseTaskTestCase
 
 
 class TestTask(BasePyTestCase):
@@ -47,12 +48,12 @@ class TestTask(BasePyTestCase):
         main_function.assert_called_with()
 
 
-class TestMain(BasePyTestCase):
+@mock.patch('bodhi.server.tasks.expire_overrides.log')
+class TestMain(BaseTaskTestCase):
     """
     This class contains tests for the main() function.
     """
 
-    @mock.patch('bodhi.server.tasks.expire_overrides.log')
     def test_no_expire(self, log):
         """
         Assert that we don't expire a buildroot override with an expiration date in the future
@@ -67,7 +68,6 @@ class TestMain(BasePyTestCase):
         buildrootoverride = self.db.query(models.BuildrootOverride).all()[0]
         assert buildrootoverride.expired_date is None
 
-    @mock.patch('bodhi.server.tasks.expire_overrides.log')
     def test_expire(self, log):
         """
         Assert that we expire a buildroot override with an expiration date in the past
@@ -83,7 +83,6 @@ class TestMain(BasePyTestCase):
                                    mock.call('Expired bodhi-2.0-1.fc17')], any_order=True)
         assert buildrootoverride.expired_date is not None
 
-    @mock.patch('bodhi.server.tasks.expire_overrides.log')
     def test_exception(self, log):
         """
         Test the exception handling

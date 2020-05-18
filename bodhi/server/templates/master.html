@@ -33,108 +33,109 @@
     <link href="${request.static_url('bodhi:server/static/fonts/open-sans.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/fonts/hack.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/fonts/font-awesome.css') }" rel="stylesheet" />
+    <link href="${request.static_url('bodhi:server/static/vendor/jquery-typeahead/jquery.typeahead.min.css') }" rel="stylesheet" />
     <link href="${request.static_url('bodhi:server/static/css/site.css') }" rel="stylesheet" />
     </%block>
 
   </head>
 
   <body>
-      <div class="searchbar" style="display:none;">
-        <div class="container">
-          <div class="row">
-            <div class="col-12">
-              <form id="search" role="search">
-                <div id="bloodhound" class="form-group mb-0">
-                  <input class="typeahead form-control" id="searchbox" name="term" autocomplete="off" type="text" placeholder="Search...">
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="masthead py-2">
+    <div class="masthead py-2">
       <div class="container px-0">
-        <div class="row no-gutters">
-          <div class="col-sm-6">
-            <a href="${request.route_url('home')}">
-              <img src="${request.static_url('bodhi:server/static/img/bodhi-logo.png')}" alt="Fedora Update System" height="40">
-            </a>
-          </div>
-          <div class="col-sm-6">
-            <div class="row">
-              <nav class="navbar navbar-light navbar-expand pt-0 pb-0 ml-auto">
-                  <div class="container">
-                    <ul class="nav navbar-nav nav-pill align-items-center">
-                        % if request.matched_route and request.matched_route.name in ('releases', 'release'):
-                        <li class="nav-item active font-weight-bold">
-                        % else:
-                        <li class="nav-item font-weight-bold">
-                        % endif
-                          <a class="nav-link" href="${request.route_url('releases')}">
-                            Releases
-                          </a>
-                        </li>
+        <nav class="navbar navbar-light navbar-expand-md pt-0 pb-0">
 
-                        % if request.matched_route and request.matched_route.name in ('update', 'updates'):
-                        <li class="nav-item active font-weight-bold">
-                        % else:
-                        <li class="nav-item font-weight-bold">
-                        % endif
-                          <a class="nav-link" href="${request.route_url('updates')}">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#bodhi-navbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <a class="navbar-brand" href="${request.route_url('home')}">
+                <img src="${request.static_url('bodhi:server/static/img/bodhi-logo.png')}" alt="Fedora Update System" height="40">
+            </a>
+
+            <div id="bodhi-navbar" class="navbar-collapse collapse">
+                <ul class="navbar-nav ml-auto">
+                    % if request.matched_route and request.matched_route.name in ('releases', 'release'):
+                    <li class="nav-item active font-weight-bold">
+                    % else:
+                    <li class="nav-item font-weight-bold">
+                    % endif
+                        <a class="nav-link" href="${request.route_url('releases')}">
+                            Releases
+                        </a>
+                    </li>
+                    % if request.matched_route and request.matched_route.name in ('update', 'updates'):
+                    <li class="nav-item active font-weight-bold">
+                    % else:
+                    <li class="nav-item font-weight-bold">
+                    % endif
+                        <a class="nav-link" href="${request.route_url('updates')}?releases=__current__&releases=__pending__">
                             Updates
-                          </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="javascript:void(0);" id="search-toggle">
-                              <span class="fa fa-search"></span>
-                            </a>
-                          </li>
-                        % if request.user:
-                        <li class="nav-item dropdown">
-                          <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        </a>
+                    </li>
+                    % if request.matched_route and request.matched_route.name in ('override', 'overrides'):
+                    <li class="nav-item active font-weight-bold">
+                    % else:
+                    <li class="nav-item font-weight-bold">
+                    % endif
+                        <a class="nav-link" href="${request.route_url('overrides')}?expired=False">
+                            Overrides
+                        </a>
+                    </li>
+
+                    <form id="bodhi-searchbar" name="bodhi-searchbar" class="mx-2">
+                        <div class="typeahead__container">
+                            <div class="typeahead__field">
+                                <div class="typeahead__query">
+                                    <input class="bodhi-searchbar-input" name="bodhi-searchbar-input" placeholder="Search..." autocomplete="off">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    % if request.user:
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                             <span class="glyphicon glyphicon-user"></span>
                             <img src="${self.util.avatar(request.user.name, size=24)}" alt="User Icon"/>
-                          </a>
-                          <div class="dropdown-menu dropdown-menu-right">
-                              <a class="dropdown-item" href="${request.route_url('home')}">
-                                  Dashboard
-                              </a>
-                              <a class="dropdown-item" href="${request.route_url('new_update')}">
-                                  Create New Update
-                              </a>
-                              <a class="dropdown-item" href="${request.route_url('new_override')}">
-                                  Create New Override
-                              </a>
-                              <div class="dropdown-divider"></div>
-                              <a class="dropdown-item" href="${request.route_url('user', name=request.user.name)}">
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" href="${request.route_url('home')}">
+                                Dashboard
+                            </a>
+                            <a class="dropdown-item" href="${request.route_url('new_update')}">
+                                Create New Update
+                            </a>
+                            <a class="dropdown-item" href="${request.route_url('new_override')}">
+                                Create New Override
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="${request.route_url('user', name=request.user.name)}">
                                 Your Public Profile
-                              </a>
-                              <a class="dropdown-item" href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
+                            </a>
+                            <a class="dropdown-item" href="${request.registry.settings.get('fmn_url')}${request.user.openid}/">
                                 Manage Alerts
-                              </a>
-                              % if request.user:
-                              <a class="dropdown-item" href="${request.route_url('logout')}">
+                            </a>
+                            % if request.user:
+                            <a class="dropdown-item" href="${request.route_url('logout')}">
                                 Log out</a>
-                              % endif
-                          </div>
-                        </li>
-                        % endif
+                            % endif
+                        </div>
+                    </li>
+                    % endif
 
-                        % if not request.user:
-                        <li class="nav-item ml-3">
-                          % if request.matched_route:
-                          <a class="btn btn-primary" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">Login</a>
-                          % else:
-                          <a class="btn btn-primary" href="${request.route_url('login')}">Login</a>
-                          % endif
-                        </li>
+                    % if not request.user:
+                    <li class="nav-item ml-3">
+                        % if request.matched_route:
+                        <a class="btn btn-primary" href="${request.route_url('login') + '?came_from=' + request.current_route_url()}">Login</a>
+                        % else:
+                        <a class="btn btn-primary" href="${request.route_url('login')}">Login</a>
                         % endif
-                    </ul>
-                  </div>
-                </nav>
+                    </li>
+                    % endif
+                </ul>
             </div>
-          </div>
-        </div>
+
+        </nav>
       </div>
     </div>
     <div class="bodycontent pb-3">
@@ -205,7 +206,7 @@
     </script>
     <script src="${request.static_url('bodhi:server/static/vendor/fedora-bootstrap/fedora-bootstrap.min.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/site.js')}"></script>
-    <script src="${request.static_url('bodhi:server/static/vendor/typeahead/typeahead.bundle.js')}"></script>
+    <script src="${request.static_url('bodhi:server/static/vendor/jquery-typeahead/jquery.typeahead.min.js')}"></script>
     <script src="${request.static_url('bodhi:server/static/js/search.js')}"></script>
     </%block>
     

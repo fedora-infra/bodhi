@@ -178,7 +178,7 @@ def test_composes_list(bodhi_container, db_container):
     assert result.exit_code == 0
     # Parse command output
     updates_by_compose = {}
-    output_parser = re.compile(r"[\*\s]?([\w-]+)\s+:\s+(\d+) updates \((\w+)\)")
+    output_parser = re.compile(r"[\*\s]?([\w-]+)\s*:\s+(\d+) updates \((\w+)\)")
     for line in result.output.splitlines():
         match = output_parser.match(line)
         assert match is not None
@@ -186,11 +186,11 @@ def test_composes_list(bodhi_container, db_container):
     # Look in the DB for what is expected
     expected = {}
     query = """SELECT
-    r.name, c.request, COUNT(u.id), c.state
+    r.name, c.request, SUM(CASE WHEN u.locked = TRUE THEN 1 ELSE 0 END), c.state
     FROM composes c
     JOIN releases r ON r.id = c.release_id
     JOIN updates u ON u.release_id = r.id AND u.request = c.request
-    WHERE (r.state = 'current' OR r.state = 'pending') AND u.locked = TRUE
+    WHERE (r.state = 'current' OR r.state = 'pending')
     GROUP BY r.name, c.request, c.state
     """
     db_ip = db_container.get_IPv4s()[0]
@@ -349,6 +349,7 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
         "FROM updates "
         "JOIN users ON updates.user_id = users.id "
         "JOIN releases ON updates.release_id = releases.id "
+        "WHERE releases.state = 'current' "
         "ORDER BY date_submitted DESC LIMIT 1"
     )
     query_comments = (
@@ -380,7 +381,7 @@ def test_updates_query_details(bodhi_container, db_container, greenwave_containe
             for record in curs:
                 update.comments.append(_db_record_to_munch(curs, record))
             curs.execute(query_karma, (update.id, ))
-            update.karma = _db_record_to_munch(curs, curs.fetchone()).karma
+            update.karma = _db_record_to_munch(curs, curs.fetchone()).karma or 0
             curs.execute(query_ct, (update.id, ))
             update.content_type = _db_record_to_munch(curs, curs.fetchone()).type
             curs.execute(query_builds, (update.id, ))
@@ -500,23 +501,24 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
             with conn.cursor() as curs:
                 # First try to find an update that we can use.
                 query = base_query[:]
-                query.insert(4, "AND u.status != 'testing' AND u.request != 'testing'")
+                query.insert(
+                    4,
+                    "AND u.status = 'testing' AND u.request IS NULL and u.critpath = FALSE"
+                )
+                query.insert(
+                    5,
+                    "AND u.test_gating_status IN ('ignored', 'passed', 'greenwave_failed')"
+                )
                 curs.execute(" ".join(query))
                 result = curs.fetchone()
-                if result is None:
-                    # Well, let's hack one into something we can use.
-                    query = base_query[:]
-                    query.insert(4, "AND u.status != 'testing'")
-                    curs.execute(" ".join(query))
-                    result = curs.fetchone()
-                    assert result is not None
-                    update_alias = result[0]
-                    curs.execute(
-                        "UPDATE updates SET request = 'stable' WHERE alias = %s",
-                        (update_alias,)
-                    )
-                else:
-                    update_alias = result[0]
+                assert result is not None
+                update_alias = result[0]
+                # Now let's make sure the update is pushable to stable
+                curs.execute(
+                    "UPDATE updates SET stable_karma = 0, stable_days = 0 "
+                    "WHERE alias = %s",
+                    (update_alias,)
+                )
         conn.close()
         return update_alias
 
@@ -534,7 +536,7 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
         "--password",
         "ipsilon",
         update_alias,
-        "testing",
+        "stable",
     ]
     try:
         output = bodhi_container.execute(cmd)
@@ -543,4 +545,4 @@ def test_updates_request(bodhi_container, ipsilon_container, db_container):
             print(log.read())
         assert False, str(e)
     output = "".join(line.decode("utf-8") for line in output)
-    assert "This update has been submitted for testing by guest." in output
+    assert "This update has been submitted for stable by guest." in output

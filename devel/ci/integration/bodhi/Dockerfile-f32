@@ -1,4 +1,4 @@
-FROM bodhi-ci/f29
+FROM bodhi-ci/f32
 LABEL \
   name="bodhi-web" \
   vendor="Fedora Infrastructure" \
@@ -8,7 +8,10 @@ LABEL \
 # For integration testing we're using the infrastructure repo
 RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
 # work around https://bugzilla.redhat.com/show_bug.cgi?id=1699396
-RUN rpm --import "$(awk -F= '{if ($0 ~ "gpgkey *=") {print $2;}}' < /etc/yum.repos.d/infra-tags.repo)"
+# and deal with https://fedoraproject.org/wiki/Changes/Set_skip_if_unavailable_default_to_false
+RUN rpm --import "$(awk -F= '{if ($0 ~ "gpgkey *=") {print $2;}}' \
+        < /etc/yum.repos.d/infra-tags.repo)" && \
+    echo skip_if_unavailable=True >> /etc/yum.repos.d/infra-tags.repo
 
 # Install Bodhi deps (that were not needed by the unittests container)
 RUN dnf install -y \
@@ -22,9 +25,8 @@ RUN dnf install -y \
 # Create bodhi user
 RUN groupadd -r bodhi && \
     useradd  -r -s /sbin/nologin -d /home/bodhi/ -m -c 'Bodhi Server' -g bodhi bodhi
-
 # Install it
-RUN python3 setup.py build && pip3 install .
+RUN python3 setup.py build && pip3 install --no-use-pep517 .
 
 # Configuration
 RUN mkdir -p /etc/bodhi
@@ -52,6 +54,10 @@ RUN \
 
 # Apache
 RUN mkdir -p /httpdir && chown bodhi:bodhi /httpdir
+
+# Tests tooling
+COPY devel/ci/integration/bodhi/wait-for-file.py /usr/local/bin/wait-for-file
+RUN chmod +x /usr/local/bin/wait-for-file
 # Celery results
 RUN mkdir -p /srv/celery-results && chown -R bodhi:bodhi /srv/celery-results
 # Composes

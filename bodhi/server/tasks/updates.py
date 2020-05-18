@@ -40,7 +40,7 @@ from sqlalchemy import func
 
 from bodhi.server import util, bugs as bug_module
 from bodhi.server.config import config
-from bodhi.server.exceptions import BodhiException
+from bodhi.server.exceptions import BodhiException, ExternalCallException
 from bodhi.server.models import Bug, Update, UpdateType, UpdateStatus
 
 
@@ -81,9 +81,20 @@ class UpdatesHandler:
             api_version: API version number.
             data: Information about a new or edited update.
         """
-        action = data["action"]
-        alias = data['update'].get('alias')
+        if api_version == 1:
+            alias = data["update"].get("alias")
+        elif api_version == 2:
+            try:
+                alias = data['update_alias']
+            except KeyError:
+                log.error(f"Wrong message format for the handle_update task: {data}")
+                return
+        else:
+            log.error(f"The Updates Handler doesn't know how to handle api_version {api_version}. "
+                      f"Message was: {data}")
+            return
 
+        action = data["action"]
         log.info("Updates Handler handling  %s, %s" % (alias, action))
 
         # Go to sleep for a second to try and avoid a race condition
@@ -150,7 +161,7 @@ class UpdatesHandler:
         for build in update.builds:
             try:
                 build.package.fetch_test_cases(session)
-            except BodhiException:
+            except ExternalCallException:
                 log.warning('Error occurred during fetching testcases', exc_info=True)
 
     def work_on_bugs(self, session, update, bugs):

@@ -387,7 +387,7 @@ class DevBuildsys:
                  'name': 'f28F'},
             ]
         else:
-            release = build.split('.')[-1].replace('fc', 'f')
+            release = build.split('.')[-1].replace('fc', 'f').replace('~bootstrap', '')
             result = [
                 {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                  'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
@@ -402,7 +402,7 @@ class DevBuildsys:
 
     @multicall_enabled
     def listTagged(self, tag: str, *args, **kw) -> typing.List[typing.Any]:
-        """List updates tagged with teh given tag."""
+        """List updates tagged with the given tag."""
         latest = kw.get('latest', False)
         if tag in self._side_tag_ids_names:
             return [self.getBuild(build="gnome-backgrounds-3.0-1.fc17")]
@@ -453,12 +453,6 @@ class DevBuildsys:
         Raises:
             koji.GenericError: If strict is True and epel is requested.
         """
-        for nr in self.__tags__:
-            if taginfo == self.__tags__[nr][0]:
-                toreturn = self.__tags__[nr][1]
-                toreturn['id'] = nr
-                return toreturn
-
         if isinstance(taginfo, int):
             taginfo = "f%d" % taginfo
 
@@ -468,6 +462,11 @@ class DevBuildsys:
 
             else:
                 return None
+
+        # These tags needs to be created
+        if taginfo in ["f32-build-side-1234-signing-pending",
+                       "f32-build-side-1234-testing-pending"]:
+            return None
 
         # emulate a side-tag response
         if taginfo in self._side_tag_ids_names:
