@@ -4,6 +4,121 @@ Release notes
 
 .. towncrier release notes start
 
+v5.3.0
+======
+This is a minor release.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Splitted handle_update task into two celery tasks for bugs and testcases.
+  These two new tasks will make use of Celery's `autoretry_for` and
+  `retry_backoff` features to circumvent external services connection problems.
+  `retry_backoff` needs Celery >= 4.2 (:pr:`3989`).
+
+Features
+^^^^^^^^
+
+* Associate bugs mentioned in rpm changelog to automatically created Rawhide
+  updates; the bugs mentioned with the format `fix(es)|close(s)
+  (fedora|epel|rh|rhbz)#BUG_ID` will be associated to the update and
+  automatically closed (:issue:`3925`).
+
+Bug fixes
+^^^^^^^^^
+
+* Use jquery-typeahead for bodhi searchbar and always show the input field
+  (:issue:`1455`).
+* Reset update.date_testing when editing builds (:issue:`3493`).
+* Removed pending_testing tag when self.request is still in
+  UpdateRequest.testing (:issue:`3944`).
+* Fix the broken privacy policy link for update's comment box. (:issue:`3971`).
+* Do not bound the database session created using TransactionalSessionMaker
+  class to the object created.
+  Since threads are sharing the memory binding to the session object, it makes
+  it possible for threads to
+  override a previous session leading to unexpected behaviours.
+  (:issue:`3979`).
+* Editing builds in an update should not remove override tags (:issue:`3988`).
+* Make Test Cases look clickable. (:issue:`4003`).
+* If an update include no builds, use alias as title (:issue:`4012`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Revise display for update's settings
+
+  Showed a 'stable by karma: disabled' and a 'stable by time: disabled' in
+  the UI when appropriate. Also added a 'Autotime: <Bool>' to the CLI output.
+  (:issue:`3957`).
+* Avoid using a database session in the tag_update_builds_task.
+  (:issue:`3981`).
+* Avoid using a database session in the handle side tag task. (:issue:`3983`).
+* Ignore celery task's results we don't use. (:issue:`3995`).
+
+Documentation improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Reference the state that happens when an update is revoked (:issue:`2902`).
+* Document the full set of bug trackers that can be reference in Bodhi's
+  markdown.
+  Also added a section to Bodhi's Sphinx docs about Bodhi markdown,
+  and listed the bug trackers there as well. (:issue:`3209`).
+* Add information to Bodhi docs that Bodhi has frozen release state
+  (:issue:`3505`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+* Karma Dolkar
+* Mattia Verga
+* Richard O. Gregory
+* Tomas Kopecek
+
+
+v5.2.2
+======
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Only pass scalar argument to celery (part 2). Avoid the celery enqueuer
+  emitting SQL queries to resolve attributes, and therefore opening new
+  transactions. (:issue:`8b30a825`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+
+
+v5.2.1
+======
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Get the update object in the celery worker from the database.
+  (:issue:`3966`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+
+
 v5.2.0
 ======
 This is a feature and bugfix release.

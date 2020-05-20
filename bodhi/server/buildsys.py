@@ -387,7 +387,7 @@ class DevBuildsys:
                  'name': 'f28F'},
             ]
         else:
-            release = build.split('.')[-1].replace('fc', 'f')
+            release = build.split('.')[-1].replace('fc', 'f').replace('~bootstrap', '')
             result = [
                 {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                  'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
@@ -402,7 +402,7 @@ class DevBuildsys:
 
     @multicall_enabled
     def listTagged(self, tag: str, *args, **kw) -> typing.List[typing.Any]:
-        """List updates tagged with teh given tag."""
+        """List updates tagged with the given tag."""
         latest = kw.get('latest', False)
         if tag in self._side_tag_ids_names:
             return [self.getBuild(build="gnome-backgrounds-3.0-1.fc17")]
@@ -647,14 +647,14 @@ def koji_login(config: 'BodhiConfig', authenticate: bool) -> koji.ClientSession:
     }
 
     koji_client = koji.ClientSession(_koji_hub, koji_options)
-    if authenticate and not koji_client.krb_login(**get_krb_conf(config)):
-        log.error('Koji krb_login failed')
+    if authenticate and not koji_client.gssapi_login(**get_krb_conf(config)):
+        log.error('Koji gssapi_login failed')
     return koji_client
 
 
 def get_krb_conf(config: 'BodhiConfig') -> typing.Mapping[str, str]:
     """
-    Return arguments for krb_login.
+    Return arguments for gssapi_login.
 
     Args:
         config: Bodhi's configuration dictionary.

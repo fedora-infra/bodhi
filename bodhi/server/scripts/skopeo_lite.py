@@ -203,16 +203,16 @@ class RegistrySession(object):
         if cert_dir is None:
             return None
 
-        for l in sorted(os.listdir(cert_dir)):
-            if l.endswith('.cert'):
-                certpath = os.path.join(cert_dir, l)
+        for d in sorted(os.listdir(cert_dir)):
+            if d.endswith('.cert'):
+                certpath = os.path.join(cert_dir, d)
                 keypath = certpath[:-5] + '.key'
                 if not os.path.exists(keypath):
                     raise RuntimeError("Cannot find key file for {}".format(certpath))
                 return (certpath, keypath)
-            elif l.endswith('.key'):
+            elif d.endswith('.key'):
                 # Should have found <x>.cert first
-                keypath = os.path.join(cert_dir, l)
+                keypath = os.path.join(cert_dir, d)
                 raise RuntimeError("Cannot find certificate file for {}".format(keypath))
 
         return None

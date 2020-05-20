@@ -93,34 +93,41 @@ def test_update_edit(
                 query = base_query[:]
                 query.insert(
                     4,
-                    "AND u.status NOT IN ('testing', 'stable') AND u.request != 'testing'"
+                    "AND u.status IN ('pending', 'testing')"
                 )
                 curs.execute(" ".join(query))
                 result = curs.fetchone()
-                if result is None:
-                    # Well, let's hack one into something we can use.
-                    query = base_query[:]
-                    query.insert(4, "AND u.status NOT IN ('testing', 'stable')")
-                    curs.execute(" ".join(query))
-                    result = curs.fetchone()
-                    assert result is not None
-                    update_alias = result[0]
-                    curs.execute(
-                        "UPDATE updates SET request = 'stable' WHERE alias = %s",
-                        (update_alias,)
-                    )
-                else:
-                    update_alias = result[0]
+                assert result is not None
+                update_alias = result[0]
         conn.close()
         return update_alias
 
+    def find_bug():
+        base_query = [
+            "SELECT bug_id",
+            "FROM bugs b",
+            "WHERE TRUE",
+            "LIMIT 1"
+        ]
+        db_ip = db_container.get_IPv4s()[0]
+        conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+        with conn:
+            with conn.cursor() as curs:
+                curs.execute(" ".join(base_query))
+                result = curs.fetchone()
+                assert result is not None
+                bug_id = result[0]
+        conn.close()
+        return str(bug_id)
+
     update_alias = find_update()
+    bug_id = find_bug()
     # Remove previous task results
     bodhi_container.execute(["find", "/srv/celery-results", "-type", "f", "-delete"])
     cmd = [
         "bodhi",
         "updates",
-        "request",
+        "edit",
         "--debug",
         "--url",
         "http://localhost:8080",
@@ -131,7 +138,8 @@ def test_update_edit(
         "--password",
         "ipsilon",
         update_alias,
-        "testing",
+        "--bugs",
+        bug_id,
     ]
     try:
         bodhi_container.execute(cmd)

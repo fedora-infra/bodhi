@@ -25,10 +25,8 @@ import celery
 
 from bodhi.server import bugs, buildsys, initialize_db
 from bodhi.server.config import config
+from bodhi.server.exceptions import ExternalCallException
 from bodhi.server.util import pyfile_to_module
-
-if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.server.models import Update
 
 
 # Workaround https://github.com/celery/celery/issues/5416
@@ -51,7 +49,7 @@ def _do_init():
     bugs.set_bugtracker()
 
 
-@app.task(name="compose")
+@app.task(name="compose", ignore_result=True)
 def compose(api_version: int, **kwargs):
     """Trigger the compose.
 
@@ -72,7 +70,7 @@ def compose(api_version: int, **kwargs):
     composer.run(api_version=api_version, data=kwargs)
 
 
-@app.task(name="handle_update")
+@app.task(name="handle_update", ignore_result=True)
 def handle_update(api_version: int, **kwargs):
     """Trigger the Updates handler.
 
@@ -125,19 +123,44 @@ def expire_overrides_task(**kwargs):
     main()
 
 
-@app.task(name="handle_side_and_related_tags")
-def handle_side_and_related_tags_task(updates: typing.List["Update"], from_tag: str):
+@app.task(name="handle_side_and_related_tags", ignore_result=True)
+def handle_side_and_related_tags_task(
+        builds: typing.List[str],
+        pending_signing_tag: str,
+        from_tag: str,
+        pending_testing_tag: typing.Optional[str] = None,
+        candidate_tag: typing.Optional[str] = None):
     """Handle side-tags and related tags for updates in Koji."""
     from .handle_side_and_related_tags import main
     log.info("Received an order for handling update tags")
     _do_init()
-    main(updates, from_tag)
+    main(builds, pending_signing_tag, from_tag, pending_testing_tag, candidate_tag)
 
 
-@app.task(name="tag_update_builds")
-def tag_update_builds_task(update: "Update", builds: typing.List[str]):
+@app.task(name="tag_update_builds", ignore_result=True)
+def tag_update_builds_task(tag: str, builds: typing.List[str]):
     """Handle tagging builds for an update in Koji."""
     from .tag_update_builds import main
     log.info("Received an order to tag builds for an update")
     _do_init()
-    main(update, builds)
+    main(tag, builds)
+
+
+@app.task(name="bodhi.server.tasks.work_on_bugs", autoretry_for=(ExternalCallException,),
+          retry_kwargs={'max_retries': 5}, retry_backoff=True)
+def work_on_bugs_task(update: str, bugs: typing.List[int]):
+    """Iterate the list of bugs, retrieving information from Bugzilla and modifying them."""
+    from .work_on_bugs import main
+    log.info("Received an order to fetch bugs and update their details")
+    _do_init()
+    main(update, bugs)
+
+
+@app.task(name="bodhi.server.tasks.fetch_test_cases", autoretry_for=(ExternalCallException,),
+          retry_kwargs={'max_retries': 5}, retry_backoff=True)
+def fetch_test_cases_task(update: str):
+    """Query the wiki for test cases for each package on the given update."""
+    from .fetch_test_cases import main
+    log.info("Received an order to fetch test cases")
+    _do_init()
+    main(update)
