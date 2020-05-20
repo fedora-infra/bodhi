@@ -1569,6 +1569,42 @@ class TestSaveBuildrootOverrides:
                                                              'csrf_token': 'a_csrf_token'})
         assert bindings_client.base_url == 'http://localhost:6543/'
 
+    @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
+                mock.MagicMock(return_value='a_csrf_token'))
+    @mock.patch('bodhi.client.bindings.BodhiClient.send_request', autospec=True)
+    @mock.patch('bodhi.client.subprocess.call', return_value=0)
+    def test_wait_flag_multiple_overrides(self, call, send_request):
+        """
+        Assert correct behaviour with --wait flag for multiple overrides
+        """
+        runner = testing.CliRunner()
+
+        def _send_request(*args, **kwargs):
+            """Mock the response from send_request()."""
+            responses = [client_test_data.EXAMPLE_MULTI_OVERRIDES_MUNCH_CAVEATS,
+                         client_test_data.EXAMPLE_GET_RELEASE_15]
+
+            return responses[0]
+
+        send_request.side_effect = _send_request
+
+        overrides_nvrs = [
+            'js-tag-it-2.0-1.fc25'
+            'nodejs-grunt-wrap-0.3.0-6.fc25'
+        ]
+
+        overrides_nvrs_str = " ".join(overrides_nvrs)
+
+        result = runner.invoke(
+            client.save_buildroot_overrides,
+            ['--user', 'bowlofeggs', '--password', 's3kr3t',
+             overrides_nvrs_str, '--wait'])
+
+        # assert result.exit_code == 0
+        print("\nExit code is", result.exit_code)
+        print("\nException is", result.exception)
+        print(result.output)
+
 
 class TestWarnIfUrlOrOpenidAndStagingSet:
     """

@@ -156,6 +156,35 @@ EXAMPLE_OVERRIDE_MUNCH = Munch({
         'openid': None, 'name': 'bowlofeggs', 'id': 2897, 'avatar': None,
         'groups': [Munch({'name': 'packager'})], 'email': 'email@example.com'})})
 
+EXAMPLE_MULTI_OVERRIDES_MUNCH_CAVEATS = Munch({
+    'overrides': [
+        Munch({
+            'build_id': 108570, 'submission_date': '2017-02-28 23:05:32', 'caveats': [],
+            'nvr': 'js-tag-it-2.0-1.fc25', 'expiration_date': '2017-03-07 23:05:31',
+            'notes': 'No explanation given...', 'submitter_id': 2897,
+            'build': Munch(
+                {'epoch': 0, 'nvr': 'js-tag-it-2.0-1.fc25', 'signed': True, 'release_id': 15}),
+            'expired_date': None, 'submitter': Munch({
+                'openid': None, 'name': 'bowlofeggs', 'id': 2897, 'avatar': None,
+                'groups': [Munch({'name': 'packager'})], 'email': 'email@example.com'})}),
+        Munch({
+            'build_id': 108565, 'submission_date': '2017-02-28 14:30:37', 'caveats': [],
+            'nvr': 'nodejs-grunt-wrap-0.3.0-2.fc25', 'expiration_date': '2017-02-28 14:30:37',
+            'notes': 'No explanation given...', 'submitter_id': 2897,
+            'build': Munch(
+                {'epoch': 0, 'nvr': 'nodejs-grunt-wrap-0.3.0-2.fc25',
+                    'signed': True, 'release_id': 15}),
+            'expired_date': None, 'submitter': Munch({
+                'openid': None, 'name': 'bowlofeggs', 'id': 2897, 'avatar': None,
+                'groups': [Munch({'name': 'packager'})], 'email': 'email@example.com'})})
+    ],
+    'caveats': [
+        Munch({
+            'name': 'nvrs',
+            'description': 'Your override submission was split into 2.'})]
+})
+
+
 EXAMPLE_OVERRIDE_MUNCH_CAVEATS = Munch({
     'build_id': 108570, 'submission_date': '2017-02-28 23:05:32',
     'caveats': [Munch({'description': 'this is a caveat'})],

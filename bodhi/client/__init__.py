@@ -297,12 +297,10 @@ def _save_override(url: str, user: str, password: str, staging: bool, edit: bool
         print_resp(resp, client, override_hint=False)
         command = _generate_wait_repo_command(resp, client)
         if command:
-            click.echo(f"\n\nRunning {' '.join(command)}\n")
-            ret = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if ret:
-                click.echo(f"WARNING: ensuring active override failed for {resp.build.nvr}",
-                           err=True)
-                sys.exit(ret)
+            if isinstance(command, list):
+                for release in command:
+                    _run_wait_repo_command(release, resp)
+            _run_wait_repo_command(command, resp)
     else:
         print_resp(resp, client, override_hint=True)
 
@@ -1085,11 +1083,42 @@ def _generate_wait_repo_command(override: munch.Munch, client: bindings.BodhiCli
         If we know the release for the override's build, we return a tuple suitable for passing to
         subprocess.Popen for a koji command that will wait on the repo. If we can't we return None.
     """
+    # Creating multiple overrides returns a dict object with keys 'overrides' and 'caveat' having a
+    # length of 2. The response for each override is stored in a list with key 'overrides'
+    if len(override) == 2:
+        releases = []
+        for i, _ in enumerate(override["overrides"]):
+            if 'release_id' in override["overrides"][i]["build"]:
+                release = client.get_releases(ids=[override["overrides"][i]
+                                                   ["build"]["release_id"]])['releases'][0]
+                releases.append(('koji', 'wait-repo', f'{release.dist_tag}-build',
+                                f'--build={override["overrides"][i]["build"]["nvr"]}'))
+        return releases
+
+    # Creating a single override only returns a dict object of the information about the override
     if 'release_id' in override.build:
         release = client.get_releases(ids=[override.build.release_id])['releases'][0]
         return ('koji', 'wait-repo', f'{release.dist_tag}-build',
                 f'--build={override.build.nvr}')
+
     return None
+
+
+def _run_wait_repo_command(command: tuple, resp: munch.Munch):
+    """
+    After the wait-repo command has been generated, run the process and display it on the
+    client side
+
+    Args:
+        command: A tuple containing the release for the override's build
+        resp: The response from the server
+    """
+    click.echo(f"\n\nRunning {' '.join(command)}\n")
+    ret = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if ret:
+        click.echo(f"WARNING: ensuring active override failed for {resp.build.nvr}",
+                   err=True)
+    sys.exit(ret)
 
 
 def _print_override_koji_hint(override: munch.Munch, client: bindings.BodhiClient):
