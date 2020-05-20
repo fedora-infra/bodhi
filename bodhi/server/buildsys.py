@@ -647,14 +647,14 @@ def koji_login(config: 'BodhiConfig', authenticate: bool) -> koji.ClientSession:
     }
 
     koji_client = koji.ClientSession(_koji_hub, koji_options)
-    if authenticate and not koji_client.krb_login(**get_krb_conf(config)):
-        log.error('Koji krb_login failed')
+    if authenticate and not koji_client.gssapi_login(**get_krb_conf(config)):
+        log.error('Koji gssapi_login failed')
     return koji_client
 
 
 def get_krb_conf(config: 'BodhiConfig') -> typing.Mapping[str, str]:
     """
-    Return arguments for krb_login.
+    Return arguments for gssapi_login.
 
     Args:
         config: Bodhi's configuration dictionary.
