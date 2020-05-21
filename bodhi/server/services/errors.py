@@ -20,7 +20,6 @@
 import logging
 import re
 
-import cornice.util
 import mako.exceptions
 import mako.lookup
 import pyramid.httpexceptions
@@ -29,15 +28,18 @@ import pyramid.response
 from bodhi.server.config import config
 from bodhi.server.util import get_absolute_path
 
+try:  # pragma: no cover
+    from cornice.util import json_error
+    json_handler = json_error
+    jsonp_handler = json_error
+except ImportError:  # pragma: no cover
+    from cornice.renderer import CorniceRenderer
+    renderer = CorniceRenderer()
+    json_handler = renderer.render_errors
+    jsonp_handler = renderer.render_errors
+
 
 log = logging.getLogger('bodhi')
-
-
-# First, just re-use cornice's default json handler for our own.  It is fine.
-json_handler = cornice.util.json_error
-
-# TODO -- make this do the right thing.  Not a big deal for now.
-jsonp_handler = cornice.util.json_error
 
 
 def camel2space(camel):
