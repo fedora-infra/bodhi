@@ -10,6 +10,8 @@ dogpile.cache
 pyasn1-modules  # Due to an unfortunate dash in its name, installs break if pyasn1 is installed first
 fedora_messaging
 feedgen>=0.7.0
+graphene
+graphene-sqlalchemy
 jinja2
 markdown
 psycopg2
@@ -24,3 +26,4 @@ PyYAML
 simplemediawiki
 sqlalchemy
 waitress
+WebOb-GraphQL

@@ -361,6 +361,9 @@ class BodhiConfig(dict):
         'initial_bug_msg': {
             'value': '%s has been submitted as an update to %s. %s',
             'validator': str},
+        'graphiql_enabled': {
+            'value': False,
+            'validator': _validate_bool},
         'greenwave_api_url': {
             'value': 'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0',
             'validator': _validate_rstripped_str},
