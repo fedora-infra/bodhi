@@ -1,0 +1,1 @@
+Replace koji krb_login with gssapi_login.

@@ -1178,8 +1178,8 @@ class TetUpdateSigStatus(base.BasePyTestCase):
     @mock.patch.dict('bodhi.server.push.config',
                      {'buildsystem': 'koji', 'koji_hub': 'https://example.com/koji'})
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
-    @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
-    def test_sets_up_buildsys_without_auth(self, krb_login):
+    @mock.patch('bodhi.server.buildsys.koji.ClientSession.gssapi_login')
+    def test_sets_up_buildsys_without_auth(self, gssapi_login):
         """
         bodhi-push should not set up authentication for the build system.
 
@@ -1189,4 +1189,4 @@ class TetUpdateSigStatus(base.BasePyTestCase):
 
         push.update_sig_status(u)
 
-        assert krb_login.call_count == 0
+        assert gssapi_login.call_count == 0
