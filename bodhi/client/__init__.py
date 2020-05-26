@@ -59,7 +59,7 @@ def _warn_if_url_or_openid_and_staging_set(
                    err=True)
     if param.name == 'staging' and value:
         if ctx.params.get('url', False):
-            click.echo(f'\nWarning: url and staging flags are both set. url will be ignored.\n',
+            click.echo('\nWarning: url and staging flags are both set. url will be ignored.\n',
                        err=True)
         if ctx.params.get('openid_api', False):
             click.echo('\nWarning: openid_api and staging flags '

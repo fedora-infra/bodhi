@@ -53,7 +53,7 @@ Preparation
 If you are making a new major or minor release:
 
 #. Prepare the ``.mergify.yml`` file for the new ``major.minor`` branch as described above.
-#. Raise the version to the appropriate value in ``bodhi/__init__.py``.
+#. Raise the version to the appropriate value in ``bodhi/__init__.py`` and ``setup.py``.
 #. Add missing authors to the release notes fragments by changing to the ``news`` directory and
    running the ``get-authors.py`` script, but check for duplicates and errors
 #. Generate the release notes by running ``towncrier``. Be aware that any commits that were cherry

@@ -1,1 +1,0 @@
-Removed pending_testing tag when self.request is still in UpdateRequest.testing

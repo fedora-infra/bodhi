@@ -90,7 +90,8 @@ def unused_mock_patch(_mockcls=mock.MagicMock, **kwargs):
     return mock.patch(target, new=mockobj)
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
+@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
+@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
 class TestNewUpdate(BasePyTestCase):
     """
     This class contains tests for the new_update() function.
@@ -386,7 +387,7 @@ class TestNewUpdate(BasePyTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
         assert re.search(r'https://koji.fedoraproject.org/koji/search\?terms=.*\&amp;'
-                         r'type=build\&amp;match=glob', str(resp))
+                         r'type=build\&amp;match=exact', str(resp))
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_url_without_trailing_slash(self, *args):
@@ -401,7 +402,7 @@ class TestNewUpdate(BasePyTestCase):
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
         assert re.search(r'https://koji.fedoraproject.org/koji/search\?terms=.*\&amp;'
-                         r'type=build\&amp;match=glob', str(resp))
+                         r'type=build\&amp;match=exact', str(resp))
 
     @mock.patch(**mock_valid_requirements)
     def test_koji_config_mock_url_without_trailing_slash(self, *args):
@@ -416,7 +417,7 @@ class TestNewUpdate(BasePyTestCase):
 
         resp = self.app.get(f"/updates/{resp.json['alias']}", headers={'Accept': 'text/html'})
 
-        assert re.search(r'https://host.org/search\?terms=.*\&amp;type=build\&amp;match=glob',
+        assert re.search(r'https://host.org/search\?terms=.*\&amp;type=build\&amp;match=exact',
                          str(resp))
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
@@ -948,7 +949,6 @@ class TestNewUpdate(BasePyTestCase):
         )
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestSetRequest(BasePyTestCase):
     """
     This class contains tests for the set_request() function.
@@ -1099,7 +1099,8 @@ class TestSetRequest(BasePyTestCase):
         log_exception.assert_called_once_with("Unhandled exception in set_request")
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
+@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
+@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
 class TestEditUpdateForm(BasePyTestCase):
 
     def test_edit_with_permission(self):
@@ -1165,7 +1166,7 @@ class TestEditUpdateForm(BasePyTestCase):
         When creating an update the minimum value of days in testing should be set to 1
         and the value should be empty.
         """
-        resp = self.app.get(f'/updates/new',
+        resp = self.app.get('/updates/new',
                             headers={'accept': 'text/html'})
         assert re.search(r'<input type="number" name="stable_days" placeholder="auto"'
                          r' class="form-control"\n.*min="0" value=""\n.*>',
@@ -1207,7 +1208,8 @@ class TestEditUpdateForm(BasePyTestCase):
         assert str(resp).count("&lt;script&gt;thisIsBad()&lt;/script&gt;") == 2
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
+@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
+@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
 class TestUpdatesService(BasePyTestCase):
     @pytest.fixture
     def create_quick_filters_data(self):
@@ -2991,8 +2993,8 @@ class TestUpdatesService(BasePyTestCase):
         assert len(body['updates']) == 2
 
         assert body['updates'][0]['title'] == 'bodhi-2.0-1.fc17'
-        # This one has a blank title because it doesn't have any builds associated with it yet.
-        assert body['updates'][1]['title'] == ''
+        # This one uses alias because it doesn't have any builds associated with it yet.
+        assert body['updates'][1]['title'] == body['updates'][1]['alias']
         assert body['updates'][0]['user']['name'] == 'guest'
         assert body['updates'][1]['user']['name'] == 'aUser'
 
@@ -4951,11 +4953,13 @@ class TestUpdatesService(BasePyTestCase):
         assert '<span class="fa fa-fw fa-pencil-square-o"></span> Edit' not in resp
 
     @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
-    def test_push_to_stable_button_not_present_when_test_gating_status_failed(self):
+    @mock.patch('bodhi.server.models.Update.update_test_gating_status')
+    def test_push_to_stable_button_not_present_when_test_gating_status_failed(self, update_tg):
         """The push to stable button should not appear if the test_gating_status is failed."""
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['requirements'] = ''
+        update_tg.return_value = TestGatingStatus.failed
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
@@ -4978,11 +4982,13 @@ class TestUpdatesService(BasePyTestCase):
         assert 'Edit' in resp
 
     @mock.patch.dict('bodhi.server.models.config', {'test_gating.required': True})
-    def test_push_to_stable_button_present_when_test_gating_status_passed(self):
+    @mock.patch('bodhi.server.models.Update.update_test_gating_status')
+    def test_push_to_stable_button_present_when_test_gating_status_passed(self, update_tg):
         """The push to stable button should appear if the test_gating_status is passed."""
         nvr = 'bodhi-2.0.0-2.fc17'
         args = self.get_update(nvr)
         args['requirements'] = ''
+        update_tg.return_value = TestGatingStatus.passed
 
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             resp = self.app.post_json('/updates/', args, headers={'Accept': 'application/json'})
@@ -5559,7 +5565,6 @@ class TestUpdatesService(BasePyTestCase):
         assert update.meets_testing_requirements is True
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestWaiveTestResults(BasePyTestCase):
     """
     This class contains tests for the waive_test_results() function.
@@ -6099,7 +6104,6 @@ class TestWaiveTestResults(BasePyTestCase):
         assert up.test_gating_status == TestGatingStatus.waiting
 
 
-@mock.patch('bodhi.server.models.handle_update', mock.Mock())
 class TestGetTestResults(BasePyTestCase):
     """
     This class contains tests for the get_test_results() function.

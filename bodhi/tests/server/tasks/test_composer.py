@@ -19,7 +19,6 @@ from unittest import mock
 from urllib.error import HTTPError, URLError
 import urllib.parse as urlparse
 import datetime
-import dummy_threading
 import errno
 import json
 import os
@@ -153,15 +152,13 @@ class TestComposer(base.BasePyTestCase):
         super(TestComposer, self).setup_method(method)
         self._new_compose_stage_dir = tempfile.mkdtemp()
 
-        # Since the ComposerThread is a subclass of Thread and since it is already constructed
-        # before we have a chance to alter it, we need to change its superclass to be
-        # dummy_threading.Thread so that the test suite doesn't launch real Threads. Threads cannot
+        # We don't want the test suite to launch real Threads. Threads cannot
         # use the same database sessions, and that means that changes that threads make will not
         # appear in other thread's sessions, which cause a lot of problems in these tests.
-        # Mock was not able to make this change since the __bases__ attribute cannot be removed, but
-        # we don't really need this to be cleaned up since we don't want any tests launching theads
-        # anyway.
-        ComposerThread.__bases__ = (dummy_threading.Thread,)
+        # We don't really need this to be cleaned up since we don't want any tests launching threads
+        # anyway, so we don't bother with mock.
+        ComposerThread.start = lambda self: self.run()
+        ComposerThread.join = lambda self, timeout=None: None
         test_config = base.original_config.copy()
         test_config['compose_stage_dir'] = self._new_compose_stage_dir
         test_config['compose_dir'] = os.path.join(self._new_compose_stage_dir, 'compose')
@@ -1980,6 +1977,7 @@ testmodule:master:20172:2
     @mock.patch('bodhi.server.tasks.composer.PungiComposerThread._wait_for_sync')
     @mock.patch('bodhi.server.tasks.composer.time.sleep')
     @mock.patch('bodhi.server.util.cmd')
+    @mock.patch('bodhi.server.models.Update.update_test_gating_status', mock.Mock())
     def test_retry_done_compose(self, mock_cmd, sleep,
                                 mock_wait_for_sync, mock_generate_updateinfo,
                                 mock_wait_for_repo_signature, mock_stage_repo,

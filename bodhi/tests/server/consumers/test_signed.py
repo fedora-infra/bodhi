@@ -62,6 +62,20 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
                 'release': '1.fc17'
             },
         )
+        self.sample_side_tag_message_2 = api.Message(
+            topic='',
+            body={
+                'build_id': 442562,
+                'name': 'bodhi',
+                'tag_id': 214,
+                'instance': 's390',
+                'tag': 'f30-testing-pending',
+                'user': 'sharkcz',
+                'version': '2.0',
+                'owner': 'sharkcz',
+                'release': '1.fc17'
+            },
+        )
         self.handler = signed.SignedHandler()
 
     @mock.patch('bodhi.server.consumers.signed.Build')
@@ -159,8 +173,26 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
 
         self.handler(self.sample_side_tag_message)
         mock_log.info.assert_called_with(
-            "Tag is not testing side tag, skipping")
+            "Tag is not pending_testing tag, skipping")
         assert mock_log.info.call_count == 2
+
+    @mock.patch('bodhi.server.consumers.signed.Build')
+    def test_consume_from_tag_build_signed(self, mock_build_model):
+        """
+        Assert that messages about builds from side tag updates coming from
+        normal releases are marked as signed.
+        """
+        build = mock_build_model.get.return_value
+        build.signed = False
+        build.release = mock.MagicMock()
+        build.release.pending_testing_tag = "f30-testing-pending"
+        update = mock.MagicMock()
+        update.from_tag = "f30-side-tag"
+        update.release.composed_by_bodhi = True
+        build.update = update
+
+        self.handler(self.sample_side_tag_message_2)
+        assert build.signed == True
 
     @mock.patch('bodhi.server.consumers.signed.Build')
     def test_consume_from_tag_not_signed(self, mock_build_model):
@@ -173,8 +205,9 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         build.release = mock.MagicMock()
         build.release.get_testing_side_tag.return_value = "f30-side-tag-testing-pending"
         update = mock.MagicMock()
+        update.release.composed_by_bodhi = False
         update.from_tag = "f30-side-tag"
-        update.signed.return_value = False
+        update.signed = False
         update.status = UpdateStatus.pending
         build.update = update
 

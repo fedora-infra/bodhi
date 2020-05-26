@@ -105,12 +105,12 @@ class TestKojiLogin:
     """This class contains tests for the koji_login() function."""
 
     @mock.patch.object(buildsys, '_koji_hub', 'http://example.com/koji')
-    @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
+    @mock.patch('bodhi.server.buildsys.koji.ClientSession.gssapi_login')
     @mock.patch('bodhi.server.buildsys.log.error')
     @mock.patch('time.sleep')
-    def test_AuthError(self, sleep, error, krb_login):
+    def test_AuthError(self, sleep, error, gssapi_login):
         """backoff should take effect if an AuthError is raised."""
-        krb_login.side_effect = [koji.AuthError, koji.AuthError, True]
+        gssapi_login.side_effect = [koji.AuthError, koji.AuthError, True]
         config = {'some_meaningless_other_key': 'boring_value', 'krb_ccache': 'a_ccache',
                   'krb_keytab': 'a_keytab', 'krb_principal': 'a_principal'}
         default_koji_opts = {
@@ -127,8 +127,8 @@ class TestKojiLogin:
         for key in default_koji_opts:
             assert default_koji_opts[key] == client.opts[key]
         assert type(client) == koji.ClientSession
-        # Due to the use of backoff, we should have called krb_login three times.
-        assert krb_login.mock_calls == (
+        # Due to the use of backoff, we should have called gssapi_login three times.
+        assert gssapi_login.mock_calls == (
             [mock.call(ccache='a_ccache', keytab='a_keytab', principal='a_principal')] * 3)
         # No error should have been logged
         assert error.call_count == 0
@@ -138,10 +138,10 @@ class TestKojiLogin:
         assert sleep.call_count == 2
 
     @mock.patch.object(buildsys, '_koji_hub', 'http://example.com/koji')
-    @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
+    @mock.patch('bodhi.server.buildsys.koji.ClientSession.gssapi_login')
     @mock.patch('bodhi.server.buildsys.log.error')
-    def test_authenticate_false(self, error, krb_login):
-        """If authenticate is False, no attempt to call krb_login() shold be made."""
+    def test_authenticate_false(self, error, gssapi_login):
+        """If authenticate is False, no attempt to call gssapi_login() shold be made."""
         config = {'some_meaningless_other_key': 'boring_value', 'krb_ccache': 'a_ccache',
                   'krb_keytab': 'a_keytab', 'krb_principal': 'a_principal'}
         default_koji_opts = {
@@ -159,34 +159,34 @@ class TestKojiLogin:
             assert default_koji_opts[key] == client.opts[key]
         assert type(client) == koji.ClientSession
         # Since authenticate was False, the login should not have happened.
-        assert krb_login.call_count == 0
+        assert gssapi_login.call_count == 0
         # No error should have been logged
         assert error.call_count == 0
 
-    # krb_login returns a bool to indicate success or failure
+    # gssapi_login returns a bool to indicate success or failure
     @mock.patch.object(buildsys, '_koji_hub', 'http://example.com/koji')
-    @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
+    @mock.patch('bodhi.server.buildsys.koji.ClientSession.gssapi_login')
     @mock.patch('bodhi.server.buildsys.log.error')
-    def test_login_failure(self, error, krb_login):
+    def test_login_failure(self, error, gssapi_login):
         """Assert correct behavior for a failed login event."""
-        krb_login.return_value = False
+        gssapi_login.return_value = False
         config = {'some_meaningless_other_key': 'boring_value', 'krb_ccache': 'a_ccache',
                   'krb_keytab': 'a_keytab', 'krb_principal': 'a_principal'}
 
         client = buildsys.koji_login(config, authenticate=True)
 
         assert type(client) == koji.ClientSession
-        krb_login.assert_called_once_with(ccache='a_ccache', keytab='a_keytab',
-                                          principal='a_principal')
-        error.assert_called_once_with('Koji krb_login failed')
+        gssapi_login.assert_called_once_with(ccache='a_ccache', keytab='a_keytab',
+                                             principal='a_principal')
+        error.assert_called_once_with('Koji gssapi_login failed')
 
-    # krb_login returns a bool to indicate success or failure
+    # gssapi_login returns a bool to indicate success or failure
     @mock.patch.object(buildsys, '_koji_hub', 'http://example.com/koji')
-    @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
+    @mock.patch('bodhi.server.buildsys.koji.ClientSession.gssapi_login')
     @mock.patch('bodhi.server.buildsys.log.error')
-    def test_login_success(self, error, krb_login):
+    def test_login_success(self, error, gssapi_login):
         """Assert correct behavior for a successful login event."""
-        krb_login.return_value = True
+        gssapi_login.return_value = True
         config = {'some_meaningless_other_key': 'boring_value', 'krb_ccache': 'a_ccache',
                   'krb_keytab': 'a_keytab', 'krb_principal': 'a_principal'}
         default_koji_opts = {
@@ -203,8 +203,8 @@ class TestKojiLogin:
         for key in default_koji_opts:
             assert default_koji_opts[key] == client.opts[key]
         assert type(client) == koji.ClientSession
-        krb_login.assert_called_once_with(ccache='a_ccache', keytab='a_keytab',
-                                          principal='a_principal')
+        gssapi_login.assert_called_once_with(ccache='a_ccache', keytab='a_keytab',
+                                             principal='a_principal')
         # No error should have been logged
         assert error.call_count == 0
 
@@ -231,8 +231,8 @@ class TestSetupBuildsystem:
     """Tests :func:`bodhi.server.buildsys.setup_buildsystem` function"""
 
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
-    @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
-    def test_authenticate_false(self, krb_login):
+    @mock.patch('bodhi.server.buildsys.koji.ClientSession.gssapi_login')
+    def test_authenticate_false(self, gssapi_login):
         """If authenticate is set to False, the Koji client should should be unauthenticated."""
         config = {
             'krb_ccache': 'a_ccache', 'krb_keytab': 'a_keytab', 'krb_principal': 'a_principal',
@@ -241,13 +241,13 @@ class TestSetupBuildsystem:
 
         buildsys.setup_buildsystem(config, authenticate=False)
 
-        # Instantiating the buildsystem should not cause a krb_login to happen.
+        # Instantiating the buildsystem should not cause a gssapi_login to happen.
         buildsys._buildsystem()
-        assert krb_login.call_count == 0
+        assert gssapi_login.call_count == 0
 
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
-    @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
-    def test_authenticate_true(self, krb_login):
+    @mock.patch('bodhi.server.buildsys.koji.ClientSession.gssapi_login')
+    def test_authenticate_true(self, gssapi_login):
         """If authenticate is set to True, the Koji client should should be authenticated."""
         config = {
             'krb_ccache': 'a_ccache', 'krb_keytab': 'a_keytab', 'krb_principal': 'a_principal',
@@ -256,10 +256,10 @@ class TestSetupBuildsystem:
 
         buildsys.setup_buildsystem(config, authenticate=True)
 
-        # Instantiating the buildsystem should cause a krb_login to happen.
+        # Instantiating the buildsystem should cause a gssapi_login to happen.
         buildsys._buildsystem()
-        krb_login.assert_called_once_with(ccache='a_ccache', keytab='a_keytab',
-                                          principal='a_principal')
+        gssapi_login.assert_called_once_with(ccache='a_ccache', keytab='a_keytab',
+                                             principal='a_principal')
 
     @mock.patch('bodhi.server.buildsys._buildsystem', mock.Mock())
     def test_initialized_buildsystem(self):

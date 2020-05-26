@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2020 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -15,9 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Fedora's update manager."""
+from bodhi.tests.server import base
 
-__version__ = "5.3.0"
 
-# This is a regular expression used to match username mentions in comments.
-MENTION_RE = r'(?<!\S)(@\w+)'
+class TestGraphQLService(base.BasePyTestCase):
+    """This class contains tests for a /graphql endpoint"""
+    def test_get(self):
+        """Ensure that "Hello World" is returned"""
+        res = self.app.get('/graphql')
+        assert res.body == b'"Hello World"'

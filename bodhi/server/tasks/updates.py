@@ -40,7 +40,7 @@ from sqlalchemy import func
 
 from bodhi.server import util, bugs as bug_module
 from bodhi.server.config import config
-from bodhi.server.exceptions import BodhiException
+from bodhi.server.exceptions import BodhiException, ExternalCallException
 from bodhi.server.models import Bug, Update, UpdateType, UpdateStatus
 
 
@@ -161,7 +161,7 @@ class UpdatesHandler:
         for build in update.builds:
             try:
                 build.package.fetch_test_cases(session)
-            except BodhiException:
+            except ExternalCallException:
                 log.warning('Error occurred during fetching testcases', exc_info=True)
 
     def work_on_bugs(self, session, update, bugs):

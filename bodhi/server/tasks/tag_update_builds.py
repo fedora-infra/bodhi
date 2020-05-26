@@ -41,4 +41,4 @@ def main(tag: str, builds: typing.List[str]):
             log.info(f"Tagging build {build} in {tag}")
         kc.multiCall()
     except Exception:
-        log.exception(f"There was an error handling tagging builds in koji.")
+        log.exception("There was an error handling tagging builds in koji.")

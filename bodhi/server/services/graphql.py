@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2020 Red Hat Inc., and others.
 #
 # This file is part of Bodhi.
 #
@@ -15,9 +15,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Fedora's update manager."""
+"""Defines API endpoints related to GraphQL objects."""
+from cornice import Service
 
-__version__ = "5.3.0"
+graphql = Service(name='graphql', path='/graphql', description='graphql service')
 
-# This is a regular expression used to match username mentions in comments.
-MENTION_RE = r'(?<!\S)(@\w+)'
+
+@graphql.get()
+def graphql_get(request):
+    """
+    Return "Hello World".
+
+    Args:
+        request (pyramid.Request): The current request.
+    Returns:
+        str: A string "Hello World".
+    """
+    return "Hello World"

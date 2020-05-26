@@ -314,7 +314,7 @@ def sanity_check_repodata(myurl, repo_type):
                 continue
             else:
                 raise RepodataException(
-                    f"DNF did not return expected output when running test!"
+                    "DNF did not return expected output when running test!"
                     + f" Test: {dnfargs}, expected: {expout}, output: {output}")
 
 
@@ -675,7 +675,7 @@ def testcase_link(context, test, short=False):
     """
     url = config.get('test_case_base_url') + test.name
     display = test.name.replace('QA:Testcase ', '')
-    link = "<a target='_blank' href='%s' class='notblue'>%s</a>" % (url, display)
+    link = f"<a target='_blank' href='{url}' class='font-weight-bolder'>{display}</a>"
     if not short:
         link = "Test Case " + link
     return link

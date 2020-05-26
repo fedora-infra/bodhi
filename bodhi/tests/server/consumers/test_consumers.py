@@ -69,7 +69,7 @@ class TestConsumer:
                       f"{consumer.handler_infos[-1].name} handler: {msg}")
             error.assert_called_with(logmsg)
 
-            excmsg = (f"Unable to (fully) handle message.\nAffected handlers:\n"
+            excmsg = ("Unable to (fully) handle message.\nAffected handlers:\n"
                       + "".join(f"\t{hi.name}: Something bad happened\n"
                                 for hi in consumer.handler_infos)
                       + "Message:\n{msg}")
