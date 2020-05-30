@@ -160,7 +160,7 @@ class UpdatesHandler:
         """
         for build in update.builds:
             try:
-                build.package.fetch_test_cases(session)
+                build.update_test_cases(session)
             except ExternalCallException:
                 log.warning('Error occurred during fetching testcases', exc_info=True)
 

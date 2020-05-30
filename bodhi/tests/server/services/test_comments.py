@@ -124,6 +124,7 @@ class TestCommentsService(base.BasePyTestCase):
 
     def test_commenting_with_testcase_feedback(self):
         comment = self.make_comment()
+
         comment['testcase_feedback.0.testcase_name'] = "Wat"
         comment['testcase_feedback.0.karma'] = -1
 
