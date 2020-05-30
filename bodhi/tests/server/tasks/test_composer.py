@@ -526,7 +526,7 @@ That was the actual one''' % compose_dir
             compose_schemas.ComposeComposingV1.from_dict({
                 'repo': 'f17-updates-testing',
                 'ctype': 'rpm',
-                'updates': ['bodhi-2.0-2.fc17', 'bodhi-2.0-1.fc17'],
+                'updates': ['bodhi-2.0-1.fc17', 'bodhi-2.0-2.fc17'],
                 'agent': 'bowlofeggs'}),
             update_schemas.UpdateReadyForTestingV1,
             update_schemas.UpdateReadyForTestingV1,

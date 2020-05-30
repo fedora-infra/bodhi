@@ -2849,8 +2849,8 @@ class TestUpdatesService(BasePyTestCase):
         res = self.app.get('/updates/', {"status": ["pending", "testing"]})
         body = res.json_body
         assert len(body['updates']) == 2
-        assert body['updates'][0]['title'] == 'python-nose-1.3.7-11.fc17'
-        assert body['updates'][1]['title'] == 'bodhi-2.0-1.fc17'
+        assert body['updates'][0]['title'] == 'bodhi-2.0-1.fc17'
+        assert body['updates'][1]['title'] == 'python-nose-1.3.7-11.fc17'
 
     def test_list_updates_by_suggest(self):
         res = self.app.get('/updates/', {"suggest": "unspecified"})
