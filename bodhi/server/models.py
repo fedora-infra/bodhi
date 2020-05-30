@@ -18,6 +18,7 @@
 """Bodhi's database models."""
 
 from collections import defaultdict
+from copy import copy
 from datetime import datetime
 from textwrap import wrap
 import hashlib
@@ -753,6 +754,12 @@ update_bug_table = Table(
     Column('bug_id', Integer, ForeignKey('bugs.id')))
 
 
+build_testcase_table = Table(
+    'build_testcase_table', metadata,
+    Column('build_id', Integer, ForeignKey('builds.id')),
+    Column('testcase_id', Integer, ForeignKey('testcases.id')))
+
+
 class Release(Base):
     """
     Represent a distribution release, such as Fedora 27.
@@ -1018,17 +1025,32 @@ class TestCase(Base):
 
     Attributes:
         name (str): The name of the test case.
-        package_id (int): The primary key of the :class:`Package` associated with this test case.
-        package (Package): The package associated with this test case.
+        package_name (str): The name of the package associated with this test case.
     """
 
     __tablename__ = 'testcases'
     __get_by__ = ('name',)
+    __exclude_columns__ = ('builds',)
 
-    name = Column(UnicodeText, nullable=False)
+    name = Column(UnicodeText, nullable=False, unique=True)
 
-    package_id = Column(Integer, ForeignKey('packages.id'))
-    # package backref
+    # Many-to-many relationships
+    # builds backref
+
+    @property
+    def package_name(self) -> str:
+        """
+        Return the package name of the associated builds.
+
+        Since a TestCase name is unique and is created from the name of the Package,
+        each TestCase can only be associated to Builds of the same Package.
+        We use this for quickly validate the TestCase against Package upon feedback submission.
+
+        Returns:
+            The name of the package this testcase is intended for.
+        """
+        build = Build.query.filter(Build.testcases.any(name=self.name)).first()
+        return build.package.name
 
 
 class Package(Base):
@@ -1044,20 +1066,17 @@ class Package(Base):
         type (int): The polymorphic identity column. This is used to identify what Python
             class to create when loading rows from the database.
         builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects.
-        test_cases (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`TestCase`
-            objects.
     """
 
     __tablename__ = 'packages'
     __get_by__ = ('name',)
-    __exclude_columns__ = ('id', 'test_cases', 'builds',)
+    __exclude_columns__ = ('id', 'builds',)
 
     name = Column(UnicodeText, nullable=False)
     requirements = Column(UnicodeText)
     type = Column(ContentType.db_type(), nullable=False)
 
     builds = relationship('Build', backref=backref('package', lazy='joined'))
-    test_cases = relationship('TestCase', backref='package', order_by="TestCase.id")
 
     __mapper_args__ = {
         'polymorphic_on': type,
@@ -1123,60 +1142,6 @@ class Package(Base):
         # The first list contains usernames with commit access. The second list
         # contains FAS group names with commit access.
         return list(committers), list(groups)
-
-    def fetch_test_cases(self, db):
-        """
-        Get a list of test cases for this package from the wiki.
-
-        Args:
-            db (sqlalchemy.orm.session.Session): A database session.
-        Raises:
-            ExternalCallException: When retrieving testcases from Wiki failed.
-        """
-        if not config.get('query_wiki_test_cases'):
-            return
-
-        start = datetime.utcnow()
-        log.debug('Querying the wiki for test cases')
-
-        wiki = MediaWiki(config.get('wiki_url'))
-        cat_page = 'Category:Package %s test cases' % self.external_name
-
-        def list_categorymembers(wiki, cat_page, limit=500):
-            # Build query arguments and call wiki
-            query = dict(action='query', list='categorymembers',
-                         cmtitle=cat_page, cmlimit=limit)
-            try:
-                response = wiki.call(query)
-            except URLError:
-                raise ExternalCallException('Failed retrieving testcases from Wiki')
-            members = [entry['title'] for entry in
-                       response.get('query', {}).get('categorymembers', {})
-                       if 'title' in entry]
-
-            # Determine whether we need to recurse
-            idx = 0
-            while True:
-                if idx >= len(members) or limit <= 0:
-                    break
-                # Recurse?
-                if members[idx].startswith('Category:') and limit > 0:
-                    members.extend(list_categorymembers(wiki, members[idx], limit - 1))
-                    members.remove(members[idx])  # remove Category from list
-                else:
-                    idx += 1
-
-            log.debug('Found the following unit tests: %s', members)
-            return members
-
-        for test in set(list_categorymembers(wiki, cat_page)):
-            case = db.query(TestCase).filter_by(name=test).first()
-            if not case:
-                case = TestCase(name=test, package=self)
-                db.add(case)
-                db.flush()
-
-        log.debug('Finished querying for test cases in %s', datetime.utcnow() - start)
 
     @validates('builds')
     def validate_builds(self, key, build):
@@ -1345,10 +1310,12 @@ class Build(Base):
             of.
         type (ContentType): The polymorphic identify of the row. This is used by sqlalchemy to
             identify which subclass of Build to use.
+        testcases (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`TestCase`
+            objects.
     """
 
     __tablename__ = 'builds'
-    __exclude_columns__ = ('id', 'package', 'package_id', 'release',
+    __exclude_columns__ = ('id', 'package', 'package_id', 'release', 'testcases',
                            'update_id', 'update', 'override')
     __get_by__ = ('nvr',)
 
@@ -1359,6 +1326,10 @@ class Build(Base):
     update_id = Column(Integer, ForeignKey('updates.id'), index=True)
 
     release = relationship('Release', backref='builds', lazy=False)
+
+    # Many-to-many relationships
+    testcases = relationship('TestCase', secondary=build_testcase_table,
+                             backref='builds', order_by='TestCase.name')
 
     type = Column(ContentType.db_type(), nullable=False)
     __mapper_args__ = {
@@ -1516,6 +1487,69 @@ class Build(Base):
             if self.get_creation_time() < build_creation_time:
                 return False
         return True
+
+    def update_test_cases(self, db):
+        """
+        Update the list of test cases for this build from the wiki.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        Raises:
+            ExternalCallException: When retrieving testcases from Wiki failed.
+        """
+        if not config.get('query_wiki_test_cases'):
+            return
+
+        start = datetime.utcnow()
+        log.debug(f'Querying the wiki for test cases of {self.nvr}')
+
+        wiki = MediaWiki(config.get('wiki_url'))
+        cat_page = f'Category:Package {self.package.external_name} test cases'
+
+        def list_categorymembers(wiki, cat_page, limit=500):
+            # Build query arguments and call wiki
+            query = dict(action='query', list='categorymembers',
+                         cmtitle=cat_page, cmlimit=limit)
+            try:
+                response = wiki.call(query)
+            except URLError:
+                raise ExternalCallException('Failed retrieving testcases from Wiki')
+            members = [entry['title'] for entry in
+                       response.get('query', {}).get('categorymembers', {})
+                       if 'title' in entry]
+
+            # Determine whether we need to recurse
+            if limit > 0:
+                for idx, member in enumerate(copy(members)):
+                    if member.startswith('Category:'):
+                        members.extend(list_categorymembers(wiki, member, limit - 1))
+                        members.remove(members[idx])  # remove Category from list
+
+            log.debug(f'Found the following unit tests: {members}')
+            return members
+
+        fetched = set(list_categorymembers(wiki, cat_page))
+
+        # Delete removed testcases
+        for case in self.testcases:
+            if case.name not in fetched:
+                self.testcases.remove(case)
+                log.debug(f'Removed testcase "{case.name}" from {self.nvr}')
+
+        # Add new testcases
+        for test in fetched:
+            case = TestCase.get(test)
+            if not case:
+                case = TestCase(name=test)
+                db.add(case)
+                db.flush()
+                log.debug(f'Found new testcase "{case.name}" and added to database')
+            if case not in self.testcases:
+                self.testcases.append(case)
+                log.debug(f'Added testcase "{case.name}" to {self.nvr}')
+
+        db.flush()
+        log.debug(f'Finished querying for test cases in {datetime.utcnow() - start}')
 
 
 class ContainerBuild(Build):
@@ -3816,7 +3850,7 @@ class Update(Base):
         """
         tests = set()
         for build in self.builds:
-            for test in build.package.test_cases:
+            for test in build.testcases:
                 tests.add(test.name)
         return sorted(list(tests))
 
@@ -3831,7 +3865,7 @@ class Update(Base):
         tests = set()
         for build in self.builds:
             test_names = set()
-            for test in build.package.test_cases:
+            for test in build.testcases:
                 if test.name not in test_names:
                     test_names.add(test.name)
                     tests.add(test)

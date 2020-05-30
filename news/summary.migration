@@ -1,0 +1,1 @@
+Migrate relationship between TestCase and Package to TestCase and Build. The migration script will take care of migrate existing data to the new relation
