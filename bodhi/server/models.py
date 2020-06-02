@@ -2298,13 +2298,13 @@ class Update(Base):
                                f"release value of {up.mandatory_days_in_testing} days"
             })
 
-        log.debug("Adding new update to the db.")
+        log.debug(f"Adding new update to the db {up.alias}.")
         db.add(up)
-        log.debug("Triggering db commit for new update.")
+        log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
         if not data.get("from_tag"):
-            log.debug("Setting request for new update.")
+            log.debug(f"Setting request for new update {up.alias}.")
             up.set_request(db, req, request.user.name)
 
         if config.get('test_gating.required'):
@@ -2312,7 +2312,7 @@ class Update(Base):
                 'Test gating required is enforced, marking the update as waiting on test gating')
             up.test_gating_status = TestGatingStatus.waiting
 
-        log.debug("Done with Update.new(...)")
+        log.debug(f"Done with Update.new(...) {up.alias}")
         return up, caveats
 
     @classmethod

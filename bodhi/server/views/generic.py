@@ -336,8 +336,6 @@ def latest_candidates(request):
                 log.error(taglist)
             else:
                 for build in taglist[0]:
-                    log.debug(build)
-
                     if hide_existing and build['nvr'] in associated_build_nvrs:
                         continue
 
@@ -370,8 +368,6 @@ def latest_candidates(request):
         result = work(testing, hide_existing, pkg=pkg)
     else:
         result = work(testing, hide_existing, prefix=prefix)
-
-    log.debug(result)
     return result
 
 
