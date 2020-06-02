@@ -746,7 +746,6 @@ def sorted_updates(updates):
     # Otherwise, we would be depending on the way Python orders dict keys
     for package in sorted(builds.keys()):
         if len(builds[package]) > 1:
-            log.debug(builds[package])
             for build in sorted_builds(builds[package])[::-1]:
                 if build.update not in sync:
                     sync.append(build.update)
@@ -795,7 +794,7 @@ def cmd(cmd, cwd=None, raise_on_error=False):
         if raise_on_error:
             raise RuntimeError(msg)
     elif out or err:
-        log.debug(output)
+        log.debug(f"subprocess output: {output}")
     return out, err, p.returncode
 
 

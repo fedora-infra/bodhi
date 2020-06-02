@@ -427,7 +427,6 @@ class DevBuildsys:
             for tag_ in DevBuildsys.__tagged__[build]:
                 if tag_ == tag:
                     builds.append(self.getBuild(build))
-        log.debug(builds)
         return builds
 
     def getLatestBuilds(self, *args, **kw) -> typing.List[typing.Any]:
