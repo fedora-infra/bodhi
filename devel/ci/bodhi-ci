@@ -111,7 +111,7 @@ concurrency_option = click.option(
     help=('Number of concurrent processes to run. Integration test runs are separately limited due '
           'to resource contention. Defaults to the number of cores detected'))
 container_runtime_option = click.option(
-    '--container-runtime', '-c', default='docker', type=click.Choice(['docker', 'podman']),
+    '--container-runtime', '-c', default='podman', type=click.Choice(['docker', 'podman']),
     help='Select the container runtime to use. Defaults to docker.',
     callback=_set_container_runtime)
 failfast_option = click.option('--failfast', '-x', is_flag=True,
@@ -133,7 +133,7 @@ z_option = click.option(
     '-Z', default=False, callback=_set_global, is_flag=True,
     help="Use the container runtime's Z flag when bind mounting the .git folder")
 
-container_runtime = 'docker'
+container_runtime = 'podman'
 failfast = False
 init = True
 # If True, we will try to skip running any builds if suitable builds already exist. Set by
@@ -619,6 +619,8 @@ class Job(object):
         if archive:
             self.archive_dir = '{}/{}'.format(archive_path,
                                               '{}-{}'.format(self.release, self._label))
+            if not os.path.exists(self.archive_dir):
+                os.makedirs(self.archive_dir)
             args.extend(['-v', '{}:/results:z'.format(self.archive_dir)])
 
         if include_git:
