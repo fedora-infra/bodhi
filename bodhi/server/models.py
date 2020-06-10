@@ -4718,7 +4718,7 @@ class BuildrootOverride(Base):
     __include_extras__ = ('nvr',)
     __get_by__ = ('build_id',)
 
-    notes = Column(Unicode, nullable=False)
+    notes = Column(UnicodeText, nullable=False)
 
     submission_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     expiration_date = Column(DateTime, nullable=False)

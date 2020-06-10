@@ -340,6 +340,7 @@ class TestOverridesService(base.BasePyTestCase):
             "Cannot create a buildroot override if build's test gating status is failed."
 
     def test_create_duplicate_override(self):
+        """When creating a duplicate override, old notes are appended."""
         release = Release.get('F17')
         package = RpmPackage(name='not-bodhi')
         self.db.add(package)
@@ -366,13 +367,42 @@ class TestOverridesService(base.BasePyTestCase):
         data['notes'] = 'new blah blah'
         res = self.app.post('/overrides/', data)
         o = res.json_body
-        new_notes = """blah blah blah
-
-_@guest ({})_
-
+        new_notes = f"""new blah blah
 _____________
-new blah blah""".format(datetime.utcnow().strftime("%b %d, %Y"))
+_@guest ({datetime.utcnow().strftime('%b %d, %Y')})_
+blah blah blah"""
         assert o['notes'] == new_notes
+
+    def test_create_duplicate_override_notes_too_long(self):
+        """When notes are too long, truncate the older."""
+        release = Release.get('F17')
+        package = RpmPackage(name='not-bodhi')
+        self.db.add(package)
+        build = RpmBuild(nvr='not-bodhi-2.0-2.fc17', package=package, release=release)
+        self.db.add(build)
+        self.db.flush()
+
+        expiration_date = datetime.utcnow() + timedelta(days=1)
+
+        data = {'nvr': build.nvr, 'notes': 'blah' * 500,
+                'expiration_date': expiration_date,
+                'csrf_token': self.get_csrf_token()}
+
+        with fml_testing.mock_sends(override_schemas.BuildrootOverrideTagV1):
+            res = self.app.post('/overrides/', data)
+
+        o = res.json_body
+        assert o['build_id'] == build.id
+        assert o['notes'] == 'blah' * 500
+        assert o['expiration_date'] == expiration_date.strftime("%Y-%m-%d %H:%M:%S")
+        assert o['expired_date'] is None
+
+        # Submit it again
+        data['notes'] = 'new blah blah'
+        res = self.app.post('/overrides/', data)
+        o = res.json_body
+        assert o['notes'].endswith('(...)\n___Notes truncated___')
+        assert len(o['notes']) <= 2000
 
     def test_create_override_multiple_nvr(self):
         release = Release.get('F17')

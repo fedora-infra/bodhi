@@ -382,6 +382,35 @@ class TestValidateExpirationDate(BasePyTestCase):
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
 
+class TestValidateOverrideNotes(BasePyTestCase):
+    """Test the validate_override_notes() function."""
+
+    def test_none(self):
+        """Empty notes should be OK, since we will populate with a default text."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {'notes': None}
+
+        validators.validate_override_notes(request)
+
+        assert not len(request.errors)
+
+    def test_length_above_range(self):
+        """We don't allow too verbose notes."""
+        request = mock.Mock()
+        request.errors = Errors()
+        request.validated = {
+            'notes': 'n' * 2001}
+
+        validators.validate_override_notes(request)
+
+        assert request.errors == [
+            {'location': 'body', 'name': 'notes',
+             'description': 'Notes may not contain more than 2000 chars'}
+        ]
+        assert request.errors.status == exceptions.HTTPBadRequest.code
+
+
 class TestValidateOverrideBuild(BasePyTestCase):
     """Test the validate_override_build() function."""
 

@@ -33,6 +33,7 @@ import bodhi.server.services.errors
 from bodhi.server.validators import (
     validate_override_builds,
     validate_expiration_date,
+    validate_override_notes,
     validate_packages,
     validate_releases,
     validate_username,
@@ -222,6 +223,7 @@ def query_overrides(request):
                     colander_body_validator,
                     validate_override_builds,
                     validate_expiration_date,
+                    validate_override_notes,
                 ))
 @overrides.post(schema=bodhi.server.schemas.SaveOverrideSchema,
                 permission='edit',
@@ -231,6 +233,7 @@ def query_overrides(request):
                     colander_body_validator,
                     validate_override_builds,
                     validate_expiration_date,
+                    validate_override_notes,
                 ))
 def save_override(request):
     """
@@ -269,20 +272,20 @@ def save_override(request):
                         data['expiration_date'] = max(existing_override.expiration_date,
                                                       data['expiration_date'])
 
-                    data['notes'] = """{0}
-
-_@{1} ({2})_
-
+                    new_notes = f"""{data['notes']}
 _____________
-{3}""".format(existing_override.notes, existing_override.submitter.name,
-                        existing_override.submission_date.strftime("%b %d, %Y"), data['notes'])
+_@{existing_override.submitter.name} ({existing_override.submission_date.strftime('%b %d, %Y')})_
+{existing_override.notes}"""
+                    # Truncate notes at 2000 chars
+                    if len(new_notes) > 2000:
+                        new_notes = new_notes[:1972] + '(...)\n___Notes truncated___'
 
                     overrides.append(BuildrootOverride.edit(
                         request,
                         edited=build,
                         submitter=submitter,
                         submission_date=datetime.now(),
-                        notes=data['notes'],
+                        notes=new_notes,
                         expiration_date=data['expiration_date'],
                         expired=None,
                     ))
