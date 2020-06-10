@@ -1206,6 +1206,28 @@ def validate_expiration_date(request, **kwargs):
     request.validated['expiration_date'] = expiration_date
 
 
+@postschema_validator
+def validate_override_notes(request, **kwargs):
+    """
+    Ensure the override notes is less than 500 chars.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    notes = request.validated.get('notes')
+
+    if notes is None:
+        return
+
+    if len(notes) > 2000:
+        request.errors.add('body', 'notes',
+                           'Notes may not contain more than 2000 chars')
+        return
+
+    request.validated['notes'] = notes
+
+
 def _get_valid_requirements(request, requirements):
     """
     Return a list of valid testcases from taskotron.
