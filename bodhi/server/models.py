@@ -3437,8 +3437,10 @@ class Update(Base):
 
         self.untag(db, preserve_override=True)
 
+        koji.multicall = True
         for build in self.builds:
             koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
+        koji.multiCall()
 
         self.pushed = False
         self.status = UpdateStatus.unpushed
@@ -3485,6 +3487,7 @@ class Update(Base):
         log.info("Untagging %s", self.alias)
         koji = buildsys.get_session()
         tag_types, tag_rels = Release.get_tags(db)
+        koji.multicall = True
         for build in self.builds:
             for tag in build.get_tags():
                 # Only remove tags that we know about
@@ -3495,6 +3498,7 @@ class Update(Base):
                         koji.untagBuild(tag, build.nvr, force=True)
                 else:
                     log.info("Skipping tag that we don't know about: %s" % tag)
+        koji.multiCall()
         self.pushed = False
 
     def obsolete(self, db, newer=None):
