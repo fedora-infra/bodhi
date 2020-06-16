@@ -43,7 +43,7 @@ function bstartdeps {
     xz -d --keep --force waiverdb.dump.xz
     popd;
     pushd /home/vagrant/bodhi/devel/docker/settings/policies/;
-    curl -o fedora_tmpl.yaml https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/roles/openshift-apps/greenwave/templates/fedora.yaml;
+    curl -o fedora_tmpl.yaml https://pagure.io/fedora-infra/ansible/raw/master/f/roles/openshift-apps/greenwave/templates/fedora.yaml;
     jinja2 --format=yaml -o fedora.yaml fedora_tmpl.yaml
     rm fedora_tmpl.yaml
     popd;
