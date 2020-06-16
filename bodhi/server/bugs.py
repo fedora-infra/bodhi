@@ -133,8 +133,9 @@ class Bugzilla(object):
                 except xmlrpc_client.Fault as e:
                     attempts += 1
                     log.error(
-                        "\nA fault has occurred \nFault code: %d \nFault string: %s" %
-                        (e.faultCode, e.faultString))
+                        f"\nA fault has occurred \nFault code: {e.faultCode}"
+                        f" \nFault string: {e.faultString}"
+                    )
         except InvalidComment:
             log.error(
                 "Comment too long for bug #%d:  %s" % (bug_id, comment))

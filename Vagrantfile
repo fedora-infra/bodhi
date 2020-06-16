@@ -12,7 +12,7 @@
 # To use this, use the command:
 #
 # vagrant --use-staging up
-# 
+#
 # vagrant will prompt you for for fas username for auth to koji. Additionally
 # after the box is finished, you will need to aquire a kerberos ticket periodically
 # with `kinit <fasusername>@STG.FEDORAPROJECT.ORG` for bodhi to be able to auth with
@@ -37,9 +37,9 @@ end
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
- config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/30/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-30-1.2.x86_64.vagrant-libvirt.box"
- config.vm.box = "f30-cloud-libvirt"
- config.vm.box_download_checksum = "2ae5aad7621ce7735c905bf6b882d391949f8bfa3534b8631c9b2161126ca2f0"
+ config.vm.box_url = "https://download.fedoraproject.org/pub/fedora/linux/releases/32/Cloud/x86_64/images/Fedora-Cloud-Base-Vagrant-32-1.6.x86_64.vagrant-libvirt.box"
+ config.vm.box = "f32-cloud-libvirt"
+ config.vm.box_download_checksum = "4b13243d39760e59f98078c440d119ccf2699f82128b89daefac02dc99446360"
  config.vm.box_download_checksum_type = "sha256"
 
  # Forward traffic on the host to the development server on the guest.
