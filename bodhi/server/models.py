@@ -1887,7 +1887,7 @@ class Update(Base):
         primaryjoin=("and_(Update.release_id==Compose.release_id, Update.request==Compose.request, "
                      "Update.locked==True)"),
         foreign_keys=(release_id, request),
-        backref=backref('updates', passive_deletes=True))
+        backref=backref('updates', passive_deletes=True, order_by='Update.date_submitted'))
 
     # One-to-many relationships
     comments = relationship('Comment', backref='update', order_by='Comment.timestamp')
