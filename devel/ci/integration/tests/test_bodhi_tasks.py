@@ -78,24 +78,21 @@ def test_update_edit(
     bodhi_container, ipsilon_container, db_container, rabbitmq_container
 ):
     def find_update():
-        base_query = [
-            "SELECT alias",
-            "FROM updates u",
-            "JOIN releases r ON u.release_id = r.id",
-            "WHERE r.state != 'archived' AND u.locked = FALSE",
+        query = (
+            "SELECT alias "
+            "FROM updates u "
+            "JOIN releases r ON u.release_id = r.id "
+            "JOIN users us ON u.user_id = us.id "
+            "WHERE r.state != 'archived' AND u.locked = FALSE "
+            "AND u.status IN ('pending', 'testing') "
+            "AND us.name NOT LIKE '%packagerbot%' "
             "ORDER BY u.date_submitted DESC LIMIT 1"
-        ]
+        )
         db_ip = db_container.get_IPv4s()[0]
         conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
         with conn:
             with conn.cursor() as curs:
-                # First try to find an update that we can use.
-                query = base_query[:]
-                query.insert(
-                    4,
-                    "AND u.status IN ('pending', 'testing')"
-                )
-                curs.execute(" ".join(query))
+                curs.execute(query)
                 result = curs.fetchone()
                 assert result is not None
                 update_alias = result[0]
