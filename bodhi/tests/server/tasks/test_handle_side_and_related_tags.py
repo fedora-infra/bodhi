@@ -37,7 +37,6 @@ class TestMain(BaseTaskTestCase):
         koji = buildsys.get_session()
         assert ('f17-updates-signing-pending', 'bodhi-2.0-1.fc17') in koji.__added__
         assert ('f17-updates-candidate', 'bodhi-2.0-1.fc17') in koji.__added__
-        assert {'id': 1234, 'name': 'f17-build-side-1234'} in koji.__removed_side_tags__
 
     def test_side_tag_not_composed_by_bodhi(self):
         u = self.db.query(models.Update).first()
@@ -56,6 +55,7 @@ class TestMain(BaseTaskTestCase):
     def test_side_tag_raise_exception(self, caplog):
         update = self.db.query(models.Update).first()
         builds = [b.nvr for b in update.builds]
+        update.release.pending_signing_tag = None
         handle_srtags_main(builds, update.release.pending_signing_tag, None, None,
                            update.release.candidate_tag)
         assert "There was an error handling side-tags updates" in caplog.messages
