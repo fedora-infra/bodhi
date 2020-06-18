@@ -52,3 +52,11 @@ pull_request_rules:
   - label!=WIP
   - label=5.3-backports
   name: backport 5.3
+- actions:
+    backport:
+      branches:
+      - '5.4'
+  conditions:
+  - label!=WIP
+  - label=5.4-backports
+  name: backport 5.4

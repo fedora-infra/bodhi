@@ -4,6 +4,57 @@ Release notes
 
 .. towncrier release notes start
 
+v5.4.0
+======
+This is a minor release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Summary of the migrations:
+
+* Migrate relationship between TestCase and Package to TestCase and Build. The migration script will take care of migrate existing data to the new relation.
+* The user_id column in comments table has been set to be not nullable.
+* The notes column in buildroot_overrides table has been converted to UnicodeText (from Unicode).
+
+Bug fixes
+^^^^^^^^^
+
+* Associate TestCase to Build instead of Package, allowing to remove old
+  testcases from updates (:issue:`1794`).
+* Replace koji krb_login with gssapi_login. (:issue:`4029`).
+* Making sure that builds of side tag update for normal releases are marked as
+  signed. (:issue:`4032`).
+* Handle Cornice 5.0 JSON error handling. (:issue:`4033`).
+* Cap buildroot overrides notes to a maximum of 2k characters and convert the
+  database field to UnicodeText (:issue:`4044`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The user_id field in the comments table has been made not nullable. Some
+  database joins have been tweaked to get better performance (:pr:`4046`).
+* Always use koji.multiCall for untag/unpush for better handle updates with a
+  lot of builds (:pr:`4052`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+* Karma Dolkar
+* Mattia Verga
+* Miro Hrončok
+* Sebastian Wojciechowski
+
+
 v5.3.0
 ======
 This is a minor release.

@@ -1,1 +1,0 @@
-The user_id field in the comments table has been made not nullable. Some database joins have been tweaked to get better performance

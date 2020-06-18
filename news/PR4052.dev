@@ -1,1 +1,0 @@
-Always use koji.multiCall for untag/unpush for better handle updates with a lot of builds
