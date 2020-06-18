@@ -59,7 +59,6 @@ def main(builds: typing.List[str],
             # side tag into the release pending_signing and candidate tag.
             # We can remove the side tag.
             tags.append(candidate_tag)
-            koji.removeSideTag(from_tag)
 
         koji.multicall = True
         for b in builds:
