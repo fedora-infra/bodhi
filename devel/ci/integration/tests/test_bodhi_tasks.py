@@ -83,8 +83,8 @@ def test_update_edit(
             "FROM updates u "
             "JOIN releases r ON u.release_id = r.id "
             "JOIN users us ON u.user_id = us.id "
-            "WHERE r.state != 'archived' AND u.locked = FALSE "
-            "AND u.status IN ('pending', 'testing') "
+            "WHERE r.state != 'archived' AND r.composed_by_bodhi = TRUE "
+            "AND u.locked = FALSE AND u.status IN ('pending', 'testing') "
             "AND us.name NOT LIKE '%packagerbot%' "
             "ORDER BY u.date_submitted DESC LIMIT 1"
         )

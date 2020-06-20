@@ -3,11 +3,19 @@ Automatic Updates
 =================
 
 Updates for releases which haven't yet reached the activation point (e.g. Rawhide) are automatically
-created when Koji tags a build in the release candidate tag.
+created when Koji/robosignatory tags a build in the release candidate tag.
 
-The Update then is processed through the common flow: if gating tests pass, the Update is pushed to
+The Update is then processed through the common flow: if gating tests pass, the Update is pushed to
 `Testing` and, immediatly after, to `Stable`. Usually it takes seconds or few minutes for the Update
 to reach the `Stable` state.
+
+It may happen sometimes that Bodhi misses the fedora-messaging message that announces a build have been tagged in the release candidate tag. In those cases the Update is not automatically created. In this situation the user must avoid creating a manual Update, because that Update will never be processed since it relates to a Release which is not composed by Bodhi. Instead the user should manually re-tag the affected build in the release candidate tag, so that a new fedora-messaging message is sent and Bodhi will (hopefully) catch and process it.
+
+So, for example, assuming `Fedora 33` is Rawhide, if a user builds `foo-1.2.3-1.fc33` and the Update is not automatically created, they can re-tag the build in release candidate tag by using koji CLI with::
+
+    $ koji untag-build f33-updates-candidate foo-1.2.3-1.fc33
+    ...
+    $ koji tag-build f33-updates-candidate foo-1.2.3-1.fc33
 
 Associate bugs to automatic updates
 ===================================

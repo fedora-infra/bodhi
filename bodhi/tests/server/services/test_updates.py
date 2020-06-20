@@ -270,6 +270,29 @@ class TestNewUpdate(BasePyTestCase):
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
+    def test_new_rawhide_rpm_update(self, *args):
+        """Posting a new update against Rawhide should fail."""
+        release = Release.query.one()
+        release.composed_by_bodhi = False
+        self.db.commit()
+        with fml_testing.mock_sends():
+            res = self.app.post_json('/updates/', self.get_update('bodhi-2.0.0-2.fc17'),
+                                     status=400)
+
+        expected_error = {
+            "location": "body",
+            "name": "builds",
+            "description": ("Cannot manually create updates for a Release which is not "
+                            "composed by Bodhi.\nRead the 'Automatic updates' page in "
+                            "Bodhi docs about this error.")
+        }
+        assert expected_error in res.json_body['errors']
+        build = self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first()
+        assert build is None
+
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_valid_requirements)
     def test_new_rpm_update_unknown_build(self, *args):
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getBuild',
                         return_value=None):
