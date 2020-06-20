@@ -294,6 +294,9 @@ class BodhiConfig(dict):
         'celery_config': {
             'value': '/etc/bodhi/celeryconfig.py',
             'validator': str},
+        'check_signed_builds_delay': {
+            'value': 2,
+            'validator': int},
         'clean_old_composes': {
             'value': True,
             'validator': _validate_bool},
