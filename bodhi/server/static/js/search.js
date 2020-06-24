@@ -1,183 +1,101 @@
+// @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&dn=expat.txt Expat
 
 $(document).ready(function() {
-    var packages = new Bloodhound({
-      datumTokenizer: function (datum) {
-          return Bloodhound.tokenizers.whitespace(datum.value);
-      },
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        remote: {
-            wildcard: '%QUERY',
-            url: 'packages/?search=%QUERY',
-            transform: function(response) { return response.packages; },
-            rateLimitWait: 600,
-        }
-    });
-    var updates = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        remote: {
-            wildcard: '%QUERY',
-            url: 'updates/?search=%QUERY',
-            transform: function(response) { return response.updates; },
-            rateLimitWait: 600,
-        }
-    });
-    var users = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        remote: {
-            wildcard: '%QUERY',
-            url: 'users/?search=%QUERY',
-            transform: function(response) { return response.users; },
-            rateLimitWait: 600,
-        }
-    });
-    var overrides = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        remote: {
-            wildcard: '%QUERY',
-            url: 'overrides/?search=%QUERY',
-            transform: function(response) { return response.overrides; },
-            rateLimitWait: 600,
-        }
-    });
-
-    packages.initialize();
-    updates.initialize();
-    users.initialize();
-    overrides.initialize();
-
-    function resultUrl(data){
-      if (data.alias != undefined) {
-          return '/updates/' + data.alias;
-      } else if (data.name != undefined && data.hasOwnProperty('email')) {
-          return '/users/' + data.name;
-      } else if (data.name != undefined) {
-          return'/updates/?packages=' + encodeURIComponent(data.name);
-      } else if (data.nvr != undefined) {
-          return '/overrides/' + data.nvr;
-      } else {
-          console.log("unhandled search result");
-          console.log(data);
-          return '#';
-      }
-    }
-
-    $('#bloodhound .typeahead').typeahead({
-        hint: false,
-        highlight: true,
+    $.typeahead({
+        input: '.bodhi-searchbar-input',
         minLength: 2,
-    },
-    {
-        name: 'packages',
-        displayKey: 'name',
-        source: packages.ttAdapter(),
-        templates: {
-            header: '<h3 class="search"><small>Packages</small></h3>',
-            pending: [
-                '<h3 class="search"><small>Packages</small></h3>',
-                '<div>',
-                '<i class="fa fa-spinner fa-spin fa-fw"></i>',
-                '</div>'
-            ].join('\n'),
-            empty: [
-                '<h3 class="search"><small>Packages</small></h3>',
-                '<div class="empty-message text-muted">',
-                'no matching packages',
-                '</div>'
-            ].join('\n'),
-            suggestion: function(datum) {
-                return '<p><a href="'+ resultUrl(datum)+'">'+datum.name+'</a></p>';
-            },
+        dynamic: true,
+        delay: 600,
+        group: {
+            template: function (item) {
+                if (item.group == "overrides") {
+                    return "<h3>Buildroot Overrides</h3>";
+                } else {
+                    return "<h3>" + item.group + "</h3>";
+                }
+            }
         },
-    },
-    {
-        name: 'updates',
-        display: 'title',
-        source: updates.ttAdapter(),
-        templates: {
-            header: '<h3 class="search"><small>Updates</small></h3>',
-            pending: [
-                '<h3 class="search"><small>Updates</small></h3>',
-                '<div>',
-                '<i class="fa fa-spinner fa-spin fa-fw"></i>',
-                '</div>'
-            ].join('\n'),
-            empty: [
-                '<h3 class="search"><small>Updates</small></h3>',
-                '<div class="empty-message text-muted">',
-                'no matching updates',
-                '</div>'
-            ].join('\n'),
-            suggestion: function(datum) {
-                return '<p><a href="'+ resultUrl(datum)+'">'+datum.title+' <span class="text-muted">'+datum.alias+'</span></a></p>';
+        maxItem: 20,
+        maxItemPerGroup: 5,
+        asyncResult: true,
+        emptyTemplate: 'No result for "{{query}}"',
+        dropdownFilter: true,
+        source: {
+            packages: {
+                display: 'name',
+                ajax: {
+                    url: 'packages/',
+                    timeout: 10000,
+                    data: {
+                        search: '{{query}}'
+                    },
+                    path: 'packages'
+                },
+                template: '{{name}}',
+                href: 'updates/?packages={{name}}'
             },
-        },
-    },
-    {
-        name: 'users',
-        display: 'name',
-        source: users.ttAdapter(),
-        templates: {
-            header: '<h3 class="search"><small>Users</small></h3>',
-            pending: [
-                '<h3 class="search"><small>Users</small></h3>',
-                '<div>',
-                '<i class="fa fa-spinner fa-spin fa-fw"></i>',
-                '</div>'
-            ].join('\n'),
-            empty: [
-                '<h3 class="search"><small>Users</small></h3>',
-                '<div class="empty-message text-muted">',
-                'no matching users',
-                '</div>'
-            ].join('\n'),
-            suggestion: function(datum) {
-                return '<p><a href="'+ resultUrl(datum)+'"><img class="rounded-circle" src="' + datum.avatar + '">' + datum.name + '</a></p>';
+            updates: {
+                display: ['title', 'alias'],
+                ajax: {
+                    url: 'updates/',
+                    timeout: 10000,
+                    data: {
+                        search: '{{query}}'
+                    },
+                    path: 'updates'
+                },
+                template: '{{title}} <span class="text-muted">{{alias}}</span>',
+                href: 'updates/{{alias}}'
             },
-        },
-    },
-    {
-        name: 'overrides',
-        display: 'nvr',
-        source: overrides.ttAdapter(),
-        templates: {
-            header: '<h3 class="search"><small>Buildroot Overrides</small></h3>',
-            pending: [
-                '<h3 class="search"><small>Buildroot Overrides</small></h3>',
-                '<div>',
-                '<i class="fa fa-spinner fa-spin fa-fw"></i>',
-                '</div>'
-            ].join('\n'),
-            empty: [
-                '<h3 class="search"><small>Buildroot Overrides</small></h3>',
-                '<div class="empty-message text-muted">',
-                'no matching overrides',
-                '</div>'
-            ].join('\n'),
-            suggestion: function(datum) {
-                return '<p><a href="'+ resultUrl(datum)+'">'+datum.nvr+'</a></p>';
+            users: {
+                display: 'name',
+                ajax: {
+                    url: 'users/',
+                    timeout: 10000,
+                    data: {
+                        search: '{{query}}'
+                    },
+                    path: 'users'
+                },
+                template: '<img class="rounded-circle mr-2" src="{{avatar}}">{{name}}',
+                href: 'users/{{name}}'
             },
+            overrides: {
+                display: 'nvr',
+                ajax: {
+                    url: 'overrides/',
+                    timeout: 10000,
+                    data: {
+                        search: '{{query}}'
+                    },
+                    path: 'overrides'
+                },
+                template: '{{nvr}}',
+                href: 'overrides/{{nvr}}'
+            }
         },
-    });
-
-    $('#bloodhound input.typeahead').on('typeahead:selected', function (e, datum) {
-        window.location.href = resultUrl(datum);
-    });
-
-    // Our ajaxy search is hidden by default.  Only show it if this is running
-    // (and therefore if the user has javascript enabled).
-    $("form#search").removeClass('hidden');
-
-    // If people want to just skip our search suggestions and press
-    // "enter", then we'll assume (perhaps incorrectly) that they are
-    // looking for a package.. and we'll take them right to the cornice
-    // service for that.   https://github.com/fedora-infra/bodhi/issues/229
-    $("form#search .tt-input").keypress(function(e) {
-        if (e.which == 13) {
-            var value = $("form#search .tt-input").val();
-            window.location.href = '/updates/?search=' + encodeURIComponent(value);
+        callback: {
+            onSubmit: function (node, form, item, event) {
+                    event.preventDefault();
+                    window.location.href = '/updates/?search=' + encodeURIComponent(node.val());
+                },
+            onCancel: function (node, event) {
+                $("#bodhi-searchbar .typeahead__list").remove();
+            }
         }
+    });
+
+    $(".bodhi-searchbar-input").focus(function() {
+        if ($(this).val() != '') {
+            $("#bodhi-searchbar .typeahead__list").attr("style", "display: block !important");
+        }
+    });
+
+    $(document).click(function(event) { 
+        var target = $(event.target);
+        if(!target.closest('#bodhi-searchbar').length && $('#bodhi-searchbar .typeahead__list').is(":visible")) {
+            $('#bodhi-searchbar .typeahead__list').hide();
+        }        
     });
 });
+// @license-end

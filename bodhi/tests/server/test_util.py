@@ -1313,7 +1313,7 @@ class TestCMDFunctions:
             shell=False)
         mock_error.assert_not_called()
         assert mock_debug.mock_calls == \
-            [mock.call('Running /bin/echo'), mock.call('output\nNone')]
+            [mock.call('Running /bin/echo'), mock.call('subprocess output: output\nNone')]
 
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
@@ -1334,7 +1334,7 @@ class TestCMDFunctions:
             ['/bin/echo'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             shell=False)
         mock_error.assert_not_called()
-        mock_debug.assert_called_with('output\nerror')
+        mock_debug.assert_called_with('subprocess output: output\nerror')
 
     @mock.patch('bodhi.server.buildsys.get_session')
     def test__get_build_repository(self, session):
@@ -1443,7 +1443,6 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
             'An Exception was raised while rolling back a transaction.')
         assert Session.return_value.commit.call_count == 0
         Session.return_value.rollback.assert_called_once_with()
-        Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
 
     @mock.patch('bodhi.server.util.log.exception')
@@ -1466,7 +1465,6 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
         assert log_exception.call_count == 0
         assert Session.return_value.commit.call_count == 0
         Session.return_value.rollback.assert_called_once_with()
-        Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
 
     @mock.patch('bodhi.server.util.log.exception')
@@ -1486,7 +1484,6 @@ class TestTransactionalSessionMaker(base.BasePyTestCase):
         assert log_exception.call_count == 0
         assert Session.return_value.rollback.call_count == 0
         Session.return_value.commit.assert_called_once_with()
-        Session.return_value.close.assert_called_once_with()
         Session.remove.assert_called_once_with()
 
 

@@ -1,13 +1,11 @@
-FROM fedora:30
+FROM fedora:32
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
-RUN dnf install --disablerepo rawhide-modular -y \
+RUN dnf install -y \
     createrepo_c \
     fedora-messaging \
     findutils \
     git \
-    python3-dnf \
-    python3-yaml \
     make \
     python3-alembic \
     python3-arrow \
@@ -21,6 +19,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-cornice-sphinx \
     python3-createrepo_c \
     python3-diff-cover \
+    python3-dnf \
     python3-dogpile-cache \
     python3-fedora \
     python3-feedgen \
@@ -29,7 +28,6 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-libcomps \
     python3-librepo \
     python3-markdown \
-    python3-mock \
     python3-munch \
     python3-openid \
     python3-psycopg2 \
@@ -44,7 +42,8 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-sqlalchemy \
     python3-sqlalchemy_schemadisplay \
     python3-waitress \
-    python3-webtest
+    python3-webtest \
+    python3-yaml
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji

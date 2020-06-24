@@ -139,7 +139,6 @@ class DevBuildsys:
         cls.__rpms__ = []
         cls.__tags__ = []
         cls.__side_tags__ = list(cls._side_tag_data)
-        cls.__removed_side_tags__ = []
 
     def multiCall(self):
         """Emulate Koji's multiCall."""
@@ -387,7 +386,7 @@ class DevBuildsys:
                  'name': 'f28F'},
             ]
         else:
-            release = build.split('.')[-1].replace('fc', 'f')
+            release = build.split('.')[-1].replace('fc', 'f').replace('~bootstrap', '')
             result = [
                 {'arches': 'i386 x86_64 ppc ppc64', 'id': 10, 'locked': True,
                  'name': '%s-updates-candidate' % release, 'perm': None, 'perm_id': None},
@@ -402,7 +401,7 @@ class DevBuildsys:
 
     @multicall_enabled
     def listTagged(self, tag: str, *args, **kw) -> typing.List[typing.Any]:
-        """List updates tagged with teh given tag."""
+        """List updates tagged with the given tag."""
         latest = kw.get('latest', False)
         if tag in self._side_tag_ids_names:
             return [self.getBuild(build="gnome-backgrounds-3.0-1.fc17")]
@@ -427,7 +426,6 @@ class DevBuildsys:
             for tag_ in DevBuildsys.__tagged__[build]:
                 if tag_ == tag:
                     builds.append(self.getBuild(build))
-        log.debug(builds)
         return builds
 
     def getLatestBuilds(self, *args, **kw) -> typing.List[typing.Any]:
@@ -542,23 +540,6 @@ class DevBuildsys:
         else:
             del self.__tags__[tagid]
 
-    def removeSideTag(self, side_tag):
-        """Emulate side-tag and build target deletion."""
-        if isinstance(side_tag, int):
-            what = 'id'
-        elif isinstance(side_tag, str):
-            what = 'name'
-        else:
-            raise TypeError(f'sidetag: {side_tag!r}')
-
-        matching_tags = [t for t in self.__side_tags__ if t[what] == side_tag]
-
-        if not matching_tags:
-            raise koji.GenericError(f"Not a sidetag: {side_tag}")
-
-        self.__side_tags__.remove(matching_tags[0])
-        self.__removed_side_tags__.append(matching_tags[0])
-
     def getRPMHeaders(self, rpmID: str,
                       headers: typing.Any) -> typing.Union[typing.Mapping[str, str], None]:
         """
@@ -647,14 +628,14 @@ def koji_login(config: 'BodhiConfig', authenticate: bool) -> koji.ClientSession:
     }
 
     koji_client = koji.ClientSession(_koji_hub, koji_options)
-    if authenticate and not koji_client.krb_login(**get_krb_conf(config)):
-        log.error('Koji krb_login failed')
+    if authenticate and not koji_client.gssapi_login(**get_krb_conf(config)):
+        log.error('Koji gssapi_login failed')
     return koji_client
 
 
 def get_krb_conf(config: 'BodhiConfig') -> typing.Mapping[str, str]:
     """
-    Return arguments for krb_login.
+    Return arguments for gssapi_login.
 
     Args:
         config: Bodhi's configuration dictionary.

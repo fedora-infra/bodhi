@@ -202,9 +202,9 @@ TEST_ABORT_PUSH_EXPECTED_OUTPUT = """
 
 ===== <Compose: F17 testing> =====
 
+bodhi-2.0-1.fc17
 python-nose-1.3.7-11.fc17
 python-paste-deploy-1.5.2-8.fc17
-bodhi-2.0-1.fc17
 
 
 Push these 3 updates? [y/N]: n
@@ -215,8 +215,8 @@ TEST_BUILDS_FLAG_EXPECTED_OUTPUT = """
 
 ===== <Compose: F17 testing> =====
 
-ejabberd-16.09-4.fc17
 python-nose-1.3.7-11.fc17
+ejabberd-16.09-4.fc17
 
 
 Push these 2 updates? [y/N]: y
@@ -230,9 +230,9 @@ TEST_YES_FLAG_EXPECTED_OUTPUT = """
 
 ===== <Compose: F17 testing> =====
 
+bodhi-2.0-1.fc17
 python-nose-1.3.7-11.fc17
 python-paste-deploy-1.5.2-8.fc17
-bodhi-2.0-1.fc17
 
 
 Pushing 3 updates.
@@ -295,8 +295,8 @@ TEST_REQUEST_FLAG_EXPECTED_OUTPUT = """
 
 ===== <Compose: F17 testing> =====
 
-python-paste-deploy-1.5.2-8.fc17
 bodhi-2.0-1.fc17
+python-paste-deploy-1.5.2-8.fc17
 
 
 Push these 2 updates? [y/N]: y
@@ -1178,8 +1178,8 @@ class TetUpdateSigStatus(base.BasePyTestCase):
     @mock.patch.dict('bodhi.server.push.config',
                      {'buildsystem': 'koji', 'koji_hub': 'https://example.com/koji'})
     @mock.patch('bodhi.server.buildsys._buildsystem', None)
-    @mock.patch('bodhi.server.buildsys.koji.ClientSession.krb_login')
-    def test_sets_up_buildsys_without_auth(self, krb_login):
+    @mock.patch('bodhi.server.buildsys.koji.ClientSession.gssapi_login')
+    def test_sets_up_buildsys_without_auth(self, gssapi_login):
         """
         bodhi-push should not set up authentication for the build system.
 
@@ -1189,4 +1189,4 @@ class TetUpdateSigStatus(base.BasePyTestCase):
 
         push.update_sig_status(u)
 
-        assert krb_login.call_count == 0
+        assert gssapi_login.call_count == 0

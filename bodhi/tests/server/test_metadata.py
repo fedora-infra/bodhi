@@ -36,12 +36,12 @@ import bodhi.server.metadata as bodhi_metadata
 from bodhi.tests.server import base, create_update
 
 
-class UpdateInfoMetadataTestCase(base.BaseTestCase):
-    def setUp(self):
+class UpdateInfoMetadataTestCase(base.BasePyTestCase):
+    def setup_method(self, method):
         """
         Initialize our temporary repo.
         """
-        super(UpdateInfoMetadataTestCase, self).setUp()
+        super().setup_method(method)
         setup_buildsystem({'buildsystem': 'dev'})
         self.tempdir = tempfile.mkdtemp('bodhi')
         self.tempcompdir = join(self.tempdir, 'f17-updates-testing')
@@ -50,11 +50,11 @@ class UpdateInfoMetadataTestCase(base.BaseTestCase):
         config['cache_dir'] = os.path.join(self.tempdir, 'cache')
         os.makedirs(config['cache_dir'])
 
-    def tearDown(self):
+    def teardown_method(self, method):
         """
         Clean up the tempdir.
         """
-        super(UpdateInfoMetadataTestCase, self).tearDown()
+        super().teardown_method(method)
         teardown_buildsystem()
         shutil.rmtree(self.tempdir)
         config['cache_dir'] = None
@@ -81,50 +81,48 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
 
         md.shelf.close()
 
-        self.assertEqual(len(md.uinfo.updates), 1)
-        self.assertEqual(md.uinfo.updates[0].title, update.title)
-        self.assertEqual(md.uinfo.updates[0].release, update.release.long_name)
-        self.assertEqual(md.uinfo.updates[0].status, update.status.value)
-        self.assertEqual(md.uinfo.updates[0].updated_date, update.date_modified)
-        self.assertEqual(md.uinfo.updates[0].fromstr, config.get('bodhi_email'))
-        self.assertEqual(md.uinfo.updates[0].rights, config.get('updateinfo_rights'))
-        self.assertEqual(md.uinfo.updates[0].description, update.notes)
-        self.assertEqual(md.uinfo.updates[0].id, update.alias)
-        self.assertEqual(md.uinfo.updates[0].severity, 'Moderate')
-        self.assertEqual(len(md.uinfo.updates[0].references), 1)
+        assert len(md.uinfo.updates) == 1
+        assert md.uinfo.updates[0].title == update.title
+        assert md.uinfo.updates[0].release == update.release.long_name
+        assert md.uinfo.updates[0].status == update.status.value
+        assert md.uinfo.updates[0].updated_date == update.date_modified
+        assert md.uinfo.updates[0].fromstr == config.get('bodhi_email')
+        assert md.uinfo.updates[0].rights == config.get('updateinfo_rights')
+        assert md.uinfo.updates[0].description == update.notes
+        assert md.uinfo.updates[0].id == update.alias
+        assert md.uinfo.updates[0].severity == 'Moderate'
+        assert len(md.uinfo.updates[0].references) == 1
         bug = md.uinfo.updates[0].references[0]
-        self.assertEqual(bug.href, update.bugs[0].url)
-        self.assertEqual(bug.id, '12345')
-        self.assertEqual(bug.type, 'bugzilla')
-        self.assertEqual(len(md.uinfo.updates[0].collections), 1)
+        assert bug.href == update.bugs[0].url
+        assert bug.id == '12345'
+        assert bug.type == 'bugzilla'
+        assert len(md.uinfo.updates[0].collections) == 1
         col = md.uinfo.updates[0].collections[0]
-        self.assertEqual(col.name, update.release.long_name)
-        self.assertEqual(col.shortname, update.release.name)
-        self.assertEqual(len(col.packages), 2)
+        assert col.name == update.release.long_name
+        assert col.shortname == update.release.name
+        assert len(col.packages) == 2
         pkg = col.packages[0]
-        self.assertEqual(pkg.epoch, '0')
+        assert pkg.epoch == '0'
         # It's a little goofy, but the DevBuildsys is going to return TurboGears rpms when its
         # listBuildRPMs() method is called, so let's just roll with it.
-        self.assertEqual(pkg.name, 'TurboGears')
-        self.assertEqual(
-            pkg.src,
+        assert pkg.name == 'TurboGears'
+        assert pkg.src == \
             ('https://download.fedoraproject.org/pub/fedora/linux/updates/17/SRPMS/T/'
-             'TurboGears-1.0.2.2-2.fc17.src.rpm'))
-        self.assertEqual(pkg.version, '1.0.2.2')
-        self.assertFalse(pkg.reboot_suggested)
-        self.assertEqual(pkg.arch, 'src')
-        self.assertEqual(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')
+             'TurboGears-1.0.2.2-2.fc17.src.rpm')
+        assert pkg.version == '1.0.2.2'
+        assert not pkg.reboot_suggested
+        assert pkg.arch == 'src'
+        assert pkg.filename == 'TurboGears-1.0.2.2-2.fc17.src.rpm'
         pkg = col.packages[1]
-        self.assertEqual(pkg.epoch, '0')
-        self.assertEqual(pkg.name, 'TurboGears')
-        self.assertEqual(
-            pkg.src,
+        assert pkg.epoch == '0'
+        assert pkg.name == 'TurboGears'
+        assert pkg.src == \
             ('https://download.fedoraproject.org/pub/fedora/linux/updates/17/i386/T/'
-             'TurboGears-1.0.2.2-2.fc17.noarch.rpm'))
-        self.assertEqual(pkg.version, '1.0.2.2')
-        self.assertFalse(pkg.reboot_suggested)
-        self.assertEqual(pkg.arch, 'noarch')
-        self.assertEqual(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.noarch.rpm')
+             'TurboGears-1.0.2.2-2.fc17.noarch.rpm')
+        assert pkg.version == '1.0.2.2'
+        assert not pkg.reboot_suggested
+        assert pkg.arch == 'noarch'
+        assert pkg.filename == 'TurboGears-1.0.2.2-2.fc17.noarch.rpm'
 
     def test_date_modified_none(self):
         """The metadata should use utcnow() if an update's date_modified is None."""
@@ -140,8 +138,8 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         md.add_update(update)
 
         md.shelf.close()
-        self.assertEqual(len(md.uinfo.updates), 1)
-        self.assertTrue(test_start_time <= md.uinfo.updates[0].updated_date <= datetime.utcnow())
+        assert len(md.uinfo.updates) == 1
+        assert test_start_time <= md.uinfo.updates[0].updated_date <= datetime.utcnow()
 
     def test_date_pushed_none(self):
         """The metadata should use utcnow() if an update's date_pushed is None."""
@@ -157,8 +155,8 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         md.add_update(update)
 
         md.shelf.close()
-        self.assertEqual(len(md.uinfo.updates), 1)
-        self.assertTrue(test_start_time <= md.uinfo.updates[0].issued_date <= datetime.utcnow())
+        assert len(md.uinfo.updates) == 1
+        assert test_start_time <= md.uinfo.updates[0].issued_date <= datetime.utcnow()
 
     def test_rpm_with_arch(self):
         """Ensure that an RPM with a non 386 arch gets handled correctly."""
@@ -177,12 +175,11 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
 
         md.shelf.close()
         col = md.uinfo.updates[0].collections[0]
-        self.assertEqual(len(col.packages), 1)
+        assert len(col.packages) == 1
         pkg = col.packages[0]
-        self.assertEqual(
-            pkg.src,
+        assert pkg.src == \
             ('https://download.fedoraproject.org/pub/fedora/linux/updates/17/aarch64/T/'
-             'TurboGears-1.0.2.2-2.fc17.aarch64.rpm'))
+             'TurboGears-1.0.2.2-2.fc17.aarch64.rpm')
 
     def test_rpm_with_epoch(self):
         """Ensure that an RPM with an Epoch gets handled correctly."""
@@ -201,9 +198,9 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
 
         md.shelf.close()
         col = md.uinfo.updates[0].collections[0]
-        self.assertEqual(len(col.packages), 1)
+        assert len(col.packages) == 1
         pkg = col.packages[0]
-        self.assertEqual(pkg.epoch, '42')
+        assert pkg.epoch == '42'
 
 
 class TestFetchUpdates(UpdateInfoMetadataTestCase):
@@ -226,13 +223,13 @@ class TestFetchUpdates(UpdateInfoMetadataTestCase):
         warning.assert_called_once_with(
             'TurboGears-1.0.2.2-4.fc17 does not have a corresponding update')
         # Since the Build didn't have an Update, no Update should have been added to md.updates.
-        self.assertEqual(md.updates, set([]))
+        assert md.updates == set([])
 
 
 class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
 
-    def setUp(self):
-        super(TestUpdateInfoMetadata, self).setUp()
+    def setup_method(self, method):
+        super().setup_method(method)
 
         self._new_compose_stage_dir = tempfile.mkdtemp()
         self._compose_stage_dir = config['compose_stage_dir']
@@ -248,7 +245,7 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         base.mkmetadatadir(join(self.tempcompdir, 'compose', 'Everything', 'source', 'tree'),
                            updateinfo=False)
         self.repodata = join(self.temprepo, 'repodata')
-        self.assertTrue(exists(join(self.repodata, 'repomd.xml')))
+        assert exists(join(self.repodata, 'repomd.xml'))
 
         DevBuildsys.__rpms__ = [{
             'arch': 'src',
@@ -264,26 +261,24 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
             'version': '2.0'
         }]
 
-    def tearDown(self):
+    def teardown_method(self, method):
         config['compose_stage_dir'] = self._compose_stage_dir
         config['compose_dir'] = self._compose_dir
         config['cache_dir'] = None
         shutil.rmtree(self._new_compose_stage_dir)
-        super(TestUpdateInfoMetadata, self).tearDown()
+        super().teardown_method(method)
 
     def _verify_updateinfos(self, repodata):
         updateinfos = glob.glob(join(repodata, "*-updateinfo.xml*"))
         if hasattr(createrepo_c, 'ZCK_COMPRESSION'):
-            self.assertEqual(
-                len(updateinfos), 2, "We generated %d updateinfo metadata" % len(updateinfos))
+            assert len(updateinfos) == 2, f"We generated {len(updateinfos)} updateinfo metadata"
         else:
-            self.assertEqual(
-                len(updateinfos), 1, "We generated %d updateinfo metadata" % len(updateinfos))
+            assert len(updateinfos) == 1, f"We generated {len(updateinfos)} updateinfo metadata"
         for updateinfo in updateinfos:
             hash = basename(updateinfo).split("-", 1)[0]
             with open(updateinfo, 'rb') as fn:
                 hashed = sha256(fn.read()).hexdigest()
-            self.assertEqual(hash, hashed, "File: %s\nHash: %s" % (basename(updateinfo), hashed))
+            assert hash == hashed, f"File: {basename(updateinfo)}\nHash: {hashed}"
 
         return updateinfos
 
@@ -298,8 +293,8 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
 
         md = UpdateInfoMetadata(epel_7, UpdateRequest.stable, self.db, self.tempdir)
 
-        self.assertEqual(md.comp_type, createrepo_c.BZ2)
-        self.assertFalse(md.zchunk)
+        assert md.comp_type == createrepo_c.BZ2
+        assert not md.zchunk
 
     def test___init___uses_xz_for_fedora(self):
         """Assert that the __init__() method sets the comp_type attribute to cr.XZ for Fedora."""
@@ -307,8 +302,8 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
 
         md = UpdateInfoMetadata(fedora, UpdateRequest.stable, self.db, self.tempdir)
 
-        self.assertEqual(md.comp_type, createrepo_c.XZ)
-        self.assertTrue(md.zchunk)
+        assert md.comp_type == createrepo_c.XZ
+        assert md.zchunk
 
     def test_extended_metadata_once(self):
         """Assert that a single call to update the metadata works as expected."""
@@ -349,42 +344,41 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
             # Read an verify the updateinfo.xml.gz
             uinfo = createrepo_c.UpdateInfo(updateinfo)
             notice = self.get_notice(uinfo, 'mutt-1.5.14-1.fc13')
-            self.assertIsNone(notice)
+            assert notice is None
 
-            self.assertEqual(len(uinfo.updates), 1)
+            assert len(uinfo.updates) == 1
             notice = uinfo.updates[0]
 
-            self.assertIsNotNone(notice)
-            self.assertEqual(notice.title, update.title)
-            self.assertEqual(notice.release, update.release.long_name)
-            self.assertEqual(notice.status, update.status.value)
+            assert notice is not None
+            assert notice.title == update.title
+            assert notice.release == update.release.long_name
+            assert notice.status == update.status.value
             if update.date_modified:
-                self.assertEqual(notice.updated_date, update.date_modified)
-            self.assertEqual(notice.fromstr, config.get('bodhi_email'))
-            self.assertEqual(notice.rights, config.get('updateinfo_rights'))
-            self.assertEqual(notice.description, update.notes)
-            self.assertEqual(notice.id, update.alias)
-            self.assertEqual(notice.severity, 'Moderate')
+                assert notice.updated_date == update.date_modified
+            assert notice.fromstr == config.get('bodhi_email')
+            assert notice.rights == config.get('updateinfo_rights')
+            assert notice.description == update.notes
+            assert notice.id == update.alias
+            assert notice.severity == 'Moderate'
             bug = notice.references[0]
-            self.assertEqual(bug.href, update.bugs[0].url)
-            self.assertEqual(bug.id, '12345')
-            self.assertEqual(bug.type, 'bugzilla')
+            assert bug.href == update.bugs[0].url
+            assert bug.id == '12345'
+            assert bug.type == 'bugzilla'
 
             col = notice.collections[0]
-            self.assertEqual(col.name, update.release.long_name)
-            self.assertEqual(col.shortname, update.release.name)
+            assert col.name == update.release.long_name
+            assert col.shortname == update.release.name
 
             pkg = col.packages[0]
-            self.assertEqual(pkg.epoch, '0')
-            self.assertEqual(pkg.name, 'TurboGears')
-            self.assertEqual(
-                pkg.src,
+            assert pkg.epoch == '0'
+            assert pkg.name == 'TurboGears'
+            assert pkg.src == \
                 ('https://download.fedoraproject.org/pub/fedora/linux/updates/testing/17/SRPMS/T/'
-                 'TurboGears-1.0.2.2-2.fc17.src.rpm'))
-            self.assertEqual(pkg.version, '1.0.2.2')
-            self.assertFalse(pkg.reboot_suggested)
-            self.assertEqual(pkg.arch, 'src')
-            self.assertEqual(pkg.filename, 'TurboGears-1.0.2.2-2.fc17.src.rpm')
+                 'TurboGears-1.0.2.2-2.fc17.src.rpm')
+            assert pkg.version == '1.0.2.2'
+            assert not pkg.reboot_suggested
+            assert pkg.arch == 'src'
+            assert pkg.filename == 'TurboGears-1.0.2.2-2.fc17.src.rpm'
 
     @mock.patch('bodhi.server.metadata.cr')
     def test_zchunk_metadata_coverage_xz_compression(self, mock_cr):
@@ -410,27 +404,25 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
                                       'garbage', 'zck', '/dev/null', True)
 
         mock_cr.Repomd.assert_called_once_with(os.path.join(self.tempcompdir, 'repomd.xml'))
-        self.assertEqual(
-            mock_cr.RepomdRecord.mock_calls,
+        assert mock_cr.RepomdRecord.mock_calls == \
             [mock.call('garbage', os.path.join(self.tempcompdir, 'garbage.zck')),
              mock.call().compress_and_fill(mock_cr.SHA256, mock_cr.XZ_COMPRESSION),
              mock.call().compress_and_fill().rename_file(),
              mock.call('garbage_zck', os.path.join(self.tempcompdir, 'garbage.zck')),
              mock.call().compress_and_fill(mock_cr.SHA256, mock_cr.ZCK_COMPRESSION),
-             mock.call().compress_and_fill().rename_file()])
+             mock.call().compress_and_fill().rename_file()]
         rec = mock_cr.RepomdRecord.return_value
         rec_comp = rec.compress_and_fill.return_value
         # The last comp_type added is the _zck one
-        self.assertEqual(rec_comp.type, 'garbage_zck')
-        self.assertEqual(
-            mock_cr.Repomd.return_value.set_record.mock_calls,
-            [mock.call(rec_comp), mock.call(rec_comp)])
+        assert rec_comp.type == 'garbage_zck'
+        assert mock_cr.Repomd.return_value.set_record.mock_calls == \
+            [mock.call(rec_comp), mock.call(rec_comp)]
 
         with open(os.path.join(self.tempcompdir, 'repomd.xml')) as repomd_file:
             repomd_contents = repomd_file.read()
 
-        self.assertEqual(repomd_contents, 'test data')
-        self.assertFalse(os.path.exists(os.path.join(self.tempcompdir, 'garbage.zck')))
+        assert repomd_contents == 'test data'
+        assert not os.path.exists(os.path.join(self.tempcompdir, 'garbage.zck'))
 
     @mock.patch('bodhi.server.metadata.cr')
     def test_zchunk_metadata_coverage_zchunk_skipped(self, mock_cr):
@@ -461,14 +453,14 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         rec.compress_and_fill.assert_called_once_with(mock_cr.SHA256, mock_cr.ZCK_COMPRESSION)
         rec_comp = rec.compress_and_fill.return_value
         rec_comp.rename_file.assert_called_once_with()
-        self.assertEqual(rec_comp.type, 'garbage')
+        assert rec_comp.type == 'garbage'
         mock_cr.Repomd.return_value.set_record.assert_called_once_with(rec_comp)
 
         with open(os.path.join(self.tempcompdir, 'repomd.xml')) as repomd_file:
             repomd_contents = repomd_file.read()
 
-        self.assertEqual(repomd_contents, 'test data')
-        self.assertFalse(os.path.exists(os.path.join(self.tempcompdir, 'garbage.zck')))
+        assert repomd_contents == 'test data'
+        assert not os.path.exists(os.path.join(self.tempcompdir, 'garbage.zck'))
 
     @mock.patch('bodhi.server.metadata.cr')
     def test_zchunk_metadata_coverage_zchunk_unsupported(self, mock_cr):
@@ -501,11 +493,11 @@ class TestUpdateInfoMetadata(UpdateInfoMetadataTestCase):
         rec_comp = rec.compress_and_fill.return_value
         rec_comp.rename_file.assert_called_once_with()
         # The last inserted type is without _zck
-        self.assertEqual(rec_comp.type, 'garbage')
+        assert rec_comp.type == 'garbage'
         mock_cr.Repomd.return_value.set_record.assert_called_once_with(rec_comp)
 
         with open(os.path.join(self.tempcompdir, 'repomd.xml')) as repomd_file:
             repomd_contents = repomd_file.read()
 
-        self.assertEqual(repomd_contents, 'test data')
-        self.assertFalse(os.path.exists(os.path.join(self.tempcompdir, 'garbage.zck')))
+        assert repomd_contents == 'test data'
+        assert not os.path.exists(os.path.join(self.tempcompdir, 'garbage.zck'))

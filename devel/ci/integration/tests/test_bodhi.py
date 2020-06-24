@@ -209,7 +209,7 @@ def test_get_releases_view(bodhi_container, db_container):
     # GET on /releases
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
-        http_response = c.get(f"/releases", headers=headers)
+        http_response = c.get("/releases", headers=headers)
 
     try:
         assert http_response.ok
@@ -502,11 +502,13 @@ def test_get_update_view(bodhi_container, db_container):
         if update_info['request']:
             assert update_info['request'] in http_response.text
         if update_info['autokarma']:
-            assert "Stable by Karma" in http_response.text
+            assert "The update will be automatically pushed to stable when karma reaches"\
+                in http_response.text
             assert (f"The update will be automatically pushed to stable"
                     f" when karma reaches {update_info['stable_karma']}") in http_response.text
         else:
-            assert "Stable by Karma" not in http_response.text
+            assert "The update will not be automatically pushed to stable by karma"\
+                in http_response.text
         if update_info['locked']:
             assert "Locked" in http_response.text
         if update_info['suggest'] == "reboot":
@@ -540,6 +542,9 @@ def test_get_user_view(bodhi_container, db_container):
             curs.execute(query_users)
             username = curs.fetchone()[0]
     conn.close()
+
+    if username.startswith('packagerbot/'):
+        pytest.skip("Skipping test due to bad username")
 
     # GET on user with latest update
     with bodhi_container.http_client(port="8080") as c:
@@ -675,6 +680,9 @@ def test_get_user_json(bodhi_container, db_container):
             for row in rows:
                 user_groups.append({"name": row[0]})
     conn.close()
+
+    if user_name.startswith('packagerbot/'):
+        pytest.skip("Skipping test due to bad username")
 
     # GET on user
     with bodhi_container.http_client(port="8080") as c:
@@ -914,7 +922,7 @@ def test_get_overrides_view(bodhi_container, db_container):
     # GET on latest overrides
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
-        http_response = c.get(f"/overrides", headers=headers)
+        http_response = c.get("/overrides", headers=headers)
 
     try:
         assert http_response.ok
@@ -959,7 +967,7 @@ def test_get_overrides_rss(bodhi_container, db_container):
 
     # GET on latest overrides
     with bodhi_container.http_client(port="8080") as c:
-        http_response = c.get(f"/rss/overrides")
+        http_response = c.get("/rss/overrides")
 
     bodhi_ip = bodhi_container.get_IPv4s()[0]
 
@@ -1283,7 +1291,7 @@ def test_get_composes_view(bodhi_container, db_container):
     # GET on /composes
     with bodhi_container.http_client(port="8080") as c:
         headers = {'Accept': 'text/html'}
-        http_response = c.get(f"/composes", headers=headers)
+        http_response = c.get("/composes", headers=headers)
 
     try:
         assert http_response.ok
@@ -1455,7 +1463,7 @@ def test_get_comments_rss(bodhi_container, db_container):
 
     # GET on latest comments
     with bodhi_container.http_client(port="8080") as c:
-        http_response = c.get(f"/rss/comments")
+        http_response = c.get("/rss/comments")
 
     bodhi_ip = bodhi_container.get_IPv4s()[0]
 

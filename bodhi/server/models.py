@@ -18,6 +18,7 @@
 """Bodhi's database models."""
 
 from collections import defaultdict
+from copy import copy
 from datetime import datetime
 from textwrap import wrap
 import hashlib
@@ -30,7 +31,7 @@ import uuid
 from urllib.error import URLError
 
 from simplemediawiki import MediaWiki
-from sqlalchemy import (and_, Boolean, Column, DateTime, event, ForeignKey,
+from sqlalchemy import (and_, Boolean, Column, DateTime, event, func, ForeignKey,
                         Integer, or_, Table, Unicode, UnicodeText, UniqueConstraint)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import class_mapper, relationship, backref, validates
@@ -45,14 +46,15 @@ from bodhi.messages.schemas import (buildroot_override as override_schemas,
                                     errata as errata_schemas, update as update_schemas)
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
-from bodhi.server.exceptions import BodhiException, LockedUpdateException
-from bodhi.server.tasks import handle_update, tag_update_builds_task
+from bodhi.server.exceptions import BodhiException, ExternalCallException, LockedUpdateException
+from bodhi.server.tasks import fetch_test_cases_task, tag_update_builds_task, work_on_bugs_task
 from bodhi.server.util import (
     avatar as get_avatar, build_evr, get_critpath_components,
     get_rpm_header, header, tokenize, pagure_api_get)
 
 if typing.TYPE_CHECKING:  # pragma: no cover
     import pyramid  # noqa: 401
+    import bugzilla # noqa: 401
 
 
 # http://techspot.zzzeek.org/2011/01/14/the-enum-recipe
@@ -752,6 +754,12 @@ update_bug_table = Table(
     Column('bug_id', Integer, ForeignKey('bugs.id')))
 
 
+build_testcase_table = Table(
+    'build_testcase_table', metadata,
+    Column('build_id', Integer, ForeignKey('builds.id')),
+    Column('testcase_id', Integer, ForeignKey('testcases.id')))
+
+
 class Release(Base):
     """
     Represent a distribution release, such as Fedora 27.
@@ -823,6 +831,10 @@ class Release(Base):
 
     package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
     testing_repository = Column(UnicodeText, nullable=True)
+
+    # One-to-many relationships
+    # builds backref from Build
+    # composes backref from Compos
 
     @property
     def critpath_min_karma(self) -> int:
@@ -1017,17 +1029,35 @@ class TestCase(Base):
 
     Attributes:
         name (str): The name of the test case.
-        package_id (int): The primary key of the :class:`Package` associated with this test case.
-        package (Package): The package associated with this test case.
+        package_name (str): The name of the package associated with this test case.
     """
 
     __tablename__ = 'testcases'
     __get_by__ = ('name',)
+    __exclude_columns__ = ('builds',)
 
-    name = Column(UnicodeText, nullable=False)
+    name = Column(UnicodeText, nullable=False, unique=True)
 
-    package_id = Column(Integer, ForeignKey('packages.id'))
-    # package backref
+    # One-to-many relationships
+    # feedback backref from TestCaseKarma
+
+    # Many-to-many relationships
+    # builds backref
+
+    @property
+    def package_name(self) -> str:
+        """
+        Return the package name of the associated builds.
+
+        Since a TestCase name is unique and is created from the name of the Package,
+        each TestCase can only be associated to Builds of the same Package.
+        We use this for quickly validate the TestCase against Package upon feedback submission.
+
+        Returns:
+            The name of the package this testcase is intended for.
+        """
+        build = Build.query.filter(Build.testcases.any(name=self.name)).first()
+        return build.package.name
 
 
 class Package(Base):
@@ -1043,20 +1073,18 @@ class Package(Base):
         type (int): The polymorphic identity column. This is used to identify what Python
             class to create when loading rows from the database.
         builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects.
-        test_cases (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`TestCase`
-            objects.
     """
 
     __tablename__ = 'packages'
     __get_by__ = ('name',)
-    __exclude_columns__ = ('id', 'test_cases', 'builds',)
+    __exclude_columns__ = ('id', 'builds',)
 
     name = Column(UnicodeText, nullable=False)
     requirements = Column(UnicodeText)
     type = Column(ContentType.db_type(), nullable=False)
 
-    builds = relationship('Build', backref=backref('package', lazy='joined'))
-    test_cases = relationship('TestCase', backref='package', order_by="TestCase.id")
+    # One-to-many relationships
+    builds = relationship('Build', backref=backref('package', lazy='joined', innerjoin=True))
 
     __mapper_args__ = {
         'polymorphic_on': type,
@@ -1122,60 +1150,6 @@ class Package(Base):
         # The first list contains usernames with commit access. The second list
         # contains FAS group names with commit access.
         return list(committers), list(groups)
-
-    def fetch_test_cases(self, db):
-        """
-        Get a list of test cases for this package from the wiki.
-
-        Args:
-            db (sqlalchemy.orm.session.Session): A database session.
-        Raises:
-            BodhiException: When retrieving testcases from Wiki failed.
-        """
-        if not config.get('query_wiki_test_cases'):
-            return
-
-        start = datetime.utcnow()
-        log.debug('Querying the wiki for test cases')
-
-        wiki = MediaWiki(config.get('wiki_url'))
-        cat_page = 'Category:Package %s test cases' % self.external_name
-
-        def list_categorymembers(wiki, cat_page, limit=500):
-            # Build query arguments and call wiki
-            query = dict(action='query', list='categorymembers',
-                         cmtitle=cat_page, cmlimit=limit)
-            try:
-                response = wiki.call(query)
-            except URLError:
-                raise BodhiException('Failed retrieving testcases from Wiki')
-            members = [entry['title'] for entry in
-                       response.get('query', {}).get('categorymembers', {})
-                       if 'title' in entry]
-
-            # Determine whether we need to recurse
-            idx = 0
-            while True:
-                if idx >= len(members) or limit <= 0:
-                    break
-                # Recurse?
-                if members[idx].startswith('Category:') and limit > 0:
-                    members.extend(list_categorymembers(wiki, members[idx], limit - 1))
-                    members.remove(members[idx])  # remove Category from list
-                else:
-                    idx += 1
-
-            log.debug('Found the following unit tests: %s', members)
-            return members
-
-        for test in set(list_categorymembers(wiki, cat_page)):
-            case = db.query(TestCase).filter_by(name=test).first()
-            if not case:
-                case = TestCase(name=test, package=self)
-                db.add(case)
-                db.flush()
-
-        log.debug('Finished querying for test cases in %s', datetime.utcnow() - start)
 
     @validates('builds')
     def validate_builds(self, key, build):
@@ -1344,20 +1318,29 @@ class Build(Base):
             of.
         type (ContentType): The polymorphic identify of the row. This is used by sqlalchemy to
             identify which subclass of Build to use.
+        testcases (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`TestCase`
+            objects.
     """
 
     __tablename__ = 'builds'
-    __exclude_columns__ = ('id', 'package', 'package_id', 'release',
+    __exclude_columns__ = ('id', 'package', 'package_id', 'release', 'testcases',
                            'update_id', 'update', 'override')
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
-    package_id = Column(Integer, ForeignKey('packages.id'), nullable=False)
-    release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
-    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
 
+    # Many-to-one relationships
+    package_id = Column(Integer, ForeignKey('packages.id'), nullable=False)
+    # package backref from Package
+    release_id = Column(Integer, ForeignKey('releases.id'))
     release = relationship('Release', backref='builds', lazy=False)
+    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
+    # update backref from Update
+
+    # Many-to-many relationships
+    testcases = relationship('TestCase', secondary=build_testcase_table,
+                             backref='builds', order_by='TestCase.name')
 
     type = Column(ContentType.db_type(), nullable=False)
     __mapper_args__ = {
@@ -1515,6 +1498,69 @@ class Build(Base):
             if self.get_creation_time() < build_creation_time:
                 return False
         return True
+
+    def update_test_cases(self, db):
+        """
+        Update the list of test cases for this build from the wiki.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        Raises:
+            ExternalCallException: When retrieving testcases from Wiki failed.
+        """
+        if not config.get('query_wiki_test_cases'):
+            return
+
+        start = datetime.utcnow()
+        log.debug(f'Querying the wiki for test cases of {self.nvr}')
+
+        wiki = MediaWiki(config.get('wiki_url'))
+        cat_page = f'Category:Package {self.package.external_name} test cases'
+
+        def list_categorymembers(wiki, cat_page, limit=500):
+            # Build query arguments and call wiki
+            query = dict(action='query', list='categorymembers',
+                         cmtitle=cat_page, cmlimit=limit)
+            try:
+                response = wiki.call(query)
+            except URLError:
+                raise ExternalCallException('Failed retrieving testcases from Wiki')
+            members = [entry['title'] for entry in
+                       response.get('query', {}).get('categorymembers', {})
+                       if 'title' in entry]
+
+            # Determine whether we need to recurse
+            if limit > 0:
+                for idx, member in enumerate(copy(members)):
+                    if member.startswith('Category:'):
+                        members.extend(list_categorymembers(wiki, member, limit - 1))
+                        members.remove(members[idx])  # remove Category from list
+
+            log.debug(f'Found the following unit tests: {members}')
+            return members
+
+        fetched = set(list_categorymembers(wiki, cat_page))
+
+        # Delete removed testcases
+        for case in self.testcases:
+            if case.name not in fetched:
+                self.testcases.remove(case)
+                log.debug(f'Removed testcase "{case.name}" from {self.nvr}')
+
+        # Add new testcases
+        for test in fetched:
+            case = TestCase.get(test)
+            if not case:
+                case = TestCase(name=test)
+                db.add(case)
+                db.flush()
+                log.debug(f'Found new testcase "{case.name}" and added to database')
+            if case not in self.testcases:
+                self.testcases.append(case)
+                log.debug(f'Added testcase "{case.name}" to {self.nvr}')
+
+        db.flush()
+        log.debug(f'Finished querying for test cases in {datetime.utcnow() - start}')
 
 
 class ContainerBuild(Build):
@@ -1827,15 +1873,13 @@ class Update(Base):
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(64), unique=True, nullable=False)
 
-    # One-to-one relationships
+    # Many-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)
-    release = relationship('Release', lazy='joined')
+    release = relationship('Release', lazy='joined', innerjoin=True)
 
-    # One-to-many relationships
-    comments = relationship('Comment', backref=backref('update', lazy='joined'), lazy='joined',
-                            order_by='Comment.timestamp')
-    builds = relationship('Build', backref=backref('update', lazy='joined'), lazy='joined',
-                          order_by='Build.nvr')
+    user_id = Column(Integer, ForeignKey('users.id'))
+    # user backref from User
+
     # If the update is locked and a Compose exists for the same release and request, this will be
     # set to that Compose.
     compose = relationship(
@@ -1843,12 +1887,14 @@ class Update(Base):
         primaryjoin=("and_(Update.release_id==Compose.release_id, Update.request==Compose.request, "
                      "Update.locked==True)"),
         foreign_keys=(release_id, request),
-        backref=backref('updates', passive_deletes=True))
+        backref=backref('updates', passive_deletes=True, order_by='Update.date_submitted'))
+
+    # One-to-many relationships
+    comments = relationship('Comment', backref='update', order_by='Comment.timestamp')
+    builds = relationship('Build', backref='update', order_by='Build.nvr')
 
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table, backref='updates', order_by='Bug.bug_id')
-
-    user_id = Column(Integer, ForeignKey('users.id'))
 
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
@@ -2297,13 +2343,13 @@ class Update(Base):
                                f"release value of {up.mandatory_days_in_testing} days"
             })
 
-        log.debug("Adding new update to the db.")
+        log.debug(f"Adding new update to the db {up.alias}.")
         db.add(up)
-        log.debug("Triggering db commit for new update.")
+        log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
         if not data.get("from_tag"):
-            log.debug("Setting request for new update.")
+            log.debug(f"Setting request for new update {up.alias}.")
             up.set_request(db, req, request.user.name)
 
         if config.get('test_gating.required'):
@@ -2311,7 +2357,7 @@ class Update(Base):
                 'Test gating required is enforced, marking the update as waiting on test gating')
             up.test_gating_status = TestGatingStatus.waiting
 
-        log.debug("Done with Update.new(...)")
+        log.debug(f"Done with Update.new(...) {up.alias}")
         return up, caveats
 
     @classmethod
@@ -2415,6 +2461,10 @@ class Update(Base):
         # Updates with new or removed builds always go back to testing
         if new_builds or removed_builds:
             data['request'] = UpdateRequest.testing
+            # And, updates with new or removed builds always get their karma reset.
+            # https://github.com/fedora-infra/bodhi/issues/511
+            data['karma_critipath'] = 0
+            up.date_testing = None
 
             # Remove all koji tags and change the status back to pending
             if up.status is not UpdateStatus.pending:
@@ -2426,12 +2476,14 @@ class Update(Base):
                 })
 
             # Add the pending_signing_tag to all new builds
-            tag_update_builds_task.delay(update=up, builds=new_builds)
+            tag = None
+            if up.from_tag:
+                tag = up.release.get_pending_signing_side_tag(up.from_tag)
+            elif up.release.pending_signing_tag:
+                tag = up.release.pending_signing_tag
 
-        # And, updates with new or removed builds always get their karma reset.
-        # https://github.com/fedora-infra/bodhi/issues/511
-        if new_builds or removed_builds:
-            data['karma_critpath'] = 0
+            if tag is not None:
+                tag_update_builds_task.delay(tag=tag, builds=new_builds)
 
         new_bugs = up.update_bugs(data['bugs'], db)
         del(data['bugs'])
@@ -2445,22 +2497,36 @@ class Update(Base):
 
         up.date_modified = datetime.utcnow()
 
-        # Store the update alias so Celery doesn't have to emit SQL
-        update_alias = up.alias
-
         notifications.publish(update_schemas.UpdateEditV1.from_dict(
             message={'update': up, 'agent': request.user.name, 'new_bugs': new_bugs}))
 
-        # Commit the changes in the db before calling a celery task.
+        # If editing a Pending update, all of whose builds are signed, for a release
+        # which isn't composed by Bodhi (i.e. Rawhide), move it directly to Testing.
+        if not up.release.composed_by_bodhi and up.status == UpdateStatus.pending \
+                and up.signed:
+            log.info("Every build in the update is signed, set status to testing")
+            up.status = UpdateStatus.testing
+            up.date_testing = func.current_timestamp()
+            up.request = None
+            log.info(f"Update status of {up.alias} has been set to testing")
+
+        if config['test_gating.required']:
+            log.info(f"Updating test gating status of {up.alias}")
+            up.update_test_gating_status()
+
+        # Commit the changes in the db before calling celery tasks.
         db.commit()
 
-        handle_update.delay(
-            api_version=2, action='edit',
-            update_alias=update_alias,
-            agent=request.user.name,
-            new_bugs=new_bugs
-        )
+        log.info("Deferring working on bugs and fetching test cases to celery")
+        alias = up.alias
+        if not bool(config.get('bodhi_email')):
+            log.warning("Not configured to handle bugs")
+        else:
+            work_on_bugs_task.delay(alias, new_bugs)
 
+        fetch_test_cases_task.delay(alias)
+
+        log.info(f"Done editing {up.alias}")
         return up, caveats
 
     @property
@@ -2653,9 +2719,13 @@ class Update(Base):
                 title += " more"
 
                 return title
+            elif len(self.builds) == 0:
+                return self.alias
             else:
                 return " and ".join([build_label(build) for build in self.builds])
         else:
+            if len(self.builds) == 0:
+                return self.alias
             all_nvrs = [x.nvr for x in self.builds]
             nvrs = all_nvrs[:limit]
             builds = delim.join(sorted(nvrs)) + \
@@ -2866,6 +2936,8 @@ class Update(Base):
             self.add_tag(self.release.pending_signing_tag)
         elif action is UpdateRequest.stable:
             self.add_tag(self.release.pending_stable_tag)
+            if self.request == UpdateRequest.testing:
+                self.remove_tag(self.release.pending_testing_tag)
 
         # If an obsolete/unpushed build is being re-submitted, return
         # it to the pending state, and make sure it's tagged as a candidate
@@ -2908,10 +2980,19 @@ class Update(Base):
         db.commit()
 
         if action == UpdateRequest.testing:
-            handle_update.delay(
-                api_version=2, action="testing",
-                update_alias=alias,
-                agent=username)
+            if config['test_gating.required']:
+                log.info(f"Updating test gating status of {self.alias}")
+                self.update_test_gating_status()
+                db.commit()
+
+            log.info("Deferring working on bugs and fetching test cases to celery")
+            if not bool(config.get('bodhi_email')):
+                log.warning("Not configured to handle bugs")
+            else:
+                bugs = [bug.bug_id for bug in self.bugs]
+                work_on_bugs_task.delay(alias, bugs)
+
+            fetch_test_cases_task.delay(alias)
 
     def waive_test_results(self, username, comment=None, tests=None):
         """
@@ -3249,16 +3330,15 @@ class Update(Base):
                 notice = 'You may not give karma to your own updates.'
                 caveats.append({'name': 'karma', 'description': notice})
 
-        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath)
-        session.add(comment)
-
         try:
             user = session.query(User).filter_by(name=author).one()
         except NoResultFound:
             user = User(name=author)
             session.add(user)
 
-        user.comments.append(comment)
+        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath, user=user)
+        session.add(comment)
+
         self.comments.append(comment)
         session.flush()
 
@@ -3355,10 +3435,12 @@ class Update(Base):
             raise BodhiException("Can't unpush a %s update"
                                  % self.status.description)
 
-        self.untag(db)
+        self.untag(db, preserve_override=True)
 
+        koji.multicall = True
         for build in self.builds:
             koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
+        koji.multiCall()
 
         self.pushed = False
         self.status = UpdateStatus.unpushed
@@ -3394,23 +3476,29 @@ class Update(Base):
 
         self.request = None
 
-    def untag(self, db):
+    def untag(self, db, preserve_override: bool = False):
         """
         Untag all of the :class:`Builds <Build>` in this update.
 
         Args:
             db (sqlalchemy.orm.session.Session): A database session.
+            preserve_override: whether to preserve the override tag or not
         """
         log.info("Untagging %s", self.alias)
         koji = buildsys.get_session()
         tag_types, tag_rels = Release.get_tags(db)
+        koji.multicall = True
         for build in self.builds:
             for tag in build.get_tags():
                 # Only remove tags that we know about
                 if tag in tag_rels:
-                    koji.untagBuild(tag, build.nvr, force=True)
+                    if preserve_override and tag == self.release.override_tag:
+                        log.info("Skipping override tag")
+                    else:
+                        koji.untagBuild(tag, build.nvr, force=True)
                 else:
                     log.info("Skipping tag that we don't know about: %s" % tag)
+        koji.multiCall()
         self.pushed = False
 
     def obsolete(self, db, newer=None):
@@ -3776,7 +3864,7 @@ class Update(Base):
         """
         tests = set()
         for build in self.builds:
-            for test in build.package.test_cases:
+            for test in build.testcases:
                 tests.add(test.name)
         return sorted(list(tests))
 
@@ -3791,7 +3879,7 @@ class Update(Base):
         tests = set()
         for build in self.builds:
             test_names = set()
-            for test in build.package.test_cases:
+            for test in build.testcases:
                 if test.name not in test_names:
                     test_names.add(test.name)
                     tests.add(test)
@@ -4221,6 +4309,7 @@ class BugKarma(Base):
 
     karma = Column(Integer, default=0)
 
+    # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
     comment = relationship("Comment", backref='bug_feedback')
 
@@ -4243,6 +4332,7 @@ class TestCaseKarma(Base):
 
     karma = Column(Integer, default=0)
 
+    # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
     comment = relationship("Comment", backref='testcase_feedback')
 
@@ -4274,8 +4364,15 @@ class Comment(Base):
     text = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
+    # One-to-many relationships
+    # bug_feedback backref from BugKarma
+    # testcase_feedback backref from TestCaseKarma
+
+    # Many-to-one relationships
     update_id = Column(Integer, ForeignKey('updates.id'), index=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    # update backref from Update
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    # user backref from User
 
     def url(self) -> str:
         """
@@ -4365,8 +4462,6 @@ class Bug(Base):
         bug_id (int): The bug's id.
         title (str): The description of the bug.
         security (bool): True if the bug is marked as a security issue.
-        url (str): The URL for the bug. Inaccessible due to being overridden by the url
-            property (https://github.com/fedora-infra/bodhi/issues/1995).
         parent (bool): True if this is a parent tracker bug for release-specific bugs.
     """
 
@@ -4383,11 +4478,12 @@ class Bug(Base):
     # If we're dealing with a security bug
     security = Column(Boolean, default=False)
 
-    # Bug URL.  If None, then assume it's in Red Hat Bugzilla
-    url = Column('url', UnicodeText)
-
     # If this bug is a parent tracker bug for release-specific bugs
     parent = Column(Boolean, default=False)
+
+    # Many-to-many relationships
+    # updates backref from Update
+    # feedback backref from BugKarma
 
     @property
     def url(self) -> str:
@@ -4544,6 +4640,7 @@ class User(Base):
     # One-to-many relationships
     comments = relationship(Comment, backref=backref('user'), lazy='dynamic')
     updates = relationship(Update, backref=backref('user'), lazy='dynamic')
+    # buildroot_overrides backref from BuildrootOverride
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
@@ -4593,7 +4690,8 @@ class Group(Base):
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
-    # users backref
+    # Many-to-many relationships
+    # users backref from User
 
 
 class BuildrootOverride(Base):
@@ -4620,20 +4718,20 @@ class BuildrootOverride(Base):
     __include_extras__ = ('nvr',)
     __get_by__ = ('build_id',)
 
-    build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
-    submitter_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    notes = Column(Unicode, nullable=False)
+    notes = Column(UnicodeText, nullable=False)
 
     submission_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     expiration_date = Column(DateTime, nullable=False)
     expired_date = Column(DateTime)
 
-    build = relationship('Build', lazy='joined',
-                         backref=backref('override', lazy='joined',
-                                         uselist=False))
-    submitter = relationship('User', lazy='joined',
-                             backref=backref('buildroot_overrides',
-                                             lazy='joined'))
+    # Many-to-one relationships
+    build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
+    build = relationship('Build', lazy='joined', innerjoin=True,
+                         backref=backref('override', uselist=False))
+
+    submitter_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    submitter = relationship('User', lazy='joined', innerjoin=True,
+                             backref='buildroot_overrides')
 
     @property
     def nvr(self) -> str:

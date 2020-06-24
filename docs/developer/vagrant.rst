@@ -11,6 +11,9 @@ get started, simply use these commands::
     $ sudo systemctl enable libvirtd
     $ sudo systemctl start libvirtd
 
+If you're on Ubuntu, use this in place of the first command::
+		$ sudo apt install ansible libvirt-dev vagrant-libvirt vagrant-sshfs
+
 Check out the code and run ``vagrant up``::
 
     $ git clone https://github.com/fedora-infra/bodhi

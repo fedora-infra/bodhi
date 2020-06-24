@@ -205,6 +205,11 @@ def set_request(request):
                            "Can't change request for an archived release")
         return
 
+    if update.status == UpdateStatus.stable and action == UpdateRequest.testing:
+        request.errors.add('body', 'request',
+                           "Pushing back to testing a stable update is not allowed")
+        return
+
     if action == UpdateRequest.stable:
         settings = request.registry.settings
         result, reason = update.check_requirements(request.db, settings)
@@ -572,7 +577,29 @@ def new_update(request):
                 result = dict(updates=updates)
 
             if from_tag:
-                handle_side_and_related_tags_task.delay(updates, from_tag)
+                for u in updates:
+                    builds = [b.nvr for b in u.builds]
+                    if not u.release.composed_by_bodhi:
+                        # Before the Bodhi activation point of a release, keep builds tagged
+                        # with the side-tag and its associate tags.
+                        side_tag_signing_pending = u.release.get_pending_signing_side_tag(from_tag)
+                        side_tag_testing_pending = u.release.get_testing_side_tag(from_tag)
+                        handle_side_and_related_tags_task.delay(
+                            builds=builds,
+                            pending_signing_tag=side_tag_signing_pending,
+                            from_tag=from_tag,
+                            pending_testing_tag=side_tag_testing_pending)
+                    else:
+                        # After the Bodhi activation point of a release, add the pending-signing tag
+                        # of the release to funnel the builds back into a normal workflow for a
+                        # stable release.
+                        pending_signing_tag = u.release.pending_signing_tag
+                        candidate_tag = u.release.candidate_tag
+                        handle_side_and_related_tags_task.delay(
+                            builds=builds,
+                            pending_signing_tag=pending_signing_tag,
+                            from_tag=from_tag,
+                            candidate_tag=candidate_tag)
 
     except LockedUpdateException as e:
         log.warning(str(e))

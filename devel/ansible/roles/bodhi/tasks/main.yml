@@ -67,6 +67,13 @@
       - zlib-devel
     state: present
 
+
+- name: Configure Cgroups v1 for docker in grub.cfg
+  command: sed -i '/^GRUB_CMDLINE_LINUX/ s/"$/ systemd.unified_cgroup_hierarchy=0"/' /etc/default/grub
+
+- name: Generate the new grub configuration with cgroups v1
+  command: grub2-mkconfig -o /boot/grub2/grub.cfg
+
 - name: Initialize PostgreSQL
   command: postgresql-setup initdb
   args:
@@ -238,3 +245,6 @@
     src: /home/vagrant/bodhi/bodhi-complete.sh
     dest: /etc/bash_completion.d/bodhi-complete.sh
     state: link
+
+- name: Reboot the vagrant box
+  reboot:

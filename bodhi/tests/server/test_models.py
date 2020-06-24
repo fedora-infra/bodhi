@@ -37,7 +37,7 @@ import requests.exceptions
 from bodhi.messages.schemas import errata as errata_schemas, update as update_schemas
 from bodhi.server import models as model, buildsys, mail, util, Session
 from bodhi.server.config import config
-from bodhi.server.exceptions import BodhiException, LockedUpdateException
+from bodhi.server.exceptions import BodhiException, ExternalCallException, LockedUpdateException
 from bodhi.server.models import (
     BugKarma, ReleaseState, UpdateRequest, UpdateSeverity, UpdateStatus,
     UpdateSuggestion, UpdateType, TestGatingStatus, PackageManager)
@@ -188,7 +188,7 @@ class TestBodhiBase(BasePyTestCase):
 
     def test_grid_columns(self):
         """Assert correct return value from the grid_columns() method."""
-        assert model.Build.grid_columns() == ['nvr', 'release_id', 'signed', 'type', 'epoch']
+        assert model.Build.grid_columns() == ['nvr', 'signed', 'release_id', 'type', 'epoch']
 
     def test_find_child_for_rpm(self):
         subclass = model.Package.find_polymorphic_child(model.ContentType.rpm)
@@ -357,29 +357,6 @@ class TestComment(BasePyTestCase):
         https://github.com/fedora-infra/bodhi/issues/949.
         """
         assert model.Comment.__table__.columns['text'].nullable == False
-
-    def test_get_unique_testcase_feedback(self):
-        update = self.create_update(
-            ('bodhi-2.3.3-1.fc24', 'python-fedora-atomic-composer-2016.3-1.fc24'))
-        package = update.builds[0].package
-        test1 = model.TestCase(name="Test 1", package=package)
-        test2 = model.TestCase(name="Test 2", package=package)
-        test3 = model.TestCase(name="Test 2", package=package)
-        testcase_feedback = [{'testcase': test1, 'karma': 1},
-                             {'testcase': test2, 'karma': 1},
-                             {'testcase': test3, 'karma': 1}]
-        update.comment(session=self.db, text="test", karma=1, author="test",
-                       testcase_feedback=testcase_feedback)
-        comments = update.comments
-        feedback = comments[0].unique_testcase_feedback
-
-        feedback_titles = [f.testcase.name for f in feedback]
-        feedback_titles_expected = ["Test 1", "Test 2"]
-        feedback_karma_sum = sum([f.karma for f in feedback])
-
-        assert len(feedback) == 2
-        assert sorted(feedback_titles) == sorted(feedback_titles_expected)
-        assert feedback_karma_sum == 2
 
 
 class TestDeclEnum:
@@ -1273,61 +1250,6 @@ class TestRpmPackage(ModelTest):
         self.package = model.RpmPackage(name='the-greatest-package')
         self.db.add(self.package)
 
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    def test_wiki_test_cases(self):
-        """Test querying the wiki for test cases"""
-        # Mock out mediawiki so we don't do network calls in our tests
-        response = {
-            'query': {
-                'categorymembers': [{
-                    'title': 'Fake test case',
-                }],
-            }
-        }
-
-        # Now, our actual test.
-        with mock.patch('bodhi.server.models.MediaWiki', MockWiki(response)):
-            pkg = model.RpmPackage(name='gnome-shell')
-            pkg.fetch_test_cases(self.db)
-            assert pkg.test_cases[0].name == 'Fake test case'
-            assert len(pkg.test_cases) == 1
-
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
-    def test_wiki_test_cases_recursive(self, MediaWiki):
-        """Test querying the wiki for test cases when recursion is necessary."""
-        responses = [
-            {'query': {
-                'categorymembers': [
-                    {'title': 'Fake'},
-                    {'title': 'Category:Bodhi'},
-                    {'title': 'Uploading cat pictures'}]}},
-            {'query': {
-                'categorymembers': [
-                    {'title': 'Does Bodhi eat +1s'}]}}]
-        MediaWiki.return_value.call.side_effect = responses
-        pkg = model.RpmPackage(name='gnome-shell')
-
-        pkg.fetch_test_cases(self.db)
-
-        assert model.TestCase.query.count() == 3
-        assert len(pkg.test_cases) == 3
-        assert {tc.name for tc in model.TestCase.query.all()} == (
-            {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
-        assert {tc.package.name for tc in model.TestCase.query.all()} == {'gnome-shell'}
-
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
-    def test_wiki_test_cases_exception(self, MediaWiki):
-        """Test querying the wiki for test cases when connection to Wiki failed"""
-        MediaWiki.return_value.call.side_effect = URLError("oh no!")
-
-        with pytest.raises(BodhiException) as exc_context:
-            pkg = model.RpmPackage(name='gnome-shell')
-            pkg.fetch_test_cases(self.db)
-        assert len(pkg.test_cases) == 0
-        assert str(exc_context.value) == 'Failed retrieving testcases from Wiki'
-
     def test_adding_modulebuild(self):
         """Assert that validation fails when adding a ModuleBuild."""
         build1 = model.RpmBuild(nvr='the-greatest-package-1.0.0-fc17.1')
@@ -1547,6 +1469,104 @@ class TestBuild(ModelTest):
         """
         return {'package': model.Package(name='TurboGears')}
 
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    def test_wiki_test_cases(self):
+        """Test querying the wiki for test cases"""
+        # Mock out mediawiki so we don't do network calls in our tests
+        response = {
+            'query': {
+                'categorymembers': [{
+                    'title': 'Fake test case',
+                }],
+            }
+        }
+
+        # Now, our actual test.
+        with mock.patch('bodhi.server.models.MediaWiki', MockWiki(response)):
+            pkg = model.RpmPackage(name='gnome-shell')
+            self.db.add(pkg)
+            build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+            self.db.add(build)
+            build.update_test_cases(self.db)
+            assert build.testcases[0].name == 'Fake test case'
+            assert len(build.testcases) == 1
+
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_test_cases_recursive(self, MediaWiki):
+        """Test querying the wiki for test cases when recursion is necessary."""
+        responses = [
+            {'query': {
+                'categorymembers': [
+                    {'title': 'Fake'},
+                    {'title': 'Category:Bodhi'},
+                    {'title': 'Uploading cat pictures'}]}},
+            {'query': {
+                'categorymembers': [
+                    {'title': 'Does Bodhi eat +1s'}]}}]
+        MediaWiki.return_value.call.side_effect = responses
+        pkg = model.RpmPackage(name='gnome-shell')
+        self.db.add(pkg)
+        build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+        self.db.add(build)
+
+        build.update_test_cases(self.db)
+
+        assert model.TestCase.query.count() == 3
+        assert len(build.testcases) == 3
+        assert {tc.name for tc in model.TestCase.query.all()} == (
+            {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
+        assert {tc.package_name for tc in model.TestCase.query.all()} == {'gnome-shell'}
+
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_test_cases_removed(self, MediaWiki):
+        """Test querying the wiki for test cases and remove test which aren't actual."""
+        responses = [
+            {'query': {
+                'categorymembers': [
+                    {'title': 'Fake test case'},
+                    {'title': 'Does Bodhi eat +1s'}]}}]
+
+        pkg = model.RpmPackage(name='gnome-shell')
+        self.db.add(pkg)
+        build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+        self.db.add(build)
+
+        # Add both tests to build
+        MediaWiki.return_value.call.side_effect = responses
+        build.update_test_cases(self.db)
+        assert model.TestCase.query.count() == 2
+        assert len(build.testcases) == 2
+        assert {tc.name for tc in build.testcases} == (
+            {'Does Bodhi eat +1s', 'Fake test case'})
+
+        # Now remove one test
+        responses = [
+            {'query': {
+                'categorymembers': [
+                    {'title': 'Fake test case'}]}}]
+        MediaWiki.return_value.call.side_effect = responses
+        build.update_test_cases(self.db)
+        assert model.TestCase.query.count() == 2
+        assert len(build.testcases) == 1
+        assert build.testcases[0].name == 'Fake test case'
+
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_test_cases_exception(self, MediaWiki):
+        """Test querying the wiki for test cases when connection to Wiki failed"""
+        MediaWiki.return_value.call.side_effect = URLError("oh no!")
+
+        with pytest.raises(ExternalCallException) as exc_context:
+            pkg = model.RpmPackage(name='gnome-shell')
+            self.db.add(pkg)
+            build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+            self.db.add(build)
+            build.update_test_cases(self.db)
+        assert len(build.testcases) == 0
+        assert str(exc_context.value) == 'Failed retrieving testcases from Wiki'
+
 
 class TestRpmBuild(ModelTest):
     """Unit test case for the ``RpmBuild`` model."""
@@ -1684,7 +1704,8 @@ class TestUpdateInit(BasePyTestCase):
         assert str(exc.value) == 'You must specify a Release when creating an Update.'
 
 
-@mock.patch("bodhi.server.models.handle_update", mock.Mock())
+@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
+@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
 class TestUpdateEdit(BasePyTestCase):
     """Tests for the Update.edit() method."""
 
@@ -1714,6 +1735,21 @@ class TestUpdateEdit(BasePyTestCase):
         with pytest.raises(model.LockedUpdateException):
             model.Update.edit(request, data)
 
+    @mock.patch.dict('bodhi.server.config.config', {'bodhi_email': None})
+    @mock.patch('bodhi.server.models.log.warning')
+    def test_add_bugs_bodhi_not_configured(self, warning):
+        """Adding a bug should log a warning if Bodhi isn't configured to handle bugs."""
+        update = model.Update.query.first()
+        data = {
+            'edited': update.alias, 'builds': [update.builds[0].nvr], 'bugs': [12345, ], }
+        request = mock.MagicMock()
+        request.db = self.db
+        request.user.name = 'tester'
+        with mock_sends(Message):
+            model.Update.edit(request, data)
+
+        warning.assert_called_with('Not configured to handle bugs')
+
     def test_empty_display_name(self):
         """An only whitespaces string should not be set as display name."""
         update = model.Update.query.first()
@@ -1729,9 +1765,178 @@ class TestUpdateEdit(BasePyTestCase):
         update = model.Update.query.first()
         assert update.display_name == ''
 
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
+    def test_gating_required_false(self):
+        """Assert that test_gating_status is not updated if test_gating is not enabled."""
+        update = model.Update.query.first()
+        update.test_gating_status = None
+        data = {
+            'edited': update.alias, 'builds': [update.builds[0].nvr],
+            'bugs': [], 'display_name': '  '}
+        request = mock.MagicMock()
+        request.db = self.db
+        request.user.name = 'tester'
+        with mock_sends(update_schemas.UpdateEditV1):
+            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+                greenwave_response = {
+                    'policies_satisfied': False,
+                    'summary': 'what have you done‽',
+                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'unsatisfied_requirements': [
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                         'type': 'test-result-missing', 'scenario': None},
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': update.alias, 'type': 'bodhi_update'},
+                         'type': 'test-result-missing', 'scenario': None}]}
+                mock_greenwave.return_value = greenwave_response
+                model.Update.edit(request, data)
+
+        update = model.Update.query.first()
+        assert update.test_gating_status is None
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_gating_required_true(self):
+        """Assert that test_gating_status is updated if test_gating is enabled."""
+        update = model.Update.query.first()
+        update.test_gating_status = None
+        data = {
+            'edited': update.alias, 'builds': [update.builds[0].nvr],
+            'bugs': [], 'display_name': '  '}
+        request = mock.MagicMock()
+        request.db = self.db
+        request.user.name = 'tester'
+        with mock_sends(update_schemas.UpdateEditV1):
+            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+                greenwave_response = {
+                    'policies_satisfied': False,
+                    'summary': 'what have you done‽',
+                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'unsatisfied_requirements': [
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                         'type': 'test-result-missing', 'scenario': None},
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': update.alias, 'type': 'bodhi_update'},
+                         'type': 'test-result-missing', 'scenario': None}]}
+                mock_greenwave.return_value = greenwave_response
+                model.Update.edit(request, data)
+
+        update = model.Update.query.first()
+        assert update.test_gating_status == model.TestGatingStatus.failed
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_rawhide_update_edit_move_to_testing(self):
+        """
+        Assert that a pending rawhide update that was edited gets moved to testing
+        if all the builds in the update are signed.
+        """
+        update = model.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.status = model.UpdateStatus.pending
+        update.release.composed_by_bodhi = False
+        update.builds[0].signed = True
+        data = {
+            'edited': update.alias, 'builds': [update.builds[0].nvr],
+            'bugs': [], 'display_name': '  '}
+        request = mock.MagicMock()
+        request.db = self.db
+        request.user.name = 'tester'
+
+        with mock_sends(update_schemas.UpdateEditV1, update_schemas.UpdateReadyForTestingV1):
+            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+                greenwave_response = {
+                    'policies_satisfied': False,
+                    'summary': 'what have you done‽',
+                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'unsatisfied_requirements': [
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                         'type': 'test-result-missing', 'scenario': None},
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': update.alias, 'type': 'bodhi_update'},
+                         'type': 'test-result-missing', 'scenario': None}]}
+                mock_greenwave.return_value = greenwave_response
+                model.Update.edit(request, data)
+
+        assert update.status == model.UpdateStatus.testing
+        assert update.test_gating_status == model.TestGatingStatus.failed
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_rawhide_update_edit_stays_pending(self):
+        """
+        Assert that a pending rawhide update that was edited does not get moved to testing
+        if not all the builds in the update are signed.
+        """
+        update = model.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.status = model.UpdateStatus.pending
+        update.release.composed_by_bodhi = False
+        update.builds[0].signed = False
+        data = {
+            'edited': update.alias, 'builds': [update.builds[0].nvr],
+            'bugs': [], 'display_name': '  '}
+        request = mock.MagicMock()
+        request.db = self.db
+        request.user.name = 'tester'
+
+        with mock_sends(update_schemas.UpdateEditV1):
+            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+                greenwave_response = {
+                    'policies_satisfied': False,
+                    'summary': 'what have you done‽',
+                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'unsatisfied_requirements': [
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                         'type': 'test-result-missing', 'scenario': None},
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': update.alias, 'type': 'bodhi_update'},
+                         'type': 'test-result-missing', 'scenario': None}]}
+                mock_greenwave.return_value = greenwave_response
+                model.Update.edit(request, data)
+
+        assert update.status == model.UpdateStatus.pending
+        assert update.test_gating_status == model.TestGatingStatus.failed
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_not_rawhide_update_signed_stays_pending(self):
+        """
+        Assert that a non rawhide pending update that was edited does not get moved to testing
+        if all the builds in the update are signed.
+        """
+        update = model.Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        update.status = model.UpdateStatus.pending
+        update.release.composed_by_bodhi = True
+        update.builds[0].signed = True
+        data = {
+            'edited': update.alias, 'builds': [update.builds[0].nvr],
+            'bugs': [], 'display_name': '  '}
+        request = mock.MagicMock()
+        request.db = self.db
+        request.user.name = 'tester'
+
+        with mock_sends(update_schemas.UpdateEditV1):
+            with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+                greenwave_response = {
+                    'policies_satisfied': False,
+                    'summary': 'what have you done‽',
+                    'applicable_policies': ['taskotron_release_critical_tasks'],
+                    'unsatisfied_requirements': [
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                         'type': 'test-result-missing', 'scenario': None},
+                        {'testcase': 'dist.rpmdeplint',
+                         'item': {'item': update.alias, 'type': 'bodhi_update'},
+                         'type': 'test-result-missing', 'scenario': None}]}
+                mock_greenwave.return_value = greenwave_response
+                model.Update.edit(request, data)
+
+        assert update.status == model.UpdateStatus.pending
+        assert update.test_gating_status == model.TestGatingStatus.failed
+
 
 @mock.patch("bodhi.server.models.tag_update_builds_task", mock.Mock())
-@mock.patch("bodhi.server.models.handle_update", mock.Mock())
+@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
+@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
 class TestUpdateVersionHash(BasePyTestCase):
     """Tests for the Update.version_hash property."""
 
@@ -1926,10 +2131,11 @@ class TestUpdateGetTestcaseKarma(BasePyTestCase):
         update = model.Update.query.first()
         # Let's add a testcase karma to the existing comment on the testcase.
         tck = model.TestCaseKarma(karma=1, comment=update.comments[0],
-                                  testcase=update.builds[0].package.test_cases[0])
+                                  testcase=update.builds[0].testcases[0])
         self.db.add(tck)
         # Now let's associate a new testcase with the update.
-        testcase = model.TestCase(name='a testcase', package=update.builds[0].package)
+        testcase = model.TestCase(name='a testcase')
+        update.builds[0].testcases.append(testcase)
 
         bad, good = update.get_testcase_karma(testcase)
 
@@ -1945,10 +2151,10 @@ class TestUpdateGetTestcaseKarma(BasePyTestCase):
             self.db.add(comment)
             update.comments.append(comment)
             testcase_karma = model.TestCaseKarma(karma=karma, comment=comment,
-                                                 testcase=update.builds[0].package.test_cases[0])
+                                                 testcase=update.builds[0].testcases[0])
             self.db.add(testcase_karma)
 
-        bad, good = update.get_testcase_karma(update.builds[0].package.test_cases[0])
+        bad, good = update.get_testcase_karma(update.builds[0].testcases[0])
 
         assert bad == -1
         assert good == 2
@@ -1959,7 +2165,7 @@ class TestUpdateGetTestcaseKarma(BasePyTestCase):
         self.db.add(comment)
         update.comments.append(comment)
 
-        bad, good = update.get_testcase_karma(update.builds[0].package.test_cases[0])
+        bad, good = update.get_testcase_karma(update.builds[0].testcases[0])
 
         assert bad == 0
         assert good == 0
@@ -2180,6 +2386,8 @@ class TestUpdateValidateBuilds(BasePyTestCase):
         assert str(cm.value) == 'An update must contain builds of the same type.'
 
 
+@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
+@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
 class TestUpdateMeetsTestingRequirements(BasePyTestCase):
     """Test the Update.meets_testing_requirements() method."""
 
@@ -2230,14 +2438,13 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         update = model.Update.query.first()
         update.critpath = True
         update.stable_karma = 1
-        with mock.patch('bodhi.server.models.handle_update'):
-            with mock_sends(Message, Message, Message, Message, Message):
-                update.comment(self.db, 'testing', author='enemy', karma=-1)
-                update.comment(self.db, 'testing', author='bro', karma=1)
-                # Despite meeting the stable_karma, the function should still not
-                # mark this as meeting testing requirements because critpath packages
-                # have a higher requirement for minimum karma. So let's get it a second one.
-                update.comment(self.db, 'testing', author='ham', karma=1)
+        with mock_sends(Message, Message, Message, Message, Message):
+            update.comment(self.db, 'testing', author='enemy', karma=-1)
+            update.comment(self.db, 'testing', author='bro', karma=1)
+            # Despite meeting the stable_karma, the function should still not
+            # mark this as meeting testing requirements because critpath packages
+            # have a higher requirement for minimum karma. So let's get it a second one.
+            update.comment(self.db, 'testing', author='ham', karma=1)
 
         assert update.meets_testing_requirements
 
@@ -2411,7 +2618,8 @@ class TestUpdateMeetsTestingRequirements(BasePyTestCase):
         assert not update.meets_testing_requirements
 
 
-@mock.patch("bodhi.server.models.handle_update", mock.Mock())
+@mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
+@mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
 class TestUpdate(ModelTest):
     """Unit test case for the ``Update`` model."""
     klass = model.Update
@@ -2946,6 +3154,23 @@ class TestUpdate(ModelTest):
             ('dist-f11-updates-testing-pending', 'TurboGears-1.0.8-3.fc11'),
             ('dist-f11-updates-pending', 'TurboGears-1.0.8-3.fc11')]
 
+    @mock.patch('bodhi.server.models.log.info')
+    def test_unpush_update(self, info):
+        """Unpushing an update shouldn't clear the override tag from builds."""
+        self.obj.status = UpdateStatus.testing
+        assert len(self.obj.builds) == 1
+        b = self.obj.builds[0]
+        release = self.obj.release
+        koji = buildsys.get_session()
+        koji.__tagged__[b.nvr] = [release.testing_tag,
+                                  release.pending_signing_tag,
+                                  release.pending_testing_tag,
+                                  release.override_tag,
+                                  # Add an unknown tag that we shouldn't touch
+                                  release.dist_tag + '-compose']
+        self.obj.unpush(self.db)
+        info.assert_any_call("Skipping override tag")
+
     @mock.patch('bodhi.server.models.log.debug')
     def test_unpush_stable(self, debug):
         """unpush() should raise a BodhiException on a stable update."""
@@ -2980,6 +3205,19 @@ class TestUpdate(ModelTest):
         update.display_name = 'some human made title'
 
         assert update.get_title(beautify=True) == 'some human made title'
+
+    @pytest.mark.parametrize('beautify', (False, True))
+    def test_get_title_no_builds(self, beautify):
+        """If the update include no builds, return update alias."""
+        update = self.get_update()
+        update.builds = []
+        assert update.get_title(beautify=beautify) == update.alias
+
+        update.display_name = 'some human made title'
+        if beautify:
+            assert update.get_title(beautify=beautify) == 'some human made title'
+        else:
+            assert update.get_title(beautify=beautify) == update.alias
 
     def test_get_title_with_beautify(self):
         update = self.get_update()
@@ -3335,6 +3573,80 @@ class TestUpdate(ModelTest):
         assert link == ("<a target='_blank' href='https://bugzilla.redhat.com/show_bug.cgi?id=1'"
                         " class='notblue'>BZ#1</a> foo\xe9bar")
 
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': False})
+    def test_set_request_pending_testing_gating_false(self):
+        """Ensure that test gating is not updated when it is disabled in config."""
+        req = DummyRequest(user=DummyUser())
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        self.obj.request = None
+        self.obj.test_gating_status = None
+        assert self.obj.status == UpdateStatus.pending
+
+        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            greenwave_response = {
+                'policies_satisfied': False,
+                'summary': 'what have you done‽',
+                'applicable_policies': ['taskotron_release_critical_tasks'],
+                'unsatisfied_requirements': [
+                    {'testcase': 'dist.rpmdeplint',
+                     'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                     'type': 'test-result-missing', 'scenario': None},
+                    {'testcase': 'dist.rpmdeplint',
+                     'item': {'item': self.obj.alias, 'type': 'bodhi_update'},
+                     'type': 'test-result-missing', 'scenario': None}]}
+            mock_greenwave.return_value = greenwave_response
+            with mock_sends(Message):
+                self.obj.set_request(self.db, UpdateRequest.testing, req.user.name)
+
+        assert self.obj.request == UpdateRequest.testing
+        assert self.obj.test_gating_status is None
+
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_set_request_pending_testing_gating_true(self):
+        """Ensure that test gating is  updated when it is enabled in config."""
+        req = DummyRequest(user=DummyUser())
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        self.obj.request = None
+        self.obj.test_gating_status = None
+        assert self.obj.status == UpdateStatus.pending
+
+        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            greenwave_response = {
+                'policies_satisfied': False,
+                'summary': 'what have you done‽',
+                'applicable_policies': ['taskotron_release_critical_tasks'],
+                'unsatisfied_requirements': [
+                    {'testcase': 'dist.rpmdeplint',
+                     'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
+                     'type': 'test-result-missing', 'scenario': None},
+                    {'testcase': 'dist.rpmdeplint',
+                     'item': {'item': self.obj.alias, 'type': 'bodhi_update'},
+                     'type': 'test-result-missing', 'scenario': None}]}
+            mock_greenwave.return_value = greenwave_response
+            with mock_sends(Message):
+                self.obj.set_request(self.db, UpdateRequest.testing, req.user.name)
+
+        assert self.obj.request == UpdateRequest.testing
+        assert self.obj.test_gating_status == TestGatingStatus.failed
+
+    @mock.patch.dict('bodhi.server.config.config', {'bodhi_email': None})
+    @mock.patch('bodhi.server.models.log.warning')
+    def test_add_bugs_bodhi_not_configured(self, warning):
+        """Adding a bug should log a warning if Bodhi isn't configured to handle bugs."""
+        req = DummyRequest(user=DummyUser())
+        req.errors = cornice.Errors()
+        req.koji = buildsys.get_session()
+        self.obj.request = None
+        self.obj.test_gating_status = None
+        assert self.obj.status == UpdateStatus.pending
+
+        with mock_sends(Message):
+            self.obj.set_request(self.db, UpdateRequest.testing, req.user.name)
+
+        warning.assert_called_with('Not configured to handle bugs')
+
     def test_set_request_pending_stable(self):
         """Ensure that we can submit an update to stable if it is pending and has enough karma."""
         req = DummyRequest(user=DummyUser())
@@ -3349,6 +3661,10 @@ class TestUpdate(ModelTest):
 
         assert self.obj.request == UpdateRequest.stable
         assert self.obj.status == UpdateStatus.pending
+
+        self.obj = mock.Mock()
+        self.obj.remove_tag(self.obj.release.pending_testing_tag)
+        self.obj.remove_tag.assert_called_once_with(self.obj.release.pending_testing_tag)
 
     @mock.patch('bodhi.server.models.buildsys.get_session')
     def test_set_request_resubmit_candidate_tag_missing(self, get_session):
@@ -4001,26 +4317,6 @@ class TestUpdate(ModelTest):
         update.comments.append(comment)
 
         assert update.num_admin_approvals == 0
-
-    def test_test_cases_with_no_dupes(self):
-        update = self.get_update(name="FullTestCasesWithNoDupes")
-        package = update.builds[0].package
-        test1 = model.TestCase(name="Test 1", package=package)
-        test2 = model.TestCase(name="Test 2", package=package)
-        model.TestCase(name="Test 2", package=package)
-
-        tests = update.full_test_cases
-        test_names = update.test_cases
-
-        expected = [test1, test2]
-        expected_names = ["Test 1", "Test 2"]
-
-        assert len(tests) == len(expected)
-        assert sorted(tests, key=lambda testcase: testcase.name) == (
-            sorted(expected, key=lambda testcase: testcase.name))
-
-        assert len(test_names) == len(expected_names)
-        assert sorted(test_names) == sorted(expected_names)
 
     def test_validate_release_failure(self):
         """Test the validate_release() method for the failure case."""

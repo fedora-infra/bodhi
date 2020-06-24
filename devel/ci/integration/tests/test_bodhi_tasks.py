@@ -78,46 +78,53 @@ def test_update_edit(
     bodhi_container, ipsilon_container, db_container, rabbitmq_container
 ):
     def find_update():
-        base_query = [
-            "SELECT alias",
-            "FROM updates u",
-            "JOIN releases r ON u.release_id = r.id",
-            "WHERE r.state != 'archived' AND u.locked = FALSE",
+        query = (
+            "SELECT alias "
+            "FROM updates u "
+            "JOIN releases r ON u.release_id = r.id "
+            "JOIN users us ON u.user_id = us.id "
+            "WHERE r.state != 'archived' AND u.locked = FALSE "
+            "AND u.status IN ('pending', 'testing') "
+            "AND us.name NOT LIKE '%packagerbot%' "
             "ORDER BY u.date_submitted DESC LIMIT 1"
+        )
+        db_ip = db_container.get_IPv4s()[0]
+        conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
+        with conn:
+            with conn.cursor() as curs:
+                curs.execute(query)
+                result = curs.fetchone()
+                assert result is not None
+                update_alias = result[0]
+        conn.close()
+        return update_alias
+
+    def find_bug():
+        base_query = [
+            "SELECT bug_id",
+            "FROM bugs b",
+            "WHERE TRUE",
+            "LIMIT 1"
         ]
         db_ip = db_container.get_IPv4s()[0]
         conn = psycopg2.connect("dbname=bodhi2 user=postgres host={}".format(db_ip))
         with conn:
             with conn.cursor() as curs:
-                # First try to find an update that we can use.
-                query = base_query[:]
-                query.insert(4, "AND u.status != 'testing' AND u.request != 'testing'")
-                curs.execute(" ".join(query))
+                curs.execute(" ".join(base_query))
                 result = curs.fetchone()
-                if result is None:
-                    # Well, let's hack one into something we can use.
-                    query = base_query[:]
-                    query.insert(4, "AND u.status != 'testing'")
-                    curs.execute(" ".join(query))
-                    result = curs.fetchone()
-                    assert result is not None
-                    update_alias = result[0]
-                    curs.execute(
-                        "UPDATE updates SET request = 'stable' WHERE alias = %s",
-                        (update_alias,)
-                    )
-                else:
-                    update_alias = result[0]
+                assert result is not None
+                bug_id = result[0]
         conn.close()
-        return update_alias
+        return str(bug_id)
 
     update_alias = find_update()
+    bug_id = find_bug()
     # Remove previous task results
     bodhi_container.execute(["find", "/srv/celery-results", "-type", "f", "-delete"])
     cmd = [
         "bodhi",
         "updates",
-        "request",
+        "edit",
         "--debug",
         "--url",
         "http://localhost:8080",
@@ -128,7 +135,8 @@ def test_update_edit(
         "--password",
         "ipsilon",
         update_alias,
-        "testing",
+        "--bugs",
+        bug_id,
     ]
     try:
         bodhi_container.execute(cmd)

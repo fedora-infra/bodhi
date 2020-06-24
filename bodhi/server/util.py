@@ -314,7 +314,7 @@ def sanity_check_repodata(myurl, repo_type):
                 continue
             else:
                 raise RepodataException(
-                    f"DNF did not return expected output when running test!"
+                    "DNF did not return expected output when running test!"
                     + f" Test: {dnfargs}, expected: {expout}, output: {output}")
 
 
@@ -675,7 +675,7 @@ def testcase_link(context, test, short=False):
     """
     url = config.get('test_case_base_url') + test.name
     display = test.name.replace('QA:Testcase ', '')
-    link = "<a target='_blank' href='%s' class='notblue'>%s</a>" % (url, display)
+    link = f"<a target='_blank' href='{url}' class='font-weight-bolder'>{display}</a>"
     if not short:
         link = "Test Case " + link
     return link
@@ -746,7 +746,6 @@ def sorted_updates(updates):
     # Otherwise, we would be depending on the way Python orders dict keys
     for package in sorted(builds.keys()):
         if len(builds[package]) > 1:
-            log.debug(builds[package])
             for build in sorted_builds(builds[package])[::-1]:
                 if build.update not in sync:
                     sync.append(build.update)
@@ -795,7 +794,7 @@ def cmd(cmd, cwd=None, raise_on_error=False):
         if raise_on_error:
             raise RuntimeError(msg)
     elif out or err:
-        log.debug(output)
+        log.debug(f"subprocess output: {output}")
     return out, err, p.returncode
 
 
@@ -874,16 +873,16 @@ class TransactionalSessionMaker(object):
         Exceptions or rolls back the transaction. In either case, it also will close and remove the
         Session.
         """
-        self.session = Session()
+        session = Session()
         try:
-            yield self.session
-            self.session.commit()
+            yield session
+            session.commit()
         except Exception as e:
             # It is possible for session.rollback() to raise Exceptions, so we will wrap it in an
             # Exception handler as well so we can log the rollback failure and still raise the
             # original Exception.
             try:
-                self.session.rollback()
+                session.rollback()
             except Exception:
                 log.exception('An Exception was raised while rolling back a transaction.')
             raise e
@@ -897,7 +896,6 @@ class TransactionalSessionMaker(object):
         This has been split off the main __call__ method to make it easier to
         mock it out in unit tests.
         """
-        self.session.close()
         Session.remove()
 
 

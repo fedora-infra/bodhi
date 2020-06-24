@@ -1,4 +1,4 @@
-FROM bodhi-ci/f30
+FROM bodhi-ci/f32
 LABEL \
   name="bodhi-web" \
   vendor="Fedora Infrastructure" \
@@ -6,9 +6,7 @@ LABEL \
   license="MIT"
 
 # For integration testing we're using the infrastructure repo
-RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
-# work around https://bugzilla.redhat.com/show_bug.cgi?id=1699396
-RUN rpm --import "$(awk -F= '{if ($0 ~ "gpgkey *=") {print $2;}}' < /etc/yum.repos.d/infra-tags.repo)"
+RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/master/f/files/common/fedora-infra-tags.repo
 
 # Install Bodhi deps (that were not needed by the unittests container)
 RUN dnf install -y \
@@ -22,7 +20,6 @@ RUN dnf install -y \
 # Create bodhi user
 RUN groupadd -r bodhi && \
     useradd  -r -s /sbin/nologin -d /home/bodhi/ -m -c 'Bodhi Server' -g bodhi bodhi
-
 # Install it
 RUN python3 setup.py build && pip3 install --no-use-pep517 .
 

@@ -278,6 +278,10 @@ class BodhiConfig(dict):
         'bz_products': {
             'value': ['Fedora', 'Fedora EPEL', 'Fedora Modules'],
             'validator': _generate_list_validator(',')},
+        'bz_regex': {
+            'value': (r'(?:fix(?:es)?|close(?:s)?|resolve(?:s)?(?:\:)?)\s'
+                      r'(?:fedora|epel|rh(?:bz)?)#(\d{5,})'),
+            'validator': str},
         'bz_server': {
             'value': 'https://bugzilla.redhat.com/xmlrpc.cgi',
             'validator': str},

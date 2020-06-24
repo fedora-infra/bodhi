@@ -47,6 +47,8 @@ def main():
                 db.commit()
     except Exception:
         log.exception("There was an error approving testing updates.")
+    finally:
+        db_factory._end_session()
 
 
 def approve_update(update: Update, db: Session):
@@ -122,6 +124,7 @@ def approve_update(update: Update, db: Session):
             update.date_stable = update.date_pushed = func.current_timestamp()
             update.comment(db, "This update has been submitted for stable by bodhi",
                            author=u'bodhi')
+            db.commit()
             # Multi build update
             if update.from_tag:
                 # Merging the side tag should happen here
@@ -134,8 +137,7 @@ def approve_update(update: Update, db: Session):
                 koji = buildsys.get_session()
                 koji.deleteTag(pending_signing_tag)
                 koji.deleteTag(testing_tag)
-                # Removes the tag and the build target from koji.
-                koji.removeSideTag(update.from_tag)
+
             else:
                 # Single build update
                 update.remove_tag(update.release.pending_testing_tag)
