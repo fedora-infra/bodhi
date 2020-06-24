@@ -124,6 +124,7 @@ def approve_update(update: Update, db: Session):
             update.date_stable = update.date_pushed = func.current_timestamp()
             update.comment(db, "This update has been submitted for stable by bodhi",
                            author=u'bodhi')
+            update.modify_bugs()
             db.commit()
             # Multi build update
             if update.from_tag:
