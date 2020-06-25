@@ -16,16 +16,17 @@ Bugs can be associated to automatic updates by using appropriate keyword in the 
 of a build. The regex used to aquire the bug ids can be set in Bodhi config file. For a default
 Bodhi installation this is automatically set to::
 
-    fix(es)|close(s) (fedora|epel|rh|rhbz)#BUG_ID
+    fix(es)|close(s)|resolve(s)(:) (fedora|epel|rh|rhbz)#BUG_ID
 
 The regex is performed case insensitive. So, if you want bug number 123456 to be attached to an
-automatic update and closed upon update reaching stable, you can add a line to the RPM changelog
-like this::
+automatic update and closed upon update reaching stable, you can add a line (or more than one) to
+the RPM changelog like this::
 
     %changelog
     * Sat Apr 04 2020 Mattia Verga  <mattia@fedoraproject.org> - 0.78-1
     - Update to 0.78
     - Fixes rhbz#123456
+    - Resolves: epel#777777
 
 Just be sure to use the appropriate format for every bug you want to add. For example, this will
 **NOT** work::
