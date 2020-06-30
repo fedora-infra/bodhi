@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright (c) 2020 Mattia Verga
 #
 # This file is part of Bodhi.
 #
@@ -15,9 +15,31 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Fedora's update manager."""
+"""
+Make comments.user_id not nullable.
 
-__version__ = "5.4.0"
+Revision ID: f50dc199039c
+Revises: 325954bac9f7
+Create Date: 2020-05-30 07:37:23.035661
+"""
+from alembic import op
+import sqlalchemy as sa
 
-# This is a regular expression used to match username mentions in comments.
-MENTION_RE = r'(?<!\S)(@\w+)'
+
+# revision identifiers, used by Alembic.
+revision = 'f50dc199039c'
+down_revision = '325954bac9f7'
+
+
+def upgrade():
+    """Make comments.user_id not nullable so as to use inner joins."""
+    op.alter_column('comments', 'user_id',
+                    existing_type=sa.INTEGER(),
+                    nullable=False)
+
+
+def downgrade():
+    """Revert back comments.user_id to be nullable."""
+    op.alter_column('comments', 'user_id',
+                    existing_type=sa.INTEGER(),
+                    nullable=True)

@@ -39,7 +39,7 @@ CONTAINER_LABEL = 'purpose=bodhi-ci-{}'.format(uuid.uuid4())
 # This template is used to generate the summary lines that are printed out at the end.
 LABEL_TEMPLATE = '{:>8}-{:<34}'
 PROJECT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-RELEASES = ('f30', 'f31', 'f32', 'rawhide', 'pip')
+RELEASES = ('f31', 'f32', 'rawhide', 'pip')
 INTEGRATION_APPS = ("resultsdb", "waiverdb", "greenwave", "rabbitmq", "ipsilon")
 
 
@@ -1083,7 +1083,7 @@ class IntegrationJob(Job):
         """
         super(IntegrationJob, self).__init__(*args, **kwargs)
 
-        self._command = [sys.executable, '-m', 'pytest', '-v', '--no-cov',
+        self._command = [sys.executable, '-m', 'pytest', '-vv', '--no-cov',
                          'devel/ci/integration/tests/']
         bodhi_container_image = '{}-integration-bodhi/{}'.format(CONTAINER_NAME, self.release)
         self._popen_kwargs["env"] = os.environ.copy()

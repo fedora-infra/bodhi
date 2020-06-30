@@ -6,12 +6,7 @@ LABEL \
   license="MIT"
 
 # For integration testing we're using the infrastructure repo
-RUN curl -o /etc/yum.repos.d/infra-tags.repo https://infrastructure.fedoraproject.org/cgit/ansible.git/plain/files/common/fedora-infra-tags.repo
-# work around https://bugzilla.redhat.com/show_bug.cgi?id=1699396
-# and deal with https://fedoraproject.org/wiki/Changes/Set_skip_if_unavailable_default_to_false
-RUN rpm --import "$(awk -F= '{if ($0 ~ "gpgkey *=") {print $2;}}' \
-        < /etc/yum.repos.d/infra-tags.repo)" && \
-    echo skip_if_unavailable=True >> /etc/yum.repos.d/infra-tags.repo
+RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansible/raw/master/f/files/common/fedora-infra-tags.repo
 
 # Install Bodhi deps (that were not needed by the unittests container)
 RUN dnf install -y \

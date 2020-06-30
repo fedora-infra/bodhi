@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright (c) 2020 Mattia Verga
 #
 # This file is part of Bodhi.
 #
@@ -15,9 +15,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Fedora's update manager."""
+"""
+Convert buildroot override notes to unicodetext.
 
-__version__ = "5.4.0"
+Revision ID: 1c97477e38ee
+Revises: 325954bac9f7
+Create Date: 2020-06-09 13:03:03.489398
+"""
+from alembic import op
+import sqlalchemy as sa
 
-# This is a regular expression used to match username mentions in comments.
-MENTION_RE = r'(?<!\S)(@\w+)'
+
+# revision identifiers, used by Alembic.
+revision = '1c97477e38ee'
+down_revision = 'f50dc199039c'
+
+
+def upgrade():
+    """Convert buildrootoverrides notes column to UnicodeText."""
+    op.alter_column("buildroot_overrides", "notes", type_=sa.UnicodeText)
+
+
+def downgrade():
+    """Convert back buildrootoverrides notes column to Unicode."""
+    op.alter_column("buildroot_overrides", "notes", type_=sa.Unicode)

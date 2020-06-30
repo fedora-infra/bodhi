@@ -1,4 +1,4 @@
-# Copyright © 2018 Red Hat, Inc.
+# Copyright © 2020 Red Hat Inc., and others.
 #
 # This file is part of Bodhi.
 #
@@ -15,9 +15,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""Fedora's update manager."""
+"""Defines schemas related to GraphQL objects."""
+from graphene import relay, Field, String
+from graphene_sqlalchemy import SQLAlchemyObjectType
 
-__version__ = "5.4.0"
+from bodhi.server.models import Release as ReleaseModel
 
-# This is a regular expression used to match username mentions in comments.
-MENTION_RE = r'(?<!\S)(@\w+)'
+
+class Release(SQLAlchemyObjectType):
+    """Type object representing a distribution release from bodhi.server.models like Fedora 27."""
+
+    class Meta:
+        """Allow to set different options to the class."""
+
+        model = ReleaseModel
+        interfaces = (relay.Node, )
+    state = Field(String)
+    package_manager = Field(String)

@@ -16,19 +16,43 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines API endpoints related to GraphQL objects."""
+import graphene
 from cornice import Service
+from webob_graphql import serve_graphql_request
+
+from bodhi.server.config import config
+from bodhi.server.graphql_schemas import Release
+
 
 graphql = Service(name='graphql', path='/graphql', description='graphql service')
 
 
 @graphql.get()
+@graphql.post()
 def graphql_get(request):
     """
-    Return "Hello World".
+    Perform a GET request.
 
     Args:
         request (pyramid.Request): The current request.
     Returns:
-        str: A string "Hello World".
+        The GraphQL response to the request.
     """
-    return "Hello World"
+    context = {'session': request.session}
+    return serve_graphql_request(
+        request, schema, graphiql_enabled=config.get('graphiql_enabled'),
+        context_value=context)
+
+
+class Query(graphene.ObjectType):
+    """Allow querying objects."""
+
+    allReleases = graphene.List(Release)
+
+    def resolve_allReleases(self, info):
+        """Answer Queries by fetching data from the Schema."""
+        query = Release.get_query(info)  # SQLAlchemy query
+        return query.all()
+
+
+schema = graphene.Schema(query=Query)

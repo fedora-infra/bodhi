@@ -832,6 +832,10 @@ class Release(Base):
     package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
     testing_repository = Column(UnicodeText, nullable=True)
 
+    # One-to-many relationships
+    # builds backref from Build
+    # composes backref from Compos
+
     @property
     def critpath_min_karma(self) -> int:
         """
@@ -1034,6 +1038,9 @@ class TestCase(Base):
 
     name = Column(UnicodeText, nullable=False, unique=True)
 
+    # One-to-many relationships
+    # feedback backref from TestCaseKarma
+
     # Many-to-many relationships
     # builds backref
 
@@ -1076,7 +1083,8 @@ class Package(Base):
     requirements = Column(UnicodeText)
     type = Column(ContentType.db_type(), nullable=False)
 
-    builds = relationship('Build', backref=backref('package', lazy='joined'))
+    # One-to-many relationships
+    builds = relationship('Build', backref=backref('package', lazy='joined', innerjoin=True))
 
     __mapper_args__ = {
         'polymorphic_on': type,
@@ -1320,12 +1328,15 @@ class Build(Base):
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
-    package_id = Column(Integer, ForeignKey('packages.id'), nullable=False)
-    release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
-    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
 
+    # Many-to-one relationships
+    package_id = Column(Integer, ForeignKey('packages.id'), nullable=False)
+    # package backref from Package
+    release_id = Column(Integer, ForeignKey('releases.id'))
     release = relationship('Release', backref='builds', lazy=False)
+    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
+    # update backref from Update
 
     # Many-to-many relationships
     testcases = relationship('TestCase', secondary=build_testcase_table,
@@ -1862,15 +1873,13 @@ class Update(Base):
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(64), unique=True, nullable=False)
 
-    # One-to-one relationships
+    # Many-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)
-    release = relationship('Release', lazy='joined')
+    release = relationship('Release', lazy='joined', innerjoin=True)
 
-    # One-to-many relationships
-    comments = relationship('Comment', backref=backref('update', lazy='joined'), lazy='joined',
-                            order_by='Comment.timestamp')
-    builds = relationship('Build', backref=backref('update', lazy='joined'), lazy='joined',
-                          order_by='Build.nvr')
+    user_id = Column(Integer, ForeignKey('users.id'))
+    # user backref from User
+
     # If the update is locked and a Compose exists for the same release and request, this will be
     # set to that Compose.
     compose = relationship(
@@ -1878,12 +1887,14 @@ class Update(Base):
         primaryjoin=("and_(Update.release_id==Compose.release_id, Update.request==Compose.request, "
                      "Update.locked==True)"),
         foreign_keys=(release_id, request),
-        backref=backref('updates', passive_deletes=True))
+        backref=backref('updates', passive_deletes=True, order_by='Update.date_submitted'))
+
+    # One-to-many relationships
+    comments = relationship('Comment', backref='update', order_by='Comment.timestamp')
+    builds = relationship('Build', backref='update', order_by='Build.nvr')
 
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table, backref='updates', order_by='Bug.bug_id')
-
-    user_id = Column(Integer, ForeignKey('users.id'))
 
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
@@ -3319,16 +3330,15 @@ class Update(Base):
                 notice = 'You may not give karma to your own updates.'
                 caveats.append({'name': 'karma', 'description': notice})
 
-        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath)
-        session.add(comment)
-
         try:
             user = session.query(User).filter_by(name=author).one()
         except NoResultFound:
             user = User(name=author)
             session.add(user)
 
-        user.comments.append(comment)
+        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath, user=user)
+        session.add(comment)
+
         self.comments.append(comment)
         session.flush()
 
@@ -3427,8 +3437,10 @@ class Update(Base):
 
         self.untag(db, preserve_override=True)
 
+        koji.multicall = True
         for build in self.builds:
             koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
+        koji.multiCall()
 
         self.pushed = False
         self.status = UpdateStatus.unpushed
@@ -3475,6 +3487,7 @@ class Update(Base):
         log.info("Untagging %s", self.alias)
         koji = buildsys.get_session()
         tag_types, tag_rels = Release.get_tags(db)
+        koji.multicall = True
         for build in self.builds:
             for tag in build.get_tags():
                 # Only remove tags that we know about
@@ -3485,6 +3498,7 @@ class Update(Base):
                         koji.untagBuild(tag, build.nvr, force=True)
                 else:
                     log.info("Skipping tag that we don't know about: %s" % tag)
+        koji.multiCall()
         self.pushed = False
 
     def obsolete(self, db, newer=None):
@@ -4295,6 +4309,7 @@ class BugKarma(Base):
 
     karma = Column(Integer, default=0)
 
+    # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
     comment = relationship("Comment", backref='bug_feedback')
 
@@ -4317,6 +4332,7 @@ class TestCaseKarma(Base):
 
     karma = Column(Integer, default=0)
 
+    # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
     comment = relationship("Comment", backref='testcase_feedback')
 
@@ -4348,8 +4364,15 @@ class Comment(Base):
     text = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
+    # One-to-many relationships
+    # bug_feedback backref from BugKarma
+    # testcase_feedback backref from TestCaseKarma
+
+    # Many-to-one relationships
     update_id = Column(Integer, ForeignKey('updates.id'), index=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    # update backref from Update
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    # user backref from User
 
     def url(self) -> str:
         """
@@ -4457,6 +4480,10 @@ class Bug(Base):
 
     # If this bug is a parent tracker bug for release-specific bugs
     parent = Column(Boolean, default=False)
+
+    # Many-to-many relationships
+    # updates backref from Update
+    # feedback backref from BugKarma
 
     @property
     def url(self) -> str:
@@ -4613,6 +4640,7 @@ class User(Base):
     # One-to-many relationships
     comments = relationship(Comment, backref=backref('user'), lazy='dynamic')
     updates = relationship(Update, backref=backref('user'), lazy='dynamic')
+    # buildroot_overrides backref from BuildrootOverride
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
@@ -4662,7 +4690,8 @@ class Group(Base):
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
-    # users backref
+    # Many-to-many relationships
+    # users backref from User
 
 
 class BuildrootOverride(Base):
@@ -4689,20 +4718,20 @@ class BuildrootOverride(Base):
     __include_extras__ = ('nvr',)
     __get_by__ = ('build_id',)
 
-    build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
-    submitter_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    notes = Column(Unicode, nullable=False)
+    notes = Column(UnicodeText, nullable=False)
 
     submission_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     expiration_date = Column(DateTime, nullable=False)
     expired_date = Column(DateTime)
 
-    build = relationship('Build', lazy='joined',
-                         backref=backref('override', lazy='joined',
-                                         uselist=False))
-    submitter = relationship('User', lazy='joined',
-                             backref=backref('buildroot_overrides',
-                                             lazy='joined'))
+    # Many-to-one relationships
+    build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
+    build = relationship('Build', lazy='joined', innerjoin=True,
+                         backref=backref('override', uselist=False))
+
+    submitter_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    submitter = relationship('User', lazy='joined', innerjoin=True,
+                             backref='buildroot_overrides')
 
     @property
     def nvr(self) -> str:

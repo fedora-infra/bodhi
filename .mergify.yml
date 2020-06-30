@@ -8,10 +8,6 @@ pull_request_rules:
   - label!=WIP
   - approved-reviews-by=@fedora-infra/bodhi
   - status-success=DCO
-  - status-success=f30-docs
-  - status-success=f30-unit
-  - status-success=f30-diff-cover
-  - status-success=f30-integration
   - status-success=f31-docs
   - status-success=f31-unit
   - status-success=f31-diff-cover
@@ -56,3 +52,11 @@ pull_request_rules:
   - label!=WIP
   - label=5.3-backports
   name: backport 5.3
+- actions:
+    backport:
+      branches:
+      - '5.4'
+  conditions:
+  - label!=WIP
+  - label=5.4-backports
+  name: backport 5.4
