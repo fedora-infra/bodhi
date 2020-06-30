@@ -116,6 +116,15 @@
       name: jinja2-cli
       executable: pip3
 
+- name: pip install packages for GraphQL
+  pip:
+      name: "{{ item }}"
+      executable: pip3
+  loop:
+      - WebOb-GraphQL
+      - graphene
+      - graphene-sqlalchemy
+
 - name: Fake a pungi install
   file:
       src: /usr/bin/true

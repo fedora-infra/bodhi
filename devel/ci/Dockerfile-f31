@@ -7,6 +7,7 @@ RUN dnf install -y \
     findutils \
     git \
     make \
+    pip \
     python3-alembic \
     python3-arrow \
     python3-backoff \
@@ -43,7 +44,8 @@ RUN dnf install -y \
     python3-sqlalchemy_schemadisplay \
     python3-waitress \
     python3-webtest \
-    python3-yaml
+    python3-yaml &&\
+    pip-3 install graphene graphene-sqlalchemy WebOb-GraphQL
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji
