@@ -32,6 +32,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-munch \
     python3-openid \
     python3-psycopg2 \
+    python3-prometheus_client \
     python3-pylibravatar \
     python3-pyramid \
     python3-pyramid-fas-openid \
