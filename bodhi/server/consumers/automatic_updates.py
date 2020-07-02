@@ -31,6 +31,7 @@ from bodhi.server import buildsys
 from bodhi.server.config import config
 from bodhi.server.models import (
     Bug, Build, ContentType, Package, Release, Update, UpdateStatus, UpdateType, User)
+from bodhi.server.tasks import work_on_bugs_task
 from bodhi.server.util import transactional_session_maker
 
 log = logging.getLogger('bodhi')
@@ -189,5 +190,9 @@ class AutomaticUpdateHandler:
             log.debug("Adding new update to the database.")
             dbsession.add(update)
 
-            log.debug("Committing changes to the database.")
-            dbsession.commit()
+            log.debug("Flushing changes to the database.")
+            dbsession.flush()
+
+        # This must be run after dbsession is closed so changes are committed to db
+        alias = update.alias
+        work_on_bugs_task.delay(alias, closing_bugs)

@@ -33,6 +33,7 @@ from bodhi.server.models import (
 from bodhi.tests.server import base
 
 
+@mock.patch('bodhi.server.consumers.automatic_updates.work_on_bugs_task', mock.Mock())
 class TestAutomaticUpdateHandler(base.BasePyTestCase):
     """Test the automatic update handler."""
 
