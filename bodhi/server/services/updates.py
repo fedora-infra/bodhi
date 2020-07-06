@@ -524,6 +524,18 @@ def new_update(request):
             builds.append(build)
             releases.add(request.buildinfo[build.nvr]['release'])
 
+        # Disable manual updates for releases not composed by Bodhi
+        # see #4058
+        if not from_tag:
+            for release in releases:
+                if not release.composed_by_bodhi:
+                    request.errors.add('body', 'builds',
+                                       "Cannot manually create updates for a Release which is not "
+                                       "composed by Bodhi.\nRead the 'Automatic updates' page in "
+                                       "Bodhi docs about this error.")
+                    request.db.rollback()
+                    return
+
         # We want to go ahead and commit the transaction now so that the Builds are in the database.
         # Otherwise, there will be a race condition between robosignatory signing the Builds and the
         # signed handler attempting to mark the builds as signed. When we lose that race, the signed

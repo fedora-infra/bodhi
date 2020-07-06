@@ -105,6 +105,15 @@ def check_policies_task(**kwargs):
     main()
 
 
+@app.task(name="check_signed_builds")
+def check_signed_builds_task(**kwargs):
+    """Trigger the check signed builds job. This is a periodic task."""
+    from .check_signed_builds import main
+    log.info("Received a check signed builds order")
+    _do_init()
+    main()
+
+
 @app.task(name="clean_old_composes")
 def clean_old_composes_task(num_to_keep: int, **kwargs):
     """Trigger the clean old composes job. This is a periodic task."""
