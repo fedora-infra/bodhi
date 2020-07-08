@@ -21,7 +21,7 @@ from cornice import Service
 from webob_graphql import serve_graphql_request
 
 from bodhi.server.config import config
-from bodhi.server.graphql_schemas import Release
+from bodhi.server.graphql_schemas import Release, ReleaseModel
 
 
 graphql = Service(name='graphql', path='/graphql', description='graphql service')
@@ -48,10 +48,36 @@ class Query(graphene.ObjectType):
     """Allow querying objects."""
 
     allReleases = graphene.List(Release)
+    getRelease = graphene.Field(
+        lambda: graphene.List(Release), name=graphene.String(),
+        id_prefix=graphene.String(), composed_by_bodhi=graphene.Boolean(),
+        state=graphene.String())
 
     def resolve_allReleases(self, info):
         """Answer Queries by fetching data from the Schema."""
         query = Release.get_query(info)  # SQLAlchemy query
+        return query.all()
+
+    def resolve_getRelease(self, info, **args):
+        """Answer Release queries with a given argument."""
+        query = Release.get_query(info)
+
+        id_prefix = args.get("id_prefix")
+        if id_prefix is not None:
+            query = query.filter(ReleaseModel.id_prefix == id_prefix)
+
+        name = args.get("name")
+        if name is not None:
+            query = query.filter(ReleaseModel.name == name)
+
+        composed_by_bodhi = args.get("composed_by_bodhi")
+        if composed_by_bodhi is not None:
+            query = query.filter(ReleaseModel.composed_by_bodhi == composed_by_bodhi)
+
+        state = args.get("state")
+        if state is not None:
+            query = query.filter(ReleaseModel.state == state)
+
         return query.all()
 
 

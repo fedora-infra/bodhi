@@ -19,7 +19,6 @@ from graphene.test import Client
 
 from bodhi.tests.server import base
 from bodhi.server.services.graphql import schema
-from bodhi.server.models import PackageManager, Release
 
 
 class TestGraphQLService(base.BasePyTestCase):
@@ -31,22 +30,8 @@ class TestGraphQLService(base.BasePyTestCase):
 
     def test_allReleases(self):
         """Testing allReleases."""
+        base.BaseTestCaseMixin.create_release(self, version='22')
         client = Client(schema)
-        release = Release(
-            name='F22', long_name='Fedora 22',
-            id_prefix='FEDORA', version='22',
-            dist_tag='f22', stable_tag='f22-updates',
-            testing_tag='f22-updates-testing',
-            candidate_tag='f22-updates-candidate',
-            pending_signing_tag='f22-updates-testing-signing',
-            pending_testing_tag='f22-updates-testing-pending',
-            pending_stable_tag='f22-updates-pending',
-            override_tag='f22-override',
-            branch='f22',
-            package_manager=PackageManager.dnf,
-            testing_repository='updates-testing')
-
-        self.db.add(release)
         self.db.commit()
 
         executed = client.execute("""{  allReleases{  name  }}""")
@@ -62,22 +47,8 @@ class TestGraphQLService(base.BasePyTestCase):
 
     def test_enumfields(self):
         """Testing enum fields on releases."""
+        base.BaseTestCaseMixin.create_release(self, version='22')
         client = Client(schema)
-        release = Release(
-            name='F22', long_name='Fedora 22',
-            id_prefix='FEDORA', version='22',
-            dist_tag='f22', stable_tag='f22-updates',
-            testing_tag='f22-updates-testing',
-            candidate_tag='f22-updates-candidate',
-            pending_signing_tag='f22-updates-testing-signing',
-            pending_testing_tag='f22-updates-testing-pending',
-            pending_stable_tag='f22-updates-pending',
-            override_tag='f22-override',
-            branch='f22',
-            package_manager=PackageManager.dnf,
-            testing_repository='updates-testing')
-
-        self.db.add(release)
         self.db.commit()
 
         executed = client.execute("""{  allReleases{  state    packageManager  }}""")
@@ -87,8 +58,57 @@ class TestGraphQLService(base.BasePyTestCase):
                     'packageManager': 'unspecified',
                     'state': 'current'
                 }, {
-                    'packageManager': 'dnf',
-                    'state': 'disabled'
+                    'packageManager': 'unspecified',
+                    'state': 'current'
+                }]
+            }
+        }
+
+    def test_getRelease(self):
+        """Testing getRelease."""
+        base.BaseTestCaseMixin.create_release(self, version='22')
+        client = Client(schema)
+        self.db.commit()
+
+        executed = client.execute("""{  getRelease(idPrefix: "FEDORA"){  name  }}""")
+        assert executed == {
+            "data": {
+                "getRelease": [{
+                    "name": "F17"
+                }, {
+                    "name": "F22"
+                }]
+            }
+        }
+
+        executed = client.execute("""{  getRelease(name: "F17"){  id  }}""")
+        assert executed == {
+            "data": {
+                "getRelease": [{
+                    "id": "UmVsZWFzZTox"
+                }]
+            }
+        }
+
+        executed = client.execute("""{  getRelease(composedByBodhi: true){  name  }}""")
+        assert executed == {
+            "data": {
+                "getRelease": [{
+                    "name": "F17"
+                }, {
+                    "name": "F22"
+                }]
+            }
+        }
+
+        executed = client.execute(
+            """{  getRelease(state: "current", composedByBodhi: true){  name  }}""")
+        assert executed == {
+            "data": {
+                "getRelease": [{
+                    "name": "F17"
+                }, {
+                    "name": "F22"
                 }]
             }
         }
