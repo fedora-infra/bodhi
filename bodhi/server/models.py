@@ -262,6 +262,9 @@ class DeclEnumType(SchemaType, TypeDecorator):
         """
         if value is None:
             return None
+
+        if type(value) is str:
+            return value
         return value.value
 
     def process_result_value(self, value, dialect):
