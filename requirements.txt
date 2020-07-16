@@ -12,6 +12,7 @@ fedora_messaging
 feedgen>=0.7.0
 graphene
 graphene-sqlalchemy
+koji
 jinja2
 markdown
 prometheus_client
