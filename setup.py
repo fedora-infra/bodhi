@@ -194,7 +194,7 @@ server_setup = {
     ),
     'keywords': ['web', 'fedora', 'pyramid'],
     'packages': server_pkgs,
-    'include_package_data': False,
+    'include_package_data': True,
     'install_requires': get_requirements(),
     'message_extractors': {'.': []},
     'entry_points': '''
