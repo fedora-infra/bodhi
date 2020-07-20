@@ -4,6 +4,25 @@ Release notes
 
 .. towncrier release notes start
 
+v5.4.1
+======
+This is a {major|feature|bugfix} release that adds [short summary].
+
+
+Bug fixes
+^^^^^^^^^
+
+* Make sure to close the bugs associated to a rawhide update. (:issue:`4067`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+* Mattia Verga
+
+
 v5.4.0
 ======
 This is a minor release.
