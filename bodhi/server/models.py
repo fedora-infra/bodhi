@@ -1044,21 +1044,6 @@ class TestCase(Base):
     # Many-to-many relationships
     # builds backref
 
-    @property
-    def package_name(self) -> str:
-        """
-        Return the package name of the associated builds.
-
-        Since a TestCase name is unique and is created from the name of the Package,
-        each TestCase can only be associated to Builds of the same Package.
-        We use this for quickly validate the TestCase against Package upon feedback submission.
-
-        Returns:
-            The name of the package this testcase is intended for.
-        """
-        build = Build.query.filter(Build.testcases.any(name=self.name)).first()
-        return build.package.name
-
 
 class Package(Base):
     """

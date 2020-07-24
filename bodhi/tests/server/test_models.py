@@ -1516,7 +1516,6 @@ class TestBuild(ModelTest):
         assert len(build.testcases) == 3
         assert {tc.name for tc in model.TestCase.query.all()} == (
             {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
-        assert {tc.package_name for tc in model.TestCase.query.all()} == {'gnome-shell'}
 
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
     @mock.patch('bodhi.server.models.MediaWiki')
