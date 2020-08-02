@@ -120,75 +120,48 @@ class TestGraphQLService(base.BasePyTestCase):
         release = base.BaseTestCaseMixin.create_release(self, version='22')
         self.create_update(build_nvrs=['TurboGears-2.1-1.el5'],
                            release_name=release.name)
-        up2 = self.create_update(build_nvrs=['freetype-2.10.2-1.fc32'],
-                                 release_name=release.name)
-        up2.alias = "FEDORA-2020-3223f9ec8b"
-        up2.stable_days = 1
-        up2.date_approved = datetime.datetime(2019, 10, 13, 16, 16, 22, 438484)
+        self.create_update(build_nvrs=['freetype-2.10.2-1.fc32'],
+                           release_name=release.name)
         self.db.commit()
         client = Client(schema)
 
-        executed = client.execute("""{  getUpdates(stableDays: 1,
-                                  dateApproved: "2019-10-13 16:16:22.438484")
-                                  {  alias  request  unstableKarma  }}""")
+        executed = client.execute("""{  getUpdates{  id  }}""")
         assert executed == {
             "data": {
                 "getUpdates": [{
-                    "alias": "FEDORA-2020-3223f9ec8b",
-                    "request": "testing",
-                    "unstableKarma": -3
+                    "id": "VXBkYXRlOjE="
+                }, {
+                    "id": "VXBkYXRlOjI="
+                }, {
+                    "id": "VXBkYXRlOjM="
                 }]
             }
         }
 
         executed = client.execute("""{  getUpdates(stableKarma: 3, status: "pending",
-                                  critpath: false, pushed: false, request:"testing"){  stableDays
-                                  userId  }}""")
+                                  critpath: false){  id  }}""")
         assert executed == {
-            'data': {
-                'getUpdates': [{
-                    'stableDays': 0,
-                    'userId': 1
+            "data": {
+                "getUpdates": [{
+                    "id": "VXBkYXRlOjE="
                 }, {
-                    'stableDays': 0,
-                    'userId': 1
+                    "id": "VXBkYXRlOjI="
                 }, {
-                    'stableDays': 1,
-                    'userId': 1
+                    "id": "VXBkYXRlOjM="
                 }]
             }
         }
 
-        executed = client.execute("""{  getUpdates(stableDays: 1,
-                                  unstableKarma: -3, alias: "FEDORA-2020-3223f9ec8b")
-                                  {  dateApproved  request  }}""")
-        assert executed == {
-            'data': {
-                'getUpdates': [{
-                    'dateApproved': "2019-10-13 16:16:22.438484",
-                    'request': 'testing'
-                }]
-            }
-        }
+    def test_allUsers(self):
+        client = Client(schema)
 
-        executed = client.execute("""{  getUpdates(critpath: false, stableDays: 1,
-                                  userId: 1){  request    unstableKarma  }}""")
+        executed = client.execute("""{  allUsers{  name  }}""")
         assert executed == {
-            'data': {
-                'getUpdates': [{
-                    'request': 'testing',
-                    'unstableKarma': -3,
-                }]
-            }
-        }
-
-        executed = client.execute("""{  getUpdates(releaseName: "F22"){  request  }}""")
-        assert executed == {
-            'data': {
-                'getUpdates': [{
-                    'request': 'testing',
+            "data": {
+                "allUsers": [{
+                    "name": "guest"
                 }, {
-                    'request': 'testing',
+                    "name": "anonymous"
                 }]
             }
         }

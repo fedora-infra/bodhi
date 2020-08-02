@@ -21,7 +21,8 @@ from cornice import Service
 from webob_graphql import serve_graphql_request
 
 from bodhi.server.config import config
-from bodhi.server.graphql_schemas import Release, ReleaseModel, Update, UpdateModel
+from bodhi.server.graphql_schemas import Release, ReleaseModel, Update, UpdateModel, User
+
 
 graphql = Service(name='graphql', path='/graphql', description='graphql service')
 
@@ -31,7 +32,7 @@ graphql = Service(name='graphql', path='/graphql', description='graphql service'
 def graphql_get(request):
     """
     Perform a GET request.
-
+    
     Args:
         request (pyramid.Request): The current request.
     Returns:
@@ -59,6 +60,8 @@ class Query(graphene.ObjectType):
         pushed=graphene.Boolean(), critpath=graphene.Boolean(),
         date_approved=graphene.String(), alias=graphene.String(),
         user_id=graphene.Int(), release_name=graphene.String())
+
+    allUsers = graphene.List(User)
 
     def resolve_allReleases(self, info):
         """Answer Queries by fetching data from the Schema."""
@@ -135,6 +138,11 @@ class Query(graphene.ObjectType):
         if release_name is not None:
             query = query.join(UpdateModel.release).filter(ReleaseModel.name == release_name)
 
+        return query.all()
+
+    def resolve_allUsers(self, info):
+        """Answer Queries by fetching data from the Schema."""
+        query = User.get_query(info)
         return query.all()
 
 
