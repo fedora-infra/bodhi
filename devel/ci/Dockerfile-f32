@@ -24,6 +24,7 @@ RUN dnf install -y \
     python3-dogpile-cache \
     python3-fedora \
     python3-feedgen \
+    python3-gssapi \
     python3-jinja2 \
     python3-koji \
     python3-libcomps \
