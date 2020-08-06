@@ -19,7 +19,7 @@
 from graphene import relay, Field, String
 from graphene_sqlalchemy import SQLAlchemyObjectType
 
-from bodhi.server.models import Release as ReleaseModel
+from bodhi.server.models import Release as ReleaseModel, Update as UpdateModel
 
 
 class Release(SQLAlchemyObjectType):
@@ -32,3 +32,16 @@ class Release(SQLAlchemyObjectType):
         interfaces = (relay.Node, )
     state = Field(String)
     package_manager = Field(String)
+
+
+class Update(SQLAlchemyObjectType):
+    """Type object representing an update from bodhi.server.models."""
+
+    class Meta:
+        """Allow to set different options to the class."""
+
+        model = UpdateModel
+        interfaces = (relay.Node, )
+    status = Field(String)
+    request = Field(String)
+    date_approved = Field(String)
