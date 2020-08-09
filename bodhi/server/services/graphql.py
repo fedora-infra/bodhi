@@ -21,8 +21,7 @@ from cornice import Service
 from webob_graphql import serve_graphql_request
 
 from bodhi.server.config import config
-from bodhi.server.graphql_schemas import Release, ReleaseModel
-
+from bodhi.server.graphql_schemas import Release, ReleaseModel, Update, UpdateModel
 
 graphql = Service(name='graphql', path='/graphql', description='graphql service')
 
@@ -48,17 +47,25 @@ class Query(graphene.ObjectType):
     """Allow querying objects."""
 
     allReleases = graphene.List(Release)
-    getRelease = graphene.Field(
+    getReleases = graphene.Field(
         lambda: graphene.List(Release), name=graphene.String(),
         id_prefix=graphene.String(), composed_by_bodhi=graphene.Boolean(),
         state=graphene.String())
+
+    getUpdates = graphene.Field(
+        lambda: graphene.List(Update), stable_karma=graphene.Int(),
+        stable_days=graphene.Int(), unstable_karma=graphene.Int(),
+        status=graphene.String(), request=graphene.String(),
+        pushed=graphene.Boolean(), critpath=graphene.Boolean(),
+        date_approved=graphene.String(), alias=graphene.String(),
+        user_id=graphene.Int())
 
     def resolve_allReleases(self, info):
         """Answer Queries by fetching data from the Schema."""
         query = Release.get_query(info)  # SQLAlchemy query
         return query.all()
 
-    def resolve_getRelease(self, info, **args):
+    def resolve_getReleases(self, info, **args):
         """Answer Release queries with a given argument."""
         query = Release.get_query(info)
 
@@ -77,6 +84,52 @@ class Query(graphene.ObjectType):
         state = args.get("state")
         if state is not None:
             query = query.filter(ReleaseModel.state == state)
+
+        return query.all()
+
+    def resolve_getUpdates(self, info, **args):
+        """Answer Release queries with a given argument."""
+        query = Update.get_query(info)
+
+        stable_karma = args.get("stable_karma")
+        if stable_karma is not None:
+            query = query.filter(UpdateModel.stable_karma == stable_karma)
+
+        stable_days = args.get("stable_days")
+        if stable_days is not None:
+            query = query.filter(UpdateModel.stable_days == stable_days)
+
+        unstable_karma = args.get("unstable_karma")
+        if unstable_karma is not None:
+            query = query.filter(UpdateModel.unstable_karma == unstable_karma)
+
+        status = args.get("status")
+        if status is not None:
+            query = query.filter(UpdateModel.status == status)
+
+        request = args.get("request")
+        if request is not None:
+            query = query.filter(UpdateModel.request == request)
+
+        pushed = args.get("pushed")
+        if pushed is not None:
+            query = query.filter(UpdateModel.pushed == pushed)
+
+        critpath = args.get("critpath")
+        if critpath is not None:
+            query = query.filter(UpdateModel.critpath == critpath)
+
+        date_approved = args.get("date_approved")
+        if date_approved is not None:
+            query = query.filter(UpdateModel.date_approved == date_approved)
+
+        alias = args.get("alias")
+        if alias is not None:
+            query = query.filter(UpdateModel.alias == alias)
+
+        user_id = args.get("user_id")
+        if user_id is not None:
+            query = query.filter(UpdateModel.user_id == user_id)
 
         return query.all()
 
