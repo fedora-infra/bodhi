@@ -600,10 +600,10 @@ if can_edit and update.release.composed_by_bodhi:
             % endif
           </td>
           <td class="float-right">
-            <a href='${request.route_url("updates_rss") + "?packages=" + build.package.name}'>
+            <a href='${request.route_url("updates_rss") + "?packages="}${build.package.name | u}'>
               <span class="fa fa-rss" data-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
             </a>
-            <a href='${request.route_url("updates") + "?packages=" + build.package.name}'>
+            <a href='${request.route_url("updates") + "?packages="}${build.package.name | u}'>
               <span class="fa fa-list" data-toggle="tooltip" data-placement="top" title="Show other Bodhi updates for ${build.package.name}"></span>
             </a>
             % if can_edit:
