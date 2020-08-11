@@ -1004,7 +1004,11 @@ def validate_testcase_feedback(request, **kwargs):
             request.errors.status = HTTPNotFound.code
             return
 
-    packages = [build.package.name for build in update.builds]
+    # Get all TestCase names associated to the Update
+    allowed_testcases = [tc.name
+                         for build in update.builds
+                         for tc in build.testcases
+                         if len(build.testcases) > 0]
 
     bad_testcases = []
     validated = []
@@ -1013,7 +1017,7 @@ def validate_testcase_feedback(request, **kwargs):
         name = item.pop('testcase_name')
         testcase = TestCase.get(name)
 
-        if not testcase or testcase.package_name not in packages:
+        if not testcase or testcase.name not in allowed_testcases:
             bad_testcases.append(name)
         else:
             item['testcase'] = testcase

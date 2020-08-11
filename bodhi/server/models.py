@@ -606,7 +606,6 @@ class TestGatingStatus(DeclEnum):
     running = 'running', 'Running'
     passed = 'passed', 'Passed'
     failed = 'failed', 'Failed'
-    greenwave_failed = 'greenwave_failed', 'Greenwave failed to respond'
 
 
 class UpdateType(DeclEnum):
@@ -1046,21 +1045,6 @@ class TestCase(Base):
 
     # Many-to-many relationships
     # builds backref
-
-    @property
-    def package_name(self) -> str:
-        """
-        Return the package name of the associated builds.
-
-        Since a TestCase name is unique and is created from the name of the Package,
-        each TestCase can only be associated to Builds of the same Package.
-        We use this for quickly validate the TestCase against Package upon feedback submission.
-
-        Returns:
-            The name of the package this testcase is intended for.
-        """
-        build = Build.query.filter(Build.testcases.any(name=self.name)).first()
-        return build.package.name
 
 
 class Package(Base):
@@ -2268,11 +2252,10 @@ class Update(Base):
             self.test_gating_status = self._get_test_gating_status()
         except (requests.exceptions.Timeout, RuntimeError) as e:
             log.error(str(e))
-            # Greenwave frequently returns 500 response codes. When this happens, we do not want
-            # to block updates from proceeding, so we will consider this condition as having the
-            # policy satisfied. We will use the Exception as the summary so we can mark the status
-            # as ignored for the record.
-            self.test_gating_status = TestGatingStatus.greenwave_failed
+            # If we receive a 500 error code from Greenwave, we set the test_gating_status to
+            # waiting. The status will then be updated later by the greenwave fedora-messaging
+            # consumer.
+            self.test_gating_status = TestGatingStatus.waiting
 
     @classmethod
     def new(cls, request, data):
@@ -2570,11 +2553,10 @@ class Update(Base):
 
         Returns:
             True if the Update's test_gating_status property is None,
-            greenwave_failed, ignored, or passed. Otherwise it returns False.
+            ignored, or passed. Otherwise it returns False.
         """
         if self.test_gating_status in (
-                None, TestGatingStatus.greenwave_failed, TestGatingStatus.ignored,
-                TestGatingStatus.passed):
+                None, TestGatingStatus.ignored, TestGatingStatus.passed):
             return True
         return False
 
@@ -3952,8 +3934,7 @@ class Update(Base):
         """
         Place comment on the update when ``test_gating_status`` changes.
 
-        Only notify the users by email if the new status is in ``failed`` or
-        ``greenwave_failed``.
+        Only notify the users by email if the new status is in ``failed``.
 
         Args:
             target (InstanceState): The state of the instance that has had a
@@ -3966,10 +3947,7 @@ class Update(Base):
         instance = target.object
 
         if value != old:
-            notify = value in [
-                TestGatingStatus.greenwave_failed,
-                TestGatingStatus.failed,
-            ]
+            notify = value == TestGatingStatus.failed
             instance.comment(
                 target.session,
                 f"This update's test gating status has been changed to '{value}'.",

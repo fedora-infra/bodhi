@@ -1516,7 +1516,6 @@ class TestBuild(ModelTest):
         assert len(build.testcases) == 3
         assert {tc.name for tc in model.TestCase.query.all()} == (
             {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
-        assert {tc.package_name for tc in model.TestCase.query.all()} == {'gnome-shell'}
 
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
     @mock.patch('bodhi.server.models.MediaWiki')
@@ -2192,17 +2191,6 @@ class TestUpdateSigned(BasePyTestCase):
         assert not update.signed
 
 
-class TestUpdateTestGatingPassed(BasePyTestCase):
-    """Test the Update.test_gating_passed() method."""
-
-    def test_greenwave_failed(self):
-        """The greenwave_failed TestGatingStatus should count as passed."""
-        update = model.Update.query.first()
-        update.test_gating_status = TestGatingStatus.greenwave_failed
-
-        assert update.test_gating_passed
-
-
 class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
     """Test the Update.update_test_gating_status() method."""
 
@@ -2220,7 +2208,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
 
         update.update_test_gating_status()
 
-        assert update.test_gating_status == model.TestGatingStatus.greenwave_failed
+        assert update.test_gating_status == model.TestGatingStatus.waiting
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
         expected_post = mock.call(
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
@@ -2262,7 +2250,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
 
         update.update_test_gating_status()
 
-        assert update.test_gating_status == model.TestGatingStatus.greenwave_failed
+        assert update.test_gating_status == model.TestGatingStatus.waiting
         # The call_url() handler doesn't catch a Timeout so there are no sleeps/retries.
         assert sleep.mock_calls == []
         expected_post = mock.call(
