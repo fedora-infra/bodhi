@@ -606,6 +606,7 @@ class TestGatingStatus(DeclEnum):
     running = 'running', 'Running'
     passed = 'passed', 'Passed'
     failed = 'failed', 'Failed'
+    greenwave_failed = 'greenwave_failed', 'Greenwave failed to respond'
 
 
 class UpdateType(DeclEnum):
