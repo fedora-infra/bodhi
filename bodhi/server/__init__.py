@@ -295,9 +295,9 @@ def main(global_config, testing=None, session=None, **settings):
         config.set_authorization_policy(ACLAuthorizationPolicy())
 
     # Collect metrics for endpoints
-    config.add_tween(
-        'bodhi.server.services.metrics_tween.histo_tween_factory', over=EXCVIEW
-    )
+    # config.add_tween(
+    #    'bodhi.server.services.metrics_tween.histo_tween_factory', over=EXCVIEW
+    # )
 
     # Metrics Route
     config.add_route('prometheus_metric', '/metrics')
