@@ -1993,7 +1993,7 @@ class Update(Base):
         :return: The number of mandatory days in testing.
         :rtype:  int
         """
-        if self.critpath:
+        if self.critpath and self.release.composed_by_bodhi:
             return config.get('critpath.stable_after_days_without_negative_karma')
 
         days = self.release.mandatory_days_in_testing
