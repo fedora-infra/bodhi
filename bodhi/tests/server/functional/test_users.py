@@ -39,6 +39,15 @@ class TestUsersService(base.BasePyTestCase):
         res = self.app.get('/users/bodhi')
         assert res.json_body['user']['name'] == 'bodhi'
 
+    def test_get_single_user_with_nonstandard_characters(self):
+        """Test that we don't receive a 404 page with bot usernames."""
+        user = User(name='bot/a.bad.name')
+        self.db.add(user)
+        self.db.flush()
+
+        res = self.app.get('/users/bot/a.bad.name')
+        assert res.json_body['user']['name'] == 'bot/a.bad.name'
+
     def test_get_hardcoded_avatar(self):
         res = self.app.get('/users/bodhi')
         assert res.json_body['user']['name'] == 'bodhi'
