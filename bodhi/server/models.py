@@ -2317,6 +2317,8 @@ class Update(Base):
             # For rawhide updates make sure autotime push is enabled
             # https://github.com/fedora-infra/bodhi/issues/3912
             data['autotime'] = True
+            data['stable_days'] = 0
+            log.debug("Overriding autotime settings for rawhide update.")
 
         up = Update(**data, release=release)
 
