@@ -42,7 +42,7 @@ class TestMain(BaseTaskTestCase):
         u = self.db.query(models.Update).first()
         from_tag = "f32-build-side-1234"
         side_tag_signing_pending = u.release.get_pending_signing_side_tag(from_tag)
-        side_tag_testing_pending = u.release.get_testing_side_tag(from_tag)
+        side_tag_testing_pending = u.release.get_pending_testing_side_tag(from_tag)
         builds = [b.nvr for b in u.builds]
         handle_srtags_main(builds, side_tag_signing_pending, from_tag,
                            side_tag_testing_pending, None)
