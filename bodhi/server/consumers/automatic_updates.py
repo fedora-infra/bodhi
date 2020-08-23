@@ -193,6 +193,12 @@ class AutomaticUpdateHandler:
             log.debug("Flushing changes to the database.")
             dbsession.flush()
 
+            # Obsolete older updates which may be stuck in testing due to failed gating
+            try:
+                update.obsolete_older_updates(dbsession)
+            except Exception as e:
+                log.error(f'Problem obsoleting older updates: {e}')
+
         # This must be run after dbsession is closed so changes are committed to db
         alias = update.alias
         work_on_bugs_task.delay(alias, closing_bugs)
