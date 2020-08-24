@@ -478,7 +478,7 @@ if can_edit and update.release.composed_by_bodhi:
                 <div class="row">
                   <div class="col font-weight-bold text-muted">Stable by Time</div>
                   <div class="col-xs-auto font-weight-bold">
-                    % if update.autotime is True and update.stable_days:
+                    % if update.autotime is True and update.stable_days is not None:
                         <span class="text-muted font-weight-bold" data-toggle='tooltip'
                         title='The update will be automatically pushed to stable after being in testing for ${update.stable_days} days'>
                           ${update.stable_days} days
