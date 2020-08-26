@@ -32,7 +32,9 @@ $(document).ready(function() {
                     path: 'packages'
                 },
                 template: '{{name}}',
-                href: 'updates/?packages={{name}}'
+                href: function (item) {
+                    return 'updates/?packages=' + encodeURIComponent(item.name)
+                }
             },
             updates: {
                 display: ['title', 'alias'],
@@ -58,7 +60,9 @@ $(document).ready(function() {
                     path: 'users'
                 },
                 template: '<img class="rounded-circle mr-2" src="{{avatar}}">{{name}}',
-                href: 'users/{{name}}'
+                href: function (item) {
+                    return 'users/' + encodeURIComponent(item.name)
+                }
             },
             overrides: {
                 display: 'nvr',

@@ -63,12 +63,12 @@ def approve_update(update: Update, db: Session):
     if not update.release.mandatory_days_in_testing and not update.autotime:
         # If this release does not have any testing requirements and is not autotime,
         # skip it
-        log.info(f"{update.release.name} doesn't have mandatory days in testing - bailing")
+        log.info(f"{update.alias} doesn't have mandatory days in testing - bailing")
         return
     # If this update was already commented, skip it
     if update.has_stable_comment:
         log.info(
-            f"{update.release.name} has already the comment that it can be pushed to stable - "
+            f"{update.alias} has already the comment that it can be pushed to stable - "
             "bailing")
         return
     # If updates have reached the testing threshold, say something! Keep in mind
@@ -77,7 +77,7 @@ def approve_update(update: Update, db: Session):
     # this function only needs to consider the time requirements because these updates have
     # not reached the karma threshold.
     if not update.meets_testing_requirements:
-        log.info(f"{update.release.name} has not met testing requirements - bailing")
+        log.info(f"{update.alias} has not met testing requirements - bailing")
         return
     log.info(f'{update.alias} now meets testing requirements')
     # Only send email notification about the update reaching
@@ -114,13 +114,13 @@ def approve_update(update: Update, db: Session):
                 if update.from_tag is not None:
                     update.status = UpdateStatus.pending
                     update.remove_tag(
-                        update.release.get_testing_side_tag(update.from_tag))
+                        update.release.get_pending_testing_side_tag(update.from_tag))
                 else:
                     update.status = UpdateStatus.obsolete
                     update.remove_tag(update.release.pending_testing_tag)
                     update.remove_tag(update.release.candidate_tag)
                 db.commit()
-                log.info(f"{update.release.name} has conflicting builds - bailing")
+                log.info(f"{update.alias} has conflicting builds - bailing")
                 return
             update.add_tag(update.release.stable_tag)
             update.status = UpdateStatus.stable
@@ -136,7 +136,7 @@ def approve_update(update: Update, db: Session):
                 # Merging the side tag should happen here
                 pending_signing_tag = update.release.get_pending_signing_side_tag(
                     update.from_tag)
-                testing_tag = update.release.get_testing_side_tag(update.from_tag)
+                testing_tag = update.release.get_pending_testing_side_tag(update.from_tag)
                 update.remove_tag(pending_signing_tag)
                 update.remove_tag(testing_tag)
                 update.remove_tag(update.from_tag)
