@@ -58,7 +58,7 @@ class Query(graphene.ObjectType):
         status=graphene.String(), request=graphene.String(),
         pushed=graphene.Boolean(), critpath=graphene.Boolean(),
         date_approved=graphene.String(), alias=graphene.String(),
-        user_id=graphene.Int())
+        user_id=graphene.Int(), release_name=graphene.String())
 
     def resolve_allReleases(self, info):
         """Answer Queries by fetching data from the Schema."""
@@ -130,6 +130,10 @@ class Query(graphene.ObjectType):
         user_id = args.get("user_id")
         if user_id is not None:
             query = query.filter(UpdateModel.user_id == user_id)
+
+        release_name = args.get("release_name")
+        if release_name is not None:
+            query = query.join(UpdateModel.release).filter(ReleaseModel.name == release_name)
 
         return query.all()
 
