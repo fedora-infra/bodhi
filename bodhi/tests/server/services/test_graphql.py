@@ -181,3 +181,14 @@ class TestGraphQLService(base.BasePyTestCase):
                 }]
             }
         }
+
+        executed = client.execute("""{  getUpdates(releaseName: "F22"){  request  }}""")
+        assert executed == {
+            'data': {
+                'getUpdates': [{
+                    'request': 'testing',
+                }, {
+                    'request': 'testing',
+                }]
+            }
+        }
