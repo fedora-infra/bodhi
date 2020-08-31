@@ -404,6 +404,18 @@ The ``updates`` command allows users to interact with bodhi updates.
 
         Query for updates submitted for the critical path.
 
+    ``--from-side-tag``
+
+        Query for updates created from a side-tag.
+
+    ``--not-from-side-tag``
+
+        Query for updates not created from a side-tag.
+
+    ``--gating [passed | failed | ignored | waiting | running | queued | greenwave_failed]``
+
+        Query for updates based on test gating status.
+
     ``--mine``
 
         Show only your updates.
