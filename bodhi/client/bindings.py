@@ -397,6 +397,9 @@ class BodhiClient(OpenIdBaseClient):
                 after a certain time.
             suggest (str): Query for updates that suggest a user restart
                 (``logout``, ``reboot``).
+            gating (str): filter by TestGatingStatus description.
+            from_side_tag (bool): A boolean to filter updates created from side tag or from
+                normal workflow.
             user (str): Query for updates submitted by a specific user.
             rows_per_page (int): Limit the results to a certain number of rows per page
                 (min:1 max: 100 default: 20).

@@ -916,7 +916,8 @@ class TestQuery:
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                     'modified_before': None, 'pushed': None, 'pushed_since': None,
                     'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                    'type': None, 'rows_per_page': None, 'page': None,
+                    'type': None, 'rows_per_page': None, 'page': None, 'gating': None,
+                    'from_side_tag': None,
                 }
             ),
             mock.call(
@@ -957,7 +958,8 @@ class TestQuery:
                 'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                 'modified_before': None, 'pushed': None, 'pushed_since': None,
                 'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                'type': None, 'rows_per_page': None, 'page': None})
+                'type': None, 'rows_per_page': None, 'page': None, 'gating': None,
+                'from_side_tag': None})
 
     @mock.patch('bodhi.client.bindings.BodhiClient.csrf',
                 mock.MagicMock(return_value='a_csrf_token'))
@@ -990,7 +992,8 @@ class TestQuery:
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                     'modified_before': None, 'pushed': None, 'pushed_since': None,
                     'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                    'type': None, 'rows_per_page': None, 'page': None
+                    'type': None, 'rows_per_page': None, 'page': None, 'gating': None,
+                    'from_side_tag': None,
                 }
             ),
             mock.call(
@@ -1031,7 +1034,8 @@ class TestQuery:
                     'staging': False, 'modified_since': None, 'modified_before': None,
                     'pushed': None, 'pushed_since': None, 'pushed_before': None,
                     'user': 'dudemcpants', 'critpath': None, 'packages': None,
-                    'type': None, 'rows_per_page': None, 'page': None,
+                    'type': None, 'rows_per_page': None, 'page': None, 'gating': None,
+                    'from_side_tag': None,
                 }
             ),
             mock.call(
@@ -1075,7 +1079,8 @@ class TestQuery:
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                     'modified_before': None, 'pushed': None, 'pushed_since': None,
                     'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                    'type': None, 'rows_per_page': 10, 'page': None
+                    'type': None, 'rows_per_page': 10, 'page': None, 'gating': None,
+                    'from_side_tag': None,
                 }
             ),
             mock.call(
@@ -1114,7 +1119,8 @@ class TestQuery:
                     'request': None, 'bugs': None, 'staging': False, 'modified_since': None,
                     'modified_before': None, 'pushed': None, 'pushed_since': None,
                     'pushed_before': None, 'user': None, 'critpath': None, 'packages': None,
-                    'type': None, 'rows_per_page': None, 'page': 5
+                    'type': None, 'rows_per_page': None, 'page': 5, 'gating': None,
+                    'from_side_tag': None,
                 },
             ),
             mock.call(

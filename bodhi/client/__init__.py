@@ -584,6 +584,11 @@ def edit(user: str, password: str, url: str, debug: bool, openid_api: str, **kwa
 @click.option('--packages', help='Query by package name(s)')
 @click.option('--content-type', help='Query updates based on content type',
               type=click.Choice(['rpm', 'module']))  # And someday, container.
+@click.option('--from-side-tag/--not-from-side-tag', default=None,
+              help='List only updates created from side-tag / not from side-tag')
+@click.option('--gating', help='Filter by gating status', default=None,
+              type=click.Choice(['passed', 'failed', 'ignored', 'waiting',
+                                 'running', 'queued', 'greenwave_failed']))
 @click.option('--pushed', is_flag=True, default=None,
               help='Filter by pushed updates')
 @click.option('--pushed-since',
