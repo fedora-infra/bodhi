@@ -401,9 +401,17 @@ def query_updates(request):
     updateid = data.get('updateid')
     if updateid is not None:
         query = query.filter(or_(*[Update.alias == uid for uid in updateid]))
+
     alias = data.get('alias')
     if alias is not None:
         query = query.filter(or_(*[Update.alias == a for a in alias]))
+
+    from_side_tag = data.get('from_side_tag')
+    if from_side_tag is not None:
+        if from_side_tag:
+            query = query.filter(Update.from_tag.isnot(None))
+        else:
+            query = query.filter(Update.from_tag.is_(None))
 
     query = query.order_by(Update.date_submitted.desc())
 
@@ -434,6 +442,8 @@ def query_updates(request):
     # when rendering the html, so we add this here.
     if request.accept.accept_html():
         return_values.update(
+            gating_statuses=sorted(
+                list(bodhi.server.models.TestGatingStatus.values())),
             types=list(bodhi.server.models.UpdateType.values()),
             severities=sorted(
                 list(bodhi.server.models.UpdateSeverity.values()),

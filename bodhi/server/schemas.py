@@ -512,6 +512,12 @@ class ListUpdateSchema(PaginatedSchema, SearchableSchema, Cosmetics):
         missing=None,
     )
 
+    from_side_tag = colander.SchemaNode(
+        colander.Boolean(true_choices=('true', '1')),
+        location="querystring",
+        missing=None,
+    )
+
     locked = colander.SchemaNode(
         colander.Boolean(true_choices=('true', '1')),
         location="querystring",

@@ -42,11 +42,12 @@ ${parent.css()}
               </a>
               % endif
               <%
-              visibleParams = ['search', 'type', "severity","user","status",'releases']
+              visibleParams = ['search', 'type', "severity","user","status",'releases', "gating", "from_side_tag"]
               allValidParams = ["approved_since",
                                 "approved_before",
                                 "bugs",
                                 "critpath",
+                                "from_side_tag",
                                 "like",
                                 "locked",
                                 "modified_since",
@@ -207,6 +208,49 @@ ${parent.css()}
               </div>
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
+                  <label for="isfromsidetag" class="col-auto align-self-center pl-1 pr-0 m-0">From side-tag:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="isfromsidetag" name="from_side_tag" class="custom-select">
+                          <option value="">&nbsp;</option>
+                          <option value="False"
+                          % if 'from_side_tag' in parameters and 'False' in parameters['from_side_tag']:
+                          selected="selected"
+                          % endif
+                          >False</option>
+                          <option value="True"
+                          % if 'from_side_tag' in parameters and 'True' in parameters['from_side_tag']:
+                          selected="selected"
+                          % endif
+                          >True</option>
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="isfromsidetag"></i>
+                  </div>
+              </div>
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
+                  <label for="gatingstatus" class="col-auto align-self-center pl-1 pr-0 m-0">Gating status:</label>
+                  </div>
+                  <div class="col-8 pl-1">
+                      <select id="gatingstatus" name="gating" class="custom-select">
+                          <option value="">&nbsp;</option>
+                          % for value in gating_statuses:
+                          <option value="${value}"
+                          % if 'gating' in parameters and parameters['gating'][0] == value:
+                          selected="selected"
+                          % endif
+                          >${value}</option>
+                          % endfor
+                      </select>
+                  </div>
+                  <div class="col-1 pl-0 pr-1 pt-1">
+                    <i class="fa fa-times fa-fw text-muted clear-button" data-clear="gatingstatus"></i>
+                  </div>
+              </div>
+              <div class="form-group row mb-1 filter-group">
+                  <div class="col-3 align-self-center">
                   <label for="updateuser" class="col-auto align-self-center pl-1 pr-0 m-0">User:</label>
                   </div>
                   <div class="col-8 pl-1">
@@ -298,6 +342,14 @@ ${parent.javascript()}
 
         if ($('select[name="status"]').val() == ''){
           $('select[name="status"]').prop("disabled", true);
+        }
+
+        if ($('select[name="from_side_tag"]').val() == ''){
+          $('select[name="from_side_tag"]').prop("disabled", true);
+        }
+
+        if ($('select[name="gating"]').val() == ''){
+          $('select[name="gating"]').prop("disabled", true);
         }
 
         if ($('input[name="user"]').val() == ''){
