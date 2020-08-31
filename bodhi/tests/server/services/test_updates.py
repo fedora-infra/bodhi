@@ -2998,6 +2998,57 @@ class TestUpdatesService(BasePyTestCase):
         assert up['alias'] == f'FEDORA-{YEAR}-a3bbe1a8f2'
         assert up['karma'] == 1
 
+    def test_list_updates_by_from_side_tag(self):
+        up = self.db.query(Build).filter_by(nvr='bodhi-2.0-1.fc17').one().update
+        up.from_tag = 'f33-side-tag'
+        self.db.commit()
+        res = self.app.get('/updates/', {"from_side_tag": "true"})
+        body = res.json_body
+        assert len(body['updates']) == 1
+
+        up = body['updates'][0]
+        assert up['title'] == 'bodhi-2.0-1.fc17'
+        assert up['status'] == 'pending'
+        assert up['request'] == 'testing'
+        assert up['user']['name'] == 'guest'
+        assert up['release']['name'] == 'F17'
+        assert up['type'] == 'bugfix'
+        assert up['severity'] == 'medium'
+        assert up['suggest'] == 'unspecified'
+        assert up['close_bugs'] is True
+        assert up['notes'] == 'Useful details!'
+        assert up['date_submitted'] == '1984-11-02 00:00:00'
+        assert up['date_modified'] is None
+        assert up['date_approved'] is None
+        assert up['date_pushed'] is None
+        assert up['locked'] is False
+        assert up['alias'] == f'FEDORA-{YEAR}-a3bbe1a8f2'
+        assert up['karma'] == 1
+
+    def test_list_updates_by_not_from_side_tag(self):
+        res = self.app.get('/updates/', {"from_side_tag": "false"})
+        body = res.json_body
+        assert len(body['updates']) == 1
+
+        up = body['updates'][0]
+        assert up['title'] == 'bodhi-2.0-1.fc17'
+        assert up['status'] == 'pending'
+        assert up['request'] == 'testing'
+        assert up['user']['name'] == 'guest'
+        assert up['release']['name'] == 'F17'
+        assert up['type'] == 'bugfix'
+        assert up['severity'] == 'medium'
+        assert up['suggest'] == 'unspecified'
+        assert up['close_bugs'] is True
+        assert up['notes'] == 'Useful details!'
+        assert up['date_submitted'] == '1984-11-02 00:00:00'
+        assert up['date_modified'] is None
+        assert up['date_approved'] is None
+        assert up['date_pushed'] is None
+        assert up['locked'] is False
+        assert up['alias'] == f'FEDORA-{YEAR}-a3bbe1a8f2'
+        assert up['karma'] == 1
+
     def test_list_updates_by_multiple_usernames(self):
         another_user = User(name='aUser')
         self.db.add(another_user)
