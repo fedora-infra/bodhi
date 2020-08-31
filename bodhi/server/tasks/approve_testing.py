@@ -114,7 +114,7 @@ def approve_update(update: Update, db: Session):
                 if update.from_tag is not None:
                     update.status = UpdateStatus.pending
                     update.remove_tag(
-                        update.release.get_testing_side_tag(update.from_tag))
+                        update.release.get_pending_testing_side_tag(update.from_tag))
                 else:
                     update.status = UpdateStatus.obsolete
                     update.remove_tag(update.release.pending_testing_tag)
@@ -136,7 +136,7 @@ def approve_update(update: Update, db: Session):
                 # Merging the side tag should happen here
                 pending_signing_tag = update.release.get_pending_signing_side_tag(
                     update.from_tag)
-                testing_tag = update.release.get_testing_side_tag(update.from_tag)
+                testing_tag = update.release.get_pending_testing_side_tag(update.from_tag)
                 update.remove_tag(pending_signing_tag)
                 update.remove_tag(testing_tag)
                 update.remove_tag(update.from_tag)

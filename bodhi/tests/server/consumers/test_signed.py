@@ -203,7 +203,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         build = mock_build_model.get.return_value
         build.signed = False
         build.release = mock.MagicMock()
-        build.release.get_testing_side_tag.return_value = "f30-side-tag-testing-pending"
+        build.release.get_pending_testing_side_tag.return_value = "f30-side-tag-testing-pending"
         update = mock.MagicMock()
         update.release.composed_by_bodhi = False
         update.from_tag = "f30-side-tag"

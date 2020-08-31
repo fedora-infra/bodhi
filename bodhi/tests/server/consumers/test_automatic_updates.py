@@ -28,7 +28,7 @@ import pytest
 from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.models import (
-    Build, Release, Update, UpdateRequest, UpdateStatus, UpdateType, User
+    Build, Release, TestGatingStatus, Update, UpdateRequest, UpdateStatus, UpdateType, User
 )
 from bodhi.tests.server import base
 
@@ -209,6 +209,81 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
 
         assert (f"Build, active update for {self.sample_nvr} exists already, skipping."
                 in caplog.messages)
+
+    def test_obsolete_testing_update(self, caplog):
+        """Assert that older builds stuck in Testing get obsoleted."""
+        caplog.set_level(logging.DEBUG)
+
+        self.handler(self.sample_message)
+        update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+        assert update is not None
+        # Simulate update status after failed gating
+        update.status = UpdateStatus.testing
+        update.test_gating_status = TestGatingStatus.failed
+        self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
+
+        caplog.clear()
+
+        # Create an update with a newer build
+        msg = deepcopy(self.sample_message)
+        msg.body['version'] = '1.3.5'
+        msg.body['build_id'] = 442563
+        self.handler(msg)
+        nvr = self.sample_nvr.replace('1.3.4', '1.3.5')
+        old_update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+        new_update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == nvr)
+        ).first()
+        assert new_update is not None
+        assert old_update is not None
+        assert new_update.status == UpdateStatus.pending
+        assert old_update.status == UpdateStatus.obsolete
+
+    def test_problem_obsoleting_older_update(self, caplog):
+        """Assert that an error while obsoleting doesn't block a new update being created."""
+        caplog.set_level(logging.DEBUG)
+
+        self.handler(self.sample_message)
+        update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+        assert update is not None
+        # Simulate update status after failed gating
+        update.status = UpdateStatus.testing
+        update.test_gating_status = TestGatingStatus.failed
+        self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
+
+        caplog.clear()
+
+        # Create an update with a newer build
+        msg = deepcopy(self.sample_message)
+        msg.body['version'] = '1.3.5'
+        msg.body['build_id'] = 442563
+        with mock.patch('bodhi.server.models.Update.obsolete_older_updates',
+                        side_effect=Exception('Something gone wrong')):
+            self.handler(msg)
+        assert 'Problem obsoleting older updates: Something gone wrong' in caplog.messages
+
+        # The new update should have been created and the old one should be stuck in testing
+        nvr = self.sample_nvr.replace('1.3.4', '1.3.5')
+        old_update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+        new_update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == nvr)
+        ).first()
+        assert new_update is not None
+        assert old_update is not None
+        assert new_update.status == UpdateStatus.pending
+        assert old_update.status == UpdateStatus.testing
 
     # The following tests cover lesser-travelled code paths.
 
