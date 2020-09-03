@@ -783,17 +783,17 @@ class TestRelease(ModelTest):
         assert self.obj.get_pending_signing_side_tag("side-tag") == "side-tag-signing-pending"
 
     @mock.patch.dict(config, {'f11.koji-testing-side-tag': '-testing-test'})
-    def test_get_testing_side_tag_found(self):
+    def test_get_pending_testing_side_tag_found(self):
         """
         Assert that correct side tag is returned.
         """
-        assert self.obj.get_testing_side_tag("side-tag") == "side-tag-testing-test"
+        assert self.obj.get_pending_testing_side_tag("side-tag") == "side-tag-testing-test"
 
-    def test_get_testing_side_tag_not_found(self):
+    def test_get_pending_testing_side_tag_not_found(self):
         """
         Assert that default side tag is returned.
         """
-        assert self.obj.get_testing_side_tag("side-tag") == "side-tag-testing-pending"
+        assert self.obj.get_pending_testing_side_tag("side-tag") == "side-tag-testing-pending"
 
 
 class TestReleaseCritpathMinKarma(BasePyTestCase):

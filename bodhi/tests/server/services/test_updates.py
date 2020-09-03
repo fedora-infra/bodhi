@@ -336,8 +336,10 @@ class TestNewUpdate(BasePyTestCase):
         # Let's test what happens if the user sets autotime to False
         # Rawhide workflow must ignore this setting
         update['autotime'] = False
+        update['stable_days'] = 7
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
-            r = self.app.post_json('/updates/', update)
+            with mock.patch('bodhi.server.models.Release.mandatory_days_in_testing', 0):
+                r = self.app.post_json('/updates/', update)
 
         up = r.json_body
         assert up['title'] == 'gnome-backgrounds-3.0-1.fc17'
@@ -363,8 +365,10 @@ class TestNewUpdate(BasePyTestCase):
         assert up['from_tag'] == 'f17-build-side-7777'
         if rawhide_workflow:
             assert up['autotime'] is True
+            assert up['stable_days'] == 0
         else:
             assert up['autotime'] is False
+            assert up['stable_days'] == 7
 
         resp = self.app.get(f"/updates/{up['alias']}", headers={'Accept': 'text/html'})
 

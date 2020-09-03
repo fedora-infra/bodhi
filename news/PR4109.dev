@@ -1,0 +1,1 @@
+Rename `Release.get_testing_side_tag()` to `get_pending_testing_side_tag()` to avoid confusion
