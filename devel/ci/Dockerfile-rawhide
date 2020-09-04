@@ -46,6 +46,7 @@ RUN dnf install --disablerepo rawhide-modular -y \
     python3-sqlalchemy_schemadisplay \
     python3-waitress \
     python3-webtest \
+    python3-whitenoise \
     python3-yaml &&\
     pip-3 install graphene graphene-sqlalchemy WebOb-GraphQL koji
 
