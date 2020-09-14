@@ -21,7 +21,7 @@ from cornice import Service
 from webob_graphql import serve_graphql_request
 
 from bodhi.server.config import config
-from bodhi.server.graphql_schemas import Release, ReleaseModel, Update, UpdateModel
+from bodhi.server.graphql_schemas import Release, ReleaseModel, Update, UpdateModel, Build, BuildModel
 
 graphql = Service(name='graphql', path='/graphql', description='graphql service')
 
@@ -59,6 +59,12 @@ class Query(graphene.ObjectType):
         pushed=graphene.Boolean(), critpath=graphene.Boolean(),
         date_approved=graphene.String(), alias=graphene.String(),
         user_id=graphene.Int(), release_name=graphene.String())
+    
+    getBuilds = graphene.Field(
+        lambda: graphene.List(Build), nvr=graphene.String(),
+        package_id=graphene.Int(), release_name=graphene.String(),
+        update_id=graphene.String(), signed=graphene.Boolean(),
+        buildtype=graphene.JSONString())
 
     def resolve_allReleases(self, info):
         """Answer Queries by fetching data from the Schema."""
@@ -134,6 +140,36 @@ class Query(graphene.ObjectType):
         release_name = args.get("release_name")
         if release_name is not None:
             query = query.join(UpdateModel.release).filter(ReleaseModel.name == release_name)
+
+        return query.all()
+
+    def resolve_getBuilds(self, info, **args):
+        """Answer Release queries with a given argument."""
+        query = Build.get_query(info)
+
+        nvr = args.get("nvr")
+        if nvr is not None:
+            query = query.filter(BuildModel.nvr == nvr)
+
+        package_id = args.get("package_id")
+        if package_id is not None:
+            query = query.filter(BuildModel.package_id == package_id)
+
+        update_id = args.get("update_id")
+        if update_id is not None:
+            query = query.filter(BuildModel.update_id == update_id)
+
+        signed = args.get("signed")
+        if signed is not None:
+            query = query.filter(BuildModel.signed == signed)
+
+        buildtype = args.get("buildtype")
+        if buildtype is not None:
+            query = query.filter(BuildModel.type == buildtype)
+
+        release_name = args.get("release_name")
+        if release_name is not None:
+            query = query.join(BuildModel.release).filter(ReleaseModel.name == release_name)
 
         return query.all()
 

@@ -16,10 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """Defines schemas related to GraphQL objects."""
-from graphene import relay, Field, String
+from graphene import relay, Field, String, JSONString
 from graphene_sqlalchemy import SQLAlchemyObjectType
 
-from bodhi.server.models import Release as ReleaseModel, Update as UpdateModel
+from bodhi.server.models import Release as ReleaseModel, Update as UpdateModel, Build as BuildModel
 
 
 class Release(SQLAlchemyObjectType):
@@ -45,3 +45,13 @@ class Update(SQLAlchemyObjectType):
     status = Field(String)
     request = Field(String)
     date_approved = Field(String)
+
+class Build(SQLAlchemyObjectType):
+    """Type object representing an update from bodhi.server.models."""
+
+    class Meta:
+        """Allow to set different options to the class."""
+
+        model = BuildModel
+        interfaces = (relay.Node, )
+    buildtype = Field(JSONString)
