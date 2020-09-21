@@ -21,7 +21,15 @@ from cornice import Service
 from webob_graphql import serve_graphql_request
 
 from bodhi.server.config import config
-from bodhi.server.graphql_schemas import Release, ReleaseModel, Update, UpdateModel
+from bodhi.server.models import Build as BuildModel, User as UserModel
+from bodhi.server.graphql_schemas import (
+    Release,
+    ReleaseModel,
+    Update,
+    UpdateModel,
+    BuildrootOverride,
+    BuildrootOverrideModel
+)
 
 graphql = Service(name='graphql', path='/graphql', description='graphql service')
 
@@ -59,6 +67,13 @@ class Query(graphene.ObjectType):
         pushed=graphene.Boolean(), critpath=graphene.Boolean(),
         date_approved=graphene.String(), alias=graphene.String(),
         user_id=graphene.Int(), release_name=graphene.String())
+
+    getBuildrootOverrides = graphene.Field(
+        lambda: graphene.List(BuildrootOverride),
+        submission_date=graphene.DateTime(),
+        expiration_date=graphene.DateTime(),
+        build_nvr=graphene.String(),
+        submitter_username=graphene.String())
 
     def resolve_allReleases(self, info):
         """Answer Queries by fetching data from the Schema."""
@@ -134,6 +149,29 @@ class Query(graphene.ObjectType):
         release_name = args.get("release_name")
         if release_name is not None:
             query = query.join(UpdateModel.release).filter(ReleaseModel.name == release_name)
+
+        return query.all()
+
+    def resolve_getBuildrootOverrides(self, info, **args):
+        """Answer Release queries with a given argument."""
+        query = BuildrootOverride.get_query(info)
+
+        submission_date = args.get("submission_date")
+        if submission_date is not None:
+            query = query.filter(BuildrootOverrideModel.submission_date == submission_date)
+
+        expiration_date = args.get("expiration_date")
+        if expiration_date is not None:
+            query = query.filter(BuildrootOverrideModel.expiration_date == expiration_date)
+
+        build_nvr = args.get("build_nvr")
+        if build_nvr is not None:
+            query = query.join(BuildrootOverrideModel.build).filter(BuildModel.nvr == build_nvr)
+
+        submitter_username = args.get("submitter_username")
+        if submitter_username is not None:
+            query = query.join(BuildrootOverrideModel.submitter).filter(
+                UserModel.name == submitter_username)
 
         return query.all()
 
