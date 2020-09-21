@@ -21,6 +21,7 @@ from graphene.test import Client
 
 from bodhi.tests.server import base
 from bodhi.server.services.graphql import schema
+from bodhi.server import models
 
 
 class TestGraphQLService(base.BasePyTestCase):
@@ -189,6 +190,62 @@ class TestGraphQLService(base.BasePyTestCase):
                     'request': 'testing',
                 }, {
                     'request': 'testing',
+                }]
+            }
+        }
+
+    def test_getBuildrootOverrides(self):
+        """Testing getBuildOverrides query."""
+        release = models.Release.get('F17')
+
+        package = models.RpmPackage(name='just-testing')
+        self.db.add(package)
+        build = models.RpmBuild(nvr='just-testing-1.0-2.fc17', package=package, release=release)
+        self.db.add(build)
+        another_user = models.User(name='aUser')
+        self.db.add(another_user)
+
+        expiration_date = datetime.datetime(2020, 10, 13, 16, 16, 22, 438484)
+        submission_date = datetime.datetime(2020, 10, 12, 16, 16, 22, 438484)
+
+        override = models.BuildrootOverride(build=build, submitter=another_user,
+                                            notes='Crazy! 😱',
+                                            expiration_date=expiration_date,
+                                            submission_date=submission_date)
+        self.db.add(override)
+        self.db.flush()
+        client = Client(schema)
+        self.db.commit()
+
+        executed = client.execute("""{  getBuildrootOverrides(buildNvr: "just-testing-1.0-2.fc17")
+                                  {  submissionDate  expirationDate  }}""")
+        assert executed == {
+            'data': {
+                'getBuildrootOverrides': [{
+                    'expirationDate': "2020-10-13T16:16:22.438484",
+                    'submissionDate': "2020-10-12T16:16:22.438484",
+                }]
+            }
+        }
+
+        executed = client.execute("""{  getBuildrootOverrides(submissionDate: "2020-10-12T16:16:22.438484",
+                                  expirationDate: "2020-10-13T16:16:22.438484")
+                                  {  notes  }}""")
+        assert executed == {
+            'data': {
+                'getBuildrootOverrides': [{
+                    'notes': "Crazy! 😱"
+                }]
+            }
+        }
+
+        executed = client.execute("""{  getBuildrootOverrides(submitterUsername: "aUser",
+                                  expirationDate: "2020-10-13T16:16:22.438484")
+                                  {  notes  }}""")
+        assert executed == {
+            'data': {
+                'getBuildrootOverrides': [{
+                    'notes': "Crazy! 😱"
                 }]
             }
         }
