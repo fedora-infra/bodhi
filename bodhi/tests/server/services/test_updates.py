@@ -173,12 +173,13 @@ class TestNewUpdate(BasePyTestCase):
 
     @mock.patch(**mock_valid_requirements)
     def test_unpushed_update(self, *args):
-
+        """Allow posting a duplicate build if the old update is unpushed."""
         unpushed_update = self.create_update(['whoopsie-1.0.0-1.fc17'])
         unpushed_update.status = UpdateStatus.unpushed
         self.db.commit()
 
-        res = self.app.post_json('/updates/', self.get_update('whoopsie-1.0.0-1.fc17'))
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            res = self.app.post_json('/updates/', self.get_update('whoopsie-1.0.0-1.fc17'))
 
         assert res.json['alias'] != unpushed_update.alias
 
