@@ -2337,6 +2337,7 @@ class Update(Base):
         log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
+        # The request to testing for side-tag updates is set within the signed consumer
         if not data.get("from_tag"):
             log.debug(f"Setting request for new update {up.alias}.")
             up.set_request(db, req, request.user.name)
@@ -2920,7 +2921,8 @@ class Update(Base):
 
         # Add the appropriate 'pending' koji tag to this update, so tools like
         # AutoQA can compose repositories of them for testing.
-        if action is UpdateRequest.testing:
+        # If it's a new side-tag update, koji tags are managed by the celery task
+        if action is UpdateRequest.testing and not self.from_tag:
             self.add_tag(self.release.pending_signing_tag)
         elif action is UpdateRequest.stable:
             self.add_tag(self.release.pending_stable_tag)

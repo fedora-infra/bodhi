@@ -395,11 +395,8 @@ class TestNewUpdate(BasePyTestCase):
             assert called_args['pending_signing_tag'] == 'f17-build-side-7777-signing-pending'
             assert called_args['pending_testing_tag'] == 'f17-build-side-7777-testing-pending'
         else:
-            # stable release workflow
-
-            # check that the sidetag doesn't get displayed on the update page,
-            # by the time the update is created, it shouldn't exist anymore
-            assert 'title="Builds from the Side Tag:' not in resp
+            # the sidetag should be still displayed on the update page
+            assert 'title="Builds from the Side Tag: f17-build-side-7777' in resp
             assert called_args['pending_signing_tag'] == 'f17-updates-signing-pending'
 
         # now try to create another update with the same side tag
