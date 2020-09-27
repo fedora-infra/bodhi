@@ -492,6 +492,7 @@ def new_update(request):
 
     # Same here, but it can be missing.
     data.pop('builds_from_tag', None)
+    data.pop('sidetag_owner', None)
 
     build_nvrs = data.get('builds', [])
     from_tag = data.get('from_tag')
