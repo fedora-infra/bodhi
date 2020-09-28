@@ -18,6 +18,7 @@ RUN dnf install -y \
     python3-simplemediawiki \
     redhat-rpm-config \
     python3-libcomps \
+    python3-gssapi \
     python3-pip
 
 COPY requirements.txt /bodhi/requirements.txt

@@ -4,6 +4,104 @@ Release notes
 
 .. towncrier release notes start
 
+v5.5
+====
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Disable manual creation of updates for releases not composed by Bodhi and add
+  some bits in the docs on how to handle automatic updates not being created
+  (:issue:`4058`).
+* Fix TestCase validation upon feedback submission (:issue:`4088`).
+* Do not let update through when bodhi fails to talk to greenwave.
+  (:issue:`4089`).
+* Fix package name encoding in URLs (:issue:`4095`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Saleh
+* Clement Verna
+* Karma Dolkar
+* Mattia Verga
+* Pierre-Yves Chibon
+
+
+v5.4.1
+======
+This is a {major|feature|bugfix} release that adds [short summary].
+
+
+Bug fixes
+^^^^^^^^^
+
+* Make sure to close the bugs associated to a rawhide update. (:issue:`4067`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+* Mattia Verga
+
+
+v5.4.0
+======
+This is a minor release.
+
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Summary of the migrations:
+
+* Migrate relationship between TestCase and Package to TestCase and Build. The migration script will take care of migrate existing data to the new relation.
+* The user_id column in comments table has been set to be not nullable.
+* The notes column in buildroot_overrides table has been converted to UnicodeText (from Unicode).
+
+Bug fixes
+^^^^^^^^^
+
+* Associate TestCase to Build instead of Package, allowing to remove old
+  testcases from updates (:issue:`1794`).
+* Replace koji krb_login with gssapi_login. (:issue:`4029`).
+* Making sure that builds of side tag update for normal releases are marked as
+  signed. (:issue:`4032`).
+* Handle Cornice 5.0 JSON error handling. (:issue:`4033`).
+* Cap buildroot overrides notes to a maximum of 2k characters and convert the
+  database field to UnicodeText (:issue:`4044`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* The user_id field in the comments table has been made not nullable. Some
+  database joins have been tweaked to get better performance (:pr:`4046`).
+* Always use koji.multiCall for untag/unpush for better handle updates with a
+  lot of builds (:pr:`4052`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+* Karma Dolkar
+* Mattia Verga
+* Miro Hrončok
+* Sebastian Wojciechowski
+
+
 v5.3.0
 ======
 This is a minor release.

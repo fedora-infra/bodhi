@@ -56,17 +56,22 @@ def create_update(session, build_nvrs, release_name='F17'):
         except sqlalchemy.orm.exc.NoResultFound:
             package = RpmPackage(name=name)
             session.add(package)
+
+        try:
+            testcase = session.query(TestCase).filter_by(name='Wat').one()
+        except sqlalchemy.orm.exc.NoResultFound:
             testcase = TestCase(name='Wat')
             session.add(testcase)
-            package.test_cases.append(testcase)
 
-        builds.append(RpmBuild(nvr=nvr, release=release, package=package, signed=True))
-        session.add(builds[-1])
+        build = RpmBuild(nvr=nvr, release=release, package=package, signed=True)
+        build.testcases.append(testcase)
+        builds.append(build)
+        session.add(build)
 
         # Add a buildroot override for this build
         expiration_date = datetime.utcnow()
         expiration_date = expiration_date + timedelta(days=1)
-        override = BuildrootOverride(build=builds[-1], submitter=user,
+        override = BuildrootOverride(build=build, submitter=user,
                                      notes='blah blah blah',
                                      expiration_date=expiration_date)
         session.add(override)

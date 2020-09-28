@@ -32,7 +32,7 @@ import bodhi.server.services.errors
 import bodhi.server.services.updates
 
 
-user = Service(name='user', path='/users/{name}',
+user = Service(name='user', path=r'/users/{name:\S+}',
                description='Bodhi users',
                # These we leave wide-open since these are only GETs
                cors_origins=bodhi.server.security.cors_origins_ro)

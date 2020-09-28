@@ -8,48 +8,16 @@ pull_request_rules:
   - label!=WIP
   - approved-reviews-by=@fedora-infra/bodhi
   - status-success=DCO
-  - status-success=f30-docs
-  - status-success=f30-unit
-  - status-success=f30-diff-cover
-  - status-success=f30-integration
-  - status-success=f31-docs
-  - status-success=f31-unit
-  - status-success=f31-diff-cover
-  - status-success=f31-integration
+  - status-success=f32-docs
+  - status-success=f32-unit
+  - status-success=f32-diff-cover
   - status-success=pip-docs
   - status-success=pip-flake8
   - status-success=pip-mypy
   - status-success=pip-pydocstyle
   - status-success=pip-unit
   - status-success=pip-diff-cover
-  - status-success=pip-integration
   name: default
-- actions:
-    merge:
-      method: rebase
-      rebase_fallback: null
-      strict: true
-  conditions:
-  - label!=WIP
-  - author=@fedora-infra/bodhi
-  - "#approved-reviews-by>=1"
-  - status-success=DCO
-  - status-success=f30-docs
-  - status-success=f30-unit
-  - status-success=f30-diff-cover
-  - status-success=f30-integration
-  - status-success=f31-docs
-  - status-success=f31-unit
-  - status-success=f31-diff-cover
-  - status-success=f31-integration
-  - status-success=pip-docs
-  - status-success=pip-flake8
-  - status-success=pip-mypy
-  - status-success=pip-pydocstyle
-  - status-success=pip-unit
-  - status-success=pip-diff-cover
-  - status-success=pip-integration
-  name: default-from-bowlofeggs
 - actions:
     backport:
       branches:
@@ -82,3 +50,19 @@ pull_request_rules:
   - label!=WIP
   - label=5.3-backports
   name: backport 5.3
+- actions:
+    backport:
+      branches:
+      - '5.4'
+  conditions:
+  - label!=WIP
+  - label=5.4-backports
+  name: backport 5.4
+- actions:
+    backport:
+      branches:
+      - '5.5'
+  conditions:
+  - label!=WIP
+  - label=5.5-backports
+  name: backport 5.5

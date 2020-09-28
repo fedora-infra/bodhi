@@ -32,7 +32,9 @@ $(document).ready(function() {
                     path: 'packages'
                 },
                 template: '{{name}}',
-                href: 'updates/?packages={{name}}'
+                href: function (item) {
+                    return 'updates/?packages=' + encodeURIComponent(item.name)
+                }
             },
             updates: {
                 display: ['title', 'alias'],
@@ -58,7 +60,9 @@ $(document).ready(function() {
                     path: 'users'
                 },
                 template: '<img class="rounded-circle mr-2" src="{{avatar}}">{{name}}',
-                href: 'users/{{name}}'
+                href: function (item) {
+                    return 'users/' + encodeURIComponent(item.name)
+                }
             },
             overrides: {
                 display: 'nvr',
@@ -87,12 +91,15 @@ $(document).ready(function() {
 
     $(".bodhi-searchbar-input").focus(function() {
         if ($(this).val() != '') {
-            $("#bodhi-searchbar .typeahead__list").attr("style", "display: inline !important");
+            $("#bodhi-searchbar .typeahead__list").attr("style", "display: block !important");
         }
     });
 
-    $(".bodhi-searchbar-input").blur(function() {
-        $("#bodhi-searchbar .typeahead__list").attr("style", "display: none !important");
+    $(document).click(function(event) { 
+        var target = $(event.target);
+        if(!target.closest('#bodhi-searchbar').length && $('#bodhi-searchbar .typeahead__list').is(":visible")) {
+            $('#bodhi-searchbar .typeahead__list').hide();
+        }        
     });
 });
 // @license-end

@@ -26,8 +26,10 @@ from pyramid.authentication import AuthTktAuthenticationPolicy
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.config import Configurator
 from pyramid.renderers import JSONP
+from pyramid.tweens import EXCVIEW
 from sqlalchemy import engine_from_config, event
 from sqlalchemy.orm import scoped_session, sessionmaker
+from whitenoise import WhiteNoise
 import pkg_resources
 
 from bodhi.server import bugs, buildsys
@@ -293,6 +295,14 @@ def main(global_config, testing=None, session=None, **settings):
             max_age=timeout))
         config.set_authorization_policy(ACLAuthorizationPolicy())
 
+    # Collect metrics for endpoints
+    config.add_tween(
+        'bodhi.server.services.metrics_tween.histo_tween_factory', over=EXCVIEW
+    )
+
+    # Metrics Route
+    config.add_route('prometheus_metric', '/metrics')
+
     # Frontpage
     config.add_route('home', '/')
 
@@ -352,4 +362,6 @@ def main(global_config, testing=None, session=None, **settings):
     Session.remove()
 
     log.info('Bodhi ready and at your service!')
-    return config.make_wsgi_app()
+    app = config.make_wsgi_app()
+    app = WhiteNoise(app, root="/usr/share/doc/bodhi-docs/html/", prefix="/docs", index_file=True)
+    return app

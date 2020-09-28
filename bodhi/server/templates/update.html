@@ -419,7 +419,7 @@ if can_edit and update.release.composed_by_bodhi:
                   <div class="h5 d-flex align-items-center font-weight-bold border-bottom">
                       <div class="py-2 text-uppercase font-size-09">Builds</div>
                        <span class="badge badge-secondary badge-pill ml-1">${len(update.builds)}</span>
-                      % if request.user and update.from_tag and not update.release.composed_by_bodhi:
+                      % if request.user and update.from_tag:
                       <span class="badge badge-light badge-pill ml-auto border" title="Builds from the Side Tag: ${update.from_tag}" data-toggle="tooltip"><i class="fa fa-tag pr-1"></i> ${update.from_tag}</span>
                       % endif
                   </div>
@@ -478,7 +478,7 @@ if can_edit and update.release.composed_by_bodhi:
                 <div class="row">
                   <div class="col font-weight-bold text-muted">Stable by Time</div>
                   <div class="col-xs-auto font-weight-bold">
-                    % if update.autotime is True and update.stable_days:
+                    % if update.autotime is True and update.stable_days is not None:
                         <span class="text-muted font-weight-bold" data-toggle='tooltip'
                         title='The update will be automatically pushed to stable after being in testing for ${update.stable_days} days'>
                           ${update.stable_days} days
@@ -600,10 +600,10 @@ if can_edit and update.release.composed_by_bodhi:
             % endif
           </td>
           <td class="float-right">
-            <a href='${request.route_url("updates_rss") + "?packages=" + build.package.name}'>
+            <a href='${request.route_url("updates_rss") + "?packages="}${build.package.name | u}'>
               <span class="fa fa-rss" data-toggle="tooltip" data-placement="top" title="RSS feed for new Bodhi updates containing ${build.package.name}"></span>
             </a>
-            <a href='${request.route_url("updates") + "?packages=" + build.package.name}'>
+            <a href='${request.route_url("updates") + "?packages="}${build.package.name | u}'>
               <span class="fa fa-list" data-toggle="tooltip" data-placement="top" title="Show other Bodhi updates for ${build.package.name}"></span>
             </a>
             % if can_edit:

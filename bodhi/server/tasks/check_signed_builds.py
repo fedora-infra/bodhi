@@ -1,0 +1,85 @@
+# Copyright © 2017 Red Hat, Inc.
+#
+# This file is part of Bodhi.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+"""
+Avoid Updates being stuck in pending.
+
+It may happen that Bodhi misses fedora-messaging messages announcing builds
+have been signed.
+In these cases, the Update remain stuck in pending until a manual intervention.
+
+This script will cycle through builds of Updates in pending status and update
+the signed status in the db to match the tags found in Koji.
+"""
+
+import logging
+from datetime import datetime, timedelta
+
+from bodhi.server import buildsys, models
+from bodhi.server.config import config
+from bodhi.server.util import transactional_session_maker
+
+
+log = logging.getLogger(__name__)
+
+
+def main():
+    """Check build tags and sign those we missed."""
+    db_factory = transactional_session_maker()
+    older_than = datetime.utcnow() - timedelta(days=config.get('check_signed_builds_delay'))
+    with db_factory() as session:
+        updates = models.Update.query.filter(
+            models.Update.status == models.UpdateStatus.pending
+        ).filter(
+            models.Update.release_id == models.Release.id
+        ).filter(
+            models.Release.state.in_([
+                models.ReleaseState.current,
+                models.ReleaseState.pending,
+                models.ReleaseState.frozen,
+            ])
+        ).all()
+
+        if len(updates) == 0:
+            log.debug('No stuck Updates found')
+            return
+
+        kc = buildsys.get_session()
+
+        for update in updates:
+            # Let Bodhi have its times
+            if update.date_submitted >= older_than:
+                continue
+            builds = update.builds
+            # Clean Updates with no builds
+            if len(builds) == 0:
+                log.debug(f'Obsoleting empty update {update.alias}')
+                update.obsolete(session)
+                session.flush()
+                continue
+            pending_signing_tag = update.release.pending_signing_tag
+            pending_testing_tag = update.release.pending_testing_tag
+            for build in builds:
+                if build.signed:
+                    log.debug(f'{build.nvr} already marked as signed')
+                    continue
+                build_tags = [t['name'] for t in kc.listTags(build=build.nvr)]
+                if pending_signing_tag not in build_tags and pending_testing_tag in build_tags:
+                    log.debug(f'Changing signed status of {build.nvr}')
+                    build.signed = True
+            session.flush()

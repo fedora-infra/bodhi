@@ -32,7 +32,7 @@ def main(alias: str):
 
     Args:
         alias: The update's builds are iterated upon to find test cases for
-            their associated Packages.
+            them.
     """
     from bodhi.server.models import Update
 
@@ -44,7 +44,7 @@ def main(alias: str):
 
         for build in update.builds:
             try:
-                build.package.fetch_test_cases(session)
+                build.update_test_cases(session)
             except ExternalCallException:
                 log.warning('Error occurred during fetching testcases', exc_info=True)
                 raise ExternalCallException

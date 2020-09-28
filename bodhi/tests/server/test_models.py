@@ -188,7 +188,7 @@ class TestBodhiBase(BasePyTestCase):
 
     def test_grid_columns(self):
         """Assert correct return value from the grid_columns() method."""
-        assert model.Build.grid_columns() == ['nvr', 'release_id', 'signed', 'type', 'epoch']
+        assert model.Build.grid_columns() == ['nvr', 'signed', 'release_id', 'type', 'epoch']
 
     def test_find_child_for_rpm(self):
         subclass = model.Package.find_polymorphic_child(model.ContentType.rpm)
@@ -357,29 +357,6 @@ class TestComment(BasePyTestCase):
         https://github.com/fedora-infra/bodhi/issues/949.
         """
         assert model.Comment.__table__.columns['text'].nullable == False
-
-    def test_get_unique_testcase_feedback(self):
-        update = self.create_update(
-            ('bodhi-2.3.3-1.fc24', 'python-fedora-atomic-composer-2016.3-1.fc24'))
-        package = update.builds[0].package
-        test1 = model.TestCase(name="Test 1", package=package)
-        test2 = model.TestCase(name="Test 2", package=package)
-        test3 = model.TestCase(name="Test 2", package=package)
-        testcase_feedback = [{'testcase': test1, 'karma': 1},
-                             {'testcase': test2, 'karma': 1},
-                             {'testcase': test3, 'karma': 1}]
-        update.comment(session=self.db, text="test", karma=1, author="test",
-                       testcase_feedback=testcase_feedback)
-        comments = update.comments
-        feedback = comments[0].unique_testcase_feedback
-
-        feedback_titles = [f.testcase.name for f in feedback]
-        feedback_titles_expected = ["Test 1", "Test 2"]
-        feedback_karma_sum = sum([f.karma for f in feedback])
-
-        assert len(feedback) == 2
-        assert sorted(feedback_titles) == sorted(feedback_titles_expected)
-        assert feedback_karma_sum == 2
 
 
 class TestDeclEnum:
@@ -806,17 +783,17 @@ class TestRelease(ModelTest):
         assert self.obj.get_pending_signing_side_tag("side-tag") == "side-tag-signing-pending"
 
     @mock.patch.dict(config, {'f11.koji-testing-side-tag': '-testing-test'})
-    def test_get_testing_side_tag_found(self):
+    def test_get_pending_testing_side_tag_found(self):
         """
         Assert that correct side tag is returned.
         """
-        assert self.obj.get_testing_side_tag("side-tag") == "side-tag-testing-test"
+        assert self.obj.get_pending_testing_side_tag("side-tag") == "side-tag-testing-test"
 
-    def test_get_testing_side_tag_not_found(self):
+    def test_get_pending_testing_side_tag_not_found(self):
         """
         Assert that default side tag is returned.
         """
-        assert self.obj.get_testing_side_tag("side-tag") == "side-tag-testing-pending"
+        assert self.obj.get_pending_testing_side_tag("side-tag") == "side-tag-testing-pending"
 
 
 class TestReleaseCritpathMinKarma(BasePyTestCase):
@@ -1273,61 +1250,6 @@ class TestRpmPackage(ModelTest):
         self.package = model.RpmPackage(name='the-greatest-package')
         self.db.add(self.package)
 
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    def test_wiki_test_cases(self):
-        """Test querying the wiki for test cases"""
-        # Mock out mediawiki so we don't do network calls in our tests
-        response = {
-            'query': {
-                'categorymembers': [{
-                    'title': 'Fake test case',
-                }],
-            }
-        }
-
-        # Now, our actual test.
-        with mock.patch('bodhi.server.models.MediaWiki', MockWiki(response)):
-            pkg = model.RpmPackage(name='gnome-shell')
-            pkg.fetch_test_cases(self.db)
-            assert pkg.test_cases[0].name == 'Fake test case'
-            assert len(pkg.test_cases) == 1
-
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
-    def test_wiki_test_cases_recursive(self, MediaWiki):
-        """Test querying the wiki for test cases when recursion is necessary."""
-        responses = [
-            {'query': {
-                'categorymembers': [
-                    {'title': 'Fake'},
-                    {'title': 'Category:Bodhi'},
-                    {'title': 'Uploading cat pictures'}]}},
-            {'query': {
-                'categorymembers': [
-                    {'title': 'Does Bodhi eat +1s'}]}}]
-        MediaWiki.return_value.call.side_effect = responses
-        pkg = model.RpmPackage(name='gnome-shell')
-
-        pkg.fetch_test_cases(self.db)
-
-        assert model.TestCase.query.count() == 3
-        assert len(pkg.test_cases) == 3
-        assert {tc.name for tc in model.TestCase.query.all()} == (
-            {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
-        assert {tc.package.name for tc in model.TestCase.query.all()} == {'gnome-shell'}
-
-    @mock.patch.dict(config, {'query_wiki_test_cases': True})
-    @mock.patch('bodhi.server.models.MediaWiki')
-    def test_wiki_test_cases_exception(self, MediaWiki):
-        """Test querying the wiki for test cases when connection to Wiki failed"""
-        MediaWiki.return_value.call.side_effect = URLError("oh no!")
-
-        with pytest.raises(ExternalCallException) as exc_context:
-            pkg = model.RpmPackage(name='gnome-shell')
-            pkg.fetch_test_cases(self.db)
-        assert len(pkg.test_cases) == 0
-        assert str(exc_context.value) == 'Failed retrieving testcases from Wiki'
-
     def test_adding_modulebuild(self):
         """Assert that validation fails when adding a ModuleBuild."""
         build1 = model.RpmBuild(nvr='the-greatest-package-1.0.0-fc17.1')
@@ -1546,6 +1468,103 @@ class TestBuild(ModelTest):
             dict: A dictionary specifying a package to associate with this Build.
         """
         return {'package': model.Package(name='TurboGears')}
+
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    def test_wiki_test_cases(self):
+        """Test querying the wiki for test cases"""
+        # Mock out mediawiki so we don't do network calls in our tests
+        response = {
+            'query': {
+                'categorymembers': [{
+                    'title': 'Fake test case',
+                }],
+            }
+        }
+
+        # Now, our actual test.
+        with mock.patch('bodhi.server.models.MediaWiki', MockWiki(response)):
+            pkg = model.RpmPackage(name='gnome-shell')
+            self.db.add(pkg)
+            build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+            self.db.add(build)
+            build.update_test_cases(self.db)
+            assert build.testcases[0].name == 'Fake test case'
+            assert len(build.testcases) == 1
+
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_test_cases_recursive(self, MediaWiki):
+        """Test querying the wiki for test cases when recursion is necessary."""
+        responses = [
+            {'query': {
+                'categorymembers': [
+                    {'title': 'Fake'},
+                    {'title': 'Category:Bodhi'},
+                    {'title': 'Uploading cat pictures'}]}},
+            {'query': {
+                'categorymembers': [
+                    {'title': 'Does Bodhi eat +1s'}]}}]
+        MediaWiki.return_value.call.side_effect = responses
+        pkg = model.RpmPackage(name='gnome-shell')
+        self.db.add(pkg)
+        build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+        self.db.add(build)
+
+        build.update_test_cases(self.db)
+
+        assert model.TestCase.query.count() == 3
+        assert len(build.testcases) == 3
+        assert {tc.name for tc in model.TestCase.query.all()} == (
+            {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
+
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_test_cases_removed(self, MediaWiki):
+        """Test querying the wiki for test cases and remove test which aren't actual."""
+        responses = [
+            {'query': {
+                'categorymembers': [
+                    {'title': 'Fake test case'},
+                    {'title': 'Does Bodhi eat +1s'}]}}]
+
+        pkg = model.RpmPackage(name='gnome-shell')
+        self.db.add(pkg)
+        build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+        self.db.add(build)
+
+        # Add both tests to build
+        MediaWiki.return_value.call.side_effect = responses
+        build.update_test_cases(self.db)
+        assert model.TestCase.query.count() == 2
+        assert len(build.testcases) == 2
+        assert {tc.name for tc in build.testcases} == (
+            {'Does Bodhi eat +1s', 'Fake test case'})
+
+        # Now remove one test
+        responses = [
+            {'query': {
+                'categorymembers': [
+                    {'title': 'Fake test case'}]}}]
+        MediaWiki.return_value.call.side_effect = responses
+        build.update_test_cases(self.db)
+        assert model.TestCase.query.count() == 2
+        assert len(build.testcases) == 1
+        assert build.testcases[0].name == 'Fake test case'
+
+    @mock.patch.dict(config, {'query_wiki_test_cases': True})
+    @mock.patch('bodhi.server.models.MediaWiki')
+    def test_wiki_test_cases_exception(self, MediaWiki):
+        """Test querying the wiki for test cases when connection to Wiki failed"""
+        MediaWiki.return_value.call.side_effect = URLError("oh no!")
+
+        with pytest.raises(ExternalCallException) as exc_context:
+            pkg = model.RpmPackage(name='gnome-shell')
+            self.db.add(pkg)
+            build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+            self.db.add(build)
+            build.update_test_cases(self.db)
+        assert len(build.testcases) == 0
+        assert str(exc_context.value) == 'Failed retrieving testcases from Wiki'
 
 
 class TestRpmBuild(ModelTest):
@@ -2111,10 +2130,11 @@ class TestUpdateGetTestcaseKarma(BasePyTestCase):
         update = model.Update.query.first()
         # Let's add a testcase karma to the existing comment on the testcase.
         tck = model.TestCaseKarma(karma=1, comment=update.comments[0],
-                                  testcase=update.builds[0].package.test_cases[0])
+                                  testcase=update.builds[0].testcases[0])
         self.db.add(tck)
         # Now let's associate a new testcase with the update.
-        testcase = model.TestCase(name='a testcase', package=update.builds[0].package)
+        testcase = model.TestCase(name='a testcase')
+        update.builds[0].testcases.append(testcase)
 
         bad, good = update.get_testcase_karma(testcase)
 
@@ -2130,10 +2150,10 @@ class TestUpdateGetTestcaseKarma(BasePyTestCase):
             self.db.add(comment)
             update.comments.append(comment)
             testcase_karma = model.TestCaseKarma(karma=karma, comment=comment,
-                                                 testcase=update.builds[0].package.test_cases[0])
+                                                 testcase=update.builds[0].testcases[0])
             self.db.add(testcase_karma)
 
-        bad, good = update.get_testcase_karma(update.builds[0].package.test_cases[0])
+        bad, good = update.get_testcase_karma(update.builds[0].testcases[0])
 
         assert bad == -1
         assert good == 2
@@ -2144,7 +2164,7 @@ class TestUpdateGetTestcaseKarma(BasePyTestCase):
         self.db.add(comment)
         update.comments.append(comment)
 
-        bad, good = update.get_testcase_karma(update.builds[0].package.test_cases[0])
+        bad, good = update.get_testcase_karma(update.builds[0].testcases[0])
 
         assert bad == 0
         assert good == 0
@@ -2171,17 +2191,6 @@ class TestUpdateSigned(BasePyTestCase):
         assert not update.signed
 
 
-class TestUpdateTestGatingPassed(BasePyTestCase):
-    """Test the Update.test_gating_passed() method."""
-
-    def test_greenwave_failed(self):
-        """The greenwave_failed TestGatingStatus should count as passed."""
-        update = model.Update.query.first()
-        update.test_gating_status = TestGatingStatus.greenwave_failed
-
-        assert update.test_gating_passed
-
-
 class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
     """Test the Update.update_test_gating_status() method."""
 
@@ -2199,7 +2208,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
 
         update.update_test_gating_status()
 
-        assert update.test_gating_status == model.TestGatingStatus.greenwave_failed
+        assert update.test_gating_status == model.TestGatingStatus.waiting
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
         expected_post = mock.call(
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
@@ -2241,7 +2250,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
 
         update.update_test_gating_status()
 
-        assert update.test_gating_status == model.TestGatingStatus.greenwave_failed
+        assert update.test_gating_status == model.TestGatingStatus.waiting
         # The call_url() handler doesn't catch a Timeout so there are no sleeps/retries.
         assert sleep.mock_calls == []
         expected_post = mock.call(
@@ -4296,26 +4305,6 @@ class TestUpdate(ModelTest):
         update.comments.append(comment)
 
         assert update.num_admin_approvals == 0
-
-    def test_test_cases_with_no_dupes(self):
-        update = self.get_update(name="FullTestCasesWithNoDupes")
-        package = update.builds[0].package
-        test1 = model.TestCase(name="Test 1", package=package)
-        test2 = model.TestCase(name="Test 2", package=package)
-        model.TestCase(name="Test 2", package=package)
-
-        tests = update.full_test_cases
-        test_names = update.test_cases
-
-        expected = [test1, test2]
-        expected_names = ["Test 1", "Test 2"]
-
-        assert len(tests) == len(expected)
-        assert sorted(tests, key=lambda testcase: testcase.name) == (
-            sorted(expected, key=lambda testcase: testcase.name))
-
-        assert len(test_names) == len(expected_names)
-        assert sorted(test_names) == sorted(expected_names)
 
     def test_validate_release_failure(self):
         """Test the validate_release() method for the failure case."""

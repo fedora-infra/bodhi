@@ -19,6 +19,8 @@
 
 import datetime
 
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, REGISTRY
+from pyramid.response import Response
 from pyramid.settings import asbool
 from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import HTTPForbidden, HTTPBadRequest
@@ -217,6 +219,28 @@ def _get_active_overrides(request):
     return query.all()
 
 
+@view_config(route_name='prometheus_metric')
+def get_metrics(request):
+    """
+    Provide the metrics to be consumed by prometheus.
+
+    See the metrics_tween.py for hook to collect metrics for page requests
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        str: text in the prometheus metrics format.
+    """
+    registry = REGISTRY
+
+    request.response.content_type = CONTENT_TYPE_LATEST
+    resp = Response(
+        content_type=CONTENT_TYPE_LATEST,
+    )
+    resp.body = generate_latest(registry)
+    return resp
+
+
 @view_config(route_name='home', renderer='home.html')
 def home(request):
     """
@@ -336,8 +360,6 @@ def latest_candidates(request):
                 log.error(taglist)
             else:
                 for build in taglist[0]:
-                    log.debug(build)
-
                     if hide_existing and build['nvr'] in associated_build_nvrs:
                         continue
 
@@ -370,8 +392,6 @@ def latest_candidates(request):
         result = work(testing, hide_existing, pkg=pkg)
     else:
         result = work(testing, hide_existing, prefix=prefix)
-
-    log.debug(result)
     return result
 
 

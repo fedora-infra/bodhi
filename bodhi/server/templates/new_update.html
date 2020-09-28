@@ -74,7 +74,7 @@ ${parent.css()}
                           </div>
                       </div>
                       % endif
-                      % if update and update.from_tag and not update.release.composed_by_bodhi:
+                      % if update and update.from_tag:
                       <div class="col text-right pr-0">
                       <span class="text-muted"><span class="fa fa-tag pr-1"></span> ${update.from_tag} <button class="btn btn-outline-primary btn-sm ml-2" id="sidetag-update"><span class="fa fa-refresh"></span></button></span>
                       </div>

@@ -51,7 +51,7 @@ class TestFetchTestCases(BaseTaskTestCase):
     """This test class contains tests for the main() function."""
 
     @patch.dict(config.config, {'query_wiki_test_cases': True})
-    @patch('bodhi.server.models.Package.fetch_test_cases')
+    @patch('bodhi.server.models.Build.update_test_cases')
     def test_update_nonexistent(self, fetch):
         """
         Assert BodhiException is raised if the update doesn't exist.
@@ -80,10 +80,10 @@ class TestFetchTestCases(BaseTaskTestCase):
         warning.assert_called_once_with('Error occurred during fetching testcases', exc_info=True)
 
     @patch.dict(config.config, {'query_wiki_test_cases': True})
-    @patch('bodhi.server.models.Package.fetch_test_cases')
+    @patch('bodhi.server.models.Build.update_test_cases')
     def test_fetch_test_cases_run(self, fetch):
         """
-        Assert that package.fetch_test_cases is called.
+        Assert that Build.update_test_cases is called.
         """
         update = self.db.query(models.Update).filter(
             models.Build.nvr == 'bodhi-2.0-1.fc17').one()

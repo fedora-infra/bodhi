@@ -18,6 +18,7 @@
 """Bodhi's database models."""
 
 from collections import defaultdict
+from copy import copy
 from datetime import datetime
 from textwrap import wrap
 import hashlib
@@ -261,6 +262,9 @@ class DeclEnumType(SchemaType, TypeDecorator):
         """
         if value is None:
             return None
+
+        if type(value) is str:
+            return value
         return value.value
 
     def process_result_value(self, value, dialect):
@@ -753,6 +757,12 @@ update_bug_table = Table(
     Column('bug_id', Integer, ForeignKey('bugs.id')))
 
 
+build_testcase_table = Table(
+    'build_testcase_table', metadata,
+    Column('build_id', Integer, ForeignKey('builds.id')),
+    Column('testcase_id', Integer, ForeignKey('testcases.id')))
+
+
 class Release(Base):
     """
     Represent a distribution release, such as Fedora 27.
@@ -824,6 +834,10 @@ class Release(Base):
 
     package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
     testing_repository = Column(UnicodeText, nullable=True)
+
+    # One-to-many relationships
+    # builds backref from Build
+    # composes backref from Compos
 
     @property
     def critpath_min_karma(self) -> int:
@@ -983,15 +997,15 @@ class Release(Base):
         """
         return config.get(f'{self.setting_prefix}.status', None)
 
-    def get_testing_side_tag(self, from_tag: str) -> str:
+    def get_pending_testing_side_tag(self, from_tag: str) -> str:
         """
-        Return the testing side tag for this ``Release``.
+        Return the testing-pending side tag for this ``Release``.
 
         Args:
             from_tag: Name of side tag from which ``Update`` was created.
 
         Returns:
-            Testing side tag used in koji.
+            Testing-pending side tag used in koji.
         """
         side_tag_postfix = config.get(
             f'{self.setting_prefix}.koji-testing-side-tag', "-testing-pending")
@@ -999,13 +1013,13 @@ class Release(Base):
 
     def get_pending_signing_side_tag(self, from_tag: str) -> str:
         """
-        Return the testing side tag for this ``Release``.
+        Return the signing-pending side tag for this ``Release``.
 
         Args:
             from_tag: Name of side tag from which ``Update`` was created.
 
         Returns:
-            Testing side tag used in koji.
+            Signing-pending side tag used in koji.
         """
         side_tag_postfix = config.get(
             f'{self.setting_prefix}.koji-signing-pending-side-tag', "-signing-pending")
@@ -1018,17 +1032,20 @@ class TestCase(Base):
 
     Attributes:
         name (str): The name of the test case.
-        package_id (int): The primary key of the :class:`Package` associated with this test case.
-        package (Package): The package associated with this test case.
+        package_name (str): The name of the package associated with this test case.
     """
 
     __tablename__ = 'testcases'
     __get_by__ = ('name',)
+    __exclude_columns__ = ('builds',)
 
-    name = Column(UnicodeText, nullable=False)
+    name = Column(UnicodeText, nullable=False, unique=True)
 
-    package_id = Column(Integer, ForeignKey('packages.id'))
-    # package backref
+    # One-to-many relationships
+    # feedback backref from TestCaseKarma
+
+    # Many-to-many relationships
+    # builds backref
 
 
 class Package(Base):
@@ -1044,20 +1061,18 @@ class Package(Base):
         type (int): The polymorphic identity column. This is used to identify what Python
             class to create when loading rows from the database.
         builds (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`Build` objects.
-        test_cases (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`TestCase`
-            objects.
     """
 
     __tablename__ = 'packages'
     __get_by__ = ('name',)
-    __exclude_columns__ = ('id', 'test_cases', 'builds',)
+    __exclude_columns__ = ('id', 'builds',)
 
     name = Column(UnicodeText, nullable=False)
     requirements = Column(UnicodeText)
     type = Column(ContentType.db_type(), nullable=False)
 
-    builds = relationship('Build', backref=backref('package', lazy='joined'))
-    test_cases = relationship('TestCase', backref='package', order_by="TestCase.id")
+    # One-to-many relationships
+    builds = relationship('Build', backref=backref('package', lazy='joined', innerjoin=True))
 
     __mapper_args__ = {
         'polymorphic_on': type,
@@ -1123,60 +1138,6 @@ class Package(Base):
         # The first list contains usernames with commit access. The second list
         # contains FAS group names with commit access.
         return list(committers), list(groups)
-
-    def fetch_test_cases(self, db):
-        """
-        Get a list of test cases for this package from the wiki.
-
-        Args:
-            db (sqlalchemy.orm.session.Session): A database session.
-        Raises:
-            ExternalCallException: When retrieving testcases from Wiki failed.
-        """
-        if not config.get('query_wiki_test_cases'):
-            return
-
-        start = datetime.utcnow()
-        log.debug('Querying the wiki for test cases')
-
-        wiki = MediaWiki(config.get('wiki_url'))
-        cat_page = 'Category:Package %s test cases' % self.external_name
-
-        def list_categorymembers(wiki, cat_page, limit=500):
-            # Build query arguments and call wiki
-            query = dict(action='query', list='categorymembers',
-                         cmtitle=cat_page, cmlimit=limit)
-            try:
-                response = wiki.call(query)
-            except URLError:
-                raise ExternalCallException('Failed retrieving testcases from Wiki')
-            members = [entry['title'] for entry in
-                       response.get('query', {}).get('categorymembers', {})
-                       if 'title' in entry]
-
-            # Determine whether we need to recurse
-            idx = 0
-            while True:
-                if idx >= len(members) or limit <= 0:
-                    break
-                # Recurse?
-                if members[idx].startswith('Category:') and limit > 0:
-                    members.extend(list_categorymembers(wiki, members[idx], limit - 1))
-                    members.remove(members[idx])  # remove Category from list
-                else:
-                    idx += 1
-
-            log.debug('Found the following unit tests: %s', members)
-            return members
-
-        for test in set(list_categorymembers(wiki, cat_page)):
-            case = db.query(TestCase).filter_by(name=test).first()
-            if not case:
-                case = TestCase(name=test, package=self)
-                db.add(case)
-                db.flush()
-
-        log.debug('Finished querying for test cases in %s', datetime.utcnow() - start)
 
     @validates('builds')
     def validate_builds(self, key, build):
@@ -1345,20 +1306,29 @@ class Build(Base):
             of.
         type (ContentType): The polymorphic identify of the row. This is used by sqlalchemy to
             identify which subclass of Build to use.
+        testcases (sqlalchemy.orm.collections.InstrumentedList): A list of :class:`TestCase`
+            objects.
     """
 
     __tablename__ = 'builds'
-    __exclude_columns__ = ('id', 'package', 'package_id', 'release',
+    __exclude_columns__ = ('id', 'package', 'package_id', 'release', 'testcases',
                            'update_id', 'update', 'override')
     __get_by__ = ('nvr',)
 
     nvr = Column(Unicode(100), unique=True, nullable=False)
-    package_id = Column(Integer, ForeignKey('packages.id'), nullable=False)
-    release_id = Column(Integer, ForeignKey('releases.id'))
     signed = Column(Boolean, default=False, nullable=False)
-    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
 
+    # Many-to-one relationships
+    package_id = Column(Integer, ForeignKey('packages.id'), nullable=False)
+    # package backref from Package
+    release_id = Column(Integer, ForeignKey('releases.id'))
     release = relationship('Release', backref='builds', lazy=False)
+    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
+    # update backref from Update
+
+    # Many-to-many relationships
+    testcases = relationship('TestCase', secondary=build_testcase_table,
+                             backref='builds', order_by='TestCase.name')
 
     type = Column(ContentType.db_type(), nullable=False)
     __mapper_args__ = {
@@ -1516,6 +1486,69 @@ class Build(Base):
             if self.get_creation_time() < build_creation_time:
                 return False
         return True
+
+    def update_test_cases(self, db):
+        """
+        Update the list of test cases for this build from the wiki.
+
+        Args:
+            db (sqlalchemy.orm.session.Session): A database session.
+        Raises:
+            ExternalCallException: When retrieving testcases from Wiki failed.
+        """
+        if not config.get('query_wiki_test_cases'):
+            return
+
+        start = datetime.utcnow()
+        log.debug(f'Querying the wiki for test cases of {self.nvr}')
+
+        wiki = MediaWiki(config.get('wiki_url'))
+        cat_page = f'Category:Package {self.package.external_name} test cases'
+
+        def list_categorymembers(wiki, cat_page, limit=500):
+            # Build query arguments and call wiki
+            query = dict(action='query', list='categorymembers',
+                         cmtitle=cat_page, cmlimit=limit)
+            try:
+                response = wiki.call(query)
+            except URLError:
+                raise ExternalCallException('Failed retrieving testcases from Wiki')
+            members = [entry['title'] for entry in
+                       response.get('query', {}).get('categorymembers', {})
+                       if 'title' in entry]
+
+            # Determine whether we need to recurse
+            if limit > 0:
+                for idx, member in enumerate(copy(members)):
+                    if member.startswith('Category:'):
+                        members.extend(list_categorymembers(wiki, member, limit - 1))
+                        members.remove(members[idx])  # remove Category from list
+
+            log.debug(f'Found the following unit tests: {members}')
+            return members
+
+        fetched = set(list_categorymembers(wiki, cat_page))
+
+        # Delete removed testcases
+        for case in self.testcases:
+            if case.name not in fetched:
+                self.testcases.remove(case)
+                log.debug(f'Removed testcase "{case.name}" from {self.nvr}')
+
+        # Add new testcases
+        for test in fetched:
+            case = TestCase.get(test)
+            if not case:
+                case = TestCase(name=test)
+                db.add(case)
+                db.flush()
+                log.debug(f'Found new testcase "{case.name}" and added to database')
+            if case not in self.testcases:
+                self.testcases.append(case)
+                log.debug(f'Added testcase "{case.name}" to {self.nvr}')
+
+        db.flush()
+        log.debug(f'Finished querying for test cases in {datetime.utcnow() - start}')
 
 
 class ContainerBuild(Build):
@@ -1828,15 +1861,13 @@ class Update(Base):
     # eg: FEDORA-EPEL-2009-12345
     alias = Column(Unicode(64), unique=True, nullable=False)
 
-    # One-to-one relationships
+    # Many-to-one relationships
     release_id = Column(Integer, ForeignKey('releases.id'), nullable=False)
-    release = relationship('Release', lazy='joined')
+    release = relationship('Release', lazy='joined', innerjoin=True)
 
-    # One-to-many relationships
-    comments = relationship('Comment', backref=backref('update', lazy='joined'), lazy='joined',
-                            order_by='Comment.timestamp')
-    builds = relationship('Build', backref=backref('update', lazy='joined'), lazy='joined',
-                          order_by='Build.nvr')
+    user_id = Column(Integer, ForeignKey('users.id'))
+    # user backref from User
+
     # If the update is locked and a Compose exists for the same release and request, this will be
     # set to that Compose.
     compose = relationship(
@@ -1844,12 +1875,14 @@ class Update(Base):
         primaryjoin=("and_(Update.release_id==Compose.release_id, Update.request==Compose.request, "
                      "Update.locked==True)"),
         foreign_keys=(release_id, request),
-        backref=backref('updates', passive_deletes=True))
+        backref=backref('updates', passive_deletes=True, order_by='Update.date_submitted'))
+
+    # One-to-many relationships
+    comments = relationship('Comment', backref='update', order_by='Comment.timestamp')
+    builds = relationship('Build', backref='update', order_by='Build.nvr')
 
     # Many-to-many relationships
     bugs = relationship('Bug', secondary=update_bug_table, backref='updates', order_by='Bug.bug_id')
-
-    user_id = Column(Integer, ForeignKey('users.id'))
 
     # Greenwave
     test_gating_status = Column(TestGatingStatus.db_type(), default=None, nullable=True)
@@ -2220,11 +2253,10 @@ class Update(Base):
             self.test_gating_status = self._get_test_gating_status()
         except (requests.exceptions.Timeout, RuntimeError) as e:
             log.error(str(e))
-            # Greenwave frequently returns 500 response codes. When this happens, we do not want
-            # to block updates from proceeding, so we will consider this condition as having the
-            # policy satisfied. We will use the Exception as the summary so we can mark the status
-            # as ignored for the record.
-            self.test_gating_status = TestGatingStatus.greenwave_failed
+            # If we receive a 500 error code from Greenwave, we set the test_gating_status to
+            # waiting. The status will then be updated later by the greenwave fedora-messaging
+            # consumer.
+            self.test_gating_status = TestGatingStatus.waiting
 
     @classmethod
     def new(cls, request, data):
@@ -2285,6 +2317,8 @@ class Update(Base):
             # For rawhide updates make sure autotime push is enabled
             # https://github.com/fedora-infra/bodhi/issues/3912
             data['autotime'] = True
+            data['stable_days'] = 0
+            log.debug("Overriding autotime settings for rawhide update.")
 
         up = Update(**data, release=release)
 
@@ -2298,13 +2332,14 @@ class Update(Base):
                                f"release value of {up.mandatory_days_in_testing} days"
             })
 
-        log.debug("Adding new update to the db.")
+        log.debug(f"Adding new update to the db {up.alias}.")
         db.add(up)
-        log.debug("Triggering db commit for new update.")
+        log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
+        # The request to testing for side-tag updates is set within the signed consumer
         if not data.get("from_tag"):
-            log.debug("Setting request for new update.")
+            log.debug(f"Setting request for new update {up.alias}.")
             up.set_request(db, req, request.user.name)
 
         if config.get('test_gating.required'):
@@ -2312,7 +2347,7 @@ class Update(Base):
                 'Test gating required is enforced, marking the update as waiting on test gating')
             up.test_gating_status = TestGatingStatus.waiting
 
-        log.debug("Done with Update.new(...)")
+        log.debug(f"Done with Update.new(...) {up.alias}")
         return up, caveats
 
     @classmethod
@@ -2522,11 +2557,10 @@ class Update(Base):
 
         Returns:
             True if the Update's test_gating_status property is None,
-            greenwave_failed, ignored, or passed. Otherwise it returns False.
+            ignored, or passed. Otherwise it returns False.
         """
         if self.test_gating_status in (
-                None, TestGatingStatus.greenwave_failed, TestGatingStatus.ignored,
-                TestGatingStatus.passed):
+                None, TestGatingStatus.ignored, TestGatingStatus.passed):
             return True
         return False
 
@@ -2887,7 +2921,8 @@ class Update(Base):
 
         # Add the appropriate 'pending' koji tag to this update, so tools like
         # AutoQA can compose repositories of them for testing.
-        if action is UpdateRequest.testing:
+        # If it's a new side-tag update, koji tags are managed by the celery task
+        if action is UpdateRequest.testing and not self.from_tag:
             self.add_tag(self.release.pending_signing_tag)
         elif action is UpdateRequest.stable:
             self.add_tag(self.release.pending_stable_tag)
@@ -3285,16 +3320,15 @@ class Update(Base):
                 notice = 'You may not give karma to your own updates.'
                 caveats.append({'name': 'karma', 'description': notice})
 
-        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath)
-        session.add(comment)
-
         try:
             user = session.query(User).filter_by(name=author).one()
         except NoResultFound:
             user = User(name=author)
             session.add(user)
 
-        user.comments.append(comment)
+        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath, user=user)
+        session.add(comment)
+
         self.comments.append(comment)
         session.flush()
 
@@ -3393,8 +3427,10 @@ class Update(Base):
 
         self.untag(db, preserve_override=True)
 
+        koji.multicall = True
         for build in self.builds:
             koji.tagBuild(self.release.candidate_tag, build.nvr, force=True)
+        koji.multiCall()
 
         self.pushed = False
         self.status = UpdateStatus.unpushed
@@ -3441,6 +3477,7 @@ class Update(Base):
         log.info("Untagging %s", self.alias)
         koji = buildsys.get_session()
         tag_types, tag_rels = Release.get_tags(db)
+        koji.multicall = True
         for build in self.builds:
             for tag in build.get_tags():
                 # Only remove tags that we know about
@@ -3451,6 +3488,7 @@ class Update(Base):
                         koji.untagBuild(tag, build.nvr, force=True)
                 else:
                     log.info("Skipping tag that we don't know about: %s" % tag)
+        koji.multiCall()
         self.pushed = False
 
     def obsolete(self, db, newer=None):
@@ -3816,7 +3854,7 @@ class Update(Base):
         """
         tests = set()
         for build in self.builds:
-            for test in build.package.test_cases:
+            for test in build.testcases:
                 tests.add(test.name)
         return sorted(list(tests))
 
@@ -3831,7 +3869,7 @@ class Update(Base):
         tests = set()
         for build in self.builds:
             test_names = set()
-            for test in build.package.test_cases:
+            for test in build.testcases:
                 if test.name not in test_names:
                     test_names.add(test.name)
                     tests.add(test)
@@ -3901,8 +3939,7 @@ class Update(Base):
         """
         Place comment on the update when ``test_gating_status`` changes.
 
-        Only notify the users by email if the new status is in ``failed`` or
-        ``greenwave_failed``.
+        Only notify the users by email if the new status is in ``failed``.
 
         Args:
             target (InstanceState): The state of the instance that has had a
@@ -3915,10 +3952,7 @@ class Update(Base):
         instance = target.object
 
         if value != old:
-            notify = value in [
-                TestGatingStatus.greenwave_failed,
-                TestGatingStatus.failed,
-            ]
+            notify = value == TestGatingStatus.failed
             instance.comment(
                 target.session,
                 f"This update's test gating status has been changed to '{value}'.",
@@ -4261,6 +4295,7 @@ class BugKarma(Base):
 
     karma = Column(Integer, default=0)
 
+    # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
     comment = relationship("Comment", backref='bug_feedback')
 
@@ -4283,6 +4318,7 @@ class TestCaseKarma(Base):
 
     karma = Column(Integer, default=0)
 
+    # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
     comment = relationship("Comment", backref='testcase_feedback')
 
@@ -4314,8 +4350,15 @@ class Comment(Base):
     text = Column(UnicodeText, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
+    # One-to-many relationships
+    # bug_feedback backref from BugKarma
+    # testcase_feedback backref from TestCaseKarma
+
+    # Many-to-one relationships
     update_id = Column(Integer, ForeignKey('updates.id'), index=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    # update backref from Update
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    # user backref from User
 
     def url(self) -> str:
         """
@@ -4423,6 +4466,10 @@ class Bug(Base):
 
     # If this bug is a parent tracker bug for release-specific bugs
     parent = Column(Boolean, default=False)
+
+    # Many-to-many relationships
+    # updates backref from Update
+    # feedback backref from BugKarma
 
     @property
     def url(self) -> str:
@@ -4579,6 +4626,7 @@ class User(Base):
     # One-to-many relationships
     comments = relationship(Comment, backref=backref('user'), lazy='dynamic')
     updates = relationship(Update, backref=backref('user'), lazy='dynamic')
+    # buildroot_overrides backref from BuildrootOverride
 
     # Many-to-many relationships
     groups = relationship("Group", secondary=user_group_table, backref='users')
@@ -4628,7 +4676,8 @@ class Group(Base):
 
     name = Column(Unicode(64), unique=True, nullable=False)
 
-    # users backref
+    # Many-to-many relationships
+    # users backref from User
 
 
 class BuildrootOverride(Base):
@@ -4655,20 +4704,20 @@ class BuildrootOverride(Base):
     __include_extras__ = ('nvr',)
     __get_by__ = ('build_id',)
 
-    build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
-    submitter_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    notes = Column(Unicode, nullable=False)
+    notes = Column(UnicodeText, nullable=False)
 
     submission_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     expiration_date = Column(DateTime, nullable=False)
     expired_date = Column(DateTime)
 
-    build = relationship('Build', lazy='joined',
-                         backref=backref('override', lazy='joined',
-                                         uselist=False))
-    submitter = relationship('User', lazy='joined',
-                             backref=backref('buildroot_overrides',
-                                             lazy='joined'))
+    # Many-to-one relationships
+    build_id = Column(Integer, ForeignKey('builds.id'), nullable=False)
+    build = relationship('Build', lazy='joined', innerjoin=True,
+                         backref=backref('override', uselist=False))
+
+    submitter_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    submitter = relationship('User', lazy='joined', innerjoin=True,
+                             backref='buildroot_overrides')
 
     @property
     def nvr(self) -> str:

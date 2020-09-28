@@ -1293,7 +1293,7 @@ class TestCMDFunctions:
             shell=False)
         mock_error.assert_not_called()
         assert mock_debug.mock_calls == \
-            [mock.call('Running /bin/echo'), mock.call('output\nNone')]
+            [mock.call('Running /bin/echo'), mock.call('subprocess output: output\nNone')]
 
     @mock.patch('bodhi.server.log.debug')
     @mock.patch('bodhi.server.log.error')
@@ -1314,7 +1314,7 @@ class TestCMDFunctions:
             ['/bin/echo'], cwd='"home/imgs/catpix"', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             shell=False)
         mock_error.assert_not_called()
-        mock_debug.assert_called_with('output\nerror')
+        mock_debug.assert_called_with('subprocess output: output\nerror')
 
     @mock.patch('bodhi.server.buildsys.get_session')
     def test__get_build_repository(self, session):

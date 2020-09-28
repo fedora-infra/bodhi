@@ -43,6 +43,10 @@ beat_schedule = {
         "task": "check_policies",
         "schedule": 60 * 60,  # every hour
     },
+    "check-signed-builds": {
+        "task": "check_signed_builds",
+        "schedule": crontab(hour=2, minute=33),
+    },
     "clean-old-composes": {
         "task": "clean_old_composes",
         "schedule": crontab(hour=3, minute=3),

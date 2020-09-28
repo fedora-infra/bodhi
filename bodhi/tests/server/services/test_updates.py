@@ -172,6 +172,18 @@ class TestNewUpdate(BasePyTestCase):
         assert 'Update for bodhi-2.0-1.fc17 already exists' in res
 
     @mock.patch(**mock_valid_requirements)
+    def test_unpushed_update(self, *args):
+        """Allow posting a duplicate build if the old update is unpushed."""
+        unpushed_update = self.create_update(['whoopsie-1.0.0-1.fc17'])
+        unpushed_update.status = UpdateStatus.unpushed
+        self.db.commit()
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            res = self.app.post_json('/updates/', self.get_update('whoopsie-1.0.0-1.fc17'))
+
+        assert res.json['alias'] != unpushed_update.alias
+
+    @mock.patch(**mock_valid_requirements)
     def test_invalid_requirements(self, *args):
         update = self.get_update()
         update['requirements'] = 'rpmlint silly-dilly'
@@ -270,6 +282,29 @@ class TestNewUpdate(BasePyTestCase):
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     @mock.patch(**mock_uuid4_version1)
     @mock.patch(**mock_valid_requirements)
+    def test_new_rawhide_rpm_update(self, *args):
+        """Posting a new update against Rawhide should fail."""
+        release = Release.query.one()
+        release.composed_by_bodhi = False
+        self.db.commit()
+        with fml_testing.mock_sends():
+            res = self.app.post_json('/updates/', self.get_update('bodhi-2.0.0-2.fc17'),
+                                     status=400)
+
+        expected_error = {
+            "location": "body",
+            "name": "builds",
+            "description": ("Cannot manually create updates for a Release which is not "
+                            "composed by Bodhi.\nRead the 'Automatic updates' page in "
+                            "Bodhi docs about this error.")
+        }
+        assert expected_error in res.json_body['errors']
+        build = self.db.query(RpmBuild).filter_by(nvr='bodhi-2.0.0-2.fc17').first()
+        assert build is None
+
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @mock.patch(**mock_uuid4_version1)
+    @mock.patch(**mock_valid_requirements)
     def test_new_rpm_update_unknown_build(self, *args):
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getBuild',
                         return_value=None):
@@ -313,8 +348,10 @@ class TestNewUpdate(BasePyTestCase):
         # Let's test what happens if the user sets autotime to False
         # Rawhide workflow must ignore this setting
         update['autotime'] = False
+        update['stable_days'] = 7
         with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
-            r = self.app.post_json('/updates/', update)
+            with mock.patch('bodhi.server.models.Release.mandatory_days_in_testing', 0):
+                r = self.app.post_json('/updates/', update)
 
         up = r.json_body
         assert up['title'] == 'gnome-backgrounds-3.0-1.fc17'
@@ -340,8 +377,10 @@ class TestNewUpdate(BasePyTestCase):
         assert up['from_tag'] == 'f17-build-side-7777'
         if rawhide_workflow:
             assert up['autotime'] is True
+            assert up['stable_days'] == 0
         else:
             assert up['autotime'] is False
+            assert up['stable_days'] == 7
 
         resp = self.app.get(f"/updates/{up['alias']}", headers={'Accept': 'text/html'})
 
@@ -357,11 +396,8 @@ class TestNewUpdate(BasePyTestCase):
             assert called_args['pending_signing_tag'] == 'f17-build-side-7777-signing-pending'
             assert called_args['pending_testing_tag'] == 'f17-build-side-7777-testing-pending'
         else:
-            # stable release workflow
-
-            # check that the sidetag doesn't get displayed on the update page,
-            # by the time the update is created, it shouldn't exist anymore
-            assert 'title="Builds from the Side Tag:' not in resp
+            # the sidetag should be still displayed on the update page
+            assert 'title="Builds from the Side Tag: f17-build-side-7777' in resp
             assert called_args['pending_signing_tag'] == 'f17-updates-signing-pending'
 
         # now try to create another update with the same side tag
@@ -379,7 +415,8 @@ class TestNewUpdate(BasePyTestCase):
         """
         Test html rendering of default build link
         """
-        self.app.app.registry.settings['koji_web_url'] = 'https://koji.fedoraproject.org/koji/'
+        self.app.app.application.registry.settings['koji_web_url'] = \
+            'https://koji.fedoraproject.org/koji/'
         nvr = 'bodhi-2.0.0-2.fc17'
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             resp = self.app.post_json('/updates/', self.get_update(nvr))
@@ -394,7 +431,8 @@ class TestNewUpdate(BasePyTestCase):
         """
         Test html rendering of default build link without trailing slash
         """
-        self.app.app.registry.settings['koji_web_url'] = 'https://koji.fedoraproject.org/koji'
+        self.app.app.application.registry.settings['koji_web_url'] = \
+            'https://koji.fedoraproject.org/koji'
         nvr = 'bodhi-2.0.0-2.fc17'
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             resp = self.app.post_json('/updates/', self.get_update(nvr))
@@ -410,7 +448,7 @@ class TestNewUpdate(BasePyTestCase):
         Test html rendering of build link using a mock config variable 'koji_web_url'
         without a trailing slash in it
         """
-        self.app.app.registry.settings['koji_web_url'] = 'https://host.org'
+        self.app.app.application.registry.settings['koji_web_url'] = 'https://host.org'
         nvr = 'bodhi-2.0.0-2.fc17'
         with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
             resp = self.app.post_json('/updates/', self.get_update(nvr))
@@ -1278,7 +1316,8 @@ class TestUpdatesService(BasePyTestCase):
     def test_home_html_legal(self):
         """Test the home page HTML when a legal link is configured."""
         with mock.patch.dict(
-                self.app.app.registry.settings, {'legal_link': 'http://loweringthebar.net/'}):
+                self.app.app.application.registry.settings,
+                {'legal_link': 'http://loweringthebar.net/'}):
             resp = self.app.get('/', headers={'Accept': 'text/html'})
 
         assert 'Fedora Updates System' in resp
@@ -1288,7 +1327,7 @@ class TestUpdatesService(BasePyTestCase):
 
     def test_home_html_no_legal(self):
         """Test the home page HTML when no legal link is configured."""
-        with mock.patch.dict(self.app.app.registry.settings, {'legal_link': ''}):
+        with mock.patch.dict(self.app.app.application.registry.settings, {'legal_link': ''}):
             resp = self.app.get('/', headers={'Accept': 'text/html'})
 
         assert 'Fedora Updates System' in resp
@@ -1825,7 +1864,7 @@ class TestUpdatesService(BasePyTestCase):
         """Test getting a single update via HTML when no privacy link is configured."""
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
 
-        with mock.patch.dict(self.app.app.registry.settings, {'privacy_link': ''}):
+        with mock.patch.dict(self.app.app.application.registry.settings, {'privacy_link': ''}):
             resp = self.app.get(f'/updates/{update.alias}',
                                 headers={'Accept': 'text/html'})
 
@@ -1841,7 +1880,8 @@ class TestUpdatesService(BasePyTestCase):
         update = Build.query.filter_by(nvr='bodhi-2.0-1.fc17').one().update
 
         with mock.patch.dict(
-                self.app.app.registry.settings, {'privacy_link': 'https://privacyiscool.com'}):
+                self.app.app.application.registry.settings,
+                {'privacy_link': 'https://privacyiscool.com'}):
             resp = self.app.get(f'/updates/{update.alias}',
                                 headers={'Accept': 'text/html'})
 
@@ -2849,8 +2889,8 @@ class TestUpdatesService(BasePyTestCase):
         res = self.app.get('/updates/', {"status": ["pending", "testing"]})
         body = res.json_body
         assert len(body['updates']) == 2
-        assert body['updates'][0]['title'] == 'python-nose-1.3.7-11.fc17'
-        assert body['updates'][1]['title'] == 'bodhi-2.0-1.fc17'
+        assert body['updates'][0]['title'] == 'bodhi-2.0-1.fc17'
+        assert body['updates'][1]['title'] == 'python-nose-1.3.7-11.fc17'
 
     def test_list_updates_by_suggest(self):
         res = self.app.get('/updates/', {"suggest": "unspecified"})
@@ -4974,7 +5014,7 @@ class TestUpdatesService(BasePyTestCase):
         update.comment(self.db, 'works', 1, 'bowlofeggs')
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
-        self.app.app.registry.settings['test_gating.required'] = True
+        self.app.app.application.registry.settings['test_gating.required'] = True
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 
@@ -5003,7 +5043,7 @@ class TestUpdatesService(BasePyTestCase):
         update.comment(self.db, 'works', 1, 'bowlofeggs')
         # Let's clear any messages that might get sent
         self.db.info['messages'] = []
-        self.app.app.registry.settings['test_gating.required'] = True
+        self.app.app.application.registry.settings['test_gating.required'] = True
 
         resp = self.app.get(f'/updates/{update.alias}', headers={'Accept': 'text/html'})
 

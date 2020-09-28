@@ -295,9 +295,10 @@ def validate_builds(request, **kwargs):
     for nvr in builds:
         build = request.db.query(Build).filter_by(nvr=nvr).first()
         if build and build.update is not None:
-            request.errors.add('body', 'builds',
-                               "Update for {} already exists".format(nvr))
-            return
+            if build.update.status != UpdateStatus.unpushed:
+                request.errors.add('body', 'builds',
+                                   "Update for {} already exists".format(nvr))
+                return
 
 
 @postschema_validator
@@ -1004,17 +1005,20 @@ def validate_testcase_feedback(request, **kwargs):
             request.errors.status = HTTPNotFound.code
             return
 
-    packages = [build.package for build in update.builds]
+    # Get all TestCase names associated to the Update
+    allowed_testcases = [tc.name
+                         for build in update.builds
+                         for tc in build.testcases
+                         if len(build.testcases) > 0]
 
-    db = request.db
     bad_testcases = []
     validated = []
 
     for item in feedback:
         name = item.pop('testcase_name')
-        testcase = db.query(TestCase).filter(TestCase.name == name).first()
+        testcase = TestCase.get(name)
 
-        if not testcase or testcase.package not in packages:
+        if not testcase or testcase.name not in allowed_testcases:
             bad_testcases.append(name)
         else:
             item['testcase'] = testcase
@@ -1205,6 +1209,28 @@ def validate_expiration_date(request, **kwargs):
         return
 
     request.validated['expiration_date'] = expiration_date
+
+
+@postschema_validator
+def validate_override_notes(request, **kwargs):
+    """
+    Ensure the override notes is less than 500 chars.
+
+    Args:
+        request (pyramid.request.Request): The current request.
+        kwargs (dict): The kwargs of the related service definition. Unused.
+    """
+    notes = request.validated.get('notes')
+
+    if notes is None:
+        return
+
+    if len(notes) > 2000:
+        request.errors.add('body', 'notes',
+                           'Notes may not contain more than 2000 chars')
+        return
+
+    request.validated['notes'] = notes
 
 
 def _get_valid_requirements(request, requirements):

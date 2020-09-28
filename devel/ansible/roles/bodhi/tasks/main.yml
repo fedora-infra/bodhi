@@ -45,6 +45,7 @@
       - python3-markdown
       - python3-munch
       - python3-openid
+      - python3-prometheus_client
       - python3-psycopg2
       - python3-pydocstyle
       - python3-pylibravatar
@@ -58,6 +59,7 @@
       - python3-sqlalchemy
       - python3-sqlalchemy_schemadisplay
       - python3-webtest
+      - python3-whitenoise
       - redhat-rpm-config
       - screen
       - skopeo
@@ -66,6 +68,13 @@
       - vim-enhanced
       - zlib-devel
     state: present
+
+
+- name: Configure Cgroups v1 for docker in grub.cfg
+  command: sed -i '/^GRUB_CMDLINE_LINUX/ s/"$/ systemd.unified_cgroup_hierarchy=0"/' /etc/default/grub
+
+- name: Generate the new grub configuration with cgroups v1
+  command: grub2-mkconfig -o /boot/grub2/grub.cfg
 
 - name: Initialize PostgreSQL
   command: postgresql-setup initdb
@@ -108,6 +117,15 @@
   pip:
       name: jinja2-cli
       executable: pip3
+
+- name: pip install packages for GraphQL
+  pip:
+      name: "{{ item }}"
+      executable: pip3
+  loop:
+      - WebOb-GraphQL
+      - graphene
+      - graphene-sqlalchemy
 
 - name: Fake a pungi install
   file:
@@ -238,3 +256,6 @@
     src: /home/vagrant/bodhi/bodhi-complete.sh
     dest: /etc/bash_completion.d/bodhi-complete.sh
     state: link
+
+- name: Reboot the vagrant box
+  reboot:
