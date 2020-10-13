@@ -31,9 +31,17 @@ You can read Bodhi's
 and documentation
 `online <https://bodhi.fedoraproject.org/docs>`_, or by installing it on your
 Fedora system and pointing your browser at
-``/usr/share/doc/bodhi-docs/html/index.html``::
+``/usr/share/doc/bodhi-docs/html/index.html``
+
+In Firefox:
+::
 
     $ sudo dnf install bodhi-docs && firefox /usr/share/doc/bodhi-docs/html/index.html
+
+Or in Chromium:
+::
+
+    $ sudo dnf install bodhi-docs && chromium-browser /usr/share/doc/bodhi-docs/html/index.html
 
 If you are interested in contributing to Bodhi, you can read the
 `developer documentation`_.
