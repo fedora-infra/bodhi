@@ -31,7 +31,7 @@ You can read Bodhi's
 and documentation
 `online <https://bodhi.fedoraproject.org/docs>`_, or by installing it on your
 Fedora system and pointing your browser at
-``/usr/share/doc/bodhi-docs/html/index.html``
+``/usr/share/doc/bodhi-docs/html/index.html`` :
 
 In Firefox:
 ::
