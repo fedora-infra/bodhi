@@ -1,4 +1,4 @@
-FROM fedora:31
+FROM fedora:33
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
 RUN dnf install -y \
@@ -19,7 +19,8 @@ RUN dnf install -y \
     redhat-rpm-config \
     python3-libcomps \
     python3-gssapi \
-    python3-pip
+    python3-pip \
+    python3-wheel
 
 COPY requirements.txt /bodhi/requirements.txt
 
