@@ -4517,7 +4517,7 @@ class Bug(Base):
             The default comment to add to the bug related to the given update.
         """
         install_msg = (
-            f'In short time you\'ll be able to install the update with the following '
+            f'Soon you\'ll be able to install the update with the following '
             f'command:\n`{update.install_command}`') if update.install_command else ''
         msg_data = {'update_title': update.get_title(delim=", ", nvr=True),
                     'update_beauty_title': update.get_title(beautify=True, nvr=True),
