@@ -398,21 +398,21 @@ if can_edit and update.release.composed_by_bodhi:
                         % endif
                       </div>
                     </div>
-              <div class="pb-1">
-                <div>
+                <div class="pb-1">
+                  <div id="test_status_badge">
+                    <i class="spinner fa fa-spinner fa-spin fa-fw"></i>
+                  </div>
+                  % if can_edit and update.test_gating_status == models.TestGatingStatus.failed and update.status == models.UpdateStatus.testing:
+                  <div id='trigger' class="btn btn-outline-primary btn-sm mt-1" data-toggle="modal" data-target="#trigger_tests">
+                    <span class="fa fa-fw fa-retweet"></span> Re-Trigger Tests
+                  </div>
+                  % endif
                   % if can_edit and self.util.can_waive_test_results(update):
-                  <a id='waive' class="btn btn-sm btn-primary hidden" data-toggle="modal" data-target="#waive_test_results">Waive Test Results</a>
+                  <div id='waive' class="btn btn-outline-primary btn-sm mt-1 hidden" data-toggle="modal" data-target="#waive_test_results">
+                    <span class="fa fa-fw fa-thumbs-up"></span> Waive Test Results
+                  </div>
                   % endif
                 </div>
-                <div>
-                  % if can_edit and config.get('test_gating.required'):
-                  <a id='trigger' class="btn btn-sm btn-primary hidden" data-toggle="modal" data-target="#trigger_tests">Trigger Tests</a>
-                  % endif
-                </div>
-                <div id="test_status_badge">
-                  <i class="spinner fa fa-spinner fa-spin fa-fw"></i>
-                </div>
-              </div>
               </div>
               % endif
               <div class="mt-3">
@@ -663,8 +663,8 @@ if can_edit and update.release.composed_by_bodhi:
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h3 class="modal-title" id="waiveModalLabel">Waive All Test Results</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       </div>
       <div class="modal-body">
           <div class="row">
@@ -690,19 +690,18 @@ if can_edit and update.release.composed_by_bodhi:
 </div>
 % endif
 
-% if self.util.can_trigger_tests(update):
 <div class="modal fade" id="trigger_tests" tabindex="-1" role="dialog" aria-labelledby="waiveModalLabel" aria-hidden="true">
   <form>
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <h3 class="modal-title" id="waiveModalLabel">Trigger Tests</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       </div>
       <div class="modal-body">
           <div class="row">
             <div class="col-sm-offset-2 col-sm-10">
-              <p>Submitting this will the tests again.</p>
+              <p>Confirm request to re-trigger tests.</p>
             </div>
           </div>
       </div>
@@ -714,7 +713,6 @@ if can_edit and update.release.composed_by_bodhi:
   </div>
   </form>
 </div>
-% endif
 
 
 <%block name="javascript">
@@ -1131,7 +1129,6 @@ $(document).ready(function() {
     });
 % endif
 
-% if self.util.can_trigger_tests(update):
     // handle for triggering of tests.
     $("#trigger_tests").submit(function(evt) {
       evt.preventDefault();
@@ -1161,7 +1158,6 @@ $(document).ready(function() {
         },
       });
     });
-% endif
 });
 </script>
 
