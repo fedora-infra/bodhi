@@ -141,7 +141,15 @@ class AutomaticUpdateHandler:
                 dbsession.add(user)
 
             log.debug(f"Creating new update for {bnvr}.")
-            changelog = build.get_changelog(lastupdate=True)
+            try:
+                changelog = build.get_changelog(lastupdate=True)
+            except ValueError:
+                # Often due to bot-generated builds
+                # https://github.com/fedora-infra/bodhi/issues/4146
+                changelog = None
+            except Exception:
+                # Re-raise exception, so that the message can be re-queued
+                raise
             closing_bugs = []
             if changelog:
                 log.debug("Adding changelog to update notes.")
