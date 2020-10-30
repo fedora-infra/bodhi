@@ -1188,13 +1188,13 @@ class Package(Base):
         """
         x = header(self.name)
         states = {'pending': [], 'testing': [], 'stable': []}
-        if len(self.builds):
+        if self.builds:
             for build in self.builds:
                 if build.update and build.update.status.description in states:
                     states[build.update.status.description].append(
                         build.update)
         for state in states.keys():
-            if len(states[state]):
+            if states[state]:
                 x += "\n %s Updates (%d)\n" % (state.title(),
                                                len(states[state]))
                 for update in states[state]:
@@ -3218,7 +3218,7 @@ class Update(Base):
             val += "\n   Critpath: %s" % self.critpath
         if self.request is not None:
             val += "\n    Request: %s" % self.request.description
-        if len(self.bugs):
+        if self.bugs:
             bugs = self.get_bugstring(show_titles=True)
             val += "\n       Bugs: %s" % bugs
         if self.notes:
