@@ -314,7 +314,7 @@ def get_template(update: 'Update', use_template: str = 'fedora_errata_template')
         # Add this update's referenced Bugzillas
         i = 1
         info['references'] = ""
-        if len(update.bugs):
+        if update.bugs:
             info['references'] = "References:\n\n"
             parent = True in [bug.parent for bug in update.bugs]
             for bug in update.bugs:
