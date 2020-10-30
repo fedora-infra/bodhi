@@ -1966,7 +1966,7 @@ class Update(Base):
             ValueError: If the build being appended is not the same type as the
                 existing builds.
         """
-        if not all([isinstance(b, type(build)) for b in self.builds]):
+        if not all(isinstance(b, type(build)) for b in self.builds):
             raise ValueError('An update must contain builds of the same type.')
         return build
 
@@ -2549,7 +2549,7 @@ class Update(Base):
         """
         if not self.release.pending_signing_tag and not self.from_tag:
             return True
-        return all([build.signed for build in self.builds])
+        return all(build.signed for build in self.builds)
 
     @property
     def content_type(self):
