@@ -1193,7 +1193,7 @@ class Package(Base):
                 if build.update and build.update.status.description in states:
                     states[build.update.status.description].append(
                         build.update)
-        for state in states.keys():
+        for state in states:
             if states[state]:
                 x += "\n %s Updates (%d)\n" % (state.title(),
                                                len(states[state]))
