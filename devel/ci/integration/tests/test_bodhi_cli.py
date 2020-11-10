@@ -19,6 +19,7 @@
 import itertools
 import json
 import re
+import stat
 import textwrap
 
 from conu import ConuException
@@ -478,12 +479,13 @@ def test_updates_download(bodhi_container, db_container):
     # something we can track.
     koji_mock = "#!/bin/sh\necho TESTING CALL $0 $@\n"
     with replace_file(bodhi_container, "/usr/bin/koji", koji_mock):
-        result = _run_cli(bodhi_container, cmd)
+        with replace_file(bodhi_container, "/usr/local/bin/koji", koji_mock):
+            result = _run_cli(bodhi_container, cmd)
     assert result.exit_code == 0
     for update in updates:
         assert "Downloading packages from {}".format(update['alias']) in result.output
     for build_id in builds:
-        assert re.search(f"TESTING CALL /usr/bin/koji download-build.*{build_id}", result.output)
+        assert re.search(f"TESTING CALL .*koji download-build.*{build_id}", result.output)
 
 
 def test_updates_request(bodhi_container, ipsilon_container, db_container):
