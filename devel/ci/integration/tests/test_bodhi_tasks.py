@@ -134,9 +134,9 @@ def test_update_edit(
         "guest",
         "--password",
         "ipsilon",
-        update_alias,
         "--bugs",
         bug_id,
+        update_alias,
     ]
     try:
         bodhi_container.execute(cmd)
