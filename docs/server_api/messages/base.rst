@@ -11,3 +11,4 @@ Python objects
    :show-inheritance:
    :special-members:
    :undoc-members:
+   :noindex:

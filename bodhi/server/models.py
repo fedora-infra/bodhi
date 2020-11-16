@@ -877,20 +877,35 @@ class Release(Base):
             testing. If the release isn't configured to have mandatory testing time, 0 is
             returned.
         """
-        name = self.name.lower().replace('-', '')
-        status = config.get('%s.status' % name, None)
-        if status:
-            days = config.get(
-                '%s.%s.mandatory_days_in_testing' % (name, status))
-            if days is not None:
-                return int(days)
-        days = config.get('%s.mandatory_days_in_testing' %
-                          self.id_prefix.lower().replace('-', '_'))
+        if self.setting_status:
+            days = config.get(f'{self.setting_prefix}.{self.setting_status}'
+                              f'.mandatory_days_in_testing', None)
+        else:
+            days = config.get(f'{self.id_prefix.lower().replace("-", "_")}'
+                              f'.mandatory_days_in_testing', None)
         if days is None:
-            log.warning('No mandatory days in testing defined for %s. Defaulting to 0.' % self.name)
+            log.warning(f'No mandatory days in testing defined for {self.name}. Defaulting to 0.')
             return 0
         else:
             return int(days)
+
+    @property
+    def critpath_mandatory_days_in_testing(self):
+        """
+        Return the number of days that critpath updates in this release must spend in testing.
+
+        Returns:
+            int: The number of days in testing that critpath updates in this release must spend in
+            testing. If the release isn't configured to have critpath mandatory testing time, 0 is
+            returned.
+        """
+        if self.setting_status:
+            days = config.get(f'{self.setting_prefix}.{self.setting_status}'
+                              f'.critpath.stable_after_days_without_negative_karma', None)
+            if days is not None:
+                return int(days)
+
+        return config.get('critpath.stable_after_days_without_negative_karma', 0)
 
     @property
     def collection_name(self):
@@ -1173,13 +1188,13 @@ class Package(Base):
         """
         x = header(self.name)
         states = {'pending': [], 'testing': [], 'stable': []}
-        if len(self.builds):
+        if self.builds:
             for build in self.builds:
                 if build.update and build.update.status.description in states:
                     states[build.update.status.description].append(
                         build.update)
-        for state in states.keys():
-            if len(states[state]):
+        for state in states:
+            if states[state]:
                 x += "\n %s Updates (%d)\n" % (state.title(),
                                                len(states[state]))
                 for update in states[state]:
@@ -1951,7 +1966,7 @@ class Update(Base):
             ValueError: If the build being appended is not the same type as the
                 existing builds.
         """
-        if not all([isinstance(b, type(build)) for b in self.builds]):
+        if not all(isinstance(b, type(build)) for b in self.builds):
             raise ValueError('An update must contain builds of the same type.')
         return build
 
@@ -1994,10 +2009,9 @@ class Update(Base):
         :rtype:  int
         """
         if self.critpath:
-            return config.get('critpath.stable_after_days_without_negative_karma')
-
-        days = self.release.mandatory_days_in_testing
-        return days if days else 0
+            return self.release.critpath_mandatory_days_in_testing
+        else:
+            return self.release.mandatory_days_in_testing
 
     @property
     def karma(self):
@@ -2535,7 +2549,7 @@ class Update(Base):
         """
         if not self.release.pending_signing_tag and not self.from_tag:
             return True
-        return all([build.signed for build in self.builds])
+        return all(build.signed for build in self.builds)
 
     @property
     def content_type(self):
@@ -3204,7 +3218,7 @@ class Update(Base):
             val += "\n   Critpath: %s" % self.critpath
         if self.request is not None:
             val += "\n    Request: %s" % self.request.description
-        if len(self.bugs):
+        if self.bugs:
             bugs = self.get_bugstring(show_titles=True)
             val += "\n       Bugs: %s" % bugs
         if self.notes:
@@ -4503,7 +4517,7 @@ class Bug(Base):
             The default comment to add to the bug related to the given update.
         """
         install_msg = (
-            f'In short time you\'ll be able to install the update with the following '
+            f'Soon you\'ll be able to install the update with the following '
             f'command:\n`{update.install_command}`') if update.install_command else ''
         msg_data = {'update_title': update.get_title(delim=", ", nvr=True),
                     'update_beauty_title': update.get_title(beautify=True, nvr=True),

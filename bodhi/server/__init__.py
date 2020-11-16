@@ -292,7 +292,7 @@ def main(global_config, testing=None, session=None, **settings):
         config.set_authentication_policy(AuthTktAuthenticationPolicy(
             bodhi_config['authtkt.secret'], callback=groupfinder,
             secure=bodhi_config['authtkt.secure'], hashalg='sha512', timeout=timeout,
-            max_age=timeout))
+            max_age=timeout, samesite='Strict'))
         config.set_authorization_policy(ACLAuthorizationPolicy())
 
     # Collect metrics for endpoints

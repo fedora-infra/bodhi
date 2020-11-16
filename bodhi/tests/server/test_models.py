@@ -734,6 +734,34 @@ class TestRelease(ModelTest):
         """Test mandatory_days_in_testing() with a value that is 0."""
         assert self.obj.mandatory_days_in_testing == 0
 
+    @mock.patch.dict(config, {'critpath.stable_after_days_without_negative_karma': 11,
+                              'f11.current.critpath.stable_after_days_without_negative_karma': 42})
+    def test_critpath_mandatory_days_in_testing_no_status(self):
+        """
+        Test critpath_mandatory_days_in_testing() returns global default if
+        release has no status.
+        """
+        assert self.obj.critpath_mandatory_days_in_testing == 11
+
+    @mock.patch.dict(config, {'critpath.stable_after_days_without_negative_karma': 11,
+                              'f11.status': 'current'})
+    def test_critpath_mandatory_days_in_testing_status_default(self):
+        """
+        Test critpath_mandatory_days_in_testing() returns global default if
+        release has status, but no override set.
+        """
+        assert self.obj.critpath_mandatory_days_in_testing == 11
+
+    @mock.patch.dict(config, {'critpath.stable_after_days_without_negative_karma': 11,
+                              'f11.status': 'current',
+                              'f11.current.critpath.stable_after_days_without_negative_karma': 42})
+    def test_critpath_mandatory_days_in_testing_status_override(self):
+        """
+        Test critpath_mandatory_days_in_testing() returns override value if
+        release has status and override set.
+        """
+        assert self.obj.critpath_mandatory_days_in_testing == 42
+
     def test_setting_prefix(self):
         """Assert correct return value from the setting_prefix property."""
         assert self.obj.setting_prefix == 'f11'

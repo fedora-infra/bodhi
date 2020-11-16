@@ -358,7 +358,7 @@ class BodhiConfig(dict):
             'validator': str},
         'important_groups': {
             # Defined in and tied to the Fedora Account System (limited to 16 characters)
-            'value': ['proventesters', 'provenpackager,' 'releng', 'security_respons', 'packager',
+            'value': ['proventesters', 'provenpackager', 'releng', 'security_respons', 'packager',
                       'bodhiadmin'],
             'validator': _generate_list_validator()},
         'initial_bug_msg': {
