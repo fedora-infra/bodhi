@@ -1,4 +1,4 @@
-FROM fedora:30
+FROM registry.fedoraproject.org/fedora:32
 LABEL \
   name="rabbitmq" \
   vendor="Fedora Infrastructure" \
