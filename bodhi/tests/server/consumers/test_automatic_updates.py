@@ -150,6 +150,29 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         assert len(update.bugs) > 0
         assert update.bugs[0].bug_id == 112233
 
+    @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
+    def test_changelog_handled_exception(self, mock_generate_changelog):
+        """Assert that update creation is succesful if get_changelog() raises ValueError."""
+        mock_generate_changelog.side_effect = ValueError('Handled exception')
+
+        # process the message
+        self.handler(self.sample_message)
+
+        # check if the update exists...
+        update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+
+        assert update.notes == "Automatic update for colord-1.3.4-1.fc26."
+
+    @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
+    def test_changelog_unhandled_exception(self, mock_generate_changelog):
+        """Assert that update creation is not succesful if get_changelog() raises Exception."""
+        mock_generate_changelog.side_effect = Exception('Unhandled exception')
+        with pytest.raises(Exception) as exc:
+            self.handler(self.sample_message)
+        assert str(exc.value) == 'Unhandled exception'
+
     def test_consume_with_orphan_build(self, caplog):
         """
         Assert existing builds without an update can be handled.

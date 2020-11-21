@@ -1188,13 +1188,13 @@ class Package(Base):
         """
         x = header(self.name)
         states = {'pending': [], 'testing': [], 'stable': []}
-        if len(self.builds):
+        if self.builds:
             for build in self.builds:
                 if build.update and build.update.status.description in states:
                     states[build.update.status.description].append(
                         build.update)
-        for state in states.keys():
-            if len(states[state]):
+        for state in states:
+            if states[state]:
                 x += "\n %s Updates (%d)\n" % (state.title(),
                                                len(states[state]))
                 for update in states[state]:
@@ -1893,7 +1893,8 @@ class Update(Base):
         backref=backref('updates', passive_deletes=True, order_by='Update.date_submitted'))
 
     # One-to-many relationships
-    comments = relationship('Comment', backref='update', order_by='Comment.timestamp')
+    comments = relationship('Comment', backref='update', cascade="all,delete,delete-orphan",
+                            order_by='Comment.timestamp')
     builds = relationship('Build', backref='update', order_by='Build.nvr')
 
     # Many-to-many relationships
@@ -1966,7 +1967,7 @@ class Update(Base):
             ValueError: If the build being appended is not the same type as the
                 existing builds.
         """
-        if not all([isinstance(b, type(build)) for b in self.builds]):
+        if not all(isinstance(b, type(build)) for b in self.builds):
             raise ValueError('An update must contain builds of the same type.')
         return build
 
@@ -2549,7 +2550,7 @@ class Update(Base):
         """
         if not self.release.pending_signing_tag and not self.from_tag:
             return True
-        return all([build.signed for build in self.builds])
+        return all(build.signed for build in self.builds)
 
     @property
     def content_type(self):
@@ -3218,7 +3219,7 @@ class Update(Base):
             val += "\n   Critpath: %s" % self.critpath
         if self.request is not None:
             val += "\n    Request: %s" % self.request.description
-        if len(self.bugs):
+        if self.bugs:
             bugs = self.get_bugstring(show_titles=True)
             val += "\n       Bugs: %s" % bugs
         if self.notes:
@@ -3340,11 +3341,9 @@ class Update(Base):
             user = User(name=author)
             session.add(user)
 
-        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath, user=user)
+        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath,
+                          update=self, user=user)
         session.add(comment)
-
-        self.comments.append(comment)
-        session.flush()
 
         if karma != 0:
             # Determine whether this user has already left karma, and if so what the most recent
@@ -4311,7 +4310,8 @@ class BugKarma(Base):
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
-    comment = relationship("Comment", backref='bug_feedback')
+    comment = relationship("Comment", backref=backref('bug_feedback',
+                                                      cascade="all,delete,delete-orphan"))
 
     bug_id = Column(Integer, ForeignKey('bugs.bug_id'))
     bug = relationship("Bug", backref='feedback')
@@ -4334,7 +4334,8 @@ class TestCaseKarma(Base):
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
-    comment = relationship("Comment", backref='testcase_feedback')
+    comment = relationship("Comment", backref=backref('testcase_feedback',
+                                                      cascade="all,delete,delete-orphan"))
 
     testcase_id = Column(Integer, ForeignKey('testcases.id'))
     testcase = relationship("TestCase", backref='feedback')
@@ -4369,7 +4370,7 @@ class Comment(Base):
     # testcase_feedback backref from TestCaseKarma
 
     # Many-to-one relationships
-    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
+    update_id = Column(Integer, ForeignKey('updates.id'), nullable=False, index=True)
     # update backref from Update
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     # user backref from User
