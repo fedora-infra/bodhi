@@ -1893,7 +1893,8 @@ class Update(Base):
         backref=backref('updates', passive_deletes=True, order_by='Update.date_submitted'))
 
     # One-to-many relationships
-    comments = relationship('Comment', backref='update', order_by='Comment.timestamp')
+    comments = relationship('Comment', backref='update', cascade="all,delete,delete-orphan",
+                            order_by='Comment.timestamp')
     builds = relationship('Build', backref='update', order_by='Build.nvr')
 
     # Many-to-many relationships
@@ -3340,11 +3341,9 @@ class Update(Base):
             user = User(name=author)
             session.add(user)
 
-        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath, user=user)
+        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath,
+                          update=self, user=user)
         session.add(comment)
-
-        self.comments.append(comment)
-        session.flush()
 
         if karma != 0:
             # Determine whether this user has already left karma, and if so what the most recent
@@ -4311,7 +4310,8 @@ class BugKarma(Base):
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
-    comment = relationship("Comment", backref='bug_feedback')
+    comment = relationship("Comment", backref=backref('bug_feedback',
+                                                      cascade="all,delete,delete-orphan"))
 
     bug_id = Column(Integer, ForeignKey('bugs.bug_id'))
     bug = relationship("Bug", backref='feedback')
@@ -4334,7 +4334,8 @@ class TestCaseKarma(Base):
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
-    comment = relationship("Comment", backref='testcase_feedback')
+    comment = relationship("Comment", backref=backref('testcase_feedback',
+                                                      cascade="all,delete,delete-orphan"))
 
     testcase_id = Column(Integer, ForeignKey('testcases.id'))
     testcase = relationship("TestCase", backref='feedback')
@@ -4369,7 +4370,7 @@ class Comment(Base):
     # testcase_feedback backref from TestCaseKarma
 
     # Many-to-one relationships
-    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
+    update_id = Column(Integer, ForeignKey('updates.id'), nullable=False, index=True)
     # update backref from Update
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     # user backref from User
