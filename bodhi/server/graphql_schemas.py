@@ -19,7 +19,11 @@
 from graphene import relay, Field, String
 from graphene_sqlalchemy import SQLAlchemyObjectType
 
-from bodhi.server.models import Release as ReleaseModel, Update as UpdateModel
+from bodhi.server.models import (
+    Release as ReleaseModel,
+    Update as UpdateModel,
+    BuildrootOverride as BuildrootOverrideModel
+)
 
 
 class Release(SQLAlchemyObjectType):
@@ -45,3 +49,14 @@ class Update(SQLAlchemyObjectType):
     status = Field(String)
     request = Field(String)
     date_approved = Field(String)
+
+
+class BuildrootOverride(SQLAlchemyObjectType):
+    """Type object representing an update from bodhi.server.models."""
+
+    class Meta:
+        """Allow to set different options to the class."""
+
+        model = BuildrootOverrideModel
+        interfaces = (relay.Node, )
+    submitter = Field(String)
