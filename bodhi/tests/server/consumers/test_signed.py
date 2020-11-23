@@ -24,7 +24,7 @@ from fedora_messaging import api, testing as fml_testing
 from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.config import config
 from bodhi.server.consumers import signed
-from bodhi.server.models import Build, Update, UpdateStatus, TestGatingStatus
+from bodhi.server.models import Build, Update, UpdateRequest, UpdateStatus, TestGatingStatus
 from bodhi.tests.server import base
 
 
@@ -102,8 +102,9 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         self.handler(self.sample_message)
         assert build.signed is True
 
+    @mock.patch('bodhi.server.consumers.signed.log')
     @mock.patch('bodhi.server.consumers.signed.Build')
-    def test_consume_not_pending_testing_tag(self, mock_build_model):
+    def test_consume_not_pending_testing_tag(self, mock_build_model, mock_log):
         """
         Assert that messages whose tag don't match the pending testing tag don't update the DB
         """
@@ -115,6 +116,9 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         build.release.pending_testing_tag = "some tag that isn't pending testing"
 
         self.handler(self.sample_message)
+        mock_log.info.assert_called_with(
+            "Tag is not pending_testing tag, skipping")
+        assert mock_log.info.call_count == 2
         assert build.signed is False
 
     @mock.patch('bodhi.server.consumers.signed.Build')
@@ -162,18 +166,19 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
     def test_consume_from_tag_wrong_tag(self, mock_build_model, mock_log):
         """
         Assert that messages about builds from side tag updates are skipped
-        when tag is not correct.
+        when tag is not correct (rawhide).
         """
         build = mock_build_model.get.return_value
         build.signed = False
         build.release = mock.MagicMock()
         update = mock.MagicMock()
         update.from_tag = "f30-side-tag-unknown"
+        update.release.composed_by_bodhi = False
         build.update = update
 
         self.handler(self.sample_side_tag_message)
         mock_log.info.assert_called_with(
-            "Tag is not pending_testing tag, skipping")
+            "Tag is not testing side tag, skipping")
         assert mock_log.info.call_count == 2
 
     @mock.patch('bodhi.server.consumers.signed.Build')
@@ -203,7 +208,7 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         build = mock_build_model.get.return_value
         build.signed = False
         build.release = mock.MagicMock()
-        build.release.get_testing_side_tag.return_value = "f30-side-tag-testing-pending"
+        build.release.get_pending_testing_side_tag.return_value = "f30-side-tag-testing-pending"
         update = mock.MagicMock()
         update.release.composed_by_bodhi = False
         update.from_tag = "f30-side-tag"
@@ -245,3 +250,41 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         assert update.status == UpdateStatus.testing
         assert update.pushed is True
         assert update.test_gating_status == TestGatingStatus.passed
+
+    @mock.patch.dict(config, [('test_gating.required', True)])
+    @mock.patch('bodhi.server.models.work_on_bugs_task', mock.Mock())
+    @mock.patch('bodhi.server.models.fetch_test_cases_task', mock.Mock())
+    @mock.patch('bodhi.server.models.Update.add_tag')
+    def test_consume_from_tag_composed_by_bodhi(self, add_tag):
+        """
+        Assert that update created from tag for a release composed by bodhi
+        is handled correctly when message is received.
+        The update request should be set to 'testing' so that the next composer run
+        will change the update status.
+        """
+        self.handler.db_factory = base.TransactionalSessionMaker(self.Session)
+        update = self.db.query(Update).filter(Build.nvr == 'bodhi-2.0-1.fc17').one()
+        update.from_tag = "f30-side-tag"
+        update.status = UpdateStatus.pending
+        update.request = None
+        update.release.composed_by_bodhi = True
+        update.release.pending_testing_tag = "f30-testing-pending"
+        update.builds[0].signed = False
+        update.pushed = False
+
+        self.db.commit()
+        with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
+            greenwave_response = {
+                'policies_satisfied': True,
+                'summary': "all tests have passed"
+            }
+            mock_greenwave.return_value = greenwave_response
+            with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+                self.handler(self.sample_side_tag_message_2)
+
+        assert update.builds[0].signed is True
+        assert update.builds[0].update.request == UpdateRequest.testing
+        assert update.status == UpdateStatus.pending
+        assert update.pushed is False
+        assert update.test_gating_status == TestGatingStatus.passed
+        assert add_tag.not_called()

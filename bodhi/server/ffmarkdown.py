@@ -1,4 +1,4 @@
-# Copyright © 2014-2019 Red Hat, Inc. and others.
+# Copyright © 2014-2020 Red Hat, Inc. and others.
 #
 # This file is part of Bodhi.
 #
@@ -24,10 +24,11 @@ Author: Ralph Bean <rbean@redhat.com>
 
 from re import escape
 import typing
+import xml.etree.ElementTree as etree
 
 from markdown.extensions import Extension
-import markdown.inlinepatterns
-import markdown.postprocessors
+from markdown.postprocessors import Postprocessor
+from markdown.inlinepatterns import InlineProcessor
 import markdown.util
 import pyramid.threadlocal
 
@@ -104,72 +105,81 @@ def update_url(alias: str) -> str:
     return request.route_url('update', id=alias)
 
 
-class MentionPattern(markdown.inlinepatterns.Pattern):
+class MentionProcessor(InlineProcessor):
     """Match username mentions and point to their profiles."""
 
-    def handleMatch(self, m: 're.Match') -> 'xml.etree.ElementTree.Element':
+    def handleMatch(self, m: 're.Match',
+                    data: str) -> typing.Tuple['xml.etree.ElementTree.Element', int, int]:
         """
         Build and return an Element that links to the matched User's profile.
 
         Args:
-            m: The regex match on the username.
-        Return:
-            An html anchor referencing the user's profile.
+            m: The regex match on the update.
+            data: The block of text around the pattern.
+        Returns:
+            A tuple composed by the element being added to the tree, start and end indexes
+            in data that were “consumed” by the pattern.
         """
-        el = markdown.util.etree.Element("a")
-        name = markdown.util.AtomicString(m.group(2))
+        el = etree.Element("a")
+        name = markdown.util.AtomicString(m.group(1))
         el.set('href', user_url(name[1:]))
         el.text = name
-        return el
+        return el, m.start(0), m.end(0)
 
 
-class BugzillaPattern(markdown.inlinepatterns.Pattern):
+class BugzillaProcessor(InlineProcessor):
     """Match bug tracker patterns."""
 
-    def handleMatch(self, m: 're.Match') -> 'xml.etree.ElementTree.Element':
+    def handleMatch(self, m: 're.Match',
+                    data: str) -> typing.Tuple['xml.etree.ElementTree.Element', int, int]:
         """
         Build and return an Element that links to the referenced bug.
 
         Args:
-            m: The regex match on the bug.
+            m: The regex match on the update.
+            data: The block of text around the pattern.
         Returns:
-            An html anchor referencing the matched bug.
+            A tuple composed by the element being added to the tree, start and end indexes
+            in data that were “consumed” by the pattern.
         """
-        tracker = markdown.util.AtomicString(m.group(2))
-        idx = markdown.util.AtomicString(m.group(3))
+        tracker = markdown.util.AtomicString(m.group(1))
+        idx = markdown.util.AtomicString(m.group(2))
         url = bug_url(tracker, idx[1:])
 
         if url is None:
-            return tracker + idx
+            return f'{tracker}{idx}', m.start(0), m.end(0)
 
-        el = markdown.util.etree.Element("a")
+        el = etree.Element("a")
         el.set('href', url)
         el.text = idx
-        return el
+        return el, m.start(0), m.end(0)
 
 
-class UpdatePattern(markdown.inlinepatterns.Pattern):
+class UpdateProcessor(InlineProcessor):
     """Match update alias pattern and link to the update."""
 
-    def handleMatch(self, m: 're.Match') -> 'xml.etree.ElementTree.Element':
+    def handleMatch(self, m: 're.Match',
+                    data: str) -> typing.Tuple['xml.etree.ElementTree.Element', int, int]:
         """
         Build and return an Element that links to the referenced update.
 
         Args:
             m: The regex match on the update.
+            data: The block of text around the pattern.
         Returns:
-            An html anchor referencing the matched update.
+            A tuple composed by the element being added to the tree, start and end indexes
+            in data that were “consumed” by the pattern.
         """
-        alias = markdown.util.AtomicString(m.group(3))
+        alias = markdown.util.AtomicString(m.group(2))
         url = update_url(alias)
 
-        el = markdown.util.etree.Element("a")
+        el = etree.Element("a")
         el.set('href', url)
         el.text = alias
-        return el
+        return el, m.start(0), m.end(0)
 
 
-class SurroundProcessor(markdown.postprocessors.Postprocessor):
+class SurroundPostprocessor(Postprocessor):
     """A postprocessor to surround the text with a markdown <div>."""
 
     def run(self, text: str) -> str:
@@ -187,15 +197,14 @@ class SurroundProcessor(markdown.postprocessors.Postprocessor):
 class BodhiExtension(Extension):
     """Bodhi's markdown Extension."""
 
-    def extendMarkdown(self, md: markdown.Markdown, md_globals: dict) -> None:
+    def extendMarkdown(self, md: markdown.Markdown) -> None:
         """
         Extend markdown to add our patterns and postprocessor.
 
         Args:
             md: An instance of the Markdown class.
-            md_globals: Contains all the various global variables within the markdown module.
         """
-        md.inlinePatterns.add('mention', MentionPattern(MENTION_RE, md), '_end')
-        md.inlinePatterns.add('bugzilla', BugzillaPattern(BUGZILLA_RE, md), '_end')
-        md.inlinePatterns.add('update', UpdatePattern(UPDATE_RE, md), '_end')
-        md.postprocessors.add('surround', SurroundProcessor(md), '_end')
+        md.inlinePatterns.register(MentionProcessor(MENTION_RE, md), 'mention', 175)
+        md.inlinePatterns.register(BugzillaProcessor(BUGZILLA_RE, md), 'bugzilla', 175)
+        md.inlinePatterns.register(UpdateProcessor(UPDATE_RE, md), 'update', 175)
+        md.postprocessors.register(SurroundPostprocessor(md), 'surround', 175)

@@ -279,7 +279,7 @@ class BodhiConfig(dict):
             'value': ['Fedora', 'Fedora EPEL', 'Fedora Modules'],
             'validator': _generate_list_validator(',')},
         'bz_regex': {
-            'value': (r'(?:fix(?:es)?|close(?:s)?|resolve(?:s)?(?:\:)?)\s'
+            'value': (r'(?:fix(?:es)?|close(?:s)?|resolve(?:s)?)(?:\:)?\s'
                       r'(?:fedora|epel|rh(?:bz)?)#(\d{5,})'),
             'validator': str},
         'bz_server': {
@@ -294,6 +294,9 @@ class BodhiConfig(dict):
         'celery_config': {
             'value': '/etc/bodhi/celeryconfig.py',
             'validator': str},
+        'check_signed_builds_delay': {
+            'value': 2,
+            'validator': int},
         'clean_old_composes': {
             'value': True,
             'validator': _validate_bool},
@@ -355,12 +358,15 @@ class BodhiConfig(dict):
             'validator': str},
         'important_groups': {
             # Defined in and tied to the Fedora Account System (limited to 16 characters)
-            'value': ['proventesters', 'provenpackager,' 'releng', 'security_respons', 'packager',
+            'value': ['proventesters', 'provenpackager', 'releng', 'security_respons', 'packager',
                       'bodhiadmin'],
             'validator': _generate_list_validator()},
         'initial_bug_msg': {
             'value': '%s has been submitted as an update to %s. %s',
             'validator': str},
+        'graphiql_enabled': {
+            'value': False,
+            'validator': _validate_bool},
         'greenwave_api_url': {
             'value': 'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0',
             'validator': _validate_rstripped_str},

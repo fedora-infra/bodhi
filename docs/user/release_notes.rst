@@ -4,6 +4,53 @@ Release notes
 
 .. towncrier release notes start
 
+v5.5
+====
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+
+* Disable manual creation of updates for releases not composed by Bodhi and add
+  some bits in the docs on how to handle automatic updates not being created
+  (:issue:`4058`).
+* Fix TestCase validation upon feedback submission (:issue:`4088`).
+* Do not let update through when bodhi fails to talk to greenwave.
+  (:issue:`4089`).
+* Fix package name encoding in URLs (:issue:`4095`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Saleh
+* Clement Verna
+* Karma Dolkar
+* Mattia Verga
+* Pierre-Yves Chibon
+
+
+v5.4.1
+======
+This is a {major|feature|bugfix} release that adds [short summary].
+
+
+Bug fixes
+^^^^^^^^^
+
+* Make sure to close the bugs associated to a rawhide update. (:issue:`4067`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Clement Verna
+* Mattia Verga
+
+
 v5.4.0
 ======
 This is a minor release.

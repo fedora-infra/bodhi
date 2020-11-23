@@ -58,7 +58,7 @@ $(document).ready(function() {
                     timeout: 10000,
                     data: {
                         testing: true,
-                        package: '{{query}}',
+                        prefix: '{{query}}',
                     },
                     path: '',
                 },
@@ -76,16 +76,6 @@ $(document).ready(function() {
                 $("#new-override-form .typeahead__list").remove();
             }
         }
-    });
-
-    $("#nvr").focus(function() {
-        if ($(this).val() != '') {
-            $("#new-override-form .typeahead__list").attr("style", "display: inline !important");
-        }
-    });
-
-    $("#nvr").blur(function() {
-        $("#new-override-form .typeahead__list").attr("style", "display: none !important");
     });
 
     // Wire up the submit button

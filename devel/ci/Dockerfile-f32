@@ -1,4 +1,4 @@
-FROM fedora:32
+FROM registry.fedoraproject.org/fedora:32
 LABEL maintainer="Randy Barlow <bowlofeggs@fedoraproject.org>"
 
 RUN dnf install -y \
@@ -7,6 +7,7 @@ RUN dnf install -y \
     findutils \
     git \
     make \
+    pip \
     python3-alembic \
     python3-arrow \
     python3-backoff \
@@ -23,6 +24,7 @@ RUN dnf install -y \
     python3-dogpile-cache \
     python3-fedora \
     python3-feedgen \
+    python3-gssapi \
     python3-jinja2 \
     python3-koji \
     python3-libcomps \
@@ -31,6 +33,7 @@ RUN dnf install -y \
     python3-munch \
     python3-openid \
     python3-psycopg2 \
+    python3-prometheus_client \
     python3-pylibravatar \
     python3-pyramid \
     python3-pyramid-fas-openid \
@@ -43,7 +46,9 @@ RUN dnf install -y \
     python3-sqlalchemy_schemadisplay \
     python3-waitress \
     python3-webtest \
-    python3-yaml
+    python3-whitenoise \
+    python3-yaml &&\
+    pip-3 install graphene graphene-sqlalchemy WebOb-GraphQL koji
 
 # Fake pungi being installed so we can avoid it and all its dependencies
 RUN ln -s /usr/bin/true /usr/bin/pungi-koji

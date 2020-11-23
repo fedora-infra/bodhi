@@ -14,6 +14,7 @@ f7.status = post_beta
 f7.post_beta.mandatory_days_in_testing = 7
 f7.post_beta.critpath.num_admin_approvals = 0
 f7.post_beta.critpath.min_karma = 2
+f7.post_beta.critpath.stable_after_days_without_negative_karma = 3
 cors_origins_ro = *
 cors_origins_rw = http://0.0.0.0:6543
 cors_connect_src = http://0.0.0.0:6543 http://localhost:6543 https://*.fedoraproject.org/ wss://hub.fedoraproject.org:9939/
@@ -70,6 +71,8 @@ test_gating.required = True
 # WaiverDB and Greenwave in vagrant are provided via docker local services
 waiverdb_api_url = http://bodhi_user:pass@localhost:6544/api/v1.0
 greenwave_api_url = http://localhost:6545/api/v1.0
+
+graphiql_enabled = True
 
 [server:main]
 use = egg:waitress#main
