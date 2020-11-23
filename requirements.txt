@@ -12,8 +12,10 @@ fedora_messaging
 feedgen>=0.7.0
 graphene
 graphene-sqlalchemy
+koji
 jinja2
-markdown
+markdown>=3.0
+prometheus_client
 psycopg2
 py3dns  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218
 pylibravatar
@@ -27,3 +29,4 @@ simplemediawiki
 sqlalchemy
 waitress
 WebOb-GraphQL
+whitenoise

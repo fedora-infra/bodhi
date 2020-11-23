@@ -19,6 +19,8 @@
 
 import datetime
 
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, REGISTRY
+from pyramid.response import Response
 from pyramid.settings import asbool
 from pyramid.view import view_config, notfound_view_config
 from pyramid.exceptions import HTTPForbidden, HTTPBadRequest
@@ -215,6 +217,28 @@ def _get_active_overrides(request):
     query = query.order_by(models.BuildrootOverride.submission_date.desc())
 
     return query.all()
+
+
+@view_config(route_name='prometheus_metric')
+def get_metrics(request):
+    """
+    Provide the metrics to be consumed by prometheus.
+
+    See the metrics_tween.py for hook to collect metrics for page requests
+
+    Args:
+        request (pyramid.request): The current web request.
+    Returns:
+        str: text in the prometheus metrics format.
+    """
+    registry = REGISTRY
+
+    request.response.content_type = CONTENT_TYPE_LATEST
+    resp = Response(
+        content_type=CONTENT_TYPE_LATEST,
+    )
+    resp.body = generate_latest(registry)
+    return resp
 
 
 @view_config(route_name='home', renderer='home.html')

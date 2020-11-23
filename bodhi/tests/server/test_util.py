@@ -1049,35 +1049,26 @@ class TestUtils(base.BasePyTestCase):
             '<script>alert("pants")</script>'
         )
         html = util.markup(None, text)
-        assert html == \
-            (
-                '<div class="markdown"><h1>this is a header</h1>\n'
-                '<p>this is some <strong>text</strong>\n'
-                '&lt;script&gt;alert("pants")&lt;/script&gt;</p></div>'
-            )
+
+        # Markdown has changed html parser between 3.2.2 and 3.3.0
+        from markdown import __version_info__ as mvi
+        if mvi[0] >= 3 and mvi[1] >= 3:
+            assert html == \
+                (
+                    '<div class="markdown"><h1>this is a header</h1>\n'
+                    '<p>this is some <strong>text</strong></p>\n'
+                    '&lt;script&gt;alert("pants")&lt;/script&gt;\n</div>'
+                )
+        else:
+            assert html == \
+                (
+                    '<div class="markdown"><h1>this is a header</h1>\n'
+                    '<p>this is some <strong>text</strong>\n'
+                    '&lt;script&gt;alert("pants")&lt;/script&gt;</p></div>'
+                )
 
     @mock.patch('bodhi.server.util.bleach.clean', return_value='cleaned text')
-    @mock.patch.object(util.bleach, '__version__', '1.4.3')
-    def test_markup_with_bleach_1(self, clean):
-        """Use mocking to ensure we correctly use the bleach 1 API."""
-        text = '# this is a header\nthis is some **text**'
-
-        result = util.markup(None, text)
-
-        assert result == 'cleaned text'
-        expected_text = (
-            '<div class="markdown"><h1>this is a header</h1>\n<p>this is some <strong>text'
-            '</strong></p></div>')
-        expected_tags = [
-            "h1", "h2", "h3", "h4", "h5", "h6", "b", "i", "strong", "em", "tt", "p", "br", "span",
-            "div", "blockquote", "code", "hr", "pre", "ul", "ol", "li", "dd", "dt", "img", "a"]
-        # The bleach 1 API should get these attrs passed.
-        clean.assert_called_once_with(expected_text, tags=expected_tags,
-                                      attributes=["src", "href", "alt", "title", "class"])
-
-    @mock.patch('bodhi.server.util.bleach.clean', return_value='cleaned text')
-    @mock.patch.object(util.bleach, '__version__', '2.0')
-    def test_markup_with_bleach_2(self, clean):
+    def test_markup_with_bleach(self, clean):
         """Use mocking to ensure we correctly use the bleach 2 API."""
         text = '# this is a header\nthis is some **text**'
 

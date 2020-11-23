@@ -50,3 +50,15 @@ sections of the API by following the links below:
 
 
 .. _JSON Schema: https://json-schema.org/
+
+GRAPHQL API
+===========
+
+This section of the documentation describes Bodhi's GraphQL API. You can read about the various
+sections of the API by following the links below:
+
+
+.. toctree::
+   :maxdepth: 2
+
+   graphql/documentation

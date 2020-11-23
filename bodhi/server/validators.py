@@ -295,9 +295,10 @@ def validate_builds(request, **kwargs):
     for nvr in builds:
         build = request.db.query(Build).filter_by(nvr=nvr).first()
         if build and build.update is not None:
-            request.errors.add('body', 'builds',
-                               "Update for {} already exists".format(nvr))
-            return
+            if build.update.status != UpdateStatus.unpushed:
+                request.errors.add('body', 'builds',
+                                   "Update for {} already exists".format(nvr))
+                return
 
 
 @postschema_validator
@@ -395,6 +396,8 @@ def validate_acls(request, **kwargs):
         request.errors.add('cookies', 'user', 'No ACLs for anonymous user')
         return
     user = User.get(request.user.name)
+    user_groups = [group.name for group in user.groups]
+    acl_system = config.get('acl_system')
     committers = []
     groups = []
 
@@ -407,11 +410,10 @@ def validate_acls(request, **kwargs):
     # (either the explicitly listed ones or on the ones associated with the
     # pre-existing update).. and so we'll do some conditional branching below
     # to handle those two scenarios.
-
-    # This can get confusing.
-    # TODO -- we should break these two roles out into two different clearly
-    # defined validator functions like `validate_acls_for_builds` and
-    # `validate_acls_for_update`.
+    #
+    # In case of a side-tag update, we don't validate against the builds,
+    # but we require the submitter to be who created the side-tag.
+    # The 'sidetag_owner' field is set by `validate_from_tag()`.
 
     builds = None
     if 'builds' in request.validated:
@@ -426,6 +428,43 @@ def validate_acls(request, **kwargs):
                            'unable to determine ACLs.')
         return
 
+    # Allow certain groups to push updates for any package
+    admin_groups = config['admin_packager_groups']
+    for group in admin_groups:
+        if group in user_groups:
+            log.debug(f'{user.name} is in {group} admin group')
+            return
+
+    # Make sure the user is in the mandatory packager groups. This is a
+    # safeguard in the event a user has commit access on the ACL system
+    # but isn't part of the mandatory groups.
+    mandatory_groups = config['mandatory_packager_groups']
+    for mandatory_group in mandatory_groups:
+        if mandatory_group not in user_groups:
+            error = (f'{user.name} is not a member of "{mandatory_group}", which is a '
+                     f'mandatory packager group')
+            request.errors.add('body', 'builds', error)
+            return
+
+    # If we try to create or edit a side-tag update, check if user owns the side-tag
+    if request.validated.get('from_tag') is not None:
+        sidetag = request.validated.get('from_tag')
+        # the validate_from_tag() must have set the sidetag_owner field
+        sidetag_owner = request.validated.get('sidetag_owner', None)
+        if sidetag_owner is None:
+            error = ('Update appear to be from side-tag, but we cannot determine '
+                     'the side-tag owner')
+            request.errors.add('body', 'builds', error)
+            return
+
+        if sidetag_owner != user.name:
+            request.errors.add('body',
+                               'builds',
+                               f'{user.name} does not own {sidetag} side-tag')
+            request.errors.status = 403
+        return
+
+    # For normal updates, check against every build
     for build in builds:
         # The whole point of the blocks inside this conditional is to determine
         # the "release" and "package" associated with the given build.  For raw
@@ -464,34 +503,7 @@ def validate_acls(request, **kwargs):
 
         # Now that we know the release and the package associated with this
         # build, we can ask our ACL system about it..
-
-        acl_system = config.get('acl_system')
-        user_groups = [group.name for group in user.groups]
         has_access = False
-
-        # Allow certain groups to push updates for any package
-        admin_groups = config['admin_packager_groups']
-        for group in admin_groups:
-            if group in user_groups:
-                log.debug('{} is in {} admin group'.format(user.name, group))
-                has_access = True
-                break
-
-        if has_access:
-            continue
-
-        # Make sure the user is in the mandatory packager groups. This is a
-        # safeguard in the event a user has commit access on the ACL system
-        # but isn't part of the mandatory groups.
-        mandatory_groups = config['mandatory_packager_groups']
-        for mandatory_group in mandatory_groups:
-            if mandatory_group not in user_groups:
-                error = ('{0} is not a member of "{1}", which is a '
-                         'mandatory packager group').format(
-                    user.name, mandatory_group)
-                request.errors.add('body', 'builds', error)
-                return
-
         if acl_system == 'pagure':
             try:
                 committers, groups = package.get_pkg_committers_from_pagure()
@@ -526,8 +538,7 @@ def validate_acls(request, **kwargs):
             # Check if this user is in a group that has access to this package
             for group in user_groups:
                 if group in groups:
-                    log.debug('{} is in {} group for {}'.format(
-                        user.name, group, package.name))
+                    log.debug(f'{user.name} is in {group} group for {package.name}')
                     has_access = True
                     break
 
@@ -1004,7 +1015,11 @@ def validate_testcase_feedback(request, **kwargs):
             request.errors.status = HTTPNotFound.code
             return
 
-    packages = [build.package.name for build in update.builds]
+    # Get all TestCase names associated to the Update
+    allowed_testcases = [tc.name
+                         for build in update.builds
+                         for tc in build.testcases
+                         if len(build.testcases) > 0]
 
     bad_testcases = []
     validated = []
@@ -1013,7 +1028,7 @@ def validate_testcase_feedback(request, **kwargs):
         name = item.pop('testcase_name')
         testcase = TestCase.get(name)
 
-        if not testcase or testcase.package_name not in packages:
+        if not testcase or testcase.name not in allowed_testcases:
             bad_testcases.append(name)
         else:
             item['testcase'] = testcase
@@ -1352,17 +1367,15 @@ def validate_from_tag(request: pyramid.request.Request, **kwargs: dict):
             request.errors.add('body', 'from_tag', "The supplied tag is not a side tag.")
             return
 
+        # store side-tag owner name to be validated in ACLs
+        request.validated['sidetag_owner'] = taginfo.get('extra', {}).get('sidetag_user', None)
+
         # add all the inherited tags of a sidetag to from_tag_inherited
         for tag in koji_client.getFullInheritance(koji_tag):
             request.from_tag_inherited.append(tag['name'])
 
         if request.validated.get('builds'):
-            # Builds were specified explicitly, verify that the tag exists in Koji.
-            if not taginfo:
-                request.errors.add('body', 'from_tag', "The supplied from_tag doesn't exist.")
-                return
-
-            # Flag that `builds` wasn't filled from the Koji tag.
+            # Builds were specified explicitly, flag that `builds` wasn't filled from the Koji tag.
             request.validated['builds_from_tag'] = False
         else:
             # Builds weren't specified explicitly, pull the list of latest NVRs here, as it is

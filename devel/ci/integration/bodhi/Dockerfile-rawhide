@@ -21,7 +21,7 @@ RUN dnf install -y \
 RUN groupadd -r bodhi && \
     useradd  -r -s /sbin/nologin -d /home/bodhi/ -m -c 'Bodhi Server' -g bodhi bodhi
 # Install it
-RUN python3 setup.py build && pip3 install --no-use-pep517 .
+RUN python3 setup.py bdist_wheel && pip3 install ./dist/*.whl && pip3 install koji
 
 # Configuration
 RUN mkdir -p /etc/bodhi

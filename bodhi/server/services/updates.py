@@ -492,6 +492,7 @@ def new_update(request):
 
     # Same here, but it can be missing.
     data.pop('builds_from_tag', None)
+    data.pop('sidetag_owner', None)
 
     build_nvrs = data.get('builds', [])
     from_tag = data.get('from_tag')
@@ -595,7 +596,7 @@ def new_update(request):
                         # Before the Bodhi activation point of a release, keep builds tagged
                         # with the side-tag and its associate tags.
                         side_tag_signing_pending = u.release.get_pending_signing_side_tag(from_tag)
-                        side_tag_testing_pending = u.release.get_testing_side_tag(from_tag)
+                        side_tag_testing_pending = u.release.get_pending_testing_side_tag(from_tag)
                         handle_side_and_related_tags_task.delay(
                             builds=builds,
                             pending_signing_tag=side_tag_signing_pending,

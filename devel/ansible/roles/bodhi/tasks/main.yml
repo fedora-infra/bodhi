@@ -45,6 +45,7 @@
       - python3-markdown
       - python3-munch
       - python3-openid
+      - python3-prometheus_client
       - python3-psycopg2
       - python3-pydocstyle
       - python3-pylibravatar
@@ -58,6 +59,7 @@
       - python3-sqlalchemy
       - python3-sqlalchemy_schemadisplay
       - python3-webtest
+      - python3-whitenoise
       - redhat-rpm-config
       - screen
       - skopeo

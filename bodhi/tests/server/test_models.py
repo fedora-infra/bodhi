@@ -734,6 +734,34 @@ class TestRelease(ModelTest):
         """Test mandatory_days_in_testing() with a value that is 0."""
         assert self.obj.mandatory_days_in_testing == 0
 
+    @mock.patch.dict(config, {'critpath.stable_after_days_without_negative_karma': 11,
+                              'f11.current.critpath.stable_after_days_without_negative_karma': 42})
+    def test_critpath_mandatory_days_in_testing_no_status(self):
+        """
+        Test critpath_mandatory_days_in_testing() returns global default if
+        release has no status.
+        """
+        assert self.obj.critpath_mandatory_days_in_testing == 11
+
+    @mock.patch.dict(config, {'critpath.stable_after_days_without_negative_karma': 11,
+                              'f11.status': 'current'})
+    def test_critpath_mandatory_days_in_testing_status_default(self):
+        """
+        Test critpath_mandatory_days_in_testing() returns global default if
+        release has status, but no override set.
+        """
+        assert self.obj.critpath_mandatory_days_in_testing == 11
+
+    @mock.patch.dict(config, {'critpath.stable_after_days_without_negative_karma': 11,
+                              'f11.status': 'current',
+                              'f11.current.critpath.stable_after_days_without_negative_karma': 42})
+    def test_critpath_mandatory_days_in_testing_status_override(self):
+        """
+        Test critpath_mandatory_days_in_testing() returns override value if
+        release has status and override set.
+        """
+        assert self.obj.critpath_mandatory_days_in_testing == 42
+
     def test_setting_prefix(self):
         """Assert correct return value from the setting_prefix property."""
         assert self.obj.setting_prefix == 'f11'
@@ -783,17 +811,17 @@ class TestRelease(ModelTest):
         assert self.obj.get_pending_signing_side_tag("side-tag") == "side-tag-signing-pending"
 
     @mock.patch.dict(config, {'f11.koji-testing-side-tag': '-testing-test'})
-    def test_get_testing_side_tag_found(self):
+    def test_get_pending_testing_side_tag_found(self):
         """
         Assert that correct side tag is returned.
         """
-        assert self.obj.get_testing_side_tag("side-tag") == "side-tag-testing-test"
+        assert self.obj.get_pending_testing_side_tag("side-tag") == "side-tag-testing-test"
 
-    def test_get_testing_side_tag_not_found(self):
+    def test_get_pending_testing_side_tag_not_found(self):
         """
         Assert that default side tag is returned.
         """
-        assert self.obj.get_testing_side_tag("side-tag") == "side-tag-testing-pending"
+        assert self.obj.get_pending_testing_side_tag("side-tag") == "side-tag-testing-pending"
 
 
 class TestReleaseCritpathMinKarma(BasePyTestCase):
@@ -1516,7 +1544,6 @@ class TestBuild(ModelTest):
         assert len(build.testcases) == 3
         assert {tc.name for tc in model.TestCase.query.all()} == (
             {'Does Bodhi eat +1s', 'Fake', 'Uploading cat pictures'})
-        assert {tc.package_name for tc in model.TestCase.query.all()} == {'gnome-shell'}
 
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
     @mock.patch('bodhi.server.models.MediaWiki')
@@ -2192,17 +2219,6 @@ class TestUpdateSigned(BasePyTestCase):
         assert not update.signed
 
 
-class TestUpdateTestGatingPassed(BasePyTestCase):
-    """Test the Update.test_gating_passed() method."""
-
-    def test_greenwave_failed(self):
-        """The greenwave_failed TestGatingStatus should count as passed."""
-        update = model.Update.query.first()
-        update.test_gating_status = TestGatingStatus.greenwave_failed
-
-        assert update.test_gating_passed
-
-
 class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
     """Test the Update.update_test_gating_status() method."""
 
@@ -2220,7 +2236,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
 
         update.update_test_gating_status()
 
-        assert update.test_gating_status == model.TestGatingStatus.greenwave_failed
+        assert update.test_gating_status == model.TestGatingStatus.waiting
         assert sleep.mock_calls == [mock.call(1), mock.call(1), mock.call(1)]
         expected_post = mock.call(
             'https://greenwave-web-greenwave.app.os.fedoraproject.org/api/v1.0/decision',
@@ -2262,7 +2278,7 @@ class TestUpdateUpdateTestGatingStatus(BasePyTestCase):
 
         update.update_test_gating_status()
 
-        assert update.test_gating_status == model.TestGatingStatus.greenwave_failed
+        assert update.test_gating_status == model.TestGatingStatus.waiting
         # The call_url() handler doesn't catch a Timeout so there are no sleeps/retries.
         assert sleep.mock_calls == []
         expected_post = mock.call(

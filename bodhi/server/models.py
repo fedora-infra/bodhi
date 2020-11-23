@@ -262,6 +262,9 @@ class DeclEnumType(SchemaType, TypeDecorator):
         """
         if value is None:
             return None
+
+        if type(value) is str:
+            return value
         return value.value
 
     def process_result_value(self, value, dialect):
@@ -874,20 +877,35 @@ class Release(Base):
             testing. If the release isn't configured to have mandatory testing time, 0 is
             returned.
         """
-        name = self.name.lower().replace('-', '')
-        status = config.get('%s.status' % name, None)
-        if status:
-            days = config.get(
-                '%s.%s.mandatory_days_in_testing' % (name, status))
-            if days is not None:
-                return int(days)
-        days = config.get('%s.mandatory_days_in_testing' %
-                          self.id_prefix.lower().replace('-', '_'))
+        if self.setting_status:
+            days = config.get(f'{self.setting_prefix}.{self.setting_status}'
+                              f'.mandatory_days_in_testing', None)
+        else:
+            days = config.get(f'{self.id_prefix.lower().replace("-", "_")}'
+                              f'.mandatory_days_in_testing', None)
         if days is None:
-            log.warning('No mandatory days in testing defined for %s. Defaulting to 0.' % self.name)
+            log.warning(f'No mandatory days in testing defined for {self.name}. Defaulting to 0.')
             return 0
         else:
             return int(days)
+
+    @property
+    def critpath_mandatory_days_in_testing(self):
+        """
+        Return the number of days that critpath updates in this release must spend in testing.
+
+        Returns:
+            int: The number of days in testing that critpath updates in this release must spend in
+            testing. If the release isn't configured to have critpath mandatory testing time, 0 is
+            returned.
+        """
+        if self.setting_status:
+            days = config.get(f'{self.setting_prefix}.{self.setting_status}'
+                              f'.critpath.stable_after_days_without_negative_karma', None)
+            if days is not None:
+                return int(days)
+
+        return config.get('critpath.stable_after_days_without_negative_karma', 0)
 
     @property
     def collection_name(self):
@@ -994,15 +1012,15 @@ class Release(Base):
         """
         return config.get(f'{self.setting_prefix}.status', None)
 
-    def get_testing_side_tag(self, from_tag: str) -> str:
+    def get_pending_testing_side_tag(self, from_tag: str) -> str:
         """
-        Return the testing side tag for this ``Release``.
+        Return the testing-pending side tag for this ``Release``.
 
         Args:
             from_tag: Name of side tag from which ``Update`` was created.
 
         Returns:
-            Testing side tag used in koji.
+            Testing-pending side tag used in koji.
         """
         side_tag_postfix = config.get(
             f'{self.setting_prefix}.koji-testing-side-tag', "-testing-pending")
@@ -1010,13 +1028,13 @@ class Release(Base):
 
     def get_pending_signing_side_tag(self, from_tag: str) -> str:
         """
-        Return the testing side tag for this ``Release``.
+        Return the signing-pending side tag for this ``Release``.
 
         Args:
             from_tag: Name of side tag from which ``Update`` was created.
 
         Returns:
-            Testing side tag used in koji.
+            Signing-pending side tag used in koji.
         """
         side_tag_postfix = config.get(
             f'{self.setting_prefix}.koji-signing-pending-side-tag', "-signing-pending")
@@ -1043,21 +1061,6 @@ class TestCase(Base):
 
     # Many-to-many relationships
     # builds backref
-
-    @property
-    def package_name(self) -> str:
-        """
-        Return the package name of the associated builds.
-
-        Since a TestCase name is unique and is created from the name of the Package,
-        each TestCase can only be associated to Builds of the same Package.
-        We use this for quickly validate the TestCase against Package upon feedback submission.
-
-        Returns:
-            The name of the package this testcase is intended for.
-        """
-        build = Build.query.filter(Build.testcases.any(name=self.name)).first()
-        return build.package.name
 
 
 class Package(Base):
@@ -1185,13 +1188,13 @@ class Package(Base):
         """
         x = header(self.name)
         states = {'pending': [], 'testing': [], 'stable': []}
-        if len(self.builds):
+        if self.builds:
             for build in self.builds:
                 if build.update and build.update.status.description in states:
                     states[build.update.status.description].append(
                         build.update)
-        for state in states.keys():
-            if len(states[state]):
+        for state in states:
+            if states[state]:
                 x += "\n %s Updates (%d)\n" % (state.title(),
                                                len(states[state]))
                 for update in states[state]:
@@ -1890,7 +1893,8 @@ class Update(Base):
         backref=backref('updates', passive_deletes=True, order_by='Update.date_submitted'))
 
     # One-to-many relationships
-    comments = relationship('Comment', backref='update', order_by='Comment.timestamp')
+    comments = relationship('Comment', backref='update', cascade="all,delete,delete-orphan",
+                            order_by='Comment.timestamp')
     builds = relationship('Build', backref='update', order_by='Build.nvr')
 
     # Many-to-many relationships
@@ -1963,7 +1967,7 @@ class Update(Base):
             ValueError: If the build being appended is not the same type as the
                 existing builds.
         """
-        if not all([isinstance(b, type(build)) for b in self.builds]):
+        if not all(isinstance(b, type(build)) for b in self.builds):
             raise ValueError('An update must contain builds of the same type.')
         return build
 
@@ -2006,10 +2010,9 @@ class Update(Base):
         :rtype:  int
         """
         if self.critpath:
-            return config.get('critpath.stable_after_days_without_negative_karma')
-
-        days = self.release.mandatory_days_in_testing
-        return days if days else 0
+            return self.release.critpath_mandatory_days_in_testing
+        else:
+            return self.release.mandatory_days_in_testing
 
     @property
     def karma(self):
@@ -2265,11 +2268,10 @@ class Update(Base):
             self.test_gating_status = self._get_test_gating_status()
         except (requests.exceptions.Timeout, RuntimeError) as e:
             log.error(str(e))
-            # Greenwave frequently returns 500 response codes. When this happens, we do not want
-            # to block updates from proceeding, so we will consider this condition as having the
-            # policy satisfied. We will use the Exception as the summary so we can mark the status
-            # as ignored for the record.
-            self.test_gating_status = TestGatingStatus.greenwave_failed
+            # If we receive a 500 error code from Greenwave, we set the test_gating_status to
+            # waiting. The status will then be updated later by the greenwave fedora-messaging
+            # consumer.
+            self.test_gating_status = TestGatingStatus.waiting
 
     @classmethod
     def new(cls, request, data):
@@ -2330,6 +2332,8 @@ class Update(Base):
             # For rawhide updates make sure autotime push is enabled
             # https://github.com/fedora-infra/bodhi/issues/3912
             data['autotime'] = True
+            data['stable_days'] = 0
+            log.debug("Overriding autotime settings for rawhide update.")
 
         up = Update(**data, release=release)
 
@@ -2348,6 +2352,7 @@ class Update(Base):
         log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
+        # The request to testing for side-tag updates is set within the signed consumer
         if not data.get("from_tag"):
             log.debug(f"Setting request for new update {up.alias}.")
             up.set_request(db, req, request.user.name)
@@ -2545,7 +2550,7 @@ class Update(Base):
         """
         if not self.release.pending_signing_tag and not self.from_tag:
             return True
-        return all([build.signed for build in self.builds])
+        return all(build.signed for build in self.builds)
 
     @property
     def content_type(self):
@@ -2567,11 +2572,10 @@ class Update(Base):
 
         Returns:
             True if the Update's test_gating_status property is None,
-            greenwave_failed, ignored, or passed. Otherwise it returns False.
+            ignored, or passed. Otherwise it returns False.
         """
         if self.test_gating_status in (
-                None, TestGatingStatus.greenwave_failed, TestGatingStatus.ignored,
-                TestGatingStatus.passed):
+                None, TestGatingStatus.ignored, TestGatingStatus.passed):
             return True
         return False
 
@@ -2932,7 +2936,8 @@ class Update(Base):
 
         # Add the appropriate 'pending' koji tag to this update, so tools like
         # AutoQA can compose repositories of them for testing.
-        if action is UpdateRequest.testing:
+        # If it's a new side-tag update, koji tags are managed by the celery task
+        if action is UpdateRequest.testing and not self.from_tag:
             self.add_tag(self.release.pending_signing_tag)
         elif action is UpdateRequest.stable:
             self.add_tag(self.release.pending_stable_tag)
@@ -3214,7 +3219,7 @@ class Update(Base):
             val += "\n   Critpath: %s" % self.critpath
         if self.request is not None:
             val += "\n    Request: %s" % self.request.description
-        if len(self.bugs):
+        if self.bugs:
             bugs = self.get_bugstring(show_titles=True)
             val += "\n       Bugs: %s" % bugs
         if self.notes:
@@ -3336,11 +3341,9 @@ class Update(Base):
             user = User(name=author)
             session.add(user)
 
-        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath, user=user)
+        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath,
+                          update=self, user=user)
         session.add(comment)
-
-        self.comments.append(comment)
-        session.flush()
 
         if karma != 0:
             # Determine whether this user has already left karma, and if so what the most recent
@@ -3949,8 +3952,7 @@ class Update(Base):
         """
         Place comment on the update when ``test_gating_status`` changes.
 
-        Only notify the users by email if the new status is in ``failed`` or
-        ``greenwave_failed``.
+        Only notify the users by email if the new status is in ``failed``.
 
         Args:
             target (InstanceState): The state of the instance that has had a
@@ -3963,10 +3965,7 @@ class Update(Base):
         instance = target.object
 
         if value != old:
-            notify = value in [
-                TestGatingStatus.greenwave_failed,
-                TestGatingStatus.failed,
-            ]
+            notify = value == TestGatingStatus.failed
             instance.comment(
                 target.session,
                 f"This update's test gating status has been changed to '{value}'.",
@@ -4311,7 +4310,8 @@ class BugKarma(Base):
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
-    comment = relationship("Comment", backref='bug_feedback')
+    comment = relationship("Comment", backref=backref('bug_feedback',
+                                                      cascade="all,delete,delete-orphan"))
 
     bug_id = Column(Integer, ForeignKey('bugs.bug_id'))
     bug = relationship("Bug", backref='feedback')
@@ -4334,7 +4334,8 @@ class TestCaseKarma(Base):
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
-    comment = relationship("Comment", backref='testcase_feedback')
+    comment = relationship("Comment", backref=backref('testcase_feedback',
+                                                      cascade="all,delete,delete-orphan"))
 
     testcase_id = Column(Integer, ForeignKey('testcases.id'))
     testcase = relationship("TestCase", backref='feedback')
@@ -4369,7 +4370,7 @@ class Comment(Base):
     # testcase_feedback backref from TestCaseKarma
 
     # Many-to-one relationships
-    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
+    update_id = Column(Integer, ForeignKey('updates.id'), nullable=False, index=True)
     # update backref from Update
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     # user backref from User
@@ -4517,7 +4518,7 @@ class Bug(Base):
             The default comment to add to the bug related to the given update.
         """
         install_msg = (
-            f'In short time you\'ll be able to install the update with the following '
+            f'Soon you\'ll be able to install the update with the following '
             f'command:\n`{update.install_command}`') if update.install_command else ''
         msg_data = {'update_title': update.get_title(delim=", ", nvr=True),
                     'update_beauty_title': update.get_title(beautify=True, nvr=True),
