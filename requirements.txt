@@ -14,7 +14,7 @@ graphene
 graphene-sqlalchemy
 koji
 jinja2
-markdown
+markdown>=3.0
 prometheus_client
 psycopg2
 py3dns  # Should be required by pyLibravatar https://bugs.launchpad.net/pylibravatar/+bug/1661218

@@ -141,7 +141,15 @@ class AutomaticUpdateHandler:
                 dbsession.add(user)
 
             log.debug(f"Creating new update for {bnvr}.")
-            changelog = build.get_changelog(lastupdate=True)
+            try:
+                changelog = build.get_changelog(lastupdate=True)
+            except ValueError:
+                # Often due to bot-generated builds
+                # https://github.com/fedora-infra/bodhi/issues/4146
+                changelog = None
+            except Exception:
+                # Re-raise exception, so that the message can be re-queued
+                raise
             closing_bugs = []
             if changelog:
                 log.debug("Adding changelog to update notes.")
@@ -199,6 +207,7 @@ class AutomaticUpdateHandler:
             except Exception as e:
                 log.error(f'Problem obsoleting older updates: {e}')
 
+            alias = update.alias
+
         # This must be run after dbsession is closed so changes are committed to db
-        alias = update.alias
         work_on_bugs_task.delay(alias, closing_bugs)

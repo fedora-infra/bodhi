@@ -101,7 +101,7 @@ class TestNewUpdate(BasePyTestCase):
     def mock_getTag(cls, tag, *kwargs):
         if tag == 'f17-build-side-7777':
             return {'maven_support': False, 'locked': False, 'name': 'f17-build-side-7777',
-                    'extra': {'sidetag_user': 'dudemcpants', 'sidetag': True},
+                    'extra': {'sidetag_user': 'guest', 'sidetag': True},
                     'perm': None, 'perm_id': None, 'arches': None, 'maven_include_all': False,
                     'id': 7777}
         return None
@@ -170,6 +170,18 @@ class TestNewUpdate(BasePyTestCase):
         res = self.app.post_json('/updates/', self.get_update('bodhi-2.0-1.fc17'),
                                  status=400)
         assert 'Update for bodhi-2.0-1.fc17 already exists' in res
+
+    @mock.patch(**mock_valid_requirements)
+    def test_unpushed_update(self, *args):
+        """Allow posting a duplicate build if the old update is unpushed."""
+        unpushed_update = self.create_update(['whoopsie-1.0.0-1.fc17'])
+        unpushed_update.status = UpdateStatus.unpushed
+        self.db.commit()
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):
+            res = self.app.post_json('/updates/', self.get_update('whoopsie-1.0.0-1.fc17'))
+
+        assert res.json['alias'] != unpushed_update.alias
 
     @mock.patch(**mock_valid_requirements)
     def test_invalid_requirements(self, *args):
@@ -384,11 +396,8 @@ class TestNewUpdate(BasePyTestCase):
             assert called_args['pending_signing_tag'] == 'f17-build-side-7777-signing-pending'
             assert called_args['pending_testing_tag'] == 'f17-build-side-7777-testing-pending'
         else:
-            # stable release workflow
-
-            # check that the sidetag doesn't get displayed on the update page,
-            # by the time the update is created, it shouldn't exist anymore
-            assert 'title="Builds from the Side Tag:' not in resp
+            # the sidetag should be still displayed on the update page
+            assert 'title="Builds from the Side Tag: f17-build-side-7777' in resp
             assert called_args['pending_signing_tag'] == 'f17-updates-signing-pending'
 
         # now try to create another update with the same side tag
@@ -399,6 +408,46 @@ class TestNewUpdate(BasePyTestCase):
 
         assert r.json_body['errors'][0]['description'] == (
             "Update already exists using this side tag"
+        )
+
+    @mock.patch('bodhi.server.services.updates.handle_side_and_related_tags_task')
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
+    @unused_mock_patch(**mock_uuid4_version1)
+    @unused_mock_patch(**mock_valid_requirements)
+    @pytest.mark.parametrize('rawhide_workflow', (True, False))
+    def test_new_rpm_update_from_tag_wrong_owner(self, handle_side_and_related_tags_task,
+                                                 rawhide_workflow):
+        """
+        Test creating an update using builds from a Koji tag fails if user doesn't own
+        the side-tag.
+        """
+        # We don't want the new update to obsolete the existing one.
+        self.db.delete(Update.query.one())
+
+        if rawhide_workflow:
+            # We need a release that isn't composed by bodhi
+            release = Release.query.one()
+            release.composed_by_bodhi = False
+            self.db.commit()
+
+        update = self.get_update(builds=None, from_tag='f17-build-side-7777')
+
+        user = User(name='mattia')
+        self.db.add(user)
+        self.db.commit()
+        group = self.db.query(Group).filter_by(name='packager').one()
+        user.groups.append(group)
+
+        with mock.patch('bodhi.server.Session.remove'):
+            app = TestApp(main({}, testing='mattia', session=self.db, **self.app_settings))
+
+        update['csrf_token'] = app.get('/csrf').json_body['csrf_token']
+
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
+            with mock.patch('bodhi.server.models.Release.mandatory_days_in_testing', 0):
+                r = app.post_json('/updates/', update, status=403)
+        assert r.json_body['errors'][0]['description'] == (
+            "mattia does not own f17-build-side-7777 side-tag"
         )
 
     @mock.patch(**mock_valid_requirements)
@@ -1249,6 +1298,15 @@ class TestUpdatesService(BasePyTestCase):
         self.create_update([('really_old-1.2.3-1.fc20')], 'F20')
         self.create_update([('shiny_new-7.8.9-1.fc40')], 'F40')
         self.db.commit()
+
+    @classmethod
+    def mock_getTag(cls, tag, *kwargs):
+        if tag == 'f17-build-side-7777':
+            return {'maven_support': False, 'locked': False, 'name': 'f17-build-side-7777',
+                    'extra': {'sidetag_user': 'guest', 'sidetag': True},
+                    'perm': None, 'perm_id': None, 'arches': None, 'maven_include_all': False,
+                    'id': 7777}
+        return None
 
     def test_content_type(self):
         """Assert that the content type is displayed in the update template."""
@@ -3160,14 +3218,16 @@ class TestUpdatesService(BasePyTestCase):
         self.db.delete(BuildrootOverride.query.one())
 
         update = self.get_update(from_tag='f17-build-side-7777')
-        r = self.app.post_json('/updates/', update)
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
+            r = self.app.post_json('/updates/', update)
 
         update['edited'] = r.json['alias']
         update['builds'] = 'bodhi-2.0.0-3.fc17'
         update['requirements'] = 'upgradepath'
 
-        with fml_testing.mock_sends(update_schemas.UpdateEditV1):
-            r = self.app.post_json('/updates/', update)
+        with mock.patch('bodhi.server.buildsys.DevBuildsys.getTag', self.mock_getTag):
+            with fml_testing.mock_sends(update_schemas.UpdateEditV1):
+                r = self.app.post_json('/updates/', update)
 
         up = r.json_body
         assert up['title'] == 'bodhi-2.0.0-3.fc17'

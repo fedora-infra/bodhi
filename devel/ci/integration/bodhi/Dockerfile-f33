@@ -1,4 +1,4 @@
-FROM bodhi-ci/pip
+FROM bodhi-ci/f33
 LABEL \
   name="bodhi-web" \
   vendor="Fedora Infrastructure" \
@@ -12,23 +12,16 @@ RUN curl -o /etc/yum.repos.d/infra-tags.repo https://pagure.io/fedora-infra/ansi
 RUN dnf install -y \
     httpd \
     intltool \
-    python3-koji \
-    /usr/bin/koji \
     python3-mod_wsgi \
     python3-pip \
-    python3-dnf \
-    skopeo
-
-# Mimic RPM's handling of Python3-specific binaries
-RUN ln -s alembic /usr/local/bin/alembic-3
-RUN ln -s celery /usr/local/bin/celery-3
+    skopeo \
+    /usr/bin/koji
 
 # Create bodhi user
 RUN groupadd -r bodhi && \
     useradd  -r -s /sbin/nologin -d /home/bodhi/ -m -c 'Bodhi Server' -g bodhi bodhi
-
 # Install it
-RUN python3 setup.py install && pip3 install koji
+RUN python3 setup.py bdist_wheel && pip3 install ./dist/*.whl && pip3 install koji
 
 # Configuration
 RUN mkdir -p /etc/bodhi

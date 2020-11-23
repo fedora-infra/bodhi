@@ -877,20 +877,35 @@ class Release(Base):
             testing. If the release isn't configured to have mandatory testing time, 0 is
             returned.
         """
-        name = self.name.lower().replace('-', '')
-        status = config.get('%s.status' % name, None)
-        if status:
-            days = config.get(
-                '%s.%s.mandatory_days_in_testing' % (name, status))
-            if days is not None:
-                return int(days)
-        days = config.get('%s.mandatory_days_in_testing' %
-                          self.id_prefix.lower().replace('-', '_'))
+        if self.setting_status:
+            days = config.get(f'{self.setting_prefix}.{self.setting_status}'
+                              f'.mandatory_days_in_testing', None)
+        else:
+            days = config.get(f'{self.id_prefix.lower().replace("-", "_")}'
+                              f'.mandatory_days_in_testing', None)
         if days is None:
-            log.warning('No mandatory days in testing defined for %s. Defaulting to 0.' % self.name)
+            log.warning(f'No mandatory days in testing defined for {self.name}. Defaulting to 0.')
             return 0
         else:
             return int(days)
+
+    @property
+    def critpath_mandatory_days_in_testing(self):
+        """
+        Return the number of days that critpath updates in this release must spend in testing.
+
+        Returns:
+            int: The number of days in testing that critpath updates in this release must spend in
+            testing. If the release isn't configured to have critpath mandatory testing time, 0 is
+            returned.
+        """
+        if self.setting_status:
+            days = config.get(f'{self.setting_prefix}.{self.setting_status}'
+                              f'.critpath.stable_after_days_without_negative_karma', None)
+            if days is not None:
+                return int(days)
+
+        return config.get('critpath.stable_after_days_without_negative_karma', 0)
 
     @property
     def collection_name(self):
@@ -1173,13 +1188,13 @@ class Package(Base):
         """
         x = header(self.name)
         states = {'pending': [], 'testing': [], 'stable': []}
-        if len(self.builds):
+        if self.builds:
             for build in self.builds:
                 if build.update and build.update.status.description in states:
                     states[build.update.status.description].append(
                         build.update)
-        for state in states.keys():
-            if len(states[state]):
+        for state in states:
+            if states[state]:
                 x += "\n %s Updates (%d)\n" % (state.title(),
                                                len(states[state]))
                 for update in states[state]:
@@ -1878,7 +1893,8 @@ class Update(Base):
         backref=backref('updates', passive_deletes=True, order_by='Update.date_submitted'))
 
     # One-to-many relationships
-    comments = relationship('Comment', backref='update', order_by='Comment.timestamp')
+    comments = relationship('Comment', backref='update', cascade="all,delete,delete-orphan",
+                            order_by='Comment.timestamp')
     builds = relationship('Build', backref='update', order_by='Build.nvr')
 
     # Many-to-many relationships
@@ -1951,7 +1967,7 @@ class Update(Base):
             ValueError: If the build being appended is not the same type as the
                 existing builds.
         """
-        if not all([isinstance(b, type(build)) for b in self.builds]):
+        if not all(isinstance(b, type(build)) for b in self.builds):
             raise ValueError('An update must contain builds of the same type.')
         return build
 
@@ -1994,10 +2010,9 @@ class Update(Base):
         :rtype:  int
         """
         if self.critpath:
-            return config.get('critpath.stable_after_days_without_negative_karma')
-
-        days = self.release.mandatory_days_in_testing
-        return days if days else 0
+            return self.release.critpath_mandatory_days_in_testing
+        else:
+            return self.release.mandatory_days_in_testing
 
     @property
     def karma(self):
@@ -2337,6 +2352,7 @@ class Update(Base):
         log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
+        # The request to testing for side-tag updates is set within the signed consumer
         if not data.get("from_tag"):
             log.debug(f"Setting request for new update {up.alias}.")
             up.set_request(db, req, request.user.name)
@@ -2534,7 +2550,7 @@ class Update(Base):
         """
         if not self.release.pending_signing_tag and not self.from_tag:
             return True
-        return all([build.signed for build in self.builds])
+        return all(build.signed for build in self.builds)
 
     @property
     def content_type(self):
@@ -2920,7 +2936,8 @@ class Update(Base):
 
         # Add the appropriate 'pending' koji tag to this update, so tools like
         # AutoQA can compose repositories of them for testing.
-        if action is UpdateRequest.testing:
+        # If it's a new side-tag update, koji tags are managed by the celery task
+        if action is UpdateRequest.testing and not self.from_tag:
             self.add_tag(self.release.pending_signing_tag)
         elif action is UpdateRequest.stable:
             self.add_tag(self.release.pending_stable_tag)
@@ -3202,7 +3219,7 @@ class Update(Base):
             val += "\n   Critpath: %s" % self.critpath
         if self.request is not None:
             val += "\n    Request: %s" % self.request.description
-        if len(self.bugs):
+        if self.bugs:
             bugs = self.get_bugstring(show_titles=True)
             val += "\n       Bugs: %s" % bugs
         if self.notes:
@@ -3324,11 +3341,9 @@ class Update(Base):
             user = User(name=author)
             session.add(user)
 
-        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath, user=user)
+        comment = Comment(text=text, karma=karma, karma_critpath=karma_critpath,
+                          update=self, user=user)
         session.add(comment)
-
-        self.comments.append(comment)
-        session.flush()
 
         if karma != 0:
             # Determine whether this user has already left karma, and if so what the most recent
@@ -4295,7 +4310,8 @@ class BugKarma(Base):
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
-    comment = relationship("Comment", backref='bug_feedback')
+    comment = relationship("Comment", backref=backref('bug_feedback',
+                                                      cascade="all,delete,delete-orphan"))
 
     bug_id = Column(Integer, ForeignKey('bugs.bug_id'))
     bug = relationship("Bug", backref='feedback')
@@ -4318,7 +4334,8 @@ class TestCaseKarma(Base):
 
     # Many-to-one relationships
     comment_id = Column(Integer, ForeignKey('comments.id'))
-    comment = relationship("Comment", backref='testcase_feedback')
+    comment = relationship("Comment", backref=backref('testcase_feedback',
+                                                      cascade="all,delete,delete-orphan"))
 
     testcase_id = Column(Integer, ForeignKey('testcases.id'))
     testcase = relationship("TestCase", backref='feedback')
@@ -4353,7 +4370,7 @@ class Comment(Base):
     # testcase_feedback backref from TestCaseKarma
 
     # Many-to-one relationships
-    update_id = Column(Integer, ForeignKey('updates.id'), index=True)
+    update_id = Column(Integer, ForeignKey('updates.id'), nullable=False, index=True)
     # update backref from Update
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     # user backref from User
@@ -4501,7 +4518,7 @@ class Bug(Base):
             The default comment to add to the bug related to the given update.
         """
         install_msg = (
-            f'In short time you\'ll be able to install the update with the following '
+            f'Soon you\'ll be able to install the update with the following '
             f'command:\n`{update.install_command}`') if update.install_command else ''
         msg_data = {'update_title': update.get_title(delim=", ", nvr=True),
                     'update_beauty_title': update.get_title(beautify=True, nvr=True),
