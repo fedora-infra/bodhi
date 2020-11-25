@@ -1199,7 +1199,10 @@ def _build_jobs_list(
                     release=release, depends_on=build_job, buffer_output=buffer_output),
             ])
             jobs.extend(integration_build_jobs)
-        if command in ('all', 'integration'):
+        # we will be skipping integration job due to issues wth alembic
+        # https://github.com/fedora-infra/bodhi/issues/4158
+        # https://github.com/fedora-infra/bodhi/issues/4163
+        if command in ('all', 'integration') and release != 'pip' and release != 'f32':
             integration_job = IntegrationJob(
                 archive=archive, archive_path=archive_path, release=release,
                 depends_on=integration_deps_build_jobs + integration_build_jobs,

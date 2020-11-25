@@ -23,6 +23,7 @@ import uuid
 
 import pytest
 from conu import DockerBackend
+from docker import errors
 
 
 @pytest.fixture(scope="session")
@@ -49,4 +50,7 @@ def docker_network(docker_backend):
     """
     network = docker_backend.d.create_network(f"bodhi_test-{uuid.uuid4()}", driver="bridge")
     yield network
-    docker_backend.d.remove_network(network["Id"])
+    try:
+        docker_backend.d.remove_network(network["Id"])
+    except errors.APIError as e:
+        raise e

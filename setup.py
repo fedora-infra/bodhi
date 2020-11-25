@@ -93,6 +93,7 @@ bodhi_setup = {
     'include_package_data': True,
     'install_requires': [],
     'tests_require': [
+        'requests',
         'flake8',
         'pytest',
         'pytest-cov',
@@ -100,7 +101,6 @@ bodhi_setup = {
         'conu >= 0.5.0',
         'munch',
         'psycopg2',
-        'requests',
     ],
 }
 

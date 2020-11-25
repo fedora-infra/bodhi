@@ -19,7 +19,6 @@
 import itertools
 import json
 import re
-import stat
 import textwrap
 
 from conu import ConuException
@@ -478,6 +477,10 @@ def test_updates_download(bodhi_container, db_container):
     # The bodhi CLI will execute the koji CLI. Replace that executable with
     # something we can track.
     koji_mock = "#!/bin/sh\necho TESTING CALL $0 $@\n"
+    # we mock-replace the executable in two places
+    # It's because of https://pagure.io/koji/issue/912
+    # Koji is installed from RPM isn't found because it doesn't provide egg info.
+    # So Bodhi will install Koji from Pypi and the Koji-Pypi executable is used.
     with replace_file(bodhi_container, "/usr/bin/koji", koji_mock):
         with replace_file(bodhi_container, "/usr/local/bin/koji", koji_mock):
             result = _run_cli(bodhi_container, cmd)
