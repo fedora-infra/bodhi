@@ -1,1 +1,0 @@
-Some comments orphaned from their update where causing internal server errors. We now enforce a not null check so that a comment cannot be created without associating it to an update. The orphaned comments are removed from the database by the migration script.

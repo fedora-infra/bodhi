@@ -4,6 +4,88 @@ Release notes
 
 .. towncrier release notes start
 
+v5.6
+====
+This is a feature release.
+
+
+Dependency changes
+^^^^^^^^^^^^^^^^^^
+
+* Drop support for bleach 1.0 api (:pr:`3875`).
+* Markdown >= 3.0 is now required (:pr:`4134`).
+
+Server upgrade instructions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This release contains database migrations. To apply them, run::
+
+    $ sudo -u apache /usr/bin/alembic -c /etc/bodhi/alembic.ini upgrade head
+
+
+Features
+^^^^^^^^
+
+* Added a `from_side_tag` bool search parameter for Updates and allow searching
+  for that and for gating status from WebUI (:pr:`4119`).
+* Allow overriding `critpath.stable_after_days_without_negative_karma` based on
+  release status (:pr:`4135`).
+* Users which owns a side-tag can now create updates from that side-tag even if
+  it contains builds for which they haven't commit access (:issue:`4014`).
+
+Bug fixes
+^^^^^^^^^
+
+* Fix encoding of package and user names in search results (:pr:`4104`).
+* Fix autotime display on update page (:pr:`4110`).
+* Set update.stable_days to 0 for Releases not composed by Bodhi itself
+  (:pr:`4111`).
+* Ignore builds in Unpushed updates when checking for duplicate builds
+  (:issue:`1809`).
+* Make automatic updates obsolete older updates stuck in testing due to failing
+  gating tests (:issue:`3916`).
+* Fix 404 pages for bot users with nonstandard characters in usernames
+  (:issue:`3993`).
+* Fixed documentation build with Sphinx3 (:issue:`4020`).
+* Serve the documentation directly from the WSGI application using WhiteNoise.
+  (:issue:`4066`).
+* Updates from side-tag for non-rawhide releases were not pushed to testing
+  (:issue:`4087`).
+* Side-tag updates builds were not editable in the WebUI (:issue:`4122`).
+* Fixed "re-trigger tests" button not showed on update page (:issue:`4144`).
+* Fixed a crash in automatic_updates handler due to `get_changelog()` returning
+  an unhandled exception (:issue:`4146`).
+* Fixed a crash in automatic_updates handler due to trying access update.alias
+  after the session was closed (:issue:`4147`).
+* Some comments orphaned from their update where causing internal server
+  errors. We now enforce a not null check so that a comment cannot be created
+  without associating it to an update. The orphaned comments are removed from
+  the database by the migration script. (:issue:`4155`).
+* Dockerfile for pip CI tests has been fixed (:issue:`4158`).
+
+Development improvements
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Rename `Release.get_testing_side_tag()` to `get_pending_testing_side_tag()`
+  to avoid confusion (:pr:`4109`).
+* Added F33 to tests pipeline (:pr:`4132`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Saleh
+* Clement Verna
+* Justin Caratzas
+* Jonathan Wakely
+* Karma Dolkar
+* Mattia Verga
+* Pierre-Yves Chibon
+* Rayan Das
+* Sebastian Wojciechowski
+
+
 v5.5
 ====
 This is a bugfix release.
