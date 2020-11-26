@@ -65,7 +65,7 @@ ${parent.css()}
             <div class="input-group input-group-sm" data-toggle="dropdown">
               <div class="input-group-prepend ml-auto">
                   <div class="btn btn-sm btn-outline-secondary border" id="overrides-filterslist">
-                    
+
                     % for param, values in request.params.dict_of_lists().items():
                       % for i, value in enumerate(values):
                         % if param in allValidParams:
@@ -115,7 +115,7 @@ ${parent.css()}
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="overrideexpired"></i>
                   </div>
               </div>
-              
+
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
                   <label for="overridereleases" class="col-auto align-self-center pl-1 pr-0 m-0">Releases:</label>
@@ -148,7 +148,7 @@ ${parent.css()}
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="overridereleases"></i>
                   </div>
               </div>
-              
+
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
                   <label for="overrideuser" class="col-auto align-self-center pl-1 pr-0 m-0">User:</label>
@@ -165,7 +165,7 @@ ${parent.css()}
 
               <a href="${request.route_url('overrides')}" class="btn btn-link btn-block">Clear Filters</a>
               </div>
-          </div>  
+          </div>
               </form></div>
           </div>
         % endif
@@ -190,8 +190,6 @@ ${parent.css()}
 ${parent.javascript()}
 <script src="${request.static_url('bodhi:server/static/vendor/selectize/selectize-0.12.3.min.js')}"></script>
 <script>
-  var parameters = ${str(request.params.dict_of_lists())|n}
-  console.log(parameters)
   $(document).ready(function() {
 
   var $releases_selectize = $('#overridereleases').selectize();
