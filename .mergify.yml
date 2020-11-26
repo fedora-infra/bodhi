@@ -24,38 +24,6 @@ pull_request_rules:
 - actions:
     backport:
       branches:
-      - '5.0'
-  conditions:
-  - label!=WIP
-  - label=5.0-backports
-  name: backport 5.0
-- actions:
-    backport:
-      branches:
-      - '5.1'
-  conditions:
-  - label!=WIP
-  - label=5.1-backports
-  name: backport 5.1
-- actions:
-    backport:
-      branches:
-      - '5.2'
-  conditions:
-  - label!=WIP
-  - label=5.2-backports
-  name: backport 5.2
-- actions:
-    backport:
-      branches:
-      - '5.3'
-  conditions:
-  - label!=WIP
-  - label=5.3-backports
-  name: backport 5.3
-- actions:
-    backport:
-      branches:
       - '5.4'
   conditions:
   - label!=WIP
@@ -69,3 +37,11 @@ pull_request_rules:
   - label!=WIP
   - label=5.5-backports
   name: backport 5.5
+- actions:
+    backport:
+      branches:
+      - '5.6'
+  conditions:
+  - label!=WIP
+  - label=5.6-backports
+  name: backport 5.6

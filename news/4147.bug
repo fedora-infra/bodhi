@@ -1,1 +1,0 @@
-Fixed a crash in automatic_updates handler due to trying access update.alias after the session was closed
