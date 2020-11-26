@@ -86,7 +86,7 @@ ${parent.css()}
             <div class="input-group input-group-sm" data-toggle="dropdown">
               <div class="input-group-prepend ml-auto">
                   <div class="btn btn-sm btn-outline-secondary border" id="updates-filterslist">
-                    
+
                     % for param, values in request.params.dict_of_lists().items():
                       % for i, value in enumerate(values):
                         % if param in allValidParams:
@@ -165,7 +165,7 @@ ${parent.css()}
                     <i class="fa fa-times fa-fw text-muted clear-button" data-clear="updatereleases"></i>
                   </div>
               </div>
-              
+
               <div class="form-group row mb-1 filter-group">
                   <div class="col-3 align-self-center">
                   <label for="updatetypes" class="col-auto align-self-center pl-1 pr-0 m-0">Type:</label>
@@ -265,7 +265,7 @@ ${parent.css()}
 
               <a href="${request.route_url('updates')}" class="btn btn-link btn-block">Clear Filters</a>
               </div>
-          </div>  
+          </div>
               </form></div>
             </div>
             % endif
@@ -290,10 +290,8 @@ ${parent.css()}
 ${parent.javascript()}
 <script src="${request.static_url('bodhi:server/static/vendor/selectize/selectize-0.12.3.min.js')}"></script>
 <script>
-  var parameters = ${str(request.params.dict_of_lists())|n}
-  console.log(parameters)
   $(document).ready(function() {
- 
+
   var $status_selectize = $('#updatestatus').selectize();
   var status_selectize_control = $status_selectize[0].selectize;
 
