@@ -41,8 +41,8 @@ from urllib.request import urlopen
 
 import jinja2
 import sqlalchemy.orm.exc
+from bodhi_messages.schemas import compose as compose_schemas, update as update_schemas
 
-from bodhi.messages.schemas import compose as compose_schemas, update as update_schemas
 from bodhi.server import buildsys, notifications, mail
 from bodhi.server.config import config, validate_path
 from bodhi.server.exceptions import BodhiException

@@ -6,7 +6,7 @@ Message API
 ===========
 
 Bodhi sends a number of AMQP messages. Each message has a formally defined schema. Bodhi provides a
-convenient ``bodhi.messages`` Python package that allows you to interact with messages
+convenient ``bodhi_messages`` Python package that allows you to interact with messages
 via handy Python classes. If you are unable to use Python 3.6+, Bodhi also publishes its message
 schemas via `JSON Schema`_.
 

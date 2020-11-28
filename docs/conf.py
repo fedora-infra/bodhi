@@ -12,12 +12,15 @@ import datetime
 import os
 import sys
 
-import bodhi
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))  # NOQA
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                os.pardir, 'bodhi_messages')))
+
+import bodhi  # noqa: 401
+import bodhi_messages  # noqa: 401
 
 # -- General configuration -----------------------------------------------------
 

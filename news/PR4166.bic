@@ -1,0 +1,1 @@
+The `bodhi.messages` module has been splitted in its own `bodhi-messages` package. Packages which depend on it must now change the import statement from `bodhi.messages` to `bodhi_messages`

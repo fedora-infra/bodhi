@@ -31,10 +31,10 @@ import pytest
 from click import testing
 from fedora_messaging import api
 from fedora_messaging.testing import mock_sends
-
-from bodhi.messages.schemas import (
+from bodhi_messages.schemas import (
     base as base_schemas, buildroot_override as override_schemas, compose as compose_schemas,
     errata as errata_schemas, update as update_schemas)
+
 from bodhi.server import buildsys, exceptions, log, push
 from bodhi.server.config import config
 from bodhi.server.tasks import compose as compose_task

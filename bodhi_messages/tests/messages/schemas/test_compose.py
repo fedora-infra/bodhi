@@ -16,7 +16,7 @@
 """Unit tests for the compose message schemas."""
 
 
-from bodhi.messages.schemas.compose import (
+from bodhi_messages.schemas.compose import (
     ComposeComposingV1,
     ComposeStartV1,
     ComposeCompleteV1,
@@ -24,7 +24,8 @@ from bodhi.messages.schemas.compose import (
     ComposeSyncDoneV1,
     RepoDoneV1,
 )
-from bodhi.tests.messages.utils import check_message
+
+from ..utils import check_message
 
 
 class TestComposeMessage:

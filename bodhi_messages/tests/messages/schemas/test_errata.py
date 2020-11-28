@@ -16,8 +16,9 @@
 """Unit tests for the errata message schemas."""
 
 
-from bodhi.messages.schemas.errata import BuildV1, ErrataPublishV1, ReleaseV1, UpdateV1, UserV1
-from bodhi.tests.messages.utils import check_message
+from bodhi_messages.schemas.errata import BuildV1, ErrataPublishV1, ReleaseV1, UpdateV1, UserV1
+
+from ..utils import check_message
 
 
 class TestErrataMessage:

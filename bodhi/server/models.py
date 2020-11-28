@@ -40,9 +40,9 @@ from sqlalchemy.orm.properties import RelationshipProperty
 from sqlalchemy.types import SchemaType, TypeDecorator, Enum
 import requests.exceptions
 import rpm
-
-from bodhi.messages.schemas import (buildroot_override as override_schemas,
+from bodhi_messages.schemas import (buildroot_override as override_schemas,
                                     errata as errata_schemas, update as update_schemas)
+
 from bodhi.server import bugs, buildsys, log, mail, notifications, Session, util
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, ExternalCallException, LockedUpdateException

@@ -21,7 +21,7 @@
 import json
 import os
 
-from bodhi.messages.schemas import buildroot_override, compose, errata, update
+from bodhi_messages.schemas import buildroot_override, compose, errata, update
 
 
 DOCS_DIR = os.path.dirname(__file__)

@@ -19,8 +19,8 @@
 
 from pyramid import testing
 from pyramid import security
+from bodhi_messages.schemas.update import UpdateCommentV1
 
-from bodhi.messages.schemas.update import UpdateCommentV1
 from bodhi.server.services import schemas
 from bodhi.tests.server import base
 

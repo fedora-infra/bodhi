@@ -22,8 +22,8 @@ import copy
 
 from fedora_messaging import api, testing as fml_testing
 import webtest
+from bodhi_messages.schemas import buildroot_override as override_schemas
 
-from bodhi.messages.schemas import buildroot_override as override_schemas
 from bodhi.server.models import (
     BuildrootOverride,
     PackageManager,

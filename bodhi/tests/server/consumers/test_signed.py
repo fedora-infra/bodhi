@@ -20,8 +20,8 @@
 from unittest import mock
 
 from fedora_messaging import api, testing as fml_testing
+from bodhi_messages.schemas import update as update_schemas
 
-from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.config import config
 from bodhi.server.consumers import signed
 from bodhi.server.models import Build, Update, UpdateRequest, UpdateStatus, TestGatingStatus

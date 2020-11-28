@@ -33,8 +33,8 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 import cornice
 import requests.exceptions
+from bodhi_messages.schemas import errata as errata_schemas, update as update_schemas
 
-from bodhi.messages.schemas import errata as errata_schemas, update as update_schemas
 from bodhi.server import models as model, buildsys, mail, util, Session
 from bodhi.server.config import config
 from bodhi.server.exceptions import BodhiException, ExternalCallException, LockedUpdateException

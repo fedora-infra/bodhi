@@ -15,13 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""This test module contains tests for bodhi.messages.schemas.base."""
+"""This test module contains tests for bodhi_messages.schemas.base."""
 
 import json
 
 import pytest
-
-from bodhi.messages.schemas import base
+from bodhi_messages.schemas import base
 
 
 class TestFedMsgEncoder:

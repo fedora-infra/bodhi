@@ -30,8 +30,8 @@ import koji
 import pytest
 import requests
 from webtest import TestApp
+from bodhi_messages.schemas import base as base_schemas, update as update_schemas
 
-from bodhi.messages.schemas import base as base_schemas, update as update_schemas
 from bodhi.server import main
 from bodhi.server.config import config
 from bodhi.server.models import (

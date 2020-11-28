@@ -20,8 +20,8 @@
 from unittest import mock
 
 from fedora_messaging import api, testing as fml_testing, exceptions as fml_exceptions
+from bodhi_messages.schemas import compose as compose_schemas
 
-from bodhi.messages.schemas import compose as compose_schemas
 from bodhi.server import notifications, Session
 from bodhi.tests.server import base
 

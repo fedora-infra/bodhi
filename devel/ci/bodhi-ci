@@ -773,8 +773,10 @@ class DocsJob(Job):
 
     _command = [
         '/usr/bin/bash', '-c',
-        ('/usr/bin/python3 setup.py develop && make -C docs clean && make -C docs html && make '
-         '-C docs man && cp -rv docs/_build/* /results/')]
+        ('/usr/bin/python3 setup.py develop && '
+         '(cd bodhi_messages && /usr/bin/python3 setup.py develop) && '
+         'make -C docs clean && make -C docs html && make -C docs man && '
+         'cp -rv docs/_build/* /results/')]
     _label = 'docs'
 
     def __init__(self, archive, archive_path, *args, **kwargs):
@@ -926,22 +928,24 @@ class UnitJob(Job):
         """
         super(UnitJob, self).__init__(*args, **kwargs)
 
-        pytest_flags = '--junit-xml=nosetests.xml bodhi/tests -v'
+        pytest_flags = '--junit-xml=nosetests.xml bodhi/tests bodhi_messages/tests -v'
         if failfast:
             pytest_flags += ' -x'
 
-        test_command = ('({} setup.py develop && {} {} || (cp *.xml /results && exit 1)) '
-                        '&& cp *.xml /results')
+        python_exec = '/usr/bin/python3'
 
         if self.release == 'pip':
             # pip installs some of the executables in different places than Fedora does.
-            self._command = [
-                '/usr/bin/bash', '-c',
-                test_command.format('/usr/bin/python3', '/usr/local/bin/py.test', pytest_flags)]
+            pip_exec = '/usr/local/bin/py.test'
         else:
-            self._command = [
-                '/usr/bin/bash', '-c',
-                test_command.format('/usr/bin/python3', '/usr/bin/py.test-3', pytest_flags)]
+            pip_exec = '/usr/bin/py.test-3'
+
+        test_command = (f'({python_exec} setup.py develop && '
+                        f'(cd bodhi_messages && {python_exec} setup.py develop) && '
+                        f'{pip_exec} {pytest_flags} || (cp *.xml /results && exit 1)) '
+                        '&& cp *.xml /results')
+
+        self._command = ['/usr/bin/bash', '-c', test_command]
 
         self._convert_command_for_container(archive=archive, archive_path=archive_path)
 

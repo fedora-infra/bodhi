@@ -20,8 +20,8 @@
 import logging
 
 from sqlalchemy import func
+from bodhi_messages.schemas import update as update_schemas
 
-from bodhi.messages.schemas import update as update_schemas
 from bodhi.server import Session, notifications, buildsys
 from bodhi.server.util import transactional_session_maker
 from ..models import Update, UpdateStatus, UpdateRequest

@@ -21,3 +21,27 @@ __version__ = "5.7.0"
 
 # This is a regular expression used to match username mentions in comments.
 MENTION_RE = r'(?<!\S)(@\w+)'
+
+# Setuptools common parameters
+_setuptools_config = {
+    'version': __version__,
+    'classifiers': [
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Topic :: System :: Software Distribution',
+    ],
+    'license': 'GPLv2+',
+    'maintainer': 'Fedora Infrastructure Team',
+    'maintainer_email': 'infrastructure@lists.fedoraproject.org',
+    'platforms': ['Fedora', 'GNU/Linux'],
+    'url': 'https://github.com/fedora-infra/bodhi',
+    'zip_safe': False,
+}

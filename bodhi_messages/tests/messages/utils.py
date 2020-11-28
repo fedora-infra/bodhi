@@ -18,7 +18,7 @@
 import typing
 
 if typing.TYPE_CHECKING:  # pragma: no cover
-    from bodhi.messages.schemas.base import BodhiMessage  # noqa: 401
+    from bodhi_messages.schemas.base import BodhiMessage  # noqa: 401
 
 
 def check_message(msg: 'BodhiMessage', expected: typing.Mapping[str, typing.Any]):

@@ -27,6 +27,7 @@
       - python3-arrow
       - python3-backoff
       - python3-bleach
+      - python3-bugzilla
       - python3-celery
       - python3-click
       - python3-colander
@@ -37,9 +38,11 @@
       - python3-diff-cover
       - python3-dogpile-cache
       - python3-fedora
+      - python3-feedgen
       - python3-flake8
       - python3-flake8-import-order
       - python3-ipdb
+      - python3-jinja2-cli
       - python3-koji
       - python3-librepo
       - python3-markdown
@@ -113,11 +116,6 @@
       name: mypy
       executable: pip3
 
-- name: pip install jinja2-cli
-  pip:
-      name: jinja2-cli
-      executable: pip3
-
 - name: Fake a pungi install
   file:
       src: /usr/bin/true
@@ -129,10 +127,19 @@
   register: python3_version
 
 - name: Install bodhi in developer mode for Python 3
-  command: python3 /home/vagrant/bodhi/setup.py develop
-  args:
+  pip:
       chdir: /home/vagrant/bodhi
-      creates: /usr/lib/python{{ python3_version.stdout }}/site-packages/bodhi.egg-link
+      name: "."
+      editable: yes
+      executable: pip3
+      extra_args: --no-use-pep517
+
+- name: Install bodhi-messages in developer mode for Python 3
+  pip:
+      chdir: /home/vagrant/bodhi/bodhi_messages
+      name: "."
+      editable: yes
+      executable: pip3
 
 - name: Retrieve database dump
   get_url:
@@ -172,7 +179,7 @@
       dest: "/usr/lib64/python{{ python3_version.stdout }}/site-packages/zope/__init__.py"
 
 - name: Apply database migrations
-  shell: PYTHONPATH=. alembic upgrade head
+  shell: PYTHONPATH=. alembic-3 upgrade head
   args:
       chdir: /home/vagrant/bodhi
 

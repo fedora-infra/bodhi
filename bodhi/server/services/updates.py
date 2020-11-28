@@ -20,6 +20,7 @@
 import copy
 import math
 
+from bodhi_messages.schemas import update as update_schemas
 from cornice import Service
 from cornice.validators import colander_body_validator, colander_querystring_validator
 from sqlalchemy import func, distinct
@@ -60,7 +61,6 @@ from bodhi.server.validators import (
     validate_severity,
     validate_from_tag,
 )
-from bodhi.messages.schemas import update as update_schemas
 import bodhi.server.notifications as notifications
 
 

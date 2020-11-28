@@ -78,7 +78,7 @@ class MessageSchemasV1:
             A list of message topics that Bodhi supports.
         """
         return [m.load().topic for m in pkg_resources.iter_entry_points('fedora.messages')
-                if m.module_name.startswith('bodhi.')]
+                if m.module_name.startswith('bodhi_messages')]
 
     @view(accept=('application/json', 'text/json'), renderer='json',
           cors_origins=security.cors_origins_ro, error_handler=errors.json_handler,

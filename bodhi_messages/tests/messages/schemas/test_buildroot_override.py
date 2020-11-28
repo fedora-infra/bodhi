@@ -15,10 +15,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Unit tests for the buildroot_override message schemas."""
 
-from bodhi.messages.schemas import base
-from bodhi.messages.schemas.buildroot_override import (BuildrootOverrideTagV1,
+from bodhi_messages.schemas import base
+from bodhi_messages.schemas.buildroot_override import (BuildrootOverrideTagV1,
                                                        BuildrootOverrideUntagV1)
-from bodhi.tests.messages.utils import check_message
+
+from ..utils import check_message
 
 
 class TestBuildrootOverrideMessage:

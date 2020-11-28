@@ -5,7 +5,7 @@ Compose
 Python objects
 ==============
 
-.. automodule:: bodhi.messages.schemas.compose
+.. automodule:: bodhi_messages.schemas.compose
    :exclude-members: body_schema, __module__
    :members:
    :show-inheritance:

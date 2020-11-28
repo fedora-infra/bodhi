@@ -22,8 +22,8 @@ import copy
 
 from fedora_messaging import api, testing as fml_testing
 import webtest
+from bodhi_messages.schemas import update as update_schemas
 
-from bodhi.messages.schemas import update as update_schemas
 from bodhi.server.models import (Build, Comment, Release, RpmBuild, RpmPackage, Update,
                                  UpdateRequest, UpdateStatus, UpdateType, User)
 from bodhi.server import main
