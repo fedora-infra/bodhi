@@ -4,6 +4,23 @@ Release notes
 
 .. towncrier release notes start
 
+v5.6.1
+======
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+Fix two reflected XSS vulnerabilities - CVE: CVE-2020-15855
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Patrick Uiterwijk
+
 v5.6
 ====
 This is a feature release.
