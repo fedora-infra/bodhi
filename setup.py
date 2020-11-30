@@ -111,7 +111,7 @@ client_setup = {
     'keywords': 'fedora',
     'packages': client_pkgs,
     'include_package_data': False,
-    'install_requires': ['click', 'python-fedora >= 0.9.0', 'koji'],
+    'install_requires': ['click', 'python-fedora >= 0.9.0'],
     'entry_points': '''
         [console_scripts]
         bodhi = bodhi.client:cli
