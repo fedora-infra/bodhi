@@ -746,7 +746,7 @@ class DiffCoverJob(Job):
         else:
             executable = '/usr/bin/diff-cover'
         self._command = [executable, '/results/coverage.xml',
-                         '--compare-branch=origin/develop', '--fail-under=100']
+                         '--compare-branch=origin/5.6', '--fail-under=100']
         self._convert_command_for_container(archive=archive, archive_path=archive_path,
                                             include_git=True)
 
