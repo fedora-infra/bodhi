@@ -208,6 +208,7 @@ class AutomaticUpdateHandler:
                 log.error(f'Problem obsoleting older updates: {e}')
 
             alias = update.alias
+            buglist = [b.bug_id for b in update.bugs]
 
         # This must be run after dbsession is closed so changes are committed to db
-        work_on_bugs_task.delay(alias, closing_bugs)
+        work_on_bugs_task.delay(alias, buglist)
