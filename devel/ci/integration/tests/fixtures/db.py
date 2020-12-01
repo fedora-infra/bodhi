@@ -37,7 +37,7 @@ def db_container(docker_backend, docker_network):
         conu.DockerContainer: The PostgreSQL container.
     """
     image = docker_backend.ImageClass(
-        os.environ.get("BODHI_INTEGRATION_POSTGRESQL_IMAGE", "postgres"),
+        os.environ.get("BODHI_INTEGRATION_POSTGRESQL_IMAGE", "quay.io/bodhi-ci/postgresql"),
         tag="latest"
     )
     params = DockerContainerParameters(env_variables={"POSTGRES_HOST_AUTH_METHOD": "trust"})
