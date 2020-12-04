@@ -1,1 +1,0 @@
-The Comments.update_id column is now set to be not null. The comments orphaned from their update object are deleted from the database and so are BugKarma and TestCaseKarma objects orphaned from their Comment.
