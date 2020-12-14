@@ -633,6 +633,9 @@ class ComposerThread(threading.Thread):
             if update.request is UpdateRequest.stable:
                 update.remove_tag(update.release.pending_stable_tag,
                                   koji=koji)
+                if update.from_tag:
+                    # Remove the side-tag so that Koji gc can delete it if empty
+                    update.remove_tag(update.from_tag, koji=koji)
             elif update.request is UpdateRequest.testing:
                 update.remove_tag(update.release.pending_signing_tag,
                                   koji=koji)
