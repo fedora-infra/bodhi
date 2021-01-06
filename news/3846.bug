@@ -1,0 +1,1 @@
+Bodhi will avoid sending both 'update can now be pushed' and 'update has been pushed' notifications at the same time on updates pushed automatically

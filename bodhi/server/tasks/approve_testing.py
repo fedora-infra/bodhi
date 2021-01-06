@@ -80,14 +80,17 @@ def approve_update(update: Update, db: Session):
         log.info(f"{update.alias} has not met testing requirements - bailing")
         return
     log.info(f'{update.alias} now meets testing requirements')
-    # Only send email notification about the update reaching
-    # testing approval on releases composed by bodhi
-    update.comment(
-        db,
-        str(config.get('testing_approval_msg')),
-        author='bodhi',
-        email_notification=update.release.composed_by_bodhi
-    )
+    # If the update is going to be pushed automatically to stable, do not
+    # double comment that the maintainer can push it manually (#3846)
+    if not update.autotime or update.days_in_testing < update.stable_days:
+        # Only send email notification about the update reaching
+        # testing approval on releases composed by bodhi
+        update.comment(
+            db,
+            str(config.get('testing_approval_msg')),
+            author='bodhi',
+            email_notification=update.release.composed_by_bodhi
+        )
     notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
         dict(update=update)))
     if update.autotime and update.days_in_testing >= update.stable_days:
