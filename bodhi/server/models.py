@@ -2079,19 +2079,19 @@ class Update(Base):
         return comments_since_karma_reset
 
     @staticmethod
-    def contains_critpath_component(builds, release_name):
+    def contains_critpath_component(builds, release_branch):
         """
         Determine if there is a critpath component in the builds passed in.
 
         Args:
             builds (list): :class:`Builds <Build>` to be considered.
-            release_name (str): The name of the release, such as "f25".
+            release_branch (str): The name of the git branch associated to the release,
+                such as "f25" or "master".
         Returns:
             bool: ``True`` if the update contains a critical path package, ``False`` otherwise.
         Raises:
             RuntimeError: If the PDC did not give us a 200 code.
         """
-        relname = release_name.lower()
         components = defaultdict(list)
         # Get the mess down to a dict of ptype -> [pname]
         for build in builds:
@@ -2100,7 +2100,7 @@ class Update(Base):
             components[ptype].append(pname)
 
         for ptype in components:
-            if get_critpath_components(relname, ptype, frozenset(components[ptype])):
+            if get_critpath_components(release_branch, ptype, frozenset(components[ptype])):
                 return True
 
         return False
@@ -2291,7 +2291,7 @@ class Update(Base):
         data['user'] = user
         caveats = []
         data['critpath'] = cls.contains_critpath_component(
-            data['builds'], data['release'].name)
+            data['builds'], data['release'].branch)
 
         # Be sure to not add an empty string as alternative title
         # and strip whitespaces from it
@@ -2443,7 +2443,7 @@ class Update(Base):
                     db.delete(b)
 
         data['critpath'] = cls.contains_critpath_component(
-            up.builds, up.release.name)
+            up.builds, up.release.branch)
 
         del(data['builds'])
 
