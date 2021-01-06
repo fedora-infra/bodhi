@@ -153,6 +153,7 @@ class TestMain(BaseTaskTestCase):
     def test_exception_handler(self, log, comment, composed_by_bodhi):
         """The Exception handler prints the Exception, rolls back and closes the db, and exits."""
         update = self.db.query(models.Update).all()[0]
+        update.autotime = False
         update.date_testing = datetime.utcnow() - timedelta(days=15)
         update.request = None
         update.status = models.UpdateStatus.testing
@@ -802,9 +803,8 @@ class TestMain(BaseTaskTestCase):
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
-        assert cmnts.count() == 2
-        assert cmnts[0].text == config.get('testing_approval_msg')
-        assert cmnts[1].text == 'This update has been submitted for stable by bodhi. '
+        assert cmnts.count() == 1
+        assert cmnts[0].text == 'This update has been submitted for stable by bodhi. '
 
     def test_autotime_update_with_autokarma_met_karma_and_time_requirements_get_pushed(self):
         """
@@ -891,8 +891,7 @@ class TestMain(BaseTaskTestCase):
 
         bodhi = self.db.query(models.User).filter_by(name='bodhi').one()
         cmnts = self.db.query(models.Comment).filter_by(update_id=update.id, user_id=bodhi.id)
-        assert cmnts.count() == 2
-        assert cmnts[0].text == config.get('testing_approval_msg')
-        assert cmnts[1].text == "This update cannot be pushed to stable. "\
+        assert cmnts.count() == 1
+        assert cmnts[0].text == "This update cannot be pushed to stable. "\
             "These builds bodhi-2.0-1.fc17 have a more recent build in koji's "\
             f"{update.release.stable_tag} tag."
