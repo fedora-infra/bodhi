@@ -1,12 +1,161 @@
+# kojibuild_ policies are for koji_build subjects; Fedora CI runs tests at
+# at the Koji build level and report results which will be found by queries
+# against these policies.
+
+# bodhiupdate_ policies are for bodhi_update subjects; Fedora openQA runs
+# tests at the Bodhi update level and reports results which will be found by
+# queries against these policies.
+
+# As of 2020-11, we know that Bodhi runs queries for both of these subject
+# types when deciding whether to push updates to various stages (these are the
+# decision contexts), and expects a successful result to its queries.
+
+# compose_ policies are for compose subjects; Fedora openQA runs tests at
+# the compose level (for composes containing deliverables it can test) and
+# reports results which will be found by queries against these policies.
+# As of 2020-11, we know the check-compose tool that generates "compose
+# check reports" queries this subject type for the
+# rawhide_compose_sync_to_mirrors decision context and reports the result
+# for each Rawhide compose, saying whether it "would have" passing gating
+# or not (actual gating of compose syncs has not yet been implemented).
+
+# note that policies are *additive*. If a query matches multiple of these
+# policies, all the relevant test results are retrieved, and rules in all
+# the matched policies are applied.
+
+# These are "null" policies: they enforce no rules, the purpose is just to
+# exist, so that we always have at least one policy that matches
+# queries for the covered subject types and the covered versions and
+# contexts. This is a fallback for Bodhi queries that we know will run
+# and expect a successful result, but which Greenwave will error on if
+# no policy matches. Note having no "null" policy for subject_type
+# bodhi_update would not cause an error because Greenwave by default
+# ignores missing policies for that subject type, but if there is no
+# policy match Greenwave won't send Bodhi the test results, and we do want
+# that.
 --- !Policy
-id: "openqa_important_stuff_for_rawhide"
+id: "kojibuild_bodhipush_no_requirements"
+product_versions:
+  - fedora-*
+decision_contexts:
+  - bodhi_update_push_testing
+  - bodhi_update_push_testing_critpath
+  - bodhi_update_push_stable
+  - bodhi_update_push_stable_critpath
+subject_type: koji_build
+rules: []
+
+--- !Policy
+id: "bodhiupdate_bodhipush_no_requirements"
+product_versions:
+  - fedora-*
+decision_contexts:
+  - bodhi_update_push_testing
+  - bodhi_update_push_testing_critpath
+  - bodhi_update_push_stable
+  - bodhi_update_push_stable_critpath
+subject_type: bodhi_update
+rules: []
+
+# The "remoterule" policy applies policies configured in individual
+# package repositories. See Greenwave docs/policies.rst and
+# https://docs.fedoraproject.org/en-US/ci/gating/ for details. Note
+# we don't have a remoterule policy for bodhi_update subject type
+# because Greenwave doesn't consider it to support remote rules.
+--- !Policy
+id: "kojibuild_bodhipush_remoterule"
+product_versions:
+  - fedora-rawhide
+  - fedora-34
+  - fedora-33
+  - fedora-32
+decision_contexts:
+  - bodhi_update_push_testing
+  - bodhi_update_push_testing_critpath
+  - bodhi_update_push_stable
+  - bodhi_update_push_stable_critpath
+subject_type: koji_build
+rules:
+  - !RemoteRule {}
+
+# For critical path updates, we require passes for all openQA update tests
+--- !Policy
+id: "bodhiupdate_bodhipush_openqa"
+product_versions:
+  # this should cover us for a while...
+  - fedora-3*
+  - fedora-4*
+  - fedora-5*
+  - fedora-6*
+  - fedora-7*
+  - fedora-8*
+  - fedora-9*
+decision_contexts:
+  - bodhi_update_push_testing_critpath
+  - bodhi_update_push_stable_critpath
+subject_type: bodhi_update
+rules:
+# This list needs to stay synced with openQA if tests are added or renamed.
+  - !PassingTestCaseRule {test_case_name: update.install_default_update_netinst, scenario: "fedora.updates-everything-boot-iso.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.install_default_update_netinst, scenario: "fedora.updates-everything-boot-iso.x86_64.uefi"}
+  - !PassingTestCaseRule {test_case_name: update.installer_build, scenario: "fedora.updates-everything-boot-iso.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_reboot_unmount, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_selinux, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_service_manipulation, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_services_start, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_system_logging, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_update_cli, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.desktop_background, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.desktop_browser, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.desktop_printing, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.desktop_terminal, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.desktop_update_graphical, scenario: "fedora.updates-kde.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.advisory_boot, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_reboot_unmount, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_selinux, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_service_manipulation, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_services_start, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_system_logging, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_update_cli, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.realmd_join_cockpit, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.realmd_join_sssd, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_cockpit_basic, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_cockpit_default, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_cockpit_updates, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_database_client, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_firewall_default, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_freeipa_replication_client, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_freeipa_replication_master, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_freeipa_replication_replica, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_remote_logging_client, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_remote_logging_server, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_role_deploy_database_server, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.server_role_deploy_domain_controller, scenario: "fedora.updates-server.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_reboot_unmount, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_selinux, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_service_manipulation, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_services_start, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_system_logging, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.base_update_cli, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.desktop_background, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.desktop_browser, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.desktop_printing, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.desktop_terminal, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.desktop_update_graphical, scenario: "fedora.updates-workstation.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.install_default_update_live, scenario: "fedora.updates-workstation-live-iso.x86_64.64bit"}
+  - !PassingTestCaseRule {test_case_name: update.install_default_update_live, scenario: "fedora.updates-workstation-live-iso.x86_64.uefi"}
+  - !PassingTestCaseRule {test_case_name: update.live_build, scenario: "fedora.updates-workstation-live-iso.x86_64.64bit"}
+
+# This policy lists tests that are expected to pass for a Rawhide compose to
+# meet the basic release criteria.
+--- !Policy
+id: "compose_sync_requiredtests"
 product_versions:
   - fedora-rawhide
 decision_context: rawhide_compose_sync_to_mirrors
 subject_type: compose
-blacklist: []
 rules:
-  - !PassingTestCaseRule {test_case_name: compose.cloud.all}
+  - !PassingTestCaseRule {test_case_name: compose.cloud_autocloud, scenario: "fedora.Cloud_Base-qcow2-qcow2.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.base_system_logging, scenario: "fedora.KDE-live-iso.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.base_system_logging, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.base_system_logging, scenario: "fedora.Workstation-live-iso.x86_64.64bit"}
@@ -24,8 +173,6 @@ rules:
   - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Server-boot-iso.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Server-boot-iso.x86_64.uefi"}
   - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Server-dvd-iso.x86_64.uefi"}
-  - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Workstation-boot-iso.x86_64.64bit"}
-  - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Workstation-boot-iso.x86_64.uefi"}
   - !PassingTestCaseRule {test_case_name: compose.install_default, scenario: "fedora.Workstation-live-iso.x86_64.uefi"}
   - !PassingTestCaseRule {test_case_name: compose.install_default_upload, scenario: "fedora.KDE-live-iso.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.install_default_upload, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
@@ -52,89 +199,3 @@ rules:
   - !PassingTestCaseRule {test_case_name: compose.server_role_deploy_database_server, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
   - !PassingTestCaseRule {test_case_name: compose.server_role_deploy_domain_controller, scenario: "fedora.Server-dvd-iso.x86_64.64bit"}
 
---- !Policy
-id: "taskotron_release_critical_tasks_for_testing"
-product_versions:
-  - fedora-33
-  - fedora-32
-  - fedora-31
-  - fedora-30
-decision_context: bodhi_update_push_testing
-blacklist: []
-subject_type: koji_build
-rules:
-  - !RemoteRule {}
-
---- !Policy
-id: "taskotron_release_critical_tasks_for_stable"
-product_versions:
-  - fedora-33
-  - fedora-32
-  - fedora-31
-  - fedora-30
-decision_context: bodhi_update_push_stable
-blacklist: []
-subject_type: koji_build
-rules:
-  - !RemoteRule {}
-
---- !Policy
-id: "no_requirements_testing"
-product_versions:
-  - fedora-30-modular
-  - fedora-30-containers
-  - fedora-30-flatpaks
-  - fedora-31-modular
-  - fedora-31-containers
-  - fedora-31-flatpaks
-  - fedora-epel-8
-  - fedora-epel-7
-  - fedora-epel-6
-decision_context: bodhi_update_push_testing
-blacklist: []
-subject_type: koji_build
-rules: []
-
---- !Policy
-id: "no_requirements_for_stable"
-product_versions:
-  - fedora-30-modular
-  - fedora-30-containers
-  - fedora-30-flatpaks
-  - fedora-31-modular
-  - fedora-31-containers
-  - fedora-31-flatpaks
-  - fedora-epel-8
-  - fedora-epel-7
-  - fedora-epel-6
-decision_context: bodhi_update_push_stable
-blacklist: []
-subject_type: koji_build
-rules: []
-
---- !Policy
-# openQA policies
-id: "openqa_release_critical_tasks_for_testing"
-product_versions:
-  - fedora-30
-  - fedora-31
-  - fedora-32
-  - fedora-33
-decision_context: bodhi_update_push_testing
-blacklist: []
-subject_type: bodhi_update
-rules:
-  - !RemoteRule {}
-
---- !Policy
-id: "openqa_release_critical_tasks_for_stable"
-product_versions:
-  - fedora-30
-  - fedora-31
-  - fedora-32
-  - fedora-33
-decision_context: bodhi_update_push_stable
-blacklist: []
-subject_type: bodhi_update
-rules:
-  - !RemoteRule {}
