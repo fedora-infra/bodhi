@@ -1145,6 +1145,31 @@ class TestModulePackage(ModelTest):
             'expand_group=1',
             timeout=60)
 
+    @pytest.mark.parametrize('access', (False, True))
+    @mock.patch('bodhi.server.util.http_session')
+    def test_hascommitaccess_module(self, session, access):
+        """
+        Test call to Pagure to check if a user has access to this package/branch.
+        """
+        json_output = {
+            "args": {
+                "username": "mattia",
+                "branch": "master",
+                "project": {}
+            },
+            "hascommit": access
+        }
+        session.get.return_value.json.return_value = json_output
+        session.get.return_value.status_code = 200
+
+        rv = self.package.hascommitaccess('mattia', 'f33')
+
+        assert rv is access
+        session.get.assert_called_once_with(
+            'https://src.fedoraproject.org/pagure/api/0/modules/the-greatest-package/'
+            'hascommit?user=mattia&branch=master',
+            timeout=60)
+
 
 class TestContainerPackage(ModelTest):
     """Test the Container class."""
@@ -1198,6 +1223,31 @@ class TestContainerPackage(ModelTest):
              '?expand_group=1'),
             timeout=60)
 
+    @pytest.mark.parametrize('access', (False, True))
+    @mock.patch('bodhi.server.util.http_session')
+    def test_hascommitaccess_container(self, session, access):
+        """
+        Test call to Pagure to check if a user has access to this package/branch.
+        """
+        json_output = {
+            "args": {
+                "username": "mattia",
+                "branch": "f33",
+                "project": {}
+            },
+            "hascommit": access
+        }
+        session.get.return_value.json.return_value = json_output
+        session.get.return_value.status_code = 200
+
+        rv = self.obj.hascommitaccess('mattia', 'f33')
+
+        assert rv is access
+        session.get.assert_called_once_with(
+            'https://src.fedoraproject.org/pagure/api/0/container/docker-distribution/'
+            'hascommit?user=mattia&branch=f33',
+            timeout=60)
+
 
 class TestFlatpakPackage(ModelTest):
     klass = model.FlatpakPackage
@@ -1243,20 +1293,6 @@ class TestFlatpakPackage(ModelTest):
     @mock.patch('bodhi.server.util.http_session')
     def test_get_pkg_committers_from_pagure_modules(self, http_session):
         """Ensure correct return value from get_pkg_committers_from_pagure()."""
-        self.patch_http_session(http_session, namespace='modules')
-
-        rv = self.obj.get_pkg_committers_from_pagure()
-
-        assert rv == (['otaylor'], [])
-        http_session.get.assert_called_once_with(
-            ('https://src.fedoraproject.org/pagure/api/0/modules/flatpak-runtime'
-             '?expand_group=1'),
-            timeout=60)
-
-    @mock.patch.dict('bodhi.server.config.config', {'pagure_flatpak_namespace': 'flatpaks'})
-    @mock.patch('bodhi.server.util.http_session')
-    def test_get_pkg_committers_from_pagure_flatpaks(self, http_session):
-        """Check that the pagure_flatpak_namespace config key works."""
         self.patch_http_session(http_session, namespace='flatpaks')
 
         rv = self.obj.get_pkg_committers_from_pagure()
@@ -1265,6 +1301,31 @@ class TestFlatpakPackage(ModelTest):
         http_session.get.assert_called_once_with(
             ('https://src.fedoraproject.org/pagure/api/0/flatpaks/flatpak-runtime'
              '?expand_group=1'),
+            timeout=60)
+
+    @pytest.mark.parametrize('access', (False, True))
+    @mock.patch('bodhi.server.util.http_session')
+    def test_hascommitaccess_flatpak(self, http_session, access):
+        """
+        Test call to Pagure to check if a user has access to this package/branch.
+        """
+        json_output = {
+            "args": {
+                "username": "mattia",
+                "branch": "stable",
+                "project": {}
+            },
+            "hascommit": access
+        }
+        http_session.get.return_value.json.return_value = json_output
+        http_session.get.return_value.status_code = 200
+
+        rv = self.obj.hascommitaccess('mattia', 'f33')
+
+        assert rv is access
+        http_session.get.assert_called_once_with(
+            'https://src.fedoraproject.org/pagure/api/0/flatpaks/flatpak-runtime/'
+            'hascommit?user=mattia&branch=stable',
             timeout=60)
 
 
@@ -1481,6 +1542,31 @@ class TestRpmPackage(ModelTest):
         rv = self.package.get_pkg_committers_from_pagure()
 
         assert rv == (['mprahl'], ['factory2'])
+
+    @pytest.mark.parametrize('access', (False, True))
+    @mock.patch('bodhi.server.util.http_session')
+    def test_hascommitaccess_container_rpm(self, session, access):
+        """
+        Test call to Pagure to check if a user has access to this package/branch.
+        """
+        json_output = {
+            "args": {
+                "username": "mattia",
+                "branch": "f33",
+                "project": {}
+            },
+            "hascommit": access
+        }
+        session.get.return_value.json.return_value = json_output
+        session.get.return_value.status_code = 200
+
+        rv = self.package.hascommitaccess('mattia', 'f33')
+
+        assert rv is access
+        session.get.assert_called_once_with(
+            'https://src.fedoraproject.org/pagure/api/0/rpms/the-greatest-package/'
+            'hascommit?user=mattia&branch=f33',
+            timeout=60)
 
 
 class TestBuild(ModelTest):

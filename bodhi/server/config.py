@@ -51,6 +51,37 @@ def get_configfile() -> typing.Optional[str]:
     return configfile
 
 
+def _generate_dict_validator(value: str) -> dict:
+    """Return a dict version of value.
+
+    This function accept a string with comma separated tuples in the form `key:value`
+    and ensure it can be correctly imported as a dict. It will return a dict.
+    If it cannot do that, it will raise ValueError.
+
+    Args:
+        value: The value to be validated as a dict.
+    Returns:
+        The dict interpretation of value.
+    Raises:
+        ValueError: If value cannot be interpreted as a dict.
+    """
+    if isinstance(value, str):
+        values_list = [idx.strip() for idx in value.split(',') if idx.strip()]
+        dictvalue = dict()
+        for v in values_list:
+            try:
+                k, v = v.split(':')
+                dictvalue[k.strip()] = v.strip()
+            except Exception:
+                raise ValueError(f'"{value}" cannot be interpreted as a dict.')
+        value = dictvalue
+
+    if not isinstance(value, dict):
+        raise ValueError(f'"{value}" cannot be interpreted as a dict.')
+
+    return value
+
+
 def _generate_list_validator(
         splitter: str = ' ', validator: typing.Callable[[typing.Any], typing.Any] = str) \
         -> typing.Callable[[typing.Union[str, typing.List]], typing.Any]:
@@ -457,8 +488,14 @@ class BodhiConfig(dict):
         'openid_template': {
             'value': '{username}.id.fedoraproject.org',
             'validator': str},
-        'pagure_flatpak_namespace': {
-            'value': 'modules',
+        'pagure_namespaces': {
+            'value': ('rpm:rpms, module:modules, container:container, flatpak:flatpaks'),
+            'validator': _generate_dict_validator},
+        'pagure_flatpak_main_branch': {
+            'value': 'stable',
+            'validator': str},
+        'pagure_module_main_branch': {
+            'value': 'master',
             'validator': str},
         'pagure_url': {
             'value': 'https://src.fedoraproject.org/pagure/',
