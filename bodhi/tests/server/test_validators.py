@@ -115,22 +115,6 @@ class TestValidateAcls(BasePyTestCase):
         mock_request.buildinfo = {'bodhi-2.0-1.fc17': {}}
         return mock_request
 
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=([], ['infra-sig']))
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_allowed_via_group(self, gpcfp):
-        """Ensure that packagers can be allowed via group membership."""
-        user = self.db.query(models.User).filter_by(id=1).one()
-        group = models.Group(name='infra-sig')
-        self.db.add(group)
-        user.groups.append(group)
-        request = self.get_mock_request()
-
-        validators.validate_acls(request)
-
-        assert not len(request.errors)
-        gpcfp.assert_called_once_with()
-
     def test_unable_to_infer_content_type(self):
         """Test the error handler for when Bodhi cannot determine the content type of a build."""
         request = self.get_mock_request()
@@ -163,26 +147,36 @@ class TestValidateAcls(BasePyTestCase):
         ]
         assert request.errors.status == 501
 
-    # Mocking the get_pkg_committers_from_pagure function because it will
-    # simplify the overall number of mocks. This function is tested on its own
-    # elsewhere.
+    @pytest.mark.parametrize('access', (False, True))
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['guest'], []))
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_validate_acls_pagure(self, mock_gpcfp):
+    def test_validate_acls_pagure(self, mock_gpcfp, access):
         """ Test validate_acls when the acl system is Pagure.
         """
         mock_request = self.get_mock_request()
-        validators.validate_acls(mock_request)
-        assert not len(mock_request.errors)
-        mock_gpcfp.assert_called_once()
+        with mock.patch('bodhi.server.models.Package.hascommitaccess', return_value=access):
+            validators.validate_acls(mock_request)
+        if access:
+            assert not len(mock_request.errors)
+            mock_gpcfp.assert_called_once()
+        else:
+            error = [{
+                'location': 'body',
+                'name': 'builds',
+                'description': 'guest does not have commit access to bodhi'
+            }]
+            assert mock_request.errors == error
+            mock_gpcfp.assert_not_called()
 
+    @mock.patch('bodhi.server.models.Package.hascommitaccess',
+                return_value=False)
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['tbrady'], []))
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_validate_acls_pagure_proven_packager(self, mock_gpcfp):
+    def test_validate_acls_admin_group(self, mock_gpcfp, mock_access):
         """ Test validate_acls when the acl system is Pagure when the user is
-        a proven packager but doesn't have access through Pagure.
+        in and admin group but doesn't have access through Pagure.
         """
         user = self.db.query(models.User).filter_by(id=1).one()
         group = self.db.query(models.Group).filter_by(
@@ -193,12 +187,15 @@ class TestValidateAcls(BasePyTestCase):
         mock_request = self.get_mock_request()
         validators.validate_acls(mock_request)
         assert not len(mock_request.errors)
+        mock_access.assert_not_called()
         mock_gpcfp.assert_not_called()
 
+    @mock.patch('bodhi.server.models.Package.hascommitaccess',
+                return_value=False)
     @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
                 return_value=(['guest'], []))
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_validate_acls_pagure_not_a_packager(self, mock_gpcfp):
+    def test_validate_acls_pagure_not_a_packager(self, mock_gpcfp, mock_access):
         """ Test validate_acls when the acl system is Pagure when the user is
         not a packager but has access through Pagure. This should not be
         allowed.
@@ -215,34 +212,18 @@ class TestValidateAcls(BasePyTestCase):
                             'mandatory packager group')
         }]
         assert mock_request.errors == error
+        mock_access.assert_not_called()
         mock_gpcfp.assert_not_called()
 
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['tbrady'], []))
+    @mock.patch('bodhi.server.models.Package.hascommitaccess',
+                return_value=True)
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_validate_acls_pagure_no_commit_access(self, mock_gpcfp):
-        """ Test validate_acls when the acl system is Pagure when the user is
-        a packager but doesn't have access through Pagure.
-        """
-        mock_request = self.get_mock_request()
-        validators.validate_acls(mock_request)
-        error = [{
-            'location': 'body',
-            'name': 'builds',
-            'description': 'guest does not have commit access to bodhi'
-        }]
-        assert mock_request.errors == error
-        mock_gpcfp.assert_called_once()
-
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['guest'], []))
-    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_validate_acls_pagure_runtime_error(self, mock_gpcfp):
+    def test_validate_acls_pagure_runtime_error(self, mock_access):
         """ Test validate_acls when the acl system is Pagure and a RuntimeError
         is raised.
         """
         mock_request = self.get_mock_request()
-        mock_gpcfp.side_effect = RuntimeError('some error')
+        mock_access.side_effect = RuntimeError('some error')
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 1
         expected_error = [{
@@ -251,17 +232,17 @@ class TestValidateAcls(BasePyTestCase):
             'description': 'some error'
         }]
         assert mock_request.errors == expected_error
-        mock_gpcfp.assert_called_once()
+        mock_access.assert_called_once()
 
-    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
-                return_value=(['guest'], []))
+    @mock.patch('bodhi.server.models.Package.hascommitaccess',
+                return_value=True)
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
-    def test_validate_acls_pagure_exception(self, mock_gpcfp):
+    def test_validate_acls_pagure_exception(self, mock_access):
         """ Test validate_acls when the acl system is Pagure and an exception
         that isn't a RuntimeError is raised.
         """
         mock_request = self.get_mock_request()
-        mock_gpcfp.side_effect = ValueError('some error')
+        mock_access.side_effect = ValueError('some error')
         validators.validate_acls(mock_request)
         assert len(mock_request.errors) == 1
         expected_error = [{
@@ -271,7 +252,23 @@ class TestValidateAcls(BasePyTestCase):
                             'try again later.')
         }]
         assert mock_request.errors == expected_error
+        mock_access.assert_called_once()
+
+    @mock.patch('bodhi.server.models.Package.hascommitaccess',
+                return_value=True)
+    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
+                return_value=(['guest'], []))
+    @mock.patch('bodhi.server.models.log.warning')
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    def test_validate_acls_pagure_committers_exception(self, warning, mock_gpcfp, mock_access):
+        """ Test validate_acls when an Exception is raised on getting package committers."""
+        mock_request = self.get_mock_request()
+        mock_gpcfp.side_effect = ValueError('some error')
+        validators.validate_acls(mock_request)
+        assert len(mock_request.errors) == 0
+        mock_access.assert_called_once()
         mock_gpcfp.assert_called_once()
+        warning.called_once_with('Unable to retrieve committers list from Pagure for bodhi.')
 
     @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'dummy'})
     def test_validate_acls_dummy(self):
