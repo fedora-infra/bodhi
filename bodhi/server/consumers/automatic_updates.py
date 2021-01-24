@@ -161,16 +161,17 @@ class AutomaticUpdateHandler:
 {changelog}
 ```"""
 
-                for b in re.finditer(config.get('bz_regex'), changelog, re.IGNORECASE):
-                    idx = int(b.group(1))
-                    log.debug(f'Adding bug #{idx} to the update.')
-                    bug = Bug.get(idx)
-                    if bug is None:
-                        bug = Bug(bug_id=idx)
-                        dbsession.add(bug)
-                        dbsession.flush()
-                    if bug not in closing_bugs:
-                        closing_bugs.append(bug)
+                if rel.name not in config.get('bz_exclude_rels'):
+                    for b in re.finditer(config.get('bz_regex'), changelog, re.IGNORECASE):
+                        idx = int(b.group(1))
+                        log.debug(f'Adding bug #{idx} to the update.')
+                        bug = Bug.get(idx)
+                        if bug is None:
+                            bug = Bug(bug_id=idx)
+                            dbsession.add(bug)
+                            dbsession.flush()
+                        if bug not in closing_bugs:
+                            closing_bugs.append(bug)
             else:
                 notes = f"Automatic update for {bnvr}."
             update = Update(

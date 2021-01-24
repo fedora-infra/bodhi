@@ -2716,6 +2716,38 @@ class TestComposerThread_remove_pending_tags(ComposerThreadBaseTestCase):
         assert remove_tag.call_count == 2
         mocked_log.debug.assert_called_with("remove_pending_tags koji.multiCall result = %r", [])
 
+    @mock.patch('bodhi.server.models.Update.remove_tag')
+    @mock.patch('bodhi.server.tasks.composer.log')
+    @pytest.mark.parametrize('from_sidetag', (False, 'f33-side-tag'))
+    def test_with_request_stable(self, mocked_log, remove_tag, from_sidetag):
+        """
+        Assert that the method calls Update.remove_tag() only once for the pending_stable_tag
+        if the Update is not from side-tag, or twice for pending_stable_tag and side_tag
+        if the Update is from side-tag.
+        """
+        update = self.db.query(Update).first()
+        update.status = UpdateStatus.testing
+        update.request = UpdateRequest.stable
+        if from_sidetag:
+            update.from_tag = 'f33-side-tag'
+        self.db.flush()
+        # Clear pending messages
+        self.db.info['messages'] = []
+
+        mocked_log.debug = mock.MagicMock()
+        task = self._make_task()
+        t = ComposerThread(self.semmock, task['composes'][0],
+                           'bowlofeggs', self.Session, self.tempdir)
+        t.compose = Compose.from_dict(self.db, task['composes'][0])
+
+        t.remove_pending_tags()
+
+        if from_sidetag:
+            assert remove_tag.call_count == 2
+        else:
+            assert remove_tag.call_count == 1
+        mocked_log.debug.assert_called_with("remove_pending_tags koji.multiCall result = %r", [])
+
 
 class TestComposerThread_check_all_karma_thresholds(ComposerThreadBaseTestCase):
     """Test the ComposerThread.check_all_karma_thresholds() method."""

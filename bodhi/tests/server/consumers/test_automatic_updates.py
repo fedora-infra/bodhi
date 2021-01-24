@@ -150,6 +150,32 @@ class TestAutomaticUpdateHandler(base.BasePyTestCase):
         assert len(update.bugs) > 0
         assert update.bugs[0].bug_id == 112233
 
+    @mock.patch.dict(config, [('bz_exclude_rels', ['F17'])])
+    @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
+    def test_bug_not_added_excluded_release(self, mock_generate_changelog):
+        """Assert that a bug is not added for excluded release."""
+        changelog = ('* Sat Aug  3 2013 Fedora Releng <rel-eng@lists.fedoraproject.org> - 2\n'
+                     '- Added a free money feature.\n- Fix rhbz#112233.')
+
+        mock_generate_changelog.return_value = changelog
+
+        # process the message
+        self.handler(self.sample_message)
+
+        # check if the update exists...
+        update = self.db.query(Update).filter(
+            Update.builds.any(Build.nvr == self.sample_nvr)
+        ).first()
+
+        assert update.notes == f"""Automatic update for colord-1.3.4-1.fc26.
+
+##### **Changelog**
+
+```
+{changelog}
+```"""
+        assert len(update.bugs) == 0
+
     @mock.patch('bodhi.server.models.RpmBuild.get_changelog')
     def test_changelog_handled_exception(self, mock_generate_changelog):
         """Assert that update creation is succesful if get_changelog() raises ValueError."""

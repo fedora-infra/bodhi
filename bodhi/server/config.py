@@ -275,6 +275,9 @@ class BodhiConfig(dict):
         'buildsystem': {
             'value': 'dev',
             'validator': str},
+        'bz_exclude_rels': {
+            'value': [],
+            'validator': _generate_list_validator(',')},
         'bz_products': {
             'value': ['Fedora', 'Fedora EPEL', 'Fedora Modules'],
             'validator': _generate_list_validator(',')},
