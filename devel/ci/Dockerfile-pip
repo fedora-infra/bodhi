@@ -28,7 +28,8 @@ RUN pip-3 install -r /bodhi/requirements.txt
 RUN pip-3 install \
     alembic \
     cornice_sphinx \
-    diff-cover \
+# diff-cover 4.2.0 requires chardet 4.0.0, but koji requires chardet<4
+    "diff-cover<4.2.0" \
     flake8 \
     flake8-import-order \
     responses \
