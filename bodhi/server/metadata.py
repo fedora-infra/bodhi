@@ -238,7 +238,8 @@ class UpdateInfoMetadata(object):
         if update.date_modified:
             rec.updated_date = update.date_modified
         else:
-            rec.updated_date = datetime.utcnow()
+            # If there is no date_modified, use date_submitted (#4189)
+            rec.updated_date = update.date_submitted
 
         col = cr.UpdateCollection()
         col.name = update.release.long_name.encode('utf-8')

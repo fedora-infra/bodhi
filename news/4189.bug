@@ -1,0 +1,1 @@
+Avoid using datetime.utcnow() for the <updated_date> element of updateinfo metadata, use "date_submitted" instead.
