@@ -386,6 +386,7 @@ def save_release(request):
                     ).all()
                     for u in updates:
                         u.status = UpdateStatus.obsolete
+                        u.request = None
                         u.comment(
                             request.db,
                             'This update is marked obsolete because '

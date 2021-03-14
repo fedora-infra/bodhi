@@ -425,6 +425,7 @@ class TestReleasesService(base.BasePyTestCase):
         bodhi_update = self.db.query(Build).filter_by(
             nvr='bodhi-2.0-1.fc17').one().update
         assert bodhi_update.status == UpdateStatus.obsolete
+        assert bodhi_update.request == None
         # Check for the comment
         expected_comment = ('This update is marked obsolete because the F17 release '
                             'is archived.')
