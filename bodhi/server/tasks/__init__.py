@@ -70,23 +70,6 @@ def compose(api_version: int, **kwargs):
     composer.run(api_version=api_version, data=kwargs)
 
 
-@app.task(name="handle_update", ignore_result=True)
-def handle_update(api_version: int, **kwargs):
-    """Trigger the Updates handler.
-
-    All arguments besides the ``api_version`` will be transmitted to the task handler.
-
-    Args:
-        api_version: Version of the task API. Change it if the handling of the
-            arguments have changed in the task handler.
-    """
-    from .updates import UpdatesHandler  # Avoid an import loop
-    log.info("Received an update handling order")
-    _do_init()
-    handler = UpdatesHandler()
-    handler.run(api_version=api_version, data=kwargs)
-
-
 @app.task(name="approve_testing")
 def approve_testing_task(**kwargs):
     """Trigger the approve testing job. This is a periodic task."""
