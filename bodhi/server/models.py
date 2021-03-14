@@ -2184,11 +2184,16 @@ class Update(Base):
     def _greenwave_decision_context(self):
         # We retrieve updates going to testing (status=pending) and updates
         # (status=testing) going to stable.
-        # If the update is pending, we want to know if it can go to testing
+        # We also query on different contexts for critpath and non-critpath
+        # updates.
+        # this is correct if update is already in testing...
+        context = "bodhi_update_push_stable"
         if self.request == UpdateRequest.testing and self.status == UpdateStatus.pending:
-            return 'bodhi_update_push_testing'
-        # Update is already in testing, let's ask if it can go to stable
-        return 'bodhi_update_push_stable'
+            # ...but if it is pending, we want to know if it can go to testing
+            context = "bodhi_update_push_testing"
+        if self.critpath:
+            context = context + "_critpath"
+        return context
 
     def get_test_gating_info(self):
         """
