@@ -1122,15 +1122,7 @@ class Package(Base):
             RuntimeError: If Pagure did not give us a 200 code.
         """
         pagure_url = config.get('pagure_url')
-        # Pagure uses plural names for its namespaces such as "rpms" except for
-        # container. Flatpaks were moved from 'modules' to 'flatpaks' - hence
-        # a config setting.
-        if self.type == ContentType.container:
-            namespace = self.type.name
-        elif self.type == ContentType.flatpak:
-            namespace = config.get('pagure_flatpak_namespace')
-        else:
-            namespace = self.type.name + 's'
+        namespace = config.get('pagure_namespaces')[self.type.name]
         package_pagure_url = '{0}/api/0/{1}/{2}?expand_group=1'.format(
             pagure_url.rstrip('/'), namespace, self.external_name)
         package_json = pagure_api_get(package_pagure_url)
@@ -1153,6 +1145,30 @@ class Package(Base):
         # The first list contains usernames with commit access. The second list
         # contains FAS group names with commit access.
         return list(committers), list(groups)
+
+    def hascommitaccess(self, username: str, branchname: str) -> bool:
+        """
+        Check on Pagure if a user has commit access on the package/branch.
+
+        Raises:
+            RuntimeError: If Pagure did not give us a 200 code.
+        """
+        pagure_url = config.get('pagure_url')
+        namespace = config.get('pagure_namespaces')[self.type.name]
+        # Here we override the queried branchname because:
+        # - flatpaks only have one main branch
+        # - modules streams have no direct mapping to branch names
+        # The effect is that we cannot check collaborators rights for specific
+        # streams on modules, so we fall back to old Bodhi behavior
+        if self.type == ContentType.flatpak:
+            branchname = config.get('pagure_flatpak_main_branch')
+        elif self.type == ContentType.module:
+            branchname = config.get('pagure_module_main_branch')
+
+        pagure_query_url = (f'{pagure_url.rstrip("/")}/api/0/{namespace}/{self.external_name}'
+                            f'/hascommit?user={username}&branch={branchname}')
+        pagure_response = pagure_api_get(pagure_query_url)
+        return pagure_response['hascommit']
 
     @validates('builds')
     def validate_builds(self, key, build):

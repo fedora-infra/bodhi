@@ -398,8 +398,6 @@ def validate_acls(request, **kwargs):
     user = User.get(request.user.name)
     user_groups = [group.name for group in user.groups]
     acl_system = config.get('acl_system')
-    committers = []
-    groups = []
 
     # There are two different code-paths that could pass through this validator
     # One of them is for submitting something new with a list of builds (a new
@@ -502,12 +500,12 @@ def validate_acls(request, **kwargs):
             release = build.update.release
 
         # Now that we know the release and the package associated with this
-        # build, we can ask our ACL system about it..
+        # build, we can ask our ACL system about it.
         has_access = False
         if acl_system == 'pagure':
+            # Verify user's commit access
             try:
-                committers, groups = package.get_pkg_committers_from_pagure()
-                people = committers
+                has_access = package.hascommitaccess(user.name, release.branch)
             except RuntimeError as error:
                 # If it's a RuntimeError, then the error will be logged
                 # and we can return the error to the user as is
@@ -522,11 +520,22 @@ def validate_acls(request, **kwargs):
                              'Please try again later.')
                 request.errors.add('body', 'builds', error_msg)
                 return
+            people = [user.name]
+            if has_access:
+                # Retrieve people to be informed of the update
+                try:
+                    people = package.get_pkg_committers_from_pagure()[0]
+                except Exception:
+                    # This will simply mean no email will be posted to affected users
+                    # Just log it.
+                    log.warning(f'Unable to retrieve committers list from Pagure '
+                                f'for {package.name}.')
         elif acl_system == 'dummy':
             committers = ['ralph', 'bowlofeggs', 'guest']
             if config['acl_dummy_committer']:
                 committers.append(config['acl_dummy_committer'])
-            groups = ['guest']
+            if user.name in committers:
+                has_access = True
             people = committers
         else:
             log.warning('No acl_system configured')
@@ -534,18 +543,10 @@ def validate_acls(request, **kwargs):
 
         buildinfo['people'] = people
 
-        if user.name not in committers:
-            # Check if this user is in a group that has access to this package
-            for group in user_groups:
-                if group in groups:
-                    log.debug(f'{user.name} is in {group} group for {package.name}')
-                    has_access = True
-                    break
-
-            if not has_access:
-                request.errors.add('body', 'builds', "{} does not have commit "
-                                   "access to {}".format(user.name, package.name))
-                request.errors.status = 403
+        if not has_access:
+            request.errors.add('body', 'builds',
+                               f'{user.name} does not have commit access to {package.name}')
+            request.errors.status = 403
 
 
 @postschema_validator
