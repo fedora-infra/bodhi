@@ -16,7 +16,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from hashlib import sha256
 from os.path import join, exists, basename
 from unittest import mock
@@ -125,38 +125,28 @@ class TestAddUpdate(UpdateInfoMetadataTestCase):
         assert pkg.filename == 'TurboGears-1.0.2.2-2.fc17.noarch.rpm'
 
     def test_date_modified_none(self):
-        """The metadata should use utcnow() if an update's date_modified is None."""
-        test_start_time = datetime.utcnow()
-        # The UpdateRecord's updated_date attribute strips microseconds, so let's force them to 0
-        # so our assertions at the end of this test will pass.
-        test_start_time = test_start_time - timedelta(microseconds=test_start_time.microsecond)
+        """The metadata should use date_submitted if an update's date_modified is None."""
         update = self.db.query(Update).one()
         update.date_modified = None
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
                                 close_shelf=False)
-
         md.add_update(update)
-
         md.shelf.close()
+
         assert len(md.uinfo.updates) == 1
-        assert test_start_time <= md.uinfo.updates[0].updated_date <= datetime.utcnow()
+        assert md.uinfo.updates[0].updated_date == update.date_submitted
 
     def test_date_pushed_none(self):
-        """The metadata should use utcnow() if an update's date_pushed is None."""
-        test_start_time = datetime.utcnow()
-        # The UpdateRecord's updated_date attribute strips microseconds, so let's force them to 0
-        # so our assertions at the end of this test will pass.
-        test_start_time = test_start_time - timedelta(microseconds=test_start_time.microsecond)
+        """The metadata should use date_submitted if an update's date_pushed is None."""
         update = self.db.query(Update).one()
         update.date_pushed = None
         md = UpdateInfoMetadata(update.release, update.request, self.db, self.temprepo,
                                 close_shelf=False)
-
         md.add_update(update)
-
         md.shelf.close()
+
         assert len(md.uinfo.updates) == 1
-        assert test_start_time <= md.uinfo.updates[0].issued_date <= datetime.utcnow()
+        assert md.uinfo.updates[0].issued_date == update.date_submitted
 
     def test_rpm_with_arch(self):
         """Ensure that an RPM with a non 386 arch gets handled correctly."""
