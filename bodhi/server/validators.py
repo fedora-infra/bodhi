@@ -1386,11 +1386,8 @@ def validate_from_tag(request: pyramid.request.Request, **kwargs: dict):
                     b['nvr'] for b in koji_client.listTagged(koji_tag, latest=True)
                 ]
             except koji.GenericError as e:
-                if "invalid taginfo" in str(e).lower():
-                    request.errors.add('body', 'from_tag', "The supplied from_tag doesn't exist.")
-                else:
-                    raise BodhiException("Encountered error while requesting tagged builds from "
-                                         f"Koji: '{e}'") from e
+                raise BodhiException("Encountered error while requesting tagged builds from "
+                                     f"Koji: '{e}'") from e
             else:  # no Koji error, request.validated['builds'] was filled
                 if not request.validated['builds']:
                     request.errors.add('body', 'from_tag',
