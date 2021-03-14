@@ -361,6 +361,15 @@ class TestCanWaiveTestResults(base.BasePyTestCase):
         assert not util.can_waive_test_results(None, u)
 
 
+class TestCanTriggerTests(base.BasePyTestCase):
+    """Test the can_trigger_tests() function."""
+
+    @mock.patch.dict('bodhi.server.util.config', {'test_gating.required': True, })
+    def test_can_trigger(self):
+        u = Update.query.first()
+        assert util.can_trigger_tests(None, u)
+
+
 class TestPagesList:
     """Test the pages_list() function."""
 

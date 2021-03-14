@@ -1605,6 +1605,19 @@ class TestBuild(ModelTest):
             assert build.testcases[0].name == 'Fake test case'
             assert len(build.testcases) == 1
 
+    @mock.patch.dict(config, {'query_wiki_test_cases': False})
+    @mock.patch('bodhi.server.models.MediaWiki.call')
+    def test_wiki_test_cases_disabled(self, MediaWiki):
+        """Test not querying the wiki when option is disabled"""
+        MediaWiki = mock.Mock()
+        pkg = model.RpmPackage(name='gnome-shell')
+        self.db.add(pkg)
+        build = model.RpmBuild(nvr='gnome-shell-1.1.1-1.fc32', package=pkg)
+        self.db.add(build)
+        build.update_test_cases(self.db)
+        assert not MediaWiki.called
+        assert len(build.testcases) == 0
+
     @mock.patch.dict(config, {'query_wiki_test_cases': True})
     @mock.patch('bodhi.server.models.MediaWiki')
     def test_wiki_test_cases_recursive(self, MediaWiki):
