@@ -414,3 +414,30 @@ class TestValidateTLSURL:
 
         assert result == 'https://example.com'
         assert isinstance(result, str)
+
+
+class TestGenerateDictValidatorTests:
+    """Tests the _generate_dict_validator() function."""
+    def test_values_stripped(self):
+        """Test whitespaces are stripped from final keys - values."""
+        result = config._generate_dict_validator('key 1: value 1 , key 2 : value 2')
+        assert result == {'key 1': 'value 1', 'key 2': 'value 2'}
+
+    def test_with_dict(self):
+        """Test with a dict."""
+        result = config._generate_dict_validator({'key 1': 'value 1', 'key 2': 'value 2'})
+        assert result == {'key 1': 'value 1', 'key 2': 'value 2'}
+
+    def test_wrong_format(self):
+        """Test with values in wrong format."""
+        with pytest.raises(ValueError) as exc:
+            config._generate_dict_validator('key 1 value 1, key 2, value 2')
+
+        assert str(exc.value) == '"key 1 value 1, key 2, value 2" cannot be interpreted as a dict.'
+
+    def test_wrong_type(self):
+        """Test with a non string, non dict data type."""
+        with pytest.raises(ValueError) as exc:
+            config._generate_dict_validator(['lol', 'wut'])
+
+        assert str(exc.value) == '"[\'lol\', \'wut\']" cannot be interpreted as a dict.'
