@@ -1,0 +1,1 @@
+Updates which already had a comment that they can be pushed to stable were not automatically pushed to stable when the `stable_days` threshold was reached

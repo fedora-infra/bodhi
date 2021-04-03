@@ -65,12 +65,6 @@ def approve_update(update: Update, db: Session):
         # skip it
         log.info(f"{update.alias} doesn't have mandatory days in testing - bailing")
         return
-    # If this update was already commented, skip it
-    if update.has_stable_comment:
-        log.info(
-            f"{update.alias} has already the comment that it can be pushed to stable - "
-            "bailing")
-        return
     # If updates have reached the testing threshold, say something! Keep in mind
     # that we don't care about karma here, because autokarma updates get their request set
     # to stable by the Update.comment() workflow when they hit the required threshold. Thus,
@@ -83,6 +77,11 @@ def approve_update(update: Update, db: Session):
     # If the update is going to be pushed automatically to stable, do not
     # double comment that the maintainer can push it manually (#3846)
     if not update.autotime or update.days_in_testing < update.stable_days:
+        # If this update was already commented, skip it
+        if update.has_stable_comment:
+            log.info(f"{update.alias} has already the comment that it can be pushed to stable - "
+                     "bailing")
+            return
         # Only send email notification about the update reaching
         # testing approval on releases composed by bodhi
         update.comment(
@@ -91,9 +90,12 @@ def approve_update(update: Update, db: Session):
             author='bodhi',
             email_notification=update.release.composed_by_bodhi
         )
-    notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
-        dict(update=update)))
+        notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
+            dict(update=update)))
     if update.autotime and update.days_in_testing >= update.stable_days:
+        if not update.has_stable_comment:
+            notifications.publish(update_schemas.UpdateRequirementsMetStableV1.from_dict(
+                dict(update=update)))
         log.info(f"Automatically marking {update.alias} as stable")
         # For now only rawhide update can be created using side tag
         # Do not add the release.pending_stable_tag if the update
