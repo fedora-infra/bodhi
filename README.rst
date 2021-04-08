@@ -1,5 +1,5 @@
 =====
-Bodhi
+bodhi
 =====
 
 Welcome to Bodhi, Fedora's update gating system.
