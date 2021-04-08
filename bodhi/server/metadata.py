@@ -16,7 +16,6 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """Create metadata files when composing repositories."""
-from datetime import datetime
 import logging
 import os
 import shelve
@@ -233,12 +232,13 @@ class UpdateInfoMetadata(object):
             # Sometimes we only set the date_pushed after it's pushed out, however,
             # it seems that Satellite does not like update entries without issued_date.
             # Since we know that we are pushing it now, and the next push will get the data
-            # correctly, let's just insert utcnow().
-            rec.issued_date = datetime.utcnow()
+            # correctly, let's just insert "date submitted".
+            rec.issued_date = update.date_submitted
         if update.date_modified:
             rec.updated_date = update.date_modified
         else:
-            rec.updated_date = datetime.utcnow()
+            # Likewise, if there is no date_modified, use date_submitted
+            rec.updated_date = update.date_submitted
 
         col = cr.UpdateCollection()
         col.name = update.release.long_name.encode('utf-8')

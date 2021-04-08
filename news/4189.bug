@@ -1,0 +1,1 @@
+Avoid using datetime.utcnow() for updateinfo <updated_date> and <issued_date> elements, use "date_submitted" instead.
