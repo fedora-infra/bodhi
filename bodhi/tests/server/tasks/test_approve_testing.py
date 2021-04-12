@@ -502,7 +502,8 @@ class TestMain(BaseTaskTestCase):
         self.db.info['messages'] = []
         self.db.commit()
 
-        with fml_testing.mock_sends(api.Message, api.Message):
+        with fml_testing.mock_sends(update_schemas.UpdateRequirementsMetStableV1,
+                                    update_schemas.UpdateRequestStableV1):
             approve_testing_main()
 
         assert update.request == models.UpdateRequest.stable
@@ -895,3 +896,83 @@ class TestMain(BaseTaskTestCase):
         assert cmnts[0].text == "This update cannot be pushed to stable. "\
             "These builds bodhi-2.0-1.fc17 have a more recent build in koji's "\
             f"{update.release.stable_tag} tag."
+
+    def test_autotime_update_gets_pushed_dont_send_duplicated_notification(self):
+        """
+        Ensure not emitting UpdateRequirementsMetStable notification when an autotime update
+        gets pushed to stable if that was emitted before.
+
+        When an update reaches its mandatory_days_in_testing threshold, the
+        UpdateRequirementsMetStableV1 notification is sent along with a comment that informs
+        the maintainer they can manually push the update to stable. The update IS NOT
+        automatically pushed now.
+        Then, when the update reaches its stable_days threshold, it is automatically pushed,
+        but we don't want to emit UpdateRequirementsMetStable a second time.
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.autokarma = False
+        update.autotime = True
+        update.request = None
+        update.stable_karma = 10
+        update.stable_days = 10
+        update.date_testing = datetime.utcnow() - timedelta(days=7)
+        update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        assert not update.has_stable_comment
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequirementsMetStableV1):
+            approve_testing_main()
+
+        assert update.has_stable_comment
+        assert update.request == None
+        assert update.status == models.UpdateStatus.testing
+
+        update.date_testing = datetime.utcnow() - timedelta(days=10)
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequestStableV1):
+            approve_testing_main()
+
+        assert update.request == models.UpdateRequest.stable
+
+    def test_autotime_update_with_stable_comment_set_stable_on_branched(self):
+        """
+        Ensure update is pushed to stable on releases not composed by Bodhi if
+        the update already has a stable comment.
+        """
+        update = self.db.query(models.Update).all()[0]
+        update.autokarma = False
+        update.autotime = True
+        update.request = None
+        update.stable_karma = 10
+        update.stable_days = 10
+        update.release.composed_by_bodhi = False
+        update.date_testing = datetime.utcnow() - timedelta(days=7)
+        update.status = models.UpdateStatus.testing
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        assert not update.has_stable_comment
+
+        with fml_testing.mock_sends(update_schemas.UpdateRequirementsMetStableV1):
+            approve_testing_main()
+
+        assert update.has_stable_comment
+        assert update.request == None
+        assert update.status == models.UpdateStatus.testing
+
+        update.date_testing = datetime.utcnow() - timedelta(days=10)
+        # Clear pending messages
+        self.db.info['messages'] = []
+        self.db.commit()
+
+        # No further notifications emitted
+        approve_testing_main()
+
+        assert update.status == models.UpdateStatus.stable

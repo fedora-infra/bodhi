@@ -3820,8 +3820,7 @@ class Update(Base):
         """
         for comment in self.comments_since_karma_reset:
             if comment.user.name == 'bodhi' and \
-               comment.text.startswith('This update ') and \
-               'can be pushed to stable now if the maintainer wishes' in comment.text:
+               comment.text == config.get('testing_approval_msg'):
                 return True
         return False
 

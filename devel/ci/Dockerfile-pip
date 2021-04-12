@@ -29,6 +29,7 @@ RUN pip-3 install \
     alembic \
     cornice_sphinx \
     diff-cover \
+    "docutils<0.17" \
     flake8 \
     flake8-import-order \
     responses \
