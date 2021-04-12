@@ -24,24 +24,16 @@ pull_request_rules:
 - actions:
     backport:
       branches:
-      - '5.4'
-  conditions:
-  - label!=WIP
-  - label=5.4-backports
-  name: backport 5.4
-- actions:
-    backport:
-      branches:
-      - '5.5'
-  conditions:
-  - label!=WIP
-  - label=5.5-backports
-  name: backport 5.5
-- actions:
-    backport:
-      branches:
       - '5.6'
   conditions:
   - label!=WIP
   - label=5.6-backports
   name: backport 5.6
+- actions:
+    backport:
+      branches:
+      - '5.7'
+  conditions:
+  - label!=WIP
+  - label=5.7-backports
+  name: backport 5.7
