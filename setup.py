@@ -91,7 +91,7 @@ bodhi_setup = {
     'keywords': 'fedora',
     'packages': ['bodhi'],
     'include_package_data': True,
-    'install_requires': [],
+    'install_requires': ['setuptools'],
     'tests_require': [
         'requests',
         'flake8',
