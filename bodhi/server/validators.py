@@ -1200,12 +1200,12 @@ def validate_expiration_date(request, **kwargs):
         request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
-    expiration_date = request.validated.get('expiration_date')
+    expiration_date = request.validated.get('expiration_date').date()
 
     if expiration_date is None:
         return
 
-    now = datetime.utcnow()
+    now = datetime.utcnow().date()
 
     if expiration_date <= now:
         request.errors.add('body', 'expiration_date',
@@ -1218,8 +1218,6 @@ def validate_expiration_date(request, **kwargs):
         request.errors.add('body', 'expiration_date',
                            'Expiration date may not be longer than %i' % days)
         return
-
-    request.validated['expiration_date'] = expiration_date
 
 
 @postschema_validator
