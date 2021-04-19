@@ -1200,11 +1200,12 @@ def validate_expiration_date(request, **kwargs):
         request (pyramid.request.Request): The current request.
         kwargs (dict): The kwargs of the related service definition. Unused.
     """
-    expiration_date = request.validated.get('expiration_date').date()
+    expiration_date = request.validated.get('expiration_date')
 
     if expiration_date is None:
         return
 
+    expiration_date = expiration_date.date()
     now = datetime.utcnow().date()
 
     if expiration_date <= now:

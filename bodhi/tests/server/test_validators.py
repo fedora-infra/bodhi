@@ -447,7 +447,7 @@ class TestValidateExpirationDate(BasePyTestCase):
 
         assert request.errors == [
             {'location': 'body', 'name': 'expiration_date',
-             'description': 'Expiration date is higher than limit.'}
+             'description': 'Expiration date may not be longer than 31'}
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
