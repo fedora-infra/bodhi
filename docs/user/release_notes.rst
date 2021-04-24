@@ -4,6 +4,70 @@ Release notes
 
 .. towncrier release notes start
 
+v5.7.0
+======
+This is a feature release.
+
+
+Features
+^^^^^^^^
+
+* Query different Greenwave contexts for critical path updates, allowing for
+  stricter policies to apply (:pr:`4180`).
+* Use Pagure's `hascommit` new endpoint API to check user's rights to
+  create/edit updates. This allow collaborators to push updates for releases
+  for which they have commit access. (:pr:`4181`).
+
+Bug fixes
+^^^^^^^^^
+
+* Fixed an error about handling bugs in automatic updates (:pr:`4170`).
+* Side-tag wheren't emptied when updates for current releases were pushed to
+  stable (:pr:`4173`).
+* Bodhi will avoid sending both 'update can now be pushed' and 'update has been
+  pushed' notifications at the same time on updates pushed automatically
+  (:issue:`3846`).
+* Clear request status when release goes EOL (:issue:`4039`).
+* Allow bodhi to not operate automatically on bugs linked to in changelog for
+  specific releases (:issue:`4094`).
+* Use the release git branch name to query PDC for critpath components
+  (:issue:`4177`).
+* Avoid using datetime.utcnow() for updateinfo <updated_date> and <issued_date>
+  elements, use "date_submitted" instead. (:issue:`4189`).
+* Updates which already had a comment that they can be pushed to stable were
+  not automatically pushed to stable when the `stable_days` threshold was
+  reached (:issue:`4042`).
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Adam Saleh
+* Adam Williamson
+* Clement Verna
+* Daniel Alley
+* Mattia Verga
+* Andrea Misuraca
+
+
+v5.6.1
+======
+This is a bugfix release.
+
+
+Bug fixes
+^^^^^^^^^
+Fix two reflected XSS vulnerabilities - CVE: CVE-2020-15855
+
+
+Contributors
+^^^^^^^^^^^^
+
+The following developers contributed to this release of Bodhi:
+
+* Patrick Uiterwijk
+
 v5.6
 ====
 This is a feature release.
