@@ -348,6 +348,36 @@ class TestValidateAcls(BasePyTestCase):
         assert mock_request.errors == error
         mock_gpcfp.assert_not_called()
 
+    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
+                return_value=(['guest'], []))
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    def test_validate_acls_sidetag_update_can_view_edit_page(self, mock_gpcfp):
+        """Test that a user can display the edit form."""
+        mock_request = self.get_mock_request()
+        mock_request.validated['update'].from_tag = 'f33-build-side-0000'
+        validators.validate_acls(mock_request)
+        assert not len(mock_request.errors)
+        mock_gpcfp.assert_not_called()
+
+    @mock.patch('bodhi.server.models.Package.get_pkg_committers_from_pagure',
+                return_value=(['guest'], []))
+    @mock.patch.dict('bodhi.server.validators.config', {'acl_system': 'pagure'})
+    def test_validate_acls_sidetag_update_cannot_view_edit_page(self, mock_gpcfp):
+        """Test that a user can display the edit form."""
+        user = self.db.query(models.User).filter_by(id=2).one()
+        self.db.flush()
+        mock_request = self.get_mock_request()
+        mock_request.validated['update'].from_tag = 'f33-build-side-0000'
+        mock_request.validated['update'].user = user
+        validators.validate_acls(mock_request)
+        error = [{
+            'location': 'body',
+            'name': 'builds',
+            'description': 'guest does not own f33-build-side-0000 side-tag'
+        }]
+        assert mock_request.errors == error
+        mock_gpcfp.assert_not_called()
+
 
 class TestValidateBugFeedback(BasePyTestCase):
     """Test the validate_bug_feedback() function."""
