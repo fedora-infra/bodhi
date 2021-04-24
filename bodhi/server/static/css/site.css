@@ -67,6 +67,7 @@ hr {
     width: 70vw;
     right: 0;
     left: unset;
+    max-width: 1140px;
 }
 
 #bodhi-searchbar .typeahead__group {
