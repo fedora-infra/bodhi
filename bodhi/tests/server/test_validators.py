@@ -451,6 +451,7 @@ class TestValidateExpirationDate(BasePyTestCase):
         ]
         assert request.errors.status == exceptions.HTTPBadRequest.code
 
+
 class TestValidateOverrideNotes(BasePyTestCase):
     """Test the validate_override_notes() function."""
 
