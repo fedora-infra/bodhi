@@ -3997,7 +3997,7 @@ class Update(Base):
                 email_notification=notify,
             )
 
-    def _build_group_test_message(self):
+    def _build_group_test_message(self, agent="bodhi", retrigger=False):
         """
         Build the dictionary sent when an update is ready to be tested.
 
@@ -4007,7 +4007,11 @@ class Update(Base):
         by any CI system.
 
         Args:
-            target (Update): The update that has had a change to its status attribute.
+            agent (str): For the case where the message is sent as a test
+                re-trigger request, the user who requested it. Otherwise,
+                'bodhi'.
+            retrigger (bool): Whether the message is sent as a test re-
+                trigger request.
         Returns:
             dict: A dictionary corresponding to the message sent
         """
@@ -4041,8 +4045,8 @@ class Update(Base):
             "artifact": artifact,
             "generated_at": datetime.utcnow().isoformat() + 'Z',
             "version": "0.2.2",
-            'agent': 'bodhi',
-            're-trigger': False,
+            'agent': agent,
+            're-trigger': retrigger,
         }
 
     @staticmethod
