@@ -642,7 +642,7 @@ class UpdateReadyForTestingV1(BodhiMessage):
                 'type': 'string',
             },
             'agent': {
-                'description': 'Name of the person asking to re-trigger the tests.',
+                'description': 'Re-trigger request: name of requester, trigger on push: "bodhi".',
                 'type': 'string',
             },
         },
@@ -683,6 +683,10 @@ class UpdateReadyForTestingV1(BodhiMessage):
                 },
                 'required': ['type', 'id', 'issuer', 'component', 'nvr', 'scratch'],
             }
+        },
+        're-trigger': {
+            'type': 'bool',
+            'description': 'This flag is True if the message is sent to re-trigger tests'
         }
     }
 
