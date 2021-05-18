@@ -19,7 +19,7 @@
 
 from collections import defaultdict
 from copy import copy
-from datetime import datetime
+from datetime import datetime, timedelta
 from textwrap import wrap
 import hashlib
 import json
@@ -2211,6 +2211,44 @@ class Update(Base):
         }
         return util.greenwave_api_post(self._greenwave_api_url, data)
 
+    @property
+    def _greenwave_requirements_generator(self):
+        """
+        Query Greenwave about this update and return satisfied and unsatisfied requirements.
+
+        Returns:
+            generator: An iterable of 2-tuples of lists of requirement dicts from each request
+            batch: first tuple item satisfied requirements, second item unsatisfied requirements.
+            Either list or both may be empty.
+
+        Raises:
+            BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
+            RuntimeError: If Greenwave did not give us a 200 code, including if no applicable
+            policies were found.
+        """
+        for data in self.greenwave_request_batches(verbose=False):
+            response = util.greenwave_api_post(self._greenwave_api_url, data)
+            satisfied = response.get('satisfied_requirements', [])
+            unsatisfied = response.get('unsatisfied_requirements', [])
+            yield (satisfied, unsatisfied)
+
+    @property
+    def _unsatisfied_requirements(self):
+        """Query Greenwave about this update and return all unsatisfied requirements.
+
+        Returns:
+            list: A list of unsatisfied requirement dicts.
+
+        Raises:
+            BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
+            RuntimeError: If Greenwave did not give us a 200 code, including if no applicable
+            policies were found.
+        """
+        ret = []
+        for (_, unsatisfied) in self._greenwave_requirements_generator:
+            ret.extend(unsatisfied)
+        return ret
+
     def _get_test_gating_status(self):
         """
         Query Greenwave about this update and return the information retrieved.
@@ -2218,35 +2256,38 @@ class Update(Base):
         Returns:
             TestGatingStatus:
                 - TestGatingStatus.ignored if no tests are required
-                - TestGatingStatus.failed if policies are not satisfied
-                - TestGatingStatus.passed if policies are satisfied, and there
-                  are required tests
+                - TestGatingStatus.passed if there are required tests and policies are satisfied
+                - TestGatingStatus.waiting if there are required tests that have not yet completed,
+                  no required test has failed, and update was last modified less than 2 hours ago
+                - TestGatingStatus.failed otherwise (failed required tests, missing required
+                  test results and last modified more than 2 hours ago)
 
         Raises:
             BodhiException: When the ``greenwave_api_url`` is undefined in configuration.
-            RuntimeError: If Greenwave did not give us a 200 code.
+            RuntimeError: If Greenwave did not give us a 200 code, including if no applicable
+            policies were found.
         """
-        # If an unrestricted policy is applied and no tests are required
-        # on this update, let's set the test gating as ignored in Bodhi.
-        status = TestGatingStatus.ignored
-        for data in self.greenwave_request_batches(verbose=False):
-            response = util.greenwave_api_post(self._greenwave_api_url, data)
-            if not response['policies_satisfied']:
-                return TestGatingStatus.failed
+        gotsat = False
+        gotunsat = False
+        recent = datetime.utcnow() - self.last_modified < timedelta(hours=2)
+        for (satisfied, unsatisfied) in self._greenwave_requirements_generator:
+            if satisfied:
+                gotsat = True
+            if unsatisfied:
+                gotunsat = True
+                if not recent or not all(req.get('type', '') == 'test-result-missing'
+                                         for req in unsatisfied):
+                    return TestGatingStatus.failed
 
-            if status != TestGatingStatus.ignored or response['summary'] != 'no tests are required':
-                status = TestGatingStatus.passed
+        if not gotsat and not gotunsat:
+            return TestGatingStatus.ignored
 
-        return status
+        if gotsat and not gotunsat:
+            return TestGatingStatus.passed
 
-    @property
-    def _unsatisfied_requirements(self):
-        unsatisfied_requirements = []
-        for data in self.greenwave_request_batches(verbose=False):
-            response = util.greenwave_api_post(self._greenwave_api_url, data)
-            unsatisfied_requirements.extend(response['unsatisfied_requirements'])
-
-        return unsatisfied_requirements
+        # here, we have unsatisfied requirements but we never bailed early
+        # in the for loop, so they are all 'missing' and update was recently modified
+        return TestGatingStatus.waiting
 
     @property
     def install_command(self) -> str:

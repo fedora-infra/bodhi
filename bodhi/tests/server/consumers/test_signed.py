@@ -239,7 +239,22 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': True,
-                'summary': "all tests have passed"
+                'summary': "All required tests passed",
+                'applicable_policies': [
+                    'kojibuild_bodhipush_no_requirements',
+                    'kojibuild_bodhipush_remoterule',
+                    'bodhiupdate_bodhipush_no_requirements',
+                    'bodhiupdate_bodhipush_openqa'
+                ],
+                'satisfied_requirements': [
+                    {
+                        'result_id': 39603316,
+                        'subject_type': 'bodhi_update',
+                        'testcase': 'update.install_default_update_netinst',
+                        'type': 'test-result-passed'
+                    },
+                ],
+                'unsatisfied_requirements': []
             }
             mock_greenwave.return_value = greenwave_response
             with fml_testing.mock_sends(update_schemas.UpdateReadyForTestingV1):
@@ -276,7 +291,22 @@ class TestSignedHandlerConsume(base.BasePyTestCase):
         with mock.patch('bodhi.server.models.util.greenwave_api_post') as mock_greenwave:
             greenwave_response = {
                 'policies_satisfied': True,
-                'summary': "all tests have passed"
+                'summary': "All required tests passed",
+                'applicable_policies': [
+                    'kojibuild_bodhipush_no_requirements',
+                    'kojibuild_bodhipush_remoterule',
+                    'bodhiupdate_bodhipush_no_requirements',
+                    'bodhiupdate_bodhipush_openqa'
+                ],
+                'satisfied_requirements': [
+                    {
+                        'result_id': 39603316,
+                        'subject_type': 'bodhi_update',
+                        'testcase': 'update.install_default_update_netinst',
+                        'type': 'test-result-passed'
+                    },
+                ],
+                'unsatisfied_requirements': []
             }
             mock_greenwave.return_value = greenwave_response
             with fml_testing.mock_sends(update_schemas.UpdateRequestTestingV1):

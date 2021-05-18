@@ -5843,7 +5843,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 }
             ],
         }
@@ -5912,7 +5912,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 },
                 {
                     'item': {
@@ -5921,7 +5921,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 }
             ],
         }
@@ -6006,7 +6006,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 },
                 {
                     'item': {
@@ -6015,7 +6015,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 }
             ],
         }
@@ -6088,7 +6088,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 },
                 {
                     'item': {
@@ -6097,7 +6097,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 }
             ],
         }
@@ -6186,7 +6186,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'dist.rpmdeplint',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 },
                 {
                     'item': {
@@ -6195,7 +6195,7 @@ class TestWaiveTestResults(BasePyTestCase):
                     },
                     'scenario': None,
                     'testcase': 'atomic_ci_pipeline_results',
-                    'type': 'test-result-missing'
+                    'type': 'test-result-failed'
                 }
             ],
         }
