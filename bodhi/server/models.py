@@ -2373,12 +2373,17 @@ class Update(Base):
         log.debug(f"Triggering db commit for new update {up.alias}.")
         db.commit()
 
+        # track whether to set gating status shortly...
+        setgs = config.get('test_gating.required')
         # The request to testing for side-tag updates is set within the signed consumer
         if not data.get("from_tag"):
             log.debug(f"Setting request for new update {up.alias}.")
             up.set_request(db, req, request.user.name)
+            if req == UpdateRequest.testing:
+                # set_request will update gating status if necessary
+                setgs = False
 
-        if config.get('test_gating.required'):
+        if setgs:
             log.debug(
                 'Test gating required is enforced, marking the update as waiting on test gating')
             up.test_gating_status = TestGatingStatus.waiting
