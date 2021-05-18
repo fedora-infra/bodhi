@@ -1898,10 +1898,10 @@ class TestUpdateEdit(BasePyTestCase):
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-missing', 'scenario': None},
+                         'type': 'test-result-failed', 'scenario': None},
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-missing', 'scenario': None}]}
+                         'type': 'test-result-failed', 'scenario': None}]}
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -1928,10 +1928,10 @@ class TestUpdateEdit(BasePyTestCase):
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-missing', 'scenario': None},
+                         'type': 'test-result-failed', 'scenario': None},
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-missing', 'scenario': None}]}
+                         'type': 'test-result-failed', 'scenario': None}]}
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -1964,10 +1964,10 @@ class TestUpdateEdit(BasePyTestCase):
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-missing', 'scenario': None},
+                         'type': 'test-result-failed', 'scenario': None},
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-missing', 'scenario': None}]}
+                         'type': 'test-result-failed', 'scenario': None}]}
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -2000,10 +2000,10 @@ class TestUpdateEdit(BasePyTestCase):
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-missing', 'scenario': None},
+                         'type': 'test-result-failed', 'scenario': None},
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-missing', 'scenario': None}]}
+                         'type': 'test-result-failed', 'scenario': None}]}
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -2036,10 +2036,10 @@ class TestUpdateEdit(BasePyTestCase):
                     'unsatisfied_requirements': [
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                         'type': 'test-result-missing', 'scenario': None},
+                         'type': 'test-result-failed', 'scenario': None},
                         {'testcase': 'dist.rpmdeplint',
                          'item': {'item': update.alias, 'type': 'bodhi_update'},
-                         'type': 'test-result-missing', 'scenario': None}]}
+                         'type': 'test-result-failed', 'scenario': None}]}
                 mock_greenwave.return_value = greenwave_response
                 model.Update.edit(request, data)
 
@@ -3710,10 +3710,10 @@ class TestUpdate(ModelTest):
                 'unsatisfied_requirements': [
                     {'testcase': 'dist.rpmdeplint',
                      'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                     'type': 'test-result-missing', 'scenario': None},
+                     'type': 'test-result-failed', 'scenario': None},
                     {'testcase': 'dist.rpmdeplint',
                      'item': {'item': self.obj.alias, 'type': 'bodhi_update'},
-                     'type': 'test-result-missing', 'scenario': None}]}
+                     'type': 'test-result-failed', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
             with mock_sends(Message):
                 self.obj.set_request(self.db, UpdateRequest.testing, req.user.name)
@@ -3739,10 +3739,10 @@ class TestUpdate(ModelTest):
                 'unsatisfied_requirements': [
                     {'testcase': 'dist.rpmdeplint',
                      'item': {'item': 'bodhi-2.0-1.fc17', 'type': 'koji_build'},
-                     'type': 'test-result-missing', 'scenario': None},
+                     'type': 'test-result-failed', 'scenario': None},
                     {'testcase': 'dist.rpmdeplint',
                      'item': {'item': self.obj.alias, 'type': 'bodhi_update'},
-                     'type': 'test-result-missing', 'scenario': None}]}
+                     'type': 'test-result-failed', 'scenario': None}]}
             mock_greenwave.return_value = greenwave_response
             with mock_sends(Message):
                 self.obj.set_request(self.db, UpdateRequest.testing, req.user.name)
