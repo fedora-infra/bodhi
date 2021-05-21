@@ -830,7 +830,7 @@ class Release(Base):
     composed_by_bodhi = Column(Boolean, default=True)
     create_automatic_updates = Column(Boolean, default=False)
 
-    _version_int_regex = re.compile(r'\D+(\d+)[CMF]?$')
+    _version_int_regex = re.compile(r'\D+(\d+)[CMFN]?$')
 
     package_manager = Column(PackageManager.db_type(), default=PackageManager.unspecified)
     testing_repository = Column(UnicodeText, nullable=True)
