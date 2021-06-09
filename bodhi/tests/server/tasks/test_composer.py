@@ -3318,13 +3318,16 @@ class TestPungiComposerThread__wait_for_sync(ComposerThreadBaseTestCase):
         save.assert_called_once_with(ComposeState.syncing_repo)
 
 
-class TestComposerThread__mark_status_changes(ComposerThreadBaseTestCase):
+class TestComposerThread_mark_status_changes(ComposerThreadBaseTestCase):
     """Test the _mark_status_changes() method."""
-    def test_stable_update(self):
+    @pytest.mark.parametrize('from_side_tag', ('', 'f34-build-side-0000'))
+    @mock.patch('bodhi.server.buildsys.DevBuildsys.deleteTag')
+    def test_stable_update(self, delete_tag, from_side_tag):
         """Assert that a stable update gets the right status."""
         update = Update.query.one()
         update.status = UpdateStatus.testing
         update.request = UpdateRequest.stable
+        update.from_tag = from_side_tag
         # Clear pending messages
         self.db.info['messages'] = []
 
@@ -3344,6 +3347,10 @@ class TestComposerThread__mark_status_changes(ComposerThreadBaseTestCase):
         assert update.date_testing is None
         assert (now - update.date_pushed) < datetime.timedelta(seconds=5)
         assert update.pushed
+        if from_side_tag:
+            assert delete_tag.called_with('f34-build-side-0000')
+        else:
+            assert delete_tag.not_called()
 
     def test_testing_update(self):
         """Assert that a testing update gets the right status."""
