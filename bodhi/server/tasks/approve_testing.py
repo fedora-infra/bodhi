@@ -145,10 +145,15 @@ def approve_update(update: Update, db: Session):
                 update.remove_tag(pending_signing_tag)
                 update.remove_tag(testing_tag)
                 update.remove_tag(update.from_tag)
+                # Delete side-tag and its children after Update has enter stable
+                # We can't fully rely on Koji's auto-purge-when-empty because
+                # there may be older nvrs tagged in the side-tag
                 koji = buildsys.get_session()
+                koji.multicall = True
                 koji.deleteTag(pending_signing_tag)
                 koji.deleteTag(testing_tag)
-
+                koji.deleteTag(update.from_tag)
+                koji.multiCall()
             else:
                 # Single build update
                 update.remove_tag(update.release.pending_testing_tag)
