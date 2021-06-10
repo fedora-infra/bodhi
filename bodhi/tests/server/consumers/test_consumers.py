@@ -97,10 +97,21 @@ class TestConsumer:
         signed_handler.assert_called_once_with(msg)
         automatic_update_handler.assert_called_once_with(msg)
 
-    @mock.patch('bodhi.server.consumers.GreenwaveHandler')
-    def test_messaging_callback_greenwave(self, Handler):
+    @mock.patch('bodhi.server.consumers.ResultsdbHandler')
+    def test_messaging_callback_resultsdb(self, Handler):
         msg = Message(
-            topic="org.fedoraproject.prod.greenwave.decision.update",
+            topic="org.fedoraproject.prod.resultsdb.result.new",
+            body={}
+        )
+        handler = mock.Mock()
+        Handler.side_effect = lambda: handler
+        Consumer()(msg)
+        handler.assert_called_once_with(msg)
+
+    @mock.patch('bodhi.server.consumers.WaiverdbHandler')
+    def test_messaging_callback_waiverdb(self, Handler):
+        msg = Message(
+            topic="org.fedoraproject.prod.waiverdb.waiver.new",
             body={}
         )
         handler = mock.Mock()

@@ -30,8 +30,9 @@ from bodhi.server import bugs, buildsys, initialize_db
 from bodhi.server.config import config
 from bodhi.server.consumers.automatic_updates import AutomaticUpdateHandler
 from bodhi.server.consumers.signed import SignedHandler
-from bodhi.server.consumers.greenwave import GreenwaveHandler
 from bodhi.server.consumers.ci import CIHandler
+from bodhi.server.consumers.resultsdb import ResultsdbHandler
+from bodhi.server.consumers.waiverdb import WaiverdbHandler
 
 
 log = logging.getLogger('bodhi')
@@ -53,8 +54,9 @@ class Consumer:
         self.handler_infos = [
             HandlerInfo('.buildsys.tag', "Signed", SignedHandler()),
             HandlerInfo('.buildsys.tag', 'Automatic Update', AutomaticUpdateHandler()),
-            HandlerInfo('.greenwave.decision.update', 'Greenwave', GreenwaveHandler()),
-            HandlerInfo('.ci.koji-build.test.running', 'CI', CIHandler())
+            HandlerInfo('.ci.koji-build.test.running', 'CI', CIHandler()),
+            HandlerInfo('.waiverdb.waiver.new', 'WaiverDB', WaiverdbHandler()),
+            HandlerInfo('.resultsdb.result.new', 'ResultsDB', ResultsdbHandler()),
         ]
 
     def __call__(self, msg: fedora_messaging.api.Message):  # noqa: D401
