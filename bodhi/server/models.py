@@ -1749,8 +1749,6 @@ class RpmBuild(Build):
                     timelimit = oldh['changelogtime']
                     if isinstance(timelimit, list):
                         timelimit = timelimit[0]
-            else:
-                return ""
 
         str = ""
         i = 0
