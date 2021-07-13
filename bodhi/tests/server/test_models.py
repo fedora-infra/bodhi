@@ -3486,6 +3486,23 @@ class TestUpdate(ModelTest):
         assert self.obj.request is None
         assert self.obj.status == UpdateStatus.obsolete
 
+    @mock.patch.dict('bodhi.server.config.config', {'test_gating.required': True})
+    def test_check_karma_thresholds_gating_fail(self):
+        """check_karma_thresholds should no-op on an update that meets
+        the threshold but does not meet gating requirements.
+        """
+        self.obj.status = UpdateStatus.testing
+        self.obj.request = None
+        self.obj.autokarma = True
+        self.obj.comment(self.db, "foo", 1, 'biz')
+        self.obj.stable_karma = 1
+        self.obj.test_gating_status = TestGatingStatus.failed
+
+        self.obj.check_karma_thresholds(self.db, 'bowlofeggs')
+
+        assert self.obj.request is None
+        assert self.obj.status == UpdateStatus.testing
+
     def test_critpath_approved_no_release_requirements(self):
         """critpath_approved() should use the broad requirements if the release doesn't have any."""
         self.obj.critpath = True
